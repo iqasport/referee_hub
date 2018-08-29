@@ -1,11 +1,7 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Getting Started
 
-Things you may want to cover:
-
-* Getting Started
 It's highly recommended you use a ruby version manager during development of this app. The locked ruby version is '2.5.1'
 and is required to develop on the application.
 
