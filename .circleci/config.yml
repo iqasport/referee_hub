@@ -41,11 +41,6 @@ jobs:
       - run: bundle exec rake db:create
       - run: bundle exec rake db:schema:load
 
-      - run:
-          name: Rubocop
-          command: bundle exec rubocop --rails
-      # - run:
-
       # run tests!
       - run:
           name: run tests
@@ -53,11 +48,7 @@ jobs:
             mkdir /tmp/test-results
             TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
             
-            bundle exec rspec --format progress \
-                            --format RspecJunitFormatter \
-                            --out /tmp/test-results/rspec.xml \
-                            --format progress \
-                            $TEST_FILES
+            bundle exec rspec $TEST_FILES
 
       # collect reports
       - store_test_results:
