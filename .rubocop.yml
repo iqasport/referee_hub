@@ -1,0 +1,10 @@
+AllCops:
+  TargetRubyVersion: 2.5.1
+  DisplayCopNames: true
+  Exclude:
+    - 'db/**/*'
+    - 'script/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+    - '.gems/**/*'
