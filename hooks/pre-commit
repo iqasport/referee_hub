@@ -1,0 +1,8 @@
+#!/bin/bash
+
+CHANGED_RUBY_FILES=`git diff --cached --diff-filter=ACMRTUXB --name-only | grep '\.rb$'`
+if [[ $CHANGED_RUBY_FILES ]] && ! bundle exec rubocop -D --force-exclusion $CHANGED_RUBY_FILES; then
+  echo "\n[■_■] Rubocop is not happy. Please clean things up before committing (or use \"git commit --no-verify...\" to skip).\n" && exit 1
+fi
+
+exit 0
