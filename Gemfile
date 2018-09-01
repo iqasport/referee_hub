@@ -44,7 +44,7 @@ group :development, :test do
   gem 'annotate'
   gem 'factory_bot_rails', '~> 4.0'
   gem 'rspec-rails', '~> 3.7'
-  gem 'ffaker', '~> 1.32.1'
+  gem 'ffaker'
 end
 
 group :development do
