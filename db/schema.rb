@@ -10,10 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_09_01_172241) do
+ActiveRecord::Schema.define(version: 2018_09_01_201402) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "national_governing_bodies", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "website"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "referee_locations", force: :cascade do |t|
+    t.integer "referee_id", null: false
+    t.integer "national_governing_body_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["referee_id", "national_governing_body_id"], name: "index_referee_locations_on_referee_id_and_ngb_id", unique: true
+  end
 
   create_table "referees", force: :cascade do |t|
     t.string "email", default: "", null: false

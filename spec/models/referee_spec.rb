@@ -38,4 +38,17 @@ RSpec.describe Referee, type: :model do
     subject
     expect(referee.show_pronouns).to eq false
   end
+
+  context 'with an associated NGB' do
+    let(:ngb_1) { create :national_governing_body, name: 'United States' }
+    let(:ngb_2) { create :national_governing_body, name: 'France' }
+    let(:ngb_3) { create :national_governing_body, name: 'Australia' }
+
+    before { referee.national_governing_bodies << [ngb_1, ngb_2] }
+
+    it 'returns the correct ngbs' do
+      subject
+      expect(referee.national_governing_bodies.pluck(:id)).to include(ngb_1.id, ngb_2.id)
+    end
+  end
 end

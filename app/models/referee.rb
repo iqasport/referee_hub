@@ -27,7 +27,11 @@
 #  index_referees_on_reset_password_token  (reset_password_token) UNIQUE
 #
 
+# Referee is the core model of this application many of the attributes are used by Devise to authenticate the user.
 class Referee < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
+
+  has_many :referee_locations, dependent: :destroy
+  has_many :national_governing_bodies, through: :referee_locations
 end

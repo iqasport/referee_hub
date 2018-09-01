@@ -42,3 +42,6 @@ Style/ClassAndModuleChildren:
     - nested
     - compact
   Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
