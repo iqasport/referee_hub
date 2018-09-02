@@ -45,3 +45,6 @@ Style/ClassAndModuleChildren:
 
 Style/FrozenStringLiteralComment:
   Enabled: false
+
+Bundler/OrderedGems:
+  Enabled: false
