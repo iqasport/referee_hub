@@ -49,6 +49,9 @@ jobs:
             TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
             
             bundle exec rspec $TEST_FILES
+          test:
+            post:
+              - bash <(curl -s https://codecov.io/bash)
 
       # collect reports
       - store_test_results:
@@ -56,6 +59,3 @@ jobs:
       - store_artifacts:
           path: /tmp/test-results
           destination: test-results
-      - test:
-          post:
-            - bash <(curl -s https://codecov.io/bash)
