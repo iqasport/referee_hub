@@ -8,8 +8,8 @@ class CreateRefereeLocations < ActiveRecord::Migration[5.2]
     end
 
     add_index :referee_locations,
-      [:referee_id, :national_governing_body_id],
-      unique: true,
-      name: 'index_referee_locations_on_referee_id_and_ngb_id'
+              %i[referee_id national_governing_body_id],
+              unique: true,
+              name: 'index_referee_locations_on_referee_id_and_ngb_id'
   end
 end
