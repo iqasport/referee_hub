@@ -9,6 +9,7 @@ AllCops:
     - 'node_modules/**/*'
     - '.gems/**/*'
     - 'config/**/*'
+    - 'coverage/**/*'
 
 Rails:
   Enabled: true
@@ -48,3 +49,9 @@ Style/FrozenStringLiteralComment:
 
 Bundler/OrderedGems:
   Enabled: false
+
+Style/DateTime:
+  Enabled: false
+
+Metrics/AbcSize:
+  Max: 100

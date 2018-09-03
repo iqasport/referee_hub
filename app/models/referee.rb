@@ -34,4 +34,7 @@ class Referee < ApplicationRecord
 
   has_many :referee_locations, dependent: :destroy
   has_many :national_governing_bodies, through: :referee_locations
+
+  has_many :referee_certifications, dependent: :destroy
+  has_many :certifications, through: :referee_certifications
 end

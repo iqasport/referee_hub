@@ -45,6 +45,7 @@ group :development, :test do
   gem 'factory_bot_rails', '~> 4.0'
   gem 'rspec-rails', '~> 3.7'
   gem 'ffaker'
+  gem 'colored'
 end
 
 group :development do
