@@ -1,0 +1,57 @@
+AllCops:
+  TargetRubyVersion: 2.5.1
+  DisplayCopNames: true
+  Exclude:
+    - 'db/**/*'
+    - 'script/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+    - '.gems/**/*'
+    - 'config/**/*'
+    - 'coverage/**/*'
+
+Rails:
+  Enabled: true
+
+Metrics/MethodLength:
+  CountComments: false  # count full line comments?
+  Max: 15
+  Enabled: true
+
+Metrics/LineLength:
+  Max: 120
+
+Style/ClassAndModuleChildren:
+  # Checks the style of children definitions at classes and modules.
+  #
+  # Basically there are two different styles:
+  #
+  # `nested` - have each child on a separate line
+  #   class Foo
+  #     class Bar
+  #     end
+  #   end
+  #
+  # `compact` - combine definitions as much as possible
+  #   class Foo::Bar
+  #   end
+  #
+  # The compact style is only forced, for classes / modules with one child.
+  EnforcedStyle: nested
+  SupportedStyles:
+    - nested
+    - compact
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Style/DateTime:
+  Enabled: false
+
+Metrics/AbcSize:
+  Max: 100
