@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  resources :referees, only: %i[index show update]
+  namespace :api do
+    namespace :v1 do
+      resources :referees, only: %i[index show update]
+    end
+  end
 
   get 'home/index'
+  get 'referees', to: 'home#index'
 
   devise_for :referees, controllers: {
     sessions: 'referees/sessions',
