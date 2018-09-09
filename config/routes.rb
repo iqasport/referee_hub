@@ -9,6 +9,7 @@ Rails.application.routes.draw do
 
   get 'home/index'
   get 'referees', to: 'home#index'
+  get 'referees/:id', to: 'home#index'
 
   devise_for :referees, controllers: {
     sessions: 'referees/sessions',

@@ -5,7 +5,7 @@ class HomePage extends Component {
     this.props.history.push('/referees')
   }
 
-  render () {
+  render() {
     return (
       <div>
         <h1 onClick={this.handleClick}>Welcome to Refs-R-Us</h1>
