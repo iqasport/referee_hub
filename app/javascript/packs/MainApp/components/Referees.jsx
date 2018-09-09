@@ -6,27 +6,35 @@ class Referees extends Component {
     referees: []
   }
 
-  componentDidMount () {
+  componentDidMount() {
     axios.get('/api/v1/referees')
       .then(({ data }) => {
         this.setState({ referees: data.data })
       })
   }
 
+  handleRefClick = (itemId) => {
+    this.props.history.push(`/referees/${itemId}`)
+  }
+
   renderListItem = (item) => {
+    const { attributes, id } = item
+
     return (
       <li>
-        <h2>{item.attributes.email}</h2>
+        <h2 onClick={() => this.handleRefClick(id)}>{attributes.email}</h2>
       </li>
     )
   }
 
-  render () {
+  render() {
+    const { referees } = this.state
+
     return (
       <div>
         <h1>Referee List View</h1>
         <ul>
-          {this.state.referees.map(this.renderListItem)}
+          {referees.map(this.renderListItem)}
         </ul>
       </div>
     )
