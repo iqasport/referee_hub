@@ -1,18 +1,23 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import axios from 'axios'
 
 class RefereeProfile extends Component {
+  static propTypes = {
+    match: PropTypes.shape({
+      params: PropTypes.object
+    }).isRequired
+  }
+
   state = {
     firstName: '',
     lastName: '',
     bio: '',
-    showPronouns: null,
-    pronouns: '',
     email: ''
   }
 
   componentDidMount() {
-    const { params } = this.props.match
+    const { match: { params } } = this.props
 
     axios.get(`/api/v1/referees/${params.id}`)
       .then(({ data }) => {
@@ -21,15 +26,18 @@ class RefereeProfile extends Component {
           firstName: attributes.first_name,
           lastName: attributes.last_name,
           bio: attributes.bio,
-          showPronouns: attributes.show_pronouns,
-          pronouns: attributes.pronouns,
           email: attributes.email
         })
       })
   }
 
   render() {
-    const { firstName, lastName, bio, email } = this.state
+    const {
+      firstName,
+      lastName,
+      bio,
+      email
+    } = this.state
 
     return (
       <div>
