@@ -1,7 +1,14 @@
 import React, { Component } from 'react'
-import axios from 'axios';
+import PropTypes from 'prop-types'
+import axios from 'axios'
 
 class Referees extends Component {
+  static propTypes = {
+    history: PropTypes.shape({
+      push: PropTypes.func
+    }).isRequired
+  }
+
   state = {
     referees: []
   }
@@ -14,7 +21,8 @@ class Referees extends Component {
   }
 
   handleRefClick = (itemId) => {
-    this.props.history.push(`/referees/${itemId}`)
+    const { history } = this.props
+    history.push(`/referees/${itemId}`)
   }
 
   renderListItem = (item) => {
@@ -22,7 +30,10 @@ class Referees extends Component {
 
     return (
       <li>
-        <h2 onClick={() => this.handleRefClick(id)}>{attributes.email}</h2>
+        <h2>
+          {attributes.email}
+          <button type="button" onClick={() => this.handleRefClick(id)}>View Ref</button>
+        </h2>
       </li>
     )
   }
