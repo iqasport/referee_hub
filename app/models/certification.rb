@@ -15,6 +15,7 @@
 
 # A fairly plain data model that associates a referee to a level of certification through referee_certifications
 class Certification < ApplicationRecord
+  has_many :tests, dependent: :destroy
   has_many :referee_certifications, dependent: :destroy
   has_many :referees, through: :referee_certifications
 

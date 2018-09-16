@@ -16,4 +16,6 @@
 #
 
 class Link < ApplicationRecord
+  belongs_to :test
+  has_many :test_results, dependent: :destroy
 end
