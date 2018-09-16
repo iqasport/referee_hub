@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_09_02_232317) do
+ActiveRecord::Schema.define(version: 2018_09_16_165750) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,6 +21,16 @@ ActiveRecord::Schema.define(version: 2018_09_02_232317) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["level"], name: "index_certifications_on_level", unique: true
+  end
+
+  create_table "links", force: :cascade do |t|
+    t.integer "cm_link_id"
+    t.string "name"
+    t.string "cm_link_url_id"
+    t.integer "test_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cm_link_id"], name: "index_links_on_cm_link_id", unique: true
   end
 
   create_table "national_governing_bodies", force: :cascade do |t|
@@ -69,6 +79,35 @@ ActiveRecord::Schema.define(version: 2018_09_02_232317) do
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_referees_on_email", unique: true
     t.index ["reset_password_token"], name: "index_referees_on_reset_password_token", unique: true
+  end
+
+  create_table "test_results", force: :cascade do |t|
+    t.integer "cm_link_result_id"
+    t.integer "referee_id", null: false
+    t.time "time_started"
+    t.time "time_finished"
+    t.string "duration"
+    t.integer "percentage"
+    t.integer "points_scored"
+    t.integer "points_available"
+    t.boolean "passed"
+    t.string "certificate_url"
+    t.integer "minimum_pass_percentage"
+    t.integer "link_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["referee_id"], name: "index_test_results_on_referee_id"
+  end
+
+  create_table "tests", force: :cascade do |t|
+    t.integer "level", default: 0
+    t.integer "cm_test_id"
+    t.string "name"
+    t.integer "certification_id"
+    t.integer "link_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cm_test_id"], name: "index_tests_on_cm_test_id", unique: true
   end
 
 end
