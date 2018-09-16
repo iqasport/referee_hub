@@ -3,7 +3,7 @@
 # Table name: tests
 #
 #  id               :bigint(8)        not null, primary key
-#  level            :integer          default(0)
+#  level            :integer          default("snitch")
 #  name             :string
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null

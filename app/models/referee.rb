@@ -37,4 +37,7 @@ class Referee < ApplicationRecord
 
   has_many :referee_certifications, dependent: :destroy
   has_many :certifications, through: :referee_certifications
+
+  has_many :test_results, dependent: :destroy
+  has_many :test_attempts, dependent: :destroy
 end
