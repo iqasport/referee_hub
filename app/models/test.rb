@@ -18,7 +18,7 @@
 
 class Test < ApplicationRecord
   has_one :link, dependent: :destroy
-  belongs_to :certifications
+  belongs_to :certification
 
   before_save :connect_to_certification, if: :level_changed?
 

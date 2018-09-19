@@ -16,10 +16,12 @@
 #  index_tests_on_cm_test_id  (cm_test_id) UNIQUE
 #
 
+require 'ffaker'
+
 FactoryBot.define do
   factory :test do
-    type 1
-    cm_test_id 1
-    name "MyString"
+    level 0
+    name { "#{FFaker::Job.title} Test" }
+    certification { create :certification, :snitch }
   end
 end

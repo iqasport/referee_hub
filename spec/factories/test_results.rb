@@ -25,16 +25,22 @@
 
 FactoryBot.define do
   factory :test_result do
-    cm_link_result_id 1
-    user_id 1
-    time_started "2018-09-16 12:57:50"
-    time_finished "2018-09-16 12:57:50"
-    duration "MyString"
-    percentage 1
-    points_scored 1
-    points_available 1
-    passed false
-    certificate_url "MyString"
-    minimum_pass_percentage 1
+    referee { create :referee }
+    link { create :link }
+    time_started { Time.zone.now }
+    time_finished { Time.zone.now + 1.hour }
+    percentage 70
+    points_scored 2
+    points_available 3
+    passed true
+    minimum_pass_percentage 70
+
+    trait :failed do
+      passed false
+      percentage 30
+      points_scored 1
+      points_available 3
+      minimum_pass_percentage 70
+    end
   end
 end

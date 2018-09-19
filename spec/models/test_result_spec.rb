@@ -26,5 +26,54 @@
 require 'rails_helper'
 
 RSpec.describe TestResult, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  let(:referee) { create :referee }
+  let(:test_result) { build :test_result, referee: referee }
+
+  subject { test_result.save! }
+
+  context 'when passed has changed' do
+    context 'and passed is true' do
+      context "when a ref certification doesn't exist" do
+        it 'creates a referee certification' do
+          expect { subject }.to change { referee.certifications.count }.by(1)
+        end
+
+        it 'sets received_at on new creation' do
+          subject
+          expect(referee.reload.referee_certifications.last.received_at).to_not be_nil
+        end
+
+        it 'creates the certification at the appropriate level' do
+          subject
+          expect(referee.reload.certifications.last.level).to eq 'snitch'
+        end
+      end
+
+      context 'when a ref certification already exists' do
+        let!(:test) { create :test, level: :assistant }
+        let(:link) { create :link, test: test }
+        let(:test_result) { build :test_result, referee: referee, link: link }
+        let!(:existing_certification) { create :certification }
+        let!(:ref_cert) { create :referee_certification, referee: referee, certification: existing_certification }
+
+        it 'updates the existing certification' do
+          expect { subject }.to change { ref_cert.reload.renewed_at }.from(nil)
+        end
+      end
+    end
+
+    context 'and passed is false' do
+      context 'and a certification already exists' do
+        let!(:test) { create :test, level: :assistant }
+        let(:link) { create :link, test: test }
+        let(:test_result) { build :test_result, :failed, referee: referee, link: link }
+        let!(:existing_certification) { create :certification }
+        let!(:ref_cert) { create :referee_certification, referee: referee, certification: existing_certification }
+
+        it 'updates the existing certification' do
+          expect { subject }.to change { ref_cert.reload.revoked_at }.from(nil)
+        end
+      end
+    end
+  end
 end
