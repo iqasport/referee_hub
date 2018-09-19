@@ -15,10 +15,11 @@
 #  index_links_on_cm_link_id  (cm_link_id) UNIQUE
 #
 
+require 'ffaker'
+
 FactoryBot.define do
   factory :link do
-    cm_link_id 1
-    name "MyString"
-    cm_link_url_id "MyString"
+    name { "#{FFaker::Job.title} Test" }
+    test { create :test }
   end
 end

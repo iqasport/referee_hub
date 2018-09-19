@@ -25,15 +25,15 @@
 
 class TestResult < ApplicationRecord
   belongs_to :referee
-  has_one :link, dependent: :destroy
+  belongs_to :link, dependent: :destroy
 
-  after_create :update_referee_certification_status, if: :passed_changed?
+  after_create :update_referee_certification_status
 
   private
 
   def update_referee_certification_status
     cert_level = link.test.level
-    certification = Certification.find(level: cert_level)
+    certification = Certification.find_by(level: cert_level)
 
     if passed
       ref_certification = RefereeCertification.find_or_create_by!(certification: certification, referee: referee)
