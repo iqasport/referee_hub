@@ -11,19 +11,23 @@ and is required to develop on the application.
 * System dependencies
   - ruby 2.5.1
   - bundler
+  - yarn
   - postgresql
   - foreman
 
+* Tips in case of missing system dependencies
   - install ruby through either [RVM](https://rvm.io/) or [RBENV](https://github.com/rbenv/rbenv)
   - install postgresql through brew `brew install postgresql`
-  - install foreman - `gem install foreman`
+  - install yarn `brew install yarn`
+  - install foreman `gem install foreman`
+  - install bundler `gem install bundler`
 
-* Configuration
-  - After you've cloned the repo and installed ruby, run `bundle install` in the root folder `referee_hub/`.
+* Setup and running
+  - After you've cloned the repo and installed ruby, run in the root folder `referee_hub/`:
+    - `bundle install` to install ruby gem dependencies
+    - `yarn install` to install javascript dependencies
+    - `rails db:setup` to create the backend database (postgresql must be running)
   - To run the application enter `foreman start -f Procfile.dev -p 3000` in your terminal.
-
-* Database creation
-  - To get the backend running you'll need to run `rails db:setup`
 
 * How to run the test suite
   - Backend specs can be run like: `be rspec spec/models/referee_spec.rb`
