@@ -22,7 +22,7 @@ class Test < ApplicationRecord
   has_one :link, dependent: :destroy
   belongs_to :certification
 
-  before_validation :connect_to_certification
+  before_save :connect_to_certification
 
   enum level: {
     snitch: 0,
@@ -31,8 +31,10 @@ class Test < ApplicationRecord
   }
 
   def connect_to_certification
-    connected_cert = Certification.find_by level: level
+    correct_cert = Certification.find_by level: level
+    current_cert = Certification.find_by id: certification_id
+    return unless correct_cert.present? && current_cert.present?
 
-    self.certification_id = connected_cert.id if connected_cert.present?
+    self.certification_id = correct_cert.id if current_cert&.id != correct_cert&.id
   end
 end
