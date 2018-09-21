@@ -19,5 +19,14 @@
 require 'rails_helper'
 
 RSpec.describe Test, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  let!(:certification) { create :certification, :snitch }
+  let(:test) { build :test }
+
+  subject { test.save }
+
+  context 'when level has changed' do
+    it 'connects the correct certification' do
+      expect { subject }.to change { test.certification_id }.to(certification.id)
+    end
+  end
 end
