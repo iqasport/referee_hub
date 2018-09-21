@@ -22,6 +22,5 @@ FactoryBot.define do
   factory :test do
     level 0
     name { "#{FFaker::Job.title} Test" }
-    certification { create :certification, :snitch }
   end
 end

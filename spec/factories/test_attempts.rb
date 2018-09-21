@@ -13,9 +13,8 @@
 
 FactoryBot.define do
   factory :test_attempt do
-    test_id 1
-    referee_id 1
-    test_level 1
-    hours_until_next_attempt 1
+    test { create :test }
+    referee { create :referee }
+    test_level 0
   end
 end

@@ -16,11 +16,13 @@
 #  index_tests_on_cm_test_id  (cm_test_id) UNIQUE
 #
 
+# This model stores the test information sent by classmarker.
+# It connects to our certification model to ensure the test result gives referees the right certification.
 class Test < ApplicationRecord
   has_one :link, dependent: :destroy
   belongs_to :certification
 
-  before_save :connect_to_certification, if: :level_changed?
+  before_validation :connect_to_certification
 
   enum level: {
     snitch: 0,

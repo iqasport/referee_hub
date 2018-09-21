@@ -14,5 +14,37 @@
 require 'rails_helper'
 
 RSpec.describe TestAttempt, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  context 'when test_level has changed' do
+    let(:test_attempt) { build :test_attempt }
+
+    subject { test_attempt.save! }
+
+    before { Timecop.freeze(Time.now.utc) }
+
+    context 'when test_level is snitch' do
+      let(:expected_date) { Time.now.utc + 24.hours }
+
+      it 'sets the next_attempt_at 24 hours from current time' do
+        expect { subject }.to change { test_attempt.next_attempt_at }.to(expected_date)
+      end
+    end
+
+    context 'when test_level is assistant' do
+      let(:test_attempt) { build :test_attempt, test_level: :assistant }
+      let(:expected_date) { Time.now.utc + 24.hours }
+
+      it 'sets the next_attempt_at 24 hours from current time' do
+        expect { subject }.to change { test_attempt.next_attempt_at }.to(expected_date)
+      end
+    end
+
+    context 'when test_level is head' do
+      let(:test_attempt) { build :test_attempt, test_level: :head }
+      let(:expected_date) { Time.now.utc + 72.hours }
+
+      it 'sets the next_attempt_at 72 hours from current time' do
+        expect { subject }.to change { test_attempt.next_attempt_at }.to(expected_date)
+      end
+    end
+  end
 end
