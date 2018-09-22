@@ -25,32 +25,50 @@ class RefereeProfile extends Component {
     const { match: { params } } = this.props;
 
     axios.get(`/api/v1/referees/${params.id}`)
-      .then(({ status, statusText, data }) => {
-        const { data: { attributes }, included } = data;
-        const certifications = included
-          .filter(({ type }) => type === 'certification')
-          .map(certification => certification.attributes);
-        const nationalGoverningBodies = included
-          .filter(({ type }) => type === 'national_governing_body')
-          .map(nationalGoverningBody => nationalGoverningBody.attributes);
-        this.setState({
-          httpStatus: status,
-          httpStatusText: statusText,
-          firstName: attributes.first_name,
-          lastName: attributes.last_name,
-          bio: attributes.bio,
-          email: attributes.email,
-          pronouns: attributes.pronouns,
-          nationalGoverningBodies,
-          certifications
-        })
-      })
-      .catch(({ response: { status, statusText } }) => {
-        this.setState({
-          httpStatus: status,
-          httpStatusText: statusText
-        });
-      })
+      .then(this.setComponentStateFromBackendData)
+      .catch(this.setErrorStateFromBackendData)
+  }
+
+  setComponentStateFromBackendData({ status, statusText, data }) {
+    const { data: { attributes }, included } = data;
+    const certifications = included
+      .filter(({ type }) => type === 'certification')
+      .map(certification => certification.attributes);
+    const nationalGoverningBodies = included
+      .filter(({ type }) => type === 'national_governing_body')
+      .map(nationalGoverningBody => nationalGoverningBody.attributes);
+    this.setState({
+      httpStatus: status,
+      httpStatusText: statusText,
+      firstName: attributes.first_name,
+      lastName: attributes.last_name,
+      bio: attributes.bio,
+      email: attributes.email,
+      pronouns: attributes.pronouns,
+      nationalGoverningBodies,
+      certifications
+    })
+  }
+
+  setErrorStateFromBackendData({ response: { status, statusText } }) {
+    this.setState({
+      httpStatus: status,
+      httpStatusText: statusText
+    });
+  }
+
+  getNationalGoverningBodyJsx = nationalGoverningBody => (
+    <dd key={nationalGoverningBody.name}>
+      <a href={nationalGoverningBody.website}>
+        {nationalGoverningBody.name}
+      </a>
+    </dd>
+  );
+
+  hasPassedTest(level) {
+    const { certifications } = this.state;
+
+    return certifications.some(({ certificationLevel }) => certificationLevel === level)
   }
 
   render() {
@@ -62,8 +80,7 @@ class RefereeProfile extends Component {
       bio,
       email,
       pronouns,
-      nationalGoverningBodies,
-      certifications
+      nationalGoverningBodies
     } = this.state;
 
     if (httpStatus !== 200) {
@@ -98,15 +115,7 @@ class RefereeProfile extends Component {
             :
           </dt>
           {
-            nationalGoverningBodies
-              .map(
-                nationalGoverningBody => (
-                  <dd key={nationalGoverningBody.name}>
-                    <a href={nationalGoverningBody.website}>
-                      {nationalGoverningBody.name}
-                    </a>
-                  </dd>)
-              )
+            nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)
           }
           <dt>
             Email:
@@ -125,25 +134,25 @@ class RefereeProfile extends Component {
             Snitch Referee
           </dt>
           <dd>
-            {certifications.some(({ level }) => level === 'snitch') ? '✓' : '✗'}
+            {this.hasPassedTest('snitch') ? '✓' : '✗'}
           </dd>
           <dt>
             Assistant Referee
           </dt>
           <dd>
-            {certifications.some(({ level }) => level === 'assistant') ? '✓' : '✗'}
+            {this.hasPassedTest('assistant') ? '✓' : '✗'}
           </dd>
           <dt>
             Head Referee Written
           </dt>
           <dd>
-            {certifications.some(({ level }) => level === 'head') ? '✓' : '✗'}
+            {this.hasPassedTest('head') ? '✓' : '✗'}
           </dd>
           <dt>
             Head Referee Field
           </dt>
           <dd>
-            {certifications.some(({ level }) => level === 'field') ? '✓' : '✗'}
+            {this.hasPassedTest('field') ? '✓' : '✗'}
           </dd>
         </dl>
         <h2>
