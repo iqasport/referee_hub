@@ -10,6 +10,8 @@ class RefereeProfile extends Component {
   };
 
   state = {
+    httpStatus: 200,
+    httpStatusText: '',
     firstName: '',
     lastName: '',
     bio: '',
@@ -23,7 +25,8 @@ class RefereeProfile extends Component {
     const { match: { params } } = this.props;
 
     axios.get(`/api/v1/referees/${params.id}`)
-      .then(({ data: { data: { attributes }, included } }) => {
+      .then(({ status, statusText, data }) => {
+        const { data: { attributes }, included } = data;
         const certifications = included
           .filter(({ type }) => type === 'certification')
           .map(certification => certification.attributes);
@@ -31,6 +34,8 @@ class RefereeProfile extends Component {
           .filter(({ type }) => type === 'national_governing_body')
           .map(nationalGoverningBody => nationalGoverningBody.attributes);
         this.setState({
+          httpStatus: status,
+          httpStatusText: statusText,
           firstName: attributes.first_name,
           lastName: attributes.last_name,
           bio: attributes.bio,
@@ -40,10 +45,18 @@ class RefereeProfile extends Component {
           certifications
         })
       })
+      .catch(({ response: { status, statusText } }) => {
+        this.setState({
+          httpStatus: status,
+          httpStatusText: statusText
+        });
+      })
   }
 
   render() {
     const {
+      httpStatus,
+      httpStatusText,
       firstName,
       lastName,
       bio,
@@ -52,6 +65,10 @@ class RefereeProfile extends Component {
       nationalGoverningBodies,
       certifications
     } = this.state;
+
+    if (httpStatus !== 200) {
+      return <h1>{httpStatusText}</h1>
+    }
 
     return (
       <div>
