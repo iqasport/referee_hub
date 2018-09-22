@@ -67,18 +67,28 @@ class RefereeProfile extends Component {
     } = this.state;
 
     if (httpStatus !== 200) {
-      return <h1>{httpStatusText}</h1>
+      return (
+        <h1>
+          {httpStatusText}
+        </h1>
+      )
     }
 
     return (
       <div>
-        <h1>{`${firstName} ${lastName}`}</h1>
+        <h1>
+          {`${firstName} ${lastName}`}
+        </h1>
         <dl>
           {pronouns
             && (
               <Fragment>
-                <dt>Pronouns:</dt>
-                <dd>{pronouns}</dd>
+                <dt>
+                  Pronouns:
+                </dt>
+                <dd>
+                  {pronouns}
+                </dd>
               </Fragment>
             )
           }
@@ -98,24 +108,50 @@ class RefereeProfile extends Component {
                   </dd>)
               )
           }
-          <dt>Email:</dt>
+          <dt>
+            Email:
+          </dt>
           <dd>
-            <a href={`mailto:${email}`}>{email}</a>
+            <a href={`mailto:${email}`}>
+              {email}
+            </a>
           </dd>
         </dl>
-        <h2>Certifications</h2>
+        <h2>
+          Certifications
+        </h2>
         <dl>
-          <dt>Snitch Referee</dt>
-          <dd>{certifications.some(({ level }) => level === 'snitch') ? '✓' : '✗'}</dd>
-          <dt>Assistant Referee</dt>
-          <dd>{certifications.some(({ level }) => level === 'assistant') ? '✓' : '✗'}</dd>
-          <dt>Head Referee Written</dt>
-          <dd>{certifications.some(({ level }) => level === 'head') ? '✓' : '✗'}</dd>
-          <dt>Head Referee Field</dt>
-          <dd>{certifications.some(({ level }) => level === 'field') ? '✓' : '✗'}</dd>
+          <dt>
+            Snitch Referee
+          </dt>
+          <dd>
+            {certifications.some(({ level }) => level === 'snitch') ? '✓' : '✗'}
+          </dd>
+          <dt>
+            Assistant Referee
+          </dt>
+          <dd>
+            {certifications.some(({ level }) => level === 'assistant') ? '✓' : '✗'}
+          </dd>
+          <dt>
+            Head Referee Written
+          </dt>
+          <dd>
+            {certifications.some(({ level }) => level === 'head') ? '✓' : '✗'}
+          </dd>
+          <dt>
+            Head Referee Field
+          </dt>
+          <dd>
+            {certifications.some(({ level }) => level === 'field') ? '✓' : '✗'}
+          </dd>
         </dl>
-        <h2>Bio</h2>
-        <p>{bio}</p>
+        <h2>
+          Bio
+        </h2>
+        <p>
+          {bio}
+        </p>
       </div>
     )
   }
