@@ -14,7 +14,7 @@ module Api
       end
 
       def show
-        json_string = RefereeSerializer.new(@referee).serialized_json
+        json_string = RefereeSerializer.new(@referee, {include: [:national_governing_bodies, :certifications]}).serialized_json
 
         render json: json_string
       end
