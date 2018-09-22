@@ -4,7 +4,8 @@ class RefereeSerializer
   attributes :first_name,
              :last_name,
              :bio,
-             :email
+             :email,
+             :show_pronouns
 
   attribute :pronouns, if: proc { |referee|
     referee.show_pronouns

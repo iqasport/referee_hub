@@ -10,12 +10,13 @@ class RefereeProfile extends Component {
   };
 
   state = {
-    httpStatus: 200,
+    httpStatus: 0,
     httpStatusText: '',
     firstName: '',
     lastName: '',
     bio: '',
     email: '',
+    showPronouns: false,
     pronouns: '',
     nationalGoverningBodies: [],
     certifications: []
@@ -25,8 +26,8 @@ class RefereeProfile extends Component {
     const { match: { params } } = this.props;
 
     axios.get(`/api/v1/referees/${params.id}`)
-      .then(this.setComponentStateFromBackendData)
-      .catch(this.setErrorStateFromBackendData)
+      .then(this.setComponentStateFromBackendData.bind(this))
+      .catch(this.setErrorStateFromBackendData.bind(this))
   }
 
   setComponentStateFromBackendData({ status, statusText, data }) {
@@ -44,13 +45,19 @@ class RefereeProfile extends Component {
       lastName: attributes.last_name,
       bio: attributes.bio,
       email: attributes.email,
+      showPronouns: attributes.show_pronouns,
       pronouns: attributes.pronouns,
       nationalGoverningBodies,
       certifications
     })
   }
 
-  setErrorStateFromBackendData({ response: { status, statusText } }) {
+  setErrorStateFromBackendData(error) {
+    const { status, statusText } = error.response || {
+      status: 500,
+      statusText: 'Error'
+    };
+
     this.setState({
       httpStatus: status,
       httpStatusText: statusText
@@ -68,7 +75,7 @@ class RefereeProfile extends Component {
   hasPassedTest(level) {
     const { certifications } = this.state;
 
-    return certifications.some(({ certificationLevel }) => certificationLevel === level)
+    return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
   }
 
   render() {
@@ -79,9 +86,18 @@ class RefereeProfile extends Component {
       lastName,
       bio,
       email,
+      showPronouns,
       pronouns,
       nationalGoverningBodies
     } = this.state;
+
+    if (!httpStatus) {
+      return (
+        <h1>
+          Loading referee profile
+        </h1>
+      )
+    }
 
     if (httpStatus !== 200) {
       return (
@@ -97,7 +113,7 @@ class RefereeProfile extends Component {
           {`${firstName} ${lastName}`}
         </h1>
         <dl>
-          {pronouns
+          {showPronouns
             && (
               <Fragment>
                 <dt>
