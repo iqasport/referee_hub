@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :referees, only: %i[index show update]
+      resources :national_governing_bodies, only: %i[index show]
     end
   end
 

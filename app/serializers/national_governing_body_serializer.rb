@@ -1,6 +1,5 @@
 class NationalGoverningBodySerializer
   include FastJsonapi::ObjectSerializer
 
-  attributes :name,
-             :website
+  attributes :name, :website
 end
