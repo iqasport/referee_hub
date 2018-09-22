@@ -106,13 +106,13 @@ class RefereeProfile extends Component {
         <h2>Certifications</h2>
         <dl>
           <dt>Snitch Referee</dt>
-          <dd>{certifications.some(({ level }) => level === 'snitch') ? 'YES' : 'NO'}</dd>
+          <dd>{certifications.some(({ level }) => level === 'snitch') ? '✓' : '✗'}</dd>
           <dt>Assistant Referee</dt>
-          <dd>{certifications.some(({ level }) => level === 'assistant') ? 'YES' : 'NO'}</dd>
+          <dd>{certifications.some(({ level }) => level === 'assistant') ? '✓' : '✗'}</dd>
           <dt>Head Referee Written</dt>
-          <dd>{certifications.some(({ level }) => level === 'head') ? 'YES' : 'NO'}</dd>
+          <dd>{certifications.some(({ level }) => level === 'head') ? '✓' : '✗'}</dd>
           <dt>Head Referee Field</dt>
-          <dd>{certifications.some(({ level }) => level === 'field') ? 'YES' : 'NO'}</dd>
+          <dd>{certifications.some(({ level }) => level === 'field') ? '✓' : '✗'}</dd>
         </dl>
         <h2>Bio</h2>
         <p>{bio}</p>
