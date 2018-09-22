@@ -45,6 +45,32 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       expect(response_data[0]['attributes']['pronouns']).to eq referee.pronouns
       expect(response_data[0]['attributes']['show_pronouns']).to eq referee.show_pronouns
     end
+
+    context 'when the referee signed in is the same as the referee being returned' do
+      before { sign_in referee }
+
+      it 'returns is_editable as true' do
+        subject
+
+        response_data = Array.wrap(JSON.parse(response.body)['data'])
+
+        expect(response_data[0]['attributes']['is_editable']).to eq true
+      end
+    end
+
+    context 'when the referee signed in is different than the one being shown' do
+      let!(:other_ref) { create :referee }
+
+      before { sign_in other_ref }
+
+      it 'returns is_editable as false' do
+        subject
+
+        response_data = Array.wrap(JSON.parse(response.body)['data'])
+
+        expect(response_data[0]['attributes']['is_editable']).to eq false
+      end
+    end
   end
 
   describe 'POST #update' do

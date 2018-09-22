@@ -15,7 +15,12 @@ module Api
       end
 
       def show
-        json_string = RefereeSerializer.new(@referee, {include: [:national_governing_bodies, :certifications]}).serialized_json
+        serializer_options = {
+          include: [:national_governing_bodies, :certifications],
+          params: { current_user: current_referee }
+        }
+
+        json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -49,11 +54,11 @@ module Api
       end
 
       def find_referee
-        @referee = Referee.find(params.delete(:id))
+        @referee = Referee.find_by(id: params[:id])
       end
 
       def permitted_params
-        params.permit(:first_name, :last_name, :bio, :pronouns, :show_pronouns)
+        params.permit(:id, :first_name, :last_name, :bio, :pronouns, :show_pronouns)
       end
     end
   end

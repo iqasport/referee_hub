@@ -40,6 +40,11 @@ class RefereeSerializer
     referee.show_pronouns
   }
 
+  attribute :is_editable do |referee, params|
+    current_user = params.present? && params[:current_user]
+    current_user && current_user.id == referee.id
+  end
+
   has_many :national_governing_bodies
   has_many :certifications
 end
