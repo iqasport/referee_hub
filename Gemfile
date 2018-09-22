@@ -43,7 +43,7 @@ group :development, :test do
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
   gem 'annotate'
   gem 'factory_bot_rails', '~> 4.0'
-  gem 'rspec-rails', '~> 3.7'
+  gem 'rspec-rails', '~> 3.8'
   gem 'ffaker'
   gem 'colored'
 end
