@@ -3,6 +3,7 @@ module Api
     class RefereesController < ::ApplicationController
       before_action :authenticate_referee!, only: :update
       before_action :find_referee, only: %i[show update]
+      skip_before_action :verify_authenticity_token
 
       layout false
 
@@ -16,7 +17,7 @@ module Api
 
       def show
         serializer_options = {
-          include: [:national_governing_bodies, :certifications],
+          include: %i[national_governing_bodies certifications],
           params: { current_user: current_referee }
         }
 
@@ -30,7 +31,12 @@ module Api
         update_national_governing_bodies(national_governing_body_ids) if national_governing_body_ids.present?
 
         if @referee.update!(permitted_params)
-          json_string = RefereeSerializer.new(@referee).serialized_json
+          serializer_options = {
+            include: %i[national_governing_bodies certifications],
+            params: { current_user: current_referee }
+          }
+
+          json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
 
           render json: json_string, status: :ok
         else

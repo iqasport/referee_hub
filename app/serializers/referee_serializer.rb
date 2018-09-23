@@ -36,8 +36,9 @@ class RefereeSerializer
              :email,
              :show_pronouns
 
-  attribute :pronouns, if: proc { |referee|
-    referee.show_pronouns
+  attribute :pronouns, if: proc { |referee, params|
+    current_user = params.present? && params[:current_user]
+    referee.show_pronouns || current_user && current_user.id == referee.id
   }
 
   attribute :is_editable do |referee, params|
