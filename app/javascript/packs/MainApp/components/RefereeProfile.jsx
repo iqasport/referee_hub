@@ -21,17 +21,19 @@ class RefereeProfile extends Component {
     nationalGoverningBodies: [],
     certifications: [],
     isEditable: false,
-    edit: false
+    edit: false,
+    validationErrors: {},
+    availableNationalGoverningBodies: []
   };
 
   componentDidMount() {
     axios
-      .get(this.getApiRoute())
+      .get(this.getCurrentRefereeApiRoute())
       .then(this.setComponentStateFromBackendData.bind(this))
       .catch(this.setErrorStateFromBackendData.bind(this))
   }
 
-  getApiRoute() {
+  getCurrentRefereeApiRoute() {
     const { match: { params } } = this.props;
 
     return `/api/v1/referees/${params.id}`
@@ -44,7 +46,11 @@ class RefereeProfile extends Component {
       .map(certification => certification.attributes);
     const nationalGoverningBodies = included
       .filter(({ type }) => type === 'national_governing_body')
-      .map(nationalGoverningBody => nationalGoverningBody.attributes);
+      .map(nationalGoverningBody => ({
+        id: nationalGoverningBody.id,
+        name: nationalGoverningBody.attributes.name,
+        website: nationalGoverningBody.attributes.website
+      }));
     this.setState({
       httpStatus: status,
       httpStatusText: statusText,
@@ -80,6 +86,24 @@ class RefereeProfile extends Component {
     </dd>
   );
 
+  getEditableNationalGoverningBodyJsx(nationalGoverningBody) {
+    const { nationalGoverningBodies } = this.state;
+
+    return (
+      <dd key={nationalGoverningBody.id}>
+        <label htmlFor={`nationalGoverningBody[${nationalGoverningBody.id}]`}>
+          <input
+            id={`nationalGoverningBody[${nationalGoverningBody.id}]`}
+            type="checkbox"
+            checked={nationalGoverningBodies.some(ngb => ngb.id === nationalGoverningBody.id)}
+            onChange={this.changeNationalGoverningBodyCheckbox.bind(this, nationalGoverningBody.id)}
+          />
+          {nationalGoverningBody.name}
+        </label>
+      </dd>
+    )
+  }
+
   hasPassedTest(level) {
     const { certifications } = this.state;
 
@@ -87,6 +111,22 @@ class RefereeProfile extends Component {
   }
 
   startEditMode() {
+    const { availableNationalGoverningBodies } = this.state;
+
+    if (!availableNationalGoverningBodies.length) {
+      axios
+        .get('/api/v1/national_governing_bodies')
+        .then(({ data: { data } }) => {
+          this.setState({
+            availableNationalGoverningBodies: data.map(nationalGoverningBody => ({
+              id: nationalGoverningBody.id,
+              name: nationalGoverningBody.attributes.name,
+              website: nationalGoverningBody.attributes.website
+            }))
+          })
+        });
+    }
+
     this.setState({
       edit: true
     })
@@ -104,28 +144,76 @@ class RefereeProfile extends Component {
     })
   }
 
-  save() {
+  changeNationalGoverningBodyCheckbox(id, event) {
+    const { checked } = event.target;
+
+    this.setState((oldState) => {
+      const {
+        nationalGoverningBodies,
+        availableNationalGoverningBodies
+      } = oldState;
+
+      let newList = nationalGoverningBodies;
+      if (checked) {
+        nationalGoverningBodies.push(
+          availableNationalGoverningBodies.filter(
+            nationalGoverningBody => nationalGoverningBody.id === id
+          )[0]
+        )
+      } else {
+        newList = nationalGoverningBodies.filter(
+          nationalGoverningBody => nationalGoverningBody.id !== id
+        )
+      }
+
+      return {
+        nationalGoverningBodies: newList,
+        validationErrors: {
+          noNationalGoverningBody: !newList.length
+        }
+      }
+    })
+  }
+
+  save(event) {
+    event.preventDefault();
+
     const {
       firstName,
       lastName,
       bio,
       showPronouns,
-      pronouns
+      pronouns,
+      nationalGoverningBodies
     } = this.state;
 
+    if (!nationalGoverningBodies.length) {
+      this.setState({
+        validationErrors: {
+          noNationalGoverningBody: true
+        }
+      });
+
+      return
+    }
+
     axios
-      .patch(this.getApiRoute(), {
+      .patch(this.getCurrentRefereeApiRoute(), {
         first_name: firstName,
         last_name: lastName,
         bio,
         show_pronouns: showPronouns,
-        pronouns
+        pronouns,
+        national_governing_body_ids: nationalGoverningBodies.map(
+          nationalGoverningBody => Number(nationalGoverningBody.id)
+        )
       })
       .then(this.setComponentStateFromBackendData.bind(this))
       .catch(this.setErrorStateFromBackendData.bind(this));
 
     this.setState({
-      edit: false
+      edit: false,
+      validationErrors: {}
     })
   }
 
@@ -141,7 +229,9 @@ class RefereeProfile extends Component {
       pronouns,
       nationalGoverningBodies,
       isEditable,
-      edit
+      edit,
+      validationErrors,
+      availableNationalGoverningBodies
     } = this.state;
 
     if (!httpStatus) {
@@ -162,11 +252,23 @@ class RefereeProfile extends Component {
 
     if (edit) {
       return (
-        <form method="post">
+        <form method="patch" onSubmit={this.save.bind(this)}>
           <h1>
-            <input id="firstName" type="text" value={firstName} placeholder="First names" onChange={this.changeInput.bind(this)} />
+            <input
+              id="firstName"
+              type="text"
+              value={firstName}
+              placeholder="First names"
+              onChange={this.changeInput.bind(this)}
+            />
             {' '}
-            <input id="lastName" type="text" value={lastName} placeholder="Last name" onChange={this.changeInput.bind(this)} />
+            <input
+              id="lastName"
+              type="text"
+              value={lastName}
+              placeholder="Last name"
+              onChange={this.changeInput.bind(this)}
+            />
             {' (Wow, that’s you!)'}
           </h1>
           <dl>
@@ -174,21 +276,34 @@ class RefereeProfile extends Component {
               Pronouns:
             </dt>
             <dd>
-              <input id="pronouns" type="text" value={pronouns} placeholder="Your pronouns" onChange={this.changeInput.bind(this)} />
+              <input
+                id="pronouns"
+                type="text"
+                value={pronouns}
+                placeholder="Your pronouns"
+                onChange={this.changeInput.bind(this)}
+              />
               <label htmlFor="showPronouns">
-                <input id="showPronouns" type="checkbox" checked={showPronouns} onChange={this.changeCheckbox.bind(this)} />
+                <input
+                  id="showPronouns"
+                  type="checkbox"
+                  checked={showPronouns}
+                  onChange={this.changeCheckbox.bind(this)}
+                />
                 {' '}
                 Show my pronouns on my referee profile
               </label>
             </dd>
             <dt>
-              National Governing
-              {nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
-              :
+              National Governing Bodies:
+              {
+                validationErrors.noNationalGoverningBody
+                && ' [NOTE: You must have at least one national governing body!]'
+              }
             </dt>
-            {
-              nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)
-            }
+            {availableNationalGoverningBodies.map(
+              this.getEditableNationalGoverningBodyJsx.bind(this)
+            )}
             <dt>
               Email:
             </dt>
@@ -233,9 +348,14 @@ class RefereeProfile extends Component {
             Bio
           </h2>
           <p>
-            <textarea id="bio" value={bio} placeholder="Your bio" onChange={this.changeInput.bind(this)} />
+            <textarea
+              id="bio"
+              value={bio}
+              placeholder="Your bio"
+              onChange={this.changeInput.bind(this)}
+            />
           </p>
-          <button type="submit" onClick={this.save.bind(this)}>Save</button>
+          <button type="submit">Save</button>
         </form>
       )
     }
@@ -264,9 +384,7 @@ class RefereeProfile extends Component {
             {nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
             :
           </dt>
-          {
-            nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)
-          }
+          {nationalGoverningBodies.map(this.getNationalGoverningBodyJsx.bind(this))}
           <dt>
             Email:
           </dt>
