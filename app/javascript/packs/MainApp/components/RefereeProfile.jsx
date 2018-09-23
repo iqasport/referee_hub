@@ -147,6 +147,7 @@ class RefereeProfile extends Component {
               <input id="pronouns" type="text" value={pronouns} placeholder="Your pronouns" onChange={this.changeInput.bind(this)} />
               <label htmlFor="showPronouns">
                 <input id="showPronouns" type="checkbox" checked={showPronouns} onChange={this.changeCheckbox.bind(this)} />
+                {' '}
                 Show my pronouns on my referee profile
               </label>
             </dd>
@@ -162,7 +163,11 @@ class RefereeProfile extends Component {
               Email:
             </dt>
             <dd>
-              <input id="email" type="text" value={email} placeholder="Email address" onChange={this.changeInput.bind(this)} />
+              <a href={`mailto:${email}`}>
+                {email}
+              </a>
+              {' '}
+              (Please contact us if you need to change your email address.)
             </dd>
           </dl>
           <h2>
