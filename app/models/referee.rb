@@ -40,4 +40,19 @@ class Referee < ApplicationRecord
 
   has_many :test_results, dependent: :destroy
   has_many :test_attempts, dependent: :destroy
+
+  def self.filtered_search(params = {})
+    filter_params = params.delete(:filter_by)
+    search_query = params.delete(:q)
+    return Referee.all if filter_params.blank? && search_query.blank?
+
+    if filter_params.present?
+      # get certification level
+      # get ngb id
+    end
+
+    if search_query.present?
+      Referee.where('first_name LIKE :query OR last_name LIKE :query', query: "%#{search_query}%")
+    end
+  end
 end
