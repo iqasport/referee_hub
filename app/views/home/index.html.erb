@@ -1,6 +1,6 @@
 <h1>Signup for the Referee Hub</h1>
 <%= link_to 'Signup', referee_registration_path %>
-<%= link_to 'Sign Out', destroy_referee_session_path %>
+<%= link_to 'Sign Out', destroy_referee_session_path, method: :delete %>
 <%= link_to 'Login', new_referee_session_path %>
 
 <div id='main-app'></div>

@@ -18,7 +18,7 @@ Rails.application.routes.draw do
     get '/sign_up' => 'devise/registrations#new', as: :referee_registration
     get '/sign_in' => 'devise/sessions#new', as: :new_referee_session
     post '/sign_in' => 'devise/sessions#create', as: :referee_session
-    get '/sign_out' => 'devise/sessions#destroy', as: :destroy_referee_session
+    delete '/sign_out' => 'devise/sessions#destroy', as: :destroy_referee_session
     get '/password' => 'devise/passwords#new', as: :new_referee_password
     get '/password/edit' => 'devise/passwords#edit', as: :edit_referee_password
     patch '/password' => 'devise/passwords#update', as: :update_referee_password
