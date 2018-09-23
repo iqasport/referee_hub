@@ -8,7 +8,7 @@ module Api
       layout false
 
       def index
-        @referees = Referee.all
+        @referees = Referee.filtered_search(params)
 
         json_string = RefereeSerializer.new(@referees).serialized_json
 

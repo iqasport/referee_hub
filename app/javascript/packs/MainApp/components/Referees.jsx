@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
+import { Input } from 'semantic-ui-react'
 
 class Referees extends Component {
   static propTypes = {
@@ -38,12 +39,20 @@ class Referees extends Component {
     )
   }
 
+  handleSearchChange = (e, { value }) => {
+    axios.get('/api/v1/referees', { params: { q: value } })
+      .then(({ data }) => {
+        this.setState({ referees: data.data })
+      })
+  }
+
   render() {
     const { referees } = this.state
 
     return (
       <div>
         <h1>Referee List View</h1>
+        <Input placeholder="Search..." onChange={this.handleSearchChange} />
         <ul>
           {referees.map(this.renderListItem)}
         </ul>
