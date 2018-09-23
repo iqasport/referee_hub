@@ -19,7 +19,9 @@ class RefereeProfile extends Component {
     showPronouns: false,
     pronouns: '',
     nationalGoverningBodies: [],
-    certifications: []
+    certifications: [],
+    isEditable: false,
+    edit: false
   };
 
   componentDidMount() {
@@ -48,7 +50,8 @@ class RefereeProfile extends Component {
       showPronouns: attributes.show_pronouns,
       pronouns: attributes.pronouns,
       nationalGoverningBodies,
-      certifications
+      certifications,
+      isEditable: attributes.is_editable
     })
   }
 
@@ -78,6 +81,24 @@ class RefereeProfile extends Component {
     return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
   }
 
+  startEditMode() {
+    this.setState({
+      edit: true
+    })
+  }
+
+  changeInput(event) {
+    this.setState({
+      [event.target.id]: event.target.value
+    })
+  }
+
+  changeCheckbox(event) {
+    this.setState({
+      [event.target.id]: event.target.checked
+    })
+  }
+
   render() {
     const {
       httpStatus,
@@ -88,7 +109,9 @@ class RefereeProfile extends Component {
       email,
       showPronouns,
       pronouns,
-      nationalGoverningBodies
+      nationalGoverningBodies,
+      isEditable,
+      edit
     } = this.state;
 
     if (!httpStatus) {
@@ -107,10 +130,86 @@ class RefereeProfile extends Component {
       )
     }
 
+    if (edit) {
+      return (
+        <form method="post">
+          <h1>
+            <input id="firstName" type="text" value={firstName} placeholder="First names" onChange={this.changeInput.bind(this)} />
+            {' '}
+            <input id="lastName" type="text" value={lastName} placeholder="Last name" onChange={this.changeInput.bind(this)} />
+            {' (Wow, that’s you!)'}
+          </h1>
+          <dl>
+            <dt>
+              Pronouns:
+            </dt>
+            <dd>
+              <input id="pronouns" type="text" value={pronouns} placeholder="Your pronouns" onChange={this.changeInput.bind(this)} />
+              <label htmlFor="showPronouns">
+                <input id="showPronouns" type="checkbox" checked={showPronouns} onChange={this.changeCheckbox.bind(this)} />
+                Show my pronouns on my referee profile
+              </label>
+            </dd>
+            <dt>
+              National Governing
+              {nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
+              :
+            </dt>
+            {
+              nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)
+            }
+            <dt>
+              Email:
+            </dt>
+            <dd>
+              <input id="email" type="text" value={email} placeholder="Email address" onChange={this.changeInput.bind(this)} />
+            </dd>
+          </dl>
+          <h2>
+            Certifications
+          </h2>
+          <dl>
+            <dt>
+              Snitch Referee
+            </dt>
+            <dd>
+              {this.hasPassedTest('snitch') ? '✓' : '✗'}
+            </dd>
+            <dt>
+              Assistant Referee
+            </dt>
+            <dd>
+              {this.hasPassedTest('assistant') ? '✓' : '✗'}
+            </dd>
+            <dt>
+              Head Referee Written
+            </dt>
+            <dd>
+              {this.hasPassedTest('head') ? '✓' : '✗'}
+            </dd>
+            <dt>
+              Head Referee Field
+            </dt>
+            <dd>
+              {this.hasPassedTest('field') ? '✓' : '✗'}
+            </dd>
+          </dl>
+          <h2>
+            Bio
+          </h2>
+          <p>
+            <textarea id="bio" value={bio} placeholder="Your bio" onChange={this.changeInput.bind(this)} />
+          </p>
+          <button type="submit">Save</button>
+        </form>
+      )
+    }
+
     return (
-      <div>
+      <Fragment>
         <h1>
           {`${firstName} ${lastName}`}
+          {isEditable && ' (Wow, that’s you!)'}
         </h1>
         <dl>
           {showPronouns
@@ -177,7 +276,8 @@ class RefereeProfile extends Component {
         <p>
           {bio}
         </p>
-      </div>
+        {isEditable && <button type="button" onClick={this.startEditMode.bind(this)}>Edit</button>}
+      </Fragment>
     )
   }
 }
