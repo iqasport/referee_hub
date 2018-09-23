@@ -15,7 +15,7 @@ class HomePage extends Component {
 
   render() {
     return (
-      <div>
+      <div className="ui segment">
         <h1>Welcome to Refs-R-Us</h1>
         <button type="button" onClick={this.handleClick}>Go to Ref list</button>
       </div>
