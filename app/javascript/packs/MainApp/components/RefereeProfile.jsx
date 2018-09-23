@@ -25,11 +25,16 @@ class RefereeProfile extends Component {
   };
 
   componentDidMount() {
-    const { match: { params } } = this.props;
-
-    axios.get(`/api/v1/referees/${params.id}`)
+    axios
+      .get(this.getApiRoute())
       .then(this.setComponentStateFromBackendData.bind(this))
       .catch(this.setErrorStateFromBackendData.bind(this))
+  }
+
+  getApiRoute() {
+    const { match: { params } } = this.props;
+
+    return `/api/v1/referees/${params.id}`
   }
 
   setComponentStateFromBackendData({ status, statusText, data }) {
@@ -96,6 +101,31 @@ class RefereeProfile extends Component {
   changeCheckbox(event) {
     this.setState({
       [event.target.id]: event.target.checked
+    })
+  }
+
+  save() {
+    const {
+      firstName,
+      lastName,
+      bio,
+      showPronouns,
+      pronouns
+    } = this.state;
+
+    axios
+      .patch(this.getApiRoute(), {
+        first_name: firstName,
+        last_name: lastName,
+        bio,
+        show_pronouns: showPronouns,
+        pronouns
+      })
+      .then(this.setComponentStateFromBackendData.bind(this))
+      .catch(this.setErrorStateFromBackendData.bind(this));
+
+    this.setState({
+      edit: false
     })
   }
 
@@ -205,7 +235,7 @@ class RefereeProfile extends Component {
           <p>
             <textarea id="bio" value={bio} placeholder="Your bio" onChange={this.changeInput.bind(this)} />
           </p>
-          <button type="submit">Save</button>
+          <button type="submit" onClick={this.save.bind(this)}>Save</button>
         </form>
       )
     }
