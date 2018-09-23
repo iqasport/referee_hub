@@ -2,10 +2,13 @@
   <div class='ui container'>
     <% if referee_signed_in? %>
       <%= link_to 'Sign Out', destroy_referee_session_path, method: :delete, class: 'item' %>
+      <%= link_to 'View Profile', "/referees/#{current_referee.id}", class: 'item' %>
     <% else %>
       <%= link_to 'Signup', referee_registration_path, class: 'item' %>
       <%= link_to 'Login', new_referee_session_path, class: 'item' %>
     <% end %>
+
+    <%= link_to 'View All Referees', '/referees', class: 'item' %>
   </div>
 </div>
 <div id='main-app' class='ui main text container' style='margin-top: 50px;'></div>
