@@ -1,6 +1,8 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
+import { Button, Header } from 'semantic-ui-react'
+import RefereeProfileForm from './RefereeProfileEdit'
 
 class RefereeProfile extends Component {
   static propTypes = {
@@ -12,18 +14,18 @@ class RefereeProfile extends Component {
   state = {
     httpStatus: 0,
     httpStatusText: '',
-    firstName: '',
-    lastName: '',
-    bio: '',
-    email: '',
-    showPronouns: false,
-    pronouns: '',
-    nationalGoverningBodies: [],
-    certifications: [],
-    isEditable: false,
-    edit: false,
-    validationErrors: {},
-    availableNationalGoverningBodies: []
+    referee: {
+      firstName: '',
+      lastName: '',
+      bio: '',
+      email: '',
+      showPronouns: false,
+      pronouns: '',
+      nationalGoverningBodies: [],
+      certifications: [],
+      isEditable: false
+    },
+    edit: false
   };
 
   componentDidMount() {
@@ -54,15 +56,17 @@ class RefereeProfile extends Component {
     this.setState({
       httpStatus: status,
       httpStatusText: statusText,
-      firstName: attributes.first_name,
-      lastName: attributes.last_name,
-      bio: attributes.bio,
-      email: attributes.email,
-      showPronouns: attributes.show_pronouns,
-      pronouns: attributes.pronouns,
-      nationalGoverningBodies,
-      certifications,
-      isEditable: attributes.is_editable
+      referee: {
+        firstName: attributes.first_name,
+        lastName: attributes.last_name,
+        bio: attributes.bio,
+        email: attributes.email,
+        showPronouns: attributes.show_pronouns,
+        pronouns: attributes.pronouns,
+        nationalGoverningBodies,
+        certifications,
+        isEditable: attributes.is_editable
+      }
     })
   }
 
@@ -86,98 +90,13 @@ class RefereeProfile extends Component {
     </dd>
   );
 
-  getEditableNationalGoverningBodyJsx(nationalGoverningBody) {
-    const { nationalGoverningBodies } = this.state;
-
-    return (
-      <dd key={nationalGoverningBody.id}>
-        <label htmlFor={`nationalGoverningBody[${nationalGoverningBody.id}]`}>
-          <input
-            id={`nationalGoverningBody[${nationalGoverningBody.id}]`}
-            type="checkbox"
-            checked={nationalGoverningBodies.some(ngb => ngb.id === nationalGoverningBody.id)}
-            onChange={this.changeNationalGoverningBodyCheckbox.bind(this, nationalGoverningBody.id)}
-          />
-          {nationalGoverningBody.name}
-        </label>
-      </dd>
-    )
-  }
-
-  hasPassedTest(level) {
-    const { certifications } = this.state;
-
-    return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
-  }
-
-  startEditMode() {
-    const { availableNationalGoverningBodies } = this.state;
-
-    if (!availableNationalGoverningBodies.length) {
-      axios
-        .get('/api/v1/national_governing_bodies')
-        .then(({ data: { data } }) => {
-          this.setState({
-            availableNationalGoverningBodies: data.map(nationalGoverningBody => ({
-              id: nationalGoverningBody.id,
-              name: nationalGoverningBody.attributes.name,
-              website: nationalGoverningBody.attributes.website
-            }))
-          })
-        });
-    }
-
+  startEditMode = () => {
     this.setState({
       edit: true
     })
-  }
+  };
 
-  changeInput(event) {
-    this.setState({
-      [event.target.id]: event.target.value
-    })
-  }
-
-  changeCheckbox(event) {
-    this.setState({
-      [event.target.id]: event.target.checked
-    })
-  }
-
-  changeNationalGoverningBodyCheckbox(id, event) {
-    const { checked } = event.target;
-
-    this.setState((oldState) => {
-      const {
-        nationalGoverningBodies,
-        availableNationalGoverningBodies
-      } = oldState;
-
-      let newList = nationalGoverningBodies;
-      if (checked) {
-        nationalGoverningBodies.push(
-          availableNationalGoverningBodies.filter(
-            nationalGoverningBody => nationalGoverningBody.id === id
-          )[0]
-        )
-      } else {
-        newList = nationalGoverningBodies.filter(
-          nationalGoverningBody => nationalGoverningBody.id !== id
-        )
-      }
-
-      return {
-        nationalGoverningBodies: newList,
-        validationErrors: {
-          noNationalGoverningBody: !newList.length
-        }
-      }
-    })
-  }
-
-  save(event) {
-    event.preventDefault();
-
+  save = (referee) => {
     const {
       firstName,
       lastName,
@@ -185,17 +104,7 @@ class RefereeProfile extends Component {
       showPronouns,
       pronouns,
       nationalGoverningBodies
-    } = this.state;
-
-    if (!nationalGoverningBodies.length) {
-      this.setState({
-        validationErrors: {
-          noNationalGoverningBody: true
-        }
-      });
-
-      return
-    }
+    } = referee;
 
     axios
       .patch(this.getCurrentRefereeApiRoute(), {
@@ -209,29 +118,22 @@ class RefereeProfile extends Component {
         )
       })
       .then(this.setComponentStateFromBackendData.bind(this))
+      .then(() => this.setState({ edit: false }))
       .catch(this.setErrorStateFromBackendData.bind(this));
+  };
 
-    this.setState({
-      edit: false,
-      validationErrors: {}
-    })
+  hasPassedTest(level) {
+    const { referee: { certifications } } = this.state;
+
+    return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
   }
 
   render() {
     const {
       httpStatus,
       httpStatusText,
-      firstName,
-      lastName,
-      bio,
-      email,
-      showPronouns,
-      pronouns,
-      nationalGoverningBodies,
-      isEditable,
-      edit,
-      validationErrors,
-      availableNationalGoverningBodies
+      referee,
+      edit
     } = this.state;
 
     if (!httpStatus) {
@@ -251,146 +153,40 @@ class RefereeProfile extends Component {
     }
 
     if (edit) {
-      return (
-        <form method="patch" onSubmit={this.save.bind(this)}>
-          <h1>
-            <input
-              id="firstName"
-              type="text"
-              value={firstName}
-              placeholder="First names"
-              onChange={this.changeInput.bind(this)}
-            />
-            {' '}
-            <input
-              id="lastName"
-              type="text"
-              value={lastName}
-              placeholder="Last name"
-              onChange={this.changeInput.bind(this)}
-            />
-            {' (Wow, that’s you!)'}
-          </h1>
-          <dl>
-            <dt>
-              Pronouns:
-            </dt>
-            <dd>
-              <input
-                id="pronouns"
-                type="text"
-                value={pronouns}
-                placeholder="Your pronouns"
-                onChange={this.changeInput.bind(this)}
-              />
-              <label htmlFor="showPronouns">
-                <input
-                  id="showPronouns"
-                  type="checkbox"
-                  checked={showPronouns}
-                  onChange={this.changeCheckbox.bind(this)}
-                />
-                {' '}
-                Show my pronouns on my referee profile
-              </label>
-            </dd>
-            <dt>
-              National Governing Bodies:
-              {
-                validationErrors.noNationalGoverningBody
-                && ' [NOTE: You must have at least one national governing body!]'
-              }
-            </dt>
-            {availableNationalGoverningBodies.map(
-              this.getEditableNationalGoverningBodyJsx.bind(this)
-            )}
-            <dt>
-              Email:
-            </dt>
-            <dd>
-              <a href={`mailto:${email}`}>
-                {email}
-              </a>
-              {' '}
-              (Please contact us if you need to change your email address.)
-            </dd>
-          </dl>
-          <h2>
-            Certifications
-          </h2>
-          <dl>
-            <dt>
-              Snitch Referee
-            </dt>
-            <dd>
-              {this.hasPassedTest('snitch') ? '✓' : '✗'}
-            </dd>
-            <dt>
-              Assistant Referee
-            </dt>
-            <dd>
-              {this.hasPassedTest('assistant') ? '✓' : '✗'}
-            </dd>
-            <dt>
-              Head Referee Written
-            </dt>
-            <dd>
-              {this.hasPassedTest('head') ? '✓' : '✗'}
-            </dd>
-            <dt>
-              Head Referee Field
-            </dt>
-            <dd>
-              {this.hasPassedTest('field') ? '✓' : '✗'}
-            </dd>
-          </dl>
-          <h2>
-            Bio
-          </h2>
-          <p>
-            <textarea
-              id="bio"
-              value={bio}
-              placeholder="Your bio"
-              onChange={this.changeInput.bind(this)}
-            />
-          </p>
-          <button type="submit">Save</button>
-        </form>
-      )
+      return <RefereeProfileForm defaultValues={referee} onSubmit={this.save} />
     }
 
     return (
       <Fragment>
-        <h1>
-          {`${firstName} ${lastName}`}
-          {isEditable && ' (Wow, that’s you!)'}
-        </h1>
+        <Header as="h1">
+          {`${referee.firstName} ${referee.lastName}`}
+          {referee.isEditable && ' (Wow, that’s you!)'}
+        </Header>
         <dl>
-          {showPronouns
+          {referee.showPronouns
             && (
               <Fragment>
                 <dt>
                   Pronouns:
                 </dt>
                 <dd>
-                  {pronouns}
+                  {referee.pronouns}
                 </dd>
               </Fragment>
             )
           }
           <dt>
             National Governing
-            {nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
+            {referee.nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
             :
           </dt>
-          {nationalGoverningBodies.map(this.getNationalGoverningBodyJsx.bind(this))}
+          {referee.nationalGoverningBodies.map(this.getNationalGoverningBodyJsx.bind(this))}
           <dt>
             Email:
           </dt>
           <dd>
-            <a href={`mailto:${email}`}>
-              {email}
+            <a href={`mailto:${referee.email}`}>
+              {referee.email}
             </a>
           </dd>
         </dl>
@@ -423,13 +219,19 @@ class RefereeProfile extends Component {
             {this.hasPassedTest('field') ? '✓' : '✗'}
           </dd>
         </dl>
-        <h2>
+        <Header as="h2">
           Bio
-        </h2>
+        </Header>
         <p>
-          {bio}
+          {referee.bio}
         </p>
-        {isEditable && <button type="button" onClick={this.startEditMode.bind(this)}>Edit</button>}
+        {
+          referee.isEditable && (
+            <Button onClick={this.startEditMode}>
+              Edit
+            </Button>
+          )
+        }
       </Fragment>
     )
   }
