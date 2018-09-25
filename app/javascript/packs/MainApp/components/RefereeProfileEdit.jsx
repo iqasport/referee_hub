@@ -99,12 +99,12 @@ class RefereeProfileEdit extends Component {
         availableNationalGoverningBodies
       } = oldState;
 
-      let newList = nationalGoverningBodies;
+      let newList;
       if (checked) {
-        nationalGoverningBodies.push(
+        newList = nationalGoverningBodies.concat(
           availableNationalGoverningBodies.filter(
             nationalGoverningBody => nationalGoverningBody.id === id
-          )[0]
+          )
         )
       } else {
         newList = nationalGoverningBodies.filter(
