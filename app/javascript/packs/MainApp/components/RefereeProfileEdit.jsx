@@ -171,7 +171,12 @@ class RefereeProfileEdit extends Component {
     return (
       <Fragment>
         <Header as="h1">
-          {`${firstName} ${lastName}  (Wow, that’s you!)`}
+          {
+            (
+              (firstName || lastName)
+              && `${firstName} ${lastName}`
+            ) || 'Anonymous Referee'
+          }
         </Header>
         <Form error={validationErrors.noNationalGoverningBody} onSubmit={this.submit}>
           <Segment attached="top">
