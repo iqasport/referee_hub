@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { Button, Header } from 'semantic-ui-react'
+import { Button, Header, Message } from 'semantic-ui-react'
 import RefereeProfileForm from './RefereeProfileEdit'
 
 class RefereeProfile extends Component {
@@ -159,9 +159,36 @@ class RefereeProfile extends Component {
     return (
       <Fragment>
         <Header as="h1">
-          {`${referee.firstName} ${referee.lastName}`}
-          {referee.isEditable && ' (Wow, that’s you!)'}
+          {
+            (
+              (referee.firstName || referee.lastName)
+              && `${referee.firstName} ${referee.lastName}`
+            ) || 'Anonymous Referee'
+          }
         </Header>
+        {
+          referee.isEditable && (
+            <Message info>
+              <Message.Header>
+                Hey! This is your referee profile!
+              </Message.Header>
+              <p>
+                You can copy this page’s link to tournament staff to show them your referee
+                certifications. Feel free to edit your profile!
+                {
+                  !referee.firstName && !referee.lastName
+                  && (
+                    ' We suggest setting your name and your NGB first. Click on the edit button to'
+                    + ' start.'
+                  )
+                }
+              </p>
+              <Button onClick={this.startEditMode}>
+                Edit
+              </Button>
+            </Message>
+          )
+        }
         <dl>
           {referee.showPronouns
             && (
@@ -181,6 +208,14 @@ class RefereeProfile extends Component {
             :
           </dt>
           {referee.nationalGoverningBodies.map(this.getNationalGoverningBodyJsx.bind(this))}
+          {
+            !referee.nationalGoverningBodies.length
+            && (
+              <dd>
+                Unknown
+              </dd>
+            )
+          }
           <dt>
             Email:
           </dt>
@@ -219,17 +254,17 @@ class RefereeProfile extends Component {
             {this.hasPassedTest('field') ? '✓' : '✗'}
           </dd>
         </dl>
-        <Header as="h2">
-          Bio
-        </Header>
-        <p>
-          {referee.bio}
-        </p>
         {
-          referee.isEditable && (
-            <Button onClick={this.startEditMode}>
-              Edit
-            </Button>
+          referee.bio
+          && (
+            <Fragment>
+              <Header as="h2">
+                Bio
+              </Header>
+              <p>
+                {referee.bio}
+              </p>
+            </Fragment>
           )
         }
       </Fragment>
