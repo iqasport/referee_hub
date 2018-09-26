@@ -30,18 +30,18 @@ class RefereeProfile extends Component {
 
   componentDidMount() {
     axios
-      .get(this.getCurrentRefereeApiRoute())
-      .then(this.setComponentStateFromBackendData.bind(this))
-      .catch(this.setErrorStateFromBackendData.bind(this))
+      .get(this.currentRefereeApiRoute)
+      .then(this.setComponentStateFromBackendData)
+      .catch(this.setErrorStateFromBackendData)
   }
 
-  getCurrentRefereeApiRoute() {
+  get currentRefereeApiRoute() {
     const { match: { params } } = this.props;
 
     return `/api/v1/referees/${params.id}`
   }
 
-  setComponentStateFromBackendData({ status, statusText, data }) {
+  setComponentStateFromBackendData = ({ status, statusText, data }) => {
     const { data: { attributes }, included } = data;
     const certifications = included
       .filter(({ type }) => type === 'certification')
@@ -68,9 +68,9 @@ class RefereeProfile extends Component {
         isEditable: attributes.is_editable
       }
     })
-  }
+  };
 
-  setErrorStateFromBackendData(error) {
+  setErrorStateFromBackendData = (error) => {
     const { status, statusText } = error.response || {
       status: 500,
       statusText: 'Error'
@@ -80,7 +80,7 @@ class RefereeProfile extends Component {
       httpStatus: status,
       httpStatusText: statusText
     });
-  }
+  };
 
   getNationalGoverningBodyJsx = nationalGoverningBody => (
     <dd key={nationalGoverningBody.name}>
@@ -107,7 +107,7 @@ class RefereeProfile extends Component {
     } = referee;
 
     axios
-      .patch(this.getCurrentRefereeApiRoute(), {
+      .patch(this.currentRefereeApiRoute, {
         first_name: firstName,
         last_name: lastName,
         bio,
@@ -117,9 +117,9 @@ class RefereeProfile extends Component {
           nationalGoverningBody => Number(nationalGoverningBody.id)
         )
       })
-      .then(this.setComponentStateFromBackendData.bind(this))
+      .then(this.setComponentStateFromBackendData)
       .then(() => this.setState({ edit: false }))
-      .catch(this.setErrorStateFromBackendData.bind(this));
+      .catch(this.setErrorStateFromBackendData);
   };
 
   hasPassedTest(level) {
@@ -207,7 +207,7 @@ class RefereeProfile extends Component {
             {referee.nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
             :
           </dt>
-          {referee.nationalGoverningBodies.map(this.getNationalGoverningBodyJsx.bind(this))}
+          {referee.nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)}
           {
             !referee.nationalGoverningBodies.length
             && (
