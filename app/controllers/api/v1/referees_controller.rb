@@ -16,11 +16,6 @@ module Api
       end
 
       def show
-        serializer_options = {
-          include: %i[national_governing_bodies certifications],
-          params: { current_user: current_referee }
-        }
-
         json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
 
         render json: json_string, status: :ok
@@ -31,11 +26,6 @@ module Api
         update_national_governing_bodies(national_governing_body_ids) if national_governing_body_ids.present?
 
         if @referee.update!(permitted_params)
-          serializer_options = {
-            include: %i[national_governing_bodies certifications],
-            params: { current_user: current_referee }
-          }
-
           json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
 
           render json: json_string, status: :ok
@@ -65,6 +55,13 @@ module Api
 
       def permitted_params
         params.permit(:id, :first_name, :last_name, :bio, :pronouns, :show_pronouns)
+      end
+
+      def serializer_options
+        @serializer_options ||= {
+          include: %i[national_governing_bodies certifications],
+          params: { current_user: current_referee }
+        }
       end
     end
   end
