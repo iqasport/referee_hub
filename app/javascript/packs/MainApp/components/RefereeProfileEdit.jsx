@@ -1,13 +1,13 @@
-import React, { Component, Fragment } from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import {
-  Form, Header, Label, Message, Segment
+  Button, Form, Header, Icon, Label, Message, Modal, Segment
 } from 'semantic-ui-react'
 
 class RefereeProfileEdit extends Component {
   static propTypes = {
-    defaultValues: PropTypes.shape({
+    values: PropTypes.shape({
       firstName: PropTypes.string,
       lastName: PropTypes.string,
       bio: PropTypes.string,
@@ -18,53 +18,35 @@ class RefereeProfileEdit extends Component {
         name: PropTypes.string
       }))
     }).isRequired,
+    onChange: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired
   };
 
-  constructor(props) {
-    super(props);
-
-    const {
-      defaultValues: {
-        firstName,
-        lastName,
-        bio,
-        email,
-        showPronouns,
-        pronouns,
-        nationalGoverningBodies
-      }
-    } = props;
-
-    this.state = {
-      firstName,
-      lastName,
-      bio,
-      email,
-      showPronouns,
-      pronouns,
-      nationalGoverningBodies,
-      validationErrors: {},
-      availableNationalGoverningBodies: []
-    }
-  }
+  state = {
+    open: false,
+    validationErrors: {},
+    availableNationalGoverningBodies: []
+  };
 
   componentDidMount() {
     axios
       .get('/api/v1/national_governing_bodies')
-      .then(({ data: { data } }) => {
-        this.setState({
-          availableNationalGoverningBodies: data.map(nationalGoverningBody => ({
-            id: nationalGoverningBody.id,
-            name: nationalGoverningBody.attributes.name,
-            website: nationalGoverningBody.attributes.website
-          }))
-        })
-      });
+      .then(this.fetchAvailableNationalGoverningBodies);
   }
 
-  getNationalGoverningBodyJsx(nationalGoverningBody) {
-    const { nationalGoverningBodies, validationErrors } = this.state;
+  fetchAvailableNationalGoverningBodies = ({ data: { data } }) => {
+    this.setState({
+      availableNationalGoverningBodies: data.map(nationalGoverningBody => ({
+        id: nationalGoverningBody.id,
+        name: nationalGoverningBody.attributes.name,
+        website: nationalGoverningBody.attributes.website
+      }))
+    })
+  };
+
+  getNationalGoverningBodyJsx = (nationalGoverningBody) => {
+    const { values: { nationalGoverningBodies } } = this.props;
+    const { validationErrors } = this.state;
 
     return (
       <Form.Checkbox
@@ -76,60 +58,62 @@ class RefereeProfileEdit extends Component {
         error={validationErrors.noNationalGoverningBody}
       />
     )
-  }
+  };
 
-  changeInput = (event) => {
+  openForm = () => {
     this.setState({
-      [event.target.id]: event.target.value
+      open: true
     })
   };
 
+  changeInput = (event) => {
+    const { onChange } = this.props;
+
+    onChange(event.target.id, event.target.value)
+  };
+
   changeCheckbox = (event) => {
-    this.setState({
-      [event.target.id]: event.target.checked
-    })
+    const { onChange } = this.props;
+
+    onChange(event.target.id, event.target.checked)
   };
 
   changeNationalGoverningBodyCheckbox = (id, event) => {
     const { checked } = event.target;
+    const {
+      availableNationalGoverningBodies
+    } = this.state;
+    const {
+      values: { nationalGoverningBodies },
+      onChange
+    } = this.props;
 
-    this.setState((oldState) => {
-      const {
-        nationalGoverningBodies,
-        availableNationalGoverningBodies
-      } = oldState;
-
-      let newList;
-      if (checked) {
-        newList = nationalGoverningBodies.concat(
-          availableNationalGoverningBodies.filter(
-            nationalGoverningBody => nationalGoverningBody.id === id
-          )
+    let newList;
+    if (checked) {
+      newList = nationalGoverningBodies.concat(
+        availableNationalGoverningBodies.filter(
+          nationalGoverningBody => nationalGoverningBody.id === id
         )
-      } else {
-        newList = nationalGoverningBodies.filter(
-          nationalGoverningBody => nationalGoverningBody.id !== id
-        )
-      }
+      )
+    } else {
+      newList = nationalGoverningBodies.filter(
+        nationalGoverningBody => nationalGoverningBody.id !== id
+      )
+    }
 
-      return {
-        nationalGoverningBodies: newList,
-        validationErrors: {
-          noNationalGoverningBody: !newList.length
-        }
+    this.setState({
+      validationErrors: {
+        noNationalGoverningBody: !newList.length
       }
-    })
+    });
+
+    onChange('nationalGoverningBodies', newList)
   };
 
   submit = () => {
     const {
-      firstName,
-      lastName,
-      bio,
-      showPronouns,
-      pronouns,
-      nationalGoverningBodies
-    } = this.state;
+      values: { nationalGoverningBodies }
+    } = this.props;
     const { onSubmit } = this.props;
 
     if (!nationalGoverningBodies.length) {
@@ -142,44 +126,49 @@ class RefereeProfileEdit extends Component {
       return
     }
 
-    onSubmit({
-      firstName,
-      lastName,
-      bio,
-      showPronouns,
-      pronouns,
-      nationalGoverningBodies
-    });
+    onSubmit();
 
     this.setState({
-      validationErrors: {}
+      validationErrors: {},
+      open: false
     })
   };
 
   render() {
     const {
-      firstName,
-      lastName,
-      bio,
-      email,
-      showPronouns,
-      pronouns,
+      values: {
+        firstName,
+        lastName,
+        bio,
+        email,
+        showPronouns,
+        pronouns
+      }
+    } = this.props;
+    const {
+      open,
       validationErrors,
       availableNationalGoverningBodies
     } = this.state;
 
     return (
-      <Fragment>
-        <Header as="h1">
-          {
-            (
-              (firstName || lastName)
-              && `${firstName} ${lastName}`
-            ) || 'Anonymous Referee'
-          }
-        </Header>
+      <Modal
+        open={open}
+        trigger={(
+          <Button onClick={this.openForm}>
+            <Icon name="edit" />
+            Edit
+          </Button>
+        )}
+      >
         <Form error={validationErrors.noNationalGoverningBody} onSubmit={this.submit}>
           <Segment attached="top">
+            <Header>
+              <Icon name="edit outline" />
+              Edit Referee Profile
+            </Header>
+          </Segment>
+          <Segment attached>
             <Form.Group widths="equal">
               <Form.Input
                 fluid
@@ -233,7 +222,7 @@ class RefereeProfileEdit extends Component {
             <Form.Group inline>
               <label>National Governing Bodies</label>
               {availableNationalGoverningBodies.map(
-                this.getNationalGoverningBodyJsx.bind(this)
+                this.getNationalGoverningBodyJsx
               )}
             </Form.Group>
             <Message
@@ -256,7 +245,7 @@ class RefereeProfileEdit extends Component {
             Save
           </Form.Button>
         </Form>
-      </Fragment>
+      </Modal>
     )
   }
 }
