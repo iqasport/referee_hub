@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { Input } from 'semantic-ui-react'
+import { Input, Checkbox } from 'semantic-ui-react'
 
 class Referees extends Component {
   static propTypes = {
@@ -46,6 +46,13 @@ class Referees extends Component {
       })
   }
 
+  handleCheckboxChange = (e, { checked, value }) => {
+    axios.get('/api/v1/referees', { params: { filter_by: { certifications: [value] } } })
+      .then(({ data }) => {
+        this.setState({ referees: data.data })
+      })
+  }
+
   render() {
     const { referees } = this.state
 
@@ -53,6 +60,7 @@ class Referees extends Component {
       <div>
         <h1>Referee List View</h1>
         <Input placeholder="Search..." onChange={this.handleSearchChange} />
+        <Checkbox label="Snitch Certification" value="snitch" onChange={this.handleCheckboxChange} />
         <ul>
           {referees.map(this.renderListItem)}
         </ul>
