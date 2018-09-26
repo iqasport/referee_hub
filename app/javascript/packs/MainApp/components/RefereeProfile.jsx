@@ -1,8 +1,8 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { Button, Header, Message } from 'semantic-ui-react'
-import RefereeProfileForm from './RefereeProfileEdit'
+import { Header, Message } from 'semantic-ui-react'
+import RefereeProfileEdit from './RefereeProfileEdit'
 
 class RefereeProfile extends Component {
   static propTypes = {
@@ -24,8 +24,7 @@ class RefereeProfile extends Component {
       nationalGoverningBodies: [],
       certifications: [],
       isEditable: false
-    },
-    edit: false
+    }
   };
 
   componentDidMount() {
@@ -90,21 +89,49 @@ class RefereeProfile extends Component {
     </dd>
   );
 
-  startEditMode = () => {
-    this.setState({
-      edit: true
+  change = (property, value) => {
+    this.setState((state) => {
+      const {
+        referee: {
+          firstName,
+          lastName,
+          bio,
+          email,
+          showPronouns,
+          pronouns,
+          nationalGoverningBodies,
+          certifications,
+          isEditable
+        }
+      } = state;
+
+      return {
+        referee: {
+          firstName: property === 'firstName' ? value : firstName,
+          lastName: property === 'lastName' ? value : lastName,
+          bio: property === 'bio' ? value : bio,
+          email,
+          pronouns: property === 'pronouns' ? value : pronouns,
+          showPronouns: property === 'showPronouns' ? value : showPronouns,
+          nationalGoverningBodies: property === 'nationalGoverningBodies' ? value : nationalGoverningBodies,
+          certifications,
+          isEditable
+        }
+      }
     })
   };
 
-  save = (referee) => {
+  save = () => {
     const {
-      firstName,
-      lastName,
-      bio,
-      showPronouns,
-      pronouns,
-      nationalGoverningBodies
-    } = referee;
+      referee: {
+        firstName,
+        lastName,
+        bio,
+        showPronouns,
+        pronouns,
+        nationalGoverningBodies
+      }
+    } = this.state;
 
     axios
       .patch(this.currentRefereeApiRoute, {
@@ -118,7 +145,6 @@ class RefereeProfile extends Component {
         )
       })
       .then(this.setComponentStateFromBackendData)
-      .then(() => this.setState({ edit: false }))
       .catch(this.setErrorStateFromBackendData);
   };
 
@@ -132,8 +158,7 @@ class RefereeProfile extends Component {
     const {
       httpStatus,
       httpStatusText,
-      referee,
-      edit
+      referee
     } = this.state;
 
     if (!httpStatus) {
@@ -150,10 +175,6 @@ class RefereeProfile extends Component {
           {httpStatusText}
         </h1>
       )
-    }
-
-    if (edit) {
-      return <RefereeProfileForm defaultValues={referee} onSubmit={this.save} />
     }
 
     return (
@@ -183,9 +204,7 @@ class RefereeProfile extends Component {
                   )
                 }
               </p>
-              <Button onClick={this.startEditMode}>
-                Edit
-              </Button>
+              <RefereeProfileEdit values={referee} onChange={this.change} onSubmit={this.save} />
             </Message>
           )
         }
