@@ -8,7 +8,7 @@ module Api
       layout false
 
       def index
-        @referees = Referee.filtered_search(params)
+        @referees = Services::FilterReferees.new(search_params).filter
 
         json_string = RefereeSerializer.new(@referees).serialized_json
 
@@ -54,7 +54,11 @@ module Api
       end
 
       def permitted_params
-        params.permit(:id, :first_name, :last_name, :bio, :pronouns, :show_pronouns)
+        params.permit(:id, :first_name, :last_name, :bio, :pronouns, :show_pronouns, :search_by, :filter_by)
+      end
+
+      def search_params
+        permitted_params.to_h
       end
 
       def serializer_options
