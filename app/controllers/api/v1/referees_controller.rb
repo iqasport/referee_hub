@@ -54,11 +54,11 @@ module Api
       end
 
       def permitted_params
-        params.permit(:id, :first_name, :last_name, :bio, :pronouns, :show_pronouns, :search_by, :filter_by)
+        params.permit(:id, :first_name, :last_name, :bio, :pronouns, :show_pronouns)
       end
 
       def search_params
-        permitted_params.to_h
+        params.permit(:q, filter_by: %i[certifications national_governing_bodies]).to_h.deep_symbolize_keys
       end
 
       def serializer_options
