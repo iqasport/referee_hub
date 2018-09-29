@@ -19,6 +19,55 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
       expect(response_data.length).to eq 3
     end
+
+    context 'when searching' do
+      before { referees.first.update!(first_name: 'Test') }
+
+      subject { get :index, params: { q: 'test' } }
+
+      it 'only returns the matching referee' do
+        subject
+
+        response_data = JSON.parse(response.body)['data']
+
+        expect(response_data.length).to eq 1
+        expect(response_data[0]['id'].to_i).to eq referees.first.id
+      end
+    end
+
+    context 'when filtering by certification' do
+      let!(:certification) { create :certification, :snitch }
+
+      before { referees.first.update!(certifications: [certification]) }
+
+      subject { get :index, params: { filter_by: { certifications: ['snitch'] } } }
+
+      it 'only returns the matching referee' do
+        subject
+
+        response_data = JSON.parse(response.body)['data']
+
+        expect(response_data.length).to eq 1
+        expect(response_data[0]['id'].to_i).to eq referees.first.id
+      end
+    end
+
+    context 'when filtering by national governing body' do
+      let!(:ngb) { create :national_governing_body }
+
+      before { referees.first.update!(national_governing_bodies: [ngb]) }
+
+      subject { get :index, params: { filter_by: { national_governing_bodies: [ngb.id] } } }
+
+      it 'only returns the matching referee' do
+        subject
+
+        response_data = JSON.parse(response.body)['data']
+
+        expect(response_data.length).to eq 1
+        expect(response_data[0]['id'].to_i).to eq referees.first.id
+      end
+    end
   end
 
   describe 'GET #show' do
