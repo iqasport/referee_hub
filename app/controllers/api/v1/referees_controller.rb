@@ -58,7 +58,7 @@ module Api
       end
 
       def search_params
-        params.permit(:q, filter_by: %i[certifications national_governing_bodies]).to_h.deep_symbolize_keys
+        params.permit(:q, filter_by: [certifications: [], national_governing_bodies: []]).to_h.deep_symbolize_keys
       end
 
       def serializer_options
