@@ -3,6 +3,9 @@ import PropTypes from 'prop-types'
 import axios from 'axios'
 import { Header, Message } from 'semantic-ui-react'
 import RefereeProfileEdit from './RefereeProfileEdit'
+import PaypalButton from './PaypalButton'
+
+import currencyConfig from "../constants"
 
 class RefereeProfile extends Component {
   static propTypes = {
@@ -206,6 +209,17 @@ class RefereeProfile extends Component {
               </p>
               <RefereeProfileEdit values={referee} onChange={this.change} onSubmit={this.save} />
             </Message>
+          )
+        }
+        {
+          referee.isEditable
+          && (
+            <PaypalButton
+              currencyConfig={currencyConfig}
+              onSuccess={() => console.log('success')}
+              onError={() => console.log('error')}
+              onCancel={() => console.log('cancel')}
+            />
           )
         }
         <dl>
