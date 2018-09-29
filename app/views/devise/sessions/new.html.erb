@@ -1,26 +1,37 @@
-<div class='ui middle aligned center aligned grid'>
-  <h2>Log in</h2>
+<div class='ui middle aligned center aligned grid' style='margin: 50px auto;width:60%;'>
+  <div class='column'>
+    <h2 class='ui header'>
+      <div>Log in</div>
+    </h2>
 
-  <%= form_for(resource, as: resource_name, url: new_referee_session_path) do |f| %>
-    <div class="field">
-      <%= f.label :email %><br />
-      <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-    </div>
+    <%= form_for(
+      resource,
+      as: resource_name,
+      url: new_referee_session_path,
+      html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
+      ) do |f| %>
+      <%= devise_error_messages! %>
 
-    <div class="field">
-      <%= f.label :password %><br />
-      <%= f.password_field :password, autocomplete: "off" %>
-    </div>
+      <div class='ui stacked segment'>
+        <div class="<%= email_error? ? 'field error' : 'field' %>">
+          <%= f.label :email %><br />
+          <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+        </div>
 
-    <% if devise_mapping.rememberable? -%>
-      <div class="field">
-        <%= f.check_box :remember_me %>
-        <%= f.label :remember_me %>
+        <div class="<%= password_error? ? 'field error' : 'field' %>">
+          <%= f.label :password %><br />
+          <%= f.password_field :password, autocomplete: "off" %>
+        </div>
+
+        <% if devise_mapping.rememberable? -%>
+          <div class="field">
+            <%= f.check_box :remember_me %>
+            <%= f.label :remember_me %>
+          </div>
+        <% end -%>
+
+        <%= f.submit "Log in", class: 'ui fluid large submit button' %>
       </div>
-    <% end -%>
-
-    <div class="actions">
-      <%= f.submit "Log in" %>
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 </div>
