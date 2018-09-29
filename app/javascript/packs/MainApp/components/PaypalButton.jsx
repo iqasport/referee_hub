@@ -1,18 +1,18 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
-import scriptLoader from 'react-async-script-loader'
+import paypal from 'paypal-checkout'
+
+const PAYPAL_CLIENT = {
+  sandbox: process.env.PAYPAL_CLIENT_ID_SANDBOX,
+  production: process.env.PAYPAL_CLIENT_ID_PRODUCTION
+};
+
+const PayPalButton = paypal.Button.driver('react', { React, ReactDOM })
 
 class PaypalButton extends React.Component {
   static propTypes = {
-    isScriptLoaded: PropTypes.bool.isRequired,
-    isScriptLoadSucceed: PropTypes.bool.isRequired,
-    currencyConfig: PropTypes.arrayOf(PropTypes.shape({
-      total: PropTypes.number,
-      currency: PropTypes.string
-    })).isRequired,
-    client: PropTypes.string.isRequired,
-    env: PropTypes.string.isRequired,
+    env: PropTypes.string,
     commit: PropTypes.bool,
     onSuccess: PropTypes.func.isRequired,
     onError: PropTypes.func.isRequired,
@@ -20,53 +20,23 @@ class PaypalButton extends React.Component {
   }
 
   static defaultProps = {
-    commit: true
-  }
-
-  constructor(props) {
-    super(props)
-
-    this.state = { showButton: false }
-
-    window.React = React // eslint-disable-line
-    window.ReactDOM = ReactDOM // eslint-disable-line
-  }
-
-  componentDidMount() {
-    const { isScriptLoaded, isScriptLoadSucceed } = this.props
-
-    if (isScriptLoaded && isScriptLoadSucceed) {
-      this.setState({ showButton: true });
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    const { showButton } = this.state
-    const { isScriptLoaded, isScriptLoadSucceed } = nextProps
-    const { isScriptLoaded: oldScriptLoaded } = this.props
-
-    const isLoadedButWasntLoadedBefore = !showButton && !oldScriptLoaded && isScriptLoaded
-
-    if (isLoadedButWasntLoadedBefore) {
-      if (isScriptLoadSucceed) {
-        this.setState({ showButton: true })
-      }
-    }
+    commit: true,
+    env: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
   }
 
   handlePayment = () => {
-    const {
-      currencyConfig,
-      env,
-      client
-    } = this.props
+    const { env } = this.props
 
-    /* eslint-disable no-undef */
-    return paypal.rest.payment.create(env, client, {
+    return paypal.rest.payment.create(env, PAYPAL_CLIENT, {
       transactions: [
-        currencyConfig.map(({ total, currency }) => ({ amount: { total, currency } }))
-      ],
-    });
+        {
+          amount: {
+            total: '15.00',
+            currency: 'EUR'
+          }
+        }
+      ]
+    })
   }
 
   handleAuthorize = (data, actions) => {
@@ -88,35 +58,27 @@ class PaypalButton extends React.Component {
   }
 
   render() {
-    const { showButton } = this.state
     const {
       env,
       commit,
-      client,
       onError,
       onCancel
     } = this.props;
 
-    /* eslint-disable react/jsx-no-undef */
     return (
       <div>
-        {
-          showButton
-          && (
-            <paypal.Button.react
-              env={env}
-              client={client}
-              commit={commit}
-              payment={this.handlePayment}
-              onAuthorize={this.handleAuthorize}
-              onCancel={onCancel}
-              onError={onError}
-            />
-          )
-        }
+        <PayPalButton
+          env={env}
+          client={PAYPAL_CLIENT}
+          commit={commit}
+          payment={this.handlePayment}
+          onAuthorize={this.handleAuthorize}
+          onCancel={onCancel}
+          onError={onError}
+        />
       </div>
     )
   }
 }
 
-export default scriptLoader('https://www.paypalobjects.com/api/checkout.js')(PaypalButton)
+export default PaypalButton
