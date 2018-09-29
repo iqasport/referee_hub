@@ -14,4 +14,10 @@ class ApplicationController < ActionController::Base
   def render_500(exception)
     render json: { error: exception.message }, status: :internal_server_error
   end
+
+  private
+
+  def after_sign_in_path_for(_resource_or_scope)
+    "/referees/#{current_referee.id}"
+  end
 end

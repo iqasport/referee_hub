@@ -14,8 +14,11 @@ AllCops:
 Rails:
   Enabled: true
 
+Metrics/BlockLength:
+  Enabled: false
+
 Metrics/MethodLength:
-  CountComments: false  # count full line comments?
+  CountComments: false
   Max: 15
   Enabled: true
 
@@ -55,3 +58,6 @@ Style/DateTime:
 
 Metrics/AbcSize:
   Max: 100
+
+Style/Documentation:
+  Enabled: false
