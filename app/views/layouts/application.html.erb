@@ -6,12 +6,25 @@
     <%= csp_meta_tag %>
 
     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    <%= stylesheet_link_tag 'application' %>
     <%= javascript_pack_tag 'MainApp/index' %>
     <%= stylesheet_pack_tag 'MainApp/assets/stylesheets/app' %>
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css" />
   </head>
 
   <body>
+    <div class='ui inverted fixed menu'>
+      <div class='ui container'>
+        <% if referee_signed_in? %>
+          <%= link_to 'Sign Out', destroy_referee_session_path, method: :delete, class: 'item' %>
+          <%= link_to 'View Profile', "/referees/#{current_referee.id}", class: 'item' %>
+        <% else %>
+          <%= link_to 'Signup', referee_registration_path, class: 'item' %>
+          <%= link_to 'Login', new_referee_session_path, class: 'item' %>
+        <% end %>
+
+        <%= link_to 'View All Referees', '/referees', class: 'item' %>
+      </div>
+    </div>
     <p class="notice"><%= notice %></p>
     <p class="alert"><%= alert %></p>
     <%= yield %>
