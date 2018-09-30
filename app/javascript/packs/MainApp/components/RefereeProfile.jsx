@@ -2,7 +2,7 @@ import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import { DateTime } from 'luxon'
-import { Header, Message } from 'semantic-ui-react'
+import { Header, Message, Tab, Segment } from 'semantic-ui-react'
 import RefereeProfileEdit from './RefereeProfileEdit'
 import PaypalButton from './PaypalButton'
 
@@ -215,6 +215,32 @@ class RefereeProfile extends Component {
     this.setState({ paymentError: false, paymentSuccess: false, paymentCancel: false })
   }
 
+  handleGetStartedDismiss = () => {
+    console.log('dissmissed that shit')
+  }
+
+  renderProfileContent = () => {
+    const { referee } = this.state
+    const { isEditable, firstName, lastName } = referee
+    if (!isEditable) return null
+
+    const notFirstAndLastName = !firstName && !lastName
+    const getStarted = " Let's start by adding your name and NGB affiliation, click on the edit button to get started"
+    const headerText = 'Welcome to your Referee Profile'
+
+    return (
+      <Tab.Pane>
+        <Message info onDismiss={this.handleGetStartedDismiss}>
+          <Message.Header>{headerText}</Message.Header>
+          <p>
+            Here you can pay for and take your referee tests, give a little bit of background in your bio, and select any National Governing Bodies that you are affiliated with officially, or regularly officiate games.
+            {notFirstAndLastName && getStarted}
+          </p>
+        </Message>
+      </Tab.Pane>
+    )
+  }
+
   render() {
     const {
       httpStatus,
@@ -238,127 +264,104 @@ class RefereeProfile extends Component {
       )
     }
 
+    const refHeader = (referee.firstName || referee.lastName) && `${referee.firstName} ${referee.lastName}`
+    const panes = [
+      { menuItem: 'Profile', render: this.renderProfileContent }
+    ]
     return (
-      <div>
+      <Segment>
         {this.renderPaymentMessage()}
         <Header as="h1">
-          {
-            (
-              (referee.firstName || referee.lastName)
-              && `${referee.firstName} ${referee.lastName}`
-            ) || 'Anonymous Referee'
-          }
+          {refHeader || 'Anonymous Referee'}
+          <RefereeProfileEdit values={referee} onChange={this.change} onSubmit={this.save} />
         </Header>
-        {
-          referee.isEditable && (
-            <Message info>
-              <Message.Header>
-                Hey! This is your referee profile!
-              </Message.Header>
-              <p>
-                You can copy this page’s link to tournament staff to show them your referee
-                certifications. Feel free to edit your profile!
-                {
-                  !referee.firstName && !referee.lastName
-                  && (
-                    ' We suggest setting your name and your NGB first. Click on the edit button to'
-                    + ' start.'
-                  )
-                }
-              </p>
-              <RefereeProfileEdit values={referee} onChange={this.change} onSubmit={this.save} />
-            </Message>
-          )
-        }
-        {
-          referee.isEditable && !referee.submittedPaymentAt
-          && (
-            <PaypalButton
-              onSuccess={this.handlePaymentSuccess}
-              onError={this.handlePaymentError}
-              onCancel={this.handlePaymentCancel}
-            />
-          )
-        }
-        <dl>
-          {referee.showPronouns
-            && (
-              <Fragment>
-                <dt>
-                  Pronouns:
-                </dt>
-                <dd>
-                  {referee.pronouns}
-                </dd>
-              </Fragment>
-            )
-          }
-          <dt>
-            National Governing
-            {referee.nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
-            :
-          </dt>
-          {referee.nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)}
-          {
-            !referee.nationalGoverningBodies.length
-            && (
-              <dd>
-                Unknown
-              </dd>
-            )
-          }
-          <dt>
-            Email:
-          </dt>
-          <dd>
-            <a href={`mailto:${referee.email}`}>
-              {referee.email}
-            </a>
-          </dd>
-        </dl>
-        <h2>
-          Certifications
-        </h2>
-        <dl>
-          <dt>
-            Snitch Referee
-          </dt>
-          <dd>
-            {this.hasPassedTest('snitch') ? '✓' : '✗'}
-          </dd>
-          <dt>
-            Assistant Referee
-          </dt>
-          <dd>
-            {this.hasPassedTest('assistant') ? '✓' : '✗'}
-          </dd>
-          <dt>
-            Head Referee Written
-          </dt>
-          <dd>
-            {this.hasPassedTest('head') ? '✓' : '✗'}
-          </dd>
-          <dt>
-            Head Referee Field
-          </dt>
-          <dd>
-            {this.hasPassedTest('field') ? '✓' : '✗'}
-          </dd>
-        </dl>
-        {
-          referee.bio
-          && (
-            <Fragment>
-              <Header as="h2">
-                Bio
-              </Header>
-              <p>
-                {referee.bio}
-              </p>
-            </Fragment>
-          )
-        }
-      </div>
+        <Tab panes={panes} />
+      </Segment>
+
+      // <Fragment>
+      //
+      //   {
+      //
+      //   }
+      //   <dl>
+      //     {referee.showPronouns
+      //       && (
+      //         <Fragment>
+      //           <dt>
+      //             Pronouns:
+      //           </dt>
+      //           <dd>
+      //             {referee.pronouns}
+      //           </dd>
+      //         </Fragment>
+      //       )
+      //     }
+      //     <dt>
+      //       National Governing
+      //       {referee.nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
+      //       :
+      //     </dt>
+      //     {referee.nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)}
+      //     {
+      //       !referee.nationalGoverningBodies.length
+      //       && (
+      //         <dd>
+      //           Unknown
+      //         </dd>
+      //       )
+      //     }
+      //     <dt>
+      //       Email:
+      //     </dt>
+      //     <dd>
+      //       <a href={`mailto:${referee.email}`}>
+      //         {referee.email}
+      //       </a>
+      //     </dd>
+      //   </dl>
+      //   <h2>
+      //     Certifications
+      //   </h2>
+      //   <dl>
+      //     <dt>
+      //       Snitch Referee
+      //     </dt>
+      //     <dd>
+      //       {this.hasPassedTest('snitch') ? '✓' : '✗'}
+      //     </dd>
+      //     <dt>
+      //       Assistant Referee
+      //     </dt>
+      //     <dd>
+      //       {this.hasPassedTest('assistant') ? '✓' : '✗'}
+      //     </dd>
+      //     <dt>
+      //       Head Referee Written
+      //     </dt>
+      //     <dd>
+      //       {this.hasPassedTest('head') ? '✓' : '✗'}
+      //     </dd>
+      //     <dt>
+      //       Head Referee Field
+      //     </dt>
+      //     <dd>
+      //       {this.hasPassedTest('field') ? '✓' : '✗'}
+      //     </dd>
+      //   </dl>
+      //   {
+      //     referee.bio
+      //     && (
+      //       <Fragment>
+      //         <Header as="h2">
+      //           Bio
+      //         </Header>
+      //         <p>
+      //           {referee.bio}
+      //         </p>
+      //       </Fragment>
+      //     )
+      //   }
+      // </Fragment>
     )
   }
 }
