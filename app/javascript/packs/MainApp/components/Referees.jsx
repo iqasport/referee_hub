@@ -10,21 +10,32 @@ class Referees extends Component {
     history: PropTypes.shape({
       push: PropTypes.func
     }).isRequired
-  };
+  }
 
   state = {
     referees: [],
-    nationalGoverningBodies: new Map()
-  };
+    nationalGoverningBodies: new Map(),
+    nameSearch: '',
+    nationalGoverningBodySearch: [],
+    certificationSearch: []
+  }
 
   componentDidMount() {
-    axios.get('/api/v1/referees')
-      .then(this.setStateFromBackendData)
+    this.search()
+  }
+
+  componentDidUpdate(previousProps, previousState) {
+    const { nameSearch, nationalGoverningBodySearch, certificationSearch } = this.state
+    if (previousState.nameSearch !== nameSearch
+      || previousState.nationalGoverningBodySearch.length !== nationalGoverningBodySearch.length
+      || previousState.certificationSearch !== certificationSearch) {
+      this.search()
+    }
   }
 
   setStateFromBackendData = ({ data: { data, included } }) => {
-    const certifications = new Map();
-    const nationalGoverningBodies = new Map();
+    const certifications = new Map()
+    const nationalGoverningBodies = new Map()
     included.forEach((include) => {
       if (include.type === 'certification') {
         certifications.set(include.id, include.attributes.level);
@@ -50,27 +61,27 @@ class Referees extends Component {
       referees,
       nationalGoverningBodies
     })
-  };
+  }
 
   get dropdownOptions() {
-    const { nationalGoverningBodies } = this.state;
+    const { nationalGoverningBodies } = this.state
     return Array.from(nationalGoverningBodies).map(([id, name]) => ({
       value: id,
       text: name
     }))
   }
 
-  hasRefereeName = ({ attributes }) => attributes.first_name || attributes.last_name;
+  hasRefereeName = ({ attributes }) => attributes.first_name || attributes.last_name
 
-  handleRefClick = (itemId) => {
-    const { history } = this.props;
+  handleRefereeClick = (itemId) => {
+    const { history } = this.props
     history.push(`/referees/${itemId}`)
   };
 
   renderRefereeTableRow = ({
     id, name, certifications, nationalGoverningBodies, isCurrentReferee
   }) => (
-    <Table.Row onClick={() => this.handleRefClick(id)} key={id} style={{ cursor: 'pointer' }}>
+    <Table.Row onClick={() => this.handleRefereeClick(id)} key={id} style={{ cursor: 'pointer' }}>
       <Table.Cell>
         {
           (isCurrentReferee
@@ -108,20 +119,62 @@ class Referees extends Component {
         }
       </Table.Cell>
     </Table.Row>
-  );
+  )
 
   handleNameSearchChange = (e, { value }) => {
-    axios.get('/api/v1/referees', { params: { q: value } })
-      .then(this.setStateFromBackendData)
-  };
+    this.setState({
+      nameSearch: value
+    })
+  }
 
-  handleCertificationToggleChange = (e, { value }) => {
-    axios.get('/api/v1/referees', { params: { filter_by: { certifications: [value] } } })
+  handleNationalGoverningBodySearchChange = (e, { value }) => {
+    this.setState({
+      nationalGoverningBodySearch: value
+    })
+  }
+
+  getHandleCertificationToggleChange = value => () => {
+    this.setState(({ certificationSearch }) => {
+      const checked = certificationSearch.includes(value)
+      let newSearch
+      if (checked) {
+        newSearch = certificationSearch.filter(certification => certification !== value)
+      } else {
+        newSearch = certificationSearch.concat([value])
+      }
+
+      return {
+        certificationSearch: newSearch
+      }
+    })
+  }
+
+  search = () => {
+    const { nameSearch, nationalGoverningBodySearch, certificationSearch } = this.state
+    const params = {}
+    if (nameSearch.trim()) {
+      params.q = nameSearch
+    }
+    if (nationalGoverningBodySearch.length) {
+      params.filter_by = {}
+      params.filter_by.national_governing_bodies = nationalGoverningBodySearch
+    }
+    if (certificationSearch.length) {
+      params.filter_by = params.filter_by || {}
+      params.filter_by.certifications = certificationSearch
+    }
+    axios
+      .get('/api/v1/referees', { params })
       .then(this.setStateFromBackendData)
-  };
+  }
 
   render() {
-    const { referees } = this.state;
+    const {
+      referees,
+      nameSearch,
+      nationalGoverningBodySearch,
+      certificationSearch
+    } = this.state
 
     return (
       <Fragment>
@@ -152,47 +205,53 @@ class Referees extends Component {
             </Table.Row>
             <Table.Row>
               <Table.HeaderCell>
-                <Input placeholder="Search …" onChange={this.handleNameSearchChange} />
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                <Dropdown
-                  search
-                  selection
-                  placeholder="Search …"
-                  options={this.dropdownOptions}
+                <Input
+                  value={nameSearch}
+                  placeholder="Search by name …"
                   onChange={this.handleNameSearchChange}
                 />
               </Table.HeaderCell>
+              <Table.HeaderCell>
+                <Dropdown
+                  multiple
+                  search
+                  selection
+                  value={nationalGoverningBodySearch}
+                  placeholder="Search by NGB …"
+                  options={this.dropdownOptions}
+                  onChange={this.handleNationalGoverningBodySearchChange}
+                />
+              </Table.HeaderCell>
               <Table.HeaderCell textAlign="center">
                 <Checkbox
                   toggle
-                  defaultChecked
+                  checked={certificationSearch.includes('snitch')}
                   value="snitch"
-                  onChange={this.handleCertificationToggleChange}
+                  onChange={this.getHandleCertificationToggleChange('snitch')}
                 />
               </Table.HeaderCell>
               <Table.HeaderCell textAlign="center">
                 <Checkbox
                   toggle
-                  defaultChecked
+                  checked={certificationSearch.includes('assistant')}
                   value="assistant"
-                  onChange={this.handleCertificationToggleChange}
+                  onChange={this.getHandleCertificationToggleChange('assistant')}
                 />
               </Table.HeaderCell>
               <Table.HeaderCell textAlign="center">
                 <Checkbox
                   toggle
-                  defaultChecked
+                  checked={certificationSearch.includes('head')}
                   value="head"
-                  onChange={this.handleCertificationToggleChange}
+                  onChange={this.getHandleCertificationToggleChange('head')}
                 />
               </Table.HeaderCell>
               <Table.HeaderCell textAlign="center">
                 <Checkbox
                   toggle
-                  defaultChecked
+                  checked={certificationSearch.includes('field')}
                   value="field"
-                  onChange={this.handleCertificationToggleChange}
+                  onChange={this.getHandleCertificationToggleChange('field')}
                 />
               </Table.HeaderCell>
             </Table.Row>
