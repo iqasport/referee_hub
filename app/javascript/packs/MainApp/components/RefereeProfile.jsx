@@ -1,11 +1,10 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
+import { DateTime } from 'luxon'
 import { Header, Message } from 'semantic-ui-react'
 import RefereeProfileEdit from './RefereeProfileEdit'
 import PaypalButton from './PaypalButton'
-
-import currencyConfig from "../constants"
 
 class RefereeProfile extends Component {
   static propTypes = {
@@ -26,8 +25,12 @@ class RefereeProfile extends Component {
       pronouns: '',
       nationalGoverningBodies: [],
       certifications: [],
-      isEditable: false
-    }
+      isEditable: false,
+      submittedPaymentAt: null
+    },
+    paymentError: false,
+    paymentSuccess: false,
+    paymentCancel: false
   };
 
   componentDidMount() {
@@ -67,7 +70,8 @@ class RefereeProfile extends Component {
         pronouns: attributes.pronouns,
         nationalGoverningBodies,
         certifications,
-        isEditable: attributes.is_editable
+        isEditable: attributes.is_editable,
+        submittedPaymentAt: attributes.submitted_payment_at
       }
     })
   };
@@ -151,11 +155,59 @@ class RefereeProfile extends Component {
       .catch(this.setErrorStateFromBackendData);
   };
 
-  hasPassedTest(level) {
-    const { referee: { certifications } } = this.state;
+  hasPassedTest = (level) => {
+    const { referee: { certifications } } = this.state
 
     return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
   }
+
+  handlePaymentSuccess = (payment) => {
+    const { paid } = payment
+
+    if (paid) {
+      this.setState({ paymentSuccess: true })
+      axios
+        .patch(this.currentRefereeApiRoute, {
+          submitted_payment_at: DateTime.local().toString()
+        })
+        .then(this.setComponentStateFromBackendData)
+        .catch(this.setErrorStateFromBackendData)
+    }
+  }
+
+  handlePaymentError = () => this.setState({ paymentError: true })
+
+  handlePaymentCancel = () => this.setState({ paymentCancel: true })
+
+  renderPaymentMessage = () => {
+    const { paymentError, paymentSuccess, paymentCancel } = this.state
+    if (!paymentError && !paymentSuccess && !paymentCancel) return null
+
+    const successMessage = 'Your payment was successful.'
+    const errorMessage = 'There was an issue with your payment, please try again.'
+    const cancelMessage = 'Your payment was cancelled.'
+
+    let messageProps
+    if (paymentError) {
+      messageProps = { error: true }
+    } else if (paymentSuccess) {
+      messageProps = { positive: true }
+    } else if (paymentCancel) {
+      messageProps = { warning: true }
+    }
+
+    return (
+      <Message {...messageProps} size="small" onDismiss={this.clearPaymentState}>
+        <p>
+          {paymentSuccess && successMessage}
+          {paymentError && errorMessage}
+          {paymentCancel && cancelMessage}
+        </p>
+      </Message>
+    )
+  }
+
+  clearPaymentState = () => this.setState({ paymentError: false, paymentSuccess: false, paymentCancel: false })
 
   render() {
     const {
@@ -181,7 +233,8 @@ class RefereeProfile extends Component {
     }
 
     return (
-      <Fragment>
+      <div>
+        {this.renderPaymentMessage()}
         <Header as="h1">
           {
             (
@@ -212,13 +265,12 @@ class RefereeProfile extends Component {
           )
         }
         {
-          referee.isEditable
+          referee.isEditable && !referee.submittedPaymentAt
           && (
             <PaypalButton
-              currencyConfig={currencyConfig}
-              onSuccess={() => console.log('success')}
-              onError={() => console.log('error')}
-              onCancel={() => console.log('cancel')}
+              onSuccess={this.handlePaymentSuccess}
+              onError={this.handlePaymentError}
+              onCancel={this.handlePaymentCancel}
             />
           )
         }
@@ -300,7 +352,7 @@ class RefereeProfile extends Component {
             </Fragment>
           )
         }
-      </Fragment>
+      </div>
     )
   }
 }
