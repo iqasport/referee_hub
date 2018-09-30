@@ -1,4 +1,4 @@
-const currencyConfig = [
+export const currencyConfig = [
   {
     total: '23',
     currency: 'AUD'
@@ -21,4 +21,9 @@ const currencyConfig = [
   }
 ]
 
-export default currencyConfig
+export const CERTIFICATION_LEVELS = {
+  snitch: 'snitch',
+  assistant: 'assistant',
+  head: 'head',
+  field: 'field'
+}
