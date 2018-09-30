@@ -165,7 +165,7 @@ class RefereeProfile extends Component {
     const { paid } = payment
 
     if (paid) {
-      this.setState({ paymentSuccess: true })
+      this.setState({ paymentSuccess: true, paymentError: false, paymentCancel: false })
       axios
         .patch(this.currentRefereeApiRoute, {
           submitted_payment_at: DateTime.local().toString()
@@ -175,9 +175,13 @@ class RefereeProfile extends Component {
     }
   }
 
-  handlePaymentError = () => this.setState({ paymentError: true })
+  handlePaymentError = () => {
+    this.setState({ paymentError: true, paymentCancel: false, paymentSuccess: false })
+  }
 
-  handlePaymentCancel = () => this.setState({ paymentCancel: true })
+  handlePaymentCancel = () => {
+    this.setState({ paymentCancel: true, paymentError: false, paymentSuccess: false })
+  }
 
   renderPaymentMessage = () => {
     const { paymentError, paymentSuccess, paymentCancel } = this.state
@@ -207,7 +211,9 @@ class RefereeProfile extends Component {
     )
   }
 
-  clearPaymentState = () => this.setState({ paymentError: false, paymentSuccess: false, paymentCancel: false })
+  clearPaymentState = () => {
+    this.setState({ paymentError: false, paymentSuccess: false, paymentCancel: false })
+  }
 
   render() {
     const {
