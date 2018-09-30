@@ -2,7 +2,7 @@ import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import {
-  Checkbox, Header, Icon, Input, Table
+  Checkbox, Dropdown, Header, Icon, Input, Label, Table
 } from 'semantic-ui-react'
 
 class Referees extends Component {
@@ -13,7 +13,8 @@ class Referees extends Component {
   };
 
   state = {
-    referees: []
+    referees: [],
+    nationalGoverningBodies: new Map()
   };
 
   componentDidMount() {
@@ -41,11 +42,23 @@ class Referees extends Component {
         ),
         nationalGoverningBodies: relationships.national_governing_bodies.data.map(
           nationalGoverningBody => nationalGoverningBodies.get(nationalGoverningBody.id)
-        )
+        ),
+        isCurrentReferee: attributes.is_editable
       }));
 
-    this.setState({ referees })
+    this.setState({
+      referees,
+      nationalGoverningBodies
+    })
   };
+
+  get dropdownOptions() {
+    const { nationalGoverningBodies } = this.state;
+    return Array.from(nationalGoverningBodies).map(([id, name]) => ({
+      value: id,
+      text: name
+    }))
+  }
 
   hasRefereeName = ({ attributes }) => attributes.first_name || attributes.last_name;
 
@@ -55,11 +68,15 @@ class Referees extends Component {
   };
 
   renderRefereeTableRow = ({
-    id, name, certifications, nationalGoverningBodies
+    id, name, certifications, nationalGoverningBodies, isCurrentReferee
   }) => (
     <Table.Row onClick={() => this.handleRefClick(id)} key={id} style={{ cursor: 'pointer' }}>
       <Table.Cell>
-        <Icon name="zoom" />
+        {
+          (isCurrentReferee
+          && <Label ribbon>You</Label>)
+          || <Icon name="zoom" />
+        }
         {' '}
         {name}
       </Table.Cell>
@@ -93,12 +110,12 @@ class Referees extends Component {
     </Table.Row>
   );
 
-  handleSearchChange = (e, { value }) => {
+  handleNameSearchChange = (e, { value }) => {
     axios.get('/api/v1/referees', { params: { q: value } })
       .then(this.setStateFromBackendData)
   };
 
-  handleCheckboxChange = (e, { value }) => {
+  handleCertificationToggleChange = (e, { value }) => {
     axios.get('/api/v1/referees', { params: { filter_by: { certifications: [value] } } })
       .then(this.setStateFromBackendData)
   };
@@ -111,8 +128,6 @@ class Referees extends Component {
         <Header as="h1">
           Referee List View
         </Header>
-        <Input placeholder="Search by name …" onChange={this.handleSearchChange} />
-        <Checkbox label="Snitch Certification" value="snitch" onChange={this.handleCheckboxChange} />
         <Table selectable>
           <Table.Header>
             <Table.Row>
@@ -129,10 +144,56 @@ class Referees extends Component {
                 Assistant
               </Table.HeaderCell>
               <Table.HeaderCell>
-                Head Written
+                Head
               </Table.HeaderCell>
               <Table.HeaderCell>
-                Head Field
+                Field
+              </Table.HeaderCell>
+            </Table.Row>
+            <Table.Row>
+              <Table.HeaderCell>
+                <Input placeholder="Search …" onChange={this.handleNameSearchChange} />
+              </Table.HeaderCell>
+              <Table.HeaderCell>
+                <Dropdown
+                  search
+                  selection
+                  placeholder="Search …"
+                  options={this.dropdownOptions}
+                  onChange={this.handleNameSearchChange}
+                />
+              </Table.HeaderCell>
+              <Table.HeaderCell textAlign="center">
+                <Checkbox
+                  toggle
+                  defaultChecked
+                  value="snitch"
+                  onChange={this.handleCertificationToggleChange}
+                />
+              </Table.HeaderCell>
+              <Table.HeaderCell textAlign="center">
+                <Checkbox
+                  toggle
+                  defaultChecked
+                  value="assistant"
+                  onChange={this.handleCertificationToggleChange}
+                />
+              </Table.HeaderCell>
+              <Table.HeaderCell textAlign="center">
+                <Checkbox
+                  toggle
+                  defaultChecked
+                  value="head"
+                  onChange={this.handleCertificationToggleChange}
+                />
+              </Table.HeaderCell>
+              <Table.HeaderCell textAlign="center">
+                <Checkbox
+                  toggle
+                  defaultChecked
+                  value="field"
+                  onChange={this.handleCertificationToggleChange}
+                />
               </Table.HeaderCell>
             </Table.Row>
           </Table.Header>
