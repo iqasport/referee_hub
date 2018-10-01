@@ -2,7 +2,9 @@ import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import { DateTime } from 'luxon'
-import { Header, Message, Tab, Segment, Loader } from 'semantic-ui-react'
+import {
+  Header, Message, Tab, Segment, Loader
+} from 'semantic-ui-react'
 import RefereeProfileEdit from './RefereeProfileEdit'
 import ProfileContent from './ProfileContent'
 import CertificationContent from './CertificationContent'
@@ -31,7 +33,13 @@ class RefereeProfile extends Component {
     },
     paymentError: false,
     paymentSuccess: false,
-    paymentCancel: false
+    paymentCancel: false,
+    changedFirstName: null,
+    changedLastName: null,
+    changedNGBs: null,
+    changedBio: null,
+    changedShowPronouns: null,
+    changedPronouns: null
   };
 
   componentDidMount() {
@@ -45,6 +53,21 @@ class RefereeProfile extends Component {
     const { match: { params } } = this.props
 
     return `/api/v1/referees/${params.id}`
+  }
+
+  get refereeEditValues() {
+    const {
+      referee, changedFirstName, changedLastName, changedNGBs, changedBio, changedShowPronouns, changedPronouns
+    } = this.state
+
+    return {
+      firstName: changedFirstName || referee.firstName,
+      lastName: changedLastName || referee.lastName,
+      nationalGoverningBodies: changedNGBs || referee.nationalGoverningBodies,
+      bio: changedBio || referee.bio,
+      showPronouns: changedShowPronouns || referee.showPronouns,
+      pronouns: changedPronouns || referee.pronouns
+    }
   }
 
   setComponentStateFromBackendData = ({ status, statusText, data }) => {
@@ -90,39 +113,7 @@ class RefereeProfile extends Component {
     });
   };
 
-  change = (property, value) => {
-    this.setState((state) => {
-      const {
-        referee: {
-          firstName,
-          lastName,
-          bio,
-          email,
-          showPronouns,
-          pronouns,
-          nationalGoverningBodies,
-          certifications,
-          isEditable
-        }
-      } = state;
-
-      return {
-        referee: {
-          firstName: property === 'firstName' ? value : firstName,
-          lastName: property === 'lastName' ? value : lastName,
-          bio: property === 'bio' ? value : bio,
-          email,
-          pronouns: property === 'pronouns' ? value : pronouns,
-          showPronouns: property === 'showPronouns' ? value : showPronouns,
-          nationalGoverningBodies: property === 'nationalGoverningBodies' ? value : nationalGoverningBodies,
-          certifications,
-          isEditable
-        }
-      }
-    })
-  };
-
-  save = () => {
+  handleSubmit = () => {
     const {
       referee: {
         firstName,
@@ -131,22 +122,28 @@ class RefereeProfile extends Component {
         showPronouns,
         pronouns,
         nationalGoverningBodies
-      }
-    } = this.state;
+      },
+      changedFirstName,
+      changedLastName,
+      changedNGBs,
+      changedBio,
+      changedShowPronouns,
+      changedPronouns
+    } = this.state
+
+    const ngbState = changedNGBs.map(ngbId => Number(ngbId)) || nationalGoverningBodies.map(ngb => Number(ngb.id))
 
     axios
       .patch(this.currentRefereeApiRoute, {
-        first_name: firstName,
-        last_name: lastName,
-        bio,
-        show_pronouns: showPronouns,
-        pronouns,
-        national_governing_body_ids: nationalGoverningBodies.map(
-          nationalGoverningBody => Number(nationalGoverningBody.id)
-        )
+        first_name: changedFirstName || firstName,
+        last_name: changedLastName || lastName,
+        bio: changedBio || bio,
+        show_pronouns: changedShowPronouns || showPronouns,
+        pronouns: changedPronouns || pronouns,
+        national_governing_body_ids: ngbState
       })
       .then(this.setComponentStateFromBackendData)
-      .catch(this.setErrorStateFromBackendData);
+      .catch(this.setErrorStateFromBackendData)
   };
 
   handlePaymentSuccess = (payment) => {
@@ -212,6 +209,10 @@ class RefereeProfile extends Component {
       .catch(this.setErrorStateFromBackendData)
   }
 
+  handleInputChange = (stateKey, value) => {
+    this.setState({ [stateKey]: value })
+  }
+
   renderProfileContent = () => {
     const { httpStatus, httpStatusText, referee } = this.state
 
@@ -271,7 +272,16 @@ class RefereeProfile extends Component {
         <Header as="h1" textAlign="center">
           {refHeader || 'Anonymous Referee'}
           <Header sub>{this.renderPronouns()}</Header>
-          {referee.isEditable && <RefereeProfileEdit values={referee} onChange={this.change} onSubmit={this.save} />}
+          {
+            referee.isEditable
+            && (
+              <RefereeProfileEdit
+                values={this.refereeEditValues}
+                onSubmit={this.handleSubmit}
+                onChange={this.handleInputChange}
+              />
+            )
+          }
         </Header>
         <Tab panes={panes} />
       </Segment>
