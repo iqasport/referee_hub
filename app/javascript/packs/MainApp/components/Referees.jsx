@@ -76,7 +76,7 @@ class Referees extends Component {
   handleRefereeClick = (itemId) => {
     const { history } = this.props
     history.push(`/referees/${itemId}`)
-  };
+  }
 
   renderRefereeTableRow = ({
     id, name, certifications, nationalGoverningBodies, isCurrentReferee
@@ -156,13 +156,12 @@ class Referees extends Component {
       params.q = nameSearch
     }
     if (nationalGoverningBodySearch.length) {
-      params.filter_by = {}
-      params.filter_by.national_governing_bodies = nationalGoverningBodySearch
+      params.national_governing_bodies = nationalGoverningBodySearch
     }
     if (certificationSearch.length) {
-      params.filter_by = params.filter_by || {}
-      params.filter_by.certifications = certificationSearch
+      params.certifications = certificationSearch
     }
+
     axios
       .get('/api/v1/referees', { params })
       .then(this.setStateFromBackendData)

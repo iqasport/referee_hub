@@ -40,7 +40,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
       before { referees.first.update!(certifications: [certification]) }
 
-      subject { get :index, params: { filter_by: { certifications: ['snitch'] } } }
+      subject { get :index, params: { certifications: ['snitch'] } }
 
       it 'only returns the matching referee' do
         subject
@@ -57,7 +57,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
       before { referees.first.update!(national_governing_bodies: [ngb]) }
 
-      subject { get :index, params: { filter_by: { national_governing_bodies: [ngb.id] } } }
+      subject { get :index, params: { national_governing_bodies: [ngb.id] } }
 
       it 'only returns the matching referee' do
         subject
