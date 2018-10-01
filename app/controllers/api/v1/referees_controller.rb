@@ -72,7 +72,7 @@ module Api
 
       def serializer_options
         @serializer_options ||= {
-          include: %i[national_governing_bodies certifications],
+          include: %i[national_governing_bodies certifications test_attempts test_results],
           params: { current_user: current_referee }
         }
       end

@@ -2,8 +2,10 @@ import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import { Label } from 'semantic-ui-react'
 import { capitalize } from 'lodash'
+import { DateTime, Interval } from 'luxon'
 import PaypalButton from './PaypalButton'
 import ContentSegment from './ContentSegment'
+import TestResultsTable from './TestResultsTable'
 
 const certificationLinkConfig = {
   snitch: {
@@ -23,6 +25,24 @@ const certificationLinkConfig = {
   }
 }
 
+const oldCertificationLinkConfig = {
+  snitch: {
+    title: 'Snitch Referee Written Test',
+    link: 'https://www.classmarker.com/online-test/start/?quiz=crx5bb21de04a997',
+    color: 'yellow'
+  },
+  assistant: {
+    title: 'Assistant Referee Written Test',
+    link: 'https://www.classmarker.com/online-test/start/?quiz=tgr5bb21e1c149dc',
+    color: 'blue'
+  },
+  head: {
+    title: 'Head Referee Written Test',
+    link: 'https://www.classmarker.com/online-test/start/?quiz=9xb5bb21e53ea15f',
+    color: 'green'
+  }
+}
+
 const hasPassedTest = (level, certifications) => {
   return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
 }
@@ -32,6 +52,7 @@ class CertificationContent extends Component {
     refereeId: PropTypes.string.isRequired,
     isEditable: PropTypes.bool.isRequired,
     hasPaid: PropTypes.bool.isRequired,
+    shouldTakeOldTests: PropTypes.bool.isRequired,
     refCertifications: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string,
@@ -40,7 +61,24 @@ class CertificationContent extends Component {
     ).isRequired,
     onSuccess: PropTypes.func.isRequired,
     onError: PropTypes.func.isRequired,
-    onCancel: PropTypes.func.isRequired
+    onCancel: PropTypes.func.isRequired,
+    testResults: PropTypes.arrayOf(PropTypes.shape({
+      duration: PropTypes.string,
+      minimumPassPercentage: PropTypes.number,
+      passed: PropTypes.bool,
+      percentage: PropTypes.number,
+      pointsAvailable: PropTypes.number,
+      pointsScored: PropTypes.number,
+      timeFinished: PropTypes.string,
+      timeStarted: PropTypes.string,
+      testLevel: PropTypes.string
+    })).isRequired,
+    testAttempts: PropTypes.arrayOf(
+      PropTypes.shape({
+        next_attempt_at: PropTypes.string,
+        test_level: PropTypes.string
+      })
+    ).isRequired
   }
 
   get hasSnitchCert() {
@@ -78,6 +116,21 @@ class CertificationContent extends Component {
     )
   }
 
+  isInCoolDownPeriod = (certType) => {
+    const { testAttempts } = this.props
+
+    const matchingTestAttempt = testAttempts.filter(testAttempt => testAttempt.test_level === certType)
+
+    if (matchingTestAttempt.length > 0) {
+      const nextAttemptAt = DateTime.local(matchingTestAttempt[0].next_attempt_at)
+      const currentTime = DateTime.local()
+
+      return nextAttemptAt < currentTime
+    }
+
+    return false
+  }
+
   renderPaypalButton = () => {
     const {
       onSuccess,
@@ -87,7 +140,8 @@ class CertificationContent extends Component {
       hasPaid
     } = this.props
     if (!isEditable) return null
-    if (!this.hasAssistantCert && !this.hasSnitchCert) return null
+    if (!this.hasAssistantCert) return null
+    if (!this.hasSnitchCert) return null
     if (hasPaid) return null
 
     const headerContent = 'Purchase Head Referee Written Test'
@@ -102,19 +156,20 @@ class CertificationContent extends Component {
   }
 
   renderCertificationLinks = () => {
-    const { isEditable, hasPaid } = this.props
+    const { isEditable, hasPaid, shouldTakeOldTests } = this.props
     if (!isEditable) return null
 
-    const canTakeSnitchTest = !this.hasSnitchCert && !this.hasHeadCert
-    const canTakeAssisstantTest = !this.hasAssistantCert && !this.hasHeadCert
-    const canTakeHeadTest = hasPaid && this.hasSnitchCert && this.hasAssistantCert
+    const canTakeSnitchTest = !this.hasSnitchCert && !this.hasHeadCert && !this.isInCoolDownPeriod('snitch')
+    const canTakeAssistantTest = !this.hasAssistantCert && !this.hasHeadCert && !this.isInCoolDownPeriod('assistant')
+    const canTakeHeadTest = hasPaid && this.hasSnitchCert && this.hasAssistantCert && !this.isInCoolDownPeriod('head')
+    const certificationConfig = shouldTakeOldTests ? oldCertificationLinkConfig : certificationLinkConfig
 
     const headerContent = 'Available Written Tests'
     const segmentContent = (
       <Fragment>
-        {canTakeSnitchTest && this.certificationLink(certificationLinkConfig.snitch)}
-        {canTakeAssisstantTest && this.certificationLink(certificationLinkConfig.assistant)}
-        {canTakeHeadTest && this.certificationLink(certificationLinkConfig.head)}
+        {canTakeSnitchTest && this.certificationLink(certificationConfig.snitch)}
+        {canTakeAssistantTest && this.certificationLink(certificationConfig.assistant)}
+        {canTakeHeadTest && this.certificationLink(certificationConfig.head)}
       </Fragment>
     )
 
@@ -136,11 +191,27 @@ class CertificationContent extends Component {
     return <ContentSegment headerContent={headerContent} segmentContent={segmentContent} />
   }
 
+  renderTestResults = () => {
+    const { testResults, isEditable } = this.props
+    if (!isEditable) return null
+    if (testResults.length < 1) return null
+
+    const headerContent = 'Test Result Details'
+    const segmentContent = <TestResultsTable testResults={testResults} />
+
+    return (
+      <Fragment>
+        <ContentSegment headerContent={headerContent} segmentContent={segmentContent} />
+      </Fragment>
+    )
+  }
+
   render() {
     return (
       <Fragment>
         {this.renderPaypalButton()}
         {this.renderCertificationLinks()}
+        {this.renderTestResults()}
         {this.renderCompletedCertifications()}
       </Fragment>
     )
