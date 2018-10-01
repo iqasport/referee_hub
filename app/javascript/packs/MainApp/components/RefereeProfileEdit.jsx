@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import {
-  Button, Form, Header, Icon, Label, Message, Modal, Segment
+  Button, Form, Header, Icon, Label, Message, Modal
 } from 'semantic-ui-react'
 
 class RefereeProfileEdit extends Component {
@@ -11,7 +11,6 @@ class RefereeProfileEdit extends Component {
       firstName: PropTypes.string,
       lastName: PropTypes.string,
       bio: PropTypes.string,
-      email: PropTypes.string,
       showPronouns: PropTypes.bool,
       nationalGoverningBodies: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string,
@@ -31,7 +30,13 @@ class RefereeProfileEdit extends Component {
   componentDidMount() {
     axios
       .get('/api/v1/national_governing_bodies')
-      .then(this.fetchAvailableNationalGoverningBodies);
+      .then(this.fetchAvailableNationalGoverningBodies)
+  }
+
+  get dropdownOptions() {
+    const { availableNationalGoverningBodies } = this.state
+
+    return availableNationalGoverningBodies.map(ngb => ({ value: ngb.id, text: ngb.name }))
   }
 
   fetchAvailableNationalGoverningBodies = ({ data: { data } }) => {
@@ -42,23 +47,7 @@ class RefereeProfileEdit extends Component {
         website: nationalGoverningBody.attributes.website
       }))
     })
-  };
-
-  getNationalGoverningBodyJsx = (nationalGoverningBody) => {
-    const { values: { nationalGoverningBodies } } = this.props;
-    const { validationErrors } = this.state;
-
-    return (
-      <Form.Checkbox
-        id={`nationalGoverningBody[${nationalGoverningBody.id}]`}
-        label={nationalGoverningBody.name}
-        key={nationalGoverningBody.id}
-        checked={nationalGoverningBodies.some(ngb => ngb.id === nationalGoverningBody.id)}
-        onChange={this.changeNationalGoverningBodyCheckbox.bind(this, nationalGoverningBody.id)}
-        error={validationErrors.noNationalGoverningBody}
-      />
-    )
-  };
+  }
 
   openForm = () => {
     this.setState({
@@ -66,73 +55,41 @@ class RefereeProfileEdit extends Component {
     })
   };
 
-  changeInput = (event) => {
-    const { onChange } = this.props;
-
-    onChange(event.target.id, event.target.value)
+  changeInput = (event, { value }) => {
+    const { onChange } = this.props
+    onChange(event.target.id, value)
   };
 
-  changeCheckbox = (event) => {
-    const { onChange } = this.props;
+  changeCheckbox = (event, { checked }) => {
+    const { onChange } = this.props
+    onChange(event.target.id, checked)
+  }
 
-    onChange(event.target.id, event.target.checked)
-  };
-
-  changeNationalGoverningBodyCheckbox = (id, event) => {
-    const { checked } = event.target;
-    const {
-      availableNationalGoverningBodies
-    } = this.state;
-    const {
-      values: { nationalGoverningBodies },
-      onChange
-    } = this.props;
-
-    let newList;
-    if (checked) {
-      newList = nationalGoverningBodies.concat(
-        availableNationalGoverningBodies.filter(
-          nationalGoverningBody => nationalGoverningBody.id === id
-        )
-      )
-    } else {
-      newList = nationalGoverningBodies.filter(
-        nationalGoverningBody => nationalGoverningBody.id !== id
-      )
-    }
+  handleNGBChange = (event, { value }) => {
+    const { onChange } = this.props
 
     this.setState({
       validationErrors: {
-        noNationalGoverningBody: !newList.length
+        noNationalGoverningBody: !value.length
       }
-    });
+    })
+    onChange('changedNGBs', value)
+  }
 
-    onChange('nationalGoverningBodies', newList)
-  };
-
-  submit = () => {
-    const {
-      values: { nationalGoverningBodies }
-    } = this.props;
-    const { onSubmit } = this.props;
+  handleSubmit = () => {
+    const { onSubmit, values: { nationalGoverningBodies } } = this.props
 
     if (!nationalGoverningBodies.length) {
-      this.setState({
-        validationErrors: {
-          noNationalGoverningBody: true
-        }
-      });
-
+      this.setState({ validationErrors: { noNationalGoverningBody: true } })
       return
     }
 
-    onSubmit();
+    onSubmit()
 
-    this.setState({
-      validationErrors: {},
-      open: false
-    })
-  };
+    this.setState({ validationErrors: {}, open: false })
+  }
+
+  handleCancel = () => this.setState({ validationErrors: {}, open: false })
 
   render() {
     const {
@@ -142,37 +99,34 @@ class RefereeProfileEdit extends Component {
         bio,
         email,
         showPronouns,
-        pronouns
+        pronouns,
+        nationalGoverningBodies
       }
-    } = this.props;
-    const {
-      open,
-      validationErrors,
-      availableNationalGoverningBodies
-    } = this.state;
+    } = this.props
+    const { open, validationErrors } = this.state
+
+    const modalTrigger = (
+      <Button onClick={this.openForm}>
+        <Icon name="edit" />
+        Edit
+      </Button>
+    )
+    const initialNGBValues = nationalGoverningBodies.map(ngb => ngb.id)
 
     return (
-      <Modal
-        open={open}
-        trigger={(
-          <Button onClick={this.openForm}>
-            <Icon name="edit" />
-            Edit
-          </Button>
-        )}
-      >
-        <Form error={validationErrors.noNationalGoverningBody} onSubmit={this.submit}>
-          <Segment attached="top">
-            <Header>
-              <Icon name="edit outline" />
-              Edit Referee Profile
-            </Header>
-          </Segment>
-          <Segment attached>
+      <Modal open={open} trigger={modalTrigger}>
+        <Modal.Header>
+          <Header>
+            <Icon name="edit outline" />
+            Edit Referee Profile
+          </Header>
+        </Modal.Header>
+        <Modal.Content>
+          <Form error={validationErrors.noNationalGoverningBody} onSubmit={this.handleSubmit}>
             <Form.Group widths="equal">
               <Form.Input
                 fluid
-                id="firstName"
+                id="changedFirstName"
                 label="First names"
                 value={firstName}
                 placeholder="First names"
@@ -180,31 +134,29 @@ class RefereeProfileEdit extends Component {
               />
               <Form.Input
                 fluid
-                id="lastName"
+                id="changedLastName"
                 label="Last name"
                 value={lastName}
                 placeholder="Last name"
                 onChange={this.changeInput}
               />
             </Form.Group>
-          </Segment>
-          <Segment attached>
-            <Form.Input
-              id="pronouns"
-              label="Pronouns"
-              value={pronouns}
-              placeholder="Your pronouns"
-              onChange={this.changeInput}
-            />
-            <Form.Checkbox
-              toggle
-              id="showPronouns"
-              label="Show my pronouns on my referee profile"
-              checked={showPronouns}
-              onChange={this.changeCheckbox}
-            />
-          </Segment>
-          <Segment attached>
+            <Form.Group inline>
+              <Form.Input
+                id="changedPronouns"
+                label="Pronouns"
+                value={pronouns}
+                placeholder="Your pronouns"
+                onChange={this.changeInput}
+              />
+              <Form.Checkbox
+                toggle
+                id="changedShowPronouns"
+                label="Show my pronouns on my referee profile"
+                checked={showPronouns}
+                onChange={this.changeCheckbox}
+              />
+            </Form.Group>
             <Form.Group inline>
               <Form.Input
                 id="email"
@@ -217,34 +169,44 @@ class RefereeProfileEdit extends Component {
                 Please contact us if you need to change your email address.
               </Label>
             </Form.Group>
-          </Segment>
-          <Segment attached>
-            <Form.Group inline>
-              <label>National Governing Bodies</label>
-              {availableNationalGoverningBodies.map(
-                this.getNationalGoverningBodyJsx
-              )}
+            <Form.Group>
+              <Form.Dropdown
+                id="changedNGBs"
+                style={{ width: '100%' }}
+                multiple
+                selection
+                fluid
+                label="National Governing Bodies"
+                defaultValue={initialNGBValues}
+                placeholder="Select National Governing Bodies ..."
+                options={this.dropdownOptions}
+                onChange={this.handleNGBChange}
+                error={validationErrors.noNationalGoverningBody}
+              />
             </Form.Group>
             <Message
               error
               header="No National Governing Body Selected"
               content="You must belong to at least one national governing body"
             />
-          </Segment>
-          <Segment attached>
             <Form.TextArea
-              id="bio"
+              id="changedBio"
               label="Bio"
               value={bio}
               autoHeight
               placeholder="Tell us more about you!"
               onChange={this.changeInput}
             />
-          </Segment>
-          <Form.Button primary attached="bottom" onClick={this.submit}>
-            Save
-          </Form.Button>
-        </Form>
+          </Form>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button secondary onClick={this.handleCancel}>
+            Cancel
+          </Button>
+          <Button primary onClick={this.handleSubmit}>
+            Save Profile
+          </Button>
+        </Modal.Actions>
       </Modal>
     )
   }
