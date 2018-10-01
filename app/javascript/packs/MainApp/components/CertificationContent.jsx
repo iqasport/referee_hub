@@ -9,17 +9,17 @@ import TestResultsTable from './TestResultsTable'
 
 const certificationLinkConfig = {
   snitch: {
-    title: 'Snitch Referee Written Test',
+    title: 'Snitch Referee Written Test 2018-20',
     link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a',
     color: 'yellow'
   },
   assistant: {
-    title: 'Assistant Referee Written Test',
+    title: 'Assistant Referee Written Test 2018-20',
     link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f',
     color: 'blue'
   },
   head: {
-    title: 'Head Referee Written Test',
+    title: 'Head Referee Written Test 2018-20',
     link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c',
     color: 'green'
   }
@@ -27,25 +27,25 @@ const certificationLinkConfig = {
 
 const oldCertificationLinkConfig = {
   snitch: {
-    title: 'Snitch Referee Written Test',
+    title: 'Snitch Referee Written Test 2016-18',
     link: 'https://www.classmarker.com/online-test/start/?quiz=crx5bb21de04a997',
     color: 'yellow'
   },
   assistant: {
-    title: 'Assistant Referee Written Test',
+    title: 'Assistant Referee Written Test 2016-18',
     link: 'https://www.classmarker.com/online-test/start/?quiz=tgr5bb21e1c149dc',
     color: 'blue'
   },
   head: {
-    title: 'Head Referee Written Test',
+    title: 'Head Referee Written Test 2016-18',
     link: 'https://www.classmarker.com/online-test/start/?quiz=9xb5bb21e53ea15f',
     color: 'green'
   }
 }
 
-const hasPassedTest = (level, certifications) => {
-  return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
-}
+const hasPassedTest = (level, certifications) => (
+  certifications.some(({ level: certificationLevel }) => certificationLevel === level)
+)
 
 class CertificationContent extends Component {
   static propTypes = {
