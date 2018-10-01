@@ -54,7 +54,16 @@ module Api
       end
 
       def permitted_params
-        params.permit(:id, :first_name, :last_name, :bio, :pronouns, :show_pronouns, :submitted_payment_at)
+        params.permit(
+          :id,
+          :first_name,
+          :last_name,
+          :bio,
+          :pronouns,
+          :show_pronouns,
+          :submitted_payment_at,
+          :getting_started_dismissed_at
+        )
       end
 
       def search_params
