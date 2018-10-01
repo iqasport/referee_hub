@@ -28,6 +28,8 @@ class RefereeProfile extends Component {
       pronouns: '',
       nationalGoverningBodies: [],
       certifications: [],
+      testAttempts: [],
+      testResults: [],
       isEditable: false,
       submittedPaymentAt: null
     },
@@ -71,17 +73,34 @@ class RefereeProfile extends Component {
   }
 
   setComponentStateFromBackendData = ({ status, statusText, data }) => {
-    const { data: { attributes }, included } = data;
+    const { data: { attributes }, included } = data
     const certifications = included
       .filter(({ type }) => type === 'certification')
-      .map(certification => certification.attributes);
+      .map(certification => certification.attributes)
     const nationalGoverningBodies = included
       .filter(({ type }) => type === 'national_governing_body')
       .map(nationalGoverningBody => ({
         id: nationalGoverningBody.id,
         name: nationalGoverningBody.attributes.name,
         website: nationalGoverningBody.attributes.website
-      }));
+      }))
+    const testAttempts = included
+      .filter(({ type }) => type === 'test_attempt')
+      .map(testAttempt => testAttempt.attributes)
+    const testResults = included
+      .filter(({ type }) => type === 'test_result')
+      .map(testResult => ({
+        duration: testResult.attributes.duration,
+        minimumPassPercentage: testResult.attributes.minimum_pass_percentage,
+        passed: testResult.attributes.passed,
+        percentage: testResult.attributes.percentage,
+        pointsAvailable: testResult.attributes.points_available,
+        pointsScored: testResult.attributes.points_scored,
+        timeFinished: testResult.attributes.time_finished,
+        timeStarted: testResult.attributes.time_started,
+        testLevel: testResult.attributes.test_level
+      }))
+
     this.setState({
       httpStatus: status,
       httpStatusText: statusText,
@@ -94,6 +113,8 @@ class RefereeProfile extends Component {
         pronouns: attributes.pronouns,
         nationalGoverningBodies,
         certifications,
+        testAttempts,
+        testResults,
         isEditable: attributes.is_editable,
         submittedPaymentAt: attributes.submitted_payment_at,
         gettingStartedDismissedAt: attributes.getting_started_dismissed_at
@@ -232,15 +253,24 @@ class RefereeProfile extends Component {
   }
 
   renderCertificationContent = () => {
-    const { referee: { certifications, isEditable, submittedPaymentAt } } = this.state
+    const {
+      referee: {
+        certifications, isEditable, submittedPaymentAt, nationalGoverningBodies, testResults, testAttempts
+      }
+    } = this.state
     const { match: { params } } = this.props
+
+    const shouldTakeOldTests = nationalGoverningBodies.some(ngb => /australia/i.test(ngb.name))
 
     return (
       <Tab.Pane>
         <CertificationContent
           refereeId={params.id}
           isEditable={isEditable}
+          shouldTakeOldTests={shouldTakeOldTests}
           hasPaid={!!submittedPaymentAt}
+          testResults={testResults}
+          testAttempts={testAttempts}
           refCertifications={certifications}
           onSuccess={this.handlePaymentSuccess}
           onError={this.handlePaymentError}

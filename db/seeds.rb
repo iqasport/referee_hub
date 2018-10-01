@@ -121,7 +121,25 @@ NGB_CONFIG.each do |config|
   NationalGoverningBody.find_or_create_by(name: config[:name], website: config[:website])
 end
 
-FactoryBot.create(:certification, :snitch)
-FactoryBot.create(:certification)
-FactoryBot.create(:certification, :head)
-FactoryBot.create(:certification, :field)
+CERT_CONFIG = [
+  {
+    display_name: 'Snitch Referee Certification',
+    level: :snitch
+  },
+  {
+    display_name: 'Assistant Referee Certification',
+    level: :assistant
+  },
+  {
+    display_name: 'Head Referee Certification',
+    level: :head
+  },
+  {
+    display_name: 'Field Test Certification',
+    level: :field
+  },
+].freeze
+
+CERT_CONFIG.each do |config|
+  Certifification.find_or_create_by(display_name: config[:display_name], level: config[:level])
+end
