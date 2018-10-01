@@ -54,9 +54,9 @@ const PrivacyPolicy = () => (
       a so-called cookie ID. A cookie ID is a unique identifier of the cookie. It consists of a
       character string through which Internet pages and servers can be assigned to the specific
       Internet browser in which the cookie was stored. This allows visited Internet sites and
-      servers to differentiate the individual browser of the dats subject from other Internet
-      browsers that contain other cookies. A specific Internet browser can be recognized and
-      identified using the unique cookie ID.
+      servers to differentiate your individual browser from other Internet browsers that contain
+      other cookies. A specific Internet browser can be recognized and identified using the unique
+      cookie ID.
     </p>
     <p>
       Through the use of cookies, we can provide you the possibility to log in and recognize you
@@ -178,17 +178,14 @@ const PrivacyPolicy = () => (
       company subject to a legal obligation by which processing of personal data is required,
       such as for the fulfillment of tax obligations, the processing is based on Art. 6(1) lit.
       c GDPR. In rare cases, the processing of personal data may be necessary to protect the
-      vital interests of the data subject or of another natural person. This would be the case,
-      for example, if a visitor were injured in our company and his name, age, health insurance
-      data or other vital information would have to be passed on to a doctor, hospital or other
-      third party. Then the processing would be based on Art. 6(1) lit. d GDPR. Finally,
-      processing operations could be based on Article 6(1) lit. f GDPR. This legal basis is used
-      for processing operations which are not covered by any of the abovementioned legal
-      grounds, if processing is necessary for the purposes of the legitimate interests pursued
-      by our company or by a third party, except where such interests are overridden by the
-      interests or fundamental rights and freedoms of the data subject which require protection
-      of personal data. Such processing operations are particularly permissible because they
-      have been specifically mentioned by the European legislator. He considered that a
+      vital interests of the data subject or of another natural person. Then the processing would be
+      based on Art. 6(1) lit. d GDPR. Finally, processing operations could be based on Article 6(1)
+      lit. f GDPR. This legal basis is used for processing operations which are not covered by any
+      of the abovementioned legal grounds, if processing is necessary for the purposes of the
+      legitimate interests pursued by our company or by a third party, except where such interests
+      are overridden by the interests or fundamental rights and freedoms of the data subject which
+      require protection of personal data. Such processing operations are particularly permissible
+      because they have been specifically mentioned by the European legislator. He considered that a
       legitimate interest could be assumed if the data subject is a client of the controller
       (Recital 47 Sentence 2 GDPR).
     </p>
