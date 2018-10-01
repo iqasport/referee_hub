@@ -20,6 +20,8 @@ require 'ffaker'
 FactoryBot.define do
   factory :link do
     name { "#{FFaker::Job.title} Test" }
+    cm_link_id 100
+    cm_link_url_id 'random_classmarker_id_123'
     test { create :test }
   end
 end

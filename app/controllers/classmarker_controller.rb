@@ -43,7 +43,6 @@ class ClassmarkerController < ApplicationController
 
     find_test(test_data) if test_data
     find_link(link_data) if link_data
-    update_test_link if @test.link_id.blank?
 
     create_test_results(results_data) if results_data
   end
@@ -88,12 +87,9 @@ class ClassmarkerController < ApplicationController
     @link = Link.find_or_create_by(
       cm_link_id: link_data['link_id'],
       cm_link_url_id: link_data['link_url_id'],
-      name: link_data['link_name']
+      name: link_data['link_name'],
+      test_id: @test.id
     )
-  end
-
-  def update_test_link
-    @test.update!(link_id: @link.id)
   end
 
   def create_test_results(results_data)
