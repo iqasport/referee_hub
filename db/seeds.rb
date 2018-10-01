@@ -120,3 +120,8 @@ NGB_CONFIG = [
 NGB_CONFIG.each do |config|
   NationalGoverningBody.find_or_create_by(name: config[:name], website: config[:website])
 end
+
+FactoryBot.create(:certification, :snitch)
+FactoryBot.create(:certification)
+FactoryBot.create(:certification, :head)
+FactoryBot.create(:certification, :field)
