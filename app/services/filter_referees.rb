@@ -1,22 +1,20 @@
 module Services
   class FilterReferees
-    attr_accessor :search_query, :filter_by, :relation
+    attr_accessor :search_query, :certifications, :national_governing_bodies, :relation
 
     def initialize(params)
       @search_query = params.delete(:q)
-      @filter_by = params.delete(:filter_by)
+      @certifications = params.delete(:certifications)
+      @national_governing_bodies = params.delete(:national_governing_bodies)
       @relation = Referee.all
     end
 
     def filter
-      return relation if filter_by.blank? && search_query.blank?
+      return relation if certifications.blank? && search_query.blank? && national_governing_bodies.blank?
 
       @relation = search_by_name if search_query.present?
-
-      if filter_by.present?
-        @relation = filter_by_certification if filter_by[:certifications].present?
-        @relation = filter_by_national_governing_body if filter_by[:national_governing_bodies].present?
-      end
+      @relation = filter_by_certification if certifications.present?
+      @relation = filter_by_national_governing_body if national_governing_bodies.present?
 
       relation || []
     end
@@ -28,19 +26,17 @@ module Services
     end
 
     def filter_by_certification
-      certification_levels = filter_by.fetch(:certifications)
-      return relation if certification_levels.blank?
+      return relation if certifications.blank?
 
-      relation.joins(:certifications).where(certifications: { level: certification_levels })
+      relation.joins(:certifications).where(certifications: { level: certifications })
     end
 
     def filter_by_national_governing_body
-      national_governing_body_ids = filter_by.fetch(:national_governing_bodies)
-      return relation if national_governing_body_ids.blank?
+      return relation if national_governing_bodies.blank?
 
       relation
         .joins(:national_governing_bodies)
-        .where(national_governing_bodies: { id: national_governing_body_ids })
+        .where(national_governing_bodies: { id: national_governing_bodies })
     end
   end
 end
