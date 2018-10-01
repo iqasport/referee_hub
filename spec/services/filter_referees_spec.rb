@@ -8,11 +8,11 @@ RSpec.describe Services::FilterReferees do
   let(:search_query) { 'test' }
   let(:certifications) { ['snitch'] }
   let(:ngbs) { [ngb.id] }
-  let(:filter_by) { { certifications: certifications, national_governing_bodies: ngbs } }
   let(:params) do
     {
       q: search_query,
-      filter_by: filter_by
+      certifications: certifications,
+      national_governing_bodies: ngbs
     }
   end
 
@@ -25,7 +25,8 @@ RSpec.describe Services::FilterReferees do
   subject { described_class.new(params).filter }
 
   context 'when only a search query exists' do
-    let(:filter_by) { nil }
+    let(:certifications) { nil }
+    let(:ngbs) { nil }
 
     it 'should return the referee that matches the search query' do
       expect(subject.length).to eq 1
