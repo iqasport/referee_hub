@@ -9,9 +9,10 @@
     <%= stylesheet_link_tag 'application' %>
     <%= javascript_pack_tag 'MainApp/index' %>
     <%= stylesheet_pack_tag 'MainApp/assets/stylesheets/app' %>
+    <%= favicon_link_tag asset_path('favicon.ico'), :rel => 'icon', :type =>  'image/png' %>
   </head>
 
-  <body>
+  <body style='display: flex;min-height: 100vh;flex-direction: column;'>
     <div class='ui inverted fixed menu'>
       <div class='ui container'>
         <% if referee_signed_in? %>
@@ -28,5 +29,32 @@
     <p class="notice"><%= notice %></p>
     <p class="alert"><%= alert %></p>
     <%= yield %>
+    <div class='ui inverted vertical footer segment'>
+      <div class='ui container'>
+        <div class='ui stackable inverted divided equal height stackable grid bottom'>
+          <div class='five wide column'>
+            <h4><%= image_tag('IQAWhiteLogo.png') %><h4>
+            <p>
+              IQA and its activities are not licensed by, sponsored by or associated with Warner Bros., J.K. Rowling or their affiliates. 'Quidditch,' 'Harry Potter' and all related names, characters and indicia are trademarks of and © Warner Bros. - Harry Potter publishing rights © J.K. Rowling
+            </p>
+          </div>
+          <div class='three wide column'>
+            <h4 class="ui inverted header">About</h4>
+            <div class='ui inverted link list'>
+              <a href='http://iqasport.com/about/history' class='item'>History</a>
+              <a href='http://iqasport.com/about/trustees' class='item'>Trustees</a>
+              <a href='http://iqasport.com/about/volunteers' class='item'>Volunteers</a>
+            </div>
+          </div>
+          <div class='three wide column'>
+            <h4 class="ui inverted header">Get In Touch</h4>
+            <div class='ui inverted link list'>
+              <a href='https://www.facebook.com/InternationalQuidditchAssociation' class='item'>Facebook</a>
+              <a href='https://twitter.com/iqasport' class='item'>Twitter</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
