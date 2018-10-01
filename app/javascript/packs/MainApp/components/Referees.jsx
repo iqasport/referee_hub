@@ -1,9 +1,8 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import {
-  Checkbox, Dropdown, Header, Icon, Input, Label, Table
-} from 'semantic-ui-react'
+import { Header } from 'semantic-ui-react'
+import RefereeTable from './RefereeTable'
 
 class Referees extends Component {
   static propTypes = {
@@ -21,16 +20,18 @@ class Referees extends Component {
   }
 
   componentDidMount() {
-    this.search()
+    this.handleSearch()
   }
 
-  componentDidUpdate(previousProps, previousState) {
-    const { nameSearch, nationalGoverningBodySearch, certificationSearch } = this.state
-    if (previousState.nameSearch !== nameSearch
-      || previousState.nationalGoverningBodySearch.length !== nationalGoverningBodySearch.length
-      || previousState.certificationSearch !== certificationSearch) {
-      this.search()
-    }
+  componentDidUpdate(prevProps, prevState) {
+    const { nameSearch: oldName, nationalGoverningBodySearch: oldNGB, certificationSearch: oldCert } = this.state
+    const { nameSearch: newName, nationalGoverningBodySearch: newNGB, certificationSearch: newCert } = prevState
+
+    const nameSearchChanged = oldName !== newName
+    const ngbFilterChanged = oldNGB.length !== newNGB.length
+    const certFilterChanged = oldCert !== newCert
+
+    if (nameSearchChanged || ngbFilterChanged || certFilterChanged) this.handleSearch()
   }
 
   setStateFromBackendData = ({ data: { data, included } }) => {
@@ -73,53 +74,10 @@ class Referees extends Component {
 
   hasRefereeName = ({ attributes }) => attributes.first_name || attributes.last_name
 
-  handleRefereeClick = (itemId) => {
+  handleRefereeClick = (refId) => {
     const { history } = this.props
-    history.push(`/referees/${itemId}`)
+    history.push(`/referees/${refId}`)
   }
-
-  renderRefereeTableRow = ({
-    id, name, certifications, nationalGoverningBodies, isCurrentReferee
-  }) => (
-    <Table.Row onClick={() => this.handleRefereeClick(id)} key={id} style={{ cursor: 'pointer' }}>
-      <Table.Cell>
-        {
-          (isCurrentReferee
-          && <Label ribbon>You</Label>)
-          || <Icon name="zoom" />
-        }
-        {' '}
-        {name}
-      </Table.Cell>
-      <Table.Cell>
-        {nationalGoverningBodies.join(', ')}
-      </Table.Cell>
-      <Table.Cell textAlign="center">
-        {
-          certifications.includes('snitch')
-            && <Icon name="checkmark" color="green" size="large" />
-        }
-      </Table.Cell>
-      <Table.Cell textAlign="center">
-        {
-          certifications.includes('assistant')
-          && <Icon name="checkmark" color="green" size="large" />
-        }
-      </Table.Cell>
-      <Table.Cell textAlign="center">
-        {
-          certifications.includes('head')
-          && <Icon name="checkmark" color="green" size="large" />
-        }
-      </Table.Cell>
-      <Table.Cell textAlign="center">
-        {
-          certifications.includes('field')
-          && <Icon name="checkmark" color="green" size="large" />
-        }
-      </Table.Cell>
-    </Table.Row>
-  )
 
   handleNameSearchChange = (e, { value }) => {
     this.setState({
@@ -133,7 +91,7 @@ class Referees extends Component {
     })
   }
 
-  getHandleCertificationToggleChange = value => () => {
+  handleCertificationToggleChange = value => () => {
     this.setState(({ certificationSearch }) => {
       const checked = certificationSearch.includes(value)
       let newSearch
@@ -149,7 +107,7 @@ class Referees extends Component {
     })
   }
 
-  search = () => {
+  handleSearch = () => {
     const { nameSearch, nationalGoverningBodySearch, certificationSearch } = this.state
     const params = {}
     if (nameSearch.trim()) {
@@ -178,87 +136,19 @@ class Referees extends Component {
     return (
       <Fragment>
         <Header as="h1">
-          Referee List View
+          Registered Referees
         </Header>
-        <Table selectable>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>
-                Name
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                NGBs
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                Snitch
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                Assistant
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                Head
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                Field
-              </Table.HeaderCell>
-            </Table.Row>
-            <Table.Row>
-              <Table.HeaderCell>
-                <Input
-                  value={nameSearch}
-                  placeholder="Search by name …"
-                  onChange={this.handleNameSearchChange}
-                />
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                <Dropdown
-                  multiple
-                  search
-                  selection
-                  value={nationalGoverningBodySearch}
-                  placeholder="Search by NGB …"
-                  options={this.dropdownOptions}
-                  onChange={this.handleNationalGoverningBodySearchChange}
-                />
-              </Table.HeaderCell>
-              <Table.HeaderCell textAlign="center">
-                <Checkbox
-                  toggle
-                  checked={certificationSearch.includes('snitch')}
-                  value="snitch"
-                  onChange={this.getHandleCertificationToggleChange('snitch')}
-                />
-              </Table.HeaderCell>
-              <Table.HeaderCell textAlign="center">
-                <Checkbox
-                  toggle
-                  checked={certificationSearch.includes('assistant')}
-                  value="assistant"
-                  onChange={this.getHandleCertificationToggleChange('assistant')}
-                />
-              </Table.HeaderCell>
-              <Table.HeaderCell textAlign="center">
-                <Checkbox
-                  toggle
-                  checked={certificationSearch.includes('head')}
-                  value="head"
-                  onChange={this.getHandleCertificationToggleChange('head')}
-                />
-              </Table.HeaderCell>
-              <Table.HeaderCell textAlign="center">
-                <Checkbox
-                  toggle
-                  checked={certificationSearch.includes('field')}
-                  value="field"
-                  onChange={this.getHandleCertificationToggleChange('field')}
-                />
-              </Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {referees.map(this.renderRefereeTableRow)}
-          </Table.Body>
-        </Table>
+        <RefereeTable
+          referees={referees}
+          nameSearch={nameSearch}
+          nationalGoverningBodySearch={nationalGoverningBodySearch}
+          certificationSearch={certificationSearch}
+          onNameChange={this.handleNameSearchChange}
+          onNGBChange={this.handleNationalGoverningBodySearchChange}
+          onCertificationChange={this.handleCertificationToggleChange}
+          onRefereeClick={this.handleRefereeClick}
+          dropdownOptions={this.dropdownOptions}
+        />
       </Fragment>
     )
   }
