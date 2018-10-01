@@ -15,7 +15,7 @@ const refereePropTypes = {
   name: PropTypes.string.isRequired,
   certifications: PropTypes.arrayOf(PropTypes.string).isRequired,
   nationalGoverningBodies: PropTypes.arrayOf(PropTypes.string).isRequired,
-  isCurrentReferee: PropTypes.bool.isRequired
+  isCurrentReferee: PropTypes.bool
 }
 
 const TableRow = (props) => {
