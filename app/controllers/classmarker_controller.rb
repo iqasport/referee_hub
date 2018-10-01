@@ -59,7 +59,7 @@ class ClassmarkerController < ApplicationController
   end
 
   def calculate_signature(data)
-    secret = ENV['CLASSMARKER_SECRET']
+    secret = 'EaQjqazCRdSbbjQ'
 
     digest = OpenSSL::Digest.new('sha256')
     Base64.encode64(OpenSSL::HMAC.digest(digest, secret, data)).strip
@@ -77,11 +77,11 @@ class ClassmarkerController < ApplicationController
   end
 
   def find_test(test_data)
-    @test = Test.find_or_create_by(
-      cm_test_id: test_data['test_id'],
-      name: test_data['test_name'],
-      level: determine_level(test_data['test_name'])
-    )
+    create_data_hash = { cm_test_id: test_data['test_id'], name: test_data['test_name'] }
+    potential_level = determine_level(test_data['test_name'])
+    create_data_hash.merge(level: potential_level) if potential_level.present?
+
+    @test = Test.find_or_create_by(create_data_hash)
   end
 
   def find_link(link_data)
@@ -97,6 +97,9 @@ class ClassmarkerController < ApplicationController
   end
 
   def create_test_results(results_data)
+    referee = Referee.find_by(id: results_data['cm_user_id'])
+    return unless referee
+
     test_results_hash = {
       certificate_url: results_data['certificate_url'],
       duration: results_data['duration'],
@@ -109,7 +112,7 @@ class ClassmarkerController < ApplicationController
       time_started: results_data['time_started'],
       cm_link_result_id: results_data['link_result_id'],
       link_id: @link.id,
-      referee_id: Random.new.rand(100...1000)
+      referee_id: referee.id
     }
     TestResult.create!(test_results_hash)
   end
