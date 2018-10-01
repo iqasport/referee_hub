@@ -20,35 +20,33 @@ class TestResultsTable extends Component {
     ).isRequired
   }
 
-  renderTableHeader = () => {
-    return (
-      <Table.Header>
-        <Table.Row>
-          <Table.HeaderCell>
-            Test Type
-          </Table.HeaderCell>
-          <Table.HeaderCell>
-            Total Test Duration
-          </Table.HeaderCell>
-          <Table.HeaderCell>
-            Passed
-          </Table.HeaderCell>
-          <Table.HeaderCell>
-            Minimum Pass Percentage
-          </Table.HeaderCell>
-          <Table.HeaderCell>
-            Correct Answer Percentage
-          </Table.HeaderCell>
-          <Table.HeaderCell>
-            Total Points Scored
-          </Table.HeaderCell>
-          <Table.HeaderCell>
-            Total Points Available
-          </Table.HeaderCell>
-        </Table.Row>
-      </Table.Header>
-    )
-  }
+  renderTableHeader = () => (
+    <Table.Header>
+      <Table.Row>
+        <Table.HeaderCell>
+          Test Type
+        </Table.HeaderCell>
+        <Table.HeaderCell>
+          Total Test Duration
+        </Table.HeaderCell>
+        <Table.HeaderCell>
+          Passed
+        </Table.HeaderCell>
+        <Table.HeaderCell>
+          Minimum Pass Percentage
+        </Table.HeaderCell>
+        <Table.HeaderCell>
+          Correct Answer Percentage
+        </Table.HeaderCell>
+        <Table.HeaderCell>
+          Total Points Scored
+        </Table.HeaderCell>
+        <Table.HeaderCell>
+          Total Points Available
+        </Table.HeaderCell>
+      </Table.Row>
+    </Table.Header>
+  )
 
   renderTableRow = (testResult) => {
     const {
@@ -58,12 +56,10 @@ class TestResultsTable extends Component {
       passed,
       percentage,
       pointsAvailable,
-      pointsScored,
-      timeFinished,
-      timeStarted
+      pointsScored
     } = testResult
 
-    const totalDuration = duration || 'n/a'
+    const totalDuration = duration || 'n/a' // TODO use timeFinished and timeStarted to determine duration if null
     const passedIcon = <Icon name="checkmark" color="green" size="large" />
     const failedIcon = <Icon name="times" color="red" size="large" />
 
@@ -96,7 +92,7 @@ class TestResultsTable extends Component {
 
   render() {
     const { testResults } = this.props
-    console.log()
+
     return (
       <Table>
         {this.renderTableHeader()}

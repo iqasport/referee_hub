@@ -29,17 +29,19 @@
     <p class="notice"><%= notice %></p>
     <p class="alert"><%= alert %></p>
     <%= yield %>
-    <div class='ui inverted vertical footer segment'>
+    <div class='ui inverted vertical footer segment' style='margin-top:50px;'>
       <div class='ui container'>
         <div class='ui stackable inverted divided equal height stackable grid bottom'>
-          <div class='five wide column'>
-            <h4><%= image_tag('IQAWhiteLogo.png') %><h4>
-            <p>
-              IQA and its activities are not licensed by, sponsored by or associated with Warner Bros., J.K. Rowling or their affiliates. 'Quidditch,' 'Harry Potter' and all related names, characters and indicia are trademarks of and © Warner Bros. - Harry Potter publishing rights © J.K. Rowling
-            </p>
+          <div class='nine wide column'>
+            <div style='display: flex;'>
+              <%= image_tag 'IQAWhiteLogo.png', style: 'flex:1;width:50%;height:50%;' %>
+              <p style='flex: 1;margin-left:10px;'>
+                IQA and its activities are not licensed by, sponsored by or associated with Warner Bros., J.K. Rowling or their affiliates. 'Quidditch,' 'Harry Potter' and all related names, characters and indicia are trademarks of and © Warner Bros. - Harry Potter publishing rights © J.K. Rowling
+              </p>
+            </div>
           </div>
           <div class='three wide column'>
-            <h4 class="ui inverted header">About</h4>
+            <h4 class="ui inverted header">About the IQA</h4>
             <div class='ui inverted link list'>
               <a href='http://iqasport.com/about/history' class='item'>History</a>
               <a href='http://iqasport.com/about/trustees' class='item'>Trustees</a>
