@@ -2,9 +2,10 @@ import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import { DateTime } from 'luxon'
-import { Header, Message, Tab, Segment } from 'semantic-ui-react'
+import { Header, Message, Tab, Segment, Loader } from 'semantic-ui-react'
 import RefereeProfileEdit from './RefereeProfileEdit'
-import PaypalButton from './PaypalButton'
+import ProfileContent from './ProfileContent'
+import CertificationContent from './CertificationContent'
 
 class RefereeProfile extends Component {
   static propTypes = {
@@ -41,7 +42,7 @@ class RefereeProfile extends Component {
   }
 
   get currentRefereeApiRoute() {
-    const { match: { params } } = this.props;
+    const { match: { params } } = this.props
 
     return `/api/v1/referees/${params.id}`
   }
@@ -71,7 +72,8 @@ class RefereeProfile extends Component {
         nationalGoverningBodies,
         certifications,
         isEditable: attributes.is_editable,
-        submittedPaymentAt: attributes.submitted_payment_at
+        submittedPaymentAt: attributes.submitted_payment_at,
+        gettingStartedDismissedAt: attributes.getting_started_dismissed_at
       }
     })
   };
@@ -87,14 +89,6 @@ class RefereeProfile extends Component {
       httpStatusText: statusText
     });
   };
-
-  getNationalGoverningBodyJsx = nationalGoverningBody => (
-    <dd key={nationalGoverningBody.name}>
-      <a href={nationalGoverningBody.website}>
-        {nationalGoverningBody.name}
-      </a>
-    </dd>
-  );
 
   change = (property, value) => {
     this.setState((state) => {
@@ -155,12 +149,6 @@ class RefereeProfile extends Component {
       .catch(this.setErrorStateFromBackendData);
   };
 
-  hasPassedTest = (level) => {
-    const { referee: { certifications } } = this.state
-
-    return certifications.some(({ level: certificationLevel }) => certificationLevel === level)
-  }
-
   handlePaymentSuccess = (payment) => {
     const { paid } = payment
 
@@ -216,152 +204,77 @@ class RefereeProfile extends Component {
   }
 
   handleGetStartedDismiss = () => {
-    console.log('dissmissed that shit')
+    axios
+      .patch(this.currentRefereeApiRoute, {
+        getting_started_dismissed_at: DateTime.local().toString()
+      })
+      .then(this.setComponentStateFromBackendData)
+      .catch(this.setErrorStateFromBackendData)
   }
 
   renderProfileContent = () => {
-    const { referee } = this.state
-    const { isEditable, firstName, lastName } = referee
-    if (!isEditable) return null
+    const { httpStatus, httpStatusText, referee } = this.state
 
-    const notFirstAndLastName = !firstName && !lastName
-    const getStarted = " Let's start by adding your name and NGB affiliation, click on the edit button to get started"
-    const headerText = 'Welcome to your Referee Profile'
+    let content
+    if (httpStatus !== 200) {
+      content = <h1>{httpStatusText}</h1>
+    } else {
+      content = <ProfileContent referee={referee} onDismiss={this.handleGetStartedDismiss} />
+    }
 
     return (
       <Tab.Pane>
-        <Message info onDismiss={this.handleGetStartedDismiss}>
-          <Message.Header>{headerText}</Message.Header>
-          <p>
-            Here you can pay for and take your referee tests, give a little bit of background in your bio, and select any National Governing Bodies that you are affiliated with officially, or regularly officiate games.
-            {notFirstAndLastName && getStarted}
-          </p>
-        </Message>
+        {!httpStatus && <Loader active />}
+        {content}
       </Tab.Pane>
     )
   }
 
+  renderCertificationContent = () => {
+    const { referee: { certifications, isEditable, submittedPaymentAt } } = this.state
+    const { match: { params } } = this.props
+
+    return (
+      <Tab.Pane>
+        <CertificationContent
+          refereeId={params.id}
+          isEditable={isEditable}
+          hasPaid={!!submittedPaymentAt}
+          refCertifications={certifications}
+          onSuccess={this.handlePaymentSuccess}
+          onError={this.handlePaymentError}
+          onCancel={this.handlePaymentCancel}
+        />
+      </Tab.Pane>
+    )
+  }
+
+  renderPronouns = () => {
+    const { referee: { showPronouns, pronouns } } = this.state
+    if (!showPronouns) return null
+
+    return <Fragment>{pronouns}</Fragment>
+  }
+
   render() {
-    const {
-      httpStatus,
-      httpStatusText,
-      referee
-    } = this.state;
-
-    if (!httpStatus) {
-      return (
-        <h1>
-          Loading referee profile
-        </h1>
-      )
-    }
-
-    if (httpStatus !== 200) {
-      return (
-        <h1>
-          {httpStatusText}
-        </h1>
-      )
-    }
+    const { referee } = this.state
 
     const refHeader = (referee.firstName || referee.lastName) && `${referee.firstName} ${referee.lastName}`
     const panes = [
-      { menuItem: 'Profile', render: this.renderProfileContent }
+      { menuItem: 'Profile', render: this.renderProfileContent },
+      { menuItem: 'Certifications', render: this.renderCertificationContent }
     ]
+
     return (
       <Segment>
         {this.renderPaymentMessage()}
-        <Header as="h1">
+        <Header as="h1" textAlign="center">
           {refHeader || 'Anonymous Referee'}
-          <RefereeProfileEdit values={referee} onChange={this.change} onSubmit={this.save} />
+          <Header sub>{this.renderPronouns()}</Header>
+          {referee.isEditable && <RefereeProfileEdit values={referee} onChange={this.change} onSubmit={this.save} />}
         </Header>
         <Tab panes={panes} />
       </Segment>
-
-      // <Fragment>
-      //
-      //   {
-      //
-      //   }
-      //   <dl>
-      //     {referee.showPronouns
-      //       && (
-      //         <Fragment>
-      //           <dt>
-      //             Pronouns:
-      //           </dt>
-      //           <dd>
-      //             {referee.pronouns}
-      //           </dd>
-      //         </Fragment>
-      //       )
-      //     }
-      //     <dt>
-      //       National Governing
-      //       {referee.nationalGoverningBodies.count > 1 ? ' Bodies' : ' Body'}
-      //       :
-      //     </dt>
-      //     {referee.nationalGoverningBodies.map(this.getNationalGoverningBodyJsx)}
-      //     {
-      //       !referee.nationalGoverningBodies.length
-      //       && (
-      //         <dd>
-      //           Unknown
-      //         </dd>
-      //       )
-      //     }
-      //     <dt>
-      //       Email:
-      //     </dt>
-      //     <dd>
-      //       <a href={`mailto:${referee.email}`}>
-      //         {referee.email}
-      //       </a>
-      //     </dd>
-      //   </dl>
-      //   <h2>
-      //     Certifications
-      //   </h2>
-      //   <dl>
-      //     <dt>
-      //       Snitch Referee
-      //     </dt>
-      //     <dd>
-      //       {this.hasPassedTest('snitch') ? '✓' : '✗'}
-      //     </dd>
-      //     <dt>
-      //       Assistant Referee
-      //     </dt>
-      //     <dd>
-      //       {this.hasPassedTest('assistant') ? '✓' : '✗'}
-      //     </dd>
-      //     <dt>
-      //       Head Referee Written
-      //     </dt>
-      //     <dd>
-      //       {this.hasPassedTest('head') ? '✓' : '✗'}
-      //     </dd>
-      //     <dt>
-      //       Head Referee Field
-      //     </dt>
-      //     <dd>
-      //       {this.hasPassedTest('field') ? '✓' : '✗'}
-      //     </dd>
-      //   </dl>
-      //   {
-      //     referee.bio
-      //     && (
-      //       <Fragment>
-      //         <Header as="h2">
-      //           Bio
-      //         </Header>
-      //         <p>
-      //           {referee.bio}
-      //         </p>
-      //       </Fragment>
-      //     )
-      //   }
-      // </Fragment>
     )
   }
 }

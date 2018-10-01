@@ -37,7 +37,8 @@ class RefereeSerializer
              :bio,
              :email,
              :show_pronouns,
-             :submitted_payment_at
+             :submitted_payment_at,
+             :getting_started_dismissed_at
 
   attribute :pronouns, if: proc { |referee, params|
     current_user = params.present? && params[:current_user]

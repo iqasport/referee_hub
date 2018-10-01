@@ -59,7 +59,7 @@ class ClassmarkerController < ApplicationController
   end
 
   def calculate_signature(data)
-    secret = 'a secret string'
+    secret = ENV['CLASSMARKER_SECRET']
 
     digest = OpenSSL::Digest.new('sha256')
     Base64.encode64(OpenSSL::HMAC.digest(digest, secret, data)).strip
@@ -77,7 +77,11 @@ class ClassmarkerController < ApplicationController
   end
 
   def find_test(test_data)
-    @test = Test.find_or_create_by(cm_test_id: test_data['test_id'], name: test_data['test_name'])
+    @test = Test.find_or_create_by(
+      cm_test_id: test_data['test_id'],
+      name: test_data['test_name'],
+      level: determine_level(test_data['test_name'])
+    )
   end
 
   def find_link(link_data)
@@ -108,5 +112,13 @@ class ClassmarkerController < ApplicationController
       referee_id: Random.new.rand(100...1000)
     }
     TestResult.create!(test_results_hash)
+  end
+
+  def determine_level(test_name)
+    return 'snitch' if /snitch/i.match?(test_name)
+    return 'assistant' if /assistant/i.match?(test_name)
+    return 'head' if /head/i.match?(test_name)
+
+    nil
   end
 end
