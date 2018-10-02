@@ -27,12 +27,6 @@ class ClassmarkerController < ApplicationController
     end
   end
 
-  class InvalidRefereeError < StandardError
-    def initialize
-      super 'Referee id is invalid'
-    end
-  end
-
   def verify_hmac_signature
     raise InvalidHMACError unless hmac_header_valid?
   end
@@ -46,7 +40,6 @@ class ClassmarkerController < ApplicationController
     test_data = parsed_data['test']
     results_data = parsed_data['result']
     referee = Referee.find_by(id: results_data['cm_user_id'])
-    raise InvalidRefereeError unless referee
 
     create_test_attempt(test_data['test_name'], referee)
     create_test_results(results_data, test_data['test_name'], referee)
@@ -81,6 +74,7 @@ class ClassmarkerController < ApplicationController
   end
 
   def create_test_results(results_data, test_name, referee)
+    return if referee.blank?
     test_results_hash = {
       certificate_url: results_data['certificate_url'],
       duration: results_data['duration'],
@@ -99,6 +93,8 @@ class ClassmarkerController < ApplicationController
   end
 
   def create_test_attempt(test_name, referee)
+    return if referee.blank?
+
     data_hash = {
       test_level: determine_level(test_name),
       referee_id: referee.id
