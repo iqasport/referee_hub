@@ -176,7 +176,7 @@ class CertificationContent extends Component {
 
   renderCertificationLinks = () => {
     const { isEditable, hasPaid, shouldTakeOldTests } = this.props
-    if (!isEditable) return null
+    if (!isEditable || this.hasHeadCert) return null
     const canTakeSnitch = this.canTakeSnitchTest()
     const canTakeAssistant = this.canTakeAssistantTest()
     const canTakeHead = this.canTakeHeadTest(hasPaid)
