@@ -80,7 +80,7 @@ class ClassmarkerController < ApplicationController
       duration: results_data['duration'],
       minimum_pass_percentage: results_data['percentage_passmark'],
       passed: results_data['passed'],
-      percentage: results_data['data'],
+      percentage: results_data['percentage'],
       points_available: results_data['points_available'],
       points_scored: results_data['points_scored'],
       time_finished: results_data['time_finished'],
