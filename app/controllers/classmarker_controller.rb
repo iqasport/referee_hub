@@ -40,9 +40,10 @@ class ClassmarkerController < ApplicationController
     test_data = parsed_data['test']
     results_data = parsed_data['result']
     referee = Referee.find_by(id: results_data['cm_user_id'])
+    test_level = determine_level(test_data['test_name'])
 
-    create_test_attempt(test_data['test_name'], referee)
-    create_test_results(results_data, test_data['test_name'], referee)
+    create_test_attempt(test_level, referee) if referee.present?
+    create_test_results(results_data, test_level, referee) if referee.present?
   end
 
   def hmac_header_valid?
@@ -73,8 +74,7 @@ class ClassmarkerController < ApplicationController
     Time.zone.now.strftime('%Y-%m-%d_%H-%M-%S') + extension
   end
 
-  def create_test_results(results_data, test_name, referee)
-    return if referee.blank?
+  def create_test_results(results_data, test_level, referee)
     test_results_hash = {
       certificate_url: results_data['certificate_url'],
       duration: results_data['duration'],
@@ -86,21 +86,23 @@ class ClassmarkerController < ApplicationController
       time_finished: results_data['time_finished'],
       time_started: results_data['time_started'],
       cm_link_result_id: results_data['link_result_id'],
-      test_level: determine_level(test_name),
+      test_level: test_level,
       referee_id: referee.id
     }
     TestResult.create(test_results_hash)
+  rescue => e
+    logger.error e
   end
 
-  def create_test_attempt(test_name, referee)
-    return if referee.blank?
-
+  def create_test_attempt(test_level, referee)
     data_hash = {
-      test_level: determine_level(test_name),
+      test_level: test_level,
       referee_id: referee.id
     }
 
     TestAttempt.create(data_hash)
+  rescue => e
+    logger.error e
   end
 
   def determine_level(test_name)
@@ -108,6 +110,6 @@ class ClassmarkerController < ApplicationController
     return 'assistant' if /assistant/i.match?(test_name)
     return 'head' if /head/i.match?(test_name)
 
-    nil
+    'snitch'
   end
 end
