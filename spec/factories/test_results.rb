@@ -26,7 +26,6 @@
 FactoryBot.define do
   factory :test_result do
     referee { create :referee }
-    link { create :link }
     time_started { Time.zone.now }
     time_finished { Time.zone.now + 1.hour }
     percentage 70
