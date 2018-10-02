@@ -10,12 +10,12 @@
 #  percentage              :integer
 #  points_available        :integer
 #  points_scored           :integer
+#  test_level              :integer          default("snitch")
 #  time_finished           :time
 #  time_started            :time
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  cm_link_result_id       :integer
-#  link_id                 :integer
 #  referee_id              :integer          not null
 #
 # Indexes
@@ -27,7 +27,8 @@ require 'rails_helper'
 
 RSpec.describe TestResult, type: :model do
   let(:referee) { create :referee }
-  let(:test_result) { build :test_result, referee: referee }
+  let(:test_result) { build :test_result, referee: referee, test_level: :assistant }
+  let!(:existing_certification) { create :certification }
 
   subject { test_result.save! }
 
@@ -45,15 +46,12 @@ RSpec.describe TestResult, type: :model do
 
         it 'creates the certification at the appropriate level' do
           subject
-          expect(referee.reload.certifications.last.level).to eq 'snitch'
+          expect(referee.reload.certifications.last.level).to eq 'assistant'
         end
       end
 
       context 'when a ref certification already exists' do
-        let!(:test) { create :test, level: :assistant }
-        let(:link) { create :link, test: test }
-        let(:test_result) { build :test_result, referee: referee, link: link }
-        let!(:existing_certification) { create :certification }
+        let(:test_result) { build :test_result, referee: referee, test_level: :assistant }
         let!(:ref_cert) { create :referee_certification, referee: referee, certification: existing_certification }
 
         it 'updates the existing certification' do
@@ -64,10 +62,7 @@ RSpec.describe TestResult, type: :model do
 
     context 'and passed is false' do
       context 'and a certification already exists' do
-        let!(:test) { create :test, level: :assistant }
-        let(:link) { create :link, test: test }
-        let(:test_result) { build :test_result, :failed, referee: referee, link: link }
-        let!(:existing_certification) { create :certification }
+        let(:test_result) { build :test_result, :failed, referee: referee, test_level: :assistant }
         let!(:ref_cert) { create :referee_certification, referee: referee, certification: existing_certification }
 
         it 'updates the existing certification' do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_09_30_190949) do
+ActiveRecord::Schema.define(version: 2018_10_02_002721) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -104,9 +104,9 @@ ActiveRecord::Schema.define(version: 2018_09_30_190949) do
     t.boolean "passed"
     t.string "certificate_url"
     t.integer "minimum_pass_percentage"
-    t.integer "link_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "test_level", default: 0
     t.index ["referee_id"], name: "index_test_results_on_referee_id"
   end
 

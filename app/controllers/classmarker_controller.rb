@@ -27,6 +27,12 @@ class ClassmarkerController < ApplicationController
     end
   end
 
+  class InvalidRefereeError < StandardError
+    def initialize
+      super 'Referee id is invalid'
+    end
+  end
+
   def verify_hmac_signature
     raise InvalidHMACError unless hmac_header_valid?
   end
@@ -38,13 +44,12 @@ class ClassmarkerController < ApplicationController
   def save_webhook_data(data)
     parsed_data = JSON.parse(data)
     test_data = parsed_data['test']
-    link_data = parsed_data['link']
     results_data = parsed_data['result']
+    referee = Referee.find_by(id: results_data['cm_user_id'])
+    raise InvalidRefereeError unless referee
 
-    find_test(test_data) if test_data
-    find_link(link_data) if link_data
-
-    create_test_results(results_data) if results_data
+    create_test_attempt(test_data['test_name'], referee)
+    create_test_results(results_data, test_data['test_name'], referee)
   end
 
   def hmac_header_valid?
@@ -75,27 +80,7 @@ class ClassmarkerController < ApplicationController
     Time.zone.now.strftime('%Y-%m-%d_%H-%M-%S') + extension
   end
 
-  def find_test(test_data)
-    create_data_hash = { cm_test_id: test_data['test_id'], name: test_data['test_name'] }
-    potential_level = determine_level(test_data['test_name'])
-    create_data_hash.merge(level: potential_level) if potential_level.present?
-
-    @test = Test.find_or_create_by(create_data_hash)
-  end
-
-  def find_link(link_data)
-    @link = Link.find_or_create_by(
-      cm_link_id: link_data['link_id'],
-      cm_link_url_id: link_data['link_url_id'],
-      name: link_data['link_name'],
-      test_id: @test.id
-    )
-  end
-
-  def create_test_results(results_data)
-    referee = Referee.find_by(id: results_data['cm_user_id'])
-    return unless referee
-
+  def create_test_results(results_data, test_name, referee)
     test_results_hash = {
       certificate_url: results_data['certificate_url'],
       duration: results_data['duration'],
@@ -107,10 +92,19 @@ class ClassmarkerController < ApplicationController
       time_finished: results_data['time_finished'],
       time_started: results_data['time_started'],
       cm_link_result_id: results_data['link_result_id'],
-      link_id: @link.id,
+      test_level: determine_level(test_name),
       referee_id: referee.id
     }
-    TestResult.create!(test_results_hash)
+    TestResult.create(test_results_hash)
+  end
+
+  def create_test_attempt(test_name, referee)
+    data_hash = {
+      test_level: determine_level(test_name),
+      referee_id: referee.id
+    }
+
+    TestAttempt.create(data_hash)
   end
 
   def determine_level(test_name)

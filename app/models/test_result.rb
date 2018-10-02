@@ -10,12 +10,12 @@
 #  percentage              :integer
 #  points_available        :integer
 #  points_scored           :integer
+#  test_level              :integer          default("snitch")
 #  time_finished           :time
 #  time_started            :time
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  cm_link_result_id       :integer
-#  link_id                 :integer
 #  referee_id              :integer          not null
 #
 # Indexes
@@ -25,15 +25,19 @@
 
 class TestResult < ApplicationRecord
   belongs_to :referee
-  belongs_to :link, dependent: :destroy
 
   after_create :update_referee_certification_status
+
+  enum test_level: {
+    snitch: 0,
+    assistant: 1,
+    head: 2
+  }
 
   private
 
   def update_referee_certification_status
-    cert_level = link.test.level
-    certification = Certification.find_by(level: cert_level)
+    certification = Certification.find_by(level: test_level)
 
     if passed
       ref_certification = RefereeCertification.find_or_create_by!(certification: certification, referee: referee)

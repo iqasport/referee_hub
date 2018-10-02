@@ -118,14 +118,14 @@ class CertificationContent extends Component {
 
   isInCoolDownPeriod = (certType) => {
     const { testAttempts } = this.props
-
     const matchingTestAttempt = testAttempts.filter(testAttempt => testAttempt.test_level === certType)
 
     if (matchingTestAttempt.length > 0) {
-      const nextAttemptAt = DateTime.local(matchingTestAttempt[0].next_attempt_at)
+      const rawAttemptString = matchingTestAttempt[0].next_attempt_at.slice(0, -3).trim()
+      const nextAttemptAt = DateTime.fromSQL(rawAttemptString)
       const currentTime = DateTime.local()
 
-      return nextAttemptAt < currentTime
+      return !(nextAttemptAt < currentTime)
     }
 
     return false
@@ -155,23 +155,52 @@ class CertificationContent extends Component {
     return <Label content={labelContent} size="big" key={level} color="green" />
   }
 
+  canTakeSnitchTest = () => {
+    if (this.isInCoolDownPeriod('snitch')) return false
+
+    return !this.hasSnitchCert && !this.hasHeadCert
+  }
+
+  canTakeAssistantTest = () => {
+    if (this.isInCoolDownPeriod('assistant')) return false
+
+    return !this.hasAssistantCert && !this.hasHeadCert
+  }
+
+  canTakeHeadTest = (hasPaid) => {
+    if (!hasPaid) return false
+    if (this.isInCoolDownPeriod('head')) return false
+
+    return this.hasSnitchCert && this.hasAssistantCert
+  }
+
   renderCertificationLinks = () => {
     const { isEditable, hasPaid, shouldTakeOldTests } = this.props
     if (!isEditable) return null
+    const canTakeSnitch = this.canTakeSnitchTest()
+    const canTakeAssistant = this.canTakeAssistantTest()
+    const canTakeHead = this.canTakeHeadTest(hasPaid)
 
-    const canTakeSnitchTest = !this.hasSnitchCert && !this.hasHeadCert && !this.isInCoolDownPeriod('snitch')
-    const canTakeAssistantTest = !this.hasAssistantCert && !this.hasHeadCert && !this.isInCoolDownPeriod('assistant')
-    const canTakeHeadTest = hasPaid && this.hasSnitchCert && this.hasAssistantCert && !this.isInCoolDownPeriod('head')
+    const anyTestsAvailable = [canTakeSnitch, canTakeAssistant, canTakeHead].some(testStatus => testStatus)
     const certificationConfig = shouldTakeOldTests ? oldCertificationLinkConfig : certificationLinkConfig
 
     const headerContent = 'Available Written Tests'
-    const segmentContent = (
-      <Fragment>
-        {canTakeSnitchTest && this.certificationLink(certificationConfig.snitch)}
-        {canTakeAssistantTest && this.certificationLink(certificationConfig.assistant)}
-        {canTakeHeadTest && this.certificationLink(certificationConfig.head)}
-      </Fragment>
-    )
+    const segmentContent = anyTestsAvailable
+      ? (
+        <Fragment>
+          {canTakeSnitch && this.certificationLink(certificationConfig.snitch)}
+          {canTakeAssistant && this.certificationLink(certificationConfig.assistant)}
+          {canTakeHead && this.certificationLink(certificationConfig.head)}
+        </Fragment>
+      )
+      : (
+        <p>
+          {
+            'One or more tests are unavailable at the moment,' +
+            ' please check back after the 24 hour (for Snitch and Assistant) or 72 hour (for Head) cool down period.'
+          }
+        </p>
+      )
 
     return <ContentSegment segmentContent={segmentContent} headerContent={headerContent} />
   }

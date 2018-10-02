@@ -10,12 +10,12 @@
 #  percentage              :integer
 #  points_available        :integer
 #  points_scored           :integer
+#  test_level              :integer          default("snitch")
 #  time_finished           :time
 #  time_started            :time
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  cm_link_result_id       :integer
-#  link_id                 :integer
 #  referee_id              :integer          not null
 #
 # Indexes
@@ -26,7 +26,6 @@
 FactoryBot.define do
   factory :test_result do
     referee { create :referee }
-    link { create :link }
     time_started { Time.zone.now }
     time_finished { Time.zone.now + 1.hour }
     percentage 70
