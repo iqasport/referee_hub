@@ -28,9 +28,11 @@ class ProfileContent extends Component {
   }
 
   renderNGBItem = ({ id, name, website }) => {
+    const showFlag = !(/(ireland|catalonia)/i.test(name))
+
     return (
       <Label color="blue" size="large" key={id} as="a" href={website} target="_blank" rel="noopener noreferrer">
-        <Flag name={name.toLowerCase()} />
+        { showFlag && <Flag name={name.toLowerCase()} /> }
         {name}
       </Label>
     )
