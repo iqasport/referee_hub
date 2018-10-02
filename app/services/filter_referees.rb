@@ -28,7 +28,10 @@ module Services
     def filter_by_certification
       return relation if certifications.blank?
 
-      relation.joins(:certifications).where(certifications: { level: certifications })
+      relation
+        .joins(:certifications)
+        .where(certifications: { level: certifications })
+        .distinct
     end
 
     def filter_by_national_governing_body
@@ -37,6 +40,7 @@ module Services
       relation
         .joins(:national_governing_bodies)
         .where(national_governing_bodies: { id: national_governing_bodies })
+        .distinct
     end
   end
 end
