@@ -12,7 +12,6 @@
 #
 
 class TestAttempt < ApplicationRecord
-  belongs_to :test
   belongs_to :referee
 
   enum test_level: {

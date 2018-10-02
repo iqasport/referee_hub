@@ -1,3 +1,28 @@
+# == Schema Information
+#
+# Table name: test_results
+#
+#  id                      :bigint(8)        not null, primary key
+#  certificate_url         :string
+#  duration                :string
+#  minimum_pass_percentage :integer
+#  passed                  :boolean
+#  percentage              :integer
+#  points_available        :integer
+#  points_scored           :integer
+#  test_level              :integer          default("snitch")
+#  time_finished           :time
+#  time_started            :time
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  cm_link_result_id       :integer
+#  referee_id              :integer          not null
+#
+# Indexes
+#
+#  index_test_results_on_referee_id  (referee_id)
+#
+
 class TestResultSerializer
   include FastJsonapi::ObjectSerializer
 
@@ -8,9 +33,6 @@ class TestResultSerializer
              :points_available,
              :points_scored,
              :time_finished,
-             :time_started
-
-  attribute :test_level do |test_result, _params|
-    test_result&.link&.test&.level
-  end
+             :time_started,
+             :test_level
 end

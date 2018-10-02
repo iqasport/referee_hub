@@ -59,9 +59,10 @@ class TestResultsTable extends Component {
       pointsScored
     } = testResult
 
-    const totalDuration = duration || 'n/a' // TODO use timeFinished and timeStarted to determine duration if null
+    const totalDuration = duration || 'N/A' // TODO use timeFinished and timeStarted to determine duration if null
     const passedIcon = <Icon name="checkmark" color="green" size="large" />
     const failedIcon = <Icon name="times" color="red" size="large" />
+    const percentagePassed = percentage ? `${percentage}%` : 'N/A'
 
     return (
       <Table.Row>
@@ -78,7 +79,7 @@ class TestResultsTable extends Component {
           {`${minimumPassPercentage}%`}
         </Table.Cell>
         <Table.Cell>
-          {`${percentage}%`}
+          {percentagePassed}
         </Table.Cell>
         <Table.Cell>
           {`${pointsScored} pts`}
