@@ -161,5 +161,5 @@ CERT_CONFIG = [
 ].freeze
 
 CERT_CONFIG.each do |config|
-  Certifification.find_or_create_by(display_name: config[:display_name], level: config[:level])
+  Certification.find_or_create_by(display_name: config[:display_name], level: config[:level])
 end
