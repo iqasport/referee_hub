@@ -36,8 +36,16 @@ NGB_CONFIG = [
     website: 'https://www.facebook.com/QuidditchCatalunya/',
   },
   {
+    name: 'Chile',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
     name: 'Czech Republic',
     website: 'http://famfrpal.cz/',
+  },
+  {
+    name: 'Denmark',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'France',
@@ -46,6 +54,10 @@ NGB_CONFIG = [
   {
     name: 'Germany',
     website: 'http://www.deutscherquidditchbund.de/index.php/en/',
+  },
+  {
+    name: 'Iceland',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Ireland',
@@ -68,6 +80,10 @@ NGB_CONFIG = [
     website: 'http://www.quidditchnederland.nl/nl/',
   },
   {
+    name: 'New Zealand',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
     name: 'Norway',
     website: 'http://rumpeldunk.no/en/971-2/',
   },
@@ -86,6 +102,10 @@ NGB_CONFIG = [
   {
     name: 'Slovenia',
     website: 'https://www.facebook.com/quidditch.ljubljana/',
+  },
+  {
+    name: 'South Korea',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Spain',
@@ -114,7 +134,7 @@ NGB_CONFIG = [
   {
     name: 'United States',
     website: 'https://www.usquidditch.org/',
-  }
+  },
 ].freeze
 
 NGB_CONFIG.each do |config|
