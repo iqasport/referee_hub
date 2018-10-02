@@ -56,20 +56,36 @@ NGB_CONFIG = [
     website: 'http://www.deutscherquidditchbund.de/index.php/en/',
   },
   {
+      name: 'Hungary',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
     name: 'Iceland',
     website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
+      name: 'India',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
+      name: 'Indonesia',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Ireland',
     website: 'https://www.facebook.com/QuidditchIreland/',
   },
   {
+      name: 'Israel',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
     name: 'Italy',
     website: 'http://www.italiaquidditch.com/index.php/it/',
   },
   {
-    name: 'Korea',
-    website: 'https://www.facebook.com/quidditchkorea/',
+      name: 'Japan',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Mexico',
@@ -88,6 +104,10 @@ NGB_CONFIG = [
     website: 'http://rumpeldunk.no/en/971-2/',
   },
   {
+      name: 'Pakistan',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
     name: 'Peru',
     website: 'https://www.facebook.com/QuidditchPeru/',
   },
@@ -96,16 +116,28 @@ NGB_CONFIG = [
     website: 'https://www.facebook.com/PolskaLigaQuidditcha',
   },
   {
+      name: 'Portugal',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
+      name: 'Republic of Korea',
+      website: 'https://www.facebook.com/quidditchkorea/',
+  },
+  {
+      name: 'Romania',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
+      name: 'Serbia',
+      website: 'http://www.iqasport.com/membership/member-ngbs',
+  },
+  {
     name: 'Slovakia',
     website: 'https://www.facebook.com/slovakquidditch/',
   },
   {
     name: 'Slovenia',
     website: 'https://www.facebook.com/quidditch.ljubljana/',
-  },
-  {
-    name: 'South Korea',
-    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Spain',

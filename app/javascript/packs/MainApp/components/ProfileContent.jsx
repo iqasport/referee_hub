@@ -27,12 +27,23 @@ class ProfileContent extends Component {
     onDismiss: PropTypes.func.isRequired
   }
 
-  renderNGBItem = ({ id, name, website }) => {
-    const showFlag = !(/(ireland|catalonia)/i.test(name))
+  getFlagForNGB = (name) => {
+    if (/(ireland|catalonia)/i.test(name)) {
+      return null
+    }
 
+    let flagName = name.toLowerCase()
+    if (/(republic of korea)/i.test(name)) {
+      flagName = 'south korea'
+    }
+
+    return <Flag name={flagName} />
+  }
+
+  renderNGBItem = ({ id, name, website }) => {
     return (
       <Label color="blue" size="large" key={id} as="a" href={website} target="_blank" rel="noopener noreferrer">
-        { showFlag && <Flag name={name.toLowerCase()} /> }
+        { this.getFlagForNGB(name) }
         {name}
       </Label>
     )
