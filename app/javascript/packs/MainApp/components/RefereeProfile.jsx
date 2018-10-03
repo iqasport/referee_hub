@@ -172,7 +172,8 @@ class RefereeProfile extends Component {
       changedPronouns
     } = this.state
 
-    const ngbState = changedNGBs.map(ngbId => Number(ngbId)) || nationalGoverningBodies.map(ngb => Number(ngb.id))
+    const ngbs = changedNGBs || nationalGoverningBodies
+    const ngbState = ngbs.map(ngbId => Number(ngbId))
 
     axios
       .patch(this.currentRefereeApiRoute, {
