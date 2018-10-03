@@ -72,6 +72,26 @@ class RefereeProfile extends Component {
     }
   }
 
+  get refereeDisplayName() {
+    const {
+      referee: { firstName, lastName }
+    } = this.state
+
+    if (!firstName && !lastName) {
+      return 'Anonymous Referee'
+    }
+
+    if (firstName && !lastName) {
+      return firstName
+    }
+
+    if (!firstName && lastName) {
+      return lastName
+    }
+
+    return `${firstName} ${lastName}`
+  }
+
   setComponentStateFromBackendData = ({ status, statusText, data }) => {
     const { data: { attributes }, included } = data
     const certifications = included
@@ -290,7 +310,6 @@ class RefereeProfile extends Component {
   render() {
     const { referee } = this.state
 
-    const refHeader = (referee.firstName || referee.lastName) && `${referee.firstName} ${referee.lastName}`
     const panes = [
       { menuItem: 'Profile', render: this.renderProfileContent },
       { menuItem: 'Certifications', render: this.renderCertificationContent }
@@ -300,7 +319,7 @@ class RefereeProfile extends Component {
       <Segment>
         {this.renderPaymentMessage()}
         <Header as="h1" textAlign="center">
-          {refHeader || 'Anonymous Referee'}
+          {this.refereeDisplayName}
           <Header sub>{this.renderPronouns()}</Header>
           {
             referee.isEditable

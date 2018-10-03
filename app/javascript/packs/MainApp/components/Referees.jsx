@@ -4,6 +4,22 @@ import axios from 'axios'
 import { Header } from 'semantic-ui-react'
 import RefereeTable from './RefereeTable'
 
+const getRefereeName = (firstName, lastName) => {
+  if (!firstName && !lastName) {
+    return 'Anonymous Referee'
+  }
+
+  if (firstName && !lastName) {
+    return firstName
+  }
+
+  if (!firstName && lastName) {
+    return lastName
+  }
+
+  return `${firstName} ${lastName}`
+}
+
 class Referees extends Component {
   static propTypes = {
     history: PropTypes.shape({
@@ -48,7 +64,7 @@ class Referees extends Component {
       .filter(this.hasRefereeName)
       .map(({ id, attributes, relationships }) => ({
         id,
-        name: `${attributes.first_name} ${attributes.last_name}`.trim(),
+        name: getRefereeName(attributes.first_name, attributes.last_name),
         certifications: relationships.certifications.data.map(
           certification => certifications.get(certification.id)
         ),
