@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
-import { Label } from 'semantic-ui-react'
+import { Label, Message } from 'semantic-ui-react'
 import { capitalize } from 'lodash'
 import { DateTime } from 'luxon'
 import PaypalButton from './PaypalButton'
@@ -191,14 +191,18 @@ class CertificationContent extends Component {
           {canTakeSnitch && this.certificationLink(certificationConfig.snitch)}
           {canTakeAssistant && this.certificationLink(certificationConfig.assistant)}
           {canTakeHead && this.certificationLink(certificationConfig.head)}
+          <Message info>
+            Please note that you have to wait 24 hours after a failed test to be allowed to retry (72 hours for the head
+            referee test), even if the link is still visible. Every passed and failed test attempt will be recorded,
+            even if the testing tool fails to properly report the attempt back to us on time. In rare cases this may
+            take up to 72 hours. Our apologies if this happens.
+          </Message>
         </Fragment>
       )
       : (
         <p>
-          {
-            'One or more tests are unavailable at the moment,' +
-            ' please check back after the 24 hour (for Snitch and Assistant) or 72 hour (for Head) cool down period.'
-          }
+          One or more tests are unavailable at the moment, please check back after the 24 hour
+          (for Snitch and Assistant) or 72 hour (for Head) cool down period.
         </p>
       )
 
