@@ -6,7 +6,7 @@ module Services
       @search_query = params.delete(:q)
       @certifications = params.delete(:certifications)
       @national_governing_bodies = params.delete(:national_governing_bodies)
-      @relation = Referee.all
+      @relation = Referee.includes(:certifications, :national_governing_bodies).all
     end
 
     def filter
@@ -28,15 +28,13 @@ module Services
     def filter_by_certification
       return relation if certifications.blank?
 
-      relation.joins(:certifications).where(certifications: { level: certifications })
+      relation.where(certifications: { level: certifications })
     end
 
     def filter_by_national_governing_body
       return relation if national_governing_bodies.blank?
 
-      relation
-        .joins(:national_governing_bodies)
-        .where(national_governing_bodies: { id: national_governing_bodies })
+      relation.where(national_governing_bodies: { id: national_governing_bodies })
     end
   end
 end

@@ -10,7 +10,11 @@ module Api
       def index
         @referees = Services::FilterReferees.new(search_params).filter
 
-        json_string = RefereeSerializer.new(@referees, serializer_options).serialized_json
+        json_string = RefereeSerializer.new(
+          @referees,
+          include: %i[national_governing_bodies certifications],
+          params: { current_user: current_referee, include_tests: false }
+        ).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -73,7 +77,7 @@ module Api
       def serializer_options
         @serializer_options ||= {
           include: %i[national_governing_bodies certifications test_attempts test_results],
-          params: { current_user: current_referee }
+          params: { current_user: current_referee, include_tests: true }
         }
       end
     end
