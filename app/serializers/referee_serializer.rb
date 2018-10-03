@@ -52,6 +52,6 @@ class RefereeSerializer
 
   has_many :national_governing_bodies
   has_many :certifications
-  has_many :test_results
-  has_many :test_attempts
+  has_many :test_results, if: proc { |params| params[:include_tests] }
+  has_many :test_attempts, if: proc { |params| params[:include_tests] }
 end
