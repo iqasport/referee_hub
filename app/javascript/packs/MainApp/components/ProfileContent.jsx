@@ -40,14 +40,12 @@ class ProfileContent extends Component {
     onDismiss: PropTypes.func.isRequired
   }
 
-  renderNGBItem = ({ id, name, website }) => {
-    return (
-      <Label color="blue" size="large" key={id} as="a" href={website} target="_blank" rel="noopener noreferrer">
-        {getFlagForNGB(name)}
-        {name}
-      </Label>
-    )
-  }
+  renderNGBItem = ({ id, name, website }) => (
+    <Label color="blue" size="large" key={id} as="a" href={website} target="_blank" rel="noopener noreferrer">
+      {getFlagForNGB(name)}
+      {name}
+    </Label>
+  )
 
   renderGettingStartedMessage = () => {
     const { referee, onDismiss } = this.props
@@ -68,7 +66,8 @@ class ProfileContent extends Component {
       <Message info onDismiss={onDismiss}>
         <Message.Header>{headerText}</Message.Header>
         <p>
-          Here you can pay for and take your referee tests, give a little bit of background in your bio, and select any National Governing Bodies that you are affiliated with officially, or regularly officiate games.
+          Here you can pay for and take your referee tests, give a little bit of background in your bio, and select any
+          National Governing Bodies that you are affiliated with officially, or regularly officiate games.
           {notFirstAndLastName && getStarted}
         </p>
       </Message>
