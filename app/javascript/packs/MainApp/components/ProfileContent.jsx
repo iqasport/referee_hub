@@ -7,6 +7,19 @@ import {
 } from 'semantic-ui-react'
 import ContentSegment from './ContentSegment'
 
+const getFlagForNGB = (name) => {
+  if (/(ireland|catalonia)/i.test(name)) {
+    return null
+  }
+
+  let flagName = name.toLowerCase()
+  if (/(republic of korea)/i.test(name)) {
+    flagName = 'south korea'
+  }
+
+  return <Flag name={flagName} />
+}
+
 class ProfileContent extends Component {
   static propTypes = {
     referee: PropTypes.shape({
@@ -27,23 +40,10 @@ class ProfileContent extends Component {
     onDismiss: PropTypes.func.isRequired
   }
 
-  getFlagForNGB = (name) => {
-    if (/(ireland|catalonia)/i.test(name)) {
-      return null
-    }
-
-    let flagName = name.toLowerCase()
-    if (/(republic of korea)/i.test(name)) {
-      flagName = 'south korea'
-    }
-
-    return <Flag name={flagName} />
-  }
-
   renderNGBItem = ({ id, name, website }) => {
     return (
       <Label color="blue" size="large" key={id} as="a" href={website} target="_blank" rel="noopener noreferrer">
-        { this.getFlagForNGB(name) }
+        {getFlagForNGB(name)}
         {name}
       </Label>
     )
