@@ -56,36 +56,36 @@ NGB_CONFIG = [
     website: 'http://www.deutscherquidditchbund.de/index.php/en/',
   },
   {
-      name: 'Hungary',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Hungary',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Iceland',
     website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
-      name: 'India',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'India',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
-      name: 'Indonesia',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Indonesia',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Ireland',
     website: 'https://www.facebook.com/QuidditchIreland/',
   },
   {
-      name: 'Israel',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Israel',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Italy',
     website: 'http://www.italiaquidditch.com/index.php/it/',
   },
   {
-      name: 'Japan',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Japan',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Mexico',
@@ -104,8 +104,8 @@ NGB_CONFIG = [
     website: 'http://rumpeldunk.no/en/971-2/',
   },
   {
-      name: 'Pakistan',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Pakistan',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Peru',
@@ -116,20 +116,20 @@ NGB_CONFIG = [
     website: 'https://www.facebook.com/PolskaLigaQuidditcha',
   },
   {
-      name: 'Portugal',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Portugal',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
-      name: 'Republic of Korea',
-      website: 'https://www.facebook.com/quidditchkorea/',
+    name: 'Republic of Korea',
+    website: 'https://www.facebook.com/quidditchkorea/',
   },
   {
-      name: 'Romania',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Romania',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
-      name: 'Serbia',
-      website: 'http://www.iqasport.com/membership/member-ngbs',
+    name: 'Serbia',
+    website: 'http://www.iqasport.com/membership/member-ngbs',
   },
   {
     name: 'Slovakia',
