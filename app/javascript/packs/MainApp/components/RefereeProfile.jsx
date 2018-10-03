@@ -63,12 +63,12 @@ class RefereeProfile extends Component {
     } = this.state
 
     return {
-      firstName: changedFirstName || referee.firstName,
-      lastName: changedLastName || referee.lastName,
+      firstName: changedFirstName !== null ? changedFirstName : referee.firstName,
+      lastName: changedLastName !== null ? changedLastName : referee.lastName,
       nationalGoverningBodies: changedNGBs || referee.nationalGoverningBodies,
-      bio: changedBio || referee.bio,
+      bio: changedBio !== null ? changedBio : referee.bio,
       showPronouns: changedShowPronouns || referee.showPronouns,
-      pronouns: changedPronouns || referee.pronouns
+      pronouns: changedPronouns !== null ? changedPronouns : referee.pronouns
     }
   }
 
@@ -177,11 +177,11 @@ class RefereeProfile extends Component {
 
     axios
       .patch(this.currentRefereeApiRoute, {
-        first_name: changedFirstName || firstName,
-        last_name: changedLastName || lastName,
-        bio: changedBio || bio,
+        first_name: changedFirstName !== null ? changedFirstName : firstName,
+        last_name: changedLastName !== null ? changedLastName : lastName,
+        bio: changedBio !== null ? changedBio : bio,
         show_pronouns: changedShowPronouns || showPronouns,
-        pronouns: changedPronouns || pronouns,
+        pronouns: changedPronouns !== null ? changedPronouns : pronouns,
         national_governing_body_ids: ngbState
       })
       .then(this.setComponentStateFromBackendData)
