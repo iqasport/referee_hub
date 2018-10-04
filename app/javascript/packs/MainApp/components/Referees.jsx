@@ -20,7 +20,17 @@ class Referees extends Component {
   }
 
   componentDidMount() {
-    this.handleSearch()
+    axios
+      .get('api/v1/national_governing_bodies')
+      .then(({ data: { data } }) => {
+        this.setState({
+          nationalGoverningBodies: data.map(nationalGoverningBody => ({
+            id: nationalGoverningBody.id,
+            name: nationalGoverningBody.attributes.name
+          }))
+        })
+      })
+      .then(this.handleSearch)
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -35,15 +45,15 @@ class Referees extends Component {
   }
 
   setStateFromBackendData = ({ data: { data, included } }) => {
+    const { nationalGoverningBodies } = this.state
     const certifications = new Map()
-    const nationalGoverningBodies = new Map()
+
     included.forEach((include) => {
       if (include.type === 'certification') {
         certifications.set(include.id, include.attributes.level);
-      } else if (include.type === 'national_governing_body') {
-        nationalGoverningBodies.set(include.id, include.attributes.name);
       }
-    });
+    })
+
     const referees = data
       .filter(this.hasRefereeName)
       .map(({ id, attributes, relationships }) => ({
@@ -53,7 +63,7 @@ class Referees extends Component {
           certification => certifications.get(certification.id)
         ),
         nationalGoverningBodies: relationships.national_governing_bodies.data.map(
-          nationalGoverningBody => nationalGoverningBodies.get(nationalGoverningBody.id)
+          nationalGoverningBody => nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
         ),
         isCurrentReferee: attributes.is_editable
       }));
@@ -66,9 +76,9 @@ class Referees extends Component {
 
   get dropdownOptions() {
     const { nationalGoverningBodies } = this.state
-    return Array.from(nationalGoverningBodies).map(([id, name]) => ({
-      value: id,
-      text: name
+    return Array.from(nationalGoverningBodies).map(ngb => ({
+      value: ngb.id,
+      text: ngb.name
     }))
   }
 
