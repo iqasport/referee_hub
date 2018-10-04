@@ -16,7 +16,7 @@ module Services
       @relation = filter_by_certification if certifications.present?
       @relation = filter_by_national_governing_body if national_governing_bodies.present?
 
-      relation || []
+      relation.pluck(:id)
     end
 
     private
