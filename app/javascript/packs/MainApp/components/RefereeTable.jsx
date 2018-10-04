@@ -14,7 +14,10 @@ const refereePropTypes = {
   id: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   certifications: PropTypes.arrayOf(PropTypes.string).isRequired,
-  nationalGoverningBodies: PropTypes.arrayOf(PropTypes.string).isRequired,
+  nationalGoverningBodies: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string
+  })).isRequired,
   isCurrentReferee: PropTypes.bool
 }
 
@@ -36,6 +39,7 @@ const TableRow = (props) => {
   )
 
   const nameIcon = isCurrentReferee ? <Label ribbon color="blue">You</Label> : <Icon name="zoom" />
+  const ngbNames = nationalGoverningBodies.map(ngb => ngb.name).join(', ')
 
   return (
     <Table.Row onClick={() => onRefereeClick(id)} style={{ cursor: 'pointer' }}>
@@ -44,7 +48,7 @@ const TableRow = (props) => {
         {' '}
         {name}
       </Table.Cell>
-      <Table.Cell>{nationalGoverningBodies.join(', ')}</Table.Cell>
+      <Table.Cell>{ngbNames}</Table.Cell>
       {certificationArray.map(renderCertificationCell)}
     </Table.Row>
   )
