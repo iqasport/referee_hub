@@ -50,6 +50,24 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
         expect(response_data.length).to eq 1
         expect(response_data[0]['id'].to_i).to eq referees.first.id
       end
+
+      context 'when a referee has more than one certification' do
+        let(:assistant_certification) { create :certification }
+
+        before { referees.first.update!(certifications: [certification, assistant_certification]) }
+
+        it 'should return both associations' do
+          subject
+
+          response_data = JSON.parse(response.body)['data']
+          cert_data = response_data[0]['relationships']['certifications']['data']
+
+          expect(response_data.length).to eq 1
+          expect(cert_data.length).to eq 2
+          expect(cert_data[0]['id'].to_i).to eq certification.id
+          expect(cert_data[1]['id'].to_i).to eq assistant_certification.id
+        end
+      end
     end
 
     context 'when filtering by national governing body' do
@@ -66,6 +84,24 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
         expect(response_data.length).to eq 1
         expect(response_data[0]['id'].to_i).to eq referees.first.id
+      end
+
+      context 'when a referee has more than one national governing body' do
+        let!(:other_ngb) { create :national_governing_body }
+
+        before { referees.first.update!(national_governing_bodies: [ngb, other_ngb]) }
+
+        it 'returns both associations' do
+          subject
+
+          response_data = JSON.parse(response.body)['data']
+          ngb_data = response_data[0]['relationships']['national_governing_bodies']['data']
+
+          expect(response_data.length).to eq 1
+          expect(ngb_data.length).to eq 2
+          expect(ngb_data[0]['id'].to_i).to eq ngb.id
+          expect(ngb_data[1]['id'].to_i).to eq other_ngb.id
+        end
       end
     end
   end

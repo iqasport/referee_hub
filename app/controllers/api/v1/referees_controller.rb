@@ -8,7 +8,8 @@ module Api
       layout false
 
       def index
-        @referees = Services::FilterReferees.new(search_params).filter
+        referee_ids = Services::FilterReferees.new(search_params).filter
+        @referees = Referee.where(id: referee_ids)
 
         json_string = RefereeSerializer.new(
           @referees,

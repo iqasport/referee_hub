@@ -50,8 +50,8 @@ class RefereeSerializer
     current_user && current_user.id == referee.id
   end
 
-  has_many :national_governing_bodies
-  has_many :certifications
+  has_many :national_governing_bodies, serializer: :national_governing_body
+  has_many :certifications, serializer: :certification
   has_many :test_results, if: proc { |params| params[:include_tests] }
   has_many :test_attempts, if: proc { |params| params[:include_tests] }
 end

@@ -30,7 +30,7 @@ RSpec.describe Services::FilterReferees do
 
     it 'should return the referee that matches the search query' do
       expect(subject.length).to eq 1
-      expect(subject.first.id).to eq referees[1].id
+      expect(subject.first).to eq referees[1].id
     end
   end
 
@@ -40,7 +40,7 @@ RSpec.describe Services::FilterReferees do
 
     it 'should return the referee that matches the filter query' do
       expect(subject.length).to eq 1
-      expect(subject.first.id).to eq referees.first.id
+      expect(subject.first).to eq referees.first.id
     end
   end
 
@@ -50,7 +50,7 @@ RSpec.describe Services::FilterReferees do
 
     it 'should return the referee that matches the filter query' do
       expect(subject.length).to eq 1
-      expect(subject.first.id).to eq referees.last.id
+      expect(subject.first).to eq referees.last.id
     end
   end
 
@@ -68,7 +68,7 @@ RSpec.describe Services::FilterReferees do
 
       it 'should return the matching referee' do
         expect(subject.length).to eq 1
-        expect(subject.first.id).to eq referees.last.id
+        expect(subject.first).to eq referees.last.id
       end
     end
   end
@@ -87,7 +87,7 @@ RSpec.describe Services::FilterReferees do
 
         it 'should return the referee' do
           expect(subject.length).to eq 1
-          expect(subject.first.id).to eq referee.id
+          expect(subject.first).to eq referee.id
         end
       end
 
@@ -97,7 +97,7 @@ RSpec.describe Services::FilterReferees do
 
         it 'should return the referee' do
           expect(subject.length).to eq 1
-          expect(subject.first.id).to eq referee.id
+          expect(subject.first).to eq referee.id
         end
       end
 
@@ -118,7 +118,7 @@ RSpec.describe Services::FilterReferees do
 
         it 'should return the referee' do
           expect(subject.length).to eq 1
-          expect(subject.first.id).to eq referee.id
+          expect(subject.first).to eq referee.id
         end
       end
 
@@ -128,7 +128,7 @@ RSpec.describe Services::FilterReferees do
 
         it 'should return the referee' do
           expect(subject.length).to eq 1
-          expect(subject.first.id).to eq referee.id
+          expect(subject.first).to eq referee.id
         end
       end
 
