@@ -1,4 +1,4 @@
-<div class='ui middle aligned center aligned grid' style='margin: 50px auto;width:60%;'>
+<div class='ui middle aligned center aligned grid' style='margin: 50px auto; width:60%;'>
   <div class='column'>
     <h2 class='ui header'>
       <div>Log in</div>
@@ -21,6 +21,7 @@
         <div class="<%= password_error? ? 'field error' : 'field' %>">
           <%= f.label :password %><br />
           <%= f.password_field :password, autocomplete: "off" %>
+          <%= link_to 'Forgot Password?', new_referee_password_path %>
         </div>
 
         <% if devise_mapping.rememberable? -%>
