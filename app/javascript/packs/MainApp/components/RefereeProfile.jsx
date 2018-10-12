@@ -9,6 +9,8 @@ import RefereeProfileEdit from './RefereeProfileEdit'
 import ProfileContent from './ProfileContent'
 import CertificationContent from './CertificationContent'
 
+const NGBS_WITH_OLD_TEST_REQUIREMENT = ['Australia', 'Switzerland', 'Peru']
+
 class RefereeProfile extends Component {
   static propTypes = {
     match: PropTypes.shape({
@@ -262,7 +264,7 @@ class RefereeProfile extends Component {
     } = this.state
     const { match: { params } } = this.props
 
-    const shouldTakeOldTests = nationalGoverningBodies.some(ngb => /australia/i.test(ngb.name))
+    const shouldTakeOldTests = nationalGoverningBodies.some(ngb => NGBS_WITH_OLD_TEST_REQUIREMENT.includes(ngb.name))
 
     return (
       <Tab.Pane>
