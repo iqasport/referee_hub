@@ -22,18 +22,11 @@ class Referees extends Component {
   componentDidMount() {
     axios
       .get('api/v1/national_governing_bodies')
-      .then(({ data: { data } }) => {
-        this.setState({
-          nationalGoverningBodies: data.map(nationalGoverningBody => ({
-            id: nationalGoverningBody.id,
-            name: nationalGoverningBody.attributes.name
-          }))
-        })
-      })
+      .then(this.setAllNGBs)
       .then(this.handleSearch)
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(_prevProps, prevState) {
     const { nameSearch: oldName, nationalGoverningBodySearch: oldNGB, certificationSearch: oldCert } = this.state
     const { nameSearch: newName, nationalGoverningBodySearch: newNGB, certificationSearch: newCert } = prevState
 
@@ -71,6 +64,15 @@ class Referees extends Component {
     this.setState({
       referees,
       nationalGoverningBodies
+    })
+  }
+
+  setAllNGBs = ({ data: { data } }) => {
+    this.setState({
+      nationalGoverningBodies: data.map(nationalGoverningBody => ({
+        id: nationalGoverningBody.id,
+        name: nationalGoverningBody.attributes.name
+      }))
     })
   }
 
