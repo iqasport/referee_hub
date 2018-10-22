@@ -123,6 +123,7 @@ GEM
     nokogiri (1.8.4)
       mini_portile2 (~> 2.3.0)
     orm_adapter (0.5.0)
+    pagy (0.20.0)
     parallel (1.12.1)
     parser (2.5.1.2)
       ast (~> 2.4.0)
@@ -274,6 +275,7 @@ DEPENDENCIES
   fast_jsonapi
   ffaker
   listen (>= 3.0.5, < 3.2)
+  pagy
   pg (>= 0.18, < 2.0)
   pre-commit
   puma (~> 3.11)
