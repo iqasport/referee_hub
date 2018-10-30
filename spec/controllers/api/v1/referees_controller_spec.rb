@@ -20,6 +20,14 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       expect(response_data.length).to eq 3
     end
 
+    it 'returns a meta' do
+      subject
+
+      response_data = JSON.parse(response.body)['meta']['total']
+
+      expect(response_data).to eq 3
+    end
+
     context 'when searching' do
       before { referees.first.update!(first_name: 'Test') }
 
