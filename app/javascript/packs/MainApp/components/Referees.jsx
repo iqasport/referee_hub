@@ -1,7 +1,7 @@
-import React, { Component, Fragment } from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { Header } from 'semantic-ui-react'
+import { Header, Pagination, Segment } from 'semantic-ui-react'
 import RefereeTable from './RefereeTable'
 
 class Referees extends Component {
@@ -16,7 +16,9 @@ class Referees extends Component {
     nationalGoverningBodies: new Map(),
     nameSearch: '',
     nationalGoverningBodySearch: [],
-    certificationSearch: []
+    certificationSearch: [],
+    total: null,
+    page: null
   }
 
   componentDidMount() {
@@ -37,7 +39,7 @@ class Referees extends Component {
     if (nameSearchChanged || ngbFilterChanged || certFilterChanged) this.handleSearch()
   }
 
-  setStateFromBackendData = ({ data: { data, included } }) => {
+  setStateFromBackendData = ({ data: { data, included, meta } }) => {
     const { nationalGoverningBodies } = this.state
     const certifications = new Map()
 
@@ -63,7 +65,9 @@ class Referees extends Component {
 
     this.setState({
       referees,
-      nationalGoverningBodies
+      nationalGoverningBodies,
+      total: meta.total,
+      page: meta.page
     })
   }
 
@@ -82,6 +86,12 @@ class Referees extends Component {
       value: ngb.id,
       text: ngb.name
     }))
+  }
+
+  get totalPages() {
+    const { total } = this.state
+
+    return Math.round(total / 25) + 1
   }
 
   hasRefereeName = ({ attributes }) => attributes.first_name || attributes.last_name
@@ -120,6 +130,27 @@ class Referees extends Component {
   }
 
   handleSearch = () => {
+    const params = this.searchParams()
+
+    axios
+      .get('/api/v1/referees', { params })
+      .then(this.setStateFromBackendData)
+  }
+
+  handlePageChange = (e, { activePage }) => {
+    const searchParams = this.searchParams()
+
+    const params = {
+      page: activePage,
+      ...searchParams
+    }
+
+    axios
+      .get('/api/v1/referees', { params })
+      .then(this.setStateFromBackendData)
+  }
+
+  searchParams = () => {
     const { nameSearch, nationalGoverningBodySearch, certificationSearch } = this.state
     const params = {}
     if (nameSearch.trim()) {
@@ -132,9 +163,7 @@ class Referees extends Component {
       params.certifications = certificationSearch
     }
 
-    axios
-      .get('/api/v1/referees', { params })
-      .then(this.setStateFromBackendData)
+    return params
   }
 
   render() {
@@ -142,13 +171,25 @@ class Referees extends Component {
       referees,
       nameSearch,
       nationalGoverningBodySearch,
-      certificationSearch
+      certificationSearch,
+      page
     } = this.state
 
     return (
-      <Fragment>
+      <Segment>
         <Header as="h1">
           Registered Referees
+          <Pagination
+            activePage={page}
+            totalPages={this.totalPages}
+            firstItem={null}
+            lastItem={null}
+            floated="right"
+            color="blue"
+            pointing
+            secondary
+            onPageChange={this.handlePageChange}
+          />
         </Header>
         <RefereeTable
           referees={referees}
@@ -161,7 +202,7 @@ class Referees extends Component {
           onRefereeClick={this.handleRefereeClick}
           dropdownOptions={this.dropdownOptions}
         />
-      </Fragment>
+      </Segment>
     )
   }
 }
