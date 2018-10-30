@@ -42,4 +42,6 @@ class Referee < ApplicationRecord
 
   has_many :test_results, dependent: :destroy
   has_many :test_attempts, dependent: :destroy
+
+  self.per_page = 25
 end

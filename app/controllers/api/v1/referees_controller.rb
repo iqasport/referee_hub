@@ -1,8 +1,6 @@
 module Api
   module V1
     class RefereesController < ::ApplicationController
-      include Pagy::Backend
-
       before_action :authenticate_referee!, only: :update
       before_action :find_referee, only: %i[show update]
       skip_before_action :verify_authenticity_token
@@ -10,13 +8,19 @@ module Api
       layout false
 
       def index
+        page = params[:page] || 1
+
         referee_ids = Services::FilterReferees.new(search_params).filter
-        @pagy, @referees = pagy(Referee.includes(:national_governing_bodies, :certifications).where(id: referee_ids))
+        @referees = Referee.includes(:national_governing_bodies, :certifications).where(id: referee_ids)
+
+        referee_total = @referees.count
+        @referees = @referees.page(page)
 
         json_string = RefereeSerializer.new(
           @referees,
           include: [:certifications],
-          params: { current_user: current_referee, include_tests: false }
+          params: { current_user: current_referee, include_tests: false },
+          meta: { page: page, total: referee_total }
         ).serialized_json
 
         render json: json_string, status: :ok
