@@ -54,6 +54,14 @@ class TestResult < ApplicationRecord
 
   def update_certification(ref_certification, datetime_key)
     ref_certification[datetime_key] = Time.zone.now
+    ref_certification.needs_renewal_at = determine_needs_renewal(datetime_key)
+
     ref_certification.save!
+  end
+
+  def determine_needs_renewal(datetime_key)
+    return Time.zone.now if datetime_key == 'revoked_at'
+
+    nil
   end
 end

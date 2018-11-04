@@ -3,6 +3,7 @@
 # Table name: referee_certifications
 #
 #  id               :bigint(8)        not null, primary key
+#  needs_renewal_at :datetime
 #  received_at      :datetime
 #  renewed_at       :datetime
 #  revoked_at       :datetime
