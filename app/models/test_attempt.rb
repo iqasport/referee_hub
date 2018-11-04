@@ -29,4 +29,8 @@ class TestAttempt < ApplicationRecord
       self.next_attempt_at = Time.now.utc + 72.hours
     end
   end
+
+  def in_cool_down_period?
+    Time.now.utc < next_attempt_at
+  end
 end
