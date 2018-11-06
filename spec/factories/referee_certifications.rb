@@ -24,5 +24,13 @@ FactoryBot.define do
     received_at { DateTime.now.utc }
     revoked_at nil
     renewed_at nil
+
+    trait :snitch do
+      certification { create :certification, :snitch }
+    end
+
+    trait :head do
+      certification { create :certification, :head }
+    end
   end
 end
