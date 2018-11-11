@@ -1,8 +1,9 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
-import { Label, Message } from 'semantic-ui-react'
+import { Label, Message, Modal, Button, Popup } from 'semantic-ui-react'
 import { capitalize } from 'lodash'
 import { DateTime } from 'luxon'
+import axios from 'axios'
 import PaypalButton from './PaypalButton'
 import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
@@ -81,6 +82,34 @@ class CertificationContent extends Component {
     ).isRequired
   }
 
+  state = {
+    levelsThatNeedRenewal: [],
+    refCertificationDetails: [],
+    renewConfirmOpen: false,
+    levelToRenew: ''
+  }
+
+  componentDidMount() {
+    const { isEditable } = this.props
+
+    if (isEditable) {
+      axios.get('/api/v1/referee_certifications')
+        .then(({ data }) => {
+          const refCertificationDetails = []
+          const renewalLevels = []
+          data.data.forEach((refCertification) => {
+            const { needs_renewal_at, level } = refCertification.attributes
+            const refCertDetailData = { level, id: refCertification.id }
+
+            refCertificationDetails.push(refCertDetailData)
+            if (needs_renewal_at) { renewalLevels.push(refCertDetailData) }
+          })
+
+          this.setState({ levelsThatNeedRenewal: renewalLevels, refCertificationDetails })
+        })
+    }
+  }
+
   get hasSnitchCert() {
     const { refCertifications } = this.props
 
@@ -99,10 +128,46 @@ class CertificationContent extends Component {
     return hasPassedTest('head', refCertifications)
   }
 
-  certificationLink = ({ title, link, color }) => {
-    const { refereeId } = this.props
+  handleRenewalConfirm = () => {
+    const { refCertificationDetails, levelToRenew } = this.state
+    const certToRenewDetails = refCertificationDetails.find(refCert => refCert.level === levelToRenew)
+    // debugger
+    if (!certToRenewDetails) return null
 
+    const { id } = certToRenewDetails
+
+    axios
+      .patch(`/api/v1/referee_certifications/${id}`, {
+        needs_renewal_at: DateTime.local().toString()
+      })
+      .then(({ data }) => {
+        const updatedCertification = data.data
+        const { level } = updatedCertification.attributes
+
+        this.setState((prevState) => {
+          const levelsThatNeedRenewal = prevState.levelsThatNeedRenewal.push({level, id: updatedCertification.id })
+          return levelsThatNeedRenewal
+        })
+      })
+      .then(this.handleRenewalConfirmClose)
+  }
+
+  handleRenewalConfirmOpen = (level) => { this.setState({ renewConfirmOpen: true, levelToRenew: level }) }
+
+  handleRenewalConfirmClose = () => this.setState({ renewConfirmOpen: false, levelToRenew: '' })
+
+  certificationLink = (shouldTakeOldTests, certificationLevel) => {
+    const { refereeId } = this.props
+    const { levelsThatNeedRenewal } = this.state
+
+    const needsRenewal = !!levelsThatNeedRenewal.find(({ level }) => level === certificationLevel)
+    const certificationConfig = shouldTakeOldTests && !needsRenewal
+      ? oldCertificationLinkConfig
+      : certificationLinkConfig
+
+    const { link, color, title } = certificationConfig[certificationLevel]
     const fullLink = `${link}&cm_user_id=${refereeId}`
+
     return (
       <Label
         color={color}
@@ -151,25 +216,45 @@ class CertificationContent extends Component {
   }
 
   renderCertification = ({ level }) => {
+    const { levelsThatNeedRenewal } = this.state
+    if (levelsThatNeedRenewal.find(refCert => level === refCert.level)) return null
+
     const labelContent = `${capitalize(level)} Referee`
-    return <Label content={labelContent} size="big" key={level} color="green" />
+    const label = (
+      <Label
+        style={{ cursor: 'pointer' }}
+        content={labelContent}
+        size="big"
+        key={level}
+        color="green"
+        onClick={() => this.handleRenewalConfirmOpen(level)}
+      />
+    )
+
+    return <Popup content="Click to renew this certification" trigger={label} />
   }
 
   canTakeSnitchTest = () => {
+    const { levelsThatNeedRenewal } = this.state
     if (this.isInCoolDownPeriod('snitch')) return false
+    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'snitch')) return true
 
     return !this.hasSnitchCert && !this.hasHeadCert
   }
 
   canTakeAssistantTest = () => {
+    const { levelsThatNeedRenewal } = this.state
     if (this.isInCoolDownPeriod('assistant')) return false
+    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'assistant')) return true
 
     return !this.hasAssistantCert && !this.hasHeadCert
   }
 
   canTakeHeadTest = (hasPaid) => {
+    const { levelsThatNeedRenewal } = this.state
     if (!hasPaid) return false
     if (this.isInCoolDownPeriod('head')) return false
+    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'head')) return true
 
     return this.hasSnitchCert && this.hasAssistantCert
   }
@@ -182,15 +267,14 @@ class CertificationContent extends Component {
     const canTakeHead = this.canTakeHeadTest(hasPaid)
 
     const anyTestsAvailable = [canTakeSnitch, canTakeAssistant, canTakeHead].some(testStatus => testStatus)
-    const certificationConfig = shouldTakeOldTests ? oldCertificationLinkConfig : certificationLinkConfig
 
     const headerContent = 'Available Written Tests'
     const segmentContent = anyTestsAvailable
       ? (
         <Fragment>
-          {canTakeSnitch && this.certificationLink(certificationConfig.snitch)}
-          {canTakeAssistant && this.certificationLink(certificationConfig.assistant)}
-          {canTakeHead && this.certificationLink(certificationConfig.head)}
+          {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch')}
+          {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant')}
+          {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head')}
           <Message info>
             Please note that you have to wait 24 hours after a failed test to be allowed to retry (72 hours for the head
             referee test), even if the link is still visible. Every passed and failed test attempt will be recorded,
@@ -239,6 +323,24 @@ class CertificationContent extends Component {
     )
   }
 
+  renderRenewalModal = () => {
+    const { renewConfirmOpen, levelToRenew } = this.state
+    return (
+      <Modal open={renewConfirmOpen} size="small">
+        <Modal.Header>{`Confirm ${capitalize(levelToRenew)} Renewal`}</Modal.Header>
+        <Modal.Content>
+          <p>Are you sure you would like to renew your certification?</p>
+
+          <p>Clicking renew will invalidate your current certification.</p>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button color="blue" onClick={this.handleRenewalConfirmClose} content="Cancel" />
+          <Button color="red" onClick={this.handleRenewalConfirm} content="Renew" />
+        </Modal.Actions>
+      </Modal>
+    )
+  }
+
   render() {
     return (
       <Fragment>
@@ -246,6 +348,7 @@ class CertificationContent extends Component {
         {this.renderCertificationLinks()}
         {this.renderTestResults()}
         {this.renderCompletedCertifications()}
+        {this.renderRenewalModal()}
       </Fragment>
     )
   }

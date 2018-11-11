@@ -21,4 +21,9 @@ class RefereeCertificationSerializer
              :revoked_at,
              :referee_id,
              :certification_id
+
+  attribute :level do |ref_cert, params|
+    cert = Certification.find_by id: ref_cert.certification_id
+    cert.level
+  end
 end
