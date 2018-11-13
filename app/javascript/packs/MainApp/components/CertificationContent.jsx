@@ -217,21 +217,25 @@ class CertificationContent extends Component {
 
   renderCertification = ({ level }) => {
     const { levelsThatNeedRenewal } = this.state
+    const { isEditable } = this.props
     if (levelsThatNeedRenewal.find(refCert => level === refCert.level)) return null
 
+    const onClick = isEditable ? () => this.handleRenewalConfirmOpen(level) : null
+    const style = isEditable ? { cursor: 'pointer' } : null
     const labelContent = `${capitalize(level)} Referee`
+
     const label = (
       <Label
-        style={{ cursor: 'pointer' }}
+        style={style}
         content={labelContent}
         size="big"
         key={level}
         color="green"
-        onClick={() => this.handleRenewalConfirmOpen(level)}
+        onClick={onClick}
       />
     )
 
-    return <Popup content="Click to renew this certification" trigger={label} />
+    return isEditable ? <Popup content="Click to renew this certification" trigger={label} /> : label
   }
 
   canTakeSnitchTest = () => {
