@@ -44,8 +44,8 @@ class Referees extends Component {
     const certifications = new Map()
 
     included.forEach((include) => {
-      if (include.type === 'certification') {
-        certifications.set(include.id, include.attributes.level);
+      if (include.type === 'referee_certification' && !include.attributes.needs_renewal_at) {
+        certifications.set(include.id, include.attributes.level)
       }
     })
 
@@ -54,7 +54,7 @@ class Referees extends Component {
       .map(({ id, attributes, relationships }) => ({
         id,
         name: `${attributes.first_name} ${attributes.last_name}`.trim(),
-        certifications: relationships.certifications.data.map(
+        certifications: relationships.referee_certifications.data.map(
           certification => certifications.get(certification.id)
         ),
         nationalGoverningBodies: relationships.national_governing_bodies.data.map(

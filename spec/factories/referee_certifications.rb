@@ -3,6 +3,7 @@
 # Table name: referee_certifications
 #
 #  id               :bigint(8)        not null, primary key
+#  needs_renewal_at :datetime
 #  received_at      :datetime
 #  renewed_at       :datetime
 #  revoked_at       :datetime
@@ -23,5 +24,13 @@ FactoryBot.define do
     received_at { DateTime.now.utc }
     revoked_at nil
     renewed_at nil
+
+    trait :snitch do
+      certification { create :certification, :snitch }
+    end
+
+    trait :head do
+      certification { create :certification, :head }
+    end
   end
 end

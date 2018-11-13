@@ -18,7 +18,7 @@ module Api
 
         json_string = RefereeSerializer.new(
           @referees,
-          include: [:certifications],
+          include: [:referee_certifications],
           params: { current_user: current_referee, include_tests: false },
           meta: { page: page, total: referee_total }
         ).serialized_json
@@ -83,7 +83,7 @@ module Api
 
       def serializer_options
         @serializer_options ||= {
-          include: %i[certifications national_governing_bodies test_attempts test_results],
+          include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results],
           params: { current_user: current_referee, include_tests: true }
         }
       end
