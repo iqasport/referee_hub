@@ -44,9 +44,13 @@ const oldCertificationLinkConfig = {
   }
 }
 
-const hasPassedTest = (level, certifications) => (
-  certifications.some(({ level: certificationLevel }) => certificationLevel === level)
-)
+const hasPassedTest = (level, certifications, renewalLevels) => {
+  const passedCert = certifications.some(({ level: certificationLevel }) => certificationLevel === level)
+  const levelNeedsRenewal = renewalLevels.find(details => details.level === level)
+
+  if (levelNeedsRenewal) return false
+  return passedCert
+}
 
 class CertificationContent extends Component {
   static propTypes = {
@@ -85,8 +89,7 @@ class CertificationContent extends Component {
   state = {
     levelsThatNeedRenewal: [],
     refCertificationDetails: [],
-    renewConfirmOpen: false,
-    levelToRenew: ''
+    renewConfirmOpen: false
   }
 
   componentDidMount() {
@@ -98,11 +101,11 @@ class CertificationContent extends Component {
           const refCertificationDetails = []
           const renewalLevels = []
           data.data.forEach((refCertification) => {
-            const { needs_renewal_at, level } = refCertification.attributes
+            const { needs_renewal_at: needsRenewal, level } = refCertification.attributes
             const refCertDetailData = { level, id: refCertification.id }
 
             refCertificationDetails.push(refCertDetailData)
-            if (needs_renewal_at) { renewalLevels.push(refCertDetailData) }
+            if (needsRenewal) { renewalLevels.push(refCertDetailData) }
           })
 
           this.setState({ levelsThatNeedRenewal: renewalLevels, refCertificationDetails })
@@ -112,49 +115,50 @@ class CertificationContent extends Component {
 
   get hasSnitchCert() {
     const { refCertifications } = this.props
+    const { levelsThatNeedRenewal } = this.state
 
-    return hasPassedTest('snitch', refCertifications)
+    return hasPassedTest('snitch', refCertifications, levelsThatNeedRenewal)
   }
 
   get hasAssistantCert() {
     const { refCertifications } = this.props
+    const { levelsThatNeedRenewal } = this.state
 
-    return hasPassedTest('assistant', refCertifications)
+    return hasPassedTest('assistant', refCertifications, levelsThatNeedRenewal)
   }
 
   get hasHeadCert() {
     const { refCertifications } = this.props
+    const { levelsThatNeedRenewal } = this.state
 
-    return hasPassedTest('head', refCertifications)
+    return hasPassedTest('head', refCertifications, levelsThatNeedRenewal)
   }
 
   handleRenewalConfirm = () => {
-    const { refCertificationDetails, levelToRenew } = this.state
-    const certToRenewDetails = refCertificationDetails.find(refCert => refCert.level === levelToRenew)
-    // debugger
-    if (!certToRenewDetails) return null
+    const { refCertificationDetails } = this.state
 
-    const { id } = certToRenewDetails
-
-    axios
-      .patch(`/api/v1/referee_certifications/${id}`, {
-        needs_renewal_at: DateTime.local().toString()
-      })
-      .then(({ data }) => {
-        const updatedCertification = data.data
-        const { level } = updatedCertification.attributes
-
-        this.setState((prevState) => {
-          const levelsThatNeedRenewal = prevState.levelsThatNeedRenewal.push({level, id: updatedCertification.id })
-          return levelsThatNeedRenewal
+    refCertificationDetails.forEach(({ id }) => {
+      axios
+        .patch(`/api/v1/referee_certifications/${id}`, {
+          needs_renewal_at: DateTime.local().toString()
         })
-      })
-      .then(this.handleRenewalConfirmClose)
+        .then(({ data }) => {
+          const updatedCertification = data.data
+          const { level } = updatedCertification.attributes
+
+          this.setState((prevState) => {
+            const levelsThatNeedRenewal = prevState.levelsThatNeedRenewal.push({ level, id: updatedCertification.id })
+            return levelsThatNeedRenewal
+          })
+        })
+    })
+
+    this.handleRenewalConfirmClose()
   }
 
-  handleRenewalConfirmOpen = (level) => { this.setState({ renewConfirmOpen: true, levelToRenew: level }) }
+  handleRenewalConfirmOpen = () => this.setState({ renewConfirmOpen: true })
 
-  handleRenewalConfirmClose = () => this.setState({ renewConfirmOpen: false, levelToRenew: '' })
+  handleRenewalConfirmClose = () => this.setState({ renewConfirmOpen: false })
 
   certificationLink = (shouldTakeOldTests, certificationLevel) => {
     const { refereeId } = this.props
@@ -217,25 +221,11 @@ class CertificationContent extends Component {
 
   renderCertification = ({ level }) => {
     const { levelsThatNeedRenewal } = this.state
-    const { isEditable } = this.props
     if (levelsThatNeedRenewal.find(refCert => level === refCert.level)) return null
 
-    const onClick = isEditable ? () => this.handleRenewalConfirmOpen(level) : null
-    const style = isEditable ? { cursor: 'pointer' } : null
     const labelContent = `${capitalize(level)} Referee`
 
-    const label = (
-      <Label
-        style={style}
-        content={labelContent}
-        size="big"
-        key={level}
-        color="green"
-        onClick={onClick}
-      />
-    )
-
-    return isEditable ? <Popup content="Click to renew this certification" trigger={label} /> : label
+    return <Label content={labelContent} size="big" key={level} color="green" />
   }
 
   canTakeSnitchTest = () => {
@@ -304,7 +294,12 @@ class CertificationContent extends Component {
     let segmentContent
 
     if (refCertifications.length > 0) {
-      segmentContent = refCertifications.map(this.renderCertification)
+      segmentContent = (
+        <Fragment>
+          {refCertifications.map(this.renderCertification)}
+          <Button content="Renew Certifications" color="red" onClick={this.handleRenewalConfirmOpen} />
+        </Fragment>
+      )
     } else {
       segmentContent = 'This referee has not finished any certifications'
     }
@@ -328,14 +323,14 @@ class CertificationContent extends Component {
   }
 
   renderRenewalModal = () => {
-    const { renewConfirmOpen, levelToRenew } = this.state
+    const { renewConfirmOpen } = this.state
     return (
       <Modal open={renewConfirmOpen} size="small">
-        <Modal.Header>{`Confirm ${capitalize(levelToRenew)} Renewal`}</Modal.Header>
+        <Modal.Header>Confirm Certification Renewals</Modal.Header>
         <Modal.Content>
-          <p>Are you sure you would like to renew your certification?</p>
+          <p>Are you sure you would like to renew your certifications?</p>
 
-          <p>Clicking renew will invalidate your current certification.</p>
+          <p>Clicking renew will invalidate all of your current certifications. This cannot be undone.</p>
         </Modal.Content>
         <Modal.Actions>
           <Button color="blue" onClick={this.handleRenewalConfirmClose} content="Cancel" />
