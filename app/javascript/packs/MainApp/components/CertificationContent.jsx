@@ -288,17 +288,25 @@ class CertificationContent extends Component {
   }
 
   renderCompletedCertifications = () => {
-    const { refCertifications } = this.props
+    const { refCertifications, isEditable } = this.props
 
     const headerContent = 'Completed Certifications'
     let segmentContent
 
     if (refCertifications.length > 0) {
       segmentContent = (
-        <Fragment>
-          {refCertifications.map(this.renderCertification)}
-          <Button content="Renew Certifications" color="red" onClick={this.handleRenewalConfirmOpen} />
-        </Fragment>
+        <div style={{ display: 'flex' }}>
+          <div style={{ flex: '1' }}>
+            {refCertifications.map(this.renderCertification)}
+          </div>
+          {
+            isEditable && (
+              <div style={{ flex: '1', display: 'flex', justifyContent: 'flex-end' }}>
+                <Button negative content="Renew Certifications" onClick={this.handleRenewalConfirmOpen} />
+              </div>
+            )
+          }
+        </div>
       )
     } else {
       segmentContent = 'This referee has not finished any certifications'
