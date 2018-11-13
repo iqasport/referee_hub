@@ -44,7 +44,7 @@ class Referees extends Component {
     const certifications = new Map()
 
     included.forEach((include) => {
-      if (include.type === 'referee_certification' && !include.attributes.needs_renewal_at) {
+      if (include.type === 'referee_certification') {
         certifications.set(include.id, include.attributes.level)
       }
     })
