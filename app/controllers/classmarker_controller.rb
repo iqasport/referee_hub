@@ -42,10 +42,8 @@ class ClassmarkerController < ApplicationController
     referee = Referee.find_by(id: results_data['cm_user_id'])
     test_level = determine_level(test_data['test_name'])
 
-    if referee.present? && !in_cool_down_period?(referee, test_level)
-      create_test_attempt(test_level, referee)
-      create_test_results(results_data, test_level, referee)
-    end
+    create_test_attempt(test_level, referee) if referee.present?
+    create_test_results(results_data, test_level, referee) if referee.present?
   end
 
   def hmac_header_valid?
