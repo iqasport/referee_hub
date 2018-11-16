@@ -37,12 +37,12 @@ gem 'devise'
 gem 'webpacker'
 
 gem 'fast_jsonapi'
+gem 'will_paginate'
 
 gem 'semantic-ui-sass'
 
-gem 'will_paginate'
-
-gem "loofah", ">= 2.2.3"
+gem 'loofah', '>= 2.2.3'
+gem 'rack', '>= 2.0.6'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
