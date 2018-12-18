@@ -53,6 +53,6 @@ class RefereeSerializer
   has_many :national_governing_bodies, serializer: :national_governing_body
   has_many :referee_certifications, serializer: :referee_certification
   has_many :certifications, serializer: :certification
-  has_many :test_results, if: proc { |params| params[:include_tests] }
-  has_many :test_attempts, if: proc { |params| params[:include_tests] }
+  has_many :test_results, if: proc { |_referee, params| params[:include_tests] }
+  has_many :test_attempts, if: proc { |_referee, params| params[:include_tests] }
 end

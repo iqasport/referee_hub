@@ -1,6 +1,11 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
-import { Label, Message, Modal, Button, Popup } from 'semantic-ui-react'
+import {
+  Label,
+  Message,
+  Modal,
+  Button
+} from 'semantic-ui-react'
 import { capitalize } from 'lodash'
 import { DateTime } from 'luxon'
 import axios from 'axios'
@@ -287,9 +292,17 @@ class CertificationContent extends Component {
     return <ContentSegment segmentContent={segmentContent} headerContent={headerContent} />
   }
 
+  renderRenewalButton = () => (
+    <div style={{ flex: '1', display: 'flex', justifyContent: 'flex-end' }}>
+      <Button negative content="Renew Certifications" onClick={this.handleRenewalConfirmOpen} />
+    </div>
+  )
+
   renderCompletedCertifications = () => {
+    const { levelsThatNeedRenewal } = this.state
     const { refCertifications, isEditable } = this.props
 
+    const shouldShowRenewalButton = !(levelsThatNeedRenewal.length > 0)
     const headerContent = 'Completed Certifications'
     let segmentContent
 
@@ -299,13 +312,7 @@ class CertificationContent extends Component {
           <div style={{ flex: '1' }}>
             {refCertifications.map(this.renderCertification)}
           </div>
-          {
-            isEditable && (
-              <div style={{ flex: '1', display: 'flex', justifyContent: 'flex-end' }}>
-                <Button negative content="Renew Certifications" onClick={this.handleRenewalConfirmOpen} />
-              </div>
-            )
-          }
+          {isEditable && shouldShowRenewalButton && this.renderRenewalButton()}
         </div>
       )
     } else {

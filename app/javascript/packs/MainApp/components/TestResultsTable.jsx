@@ -1,7 +1,11 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Table, Icon } from 'semantic-ui-react'
-import { capitalize } from 'lodash'
+import { capitalize, uniqueId } from 'lodash'
+
+function valueStringFormatter(value, modifier) {
+  return value ? `${value}${modifier}` : 'N/A'
+}
 
 class TestResultsTable extends Component {
   static propTypes ={
@@ -59,33 +63,31 @@ class TestResultsTable extends Component {
       pointsScored
     } = testResult
 
-    const totalDuration = duration || 'N/A' // TODO use timeFinished and timeStarted to determine duration if null
     const passedIcon = <Icon name="checkmark" color="green" size="large" />
     const failedIcon = <Icon name="times" color="red" size="large" />
-    const percentagePassed = percentage ? `${percentage}%` : 'N/A'
 
     return (
-      <Table.Row>
+      <Table.Row key={uniqueId(`${testLevel}_`)}>
         <Table.Cell>
           {capitalize(testLevel)}
         </Table.Cell>
         <Table.Cell>
-          {totalDuration}
+          {valueStringFormatter(duration, '')}
         </Table.Cell>
         <Table.Cell>
           {passed ? passedIcon : failedIcon}
         </Table.Cell>
         <Table.Cell>
-          {`${minimumPassPercentage}%`}
+          {valueStringFormatter(minimumPassPercentage, '%')}
         </Table.Cell>
         <Table.Cell>
-          {percentagePassed}
+          {valueStringFormatter(percentage, '%')}
         </Table.Cell>
         <Table.Cell>
-          {`${pointsScored} pts`}
+          {valueStringFormatter(pointsScored, ' pts')}
         </Table.Cell>
         <Table.Cell>
-          {`${pointsAvailable} pts`}
+          {valueStringFormatter(pointsAvailable, ' pts')}
         </Table.Cell>
       </Table.Row>
     )
