@@ -48,7 +48,9 @@ class RefereeSerializer
 
   attribute :is_editable do |referee, params|
     current_user = params.present? && params[:current_user]
-    current_user && current_user.id == referee.id
+    return false unless current_user
+
+    current_user.id == referee.id || current_user.admin?
   end
 
   has_many :national_governing_bodies, serializer: :national_governing_body

@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   get 'referees', to: 'home#index'
   get 'referees/:id', to: 'home#index'
   get 'privacy', to: 'home#index'
+  get 'admin', to: 'home#index'
 
   post 'webhook', to: 'classmarker#webhook'
 
