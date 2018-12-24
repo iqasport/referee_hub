@@ -24,6 +24,10 @@
         <% end %>
 
         <%= link_to 'View All Referees', '/referees', class: 'item' %>
+
+        <% if current_referee.admin? %>
+          <%= link_to 'Admin Tools', '/admin', class: 'item' %>
+        <% end %>
       </div>
     </div>
     <p class="notice"><%= notice %></p>
