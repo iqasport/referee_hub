@@ -7,6 +7,7 @@ import Referees from './components/Referees'
 import RefereeProfile from './components/RefereeProfile'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import Admin from './components/Admin'
+import RefereeDiagnostic from './components/RefereeDiagnostic'
 
 const App = () => (
   <Router>
@@ -16,6 +17,7 @@ const App = () => (
       <Route exact path='/referees' component={Referees} />
       <Route path='/referees/:id' component={RefereeProfile} />
       <Route exact path='/admin' component={Admin} />
+      <Route exact path='/admin/referee-diagnostic' component={RefereeDiagnostic} />
     </div>
   </Router>
 )

@@ -6,6 +6,10 @@ Rails.application.routes.draw do
       resources :referees, only: %i[index show update]
       resources :national_governing_bodies, only: %i[index show]
       resources :referee_certifications, only: %i[index update]
+
+      scope '/admin' do
+        post '/search' => 'diagnostic#search'
+      end
     end
   end
 
@@ -14,7 +18,8 @@ Rails.application.routes.draw do
   get 'referees/:id', to: 'home#index'
   get 'privacy', to: 'home#index'
   get 'admin', to: 'home#index'
-
+  get 'admin/referee-diagnostic', to: 'home#index'
+  
   post 'webhook', to: 'classmarker#webhook'
 
   devise_scope :referee do
