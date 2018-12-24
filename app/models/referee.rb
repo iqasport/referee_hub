@@ -3,6 +3,7 @@
 # Table name: referees
 #
 #  id                           :bigint(8)        not null, primary key
+#  admin                        :boolean          default(FALSE)
 #  bio                          :text
 #  current_sign_in_at           :datetime
 #  current_sign_in_ip           :inet

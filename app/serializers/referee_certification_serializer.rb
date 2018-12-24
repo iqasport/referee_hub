@@ -11,6 +11,11 @@
 #  updated_at       :datetime         not null
 #  certification_id :integer          not null
 #  referee_id       :integer          not null
+#
+# Indexes
+#
+#  index_referee_certifications_on_referee_id_and_certification_id  (referee_id,certification_id) UNIQUE WHERE (revoked_at IS NULL)
+#
 
 class RefereeCertificationSerializer
   include FastJsonapi::ObjectSerializer
@@ -22,7 +27,7 @@ class RefereeCertificationSerializer
              :referee_id,
              :certification_id
 
-  attribute :level do |ref_cert, params|
+  attribute :level do |ref_cert, _params|
     cert = Certification.find_by id: ref_cert.certification_id
     cert.level
   end
