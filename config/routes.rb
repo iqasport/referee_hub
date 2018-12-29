@@ -19,7 +19,7 @@ Rails.application.routes.draw do
   get 'privacy', to: 'home#index'
   get 'admin', to: 'home#index'
   get 'admin/referee-diagnostic', to: 'home#index'
-  
+
   post 'webhook', to: 'classmarker#webhook'
 
   devise_scope :referee do
