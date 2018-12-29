@@ -122,19 +122,19 @@ class RefereeProfile extends Component {
         gettingStartedDismissedAt: attributes.getting_started_dismissed_at
       }
     })
-  };
+  }
 
   setErrorStateFromBackendData = (error) => {
     const { status, statusText } = error.response || {
       status: 500,
       statusText: 'Error'
-    };
+    }
 
     this.setState({
       httpStatus: status,
       httpStatusText: statusText
-    });
-  };
+    })
+  }
 
   handleSubmit = () => {
     const {
