@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import {
-  Button, Form, Header, Icon, Label, Message, Modal
+  Button, Form, Header, Icon, Message, Modal
 } from 'semantic-ui-react'
 
 class RefereeProfileEdit extends Component {
@@ -65,7 +65,7 @@ class RefereeProfileEdit extends Component {
     onChange(event.target.id, checked)
   }
 
-  handleNGBChange = (event, { value }) => {
+  handleNGBChange = (_event, { value }) => {
     const { onChange } = this.props
 
     this.setState({
@@ -97,7 +97,6 @@ class RefereeProfileEdit extends Component {
         firstName,
         lastName,
         bio,
-        email,
         showPronouns,
         pronouns,
         nationalGoverningBodies
@@ -156,18 +155,6 @@ class RefereeProfileEdit extends Component {
                 checked={showPronouns}
                 onChange={this.changeCheckbox}
               />
-            </Form.Group>
-            <Form.Group inline>
-              <Form.Input
-                id="email"
-                label="Email"
-                value={email}
-                placeholder="Email address"
-                disabled
-              />
-              <Label pointing="left">
-                Please contact us if you need to change your email address.
-              </Label>
             </Form.Group>
             <Form.Group>
               <Form.Dropdown
