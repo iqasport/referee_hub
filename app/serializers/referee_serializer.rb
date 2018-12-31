@@ -36,7 +36,6 @@ class RefereeSerializer
   attributes :first_name,
              :last_name,
              :bio,
-             :email,
              :show_pronouns,
              :submitted_payment_at,
              :getting_started_dismissed_at
@@ -50,7 +49,7 @@ class RefereeSerializer
     current_user = params.present? && params[:current_user]
     return false unless current_user
 
-    current_user.id == referee.id || current_user.admin?
+    current_user.id == referee.id
   end
 
   has_many :national_governing_bodies, serializer: :national_governing_body

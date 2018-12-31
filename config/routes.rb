@@ -9,6 +9,7 @@ Rails.application.routes.draw do
 
       scope '/admin' do
         post '/search' => 'diagnostic#search'
+        patch '/update-payment' => 'diagnostic#update_payment'
       end
     end
   end
