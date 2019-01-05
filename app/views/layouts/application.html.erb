@@ -25,7 +25,7 @@
 
         <%= link_to 'View All Referees', '/referees', class: 'item' %>
 
-        <% if current_referee.admin? %>
+        <% if referee_signed_in? && current_referee.admin? %>
           <%= link_to 'Admin Tools', '/admin', class: 'item' %>
         <% end %>
       </div>

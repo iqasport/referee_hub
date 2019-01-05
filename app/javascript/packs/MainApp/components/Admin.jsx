@@ -47,9 +47,9 @@ class Admin extends Component {
               <Grid.Column textAlign="center">
                 <Header icon>
                   <Icon name="edit" />
-                  View and Edit Active Tests
+                  View and Edit Active Tests (Coming soon!)
                 </Header>
-                <Button fluid content="View Tests" color="blue" onClick={this.handleViewTests} />
+                <Button fluid disabled content="View Tests" color="blue" onClick={this.handleViewTests} />
               </Grid.Column>
             </Grid.Row>
           </Grid>

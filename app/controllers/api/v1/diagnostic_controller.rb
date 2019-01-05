@@ -2,6 +2,7 @@ module Api
   module V1
     class DiagnosticController < ApplicationController
       before_action :authenticate_referee!
+      before_action :verify_admin
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -47,6 +48,10 @@ module Api
         search_query = permitted_params.delete(:referee_search)
 
         Referee.find_by email: search_query
+      end
+
+      def verify_admin
+        current_referee.admin?
       end
     end
   end
