@@ -13,13 +13,14 @@ import { Map } from 'immutable'
 import { camelCase } from 'lodash'
 import { DateTime } from 'luxon'
 import ContentSegment from './ContentSegment'
+import TestResultsTable from './TestResultsTable'
 
 const filterByType = (dataToFilter, type) => {
   const filteredData = dataToFilter.filter(dataItem => dataItem.type === type)
   return (
-    filteredData.map(({ attributes }) => {
+    filteredData.map(({ id, attributes }) => {
       const newMap = Map(attributes)
-      return newMap.mapKeys(key => camelCase(key))
+      return newMap.mapKeys(key => camelCase(key)).set('id', id)
     })
   )
 }
@@ -39,13 +40,22 @@ class RefereeDiagnostic extends Component {
       + " necessary transaction? If so clicking confirm will update this referee's payment details giving them access"
       + ' to the head referee test.'
 
+    const renewContent = ''
+
     return {
       payment: {
         onConfirm: this.handleUpdatePayment,
         onCancel: this.handleCloseModal,
         header: 'Confirm Payment Update',
         content: paymentContent,
-        errorMessage: "There was an issue updating this Referee's payment details"
+        errorMessage: "There was an issue updating this Referee's payment details."
+      },
+      renew: {
+        onConfirm: this.handleRenewCertifications,
+        onCancel: this.handleCloseModal,
+        header: 'Confirm Certification Renewal',
+        content: renewContent,
+        errorMessage: "There was an issue updating this Referee's certifications."
       }
     }
   }
@@ -61,7 +71,6 @@ class RefereeDiagnostic extends Component {
       referee: {
         firstName: attributes.first_name,
         lastName: attributes.last_name,
-        email: attributes.email,
         pronouns: attributes.pronouns,
         submittedPaymentAt: attributes.submitted_payment_at,
         refereeId: id,
@@ -93,6 +102,22 @@ class RefereeDiagnostic extends Component {
 
   handleOpenModal = modalAction => this.setState({ modalOpen: true, modalAction })
 
+  handleRenewCertifications = () => {
+    const { referee } = this.state
+    const { certifications } = referee
+
+    certifications.forEach((cert) => {
+      const { id } = cert.toJS()
+      axios
+        .patch(`/api/v1/referee_certifications/${id}`, {
+          needs_renewal_at: DateTime.local().toString()
+        })
+        .then(() => {
+          this.handleCloseModal()
+        })
+    })
+  }
+
   handleUpdatePayment = () => {
     const { referee } = this.state
 
@@ -107,9 +132,9 @@ class RefereeDiagnostic extends Component {
       })
   }
 
-  renderListItem = (label, itemContent, floatDirection = 'left') => (
+  renderListItem = (label, itemContent) => (
     <List.Item>
-      <List.Content style={{ textAlign: floatDirection }} floated={floatDirection}>
+      <List.Content>
         <List.Header>{label}</List.Header>
         {itemContent}
       </List.Content>
@@ -124,21 +149,21 @@ class RefereeDiagnostic extends Component {
       ? DateTime.fromSQL(referee.submittedPaymentAt.slice(0, -3).trim()).toLocaleString(DateTime.DATETIME_FULL)
       : 'N/A'
     const updatePaymentLink = this.renderModalLink('payment', 'Confirm Payment')
+    const renewCerts = this.renderModalLink('renew', 'Renew Certifications')
 
     return (
       <Fragment>
         <div style={{ display: 'flex' }}>
           <List divided verticalAlign="middle" style={{ flex: 1, marginRight: '3%' }}>
-            {this.renderListItem('Email:', referee.email)}
             {referee.pronouns && this.renderListItem('Pronouns:', referee.pronouns)}
             {this.renderListItem('Submitted Head Ref Payment At:', paymentDate)}
             {ngbNames && this.renderListItem('National Governing Bodies:', ngbNames)}
           </List>
-          <Segment style={{ flex: 1, marginTop: 0 }}>
-            <List relaxed verticalAlign="middle">
-              {this.renderListItem('Update Payment Details', updatePaymentLink, 'right')}
-              {this.renderListItem('Update Certifications', 'This will be a link to update certs', 'right')}
-              {this.renderListItem('Force Certification Renewal', 'This will be a link to renew certs', 'right')}
+          <Segment style={{ flex: 2, marginTop: 0 }}>
+            <List horizontal verticalAlign="middle" style={{ display: 'flex', justifyContent: 'space-evenly' }}>
+              {this.renderListItem('Update Payment Details', updatePaymentLink)}
+              {this.renderListItem('Update Certifications', 'Coming soon!')}
+              {this.renderListItem('Force Certification Renewal', renewCerts)}
             </List>
           </Segment>
         </div>
@@ -156,7 +181,11 @@ class RefereeDiagnostic extends Component {
 
   renderModalLink = (action, linkContent) => {
     const handleClick = () => this.handleOpenModal(action)
-    return <Button as="a" onClick={handleClick}>{linkContent}</Button>
+    return (
+      <div style={{ margin: '10px 0' }}>
+        <Button as="a" onClick={handleClick}>{linkContent}</Button>
+      </div>
+    )
   }
 
   renderModal = () => {
@@ -185,12 +214,29 @@ class RefereeDiagnostic extends Component {
     )
   }
 
+  renderTestResults = () => {
+    const { referee } = this.state
+    if (!referee) return null
+
+    const { testResults } = referee
+    if (testResults.length < 1) return null
+
+    const headerContent = 'Test Result Details'
+    const segmentContent = <TestResultsTable testResults={testResults.map(result => result.toJS())} />
+
+    return (
+      <Fragment>
+        <ContentSegment headerContent={headerContent} segmentContent={segmentContent} />
+      </Fragment>
+    )
+  }
+
   render() {
     const { searchQuery, searchError } = this.state
 
     return (
       <Segment>
-        <Header as="h1" textAlign="center">Referee Diagnostic Tools</Header>
+        <Header as="h1" textAlign="center">Referee Diagnostic</Header>
         <Form error={!!searchError}>
           <Form.Group>
             <Form.Input
@@ -204,6 +250,7 @@ class RefereeDiagnostic extends Component {
         </Form>
         {this.renderRefereeSegment()}
         {this.renderModal()}
+        {this.renderTestResults()}
       </Segment>
     )
   }
