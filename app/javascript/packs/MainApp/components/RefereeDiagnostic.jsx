@@ -40,7 +40,9 @@ class RefereeDiagnostic extends Component {
       + " necessary transaction? If so clicking confirm will update this referee's payment details giving them access"
       + ' to the head referee test.'
 
-    const renewContent = ''
+    const renewContent = 'When clicking confirm this referee will have their certifications revoked, and will have to '
+      + 'take their tests again to regain certification. This is typically used for referees that were certified under '
+      + 'an old rulebook, but could also be used punitively. This action can not be reversed.'
 
     return {
       payment: {
