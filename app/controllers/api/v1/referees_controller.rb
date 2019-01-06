@@ -10,8 +10,7 @@ module Api
       def index
         page = params[:page] || 1
 
-        referee_ids = Services::FilterReferees.new(search_params).filter
-        @referees = Referee.includes(:national_governing_bodies, :certifications).where(id: referee_ids)
+        @referees = find_referees_from_filter
 
         referee_total = @referees.count
         @referees = @referees.page(page)
@@ -62,6 +61,16 @@ module Api
 
       def find_referee
         @referee = Referee.find_by(id: params[:id])
+      end
+
+      def find_referees_from_filter
+        filter_results = Services::FilterReferees.new(search_params).filter
+
+        if filter_results.respond_to?(:where)
+          filter_results
+        else
+          Referee.includes(:national_governing_bodies, :certifications).where(id: filter_results)
+        end
       end
 
       def permitted_params

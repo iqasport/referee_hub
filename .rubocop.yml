@@ -61,3 +61,7 @@ Metrics/AbcSize:
 
 Style/Documentation:
   Enabled: false
+
+Lint/AmbiguousBlockAssociation:
+  Exclude:
+    - "spec/**/*"
