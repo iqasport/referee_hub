@@ -134,7 +134,6 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       expect(response_data[0]['attributes']['first_name']).to eq referee.first_name
       expect(response_data[0]['attributes']['last_name']).to eq referee.last_name
       expect(response_data[0]['attributes']['bio']).to eq referee.bio
-      expect(response_data[0]['attributes']['email']).to eq referee.email
       expect(response_data[0]['attributes']['pronouns']).to eq referee.pronouns
       expect(response_data[0]['attributes']['show_pronouns']).to eq referee.show_pronouns
     end

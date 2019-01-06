@@ -7,18 +7,20 @@ module Api
 
       layout false
 
+      REFEREE_NOT_FOUND = 'Referee not found, please check the email provided'.freeze
+      REFEREE_UNAUTHORIZED = 'Referee must be an Admin to access this API'.freeze
+
       def search
         if (referee = find_referee)
           json_string = RefereeSerializer.new(
             referee,
-            include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results],
+            include: %i[referee_certifications national_governing_bodies test_attempts test_results],
             params: { current_user: current_referee, include_tests: true }
           ).serialized_json
 
           render json: json_string, status: :ok
         else
-          error_message = 'Referee not found, please check the email provided'
-          render json: { error: error_message }, status: :not_found
+          render json: { error: REFEREE_NOT_FOUND }, status: :not_found
         end
       end
 
@@ -28,7 +30,7 @@ module Api
         if referee.update!(submitted_payment_at: permitted_params[:submitted_payment_at])
           json_string = RefereeSerializer.new(
             referee,
-            include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results],
+            include: %i[referee_certifications national_governing_bodies test_attempts test_results],
             params: { current_user: current_referee, include_tests: true }
           ).serialized_json
 
@@ -51,7 +53,9 @@ module Api
       end
 
       def verify_admin
-        current_referee.admin?
+        return true if current_referee.admin?
+
+        render json: { error: REFEREE_UNAUTHORIZED }, status: :unauthorized
       end
     end
   end
