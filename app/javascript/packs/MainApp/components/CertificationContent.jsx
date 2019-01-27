@@ -4,7 +4,8 @@ import {
   Label,
   Message,
   Modal,
-  Button
+  Button,
+  Segment
 } from 'semantic-ui-react'
 import { capitalize } from 'lodash'
 import { DateTime } from 'luxon'
@@ -15,18 +16,48 @@ import TestResultsTable from './TestResultsTable'
 
 const certificationLinkConfig = {
   snitch: {
-    title: 'Snitch Referee Written Test 2018-20',
-    link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a',
+    ca: {
+      title: 'Snitch Referee Written Test 2018–20 (this will be in Catalan)',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
+    },
+    en: {
+      title: 'Snitch Referee Written Test 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
+    },
+    fr: {
+      title: 'Snitch Referee Written Test 2018–20 (this will be in French)',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
+    },
     color: 'yellow'
   },
   assistant: {
-    title: 'Assistant Referee Written Test 2018-20',
-    link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f',
+    ca: {
+      title: 'Assistant Referee Written Test 2018–20 (this will be in Catalan)',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
+    },
+    en: {
+      title: 'Assistant Referee Written Test 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
+    },
+    fr: {
+      title: 'Assistant Referee Written Test 2018–20 (this will be in French)',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
+    },
     color: 'blue'
   },
   head: {
-    title: 'Head Referee Written Test 2018-20',
-    link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c',
+    ca: {
+      title: 'Head Referee Written Test 2018–20 (this will be in Catalan)',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
+    },
+    en: {
+      title: 'Head Referee Written Test 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
+    },
+    fr: {
+      title: 'Head Referee Written Test 2018–20 (this will be in French)',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
+    },
     color: 'green'
   }
 }
@@ -34,17 +65,23 @@ const certificationLinkConfig = {
 const oldCertificationLinkConfig = {
   snitch: {
     title: 'Snitch Referee Written Test 2016-18',
-    link: 'https://www.classmarker.com/online-test/start/?quiz=crx5bb21de04a997',
+    links: {
+      en: 'https://www.classmarker.com/online-test/start/?quiz=crx5bb21de04a997'
+    },
     color: 'yellow'
   },
   assistant: {
     title: 'Assistant Referee Written Test 2016-18',
-    link: 'https://www.classmarker.com/online-test/start/?quiz=tgr5bb21e1c149dc',
+    links: {
+      en: 'https://www.classmarker.com/online-test/start/?quiz=tgr5bb21e1c149dc'
+    },
     color: 'blue'
   },
   head: {
     title: 'Head Referee Written Test 2016-18',
-    link: 'https://www.classmarker.com/online-test/start/?quiz=9xb5bb21e53ea15f',
+    links: {
+      en: 'https://www.classmarker.com/online-test/start/?quiz=9xb5bb21e53ea15f'
+    },
     color: 'green'
   }
 }
@@ -165,7 +202,7 @@ class CertificationContent extends Component {
 
   handleRenewalConfirmClose = () => this.setState({ renewConfirmOpen: false })
 
-  certificationLink = (shouldTakeOldTests, certificationLevel) => {
+  certificationLink = (shouldTakeOldTests, certificationLevel, language) => {
     const { refereeId } = this.props
     const { levelsThatNeedRenewal } = this.state
 
@@ -174,7 +211,8 @@ class CertificationContent extends Component {
       ? oldCertificationLinkConfig
       : certificationLinkConfig
 
-    const { link, color, title } = certificationConfig[certificationLevel]
+    const { color, ...certificationLanguages } = certificationConfig[certificationLevel]
+    const { link, title } = certificationLanguages[language]
     const fullLink = `${link}&cm_user_id=${refereeId}`
 
     return (
@@ -271,9 +309,29 @@ class CertificationContent extends Component {
     const segmentContent = anyTestsAvailable
       ? (
         <Fragment>
-          {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch')}
-          {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant')}
-          {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head')}
+          <Segment padded>
+            <Label attached="top">English</Label>
+            {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'en')}
+            {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'en')}
+            {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'en')}
+          </Segment>
+          {
+            !shouldTakeOldTests && (
+            <Fragment>
+              <Segment padded>
+                <Label attached="top">Català</Label>
+                {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'ca')}
+                {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'ca')}
+                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'ca')}
+              </Segment>
+              <Segment padded>
+                <Label attached="top">Français</Label>
+                {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'fr')}
+                {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'fr')}
+                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'fr')}
+              </Segment>
+            </Fragment>)
+          }
           <Message info>
             Please note that you have to wait 24 hours after a failed test to be allowed to retry (72 hours for the head
             referee test), even if the link is still visible. Every passed and failed test attempt will be recorded,
