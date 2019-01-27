@@ -17,7 +17,7 @@ import TestResultsTable from './TestResultsTable'
 const certificationLinkConfig = {
   snitch: {
     ca: {
-      title: 'Snitch Referee Written Test 2018–20 (this will be in Catalan)',
+      title: 'Examen escrit d’àrbitre/a d’esnitx 2018–20',
       link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
     },
     en: {
@@ -25,14 +25,14 @@ const certificationLinkConfig = {
       link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
     },
     fr: {
-      title: 'Snitch Referee Written Test 2018–20 (this will be in French)',
+      title: 'Test écrit d’arbitre de vif d’or 2018–20',
       link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
     },
     color: 'yellow'
   },
   assistant: {
     ca: {
-      title: 'Assistant Referee Written Test 2018–20 (this will be in Catalan)',
+      title: 'Examen escrit d’àrbitre/a assistent 2018–20',
       link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
     },
     en: {
@@ -40,14 +40,14 @@ const certificationLinkConfig = {
       link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
     },
     fr: {
-      title: 'Assistant Referee Written Test 2018–20 (this will be in French)',
+      title: 'Test écrit d’arbitre assistant 2018–20',
       link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
     },
     color: 'blue'
   },
   head: {
     ca: {
-      title: 'Head Referee Written Test 2018–20 (this will be in Catalan)',
+      title: 'Examen escrit d’àrbitre/a principal 2018–20',
       link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
     },
     en: {
@@ -55,7 +55,7 @@ const certificationLinkConfig = {
       link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
     },
     fr: {
-      title: 'Head Referee Written Test 2018–20 (this will be in French)',
+      title: 'Test écrit d’arbitre principal 2018–20',
       link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
     },
     color: 'green'
