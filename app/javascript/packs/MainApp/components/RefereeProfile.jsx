@@ -9,7 +9,7 @@ import RefereeProfileEdit from './RefereeProfileEdit'
 import ProfileContent from './ProfileContent'
 import CertificationContent from './CertificationContent'
 
-const NGBS_WITH_OLD_TEST_REQUIREMENT = ['Australia', 'Peru']
+const NGBS_WITH_OLD_TEST_REQUIREMENT = ['Peru']
 
 class RefereeProfile extends Component {
   static propTypes = {
