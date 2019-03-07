@@ -18,7 +18,7 @@ const certificationLinkConfig = {
   snitch: {
     ca: {
       title: 'Examen escrit d’àrbitre/a d’esnitx 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
+      link: 'https://www.classmarker.com/online-test/start/?quiz=x6r5c759d0fa5e30'
     },
     en: {
       title: 'Snitch Referee Written Test 2018–20',
@@ -26,14 +26,14 @@ const certificationLinkConfig = {
     },
     fr: {
       title: 'Test écrit d’arbitre de vif d’or 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
+      link: 'https://www.classmarker.com/online-test/start/?quiz=g6e5c759e2b640cb'
     },
     color: 'yellow'
   },
   assistant: {
     ca: {
       title: 'Examen escrit d’àrbitre/a assistent 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
+      link: 'https://www.classmarker.com/online-test/start/?quiz=6e45c75953075a03'
     },
     en: {
       title: 'Assistant Referee Written Test 2018–20',
@@ -41,14 +41,14 @@ const certificationLinkConfig = {
     },
     fr: {
       title: 'Test écrit d’arbitre assistant 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
+      link: 'https://www.classmarker.com/online-test/start/?quiz=ddq5c759def81996'
     },
     color: 'blue'
   },
   head: {
     ca: {
       title: 'Examen escrit d’àrbitre/a principal 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
+      link: 'https:// comming later this year'
     },
     en: {
       title: 'Head Referee Written Test 2018–20',
@@ -56,7 +56,7 @@ const certificationLinkConfig = {
     },
     fr: {
       title: 'Test écrit d’arbitre principal 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
+      link: 'https:// comming later this year'
     },
     color: 'green'
   }
@@ -322,13 +322,11 @@ class CertificationContent extends Component {
                 <Label attached="top">Català</Label>
                 {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'ca')}
                 {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'ca')}
-                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'ca')}
               </Segment>
               <Segment padded>
                 <Label attached="top">Français</Label>
                 {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'fr')}
                 {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'fr')}
-                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'fr')}
               </Segment>
             </Fragment>)
           }
