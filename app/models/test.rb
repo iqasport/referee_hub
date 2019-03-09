@@ -2,18 +2,18 @@
 #
 # Table name: tests
 #
-#  id               :bigint(8)        not null, primary key
-#  level            :integer          default("snitch")
-#  name             :string
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  certification_id :integer
-#  cm_test_id       :integer
-#  link_id          :integer
-#
-# Indexes
-#
-#  index_tests_on_cm_test_id  (cm_test_id) UNIQUE
+#  id                      :bigint(8)        not null, primary key
+#  description             :text             not null
+#  language                :string
+#  level                   :integer          default("snitch")
+#  minimum_pass_percentage :integer          default(80), not null
+#  name                    :string
+#  negative_feedback       :text
+#  positive_feedback       :text
+#  time_limit              :integer          default(18), not null
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  certification_id        :integer
 #
 
 # This model stores the test information sent by classmarker.
