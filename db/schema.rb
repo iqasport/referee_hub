@@ -10,10 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_12_24_151639) do
+ActiveRecord::Schema.define(version: 2019_03_09_210523) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "answers", force: :cascade do |t|
+    t.integer "question_id", null: false
+    t.text "description", null: false
+    t.boolean "correct", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "certifications", force: :cascade do |t|
     t.integer "level", null: false
@@ -23,19 +31,18 @@ ActiveRecord::Schema.define(version: 2018_12_24_151639) do
     t.index ["level"], name: "index_certifications_on_level", unique: true
   end
 
-  create_table "links", force: :cascade do |t|
-    t.integer "cm_link_id"
-    t.string "name"
-    t.string "cm_link_url_id"
-    t.integer "test_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cm_link_id"], name: "index_links_on_cm_link_id", unique: true
-  end
-
   create_table "national_governing_bodies", force: :cascade do |t|
     t.string "name", null: false
     t.string "website"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "questions", force: :cascade do |t|
+    t.integer "test_id", null: false
+    t.text "description", null: false
+    t.integer "points_available", default: 1, null: false
+    t.text "feedback"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -109,18 +116,22 @@ ActiveRecord::Schema.define(version: 2018_12_24_151639) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "test_level", default: 0
+    t.integer "test_id"
     t.index ["referee_id"], name: "index_test_results_on_referee_id"
   end
 
   create_table "tests", force: :cascade do |t|
     t.integer "level", default: 0
-    t.integer "cm_test_id"
     t.string "name"
     t.integer "certification_id"
-    t.integer "link_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["cm_test_id"], name: "index_tests_on_cm_test_id", unique: true
+    t.text "description", null: false
+    t.integer "time_limit", default: 18, null: false
+    t.integer "minimum_pass_percentage", default: 80, null: false
+    t.text "positive_feedback"
+    t.text "negative_feedback"
+    t.string "language"
   end
 
 end

@@ -5,6 +5,8 @@ class CreateQuestions < ActiveRecord::Migration[5.2]
       t.text :description, :null => false
       t.integer :points_available, :null => false, :default => 1
       t.text :feedback
+
+      t.timestamps
     end
   end
 end
