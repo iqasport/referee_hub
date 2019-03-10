@@ -21,7 +21,7 @@ module Api
 
           render json: json_string, status: :ok
         else
-          render json: { error: @referee_certification.errors.message }, status: :unprocessable_entity
+          render json: { error: @referee_certification.errors.messages }, status: :unprocessable_entity
         end
       end
 
