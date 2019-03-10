@@ -16,13 +16,8 @@
 #  certification_id        :integer
 #
 
-require 'ffaker'
+class TestSerializer
+  include FastJsonapi::ObjectSerializer
 
-FactoryBot.define do
-  factory :test do
-    level 0
-    name { "#{FFaker::Job.title} Test" }
-    description { FFaker::Lorem.paragraph }
-    language { FFaker::Locale.language }
-  end
+  attributes :description, :language, :level, :minimum_pass_percentage, :name, :negative_feedback, :positive_feedback, :time_limit
 end

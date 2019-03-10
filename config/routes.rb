@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       resources :referees, only: %i[index show update]
       resources :national_governing_bodies, only: %i[index show]
       resources :referee_certifications, only: %i[index update]
+      resources :tests, only: %i[index create show update destroy]
 
       scope '/admin' do
         post '/search' => 'diagnostic#search'

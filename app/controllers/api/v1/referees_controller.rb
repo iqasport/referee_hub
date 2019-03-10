@@ -40,7 +40,7 @@ module Api
 
           render json: json_string, status: :ok
         else
-          render json: { error: @referee.errors.message }, status: :unprocessable_entity
+          render json: { error: @referee.errors.messages }, status: :unprocessable_entity
         end
       end
 

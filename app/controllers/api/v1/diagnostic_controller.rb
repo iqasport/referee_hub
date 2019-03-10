@@ -8,7 +8,6 @@ module Api
       layout false
 
       REFEREE_NOT_FOUND = 'Referee not found, please check the email provided'.freeze
-      REFEREE_UNAUTHORIZED = 'Referee must be an Admin to access this API'.freeze
 
       def search
         if (referee = find_referee)
@@ -50,12 +49,6 @@ module Api
         search_query = permitted_params.delete(:referee_search)
 
         Referee.find_by email: search_query
-      end
-
-      def verify_admin
-        return true if current_referee.admin?
-
-        render json: { error: REFEREE_UNAUTHORIZED }, status: :unauthorized
       end
     end
   end

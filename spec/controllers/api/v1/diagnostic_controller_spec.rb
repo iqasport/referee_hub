@@ -70,7 +70,7 @@ RSpec.describe Api::V1::DiagnosticController, type: :controller do
   context 'when signed in referee is not an admin' do
     let(:other_ref) { create :referee }
     let(:body_data) { { referee_search: search_ref.email } }
-    let(:expected_error) { described_class::REFEREE_UNAUTHORIZED }
+    let(:expected_error) { ApplicationController::REFEREE_UNAUTHORIZED }
 
     before { sign_in other_ref }
 
