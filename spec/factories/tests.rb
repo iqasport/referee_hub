@@ -3,6 +3,7 @@
 # Table name: tests
 #
 #  id                      :bigint(8)        not null, primary key
+#  active                  :boolean          default(FALSE), not null
 #  description             :text             not null
 #  language                :string
 #  level                   :integer          default("snitch")
