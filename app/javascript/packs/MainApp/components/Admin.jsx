@@ -22,7 +22,8 @@ class Admin extends Component {
   }
 
   handleViewTests = () => {
-    /** Place for test routing */
+    const { history } = this.props
+    history.push('/admin/tests')
   }
 
   render() {
@@ -49,7 +50,7 @@ class Admin extends Component {
                   <Icon name="edit" />
                   View and Edit Active Tests (Coming soon!)
                 </Header>
-                <Button fluid disabled content="View Tests" color="blue" onClick={this.handleViewTests} />
+                <Button fluid content="View Tests" color="blue" onClick={this.handleViewTests} />
               </Grid.Column>
             </Grid.Row>
           </Grid>
