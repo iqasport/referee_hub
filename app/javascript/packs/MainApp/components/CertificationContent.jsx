@@ -56,7 +56,7 @@ const certificationLinkConfig = {
     },
     fr: {
       title: 'Test écrit d’arbitre principal 2018–20',
-      link: 'https:// comming later this year'
+      link: 'https://www.classmarker.com/online-test/start/?quiz=j6v5c87f0b83ddb5'
     },
     color: 'green'
   }
@@ -327,6 +327,7 @@ class CertificationContent extends Component {
                 <Label attached="top">Français</Label>
                 {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'fr')}
                 {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'fr')}
+                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'fr')}
               </Segment>
             </Fragment>)
           }
