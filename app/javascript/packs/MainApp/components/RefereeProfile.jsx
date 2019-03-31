@@ -16,7 +16,7 @@ class RefereeProfile extends Component {
     match: PropTypes.shape({
       params: PropTypes.object
     }).isRequired
-  };
+  }
 
   state = {
     httpStatus: 0,
@@ -44,7 +44,7 @@ class RefereeProfile extends Component {
     changedBio: null,
     changedShowPronouns: null,
     changedPronouns: null
-  };
+  }
 
   componentDidMount() {
     axios
