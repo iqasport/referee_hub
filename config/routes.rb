@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   get 'admin', to: 'home#index'
   get 'admin/referee-diagnostic', to: 'home#index'
   get 'admin/tests', to: 'home#index'
+  get 'admin/tests/:id', to: 'home#index'
 
   post 'webhook', to: 'classmarker#webhook'
 
