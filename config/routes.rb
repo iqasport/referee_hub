@@ -7,7 +7,9 @@ Rails.application.routes.draw do
       resources :national_governing_bodies, only: %i[index show]
       resources :referee_certifications, only: %i[index update]
       resources :tests, only: %i[index create show update destroy] do
-        resources :questions, only: %i[index create show update destroy]
+        resources :questions, shallow: true do
+          resources :answers, shallow: true
+        end
       end
 
       scope '/admin' do
