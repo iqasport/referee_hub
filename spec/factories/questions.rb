@@ -13,8 +13,7 @@
 
 FactoryBot.define do
   factory :question do
-    test_id 1
-    description "MyText"
+    description { FFaker::Lorem.paragraph }
     points_available 1
     feedback "MyText"
   end
