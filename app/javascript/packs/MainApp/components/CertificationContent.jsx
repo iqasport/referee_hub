@@ -48,7 +48,7 @@ const certificationLinkConfig = {
   head: {
     ca: {
       title: 'Examen escrit d’àrbitre/a principal 2018–20',
-      link: 'https:// comming later this year'
+      link: 'https://www.classmarker.com/online-test/start/?quiz=age5ca75fca28524'
     },
     en: {
       title: 'Head Referee Written Test 2018–20',
@@ -56,7 +56,7 @@ const certificationLinkConfig = {
     },
     fr: {
       title: 'Test écrit d’arbitre principal 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=j6v5c87f0b83ddb5'
+      link: 'https://www.classmarker.com/online-test/start/?quiz=9qy5ca75f0501760'
     },
     color: 'green'
   }
@@ -322,6 +322,7 @@ class CertificationContent extends Component {
                 <Label attached="top">Català</Label>
                 {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'ca')}
                 {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'ca')}
+                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'ca')}
               </Segment>
               <Segment padded>
                 <Label attached="top">Français</Label>
