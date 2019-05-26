@@ -1,11 +1,13 @@
 /* eslint-disable camelcase */
-import React, { Component, Fragment } from 'react'
+import React, { Component } from 'react'
 import axios from 'axios'
 import PropTypes from 'prop-types'
 import {
-  Segment, Tab, Header, Message
+  Segment, Tab, Header, Message, List, Radio, Button, Modal
 } from 'semantic-ui-react'
-import { isEmpty } from 'lodash'
+import { isEmpty, capitalize } from 'lodash'
+import ContentSegment from './ContentSegment'
+import TestEditForm from './TestEditForm'
 
 class Test extends Component {
   static propTypes = {
@@ -28,50 +30,216 @@ class Test extends Component {
       id: ''
     },
     httpStatus: 0,
-    httpStatusText: ''
+    httpStatusText: '',
+    editModalOpen: false,
+    confirmModalOpen: false,
+    updatedName: null,
+    updatedDescription: null,
+    updatedLanguage: null,
+    updatedLevel: null,
+    updatedMinimumPassPercentage: null,
+    updatedNegativeFeedback: null,
+    updatedPositiveFeedback: null,
+    updatedTimeLimit: null,
   }
 
   componentDidMount() {
     const { match: { params } } = this.props
 
     axios.get(`/api/v1/tests/${params.id}`)
-      .then(({ status, statusText, data }) => {
-        const { data: { id, attributes } } = data
-        const {
-          active,
-          description,
-          language,
-          level,
-          minimum_pass_percentage,
-          name,
-          negative_feedback,
-          positive_feedback,
-          time_limit
-        } = attributes
+      .then(this.setDataFromResponse)
+      .catch(this.setDataFromError)
+  }
 
-        const test = {
-          active,
-          description,
-          language,
-          level,
-          minimumPassPercentage: minimum_pass_percentage,
-          name,
-          negativeFeedback: negative_feedback,
-          positiveFeedback: positive_feedback,
-          timeLimit: time_limit,
-          id
+  get testEditValues() {
+    const {
+      test,
+      updatedName,
+      updatedDescription,
+      updatedLanguage,
+      updatedLevel,
+      updatedMinimumPassPercentage,
+      updatedNegativeFeedback,
+      updatedPositiveFeedback,
+      updatedTimeLimit,
+    } = this.state
+
+    return {
+      name: updatedName || test.name,
+      description: updatedDescription || test.description,
+      language: updatedLanguage || test.language,
+      level: updatedLevel || test.level,
+      minimumPassPercentage: updatedMinimumPassPercentage || test.minimumPassPercentage,
+      negativeFeedback: updatedNegativeFeedback || test.negativeFeedback,
+      positiveFeedback: updatedPositiveFeedback || test.positiveFeedback,
+      timeLimit: updatedTimeLimit || test.timeLimit
+    }
+  }
+
+  setDataFromResponse = ({ status, statusText, data }) => {
+    const { data: { id, attributes } } = data
+    const {
+      active,
+      description,
+      language,
+      level,
+      minimum_pass_percentage,
+      name,
+      negative_feedback,
+      positive_feedback,
+      time_limit
+    } = attributes
+
+    const test = {
+      active,
+      description,
+      language,
+      level,
+      minimumPassPercentage: minimum_pass_percentage,
+      name,
+      negativeFeedback: negative_feedback,
+      positiveFeedback: positive_feedback,
+      timeLimit: time_limit,
+      id
+    }
+
+    this.setState({ test, httpStatus: status, httpStatusText: statusText })
+  }
+
+  setDataFromError = (error) => {
+    const { status, statusText } = error.response || {
+      status: 500,
+      statusText: 'Error'
+    }
+
+    this.setState({ test: {}, httpStatus: status, httpStatusText: statusText })
+  }
+
+  handleEditChange = (key, value) => this.setState({ [`${key}`]: value })
+
+  // eslint-disable-next-line no-unused-vars
+  handleActiveChange = (_e, { _value }) => {
+    const { test: { id, active } } = this.state
+    axios.patch(`/api/v1/tests/${id}`, { active: !active })
+      .then(this.setDataFromResponse)
+      .then(this.handleCloseModal)
+      .catch(this.setDataFromError)
+  }
+
+  handleOpenEditModal = () => this.setState({ editModalOpen: true })
+
+  handleOpenConfirmModal = () => this.setState({ confirmModalOpen: true })
+
+  handleCloseModal = () => this.setState({ editModalOpen: false, confirmModalOpen: false })
+
+  handleSubmit = () => {
+    const {
+      test,
+      updatedName,
+      updatedDescription,
+      updatedLanguage,
+      updatedLevel,
+      updatedMinimumPassPercentage,
+      updatedNegativeFeedback,
+      updatedPositiveFeedback,
+      updatedTimeLimit,
+    } = this.state
+
+    axios.patch(`/api/v1/tests/${test.id}`, {
+      name: updatedName || test.name,
+      description: updatedDescription || test.description,
+      language: updatedLanguage || test.language,
+      level: updatedLevel || test.level,
+      minimum_pass_percentage: updatedMinimumPassPercentage || test.minimumPassPercentage,
+      negative_feedback: updatedNegativeFeedback || test.negativeFeedback,
+      positive_feedback: updatedPositiveFeedback || test.positiveFeedback,
+      time_limit: updatedTimeLimit || test.timeLimit
+    })
+      .then(this.setDataFromResponse)
+      .then(this.handleCloseModal)
+      .catch(this.setDataFromError)
+  }
+
+  renderEditForm = () => <TestEditForm values={this.testEditValues} onChange={this.handleEditChange} />
+
+  renderModal = () => {
+    const { editModalOpen, confirmModalOpen, test } = this.state
+    const isOpen = editModalOpen || confirmModalOpen
+    const editModalProps = {
+      header: `Edit ${test.name}`,
+      content: this.renderEditForm(),
+      actions: [
+        { key: 'cancel', content: 'Cancel', onClick: this.handleCloseModal },
+        {
+          key: 'submit',
+          content: 'Submit',
+          onClick: this.handleSubmit,
+          primary: true
         }
+      ],
+      size: 'large',
+      scrolling: true
+    }
 
-        this.setState({ test, httpStatus: status, httpStatusText: statusText })
-      })
-      .catch((error) => {
-        const { status, statusText } = error.response || {
-          status: 500,
-          statusText: 'Error'
+    const confirmModalProps = {
+      header: 'Confirm Test Activation?',
+      content: 'Once activated this test will be available to all referees.',
+      actions: [
+        { key: 'cancel', content: 'Cancel', onClick: this.handleCloseModal },
+        {
+          key: 'submit',
+          content: 'Confirm',
+          onClick: this.handleActiveChange,
+          primary: true
         }
+      ],
+      size: 'mini'
+    }
 
-        this.setState({ test: {}, httpStatus: status, httpStatusText: statusText })
-      })
+    const modalProps = editModalOpen ? editModalProps : confirmModalProps
+
+    return <Modal open={isOpen} {...modalProps} />
+  }
+
+  renderEditButtons = () => {
+    const { test } = this.state
+
+    return (
+      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+        <Radio
+          toggle
+          label="Active?"
+          onChange={this.handleOpenConfirmModal}
+          checked={test.active}
+        />
+        <Button content={`Edit ${test.name}`} onClick={this.handleOpenEditModal} />
+      </div>
+    )
+  }
+
+  renderDetails = () => {
+    const { test } = this.state
+    const nullFeedback = "Look's like there isn't any feedback for referees after they finish their test. "
+      + 'Edit this test so referees know their next steps.'
+
+    return (
+      <div style={{ width: '50%' }}>
+        <List divided relaxed>
+          <List.Item header="Level" content={capitalize(test.level)} />
+          <List.Item header="Language" content={capitalize(test.language)} />
+          <List.Item header="Minimum Pass Percentage" content={test.minimumPassPercentage} />
+          <List.Item
+            header="Feedback After Test Passing"
+            content={test.positiveFeedback ? test.positiveFeedback : nullFeedback}
+          />
+          <List.Item
+            header="Feedback After Test Failure"
+            content={test.negativeFeedback ? test.negativeFeedback : nullFeedback}
+          />
+          <List.Item header="Default Time Limit" content={test.timeLimit} />
+        </List>
+      </div>
+    )
   }
 
   renderDetailPane = () => {
@@ -80,10 +248,11 @@ class Test extends Component {
 
     return (
       <Tab.Pane>
-        <Fragment>
-          {isError && <Message error header={httpStatus} content={httpStatusText} />}
-          <p>{test.description}</p>
-        </Fragment>
+        {isError && <Message error header={httpStatus} content={httpStatusText} />}
+        {this.renderEditButtons()}
+        <ContentSegment headerContent="Description" segmentContent={test.description} />
+        <ContentSegment headerContent="Completion Details" segmentContent={this.renderDetails()} />
+        {this.renderModal()}
       </Tab.Pane>
     )
   }
