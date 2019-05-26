@@ -20,5 +20,13 @@
 class TestSerializer
   include FastJsonapi::ObjectSerializer
 
-  attributes :description, :language, :level, :minimum_pass_percentage, :name, :negative_feedback, :positive_feedback, :time_limit
+  attributes :description, 
+    :language, 
+    :level, 
+    :minimum_pass_percentage, 
+    :name, 
+    :negative_feedback, 
+    :positive_feedback, 
+    :time_limit,
+    :active
 end

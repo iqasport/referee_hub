@@ -57,7 +57,17 @@ module Api
       private
 
       def permitted_params
-        params.permit(:description, :language, :level, :minimum_pass_percentage, :name, :negative_feedback, :positive_feedback, :time_limit)
+        params.permit(
+          :description, 
+          :language, 
+          :level, 
+          :minimum_pass_percentage, 
+          :name, 
+          :negative_feedback, 
+          :positive_feedback, 
+          :time_limit,
+          :active
+        )
       end
 
       def find_test
