@@ -160,7 +160,13 @@ class Test extends Component {
       .catch(this.setDataFromError)
   }
 
-  renderEditForm = () => <TestEditForm values={this.testEditValues} onChange={this.handleEditChange} />
+  renderEditForm = () => (
+    <TestEditForm
+      values={this.testEditValues}
+      onChange={this.handleEditChange}
+      onChangeKey="updated"
+    />
+  )
 
   renderModal = () => {
     const { editModalOpen, confirmModalOpen, test } = this.state
