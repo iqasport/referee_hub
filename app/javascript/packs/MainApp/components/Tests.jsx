@@ -55,7 +55,9 @@ class Tests extends Component {
     testPositiveFeedback: '',
     testTimeLimit: '',
     httpStatus: null,
-    httpStatusText: null
+    httpStatusText: null,
+    deleteId: null,
+    deleteModalOpen: false,
   }
 
   componentDidMount() {
@@ -123,11 +125,13 @@ class Tests extends Component {
     history.push(`/admin/tests/${id}`)
   }
 
-  handleOpenModal = () => this.setState({ createModalOpen: true })
+  handleOpenCreateModal = () => this.setState({ createModalOpen: true })
 
-  handleCloseModal = () => this.setState({ createModalOpen: false })
+  handleCloseModal = () => this.setState({ createModalOpen: false, deleteModalOpen: false })
 
   handleCreateChange = (key, value) => this.setState({ [`${key}`]: value })
+
+  handleOpenDeleteModal = id => () => this.setState({ deleteId: id, deleteModalOpen: true })
 
   handleCreateTest = () => {
     const {
@@ -156,6 +160,15 @@ class Tests extends Component {
       .catch(this.setDataFromError)
   }
 
+  handleDeleteTest = () => {
+    const { deleteId } = this.state
+
+    axios.delete(`/api/v1/tests/${deleteId}`)
+      .then(() => this.setState({ deleteId: null }))
+      .then(this.fetchTests())
+      .catch(this.setDataFromError)
+  }
+
   renderHeader = () => (
     <Table.Header>
       <Table.Row>
@@ -171,6 +184,12 @@ class Tests extends Component {
         <Table.HeaderCell>
           Language
         </Table.HeaderCell>
+        <Table.HeaderCell>
+          Delete?
+        </Table.HeaderCell>
+        <Table.HeaderCell>
+          View More
+        </Table.HeaderCell>
       </Table.Row>
     </Table.Header>
   )
@@ -183,7 +202,7 @@ class Tests extends Component {
     const inactiveIcon = <Icon name="times" color="red" size="large" />
 
     return (
-      <Table.Row key={id} onClick={this.handleTestClick(id)} style={{ cursor: 'pointer' }}>
+      <Table.Row key={id}>
         <Table.Cell>
           {active ? activeIcon : inactiveIcon}
         </Table.Cell>
@@ -195,6 +214,12 @@ class Tests extends Component {
         </Table.Cell>
         <Table.Cell>
           {language}
+        </Table.Cell>
+        <Table.Cell>
+          <Button icon="trash alternate" negative onClick={this.handleOpenDeleteModal(id)} />
+        </Table.Cell>
+        <Table.Cell>
+          <Button icon="chevron right" basic onClick={this.handleTestClick(id)} />
         </Table.Cell>
       </Table.Row>
     )
@@ -209,9 +234,11 @@ class Tests extends Component {
   )
 
   renderModal = () => {
-    const { createModalOpen } = this.state
+    const { createModalOpen, deleteModalOpen } = this.state
     const content = <TestEditForm values={this.createValues} onChange={this.handleCreateChange} onChangeKey="test" />
-    const modalProps = {
+    const deleteContent = "This action cannot be undone, if you don't want to delete this test but want to make it" +
+      " unavailable please deactivate this test on it's detail view"
+    const createModalProps = {
       header: 'Create Test',
       content,
       actions: [
@@ -226,8 +253,24 @@ class Tests extends Component {
       size: 'large',
       scrolling: true
     }
+    const deleteModalProps = {
+      header: 'Delete Test?',
+      content: deleteContent,
+      actions: [
+        { key: 'cancel', content: 'Cancel', onClick: this.handleCloseModal },
+        {
+          key: 'submit',
+          content: 'Delete',
+          onClick: this.handleDeleteTest,
+          negative: true
+        }
+      ],
+      size: 'mini'
+    }
 
-    return <Modal open={createModalOpen} {...modalProps} />
+    const modalProps = createModalOpen ? createModalProps : deleteModalProps
+    const isOpen = createModalOpen || deleteModalOpen
+    return <Modal open={isOpen} {...modalProps} />
   }
 
   render() {
@@ -239,7 +282,7 @@ class Tests extends Component {
         <Header as="h1" textAlign="center">
           Test Administration
           <div>
-            <Button content="Add New Test" onClick={this.handleOpenModal} />
+            <Button content="Add New Test" onClick={this.handleOpenCreateModal} />
           </div>
           {isError && <Message error header={httpStatus} content={httpStatusText} />}
         </Header>
