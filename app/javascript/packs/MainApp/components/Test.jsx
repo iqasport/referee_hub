@@ -8,11 +8,15 @@ import {
 import { isEmpty, capitalize } from 'lodash'
 import ContentSegment from './ContentSegment'
 import TestEditForm from './TestEditForm'
+import QuestionManager from './QuestionManager'
 
 class Test extends Component {
   static propTypes = {
     match: PropTypes.shape({
       params: PropTypes.object
+    }).isRequired,
+    history: PropTypes.shape({
+      push: PropTypes.func
     }).isRequired
   }
 
@@ -160,6 +164,11 @@ class Test extends Component {
       .catch(this.setDataFromError)
   }
 
+  handleGoBack = () => {
+    const { history } = this.props
+    history.push('/admin/tests')
+  }
+
   renderEditForm = () => (
     <TestEditForm
       values={this.testEditValues}
@@ -263,6 +272,15 @@ class Test extends Component {
     )
   }
 
+  renderQuestionPane = () => {
+    const { test: { id } } = this.state
+    return (
+      <Tab.Pane>
+        <QuestionManager testId={id} />
+      </Tab.Pane>
+    )
+  }
+
   render() {
     const { test } = this.state
     const panes = [
@@ -272,7 +290,10 @@ class Test extends Component {
 
     return (
       <Segment>
-        <Header as="h1" textAlign="center">
+        <Header as="h1" textAlign="center" style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ marginRight: '20%' }}>
+            <Button onClick={this.handleGoBack} content="Go Back to Tests" basic />
+          </div>
           {!isEmpty(test) ? test.name : ''}
         </Header>
         <Tab panes={panes} />
