@@ -14,6 +14,12 @@ const initialState = {
   confirmModalOpen: false,
 }
 
+const labelProps = {
+  horizontal: true,
+  size: 'large',
+  basic: true
+}
+
 class Question extends Component {
   state = initialState
 
@@ -58,49 +64,65 @@ class Question extends Component {
 
   handleCloseModal = () => this.setState({ confirmModalOpen: false })
 
-  renderReadOnlyView = () => {
+  renderQuestion = () => {
+    const { isEditing } = this.state
     const { values: { description, feedback, pointsAvailable } } = this.props
-    return (
-      <Fragment>
-        <Label content="Question:" />
-        <div dangerouslySetInnerHTML={{ __html: description }} />
-        <Divider />
-        <Label content="Post Test Feedback" />
-        <div dangerouslySetInnerHTML={{ __html: feedback }} />
-        <Divider />
-        <Label content="Points Available" />
-        <div>
-          {pointsAvailable}
-        </div>
-      </Fragment>
-    )
-  }
-
-  renderEditView = () => {
-    const { description, feedback, pointsAvailable } = this.editValues
     const questionPlaceholder = 'Rich text of the test question.'
     const feedbackPlaceholder = 'Information for Referees regarding this question, provided after finishing the test.'
 
     return (
       <Fragment>
-        <Label content="Question:" />
-        <RichTextEditor
-          value={description}
-          placeholder={questionPlaceholder}
-          onChange={this.handleChange}
-          name="Description"
-        />
+        <Label {...labelProps}>
+          Question:
+        </Label>
+        <div style={{ margin: '2%' }}>
+          {
+            isEditing
+              ? (
+                <RichTextEditor
+                  value={this.editValues.description}
+                  placeholder={questionPlaceholder}
+                  onChange={this.handleChange}
+                  name="Description"
+                />
+              )
+              : <div dangerouslySetInnerHTML={{ __html: description }} />
+          }
+        </div>
         <Divider />
-        <Label content="Post Test Feedback" />
-        <RichTextEditor
-          value={feedback}
-          placeholder={feedbackPlaceholder}
-          onChange={this.handleChange}
-          name="Feedback"
-        />
+        <Label {...labelProps}>
+          Post Test Feedback:
+        </Label>
+        <div style={{ margin: '2%' }}>
+          {
+            isEditing
+              ? (
+                <RichTextEditor
+                  value={this.editValues.feedback}
+                  placeholder={feedbackPlaceholder}
+                  onChange={this.handleChange}
+                  name="Feedback"
+                />
+              )
+              : <div dangerouslySetInnerHTML={{ __html: feedback }} />
+          }
+        </div>
         <Divider />
-        <Label content="Points Available" />
-        <Form.Field control={Input} value={pointsAvailable} onChange={this.handleChange} name="PointsAvailable" />
+        <Label {...labelProps}>
+          Points Available:
+        </Label>
+        {
+          isEditing
+            ? (
+              <Form.Field
+                control={Input}
+                value={this.editValues.pointsAvailable}
+                onChange={this.handleChange}
+                name="PointsAvailable"
+              />
+            )
+            : <span>{pointsAvailable}</span>
+        }
       </Fragment>
     )
   }
@@ -114,7 +136,7 @@ class Question extends Component {
     const isDisabled = !updatedDescription && !updatedFeedback && !updatedPointsAvailable
 
     return (
-      <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         {!isEditing && <Button icon="edit" color="green" onClick={this.handleEditClick} />}
         {isDeletable && <Button icon="trash alternate" negative onClick={this.handleDeleteClick} />}
         {isEditing && <Button content="Cancel" onClick={this.handleEditCancel} />}
@@ -145,11 +167,9 @@ class Question extends Component {
   }
 
   render() {
-    const { isEditing } = this.state
-
     return (
       <Segment>
-        {isEditing ? this.renderEditView() : this.renderReadOnlyView()}
+        {this.renderQuestion()}
         {this.renderButtons()}
         {this.renderModal()}
       </Segment>
@@ -161,7 +181,7 @@ Question.propTypes = {
   values: PropTypes.shape({
     description: PropTypes.string,
     feedback: PropTypes.string,
-    pointsAvailable: PropTypes.number,
+    pointsAvailable: PropTypes.string,
     id: PropTypes.string
   }).isRequired,
   onSave: PropTypes.func.isRequired,

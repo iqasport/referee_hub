@@ -3,8 +3,8 @@ module Api
     class QuestionsController < ApplicationController
       before_action :authenticate_referee!
       before_action :verify_admin, only: %i[create show update destroy]
-      before_action :find_test
       before_action :find_question, only: %i[show update destroy]
+      before_action :find_test
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -58,11 +58,12 @@ module Api
       private
 
       def find_test
-        @test = Test.find_by(id: params[:test_id])
+        id_to_find = params[:test_id] || @question.test_id
+        @test = Test.find_by(id: id_to_find)
       end
 
       def find_question
-        @question = @test.questions.find_by(id: params[:id])
+        @question = Question.find_by(id: params[:id])
       end
 
       def permitted_params
@@ -71,4 +72,3 @@ module Api
     end
   end
 end
-
