@@ -2,6 +2,19 @@ import React, { Component } from 'react'
 import ReactQuill from 'react-quill'
 import PropTypes from 'prop-types'
 
+const modules = {
+  toolbar: [
+    ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+    ['blockquote', 'code-block'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    [{ script: 'sub' }, { script: 'super' }], // superscript/subscript
+    [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
+    [{ direction: 'rtl' }, { direction: 'ltr' }], // text direction
+    [{ size: [] }],
+    [{ color: [] }, { background: [] }], // dropdown with defaults from theme
+  ]
+}
+
 class RichTextEditor extends Component {
   static propTypes = {
     onChange: PropTypes.func.isRequired,
@@ -19,7 +32,7 @@ class RichTextEditor extends Component {
     }
   }
 
-  handleChange = (content, delta, source, editor) => {
+  handleChange = (content) => {
     const { onChange, name } = this.props
     this.setState({ editorValue: content })
 
@@ -35,7 +48,7 @@ class RichTextEditor extends Component {
         value={editorValue}
         onChange={this.handleChange}
         placeholder={placeholder}
-        theme={null}
+        modules={modules}
       />
     )
   }

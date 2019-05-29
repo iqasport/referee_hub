@@ -17,7 +17,7 @@ const sanitizeQuestionData = (test) => {
   return {
     description,
     feedback,
-    pointsAvailable: points_available,
+    pointsAvailable: String(points_available),
     id
   }
 }
@@ -25,7 +25,7 @@ const sanitizeQuestionData = (test) => {
 const emptyQuestion = {
   description: '',
   feedback: '',
-  pointsAvailable: 0,
+  pointsAvailable: '',
   id: null,
 }
 
