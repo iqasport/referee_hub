@@ -12,7 +12,7 @@ module Api
       def index
         questions = @test.questions
 
-        json_string = QuestionSerializer.new(questions).serialized_json
+        json_string = QuestionSerializer.new(questions, include: [:answers]).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -30,14 +30,14 @@ module Api
       end
 
       def show
-        json_string = QuestionSerializer.new(@question).serialized_json
+        json_string = QuestionSerializer.new(@question, include: [:answers]).serialized_json
 
         render json: json_string, status: :ok
       end
 
       def update
         if @question.update!(permitted_params)
-          json_string = QuestionSerializer.new(@question).serialized_json
+          json_string = QuestionSerializer.new(@question, include: [:answers]).serialized_json
 
           render json: json_string, status: :ok
         else

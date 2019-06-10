@@ -3,8 +3,8 @@ module Api
     class AnswersController < ApplicationController
       before_action :authenticate_referee!
       before_action :verify_admin, only: %i[create show update destroy]
-      before_action :find_question
       before_action :find_answer, only: %i[show update destroy]
+      before_action :find_question
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -58,11 +58,12 @@ module Api
       private
 
       def find_question
-        @question = Question.find_by(id: params[:question_id])
+        id_to_find = params[:question_id] || @answer.question_id
+        @question = Question.find_by(id: id_to_find)
       end
 
       def find_answer
-        @answer = @question.answers.find_by(id: params[:id])
+        @answer = Answer.find_by(id: params[:id])
       end
 
       def permitted_params
