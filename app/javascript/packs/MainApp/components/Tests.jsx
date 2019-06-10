@@ -236,8 +236,8 @@ class Tests extends Component {
   renderModal = () => {
     const { createModalOpen, deleteModalOpen } = this.state
     const content = <TestEditForm values={this.createValues} onChange={this.handleCreateChange} onChangeKey="test" />
-    const deleteContent = "This action cannot be undone, if you don't want to delete this test but want to make it" +
-      " unavailable please deactivate this test on it's detail view"
+    const deleteContent = "This action cannot be undone, if you don't want to delete this test but want to make it"
+      + " unavailable please deactivate this test on it's detail view"
     const createModalProps = {
       header: 'Create Test',
       content,

@@ -3,4 +3,3 @@ class AnswerSerializer
 
   attributes :description, :correct, :question_id
 end
-

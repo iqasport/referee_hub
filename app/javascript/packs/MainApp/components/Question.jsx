@@ -2,9 +2,10 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import {
-  Segment, Label, Divider, Input, Button, Modal, Form
+  Segment, Label, Divider, Input, Button, Modal, Form, Header
 } from 'semantic-ui-react'
 import RichTextEditor from './RichTextEditor'
+import AnswerManager from './AnswerManager'
 
 const initialState = {
   isEditing: false,
@@ -12,6 +13,7 @@ const initialState = {
   updatedFeedback: null,
   updatedPointsAvailable: null,
   confirmModalOpen: false,
+  answersOpen: false
 }
 
 const labelProps = {
@@ -63,6 +65,8 @@ class Question extends Component {
   handleDeleteClick = () => this.setState({ confirmModalOpen: true })
 
   handleCloseModal = () => this.setState({ confirmModalOpen: false })
+
+  handleToggleAnswers = () => this.setState(prevState => ({ answersOpen: !prevState.answersOpen }))
 
   renderQuestion = () => {
     const { isEditing } = this.state
@@ -123,7 +127,24 @@ class Question extends Component {
             )
             : <span>{pointsAvailable}</span>
         }
+        <Divider />
       </Fragment>
+    )
+  }
+
+  renderAnswers = () => {
+    const { values: { id } } = this.props
+    const { answersOpen } = this.state
+    const iconClass = answersOpen ? 'angle down' : 'angle right'
+
+    return (
+      <Segment>
+        <Header as="h4">
+          Answers
+          <Button style={{ marginLeft: '25px' }} icon={iconClass} onClick={this.handleToggleAnswers} />
+        </Header>
+        {answersOpen && <AnswerManager questionId={id} onSave={this.handleSaveAnswers} />}
+      </Segment>
     )
   }
 
@@ -134,13 +155,18 @@ class Question extends Component {
     const { values: { id } } = this.props
     const isDeletable = !isEditing && id !== null
     const isDisabled = !updatedDescription && !updatedFeedback && !updatedPointsAvailable
+    const buttonStyle = { margin: '0 10px' }
 
     return (
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        {!isEditing && <Button icon="edit" color="green" onClick={this.handleEditClick} />}
-        {isDeletable && <Button icon="trash alternate" negative onClick={this.handleDeleteClick} />}
-        {isEditing && <Button content="Cancel" onClick={this.handleEditCancel} />}
-        {isEditing && <Button content="Save" onClick={this.handleSave} primary disabled={isDisabled} />}
+        {!isEditing && <Button style={buttonStyle} icon="edit" color="green" onClick={this.handleEditClick} />}
+        {isDeletable && <Button style={buttonStyle} icon="trash alternate" negative onClick={this.handleDeleteClick} />}
+        {isEditing && <Button style={buttonStyle} content="Cancel" onClick={this.handleEditCancel} />}
+        {isEditing
+          && (
+            <Button style={buttonStyle} content="Save" onClick={this.handleSave} primary disabled={isDisabled} />
+          )
+        }
       </div>
     )
   }
@@ -167,9 +193,13 @@ class Question extends Component {
   }
 
   render() {
+    const { values: { id } } = this.props
+    const canAddAnswers = id !== null
+
     return (
       <Segment>
         {this.renderQuestion()}
+        {canAddAnswers && this.renderAnswers()}
         {this.renderButtons()}
         {this.renderModal()}
       </Segment>
