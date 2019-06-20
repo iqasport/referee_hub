@@ -27,6 +27,34 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
     end
   end
 
+  shared_examples 'it reports to bugsnag on failure' do |method|
+    before do
+      allow_any_instance_of(Answer).to receive(method).and_raise(StandardError)
+      allow_any_instance_of(Answer).to receive(:errors).and_return(message_double)
+      allow(Bugsnag).to receive(:notify).and_call_original
+    end
+
+    it 'returns an error' do
+      subject
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it 'returns an error message' do
+      subject
+
+      response_data = JSON.parse(response.body)['error']
+
+      expect(response_data).to eq error_message
+    end
+
+    it 'calls bugsnag notify' do
+      expect(Bugsnag).to receive(:notify).at_least(:once)
+
+      subject
+    end
+  end
+
   describe 'GET #index' do
     let!(:answers) { create_list :answer, 3, question_id: question.id }
 
@@ -89,11 +117,18 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
     end
 
     it_behaves_like 'it fails when a referee is not an admin'
+
+    context 'when the request fails' do
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :save!
+    end
   end
 
   describe 'GET #show' do
     let!(:answer) { create :answer, question: question }
-    
+
     before { sign_in admin }
 
     subject { get :show, params: { id: answer.id, question_id: question.id } }
@@ -138,12 +173,19 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
     end
 
     it_behaves_like 'it fails when a referee is not an admin'
+
+    context 'when the request fails' do
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :save!
+    end
   end
 
   describe 'DELETE #destroy' do
     let(:id) { 123 }
     let!(:answer) { create :answer, question: question, id: id }
-    
+
     before { sign_in admin }
 
     subject { delete :destroy, params: { id: id, question_id: question.id } }

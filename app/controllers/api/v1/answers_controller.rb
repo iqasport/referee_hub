@@ -20,14 +20,15 @@ module Api
       def create
         answer = Answer.new(permitted_params)
 
-        @question.answers << answer
+        answer.question_id = @question.id
+        answer.save!
 
         json_string = AnswerSerializer.new(answer).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
-        render json: { error: @question.errors.full_messages }, status: :unprocessable_entity
+        render json: { error: answer.errors.full_messages }, status: :unprocessable_entity
       end
 
       def show
