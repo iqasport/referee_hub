@@ -20,13 +20,14 @@ module Api
       def create
         answer = Answer.new(permitted_params)
 
-        if @question.answers << answer
-          json_string = AnswerSerializer.new(answer).serialized_json
+        @question.answers << answer
 
-          render json: json_string, status: :ok
-        else
-          render json: { error: @question.errors.full_messages }, status: :unprocessable_entity
-        end
+        json_string = AnswerSerializer.new(answer).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @question.errors.full_messages }, status: :unprocessable_entity
       end
 
       def show
@@ -36,23 +37,25 @@ module Api
       end
 
       def update
-        if @answer.update!(permitted_params)
-          json_string = AnswerSerializer.new(@answer).serialized_json
+        @answer.update!(permitted_params)
 
-          render json: json_string, status: :ok
-        else
-          render json: { error: @answer.errors.full_messages }, status: :unprocessable_entity
-        end
+        json_string = AnswerSerializer.new(@answer).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @answer.errors.full_messages }, status: :unprocessable_entity
       end
 
       def destroy
         json_string = AnswerSerializer.new(@answer).serialized_json
 
-        if @answer.destroy!
-          render json: json_string, status: :ok
-        else
-          render json: { error: @answer.errors.full_messages }, status: :unprocessable_entity
-        end
+        @answer.destroy!
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @answer.errors.full_messages }, status: :unprocessable_entity
       end
 
       private

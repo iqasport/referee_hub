@@ -91,6 +91,7 @@ class ClassmarkerController < ApplicationController
     }
     TestResult.create(test_results_hash)
   rescue => e
+    Bugsnag.notify(e)
     logger.error e
   end
 
@@ -102,6 +103,7 @@ class ClassmarkerController < ApplicationController
 
     TestAttempt.create(data_hash)
   rescue => e
+    Bugsnag.notify(e)
     logger.error e
   end
 
