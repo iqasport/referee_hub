@@ -112,10 +112,10 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     context 'when the update fails' do
       let(:body_data) { { id: test.id, name: 'new name' } }
       let(:error_message) { ['I am an error'] }
-      let(:message_double) { double(:full_messages => error_message) }
+      let(:message_double) { double(full_messages: error_message) }
 
       before do
-        allow_any_instance_of(Test).to receive(:update!).and_return(false)
+        allow_any_instance_of(Test).to receive(:update!).and_raise(StandardError)
         allow_any_instance_of(Test).to receive(:errors).and_return(message_double)
       end
 
@@ -140,7 +140,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     let(:body_data) { { id: test.id } }
 
     before { sign_in admin }
-    
+
     subject { get :show, params: body_data }
 
     it 'is a successful request' do
@@ -183,4 +183,3 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     it_behaves_like 'it fails when a referee is not an admin'
   end
 end
-
