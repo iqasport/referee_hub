@@ -25,6 +25,34 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     end
   end
 
+  shared_examples 'it reports to bugsnag on failure' do |method|
+    before do
+      allow_any_instance_of(Test).to receive(method).and_raise(StandardError)
+      allow_any_instance_of(Test).to receive(:errors).and_return(message_double)
+      allow(Bugsnag).to receive(:notify).and_call_original
+    end
+
+    it 'returns an error' do
+      subject
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it 'returns an error message' do
+      subject
+
+      response_data = JSON.parse(response.body)['error']
+
+      expect(response_data).to eq error_message
+    end
+
+    it 'calls bugsnag notify' do
+      expect(Bugsnag).to receive(:notify).at_least(:once)
+
+      subject
+    end
+  end
+
   describe 'GET #index' do
     let!(:tests) { create_list :test, 3 }
 
@@ -87,6 +115,13 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     end
 
     it_behaves_like 'it fails when a referee is not an admin'
+
+    context 'when the request fails' do
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :save!
+    end
   end
 
   describe 'PUT #update' do
@@ -114,24 +149,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       let(:error_message) { ['I am an error'] }
       let(:message_double) { double(full_messages: error_message) }
 
-      before do
-        allow_any_instance_of(Test).to receive(:update!).and_raise(StandardError)
-        allow_any_instance_of(Test).to receive(:errors).and_return(message_double)
-      end
-
-      it 'returns an error' do
-        subject
-
-        expect(response).to have_http_status(:unprocessable_entity)
-      end
-
-      it 'returns an error message' do
-        subject
-
-        response_data = JSON.parse(response.body)['error']
-
-        expect(response_data).to eq error_message
-      end
+      it_behaves_like 'it reports to bugsnag on failure', :update!
     end
   end
 

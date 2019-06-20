@@ -20,14 +20,15 @@ module Api
       def create
         question = Question.new(permitted_params)
 
-        @test.questions << question
+        question.test_id = @test.id
+        question.save!
 
         json_string = QuestionSerializer.new(question).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
-        render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
+        render json: { error: question.errors.full_messages }, status: :unprocessable_entity
       end
 
       def show

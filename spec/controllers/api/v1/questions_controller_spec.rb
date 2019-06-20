@@ -4,7 +4,7 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
   let(:admin) { create :referee, admin: true }
   let(:non_admin) { create :referee }
   let!(:test) { create :test }
-  
+
   shared_examples 'it fails when a referee is not an admin' do
     let(:other_ref) { create :referee }
     let(:expected_error) { ApplicationController::REFEREE_UNAUTHORIZED }
@@ -23,6 +23,34 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
       response_data = JSON.parse(response.body)['error']
 
       expect(response_data).to eq expected_error
+    end
+  end
+
+  shared_examples 'it reports to bugsnag on failure' do |method|
+    before do
+      allow_any_instance_of(Question).to receive(method).and_raise(StandardError)
+      allow_any_instance_of(Question).to receive(:errors).and_return(message_double)
+      allow(Bugsnag).to receive(:notify).and_call_original
+    end
+
+    it 'returns an error' do
+      subject
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it 'returns an error message' do
+      subject
+
+      response_data = JSON.parse(response.body)['error']
+
+      expect(response_data).to eq error_message
+    end
+
+    it 'calls bugsnag notify' do
+      expect(Bugsnag).to receive(:notify).at_least(:once)
+
+      subject
     end
   end
 
@@ -90,11 +118,18 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
     end
 
     it_behaves_like 'it fails when a referee is not an admin'
+
+    context 'when the request fails' do
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :save!
+    end
   end
 
   describe 'GET #show' do
     let!(:question) { create :question, test: test }
-    
+
     before { sign_in admin }
 
     subject { get :show, params: { id: question.id, test_id: test.id } }
@@ -139,12 +174,19 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
     end
 
     it_behaves_like 'it fails when a referee is not an admin'
+
+    context 'when the request fails' do
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :save!
+    end
   end
 
   describe 'DELETE #destroy' do
     let(:id) { 123 }
     let!(:question) { create :question, test: test, id: id }
-    
+
     before { sign_in admin }
 
     subject { delete :destroy, params: { id: id, test_id: test.id } }
@@ -172,4 +214,3 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
     it_behaves_like 'it fails when a referee is not an admin'
   end
 end
-
