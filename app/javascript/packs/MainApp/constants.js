@@ -34,7 +34,7 @@ export const CERTIFICATION_LEVELS = {
 const levelDropdown = [
   { text: 'Snitch', value: 'snitch' },
   { text: 'Assistant', value: 'assistant' },
-  { text: 'Head', value: 'value' }
+  { text: 'Head', value: 'head' }
 ]
 const MAX_TIME = 120
 const MIN_TIME = 10
