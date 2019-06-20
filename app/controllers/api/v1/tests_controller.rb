@@ -19,23 +19,25 @@ module Api
       def create
         @test = Test.new(permitted_params)
 
-        if @test.save
-          json_string = TestSerializer.new(@test).serialized_json
+        @test.save!
 
-          render json: json_string, status: :ok
-        else
-          render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
-        end
+        json_string = TestSerializer.new(@test).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
       def update
-        if @test.update!(permitted_params)
-          json_string = TestSerializer.new(@test).serialized_json
+        @test.update!(permitted_params)
 
-          render json: json_string, status: :ok
-        else
-          render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
-        end
+        json_string = TestSerializer.new(@test).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
       def show
@@ -47,24 +49,25 @@ module Api
       def destroy
         json_string = TestSerializer.new(@test).serialized_json
 
-        if @test.destroy!
-          render json: json_string, status: :ok
-        else
-          render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
-        end
+        @test.destroy!
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
       private
 
       def permitted_params
         params.permit(
-          :description, 
-          :language, 
-          :level, 
-          :minimum_pass_percentage, 
-          :name, 
-          :negative_feedback, 
-          :positive_feedback, 
+          :description,
+          :language,
+          :level,
+          :minimum_pass_percentage,
+          :name,
+          :negative_feedback,
+          :positive_feedback,
           :time_limit,
           :active
         )
