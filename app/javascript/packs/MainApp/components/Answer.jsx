@@ -1,9 +1,10 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import {
-  Form, Input, Checkbox, Button
+  Form, Checkbox, Button
 } from 'semantic-ui-react';
 import { isEmpty } from 'lodash'
+import RichTextEditor from './RichTextEditor'
 
 class Answer extends Component {
   state = {
@@ -66,6 +67,20 @@ class Answer extends Component {
     )
   }
 
+  renderAnswer = () => {
+    const { isEditing } = this.state
+
+    const input = <RichTextEditor value={this.descriptionValue} onChange={this.handleDescriptionChange} />
+    // eslint-disable-next-line react/no-danger
+    const renderedText = <div dangerouslySetInnerHTML={{ __html: this.descriptionValue }} />
+
+    return (
+      <Fragment>
+        {isEditing ? input : renderedText}
+      </Fragment>
+    )
+  }
+
   render() {
     const { isCorrect } = this.props
     const { isEditing } = this.state
@@ -79,14 +94,7 @@ class Answer extends Component {
           checked={isCorrect}
           onClick={this.handleCorrectChange}
         />
-        <Form.Field
-          className="answer-input"
-          fluid
-          control={Input}
-          disabled={!isEditing}
-          value={this.descriptionValue}
-          onChange={this.handleDescriptionChange}
-        />
+        {this.renderAnswer()}
         {this.renderButtons()}
       </div>
     )
