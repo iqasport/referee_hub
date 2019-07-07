@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_03_10_212900) do
+ActiveRecord::Schema.define(version: 2019_07_06_193330) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,6 +45,21 @@ ActiveRecord::Schema.define(version: 2019_03_10_212900) do
     t.text "feedback"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "referee_answers", force: :cascade do |t|
+    t.bigint "referee_id", null: false
+    t.bigint "test_id", null: false
+    t.bigint "question_id", null: false
+    t.bigint "answer_id", null: false
+    t.bigint "test_attempt_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["answer_id"], name: "index_referee_answers_on_answer_id"
+    t.index ["question_id"], name: "index_referee_answers_on_question_id"
+    t.index ["referee_id"], name: "index_referee_answers_on_referee_id"
+    t.index ["test_attempt_id"], name: "index_referee_answers_on_test_attempt_id"
+    t.index ["test_id"], name: "index_referee_answers_on_test_id"
   end
 
   create_table "referee_certifications", force: :cascade do |t|

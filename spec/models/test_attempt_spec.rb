@@ -17,9 +17,9 @@ RSpec.describe TestAttempt, type: :model do
   context 'when test_level has changed' do
     let(:test_attempt) { build :test_attempt }
 
-    subject { test_attempt.save! }
-
     before { Timecop.freeze(Time.now.utc) }
+
+    subject { test_attempt.save! }
 
     context 'when test_level is snitch' do
       let(:expected_date) { Time.now.utc + 24.hours }
@@ -44,6 +44,28 @@ RSpec.describe TestAttempt, type: :model do
 
       it 'sets the next_attempt_at 72 hours from current time' do
         expect { subject }.to change { test_attempt.next_attempt_at }.to(expected_date)
+      end
+    end
+  end
+
+  context '#in_cool_down_period?' do
+    let(:test_attempt) { create :test_attempt }
+
+    before { Timecop.freeze(Time.now.utc) }
+
+    subject { test_attempt.in_cool_down_period? }
+
+    it 'should return true' do
+      expect(subject).to be_truthy
+    end
+
+    context 'when cool down has lapsed' do
+      let(:lapsed_time) { Time.now.utc - 26.hours }
+
+      before { test_attempt.update!(next_attempt_at: lapsed_time) }
+
+      it 'should return false' do
+        expect(subject).to be_falsey
       end
     end
   end
