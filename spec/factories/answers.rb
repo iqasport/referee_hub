@@ -12,8 +12,8 @@
 
 FactoryBot.define do
   factory :answer do
-    question_id 1
-    description "MyText"
+    question { create :question }
+    description 'MyText'
     correct false
   end
 end

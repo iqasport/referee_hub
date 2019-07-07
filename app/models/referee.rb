@@ -43,6 +43,7 @@ class Referee < ApplicationRecord
 
   has_many :test_results, dependent: :destroy
   has_many :test_attempts, dependent: :destroy
+  has_many :referee_answers, dependent: :destroy
 
   scope :certified, -> { joins(:certifications).group('referees.id') }
 

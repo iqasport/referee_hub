@@ -12,4 +12,5 @@
 
 class Answer < ApplicationRecord
   belongs_to :question
+  has_many :referee_answers, dependent: :destroy
 end

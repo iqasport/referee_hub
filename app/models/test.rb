@@ -21,6 +21,7 @@
 # It connects to our certification model to ensure the test result gives referees the right certification.
 class Test < ApplicationRecord
   has_many :questions, dependent: :destroy
+  has_many :referee_answers, dependent: :destroy
 
   enum level: {
     snitch: 0,
@@ -28,5 +29,5 @@ class Test < ApplicationRecord
     head: 2
   }
 
-  scope :active, -> { where(:active => true) }
+  scope :active, -> { where(active: true) }
 end
