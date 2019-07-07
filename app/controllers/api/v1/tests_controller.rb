@@ -69,7 +69,8 @@ module Api
           :negative_feedback,
           :positive_feedback,
           :time_limit,
-          :active
+          :active,
+          :testable_question_count
         )
       end
 

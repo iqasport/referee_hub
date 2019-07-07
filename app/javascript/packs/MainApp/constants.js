@@ -46,7 +46,15 @@ const timeLimitDropdown = minuteArray.map(minute => ({
 
 export const TEST_FORM_CONFIG = (values) => {
   const {
-    name, description, level, language, minimumPassPercentage, timeLimit, positiveFeedback, negativeFeedback
+    name,
+    description,
+    level,
+    language,
+    minimumPassPercentage,
+    timeLimit,
+    positiveFeedback,
+    negativeFeedback,
+    testableQuestionCount
   } = values
 
   const descPlaceholder = !description ? "What should referee's know about this test before taking it?" : null
@@ -86,6 +94,12 @@ export const TEST_FORM_CONFIG = (values) => {
       label: 'Minimum Pass Percentage',
       name: 'MinimumPassPercentage',
       value: minimumPassPercentage,
+    },
+    {
+      control: Input,
+      label: 'Question Count',
+      name: 'TestableQuestionCount',
+      value: testableQuestionCount,
     },
     {
       control: Dropdown,

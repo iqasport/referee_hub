@@ -11,6 +11,7 @@
 #  name                    :string
 #  negative_feedback       :text
 #  positive_feedback       :text
+#  testable_question_count :integer          default(0), not null
 #  time_limit              :integer          default(18), not null
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
@@ -20,13 +21,14 @@
 class TestSerializer
   include FastJsonapi::ObjectSerializer
 
-  attributes :description, 
-    :language, 
-    :level, 
-    :minimum_pass_percentage, 
-    :name, 
-    :negative_feedback, 
-    :positive_feedback, 
-    :time_limit,
-    :active
+  attributes :description,
+             :language,
+             :level,
+             :minimum_pass_percentage,
+             :name,
+             :negative_feedback,
+             :positive_feedback,
+             :time_limit,
+             :active,
+             :testable_question_count
 end
