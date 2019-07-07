@@ -3,7 +3,7 @@ module Api
     class TestsController < ApplicationController
       before_action :authenticate_referee!
       before_action :verify_admin, only: %i[create update destroy]
-      before_action :find_test, only: %i[update show destroy]
+      before_action :find_test, only: %i[update show destroy start]
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -50,6 +50,17 @@ module Api
         json_string = TestSerializer.new(@test).serialized_json
 
         @test.destroy!
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
+      end
+
+      def start
+        questions = @test.fetch_random_questions
+
+        json_string = QuestionSerializer.new(questions).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception

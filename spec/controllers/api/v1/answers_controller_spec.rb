@@ -57,10 +57,11 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
   describe 'GET #index' do
     let!(:answers) { create_list :answer, 3, question_id: question.id }
+    let(:random) { nil }
 
     before { sign_in admin }
 
-    subject { get :index, params: { question_id: question.id } }
+    subject { get :index, params: { question_id: question.id, random: random } }
 
     it 'is a successful request' do
       subject
@@ -76,13 +77,35 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
       expect(response_data.length).to eq answers.length
     end
 
-    describe 'when a non-admin referee makes a request' do
+    context 'when a non-admin referee makes a request' do
       before { sign_in non_admin }
 
       it 'is a successful request' do
         subject
 
         expect(response).to have_http_status(:successful)
+      end
+    end
+
+    context 'when random is present' do
+      let(:question) { create :question }
+      let!(:answers) { create_list :answer, 3, question_id: question.id }
+      let(:random) { true }
+
+      before { allow(question).to receive(:randomize_answers) }
+
+      it 'is a successful request' do
+        subject
+
+        expect(response).to have_http_status(:successful)
+      end
+
+      it 'returns all of the answers associated with the passed question' do
+        subject
+
+        response_data = JSON.parse(response.body)['data']
+
+        expect(response_data.length).to eq answers.length
       end
     end
   end
