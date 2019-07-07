@@ -31,4 +31,8 @@ class Test < ApplicationRecord
   }
 
   scope :active, -> { where(active: true) }
+
+  def fetch_random_questions
+    questions.limit(testable_question_count).order(Arel.sql('RANDOM()'))
+  end
 end

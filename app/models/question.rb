@@ -15,4 +15,8 @@ class Question < ApplicationRecord
   belongs_to :test
   has_many :answers, dependent: :destroy
   has_many :referee_answers, dependent: :destroy
+
+  def randomize_answers
+    answers.order(Arel.sql('RANDOM()'))
+  end
 end

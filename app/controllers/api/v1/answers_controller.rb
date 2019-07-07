@@ -10,8 +10,6 @@ module Api
       layout false
 
       def index
-        answers = @question.answers
-
         json_string = AnswerSerializer.new(answers).serialized_json
 
         render json: json_string, status: :ok
@@ -72,6 +70,18 @@ module Api
 
       def permitted_params
         params.permit(:description, :correct)
+      end
+
+      def randomize?
+        params[:random].present?
+      end
+
+      def answers
+        if randomize?
+          @question.randomize_answers
+        else
+          @question.answers
+        end
       end
     end
   end

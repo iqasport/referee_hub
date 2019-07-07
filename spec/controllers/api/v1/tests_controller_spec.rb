@@ -200,4 +200,38 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     it_behaves_like 'it fails when a referee is not an admin'
   end
+
+  describe 'GET #start' do
+    let(:tester_ref) { create :referee }
+    let(:question_count) { 2 }
+    let(:test) { create :test, testable_question_count: question_count }
+    let!(:questions) { create_list(:question, 5, test: test) }
+    let(:body_data) { { id: test.id } }
+
+    before { sign_in tester_ref }
+
+    subject { get :start, params: body_data }
+
+    it 'is a successful request' do
+      subject
+
+      expect(response).to have_http_status(:successful)
+    end
+
+    it 'returns the correct amount of questions' do
+      subject
+
+      response_data = JSON.parse(response.body)['data']
+
+      expect(response_data.length).to eq question_count
+    end
+
+    context 'when the update fails' do
+      let(:body_data) { { id: test.id } }
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :fetch_random_questions
+    end
+  end
 end
