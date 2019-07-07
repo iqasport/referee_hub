@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_06_193330) do
+ActiveRecord::Schema.define(version: 2019_07_07_123227) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -148,6 +148,7 @@ ActiveRecord::Schema.define(version: 2019_07_06_193330) do
     t.text "negative_feedback"
     t.string "language"
     t.boolean "active", default: false, null: false
+    t.integer "testable_question_count", default: 0, null: false
   end
 
 end

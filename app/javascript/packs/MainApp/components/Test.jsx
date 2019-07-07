@@ -31,7 +31,8 @@ class Test extends Component {
       negativeFeedback: '',
       positiveFeedback: '',
       timeLimit: 0,
-      id: ''
+      id: '',
+      testableQuestionCount: 0
     },
     httpStatus: 0,
     httpStatusText: '',
@@ -45,6 +46,7 @@ class Test extends Component {
     updatedNegativeFeedback: null,
     updatedPositiveFeedback: null,
     updatedTimeLimit: null,
+    updatedTestableQuestionCount: null,
   }
 
   componentDidMount() {
@@ -66,6 +68,7 @@ class Test extends Component {
       updatedNegativeFeedback,
       updatedPositiveFeedback,
       updatedTimeLimit,
+      updatedTestableQuestionCount
     } = this.state
 
     return {
@@ -76,7 +79,8 @@ class Test extends Component {
       minimumPassPercentage: updatedMinimumPassPercentage || test.minimumPassPercentage,
       negativeFeedback: updatedNegativeFeedback || test.negativeFeedback,
       positiveFeedback: updatedPositiveFeedback || test.positiveFeedback,
-      timeLimit: updatedTimeLimit || test.timeLimit
+      timeLimit: updatedTimeLimit || test.timeLimit,
+      testableQuestionCount: updatedTestableQuestionCount || test.testableQuestionCount,
     }
   }
 
@@ -91,7 +95,8 @@ class Test extends Component {
       name,
       negative_feedback,
       positive_feedback,
-      time_limit
+      time_limit,
+      testable_question_count,
     } = attributes
 
     const test = {
@@ -104,7 +109,8 @@ class Test extends Component {
       negativeFeedback: negative_feedback,
       positiveFeedback: positive_feedback,
       timeLimit: time_limit,
-      id
+      id,
+      testableQuestionCount: testable_question_count,
     }
 
     this.setState({ test, httpStatus: status, httpStatusText: statusText })
@@ -147,6 +153,7 @@ class Test extends Component {
       updatedNegativeFeedback,
       updatedPositiveFeedback,
       updatedTimeLimit,
+      updatedTestableQuestionCount,
     } = this.state
 
     axios.patch(`/api/v1/tests/${test.id}`, {
@@ -157,7 +164,8 @@ class Test extends Component {
       minimum_pass_percentage: updatedMinimumPassPercentage || test.minimumPassPercentage,
       negative_feedback: updatedNegativeFeedback || test.negativeFeedback,
       positive_feedback: updatedPositiveFeedback || test.positiveFeedback,
-      time_limit: updatedTimeLimit || test.timeLimit
+      time_limit: updatedTimeLimit || test.timeLimit,
+      testable_question_count: updatedTestableQuestionCount || test.testableQuestionCount,
     })
       .then(this.setDataFromResponse)
       .then(this.handleCloseModal)
@@ -243,6 +251,7 @@ class Test extends Component {
           <List.Item header="Level" content={capitalize(test.level)} />
           <List.Item header="Language" content={capitalize(test.language)} />
           <List.Item header="Minimum Pass Percentage" content={test.minimumPassPercentage} />
+          <List.Item header="Question Count" content={test.testableQuestionCount} />
           <List.Item
             header="Feedback After Test Passing"
             content={test.positiveFeedback ? test.positiveFeedback : nullFeedback}
