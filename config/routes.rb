@@ -13,6 +13,7 @@ Rails.application.routes.draw do
 
         member do
           get :start
+          post :finish
         end
       end
 

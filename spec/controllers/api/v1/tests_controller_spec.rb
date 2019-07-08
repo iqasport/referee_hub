@@ -226,12 +226,55 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       expect(response_data.length).to eq question_count
     end
 
-    context 'when the update fails' do
+    context 'when the question fetch fails' do
       let(:body_data) { { id: test.id } }
       let(:error_message) { ['I am an error'] }
       let(:message_double) { double(full_messages: error_message) }
 
       it_behaves_like 'it reports to bugsnag on failure', :fetch_random_questions
+    end
+  end
+
+  describe 'POST #finish' do
+    let(:tester_ref) { create :referee }
+    let(:test) { create :test }
+    let(:questions) { create_list(:question, 5, test: test) }
+    let(:started_at) { Time.now.utc }
+    let(:finished_at) { Time.now.utc + 15.minutes }
+    let(:referee_answers) do
+      questions.map do |question|
+        answer = question.answers.find_by(id: question.id * 12)
+        { question_id: question.id, answer_id: answer.id }
+      end
+    end
+    let(:body_data) do
+      { id: test.id, started_at: started_at.to_s, finished_at: finished_at.to_s, referee_answers: referee_answers }
+    end
+
+    before do
+      questions.each do |question|
+        create(:answer, id: question.id * 12, question: question, correct: true)
+        create_list(:answer, 3, question: question)
+      end
+      Timecop.freeze(Time.now.utc)
+      sign_in tester_ref
+    end
+
+    subject { post :finish, params: body_data }
+
+    it 'is a successful request' do
+      subject
+
+      expect(response).to have_http_status(:successful)
+    end
+
+    it 'returns the generated test result' do
+      subject
+
+      response_data = JSON.parse(response.body)['data']
+
+      expect(response_data['type']).to eq 'test_result'
+      expect(response_data['attributes']['passed']).to eq true
     end
   end
 end

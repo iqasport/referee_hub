@@ -13,6 +13,7 @@
 
 class TestAttempt < ApplicationRecord
   belongs_to :referee
+  belongs_to :test
   has_many :referee_answers, dependent: :destroy
 
   enum test_level: {

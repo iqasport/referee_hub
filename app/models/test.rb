@@ -23,6 +23,8 @@
 class Test < ApplicationRecord
   has_many :questions, dependent: :destroy
   has_many :referee_answers, dependent: :destroy
+  has_many :test_attempts, dependent: :destroy
+  has_many :test_results, dependent: :destroy
 
   enum level: {
     snitch: 0,

@@ -3,7 +3,7 @@ module Api
     class TestsController < ApplicationController
       before_action :authenticate_referee!
       before_action :verify_admin, only: %i[create update destroy]
-      before_action :find_test, only: %i[update show destroy start]
+      before_action :find_test, only: %i[update show destroy start finish]
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -68,6 +68,23 @@ module Api
         render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
+      def finish
+        test_result = Services::GradeFinishedTest.new(
+          test: @test,
+          referee: current_referee,
+          started_at: permitted_finish_params[:started_at],
+          finished_at: permitted_finish_params[:finished_at],
+          referee_answers: permitted_finish_params[:referee_answers]
+        ).perform
+
+        json_string = TestResultSerializer.new(test_result).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: 'Error grading test' }, status: :unprocessable_entity
+      end
+
       private
 
       def permitted_params
@@ -82,6 +99,14 @@ module Api
           :time_limit,
           :active,
           :testable_question_count
+        )
+      end
+
+      def permitted_finish_params
+        params.permit(
+          :started_at,
+          :finished_at,
+          referee_answers: %i[question_id answer_id]
         )
       end
 
