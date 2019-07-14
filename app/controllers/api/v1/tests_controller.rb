@@ -4,9 +4,13 @@ module Api
       before_action :authenticate_referee!
       before_action :verify_admin, only: %i[create update destroy]
       before_action :find_test, only: %i[update show destroy start finish]
+      before_action :verify_valid_test_attempt, only: :start
       skip_before_action :verify_authenticity_token
 
       layout false
+
+      INVALID_TEST_ATTEMPT =
+        'This test is unavailable for you to take currently, please try again in a few hours'.freeze
 
       def index
         @tests = Test.all
@@ -112,6 +116,19 @@ module Api
 
       def find_test
         @test = Test.find_by(id: params[:id])
+      end
+
+      def verify_valid_test_attempt
+        last_test_attempt =
+          current_referee
+          .test_attempts
+          .send(@test.level)
+          .order(created_at: :desc)
+          .last
+
+        return true unless last_test_attempt&.in_cool_down_period?
+
+        render json: { error: INVALID_TEST_ATTEMPT }, status: :unauthorized
       end
     end
   end

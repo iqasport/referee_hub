@@ -233,6 +233,27 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
       it_behaves_like 'it reports to bugsnag on failure', :fetch_random_questions
     end
+
+    context 'when the test level is in the cool down period' do
+      let!(:test_attempt) { create :test_attempt, test: test, referee: tester_ref }
+      let(:expected_error) { described_class::INVALID_TEST_ATTEMPT }
+
+      before { allow(test_attempt).to receive(:in_cool_down_period?).and_return(true) }
+
+      it 'returns an error' do
+        subject
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        response_data = JSON.parse(response.body)['error']
+
+        expect(response_data).to eq expected_error
+      end
+    end
   end
 
   describe 'POST #finish' do
