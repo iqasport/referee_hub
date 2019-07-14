@@ -1,5 +1,6 @@
 require 'rails_helper'
 require 'json'
+include ActiveJob::TestHelper
 
 RSpec.describe Services::GradeFinishedTest do
   let!(:certification) { create :certification, :snitch }
@@ -57,5 +58,23 @@ RSpec.describe Services::GradeFinishedTest do
 
   it 'returns a test result' do
     expect(subject).to have_attributes(expected_test_result)
+  end
+
+  it 'enqueues a result email' do
+    ActiveJob::Base.queue_adapter = :test
+    expect { subject }.to have_enqueued_job.on_queue('mailers')
+  end
+
+  it 'delivers the email' do
+    expect { perform_enqueued_jobs { subject } }.to change { ActionMailer::Base.deliveries.size }.by(1)
+  end
+
+  it 'sends to the correct referee' do
+    perform_enqueued_jobs do
+      subject
+    end
+
+    sent_mail = ActionMailer::Base.deliveries.last
+    expect(sent_mail.to[0]).to eq referee.email
   end
 end
