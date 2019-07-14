@@ -1,20 +1,23 @@
+require 'time'
+
 module Services
   class GradeFinishedTest
-    attr_reader :test, :referee, :started_at, :referee_answers, :test_attempt, :finished_at
+    attr_reader :test, :referee, :started_at, :referee_answers, :test_attempt, :finished_at, :skip_email
 
-    def initialize(test:, referee:, started_at:, finished_at:, referee_answers: [])
+    def initialize(test:, referee:, started_at: '', finished_at: '', skip_email: false, referee_answers: [])
       @test = test
       @referee = referee
-      @started_at = Time.parse.utc(started_at)
-      @finished_at = Time.parse.utc(finished_at)
+      @started_at = Time.find_zone('UTC').parse(started_at)
+      @finished_at = Time.find_zone('UTC').parse(finished_at)
       @referee_answers = referee_answers
+      @skip_email = skip_email
     end
 
     def perform
       create_test_attempt
       create_referee_answers
       test_result = grade_answers
-      send_result_email(test_result)
+      send_result_email(test_result) unless skip_email
       test_result
     end
 
@@ -67,9 +70,11 @@ module Services
       TestResult.create!(test_results_hash.merge(test: test, referee: referee))
     end
 
-    def send_result_email(_test_result)
-      # mailer not implemented yet
-      true
+    def send_result_email(test_result)
+      RefereeMailer
+        .with(referee: referee, test_attempt: test_attempt, test_result: test_result)
+        .referee_answer_feedback_email
+        .deliver_later
     end
   end
 end
