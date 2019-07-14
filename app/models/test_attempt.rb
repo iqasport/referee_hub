@@ -24,6 +24,10 @@ class TestAttempt < ApplicationRecord
 
   before_save :add_next_attempt, if: :test_level_changed?
 
+  scope :snitch, -> { where(test_level: 'snitch') }
+  scope :assistant, -> { where(test_level: 'assistant') }
+  scope :head, -> { where(test_level: 'head') }
+
   def add_next_attempt
     if test_level == 'snitch' || test_level == 'assistant'
       self.next_attempt_at = Time.now.utc + 24.hours
