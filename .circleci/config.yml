@@ -18,6 +18,8 @@ jobs:
           POSTGRES_USER: referee_hub
           POSTGRES_DB: referee_hub_test
           POSTGRES_PASSWORD: ""
+      - image: circleci/redis:4.0.9-alpine
+        
     steps:
       - checkout
       # Download and cache dependencies
