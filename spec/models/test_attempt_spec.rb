@@ -15,7 +15,8 @@ require 'rails_helper'
 
 RSpec.describe TestAttempt, type: :model do
   context 'when test_level has changed' do
-    let(:test_attempt) { build :test_attempt }
+    let(:test) { create :test }
+    let(:test_attempt) { build :test_attempt, test: test }
 
     before { Timecop.freeze(Time.now.utc) }
 
@@ -30,7 +31,7 @@ RSpec.describe TestAttempt, type: :model do
     end
 
     context 'when test_level is assistant' do
-      let(:test_attempt) { build :test_attempt, test_level: :assistant }
+      let(:test_attempt) { build :test_attempt, test_level: :assistant, test: test }
       let(:expected_date) { Time.now.utc + 24.hours }
 
       it 'sets the next_attempt_at 24 hours from current time' do
@@ -39,7 +40,7 @@ RSpec.describe TestAttempt, type: :model do
     end
 
     context 'when test_level is head' do
-      let(:test_attempt) { build :test_attempt, test_level: :head }
+      let(:test_attempt) { build :test_attempt, test_level: :head, test: test }
       let(:expected_date) { Time.now.utc + 72.hours }
 
       it 'sets the next_attempt_at 72 hours from current time' do
@@ -49,7 +50,8 @@ RSpec.describe TestAttempt, type: :model do
   end
 
   context '#in_cool_down_period?' do
-    let(:test_attempt) { create :test_attempt }
+    let(:test) { create :test }
+    let(:test_attempt) { create :test_attempt, test: test }
 
     before { Timecop.freeze(Time.now.utc) }
 

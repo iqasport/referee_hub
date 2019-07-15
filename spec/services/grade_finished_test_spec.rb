@@ -2,7 +2,7 @@ require 'rails_helper'
 require 'json'
 include ActiveJob::TestHelper
 
-RSpec.describe Services::GradeFinishedTest do
+describe Services::GradeFinishedTest do
   let!(:certification) { create :certification, :snitch }
   let(:test) { create :test }
   let(:questions) { create_list(:question, 5, test: test) }
@@ -28,6 +28,7 @@ RSpec.describe Services::GradeFinishedTest do
       test_level: test.level
     }
   end
+  let(:skip_email) { true }
 
   before do
     questions.each do |question|
@@ -43,7 +44,8 @@ RSpec.describe Services::GradeFinishedTest do
       referee: referee,
       started_at: started_at.to_s,
       finished_at: finished_at.to_s,
-      referee_answers: referee_answers
+      referee_answers: referee_answers,
+      skip_email: skip_email
     ).perform
   end
 
@@ -60,21 +62,25 @@ RSpec.describe Services::GradeFinishedTest do
     expect(subject).to have_attributes(expected_test_result)
   end
 
-  it 'enqueues a result email' do
-    ActiveJob::Base.queue_adapter = :test
-    expect { subject }.to have_enqueued_job.on_queue('mailers')
-  end
+  context 'when sending an email' do
+    let(:skip_email) { false }
 
-  it 'delivers the email' do
-    expect { perform_enqueued_jobs { subject } }.to change { ActionMailer::Base.deliveries.size }.by(1)
-  end
-
-  it 'sends to the correct referee' do
-    perform_enqueued_jobs do
-      subject
+    it 'enqueues a result email' do
+      ActiveJob::Base.queue_adapter = :test
+      expect { subject }.to have_enqueued_job.on_queue('mailers')
     end
 
-    sent_mail = ActionMailer::Base.deliveries.last
-    expect(sent_mail.to[0]).to eq referee.email
+    it 'delivers the email' do
+      expect { perform_enqueued_jobs { subject } }.to change { ActionMailer::Base.deliveries.size }.by(1)
+    end
+
+    it 'sends to the correct referee' do
+      perform_enqueued_jobs do
+        subject
+      end
+
+      sent_mail = ActionMailer::Base.deliveries.last
+      expect(sent_mail.to[0]).to eq referee.email
+    end
   end
 end

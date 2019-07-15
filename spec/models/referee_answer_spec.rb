@@ -23,7 +23,9 @@
 require 'rails_helper'
 
 describe RefereeAnswer, type: :model do
-  let(:referee_answer) { build :referee_answer }
+  let(:test) { create :test }
+  let(:test_attempt) { create :test_attempt, test: test }
+  let(:referee_answer) { build :referee_answer, test: test, test_attempt: test_attempt }
 
   subject { referee_answer.save }
 
@@ -34,7 +36,7 @@ describe RefereeAnswer, type: :model do
 
   context '#correct?' do
     let(:answer) { create :answer, correct: true }
-    let!(:referee_answer) { create :referee_answer, answer: answer }
+    let!(:referee_answer) { create :referee_answer, answer: answer, test: test, test_attempt: test_attempt }
 
     subject { referee_answer.correct? }
 

@@ -28,7 +28,8 @@ require 'rails_helper'
 
 RSpec.describe TestResult, type: :model do
   let(:referee) { create :referee }
-  let(:test_result) { build :test_result, referee: referee, test_level: :assistant }
+  let(:test) { create :test }
+  let(:test_result) { build :test_result, referee: referee, test_level: :assistant, test: test }
   let!(:existing_certification) { create :certification }
 
   subject { test_result.save! }
@@ -52,7 +53,7 @@ RSpec.describe TestResult, type: :model do
       end
 
       context 'when a ref certification already exists' do
-        let(:test_result) { build :test_result, referee: referee, test_level: :assistant }
+        let(:test_result) { build :test_result, referee: referee, test_level: :assistant, test: test }
         let!(:ref_cert) { create :referee_certification, referee: referee, certification: existing_certification }
 
         it 'updates the existing certification' do
@@ -63,7 +64,7 @@ RSpec.describe TestResult, type: :model do
 
     context 'and passed is false' do
       context 'and a certification already exists' do
-        let(:test_result) { build :test_result, :failed, referee: referee, test_level: :assistant }
+        let(:test_result) { build :test_result, :failed, referee: referee, test_level: :assistant, test: test }
         let!(:ref_cert) { create :referee_certification, referee: referee, certification: existing_certification }
 
         it 'updates the existing certification' do
