@@ -297,5 +297,35 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       expect(response_data['type']).to eq 'test_result'
       expect(response_data['attributes']['passed']).to eq true
     end
+
+    context 'when the test grading fails' do
+      let(:body_data) { { id: test.id } }
+      let(:error_message) { 'Error grading test' }
+
+      before do
+        allow(Services::GradeFinishedTest).to receive(:new).and_raise(StandardError)
+        allow(Bugsnag).to receive(:notify).and_call_original
+      end
+
+      it 'returns an error' do
+        subject
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        response_data = JSON.parse(response.body)['error']
+
+        expect(response_data).to eq error_message
+      end
+
+      it 'calls bugsnag notify' do
+        expect(Bugsnag).to receive(:notify).at_least(:once)
+
+        subject
+      end
+    end
   end
 end
