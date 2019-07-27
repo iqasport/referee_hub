@@ -126,3 +126,93 @@ export const TEST_FORM_CONFIG = (values) => {
     },
   ]
 }
+
+export const CERT_LINKS = (snitchAvailable, assAvailable, headAvailable) => ({
+  english: [
+    {
+      title: 'Snitch Referee Written Test 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a',
+      color: 'yellow',
+      enabled: snitchAvailable
+    },
+    {
+      title: 'Assistant Referee Written Test 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f',
+      color: 'blue',
+      enabled: assAvailable
+    },
+    {
+      title: 'Head Referee Written Test 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c',
+      color: 'green',
+      enabled: headAvailable
+    },
+
+  ],
+  català: [
+    {
+      title: 'Examen escrit d’àrbitre/a d’esnitx 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=x6r5c759d0fa5e30',
+      color: 'yellow',
+      enabled: snitchAvailable
+    },
+    {
+      title: 'Examen escrit d’àrbitre/a assistent 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=6e45c75953075a03',
+      color: 'blue',
+      enabled: assAvailable
+    },
+    {
+      title: 'Examen escrit d’àrbitre/a principal 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=age5ca75fca28524',
+      color: 'green',
+      enabled: headAvailable
+    }
+  ],
+  français: [
+    {
+      title: 'Test écrit d’arbitre de vif d’or 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=g6e5c759e2b640cb',
+      color: 'yellow',
+      enabled: snitchAvailable
+    },
+    {
+      title: 'Test écrit d’arbitre assistant 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=ddq5c759def81996',
+      color: 'blue',
+      enabled: assAvailable
+    },
+    {
+      title: 'Test écrit d’arbitre principal 2018–20',
+      link: 'https://www.classmarker.com/online-test/start/?quiz=9qy5ca75f0501760',
+      color: 'green',
+      enabled: headAvailable
+    }
+  ]
+})
+
+export const OLD_CERT_LINKS = {
+  snitch: {
+    title: 'Snitch Referee Written Test 2016-18',
+    links: {
+      en: 'https://www.classmarker.com/online-test/start/?quiz=crx5bb21de04a997'
+    },
+    color: 'yellow'
+  },
+  assistant: {
+    title: 'Assistant Referee Written Test 2016-18',
+    links: {
+      en: 'https://www.classmarker.com/online-test/start/?quiz=tgr5bb21e1c149dc'
+    },
+    color: 'blue'
+  },
+  head: {
+    title: 'Head Referee Written Test 2016-18',
+    links: {
+      en: 'https://www.classmarker.com/online-test/start/?quiz=9xb5bb21e53ea15f'
+    },
+    color: 'green'
+  }
+}
+
+export const NEW_TESTS_ENABLED = !!process.env.TEST_TAKING_ENABLED

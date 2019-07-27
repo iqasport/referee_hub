@@ -2,104 +2,23 @@ import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import {
   Label,
-  Message,
   Modal,
   Button,
-  Segment
 } from 'semantic-ui-react'
 import { capitalize } from 'lodash'
 import { DateTime } from 'luxon'
 import axios from 'axios'
+
 import PaypalButton from './PaypalButton'
 import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
-
-const certificationLinkConfig = {
-  snitch: {
-    ca: {
-      title: 'Examen escrit d’àrbitre/a d’esnitx 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=x6r5c759d0fa5e30'
-    },
-    en: {
-      title: 'Snitch Referee Written Test 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=4q95bafa6c1b2a6a'
-    },
-    fr: {
-      title: 'Test écrit d’arbitre de vif d’or 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=g6e5c759e2b640cb'
-    },
-    color: 'yellow'
-  },
-  assistant: {
-    ca: {
-      title: 'Examen escrit d’àrbitre/a assistent 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=6e45c75953075a03'
-    },
-    en: {
-      title: 'Assistant Referee Written Test 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=gyv5babf1bd8146f'
-    },
-    fr: {
-      title: 'Test écrit d’arbitre assistant 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=ddq5c759def81996'
-    },
-    color: 'blue'
-  },
-  head: {
-    ca: {
-      title: 'Examen escrit d’àrbitre/a principal 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=age5ca75fca28524'
-    },
-    en: {
-      title: 'Head Referee Written Test 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=tyg5baff2b2c128c'
-    },
-    fr: {
-      title: 'Test écrit d’arbitre principal 2018–20',
-      link: 'https://www.classmarker.com/online-test/start/?quiz=9qy5ca75f0501760'
-    },
-    color: 'green'
-  }
-}
-
-const oldCertificationLinkConfig = {
-  snitch: {
-    title: 'Snitch Referee Written Test 2016-18',
-    links: {
-      en: 'https://www.classmarker.com/online-test/start/?quiz=crx5bb21de04a997'
-    },
-    color: 'yellow'
-  },
-  assistant: {
-    title: 'Assistant Referee Written Test 2016-18',
-    links: {
-      en: 'https://www.classmarker.com/online-test/start/?quiz=tgr5bb21e1c149dc'
-    },
-    color: 'blue'
-  },
-  head: {
-    title: 'Head Referee Written Test 2016-18',
-    links: {
-      en: 'https://www.classmarker.com/online-test/start/?quiz=9xb5bb21e53ea15f'
-    },
-    color: 'green'
-  }
-}
-
-const hasPassedTest = (level, certifications, renewalLevels) => {
-  const passedCert = certifications.some(({ level: certificationLevel }) => certificationLevel === level)
-  const levelNeedsRenewal = renewalLevels.find(details => details.level === level)
-
-  if (levelNeedsRenewal) return false
-  return passedCert
-}
+import CertificationLinks from './CertificationLinks'
 
 class CertificationContent extends Component {
   static propTypes = {
     refereeId: PropTypes.string.isRequired,
     isEditable: PropTypes.bool.isRequired,
     hasPaid: PropTypes.bool.isRequired,
-    shouldTakeOldTests: PropTypes.bool.isRequired,
     refCertifications: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string,
@@ -109,6 +28,7 @@ class CertificationContent extends Component {
     onSuccess: PropTypes.func.isRequired,
     onError: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
+    onRouteChange: PropTypes.func.isRequired,
     testResults: PropTypes.arrayOf(PropTypes.shape({
       duration: PropTypes.string,
       minimumPassPercentage: PropTypes.number,
@@ -155,27 +75,6 @@ class CertificationContent extends Component {
     }
   }
 
-  get hasSnitchCert() {
-    const { refCertifications } = this.props
-    const { levelsThatNeedRenewal } = this.state
-
-    return hasPassedTest('snitch', refCertifications, levelsThatNeedRenewal)
-  }
-
-  get hasAssistantCert() {
-    const { refCertifications } = this.props
-    const { levelsThatNeedRenewal } = this.state
-
-    return hasPassedTest('assistant', refCertifications, levelsThatNeedRenewal)
-  }
-
-  get hasHeadCert() {
-    const { refCertifications } = this.props
-    const { levelsThatNeedRenewal } = this.state
-
-    return hasPassedTest('head', refCertifications, levelsThatNeedRenewal)
-  }
-
   handleRenewalConfirm = () => {
     const { refCertificationDetails } = this.state
 
@@ -201,47 +100,6 @@ class CertificationContent extends Component {
   handleRenewalConfirmOpen = () => this.setState({ renewConfirmOpen: true })
 
   handleRenewalConfirmClose = () => this.setState({ renewConfirmOpen: false })
-
-  certificationLink = (shouldTakeOldTests, certificationLevel, language) => {
-    const { refereeId } = this.props
-    const { levelsThatNeedRenewal } = this.state
-
-    const needsRenewal = !!levelsThatNeedRenewal.find(({ level }) => level === certificationLevel)
-    const certificationConfig = shouldTakeOldTests && !needsRenewal
-      ? oldCertificationLinkConfig
-      : certificationLinkConfig
-
-    const { color, ...certificationLanguages } = certificationConfig[certificationLevel]
-    const { link, title } = certificationLanguages[language]
-    const fullLink = `${link}&cm_user_id=${refereeId}`
-
-    return (
-      <Label
-        color={color}
-        size="big"
-        as="a"
-        href={fullLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        content={title}
-      />
-    )
-  }
-
-  isInCoolDownPeriod = (certType) => {
-    const { testAttempts } = this.props
-    const matchingTestAttempt = testAttempts.filter(testAttempt => testAttempt.test_level === certType)
-
-    if (matchingTestAttempt.length > 0) {
-      const rawAttemptString = matchingTestAttempt[0].next_attempt_at.slice(0, -3).trim()
-      const nextAttemptAt = DateTime.fromSQL(rawAttemptString)
-      const currentTime = DateTime.local()
-
-      return !(nextAttemptAt < currentTime)
-    }
-
-    return false
-  }
 
   renderPaypalButton = () => {
     const {
@@ -271,83 +129,23 @@ class CertificationContent extends Component {
     return <Label content={labelContent} size="big" key={level} color="green" />
   }
 
-  canTakeSnitchTest = () => {
-    const { levelsThatNeedRenewal } = this.state
-    if (this.isInCoolDownPeriod('snitch')) return false
-    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'snitch')) return true
-
-    return !this.hasSnitchCert && !this.hasHeadCert
-  }
-
-  canTakeAssistantTest = () => {
-    const { levelsThatNeedRenewal } = this.state
-    if (this.isInCoolDownPeriod('assistant')) return false
-    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'assistant')) return true
-
-    return !this.hasAssistantCert && !this.hasHeadCert
-  }
-
-  canTakeHeadTest = (hasPaid) => {
-    const { levelsThatNeedRenewal } = this.state
-    if (!hasPaid) return false
-    if (this.isInCoolDownPeriod('head')) return false
-    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'head')) return true
-
-    return this.hasSnitchCert && this.hasAssistantCert
-  }
-
   renderCertificationLinks = () => {
-    const { isEditable, hasPaid, shouldTakeOldTests } = this.props
-    if (!isEditable || this.hasHeadCert) return null
-    const canTakeSnitch = this.canTakeSnitchTest()
-    const canTakeAssistant = this.canTakeAssistantTest()
-    const canTakeHead = this.canTakeHeadTest(hasPaid)
+    const { levelsThatNeedRenewal } = this.state
+    const {
+      refereeId, testAttempts, isEditable, hasPaid, refCertifications, onRouteChange
+    } = this.props
+    if (!isEditable) return null
 
-    const anyTestsAvailable = [canTakeSnitch, canTakeAssistant, canTakeHead].some(testStatus => testStatus)
+    const certificationProps = {
+      refereeId,
+      testAttempts,
+      hasPaid,
+      refCertifications,
+      levelsThatNeedRenewal,
+      onRouteChange
+    }
 
-    const headerContent = 'Available Written Tests'
-    const segmentContent = anyTestsAvailable
-      ? (
-        <Fragment>
-          <Segment padded>
-            <Label attached="top">English</Label>
-            {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'en')}
-            {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'en')}
-            {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'en')}
-          </Segment>
-          {
-            !shouldTakeOldTests && (
-            <Fragment>
-              <Segment padded>
-                <Label attached="top">Català</Label>
-                {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'ca')}
-                {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'ca')}
-                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'ca')}
-              </Segment>
-              <Segment padded>
-                <Label attached="top">Français</Label>
-                {canTakeSnitch && this.certificationLink(shouldTakeOldTests, 'snitch', 'fr')}
-                {canTakeAssistant && this.certificationLink(shouldTakeOldTests, 'assistant', 'fr')}
-                {canTakeHead && this.certificationLink(shouldTakeOldTests, 'head', 'fr')}
-              </Segment>
-            </Fragment>)
-          }
-          <Message info>
-            Please note that you have to wait 24 hours after a failed test to be allowed to retry (72 hours for the head
-            referee test), even if the link is still visible. Every passed and failed test attempt will be recorded,
-            even if the testing tool fails to properly report the attempt back to us on time. In rare cases this may
-            take up to 72 hours. Our apologies if this happens.
-          </Message>
-        </Fragment>
-      )
-      : (
-        <p>
-          One or more tests are unavailable at the moment, please check back after the 24 hour
-          (for Snitch and Assistant) or 72 hour (for Head) cool down period.
-        </p>
-      )
-
-    return <ContentSegment segmentContent={segmentContent} headerContent={headerContent} />
+    return <CertificationLinks {...certificationProps} />
   }
 
   renderRenewalButton = () => (

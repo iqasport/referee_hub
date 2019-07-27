@@ -9,12 +9,13 @@ import RefereeProfileEdit from './RefereeProfileEdit'
 import ProfileContent from './ProfileContent'
 import CertificationContent from './CertificationContent'
 
-const NGBS_WITH_OLD_TEST_REQUIREMENT = ['Peru']
-
 class RefereeProfile extends Component {
   static propTypes = {
     match: PropTypes.shape({
       params: PropTypes.object
+    }).isRequired,
+    history: PropTypes.shape({
+      push: PropTypes.func
     }).isRequired
   }
 
@@ -134,6 +135,12 @@ class RefereeProfile extends Component {
       httpStatus: status,
       httpStatusText: statusText
     })
+  }
+
+  handleRouteChange = (newRoute) => {
+    const { history } = this.props
+
+    history.push(newRoute)
   }
 
   handleSubmit = () => {
@@ -259,19 +266,16 @@ class RefereeProfile extends Component {
   renderCertificationContent = () => {
     const {
       referee: {
-        certifications, isEditable, submittedPaymentAt, nationalGoverningBodies, testResults, testAttempts
+        certifications, isEditable, submittedPaymentAt, testResults, testAttempts
       }
     } = this.state
     const { match: { params } } = this.props
-
-    const shouldTakeOldTests = nationalGoverningBodies.some(ngb => NGBS_WITH_OLD_TEST_REQUIREMENT.includes(ngb.name))
 
     return (
       <Tab.Pane>
         <CertificationContent
           refereeId={params.id}
           isEditable={isEditable}
-          shouldTakeOldTests={shouldTakeOldTests}
           hasPaid={!!submittedPaymentAt}
           testResults={testResults}
           testAttempts={testAttempts}
@@ -279,6 +283,7 @@ class RefereeProfile extends Component {
           onSuccess={this.handlePaymentSuccess}
           onError={this.handlePaymentError}
           onCancel={this.handlePaymentCancel}
+          onRouteChange={this.handleRouteChange}
         />
       </Tab.Pane>
     )
