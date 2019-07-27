@@ -13,7 +13,7 @@ module Api
         'This test is unavailable for you to take currently, please try again in a few hours'.freeze
 
       def index
-        @tests = Test.all
+        @tests = params[:active_only] ? Test.active : Test.all
 
         json_string = TestSerializer.new(@tests).serialized_json
 

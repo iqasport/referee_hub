@@ -73,6 +73,30 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
       expect(response_data.length).to eq tests.length
     end
+
+    context 'when active_only is true' do
+      let(:params) { { active_only: true } }
+      let(:active_test) { tests.first }
+
+      before { active_test.update!(active: true) }
+
+      subject { get :index, params: params }
+
+      it 'is a successful request' do
+        subject
+
+        expect(response).to have_http_status(:successful)
+      end
+
+      it 'only returns the active test' do
+        subject
+
+        response_data = JSON.parse(response.body)['data']
+
+        expect(response_data.length).to eq 1
+        expect(response_data[0]['id'].to_i).to eq active_test.id
+      end
+    end
   end
 
   describe 'POST #create' do
