@@ -8,19 +8,14 @@ import Answer from './Answer'
 const emptyAnswer = index => (
   {
     id: `${String(null)}-${index}`,
-    description: '',
-    correct: false
+    description: ''
   }
 )
 
 const sanitizeAnswer = (answer, index) => {
-  const { id, attributes: { description, correct } } = answer
+  const { id, attributes: { description } } = answer
 
-  return {
-    id: `${String(id)}-${index}`,
-    description,
-    correct
-  }
+  return { id: `${String(id)}-${index}`, description }
 }
 
 const findAnswer = id => answer => answer.id === id

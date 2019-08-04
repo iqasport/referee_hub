@@ -32,6 +32,7 @@ Rails.application.routes.draw do
   get 'admin/referee-diagnostic', to: 'home#index'
   get 'admin/tests', to: 'home#index'
   get 'admin/tests/:id', to: 'home#index'
+  get '/referees/:referee_id/tests/:test_id', to: 'home#index'
 
   post 'webhook', to: 'classmarker#webhook'
 

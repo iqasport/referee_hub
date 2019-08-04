@@ -64,7 +64,7 @@ module Api
       def start
         questions = @test.fetch_random_questions
 
-        json_string = QuestionSerializer.new(questions).serialized_json
+        json_string = QuestionSerializer.new(questions, include: %i[answers]).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
