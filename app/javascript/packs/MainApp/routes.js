@@ -10,6 +10,7 @@ import Admin from './components/Admin'
 import RefereeDiagnostic from './components/RefereeDiagnostic'
 import Tests from './components/Tests'
 import Test from './components/Test'
+import StartTest from './components/StartTest'
 
 const App = () => (
   <Router>
@@ -17,11 +18,12 @@ const App = () => (
       <Route exact path='/' component={HomePage} />
       <Route exact path='/privacy' component={PrivacyPolicy} />
       <Route exact path='/referees' component={Referees} />
-      <Route path='/referees/:id' component={RefereeProfile} />
+      <Route exact path='/referees/:id' component={RefereeProfile} />
       <Route exact path='/admin' component={Admin} />
       <Route exact path='/admin/referee-diagnostic' component={RefereeDiagnostic} />
       <Route exact path='/admin/tests' component={Tests} />
-      <Route path='/admin/tests/:id' component={Test} />
+      <Route exact path='/admin/tests/:id' component={Test} />
+      <Route exact path='/referees/:refereeId/tests/:testId' component={StartTest} />
     </div>
   </Router>
 )

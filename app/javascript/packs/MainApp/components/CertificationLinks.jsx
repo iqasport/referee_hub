@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { capitalize } from 'lodash'
+import { capitalize, groupBy } from 'lodash'
 import { DateTime } from 'luxon'
 import { Segment, Label, Message } from 'semantic-ui-react'
 
@@ -77,7 +77,10 @@ class CertificationLinks extends Component {
   get certificationConfig() {
     const { testLinks } = this.state
 
-    if (NEW_TESTS_ENABLED) return testLinks
+    if (NEW_TESTS_ENABLED) {
+      const groupedLinks = groupBy(testLinks, 'language')
+      return groupedLinks
+    }
 
     return CERT_LINKS(this.canTakeSnitchTest(), this.canTakeAssistantTest(), this.canTakeHeadTest())
   }
@@ -96,11 +99,12 @@ class CertificationLinks extends Component {
   }
 
   buildTestLink = ({ id, attributes }) => {
+    const { refereeId } = this.props
     const color = testColor(attributes.test_level)
     const enabled = this.isTestEnabled(attributes.test_level)
 
     return {
-      link: `/tests/${id}`,
+      link: `/referees/${refereeId}/tests/${id}`,
       title: attributes.name,
       language: attributes.language,
       color,
