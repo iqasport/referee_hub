@@ -274,7 +274,7 @@ class StartTest extends Component {
     return (
       <Segment textAlign="center">
         {isError && <Message error header={status} content={statusText} />}
-        {testStarted ? this.renderTest() : this.renderTestStartContent()}
+        {this.renderMainContent()}
         {this.renderButtons()}
       </Segment>
     )

@@ -1,3 +1,4 @@
 web: bundle exec rails s
-mailers: bundle exec sidekiq -c 2 
+mailers: bundle exec sidekiq -c 2
+default: bundle exec sidekiq -c 2
 webpacker: ./bin/webpack-dev-server

@@ -73,17 +73,20 @@ module Api
       end
 
       def finish
-        test_result = Services::GradeFinishedTest.new(
-          test: @test,
-          referee: current_referee,
-          started_at: permitted_finish_params[:started_at],
-          finished_at: permitted_finish_params[:finished_at],
-          referee_answers: permitted_finish_params[:referee_answers]
-        ).perform
+        hashed_params = permitted_finish_params.to_h
+        test_timestamps = {
+          started_at: hashed_params[:started_at],
+          finished_at: hashed_params[:finished_at]
+        }
 
-        json_string = TestResultSerializer.new(test_result).serialized_json
+        enqueued_job = GradeJob.perform_later(
+          @test,
+          current_referee,
+          test_timestamps,
+          hashed_params[:referee_answers]
+        )
 
-        render json: json_string, status: :ok
+        render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
         render json: { error: 'Error grading test' }, status: :unprocessable_entity
@@ -118,13 +121,12 @@ module Api
         @test = Test.find_by(id: params[:id])
       end
 
+      def referee_test_attempts
+        @referee_test_attempts ||= current_referee.test_attempts.send(@test.level).order(created_at: :desc)
+      end
+
       def verify_valid_test_attempt
-        last_test_attempt =
-          current_referee
-          .test_attempts
-          .send(@test.level)
-          .order(created_at: :desc)
-          .last
+        last_test_attempt = referee_test_attempts.last
 
         return true unless last_test_attempt&.in_cool_down_period?
 

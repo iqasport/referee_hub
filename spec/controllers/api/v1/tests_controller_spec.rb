@@ -313,13 +313,12 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       expect(response).to have_http_status(:successful)
     end
 
-    it 'returns the generated test result' do
+    it 'returns the generated grade job id' do
       subject
 
       response_data = JSON.parse(response.body)['data']
 
-      expect(response_data['type']).to eq 'test_result'
-      expect(response_data['attributes']['passed']).to eq true
+      expect(response_data['job_id']).to_not be_nil
     end
 
     context 'when the test grading fails' do
@@ -327,7 +326,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       let(:error_message) { 'Error grading test' }
 
       before do
-        allow(Services::GradeFinishedTest).to receive(:new).and_raise(StandardError)
+        allow(GradeJob).to receive(:perform_later).and_raise(StandardError)
         allow(Bugsnag).to receive(:notify).and_call_original
       end
 
