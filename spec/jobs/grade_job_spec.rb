@@ -11,6 +11,6 @@ RSpec.describe GradeJob, type: :job do
   it 'should enqueue the job with the correct params' do
     ActiveJob::Base.queue_adapter = :test
 
-    expect { subject }.to have_enqueued_job
+    expect { subject }.to have_enqueued_job.exactly(:once)
   end
 end
