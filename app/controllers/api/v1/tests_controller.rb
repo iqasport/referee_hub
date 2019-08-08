@@ -4,13 +4,16 @@ module Api
       before_action :authenticate_referee!
       before_action :verify_admin, only: %i[create update destroy]
       before_action :find_test, only: %i[update show destroy start finish]
-      before_action :verify_valid_test_attempt, only: :start
+      before_action :verify_valid_cool_down, only: :start
+      before_action :verify_valid_tries, only: :start
       skip_before_action :verify_authenticity_token
 
       layout false
 
       INVALID_TEST_ATTEMPT =
-        'This test is unavailable for you to take currently, please try again in a few hours'.freeze
+        'This test is unavailable for you to take currently, please try again in '.freeze
+
+      INVALID_TRY_COUNT = 'This test is no longer available to you due to hitting the maximum amount of tries'.freeze
 
       def index
         @tests = params[:active_only] ? Test.active : Test.all
@@ -125,12 +128,21 @@ module Api
         @referee_test_attempts ||= current_referee.test_attempts.send(@test.level).order(created_at: :desc)
       end
 
-      def verify_valid_test_attempt
+      def verify_valid_cool_down
         last_test_attempt = referee_test_attempts.last
 
         return true unless last_test_attempt&.in_cool_down_period?
 
-        render json: { error: INVALID_TEST_ATTEMPT }, status: :unauthorized
+        full_message = "#{INVALID_TEST_ATTEMPT} #{last_test_attempt.hours_till_next_attempt} hours"
+        render json: { error: full_message }, status: :unauthorized
+      end
+
+      def verify_valid_tries
+        try_count = referee_test_attempts.count
+
+        return true unless try_count >= Test::MAXIMUM_RETRIES
+
+        render json: { error: INVALID_TRY_COUNT }, status: :unauthorized
       end
     end
   end

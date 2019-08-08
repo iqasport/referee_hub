@@ -39,4 +39,8 @@ class TestAttempt < ApplicationRecord
   def in_cool_down_period?
     Time.now.utc < next_attempt_at
   end
+
+  def hours_till_next_attempt
+    (((next_attempt_at - Time.now.utc) / 60) / 60).round
+  end
 end

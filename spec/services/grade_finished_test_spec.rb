@@ -1,8 +1,9 @@
 require 'rails_helper'
 require 'json'
-include ActiveJob::TestHelper
 
 describe Services::GradeFinishedTest do
+  include ActiveJob::TestHelper
+
   let!(:certification) { create :certification, :snitch }
   let(:test) { create :test }
   let(:questions) { create_list(:question, 5, test: test) }
@@ -81,6 +82,36 @@ describe Services::GradeFinishedTest do
 
       sent_mail = ActionMailer::Base.deliveries.last
       expect(sent_mail.to[0]).to eq referee.email
+    end
+  end
+
+  context 'when the grade is being retried' do
+    let!(:test_attempt) { create :test_attempt, referee: referee, test: test, test_level: test.level }
+    let!(:test_result) { create :test_result, referee: referee, test: test, test_level: test.level }
+
+    it 'does not create a new test attempt' do
+      expect { subject }.to_not change { referee.test_attempts.count }
+    end
+
+    it 'assigns the answers to the already existing attempt' do
+      expect { subject }.to change { referee.referee_answers.count }.by(5)
+      expect(referee.referee_answers.last.test_attempt_id).to eq test_attempt.id
+    end
+
+    it { expect(subject).to be_nil }
+
+    it 'does not create a new test result' do
+      expect { subject }.to_not change { referee.test_results.count }
+    end
+
+    context 'when skip email is false but test result is nil' do
+      let(:skip_email) { false }
+
+      it 'does not send an email' do
+        ActiveJob::Base.queue_adapter = :test
+
+        expect { subject }.to_not have_enqueued_job
+      end
     end
   end
 end

@@ -278,6 +278,27 @@ RSpec.describe Api::V1::TestsController, type: :controller do
         expect(response_data).to eq expected_error
       end
     end
+
+    context 'when the referee has too many test attempts' do
+      let!(:test_attempts) { create_list :test_attempt, 6, test: test, referee: tester_ref, test_level: test.level }
+      let(:expected_error) { described_class::INVALID_TRY_COUNT }
+
+      before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
+
+      it 'returns an error' do
+        subject
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        response_data = JSON.parse(response.body)['error']
+
+        expect(response_data).to eq expected_error
+      end
+    end
   end
 
   describe 'POST #finish' do

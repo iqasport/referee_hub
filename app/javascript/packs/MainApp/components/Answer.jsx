@@ -7,6 +7,24 @@ import { isEmpty } from 'lodash'
 import RichTextEditor from './RichTextEditor'
 
 class Answer extends Component {
+  static propTypes = {
+    values: PropTypes.shape({
+      description: PropTypes.string,
+      id: PropTypes.string
+    }).isRequired,
+    isCorrect: PropTypes.bool.isRequired,
+    onSave: PropTypes.func,
+    onCorrectChange: PropTypes.func.isRequired,
+    onDelete: PropTypes.func,
+    isEditable: PropTypes.bool
+  }
+
+  static defaultProps = {
+    isEditable: true,
+    onSave: () => {},
+    onDelete: () => {}
+  }
+
   state = {
     updatedDescription: '',
     updatedCorrect: false,
@@ -27,10 +45,10 @@ class Answer extends Component {
   handleDescriptionChange = (_e, { value }) => this.setState({ updatedDescription: value })
 
   handleCorrectChange = () => {
-    const { onCorrectChange, values: { id } } = this.props
+    const { onCorrectChange, values: { id }, isEditable } = this.props
 
-    this.setState({ updatedCorrect: true })
-    if (onCorrectChange) onCorrectChange(id)
+    if (isEditable) this.setState({ updatedCorrect: true })
+    onCorrectChange(id)
   }
 
   handleSave = () => {
@@ -69,8 +87,9 @@ class Answer extends Component {
 
   renderAnswer = () => {
     const { isEditing } = this.state
+    const { isEditable } = this.props
 
-    const input = <RichTextEditor value={this.descriptionValue} onChange={this.handleDescriptionChange} />
+    const input = isEditable && <RichTextEditor value={this.descriptionValue} onChange={this.handleDescriptionChange} />
     // eslint-disable-next-line react/no-danger
     const renderedText = <div dangerouslySetInnerHTML={{ __html: this.descriptionValue }} />
 
@@ -82,34 +101,24 @@ class Answer extends Component {
   }
 
   render() {
-    const { isCorrect } = this.props
+    const { isCorrect, isEditable } = this.props
     const { isEditing } = this.state
+    const isDisabled = !isEditable ? false : !isEditing
 
     return (
       <div style={{ display: 'flex', alignItems: 'center', margin: '15px 0' }}>
         <Form.Field
           className="answer-checkbox"
           control={Checkbox}
-          disabled={!isEditing}
+          disabled={isDisabled}
           checked={isCorrect}
           onClick={this.handleCorrectChange}
         />
         {this.renderAnswer()}
-        {this.renderButtons()}
+        {isEditable && this.renderButtons()}
       </div>
     )
   }
-}
-
-Answer.propTypes = {
-  values: PropTypes.shape({
-    description: PropTypes.string,
-    id: PropTypes.string
-  }).isRequired,
-  isCorrect: PropTypes.bool.isRequired,
-  onSave: PropTypes.func.isRequired,
-  onCorrectChange: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired
 }
 
 export default Answer

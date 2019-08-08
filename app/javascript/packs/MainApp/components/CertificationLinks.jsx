@@ -21,6 +21,8 @@ const testColor = (testLevel) => {
   }
 }
 
+const allLinksDisabled = linkArray => linkArray.filter(link => link.enabled).length === 0
+
 class CertificationLinks extends Component {
   static propTypes = {
     hasPaid: PropTypes.bool.isRequired,
@@ -100,8 +102,8 @@ class CertificationLinks extends Component {
 
   buildTestLink = ({ id, attributes }) => {
     const { refereeId } = this.props
-    const color = testColor(attributes.test_level)
-    const enabled = this.isTestEnabled(attributes.test_level)
+    const color = testColor(attributes.level)
+    const enabled = this.isTestEnabled(attributes.level)
 
     return {
       link: `/referees/${refereeId}/tests/${id}`,
@@ -191,12 +193,16 @@ class CertificationLinks extends Component {
     return <Label {...labelProps} />
   }
 
-  renderLanguageSection = section => (
-    <Segment padded key={section[0]}>
-      <Label attached="top">{capitalize(section[0])}</Label>
-      {section[1].map(this.renderLink)}
-    </Segment>
-  )
+  renderLanguageSection = (section) => {
+    if (allLinksDisabled(section[1])) return null
+
+    return (
+      <Segment padded key={section[0]}>
+        <Label attached="top">{capitalize(section[0])}</Label>
+        {section[1].map(this.renderLink)}
+      </Segment>
+    )
+  }
 
   renderTests = () => (
     <Fragment>

@@ -21,6 +21,8 @@
 # This model stores the test information sent by classmarker.
 # It connects to our certification model to ensure the test result gives referees the right certification.
 class Test < ApplicationRecord
+  MAXIMUM_RETRIES = 6
+
   has_many :questions, dependent: :destroy
   has_many :referee_answers, dependent: :destroy
   has_many :test_attempts, dependent: :destroy

@@ -14,17 +14,22 @@ module Services
     end
 
     def perform
-      create_test_attempt
+      find_or_create_test_attempt
       create_referee_answers
       test_result = grade_answers
-      send_result_email(test_result) unless skip_email
+      send_result_email(test_result) unless skip_email || test_result.blank?
       test_result
     end
 
     private
 
-    def create_test_attempt
-      @test_attempt = TestAttempt.create!(test: test, referee: referee, test_level: test.level)
+    def find_or_create_test_attempt
+      recent_test_attempts = referee.test_attempts.send(test.level).order(created_at: :desc)
+      @test_attempt = if recent_test_attempts.last&.in_cool_down_period?
+                        recent_test_attempts.last
+                      else
+                        TestAttempt.create!(test: test, referee: referee, test_level: test.level)
+                      end
     end
 
     def create_referee_answers
@@ -53,6 +58,7 @@ module Services
     end
 
     def create_test_result(points_scored, points_available)
+      return nil if already_has_test_result?
       percentage = ((points_scored.to_f / points_available) * 100).round
       duration = ((finished_at - started_at) / 1.minute).to_i
       test_results_hash = {
@@ -62,12 +68,18 @@ module Services
         percentage: percentage,
         points_available: points_available,
         points_scored: points_scored,
-        test_level: test.level,
         time_finished: finished_at,
         time_started: started_at
       }
 
-      TestResult.create!(test_results_hash.merge(test: test, referee: referee))
+      TestResult.create!(test_results_hash.merge(test: test, referee: referee, test_level: test.level))
+    end
+
+    def already_has_test_result?
+      recent_test_results = referee.test_results.send(test.level).order(created_at: :desc).last
+      return false if recent_test_results.blank?
+
+      recent_test_results.created_at.to_date == Date.zone.today
     end
 
     def send_result_email(test_result)

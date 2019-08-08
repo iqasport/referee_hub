@@ -1,6 +1,11 @@
 # frozen_string_literal: true
+require 'sidekiq/web'
 
 Rails.application.routes.draw do
+  authenticate :referee, proc { |referee| referee.admin? } do
+    mount Sidekiq::Web => '/sidekiq'
+  end
+
   namespace :api do
     namespace :v1 do
       resources :referees, only: %i[index show update]

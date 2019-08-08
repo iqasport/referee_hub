@@ -1,7 +1,7 @@
 class GradeJob < ApplicationJob
-  queue_as :default
-  rescue_from ActiveJob::DeserializationError do
-    retry_job wait: 5.minutes
+  queue_as :mailers
+  rescue_from ActiveJob::DeserializationError do |exception|
+    retry_job wait: 5.minutes unless exception.message.include? "Couldn't find"
   end
 
   def perform(test, referee, test_timestamps, referee_answers)

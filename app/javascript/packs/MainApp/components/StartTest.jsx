@@ -11,8 +11,7 @@ import TestTaker from './TestTaker'
 
 const formatAnswer = ({ id, attributes }) => ({
   id,
-  description: attributes.description,
-  selected: false
+  description: attributes.description
 })
 
 const formatQuestions = (questions, allAnswers) => (
@@ -23,20 +22,15 @@ const formatQuestions = (questions, allAnswers) => (
     accObj[index] = {
       questionId: question.id,
       description: question.attributes.description,
-      answers: shuffle(formattedAnswers)
+      answers: shuffle(formattedAnswers),
+      selectedAnswer: null
     }
     return accObj
   }, [])
 )
 
 const buildRefereeAnswers = testQuestions => (
-  testQuestions.map((question) => {
-    const selectedAnswerId = question.answers.find(answer => !!answer.selected).id
-    return {
-      question_id: question.id,
-      answer_id: selectedAnswerId
-    }
-  })
+  testQuestions.map(question => ({ question_id: question.questionId, answer_id: question.selectedAnswer }))
 )
 
 class StartTest extends Component {
@@ -110,17 +104,12 @@ class StartTest extends Component {
   }
 
   handleAnswerSelect = (answerId) => {
-    // const { currentQuestionIndex, testQuestions } = this.state
+    const { currentQuestionIndex, testQuestions } = this.state
 
-    const currentAnswers = this.currentQuestion.answers
-
-    const selectedAnswerIndex = currentAnswers.indexOf(answer => answer.id === answerId)
-    const selectedAnswer = currentAnswers[selectedAnswerIndex]
-    const updatedAnswer = { ...selectedAnswer, selected: true }
-
-    currentAnswers.splice(selectedAnswerIndex, 1, updatedAnswer)
-    // console.log(this.currentQuestion)
-    // const newQuestions = testQuestions[currentQuestionIndex].splice(sel)
+    const updatedQuestion = { ...this.currentQuestion, selectedAnswer: answerId }
+    testQuestions.splice(currentQuestionIndex, 1, updatedQuestion)
+    // setting state here to essentially cause a re-render
+    this.setState({ testQuestions })
   }
 
   handleFetchNextQuestion = () => {
@@ -154,7 +143,15 @@ class StartTest extends Component {
     }
 
     axios.post(`/api/v1/tests/${params.testId}/finish`, postParams)
-      .then(() => this.setState({ testQuestions: {}, testFinished: true }))
+      .then(() => {
+        this.setState({
+          testQuestions: {},
+          testFinished: true,
+          testStarted: false,
+          status: null,
+          statusText: null
+        })
+      })
       .catch((error) => {
         const { status, statusText } = error.response || {
           status: 500,
@@ -177,23 +174,23 @@ class StartTest extends Component {
         this.setState({ testQuestions, testStarted: true, startedAt })
       })
       .catch((error) => {
-        const { status, statusText } = error.response || {
+        const { status, data: { error: dataError } } = error.response || {
           status: 500,
           statusText: 'Error'
         }
 
-        this.setState({ status, statusText, testQuestions: {} })
+        this.setState({ status, statusText: dataError, testQuestions: {} })
       })
   }
 
   renderButtons = () => {
-    const { testStarted } = this.state
+    const { testStarted, testFinished } = this.state
     const nextContent = this.isLastQuestion ? 'Finish' : 'Next'
 
     return (
       <Fragment>
         {!testStarted && <Button color="blue" onClick={this.handleGoBackToProfile} content="Go Back to Profile" />}
-        {!testStarted && <Button color="green" onClick={this.handleStartTest} content="Start Test" />}
+        {!testStarted && !testFinished && <Button color="green" onClick={this.handleStartTest} content="Start Test" />}
         {
           testStarted
           && !this.isFirstQuestion
@@ -209,7 +206,7 @@ class StartTest extends Component {
     return (
       <Fragment>
         <Header as="h1" icon>
-          <Icon name="edit" />
+          <Icon name="edit" color="blue" />
           {name}
           <Header.Subheader>{description}</Header.Subheader>
         </Header>
@@ -230,7 +227,7 @@ class StartTest extends Component {
     return (
       <Fragment>
         <Header as="h1" icon>
-          <Icon name="checkmark box" />
+          <Icon name="checkmark box" color="green" />
           {name}
           <Header.Subheader>{description}</Header.Subheader>
         </Header>
@@ -273,7 +270,7 @@ class StartTest extends Component {
 
     return (
       <Segment textAlign="center">
-        {isError && <Message error header={status} content={statusText} />}
+        {isError && !testStarted && <Message error header={status} content={statusText} />}
         {this.renderMainContent()}
         {this.renderButtons()}
       </Segment>
