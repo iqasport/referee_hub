@@ -260,7 +260,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     context 'when the test level is in the cool down period' do
       let!(:test_attempt) { create :test_attempt, test: test, referee: tester_ref }
-      let(:expected_error) { described_class::INVALID_TEST_ATTEMPT }
+      let(:expected_error) { "#{described_class::INVALID_TEST_ATTEMPT} 24 hours" }
 
       before { allow(test_attempt).to receive(:in_cool_down_period?).and_return(true) }
 

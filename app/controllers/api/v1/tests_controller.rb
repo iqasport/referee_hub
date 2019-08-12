@@ -11,7 +11,7 @@ module Api
       layout false
 
       INVALID_TEST_ATTEMPT =
-        'This test is unavailable for you to take currently, please try again in '.freeze
+        'This test is unavailable for you to take currently, please try again in'.freeze
 
       INVALID_TRY_COUNT = 'This test is no longer available to you due to hitting the maximum amount of tries'.freeze
 
