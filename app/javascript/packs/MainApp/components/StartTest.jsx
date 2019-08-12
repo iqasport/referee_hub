@@ -245,10 +245,11 @@ class StartTest extends Component {
   }
 
   renderTest = () => {
-    const { testQuestions, currentQuestionIndex } = this.state
+    const { testQuestions, currentQuestionIndex, timeLimit } = this.state
 
     return (
       <TestTaker
+        timeLimit={timeLimit}
         currentQuestion={testQuestions[currentQuestionIndex]}
         onAnswerSelect={this.handleAnswerSelect}
       />
