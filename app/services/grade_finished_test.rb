@@ -79,7 +79,7 @@ module Services
       recent_test_results = referee.test_results.send(test.level).order(created_at: :desc).last
       return false if recent_test_results.blank?
 
-      recent_test_results.created_at.to_date == Date.zone.today
+      recent_test_results.created_at.to_date == Date.today
     end
 
     def send_result_email(test_result)

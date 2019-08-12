@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { Divider } from 'semantic-ui-react'
 
 import Answer from './Answer'
+import Counter from './Counter'
 
 class TestTaker extends Component {
   static propTypes = {
@@ -18,10 +19,9 @@ class TestTaker extends Component {
       ),
       selectedAnswer: PropTypes.string
     }).isRequired,
-    onAnswerSelect: PropTypes.func.isRequired
+    onAnswerSelect: PropTypes.func.isRequired,
+    timeLimit: PropTypes.number.isRequired
   }
-
-  state = {}
 
   handleAnswerChange = (answerId) => {
     const { onAnswerSelect } = this.props
@@ -48,10 +48,11 @@ class TestTaker extends Component {
   }
 
   render() {
-    const { currentQuestion } = this.props
+    const { currentQuestion, timeLimit } = this.props
 
     return (
       <div>
+        <Counter timeLimit={timeLimit} />
         <div dangerouslySetInnerHTML={{ __html: currentQuestion.description }} />
         <Divider />
         <div style={{ width: '50%', margin: '0 auto' }}>
