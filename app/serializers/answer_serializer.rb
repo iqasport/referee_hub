@@ -14,4 +14,5 @@ class AnswerSerializer
   include FastJsonapi::ObjectSerializer
 
   attributes :description, :question_id
+  attribute :correct, if: proc { |_referee, params| params && params[:include_correct] }
 end

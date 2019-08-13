@@ -135,6 +135,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
       response_data = JSON.parse(response.body)['data']['attributes']
 
       expect(response_data['description']).to eq body_data[:description]
+      expect(response_data['correct']).to eq body_data[:correct]
       expect(response_data['question_id']).to eq body_data[:question_id]
     end
 
