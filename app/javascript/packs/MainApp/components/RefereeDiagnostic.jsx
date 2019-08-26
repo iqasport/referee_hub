@@ -6,11 +6,12 @@ import {
   Message,
   List,
   Button,
-  Modal
+  Modal,
+  Checkbox
 } from 'semantic-ui-react'
 import axios from 'axios'
 import { Map } from 'immutable'
-import { camelCase } from 'lodash'
+import { camelCase, uniq, remove } from 'lodash'
 import { DateTime } from 'luxon'
 import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
@@ -32,7 +33,8 @@ class RefereeDiagnostic extends Component {
     searchError: null,
     modalOpen: false,
     modalAction: '',
-    actionError: null
+    actionError: null,
+    selectedCertLevels: []
   }
 
   get modalConfig() {
@@ -58,6 +60,13 @@ class RefereeDiagnostic extends Component {
         header: 'Confirm Certification Renewal',
         content: renewContent,
         errorMessage: "There was an issue updating this Referee's certifications."
+      },
+      create: {
+        onConfirm: this.handleCreateCertification,
+        onCancel: this.handleCloseModal,
+        header: 'Create New Referee Certification',
+        content: this.renderCreateContent(),
+        errorMessage: "There was an issue creating this Referee's new certification"
       }
     }
   }
@@ -134,6 +143,62 @@ class RefereeDiagnostic extends Component {
       })
   }
 
+  handleCreateCertification = () => {
+    const { referee, selectedCertLevels } = this.state
+
+    const baseApiData = { referee_id: referee.refereeId, received_at: DateTime.local().toString() }
+    selectedCertLevels.forEach((level) => {
+      axios.post('/api/v1/referee_certifications', {
+        ...baseApiData,
+        level
+      }).then(() => {
+        this.handleCloseModal()
+      }).then(({ response }) => {
+        const { data: errorData } = response
+
+        this.setState({ actionError: errorData.error })
+      })
+    })
+
+    axios.get(`/api/v1/referees/${referee.refereeId}`)
+      .then(this.handleApiResponse)
+      .catch(({ response }) => {
+        const { data: errorData } = response
+
+        this.setState({ actionError: errorData.error })
+      })
+  }
+
+  handleCertChange = level => (_e, { checked }) => {
+    const { selectedCertLevels } = this.state
+    let newLevels
+
+    if (checked) {
+      newLevels = uniq([...selectedCertLevels, level])
+    } else {
+      newLevels = remove(selectedCertLevels, selectedLevel => selectedLevel === level)
+    }
+
+    this.setState({ selectedCertLevels: newLevels })
+  }
+
+  renderCreateContent = () => {
+    const { selectedCertLevels } = this.state
+    const isChecked = level => selectedCertLevels.includes(level)
+
+    return (
+      <Fragment>
+        <Header as="h4">
+          Select one or more certifications to create for this referee. This action should be done if test processing
+          has failed, or the referee has been approved for this certification by Gameplay.
+        </Header>
+        <Checkbox label="Snitch" onChange={this.handleCertChange('snitch')} checked={isChecked('snitch')} />
+        <Checkbox label="Assistant" onChange={this.handleCertChange('assistant')} checked={isChecked('assistant')}/>
+        <Checkbox label="Head" onChange={this.handleCertChange('head')} checked={isChecked('head')}/>
+      </Fragment>
+    )
+  }
+
   renderListItem = (label, itemContent) => (
     <List.Item>
       <List.Content>
@@ -152,6 +217,7 @@ class RefereeDiagnostic extends Component {
       : 'N/A'
     const updatePaymentLink = this.renderModalLink('payment', 'Confirm Payment')
     const renewCerts = this.renderModalLink('renew', 'Renew Certifications')
+    const createCerts = this.renderModalLink('create', 'Create New Certification')
 
     return (
       <Fragment>
@@ -164,7 +230,7 @@ class RefereeDiagnostic extends Component {
           <Segment style={{ flex: 2, marginTop: 0 }}>
             <List horizontal verticalAlign="middle" style={{ display: 'flex', justifyContent: 'space-evenly' }}>
               {this.renderListItem('Update Payment Details', updatePaymentLink)}
-              {this.renderListItem('Update Certifications', 'Coming soon!')}
+              {this.renderListItem('Update Certifications', createCerts)}
               {this.renderListItem('Force Certification Renewal', renewCerts)}
             </List>
           </Segment>
