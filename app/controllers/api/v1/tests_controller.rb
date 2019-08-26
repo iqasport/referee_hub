@@ -2,7 +2,7 @@ module Api
   module V1
     class TestsController < ApplicationController
       before_action :authenticate_referee!
-      before_action :verify_admin, only: %i[create update destroy]
+      before_action :verify_admin, only: %i[create update destroy import]
       before_action :find_test, only: %i[update show destroy start finish]
       before_action :verify_valid_cool_down, only: :start
       before_action :verify_valid_tries, only: :start
@@ -93,6 +93,18 @@ module Api
       rescue => exception
         Bugsnag.notify(exception)
         render json: { error: 'Error grading test' }, status: :unprocessable_entity
+      end
+
+      def import
+        Test.csv_import(params['file'].tempfile)
+
+        new_tests = Test.all
+        json_string = TestSerializer.new(new_tests).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: exception.full_message }, status: :unprocessable_entity
       end
 
       private

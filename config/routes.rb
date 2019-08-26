@@ -26,6 +26,8 @@ Rails.application.routes.draw do
         post '/search' => 'diagnostic#search'
         patch '/update-payment' => 'diagnostic#update_payment'
       end
+
+      post 'tests/import', to: 'tests#import'
     end
   end
 
