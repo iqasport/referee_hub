@@ -46,6 +46,7 @@ gem 'rack', '>= 2.0.6'
 gem 'barnes'
 gem 'sidekiq'
 gem 'sidekiq-status'
+gem 'activerecord-import'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

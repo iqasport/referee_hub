@@ -2,7 +2,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {
-  Segment, Header, Table, Icon, Button, Modal, Message
+  Segment, Header, Table, Icon, Button, Modal, Message, Input
 } from 'semantic-ui-react'
 import axios from 'axios'
 import { capitalize } from 'lodash'
@@ -58,6 +58,7 @@ class Tests extends Component {
     httpStatusText: null,
     deleteId: null,
     deleteModalOpen: false,
+    uploadModalOpen: false,
   }
 
   componentDidMount() {
@@ -125,13 +126,29 @@ class Tests extends Component {
     history.push(`/admin/tests/${id}`)
   }
 
+  handleUploadCsv = () => {
+    const { csvFile } = this.state
+    // eslint-disable-next-line no-undef
+    const data = new FormData()
+    data.append('file', csvFile)
+
+    axios.post('/api/v1/tests/import', data)
+      .then(this.setDataFromResponse)
+      .then(() => this.handleCloseModal())
+      .catch(this.setDataFromError)
+  }
+
   handleOpenCreateModal = () => this.setState({ createModalOpen: true })
 
-  handleCloseModal = () => this.setState({ createModalOpen: false, deleteModalOpen: false })
+  handleCloseModal = () => this.setState({ createModalOpen: false, deleteModalOpen: false, uploadModalOpen: false })
 
   handleCreateChange = (key, value) => this.setState({ [`${key}`]: value })
 
   handleOpenDeleteModal = id => () => this.setState({ deleteId: id, deleteModalOpen: true })
+
+  handleOpenUploadModal = () => this.setState({ uploadModalOpen: true })
+
+  handleUploadChange = event => this.setState({ csvFile: event.target.files[0] })
 
   handleCreateTest = () => {
     const {
@@ -165,7 +182,10 @@ class Tests extends Component {
 
     axios.delete(`/api/v1/tests/${deleteId}`)
       .then(() => this.setState({ deleteId: null }))
-      .then(this.fetchTests())
+      .then(() => {
+        this.handleCloseModal()
+        this.fetchTests()
+      })
       .catch(this.setDataFromError)
   }
 
@@ -234,10 +254,23 @@ class Tests extends Component {
   )
 
   renderModal = () => {
-    const { createModalOpen, deleteModalOpen } = this.state
+    const { createModalOpen, deleteModalOpen, uploadModalOpen } = this.state
     const content = <TestEditForm values={this.createValues} onChange={this.handleCreateChange} onChangeKey="test" />
     const deleteContent = "This action cannot be undone, if you don't want to delete this test but want to make it"
       + " unavailable please deactivate this test on it's detail view"
+    const uploadContent = (
+      <Input
+        type="file"
+        name="file"
+        icon="file text outline"
+        iconPosition="left"
+        label="Upload CSV"
+        labelPosition="right"
+        placeholder="Upload Test CSV..."
+        onChange={this.handleUploadChange}
+      />
+    )
+
     const createModalProps = {
       header: 'Create Test',
       content,
@@ -267,9 +300,27 @@ class Tests extends Component {
       ],
       size: 'mini'
     }
+    const uploadModalProps = {
+      header: 'Upload Tests?',
+      content: uploadContent,
+      actions: [
+        { key: 'cancel', content: 'Cancel', onClick: this.handleCloseModal },
+        {
+          key: 'upload',
+          content: 'Upload',
+          onClick: this.handleUploadCsv,
+          primary: true
+        }
+      ],
+      size: 'small'
+    }
 
-    const modalProps = createModalOpen ? createModalProps : deleteModalProps
-    const isOpen = createModalOpen || deleteModalOpen
+    let modalProps
+    if (createModalOpen) modalProps = createModalProps
+    if (deleteModalOpen) modalProps = deleteModalProps
+    if (uploadModalOpen) modalProps = uploadModalProps
+
+    const isOpen = createModalOpen || deleteModalOpen || uploadModalOpen
     return <Modal open={isOpen} {...modalProps} />
   }
 
@@ -283,6 +334,7 @@ class Tests extends Component {
           Test Administration
           <div>
             <Button content="Add New Test" onClick={this.handleOpenCreateModal} />
+            <Button content="Import Test CSV" onClick={this.handleOpenUploadModal} />
           </div>
           {isError && <Message error header={httpStatus} content={httpStatusText} />}
         </Header>
