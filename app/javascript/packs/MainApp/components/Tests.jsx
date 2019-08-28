@@ -133,8 +133,8 @@ class Tests extends Component {
     data.append('file', csvFile)
 
     axios.post('/api/v1/tests/import', data)
-      .then(this.setDataFromResponse)
       .then(() => this.handleCloseModal())
+      .then(() => this.fetchTests())
       .catch(this.setDataFromError)
   }
 
@@ -264,8 +264,6 @@ class Tests extends Component {
         name="file"
         icon="file text outline"
         iconPosition="left"
-        label="Upload CSV"
-        labelPosition="right"
         placeholder="Upload Test CSV..."
         onChange={this.handleUploadChange}
       />

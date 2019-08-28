@@ -63,21 +63,19 @@ class Test < ApplicationRecord
       questions = []
       question_keys.each do |question_key|
         new_question = Question.new(
-          description: row_data["#{question_key}_description"],
-          feedback: row_data["#{question_key}_feedback"],
-          points_available: row_data["#{question_key}_points_available"]
+          description: row_data.dig("#{question_key}_description"),
+          feedback: row_data.dig("#{question_key}_feedback"),
+          points_available: row_data.dig("#{question_key}_points_available")
         )
-        next unless new_question.valid?
 
         question_number = question_key[-1].to_i
-        answer_keys = all_keys.select {|key| key =~ /answer_#{question_number}\w$/}
+        answer_keys = all_keys.select { |key| key =~ /answer_#{question_number}\w$/ }
         answers = []
         answer_keys.each do |answer_key|
           new_answer = Answer.new(
-            description: row_data["#{answer_key}_description"],
-            correct: row_data["#{answer_key}_correct"]
+            description: row_data.dig("#{answer_key}_description"),
+            correct: row_data.dig("#{answer_key}_correct")
           )
-          next unless new_answer.valid?
 
           answers << new_answer
         end
