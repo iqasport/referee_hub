@@ -78,13 +78,14 @@ class CertificationLinks extends Component {
 
   get certificationConfig() {
     const { testLinks } = this.state
+    const { hasPaid } = this.props
 
     if (NEW_TESTS_ENABLED) {
       const groupedLinks = groupBy(testLinks, 'language')
       return groupedLinks
     }
 
-    return CERT_LINKS(this.canTakeSnitchTest(), this.canTakeAssistantTest(), this.canTakeHeadTest())
+    return CERT_LINKS(this.canTakeSnitchTest(), this.canTakeAssistantTest(), this.canTakeHeadTest(hasPaid))
   }
 
   isTestEnabled = (testLevel) => {
