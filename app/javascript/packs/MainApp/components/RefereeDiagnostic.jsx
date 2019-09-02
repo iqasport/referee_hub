@@ -193,8 +193,8 @@ class RefereeDiagnostic extends Component {
           has failed, or the referee has been approved for this certification by Gameplay.
         </Header>
         <Checkbox label="Snitch" onChange={this.handleCertChange('snitch')} checked={isChecked('snitch')} />
-        <Checkbox label="Assistant" onChange={this.handleCertChange('assistant')} checked={isChecked('assistant')}/>
-        <Checkbox label="Head" onChange={this.handleCertChange('head')} checked={isChecked('head')}/>
+        <Checkbox label="Assistant" onChange={this.handleCertChange('assistant')} checked={isChecked('assistant')} />
+        <Checkbox label="Head" onChange={this.handleCertChange('head')} checked={isChecked('head')} />
       </Fragment>
     )
   }
