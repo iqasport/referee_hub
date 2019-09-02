@@ -73,4 +73,12 @@ RSpec.describe TestResult, type: :model do
       end
     end
   end
+
+  context 'when test is nil' do
+    let(:test) { nil }
+
+    subject { test_result.valid? }
+
+    it { expect(subject).to be_truthy }
+  end
 end
