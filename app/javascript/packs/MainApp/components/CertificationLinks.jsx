@@ -2,11 +2,16 @@ import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import { capitalize, groupBy } from 'lodash'
-import { DateTime } from 'luxon'
 import { Segment, Label, Message } from 'semantic-ui-react'
 
 import ContentSegment from './ContentSegment'
 import { CERT_LINKS, NEW_TESTS_ENABLED } from '../constants'
+import {
+  hasHeadCert,
+  canTakeSnitchTest,
+  canTakeAssistantTest,
+  canTakeHeadTest,
+} from '../utils'
 
 const testColor = (testLevel) => {
   switch (testLevel) {
@@ -64,38 +69,42 @@ class CertificationLinks extends Component {
     }
   }
 
-  get hasSnitchCert() {
-    return this.hasPassedTest('snitch')
+  get canTakeSnitchTest() {
+    const { levelsThatNeedRenewal, testAttempts, refCertifications } = this.props
+    return canTakeSnitchTest(levelsThatNeedRenewal, testAttempts, refCertifications)
   }
 
-  get hasAssistantCert() {
-    return this.hasPassedTest('assistant')
+  get canTakeAssistantTest() {
+    const { levelsThatNeedRenewal, testAttempts, refCertifications } = this.props
+    return canTakeAssistantTest(levelsThatNeedRenewal, testAttempts, refCertifications)
   }
 
-  get hasHeadCert() {
-    return this.hasPassedTest('head')
+  get canTakeHeadTest() {
+    const {
+      levelsThatNeedRenewal, testAttempts, refCertifications, hasPaid
+    } = this.props
+    return canTakeHeadTest(hasPaid, levelsThatNeedRenewal, testAttempts, refCertifications)
   }
 
   get certificationConfig() {
     const { testLinks } = this.state
-    const { hasPaid } = this.props
 
     if (NEW_TESTS_ENABLED) {
       const groupedLinks = groupBy(testLinks, 'language')
       return groupedLinks
     }
 
-    return CERT_LINKS(this.canTakeSnitchTest(), this.canTakeAssistantTest(), this.canTakeHeadTest(hasPaid))
+    return CERT_LINKS(this.canTakeSnitchTest, this.canTakeAssistantTest, this.canTakeHeadTest)
   }
 
   isTestEnabled = (testLevel) => {
     switch (testLevel) {
       case 'snitch':
-        return this.canTakeSnitchTest()
+        return this.canTakeSnitchTest
       case 'assistant':
-        return this.canTakeAssistantTest()
+        return this.canTakeAssistantTest
       case 'head':
-        return this.canTakeHeadTest()
+        return this.canTakeHeadTest
       default:
         return true
     }
@@ -113,55 +122,6 @@ class CertificationLinks extends Component {
       color,
       enabled
     }
-  }
-
-  canTakeSnitchTest = () => {
-    const { levelsThatNeedRenewal } = this.props
-    if (this.isInCoolDownPeriod('snitch')) return false
-    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'snitch')) return true
-
-    return !this.hasSnitchCert && !this.hasHeadCert
-  }
-
-  canTakeAssistantTest = () => {
-    const { levelsThatNeedRenewal } = this.props
-    if (this.isInCoolDownPeriod('assistant')) return false
-    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'assistant')) return true
-
-    return !this.hasAssistantCert && !this.hasHeadCert
-  }
-
-  canTakeHeadTest = (hasPaid) => {
-    const { levelsThatNeedRenewal } = this.props
-    if (!hasPaid) return false
-    if (this.isInCoolDownPeriod('head')) return false
-    if (levelsThatNeedRenewal.find(refCert => refCert.level === 'head')) return true
-
-    return this.hasSnitchCert && this.hasAssistantCert
-  }
-
-  hasPassedTest = (level) => {
-    const { refCertifications, levelsThatNeedRenewal } = this.props
-    const passedCert = refCertifications.some(({ level: certificationLevel }) => certificationLevel === level)
-    const levelNeedsRenewal = levelsThatNeedRenewal.find(details => details.level === level)
-
-    if (levelNeedsRenewal) return false
-    return passedCert
-  }
-
-  isInCoolDownPeriod = (certType) => {
-    const { testAttempts } = this.props
-    const matchingTestAttempt = testAttempts.filter(testAttempt => testAttempt.test_level === certType)
-
-    if (matchingTestAttempt.length > 0) {
-      const rawAttemptString = matchingTestAttempt[0].next_attempt_at.slice(0, -3).trim()
-      const nextAttemptAt = DateTime.fromSQL(rawAttemptString)
-      const currentTime = DateTime.local()
-
-      return !(nextAttemptAt < currentTime)
-    }
-
-    return false
   }
 
   handleTestClick = link => () => {
@@ -225,11 +185,12 @@ class CertificationLinks extends Component {
   )
 
   render() {
-    const { hasPaid } = this.props
-    if (this.hasHeadCert) return null
-    const canTakeSnitch = this.canTakeSnitchTest()
-    const canTakeAssistant = this.canTakeAssistantTest()
-    const canTakeHead = this.canTakeHeadTest(hasPaid)
+    const { refCertifications, levelsThatNeedRenewal } = this.props
+    if (hasHeadCert(refCertifications, levelsThatNeedRenewal)) return null
+
+    const canTakeSnitch = this.canTakeSnitchTest
+    const canTakeAssistant = this.canTakeAssistantTest
+    const canTakeHead = this.canTakeHeadTest
 
     const anyTestsAvailable = [canTakeSnitch, canTakeAssistant, canTakeHead].some(testStatus => testStatus)
 

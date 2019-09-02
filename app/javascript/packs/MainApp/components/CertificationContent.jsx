@@ -13,6 +13,7 @@ import PaypalButton from './PaypalButton'
 import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
 import CertificationLinks from './CertificationLinks'
+import { hasAssistantCert, hasSnitchCert } from '../utils'
 
 class CertificationContent extends Component {
   static propTypes = {
@@ -107,11 +108,14 @@ class CertificationContent extends Component {
       onError,
       onCancel,
       isEditable,
-      hasPaid
+      hasPaid,
+      refCertifications,
     } = this.props
+    const { levelsThatNeedRenewal } = this.state
+
     if (!isEditable) return null
-    if (!this.hasAssistantCert) return null
-    if (!this.hasSnitchCert) return null
+    if (!hasAssistantCert(refCertifications, levelsThatNeedRenewal)) return null
+    if (!hasSnitchCert(refCertifications, levelsThatNeedRenewal)) return null
     if (hasPaid) return null
 
     const headerContent = 'Purchase Head Referee Written Test'
