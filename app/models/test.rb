@@ -59,7 +59,7 @@ class Test < ApplicationRecord
       )
       next unless new_test.valid?
 
-      question_keys = all_keys.select { |key| key =~ /question_\d$/ }
+      question_keys = all_keys.select { |key| key =~ /question_\d+$/ }
       questions = []
       question_keys.each do |question_key|
         new_question = Question.new(
@@ -68,7 +68,7 @@ class Test < ApplicationRecord
           points_available: row_data.dig("#{question_key}_points_available")
         )
 
-        question_number = question_key[-1].to_i
+        question_number = question_key.split('_')[-1].to_i
         answer_keys = all_keys.select { |key| key =~ /answer_#{question_number}\w$/ }
         answers = []
         answer_keys.each do |answer_key|
@@ -89,6 +89,9 @@ class Test < ApplicationRecord
     end
 
     Test.import tests, recursive: true
+  rescue => exception
+    Bugsnag.notify(exception)
+    logger.error exception
   end
 
   def fetch_random_questions
