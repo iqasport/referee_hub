@@ -71,4 +71,13 @@ RSpec.describe TestAttempt, type: :model do
       end
     end
   end
+
+  context 'when test is nil' do
+    let(:test) { nil }
+    let(:test_attempt) { build :test_attempt, test: test }
+
+    subject { test_attempt.valid? }
+
+    it { expect(subject).to be_truthy }
+  end
 end

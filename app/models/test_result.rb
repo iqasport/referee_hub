@@ -26,7 +26,7 @@
 
 class TestResult < ApplicationRecord
   belongs_to :referee
-  belongs_to :test
+  belongs_to :test, optional: true
 
   after_create :update_referee_certification_status
 
