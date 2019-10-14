@@ -9,13 +9,13 @@ const mapRefereeData = (certifications, nationalGoverningBodies) => ({ id, attri
   const mappedCerts = relationships
     && relationships.referee_certifications
     && relationships.referee_certifications.data.map(
-      certification => certifications.get(certification.id)
+      (certification) => certifications.get(certification.id)
     )
 
   const mappedNGBs = relationships
     && relationships.national_governing_bodies
     && relationships.national_governing_bodies.data.map(
-      nationalGoverningBody => nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
+      (nationalGoverningBody) => nationalGoverningBodies.find((ngb) => ngb.id === nationalGoverningBody.id)
     )
   const isCurrentReferee = attributes.is_editable
 
@@ -87,7 +87,7 @@ class Referees extends Component {
 
   setAllNGBs = ({ data: { data } }) => {
     this.setState({
-      nationalGoverningBodies: data.map(nationalGoverningBody => ({
+      nationalGoverningBodies: data.map((nationalGoverningBody) => ({
         id: nationalGoverningBody.id,
         name: nationalGoverningBody.attributes.name
       }))
@@ -96,7 +96,7 @@ class Referees extends Component {
 
   get dropdownOptions() {
     const { nationalGoverningBodies } = this.state
-    return Array.from(nationalGoverningBodies).map(ngb => ({
+    return Array.from(nationalGoverningBodies).map((ngb) => ({
       value: ngb.id,
       text: ngb.name
     }))
@@ -127,12 +127,12 @@ class Referees extends Component {
     })
   }
 
-  handleCertificationToggleChange = value => () => {
+  handleCertificationToggleChange = (value) => () => {
     this.setState(({ certificationSearch }) => {
       const checked = certificationSearch.includes(value)
       let newSearch
       if (checked) {
-        newSearch = certificationSearch.filter(certification => certification !== value)
+        newSearch = certificationSearch.filter((certification) => certification !== value)
       } else {
         newSearch = certificationSearch.concat([value])
       }
