@@ -79,20 +79,20 @@ class RefereeProfile extends Component {
     const { data: { attributes }, included } = data
     const certifications = included
       .filter(({ type }) => type === 'certification')
-      .map(certification => certification.attributes) || []
+      .map((certification) => certification.attributes) || []
     const nationalGoverningBodies = included
       .filter(({ type }) => type === 'national_governing_body')
-      .map(nationalGoverningBody => ({
+      .map((nationalGoverningBody) => ({
         id: nationalGoverningBody.id,
         name: nationalGoverningBody.attributes.name,
         website: nationalGoverningBody.attributes.website
       })) || []
     const testAttempts = included
       .filter(({ type }) => type === 'test_attempt')
-      .map(testAttempt => testAttempt.attributes) || []
+      .map((testAttempt) => testAttempt.attributes) || []
     const testResults = included
       .filter(({ type }) => type === 'test_result')
-      .map(testResult => ({
+      .map((testResult) => ({
         duration: testResult.attributes.duration,
         minimumPassPercentage: testResult.attributes.minimum_pass_percentage,
         passed: testResult.attributes.passed,
@@ -162,8 +162,8 @@ class RefereeProfile extends Component {
     } = this.state
 
     const ngbState = changedNGBs
-      ? changedNGBs.map(ngbId => Number(ngbId))
-      : nationalGoverningBodies.map(ngb => Number(ngb.id))
+      ? changedNGBs.map((ngbId) => Number(ngbId))
+      : nationalGoverningBodies.map((ngb) => Number(ngb.id))
 
     axios
       .patch(this.currentRefereeApiRoute, {
@@ -293,7 +293,7 @@ class RefereeProfile extends Component {
     const { referee: { showPronouns, pronouns } } = this.state
     if (!showPronouns) return null
 
-    return <Fragment>{pronouns}</Fragment>
+    return <>{pronouns}</>
   }
 
   render() {
