@@ -11,7 +11,9 @@ import {
 } from 'semantic-ui-react'
 import axios from 'axios'
 import { Map } from 'immutable'
-import { camelCase, uniq, remove } from 'lodash'
+import {
+  camelCase, uniq, remove, capitalize
+} from 'lodash'
 import { DateTime } from 'luxon'
 import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
@@ -153,7 +155,7 @@ class RefereeDiagnostic extends Component {
         level
       }).then(() => {
         this.handleCloseModal()
-      }).then(({ response }) => {
+      }).catch(({ response }) => {
         const { data: errorData } = response
 
         this.setState({ actionError: errorData.error })
@@ -183,8 +185,11 @@ class RefereeDiagnostic extends Component {
   }
 
   renderCreateContent = () => {
-    const { selectedCertLevels } = this.state
-    const isChecked = level => selectedCertLevels.includes(level)
+    const { selectedCertLevels, referee: { certifications } } = this.state
+    const isChecked = level => (
+      selectedCertLevels.includes(level) || certifications.some(cert => cert.get('level') === level)
+    )
+    const isDisabled = level => certifications.some(cert => cert.get('level') === level)
 
     return (
       <Fragment>
@@ -192,9 +197,27 @@ class RefereeDiagnostic extends Component {
           Select one or more certifications to create for this referee. This action should be done if test processing
           has failed, or the referee has been approved for this certification by Gameplay.
         </Header>
-        <Checkbox label="Snitch" onChange={this.handleCertChange('snitch')} checked={isChecked('snitch')} />
-        <Checkbox label="Assistant" onChange={this.handleCertChange('assistant')} checked={isChecked('assistant')} />
-        <Checkbox label="Head" onChange={this.handleCertChange('head')} checked={isChecked('head')} />
+        <Checkbox
+          style={{ margin: '10px' }}
+          label="Snitch"
+          onChange={this.handleCertChange('snitch')}
+          checked={isChecked('snitch')}
+          disabled={isDisabled('snitch')}
+        />
+        <Checkbox
+          style={{ margin: '10px' }}
+          label="Assistant"
+          onChange={this.handleCertChange('assistant')}
+          checked={isChecked('assistant')}
+          disabled={isDisabled('assistant')}
+        />
+        <Checkbox
+          style={{ margin: '10px' }}
+          label="Head"
+          onChange={this.handleCertChange('head')}
+          checked={isChecked('head')}
+          disabled={isDisabled('head')}
+        />
       </Fragment>
     )
   }
@@ -210,22 +233,28 @@ class RefereeDiagnostic extends Component {
 
   renderRefereeDetails = () => {
     const { referee } = this.state
-    const ngbNames = referee.nationalGoverningBodies.length > 0
-      && referee.nationalGoverningBodies.map(ngb => ngb.get('name')).join(', ')
-    const paymentDate = referee.submittedPaymentAt
-      ? DateTime.fromSQL(referee.submittedPaymentAt.slice(0, -3).trim()).toLocaleString(DateTime.DATETIME_FULL)
+    const {
+      certifications, nationalGoverningBodies, submittedPaymentAt, pronouns
+    } = referee
+
+    const ngbNames = nationalGoverningBodies.length > 0
+      && nationalGoverningBodies.map(ngb => ngb.get('name')).join(', ')
+    const paymentDate = submittedPaymentAt
+      ? DateTime.fromSQL(submittedPaymentAt.slice(0, -3).trim()).toLocaleString(DateTime.DATETIME_FULL)
       : 'N/A'
     const updatePaymentLink = this.renderModalLink('payment', 'Confirm Payment')
     const renewCerts = this.renderModalLink('renew', 'Renew Certifications')
     const createCerts = this.renderModalLink('create', 'Create New Certification')
+    const certs = certifications.length > 0 && certifications.map(cert => capitalize(cert.get('level'))).join(', ')
 
     return (
       <Fragment>
         <div style={{ display: 'flex' }}>
           <List divided verticalAlign="middle" style={{ flex: 1, marginRight: '3%' }}>
-            {referee.pronouns && this.renderListItem('Pronouns:', referee.pronouns)}
+            {pronouns && this.renderListItem('Pronouns:', pronouns)}
             {this.renderListItem('Submitted Head Ref Payment At:', paymentDate)}
             {ngbNames && this.renderListItem('National Governing Bodies:', ngbNames)}
+            {certs && this.renderListItem('Certifications: ', certs)}
           </List>
           <Segment style={{ flex: 2, marginTop: 0 }}>
             <List horizontal verticalAlign="middle" style={{ display: 'flex', justifyContent: 'space-evenly' }}>

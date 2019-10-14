@@ -4,6 +4,30 @@ import axios from 'axios'
 import { Header, Pagination, Segment } from 'semantic-ui-react'
 import RefereeTable from './RefereeTable'
 
+const mapRefereeData = (certifications, nationalGoverningBodies) => ({ id, attributes, relationships }) => {
+  const name = `${attributes.first_name} ${attributes.last_name}`.trim()
+  const mappedCerts = relationships
+    && relationships.referee_certifications
+    && relationships.referee_certifications.data.map(
+      certification => certifications.get(certification.id)
+    )
+
+  const mappedNGBs = relationships
+    && relationships.national_governing_bodies
+    && relationships.national_governing_bodies.data.map(
+      nationalGoverningBody => nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
+    )
+  const isCurrentReferee = attributes.is_editable
+
+  return {
+    id,
+    name,
+    certifications: mappedCerts,
+    nationalGoverningBodies: mappedNGBs,
+    isCurrentReferee
+  }
+}
+
 class Referees extends Component {
   static propTypes = {
     history: PropTypes.shape({
@@ -51,17 +75,7 @@ class Referees extends Component {
 
     const referees = data
       .filter(this.hasRefereeName)
-      .map(({ id, attributes, relationships }) => ({
-        id,
-        name: `${attributes.first_name} ${attributes.last_name}`.trim(),
-        certifications: relationships.referee_certifications.data.map(
-          certification => certifications.get(certification.id)
-        ),
-        nationalGoverningBodies: relationships.national_governing_bodies.data.map(
-          nationalGoverningBody => nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
-        ),
-        isCurrentReferee: attributes.is_editable
-      }));
+      .map(mapRefereeData(certifications, nationalGoverningBodies))
 
     this.setState({
       referees,

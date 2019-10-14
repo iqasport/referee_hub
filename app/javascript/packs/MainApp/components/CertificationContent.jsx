@@ -63,13 +63,15 @@ class CertificationContent extends Component {
         .then(({ data }) => {
           const refCertificationDetails = []
           const renewalLevels = []
-          data.data.forEach((refCertification) => {
-            const { needs_renewal_at: needsRenewal, level } = refCertification.attributes
-            const refCertDetailData = { level, id: refCertification.id }
+          if (data && data.data) {
+            data.data.forEach((refCertification) => {
+              const { needs_renewal_at: needsRenewal, level } = refCertification.attributes
+              const refCertDetailData = { level, id: refCertification.id }
 
-            refCertificationDetails.push(refCertDetailData)
-            if (needsRenewal) { renewalLevels.push(refCertDetailData) }
-          })
+              refCertificationDetails.push(refCertDetailData)
+              if (needsRenewal) { renewalLevels.push(refCertDetailData) }
+            })
+          }
 
           this.setState({ levelsThatNeedRenewal: renewalLevels, refCertificationDetails })
         })
