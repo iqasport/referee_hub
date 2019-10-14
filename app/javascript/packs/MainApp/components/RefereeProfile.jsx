@@ -79,17 +79,17 @@ class RefereeProfile extends Component {
     const { data: { attributes }, included } = data
     const certifications = included
       .filter(({ type }) => type === 'certification')
-      .map(certification => certification.attributes)
+      .map(certification => certification.attributes) || []
     const nationalGoverningBodies = included
       .filter(({ type }) => type === 'national_governing_body')
       .map(nationalGoverningBody => ({
         id: nationalGoverningBody.id,
         name: nationalGoverningBody.attributes.name,
         website: nationalGoverningBody.attributes.website
-      }))
+      })) || []
     const testAttempts = included
       .filter(({ type }) => type === 'test_attempt')
-      .map(testAttempt => testAttempt.attributes)
+      .map(testAttempt => testAttempt.attributes) || []
     const testResults = included
       .filter(({ type }) => type === 'test_result')
       .map(testResult => ({
@@ -102,7 +102,7 @@ class RefereeProfile extends Component {
         timeFinished: testResult.attributes.time_finished,
         timeStarted: testResult.attributes.time_started,
         testLevel: testResult.attributes.test_level
-      }))
+      })) || []
 
     this.setState({
       httpStatus: status,

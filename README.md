@@ -1,7 +1,9 @@
 # README
 [![CircleCI](https://circleci.com/gh/iqasport/referee_hub/tree/master.svg?style=svg)](https://circleci.com/gh/iqasport/referee_hub/tree/master)
 [![codecov](https://codecov.io/gh/iqasport/referee_hub/branch/master/graph/badge.svg)](https://codecov.io/gh/iqasport/referee_hub)
-![Heroku](https://heroku-badge.herokuapp.com/?app=referee-hub)
+[![Heroku](https://heroku-badge.herokuapp.com/?app=referee-hub)](https://heroku-badge.herokuapp.com/?app=referee-hub)
+[![CodeFactor](https://www.codefactor.io/repository/github/iqasport/referee_hub/badge)](https://www.codefactor.io/repository/github/iqasport/referee_hub)
+
 ## Getting Started
 
 It's highly recommended you use a ruby version manager during development of this app. The locked ruby version is '2.5.1'
