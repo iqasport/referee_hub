@@ -19,11 +19,11 @@ import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
 
 const filterByType = (dataToFilter, type) => {
-  const filteredData = dataToFilter.filter((dataItem) => dataItem.type === type)
+  const filteredData = dataToFilter.filter(dataItem => dataItem.type === type)
   return (
     filteredData.map(({ id, attributes }) => {
       const newMap = Map(attributes)
-      return newMap.mapKeys((key) => camelCase(key)).set('id', id)
+      return newMap.mapKeys(key => camelCase(key)).set('id', id)
     })
   )
 }
@@ -113,7 +113,7 @@ class RefereeDiagnostic extends Component {
 
   handleCloseModal = () => this.setState({ modalOpen: false, modalAction: '' })
 
-  handleOpenModal = (modalAction) => this.setState({ modalOpen: true, modalAction })
+  handleOpenModal = modalAction => this.setState({ modalOpen: true, modalAction })
 
   handleRenewCertifications = () => {
     const { referee } = this.state
@@ -171,14 +171,14 @@ class RefereeDiagnostic extends Component {
       })
   }
 
-  handleCertChange = (level) => (_e, { checked }) => {
+  handleCertChange = level => (_e, { checked }) => {
     const { selectedCertLevels } = this.state
     let newLevels
 
     if (checked) {
       newLevels = uniq([...selectedCertLevels, level])
     } else {
-      newLevels = remove(selectedCertLevels, (selectedLevel) => selectedLevel === level)
+      newLevels = remove(selectedCertLevels, selectedLevel => selectedLevel === level)
     }
 
     this.setState({ selectedCertLevels: newLevels })
@@ -186,13 +186,13 @@ class RefereeDiagnostic extends Component {
 
   renderCreateContent = () => {
     const { selectedCertLevels, referee: { certifications } } = this.state
-    const isChecked = (level) => (
-      selectedCertLevels.includes(level) || certifications.some((cert) => cert.get('level') === level)
+    const isChecked = level => (
+      selectedCertLevels.includes(level) || certifications.some(cert => cert.get('level') === level)
     )
-    const isDisabled = (level) => certifications.some((cert) => cert.get('level') === level)
+    const isDisabled = level => certifications.some(cert => cert.get('level') === level)
 
     return (
-      <>
+      <Fragment>
         <Header as="h4">
           Select one or more certifications to create for this referee. This action should be done if test processing
           has failed, or the referee has been approved for this certification by Gameplay.
@@ -218,7 +218,7 @@ class RefereeDiagnostic extends Component {
           checked={isChecked('head')}
           disabled={isDisabled('head')}
         />
-      </>
+      </Fragment>
     )
   }
 
@@ -238,17 +238,17 @@ class RefereeDiagnostic extends Component {
     } = referee
 
     const ngbNames = nationalGoverningBodies.length > 0
-      && nationalGoverningBodies.map((ngb) => ngb.get('name')).join(', ')
+      && nationalGoverningBodies.map(ngb => ngb.get('name')).join(', ')
     const paymentDate = submittedPaymentAt
       ? DateTime.fromSQL(submittedPaymentAt.slice(0, -3).trim()).toLocaleString(DateTime.DATETIME_FULL)
       : 'N/A'
     const updatePaymentLink = this.renderModalLink('payment', 'Confirm Payment')
     const renewCerts = this.renderModalLink('renew', 'Renew Certifications')
     const createCerts = this.renderModalLink('create', 'Create New Certification')
-    const certs = certifications.length > 0 && certifications.map((cert) => capitalize(cert.get('level'))).join(', ')
+    const certs = certifications.length > 0 && certifications.map(cert => capitalize(cert.get('level'))).join(', ')
 
     return (
-      <>
+      <Fragment>
         <div style={{ display: 'flex' }}>
           <List divided verticalAlign="middle" style={{ flex: 1, marginRight: '3%' }}>
             {pronouns && this.renderListItem('Pronouns:', pronouns)}
@@ -264,7 +264,7 @@ class RefereeDiagnostic extends Component {
             </List>
           </Segment>
         </div>
-      </>
+      </Fragment>
     )
   }
 
@@ -319,12 +319,12 @@ class RefereeDiagnostic extends Component {
     if (testResults.length < 1) return null
 
     const headerContent = 'Test Result Details'
-    const segmentContent = <TestResultsTable testResults={testResults.map((result) => result.toJS())} />
+    const segmentContent = <TestResultsTable testResults={testResults.map(result => result.toJS())} />
 
     return (
-      <>
+      <Fragment>
         <ContentSegment headerContent={headerContent} segmentContent={segmentContent} />
-      </>
+      </Fragment>
     )
   }
 
