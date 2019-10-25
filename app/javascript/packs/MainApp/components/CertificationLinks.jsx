@@ -59,7 +59,7 @@ class CertificationLinks extends Component {
 
   componentDidMount() {
     if (NEW_TESTS_ENABLED) {
-      axios.get('/api/v1/tests', { active_only: true })
+      axios.get('/api/v1/tests', { params: { active_only: true } })
         .then(({ data }) => {
           const { data: testData } = data
 
