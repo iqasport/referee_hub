@@ -1,7 +1,7 @@
 /* eslint-disable react/no-danger */
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { Divider } from 'semantic-ui-react'
+import { Divider, Progress } from 'semantic-ui-react'
 
 import Answer from './Answer'
 import Counter from './Counter'
@@ -20,7 +20,9 @@ class TestTaker extends Component {
       selectedAnswer: PropTypes.string
     }).isRequired,
     onAnswerSelect: PropTypes.func.isRequired,
-    timeLimit: PropTypes.number.isRequired
+    timeLimit: PropTypes.number.isRequired,
+    totalQuestionCount: PropTypes.number.isRequired,
+    currentQuestionIndex: PropTypes.number.isRequired,
   }
 
   handleAnswerChange = (answerId) => {
@@ -48,10 +50,19 @@ class TestTaker extends Component {
   }
 
   render() {
-    const { currentQuestion, timeLimit } = this.props
+    const {
+      currentQuestion, timeLimit, currentQuestionIndex, totalQuestionCount
+    } = this.props
 
     return (
       <div>
+        <Progress
+          value={currentQuestionIndex}
+          total={totalQuestionCount}
+          progress="ratio"
+          size="medium"
+          color="teal"
+        />
         <Counter timeLimit={timeLimit} />
         <div dangerouslySetInnerHTML={{ __html: currentQuestion.description }} />
         <Divider />
