@@ -215,4 +215,4 @@ export const OLD_CERT_LINKS = {
   }
 }
 
-export const NEW_TESTS_ENABLED = process.env.TEST_TAKING_ENABLED === 'true'
+export const NEW_TESTS_ENABLED = true

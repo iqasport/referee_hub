@@ -35,7 +35,7 @@ module Api
       end
 
       def update
-        @referee_certification.update!(permitted_update_params)
+        @referee_certification&.update!(permitted_update_params)
 
         json_string = RefereeCertificationSerializer.new(@referee_certification)
 

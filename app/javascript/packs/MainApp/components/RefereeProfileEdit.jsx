@@ -110,7 +110,7 @@ class RefereeProfileEdit extends Component {
         Edit
       </Button>
     )
-    const initialNGBValues = nationalGoverningBodies.map(ngb => ngb.id)
+    const initialNGBValues = nationalGoverningBodies ? nationalGoverningBodies.map(ngb => ngb.id) : null
 
     return (
       <Modal open={open} trigger={modalTrigger}>

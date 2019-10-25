@@ -6,8 +6,9 @@ import bugsnag from '@bugsnag/js'
 import bugsnagReact from '@bugsnag/plugin-react'
 
 document.addEventListener('DOMContentLoaded', () => {
+  var apiKey = process.env.RAILS_ENV !== 'production' ? 'iamAFak3apiKey' : process.env.BUGSNAG_API_KEY
   var bugsnagClient = bugsnag({
-    apiKey: process.env.BUGSNAG_API_KEY,
+    apiKey,
     autoCaptureSessions: false,
   });
   bugsnagClient.use(bugsnagReact, React);

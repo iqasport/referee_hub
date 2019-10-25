@@ -15,7 +15,11 @@ const mapRefereeData = (certifications, nationalGoverningBodies) => ({ id, attri
   const mappedNGBs = relationships
     && relationships.national_governing_bodies
     && relationships.national_governing_bodies.data.map(
-      nationalGoverningBody => nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
+      nationalGoverningBody => (
+        nationalGoverningBodies
+          ? nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
+          : false
+      )
     )
   const isCurrentReferee = attributes.is_editable
 
