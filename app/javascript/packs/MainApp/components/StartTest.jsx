@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { shuffle } from 'lodash'
+import { shuffle, size } from 'lodash'
 import { DateTime } from 'luxon'
 import {
   Segment, Header, Message, Icon, Divider, Button
@@ -188,7 +188,7 @@ class StartTest extends Component {
     const nextContent = this.isLastQuestion ? 'Finish' : 'Next'
 
     return (
-      <Fragment>
+      <div>
         {!testStarted && <Button color="blue" onClick={this.handleGoBackToProfile} content="Go Back to Profile" />}
         {!testStarted && !testFinished && <Button color="green" onClick={this.handleStartTest} content="Start Test" />}
         {
@@ -197,7 +197,7 @@ class StartTest extends Component {
           && <Button onClick={this.handleQuestionChange('prev')} content="Previous" />
         }
         {testStarted && <Button color="blue" onClick={this.handleQuestionChange('next')} content={nextContent} />}
-      </Fragment>
+      </div>
     )
   }
 
@@ -252,6 +252,8 @@ class StartTest extends Component {
         timeLimit={timeLimit}
         currentQuestion={testQuestions[currentQuestionIndex]}
         onAnswerSelect={this.handleAnswerSelect}
+        totalQuestionCount={size(testQuestions)}
+        currentQuestionIndex={currentQuestionIndex + 1}
       />
     )
   }
@@ -270,7 +272,15 @@ class StartTest extends Component {
     const isError = status >= 400
 
     return (
-      <Segment textAlign="center">
+      <Segment
+        textAlign="center"
+        style={{
+          minHeight: '450px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}
+      >
         {isError && !testStarted && <Message error header={status} content={statusText} />}
         {this.renderMainContent()}
         {this.renderButtons()}
