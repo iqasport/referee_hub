@@ -1,3 +1,4 @@
+/* eslint-disable react/no-danger */
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import {
@@ -91,8 +92,12 @@ class Answer extends Component {
 
     const input = isEditable && <RichTextEditor value={this.descriptionValue} onChange={this.handleDescriptionChange} />
     // eslint-disable-next-line react/no-danger
-    const renderedText = <div dangerouslySetInnerHTML={{ __html: this.descriptionValue }} />
-
+    const renderedText = (
+      <div
+        style={{ textAlign: 'left' }}
+        dangerouslySetInnerHTML={{ __html: this.descriptionValue }}
+      />
+    )
     return (
       <Fragment>
         {isEditing ? input : renderedText}

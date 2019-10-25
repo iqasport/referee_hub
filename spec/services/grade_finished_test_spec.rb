@@ -20,7 +20,7 @@ describe Services::GradeFinishedTest do
     {
       test_id: test.id,
       referee_id: referee.id,
-      duration: '15',
+      duration: '00:15:00',
       minimum_pass_percentage: test.minimum_pass_percentage,
       passed: true,
       percentage: 100,

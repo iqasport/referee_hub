@@ -60,11 +60,11 @@ module Services
     def create_test_result(points_scored, points_available)
       return nil if already_has_test_result?
       percentage = ((points_scored.to_f / points_available) * 100).round
-      duration = ((finished_at - started_at) / 1.minute).to_i
+      is_over_limit = TimeDifference.between(started_at, finished_at).in_minutes > test.time_limit
       test_results_hash = {
-        duration: duration.to_s,
+        duration: calculate_duration.to_s,
         minimum_pass_percentage: test.minimum_pass_percentage,
-        passed: percentage >= test.minimum_pass_percentage && duration <= test.time_limit,
+        passed: percentage >= test.minimum_pass_percentage && !is_over_limit,
         percentage: percentage,
         points_available: points_available,
         points_scored: points_scored,
@@ -80,6 +80,11 @@ module Services
       return false if recent_test_results.blank?
 
       recent_test_results.created_at.to_date == Date.today
+    end
+
+    def calculate_duration
+      general = TimeDifference.between(started_at, finished_at).in_general
+      "00:#{general[:minutes]}:#{general[:seconds].zero? ? '00' : general[:seconds]}"
     end
 
     def send_result_email(test_result)
