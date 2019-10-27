@@ -4,6 +4,7 @@ import axios from 'axios'
 import {
   Button, Form, Header, Icon, Message, Modal
 } from 'semantic-ui-react'
+import { isEmpty } from 'lodash'
 
 class RefereeProfileEdit extends Component {
   static propTypes = {
@@ -110,7 +111,8 @@ class RefereeProfileEdit extends Component {
         Edit
       </Button>
     )
-    const initialNGBValues = nationalGoverningBodies.length() > 0 ? nationalGoverningBodies.map(ngb => ngb.id) : null
+    const hasNGBS = !isEmpty(nationalGoverningBodies)
+    const initialNGBValues = hasNGBS ? nationalGoverningBodies.map(ngb => ngb.id) : null
 
     return (
       <Modal open={open} trigger={modalTrigger}>
