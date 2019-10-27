@@ -5,7 +5,6 @@ import { capitalize, groupBy } from 'lodash'
 import { Segment, Label, Message } from 'semantic-ui-react'
 
 import ContentSegment from './ContentSegment'
-import { CERT_LINKS, NEW_TESTS_ENABLED } from '../constants'
 import {
   hasHeadCert,
   canTakeSnitchTest,
@@ -58,17 +57,15 @@ class CertificationLinks extends Component {
   }
 
   componentDidMount() {
-    if (NEW_TESTS_ENABLED) {
-      axios.get('/api/v1/tests', { params: { active_only: true } })
-        .then(({ data }) => {
-          const { data: testData } = data
+    axios.get('/api/v1/tests', { params: { active_only: true } })
+      .then(({ data }) => {
+        const { data: testData } = data
 
-          if (testData) {
-            const testLinks = testData.map(this.buildTestLink)
-            this.setState({ testLinks })
-          }
-        })
-    }
+        if (testData) {
+          const testLinks = testData.map(this.buildTestLink)
+          this.setState({ testLinks })
+        }
+      })
   }
 
   get canTakeSnitchTest() {
@@ -91,12 +88,8 @@ class CertificationLinks extends Component {
   get certificationConfig() {
     const { testLinks } = this.state
 
-    if (NEW_TESTS_ENABLED) {
-      const groupedLinks = groupBy(testLinks, 'language')
-      return groupedLinks
-    }
-
-    return CERT_LINKS(this.canTakeSnitchTest, this.canTakeAssistantTest, this.canTakeHeadTest)
+    const groupedLinks = groupBy(testLinks, 'language')
+    return groupedLinks
   }
 
   isTestEnabled = (testLevel) => {
@@ -158,11 +151,18 @@ class CertificationLinks extends Component {
 
   renderLanguageSection = (section) => {
     if (allLinksDisabled(section[1])) return null
+    // We're doing this here to keep the links appearing in a consistent order.
+    // Otherwise the api can return these items inconsistently resulting in an unexpected ux.
+    const snitchLink = section[1].find(test => test.color === 'yellow')
+    const assLink = section[1].find(test => test.color === 'blue')
+    const headLink = section[1].find(test => test.color === 'green')
 
     return (
       <Segment padded key={section[0]}>
         <Label attached="top">{capitalize(section[0])}</Label>
-        {section[1].map(this.renderLink)}
+        {snitchLink && this.renderLink(snitchLink)}
+        {assLink && this.renderLink(assLink)}
+        {headLink && this.renderLink(headLink)}
       </Segment>
     )
   }
