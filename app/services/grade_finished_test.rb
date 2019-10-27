@@ -84,7 +84,10 @@ module Services
 
     def calculate_duration
       general = TimeDifference.between(started_at, finished_at).in_general
-      "00:#{general[:minutes]}:#{general[:seconds].zero? ? '00' : general[:seconds]}"
+      seconds = general[:seconds].zero? ? '00' : general[:seconds]
+      minutes = general[:minutes].zero? ? '00' : general[:minutes]
+
+      "00:#{minutes}:#{seconds}"
     end
 
     def send_result_email(test_result)
