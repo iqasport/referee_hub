@@ -63,8 +63,10 @@ class CertificationLinks extends Component {
         .then(({ data }) => {
           const { data: testData } = data
 
-          const testLinks = testData.map(this.buildTestLink)
-          this.setState({ testLinks })
+          if (testData) {
+            const testLinks = testData.map(this.buildTestLink)
+            this.setState({ testLinks })
+          }
         })
     }
   }

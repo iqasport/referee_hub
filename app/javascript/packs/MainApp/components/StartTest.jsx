@@ -233,7 +233,7 @@ class StartTest extends Component {
         </Header>
         <Divider />
         <Header as="h4">
-          We have successfully accepted your answers for this test.
+          We have successfully received your answers for this test.
         </Header>
         <Header as="h4">Results will be emailed to you through the email you registered your account with.</Header>
         <Header as="h4">
