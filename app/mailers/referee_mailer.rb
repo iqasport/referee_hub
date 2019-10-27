@@ -8,7 +8,6 @@ class RefereeMailer < ApplicationMailer
     @test = @test_attempt.test
     @next_attempt_at = @test_attempt.next_attempt_at.to_time
     @url = "https://iqareferees.org/referees/#{@referee.id}"
-
     mail(to: @referee.email, subject: "#{@test.name} Results")
   end
 end
