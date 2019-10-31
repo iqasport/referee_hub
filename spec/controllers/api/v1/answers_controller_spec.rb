@@ -203,6 +203,30 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
       it_behaves_like 'it reports to bugsnag on failure', :save!
     end
+
+    context 'when the question already has a correct answer' do
+      let!(:other_answer) { create :answer, question: question, correct: true }
+      let(:body_data) { { correct: true, question_id: question.id, id: answer.id } }
+
+      it 'is a successful request' do
+        subject
+
+        expect(response).to have_http_status(:successful)
+      end
+
+      it 'updates the requested answer' do
+        subject
+
+        response_data = JSON.parse(response.body)['data']
+
+        expect(response_data['attributes']['correct']).to eq body_data[:correct]
+        expect(response_data['id'].to_i).to eq answer.id
+      end
+
+      it 'updates the previously correct answer' do
+        expect { subject }.to change { other_answer.reload.correct }.from(true).to(false)
+      end
+    end
   end
 
   describe 'DELETE #destroy' do

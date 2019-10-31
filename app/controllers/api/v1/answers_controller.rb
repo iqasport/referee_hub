@@ -36,6 +36,7 @@ module Api
       end
 
       def update
+        existing_correct.update!(correct: false) if existing_correct.present?
         @answer.update!(permitted_params)
 
         json_string = AnswerSerializer.new(@answer, params: { include_correct: true }).serialized_json
@@ -82,6 +83,10 @@ module Api
         else
           @question.answers
         end
+      end
+
+      def existing_correct
+        @existing_correct ||= @question.answers.find_by(correct: true)
       end
     end
   end
