@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
-import { shuffle, size } from 'lodash'
+import { shuffle, size, isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
 import {
   Segment, Header, Message, Icon, Divider, Button
@@ -32,6 +32,8 @@ const formatQuestions = (questions, allAnswers) => (
 const buildRefereeAnswers = testQuestions => (
   testQuestions.map(question => ({ question_id: question.questionId, answer_id: question.selectedAnswer }))
 )
+
+const hasSelectedAnswer = currentQuestion => currentQuestion && !isEmpty(currentQuestion.selectedAnswer)
 
 class StartTest extends Component {
   static propTypes = {
@@ -186,17 +188,33 @@ class StartTest extends Component {
   renderButtons = () => {
     const { testStarted, testFinished } = this.state
     const nextContent = this.isLastQuestion ? 'Finish' : 'Next'
+    const isNextDisabled = !hasSelectedAnswer(this.currentQuestion)
+    let renderedContent
+
+    if (!testStarted) {
+      renderedContent = (
+        <Fragment>
+          <Button color="blue" onClick={this.handleGoBackToProfile} content="Go Back to Profile" />
+          {!testFinished && <Button color="green" onClick={this.handleStartTest} content="Start Test" />}
+        </Fragment>
+      )
+    } else {
+      renderedContent = (
+        <Fragment>
+          {!this.isFirstQuestion && <Button onClick={this.handleQuestionChange('prev')} content="Previous" />}
+          <Button
+            color="blue"
+            disabled={isNextDisabled}
+            onClick={this.handleQuestionChange('next')}
+            content={nextContent}
+          />
+        </Fragment>
+      )
+    }
 
     return (
       <div>
-        {!testStarted && <Button color="blue" onClick={this.handleGoBackToProfile} content="Go Back to Profile" />}
-        {!testStarted && !testFinished && <Button color="green" onClick={this.handleStartTest} content="Start Test" />}
-        {
-          testStarted
-          && !this.isFirstQuestion
-          && <Button onClick={this.handleQuestionChange('prev')} content="Previous" />
-        }
-        {testStarted && <Button color="blue" onClick={this.handleQuestionChange('next')} content={nextContent} />}
+        {renderedContent}
       </div>
     )
   }
@@ -213,6 +231,7 @@ class StartTest extends Component {
         <Divider />
         <Header as="h4">{`You will have ${timeLimit} minutes to complete this test.`}</Header>
         <Header as="h4">Once you begin you may not exit the test.</Header>
+        <Header as="h4">If you go over the time limit you will not pass the test.</Header>
         <Header as="h4">
           If you need more time to complete this test due to documented test taking challenges please contact
           <a href="mailto:referees@iqasport.org"> referees@iqasport.org</a>
