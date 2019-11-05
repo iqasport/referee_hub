@@ -59,7 +59,7 @@ module Services
 
     def create_test_result(points_scored, points_available)
       return nil if already_has_test_result?
-      percentage = ((points_scored.to_f / points_available) * 100).round
+      percentage = calculate_percentage(points_scored, points_available)
       is_over_limit = TimeDifference.between(started_at, finished_at).in_minutes > test.time_limit
       test_results_hash = {
         duration: calculate_duration.to_s,
@@ -88,6 +88,12 @@ module Services
       minutes = general[:minutes].zero? ? '00' : general[:minutes]
 
       "00:#{minutes}:#{seconds}"
+    end
+
+    def calculate_percentage(points_scored, points_available)
+      return 0 if points_scored.zero? || points_available.zero?
+
+      ((points_scored.to_f / points_available) * 100).round
     end
 
     def send_result_email(test_result)
