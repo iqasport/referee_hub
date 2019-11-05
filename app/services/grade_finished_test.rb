@@ -84,8 +84,8 @@ module Services
 
     def calculate_duration
       general = TimeDifference.between(started_at, finished_at).in_general
-      seconds = general[:seconds].zero? ? '00' : general[:seconds]
-      minutes = general[:minutes].zero? ? '00' : general[:minutes]
+      seconds = general[:seconds] < 10 ? "0#{general[:seconds]}" : general[:seconds]
+      minutes = general[:minutes] < 10 ? "0#{general[:minutes]}" : general[:minutes]
 
       "00:#{minutes}:#{seconds}"
     end
