@@ -114,4 +114,30 @@ describe Services::GradeFinishedTest do
       end
     end
   end
+
+  context 'when points scored or available are 0' do
+    let(:referee_answers) { [] }
+    let(:expected_test_result) do
+      {
+        test_id: test.id,
+        referee_id: referee.id,
+        duration: '00:15:00',
+        minimum_pass_percentage: test.minimum_pass_percentage,
+        passed: false,
+        percentage: 0,
+        points_available: 0,
+        points_scored: 0,
+        test_level: test.level
+      }
+    end
+
+    it 'creates a test attempt' do
+      expect { subject }.to change { referee.test_attempts.count }.by(1)
+      expect(referee.test_attempts.last.test).to eq test
+    end
+
+    it 'returns a test result' do
+      expect(subject).to have_attributes(expected_test_result)
+    end
+  end
 end
