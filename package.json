@@ -5,7 +5,7 @@
     "@bugsnag/js": "^6.4.1",
     "@bugsnag/plugin-react": "^6.4.0",
     "@rails/webpacker": "3.5",
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "babel-preset-react": "^6.24.1",
     "dotenv": "^6.0.0",
     "immutable": "^3.8.2",
