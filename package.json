@@ -1,6 +1,10 @@
 {
   "name": "referee_hub",
   "private": true,
+  "engines": {
+    "node": "8.10",
+    "yarn": "1.19.1"
+  },
   "dependencies": {
     "@babel/preset-react": "^7.7.0",
     "@bugsnag/js": "^6.4.1",
