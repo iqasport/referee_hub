@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import { Header, Pagination, Segment } from 'semantic-ui-react'
-import RefereeTable from './RefereeTable'
+import RefereeTable from '../components/RefereeTable'
 
 const mapRefereeData = (certifications, nationalGoverningBodies) => ({ id, attributes, relationships }) => {
   const name = `${attributes.first_name} ${attributes.last_name}`.trim()
