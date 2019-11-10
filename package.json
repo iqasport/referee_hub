@@ -1,6 +1,10 @@
 {
   "name": "referee_hub",
   "private": true,
+  "engines": {
+    "node": ">=10.15.3",
+    "yarn": ">=1.16.0"
+  },
   "dependencies": {
     "@bugsnag/js": "^6.4.1",
     "@bugsnag/plugin-react": "^6.4.0",
