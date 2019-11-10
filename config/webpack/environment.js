@@ -1,7 +1,5 @@
-/* eslint-disable */
-const { environment } = require("@rails/webpacker");
-const webpack = require("webpack");
-const dotenv = require("dotenv");
+const { environment } = require('@rails/webpacker')
+const dotenv = require('dotenv');
 
 const dotenvFiles = [
   `.env.${process.env.NODE_ENV}.local`,
@@ -13,30 +11,5 @@ const dotenvFiles = [
 dotenvFiles.forEach((dotenvFile) => {
   dotenv.config({ path: dotenvFile, silent: true })
 })
-
-module: {
-  rules: [
-    {
-      test: /\.js(\.erb)?$/,
-      exclude: /node_modules/,
-      loader: "babel-loader",
-      options: {
-        presets: [["env", { modules: false }]]
-      }
-    }
-  ];
-}
-
-environment.loaders.get("sass").use.splice(-1, 0, {
-  loader: "resolve-url-loader",
-  options: {
-    attempts: 1
-  }
-});
-
-environment.plugins.prepend(
-  'Environment',
-  new webpack.EnvironmentPlugin(JSON.parse(JSON.stringify(process.env)))
-)
 
 module.exports = environment
