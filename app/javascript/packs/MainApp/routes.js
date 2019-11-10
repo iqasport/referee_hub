@@ -2,15 +2,15 @@
 import React from 'react'
 import { BrowserRouter as Router, Route } from 'react-router-dom'
 
-import HomePage from './components/HomePage'
-import Referees from './components/Referees'
-import RefereeProfile from './components/RefereeProfile'
-import PrivacyPolicy from './components/PrivacyPolicy'
-import Admin from './components/Admin'
-import RefereeDiagnostic from './components/RefereeDiagnostic'
-import Tests from './components/Tests'
-import Test from './components/Test'
-import StartTest from './components/StartTest'
+import HomePage from './pages/HomePage'
+import Referees from './pages/Referees'
+import RefereeProfile from './pages/RefereeProfile'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import Admin from './pages/Admin'
+import RefereeDiagnostic from './pages/RefereeDiagnostic'
+import Tests from './pages/Tests'
+import Test from './pages/Test'
+import StartTest from './pages/StartTest'
 
 const App = () => (
   <Router>

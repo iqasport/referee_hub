@@ -6,9 +6,9 @@ import {
   Segment, Tab, Header, Message, List, Radio, Button, Modal
 } from 'semantic-ui-react'
 import { isEmpty, capitalize } from 'lodash'
-import ContentSegment from './ContentSegment'
-import TestEditForm from './TestEditForm'
-import QuestionManager from './QuestionManager'
+import ContentSegment from '../components/ContentSegment'
+import TestEditForm from '../components/TestEditForm'
+import QuestionManager from '../components/QuestionManager'
 
 class Test extends Component {
   static propTypes = {

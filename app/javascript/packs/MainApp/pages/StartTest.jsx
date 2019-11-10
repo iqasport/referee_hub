@@ -7,7 +7,7 @@ import {
   Segment, Header, Message, Icon, Divider, Button
 } from 'semantic-ui-react'
 
-import TestTaker from './TestTaker'
+import TestTaker from '../components/TestTaker'
 
 const formatAnswer = ({ id, attributes }) => ({
   id,
@@ -16,12 +16,12 @@ const formatAnswer = ({ id, attributes }) => ({
 
 const formatQuestions = (questions, allAnswers) => (
   questions.reduce((accObj, question, index) => {
-    const questionAnswers = allAnswers.filter(({ attributes }) => String(attributes.question_id) === question.id)
-    const formattedAnswers = questionAnswers.map(formatAnswer)
+    const questionAnswers = allAnswers?.filter(({ attributes }) => String(attributes.question_id) === question.id)
+    const formattedAnswers = questionAnswers?.map(formatAnswer)
     // eslint-disable-next-line no-param-reassign
     accObj[index] = {
-      questionId: question.id,
-      description: question.attributes.description,
+      questionId: question?.id,
+      description: question?.attributes?.description,
       answers: shuffle(formattedAnswers),
       selectedAnswer: null
     }
@@ -30,10 +30,10 @@ const formatQuestions = (questions, allAnswers) => (
 )
 
 const buildRefereeAnswers = testQuestions => (
-  testQuestions.map(question => ({ question_id: question.questionId, answer_id: question.selectedAnswer }))
+  testQuestions?.map(question => ({ question_id: question.questionId, answer_id: question.selectedAnswer }))
 )
 
-const hasSelectedAnswer = currentQuestion => currentQuestion && !isEmpty(currentQuestion.selectedAnswer)
+const hasSelectedAnswer = currentQuestion => !isEmpty(currentQuestion?.selectedAnswer)
 
 class StartTest extends Component {
   static propTypes = {

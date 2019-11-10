@@ -6,7 +6,7 @@ import {
 } from 'semantic-ui-react'
 import axios from 'axios'
 import { capitalize } from 'lodash'
-import TestEditForm from './TestEditForm';
+import TestEditForm from '../components/TestEditForm';
 
 const sanitizeTestData = (test) => {
   const { id, attributes } = test
