@@ -4,7 +4,6 @@ import axios from 'axios'
 import {
   Button, Form, Header, Icon, Message, Modal
 } from 'semantic-ui-react'
-import { isEmpty } from 'lodash'
 
 class RefereeProfileEdit extends Component {
   static propTypes = {
@@ -42,7 +41,7 @@ class RefereeProfileEdit extends Component {
 
   fetchAvailableNationalGoverningBodies = ({ data: { data } }) => {
     this.setState({
-      availableNationalGoverningBodies: data.map(nationalGoverningBody => ({
+      availableNationalGoverningBodies: data?.map(nationalGoverningBody => ({
         id: nationalGoverningBody.id,
         name: nationalGoverningBody.attributes.name,
         website: nationalGoverningBody.attributes.website
@@ -68,10 +67,11 @@ class RefereeProfileEdit extends Component {
 
   handleNGBChange = (_event, { value }) => {
     const { onChange } = this.props
+    const hasRemovedAllNGBs = !value.length
 
     this.setState({
       validationErrors: {
-        noNationalGoverningBody: !value.length
+        noNationalGoverningBody: hasRemovedAllNGBs
       }
     })
     onChange('changedNGBs', value)
@@ -111,8 +111,7 @@ class RefereeProfileEdit extends Component {
         Edit
       </Button>
     )
-    const hasNGBS = !isEmpty(nationalGoverningBodies)
-    const initialNGBValues = hasNGBS ? nationalGoverningBodies.map(ngb => ngb.id) : null
+    const initialNGBValues = nationalGoverningBodies?.map(ngb => ngb.id)
 
     return (
       <Modal open={open} trigger={modalTrigger}>

@@ -15,8 +15,8 @@ import {
   camelCase, uniq, remove, capitalize
 } from 'lodash'
 import { DateTime } from 'luxon'
-import ContentSegment from './ContentSegment'
-import TestResultsTable from './TestResultsTable'
+import ContentSegment from '../components/ContentSegment'
+import TestResultsTable from '../components/TestResultsTable'
 
 const filterByType = (dataToFilter, type) => {
   const filteredData = dataToFilter.filter(dataItem => dataItem.type === type)
