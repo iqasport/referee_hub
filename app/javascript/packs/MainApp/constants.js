@@ -1,5 +1,5 @@
 import { Input, TextArea, Dropdown } from 'semantic-ui-react'
-import { range } from 'lodash'
+import { range, isEmpty, isInteger } from 'lodash'
 
 export const currencyConfig = [
   {
@@ -60,6 +60,9 @@ export const TEST_FORM_CONFIG = (values) => {
   const descPlaceholder = !description ? "What should referee's know about this test before taking it?" : null
   const negFeedbackPlaceholder = !negativeFeedback ? 'Provide feedback after a failed test' : null
   const posFeedbackPlaceholder = !positiveFeedback ? 'Provide feedback after a passed test' : null
+  const testableQuestionCountValue = !isEmpty(testableQuestionCount) || isInteger(testableQuestionCount)
+    ? testableQuestionCount
+    : null
 
   return [
     {
@@ -99,7 +102,7 @@ export const TEST_FORM_CONFIG = (values) => {
       control: Input,
       label: 'Question Count',
       name: 'TestableQuestionCount',
-      value: testableQuestionCount,
+      value: testableQuestionCountValue,
     },
     {
       control: Dropdown,
@@ -108,7 +111,7 @@ export const TEST_FORM_CONFIG = (values) => {
       options: timeLimitDropdown,
       value: timeLimit || undefined,
       defaultValue: !timeLimit ? 18 : undefined,
-      scrolling: 'true'
+      scrolling: true
     },
     {
       control: TextArea,
