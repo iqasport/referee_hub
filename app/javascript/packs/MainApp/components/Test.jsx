@@ -47,6 +47,7 @@ class Test extends Component {
     updatedPositiveFeedback: null,
     updatedTimeLimit: null,
     updatedTestableQuestionCount: null,
+    formHasError: false,
   }
 
   componentDidMount() {
@@ -142,6 +143,8 @@ class Test extends Component {
 
   handleCloseModal = () => this.setState({ editModalOpen: false, confirmModalOpen: false })
 
+  handleHasError = errorState => this.setState({ formHasError: errorState })
+
   handleSubmit = () => {
     const {
       test,
@@ -182,11 +185,12 @@ class Test extends Component {
       values={this.testEditValues}
       onChange={this.handleEditChange}
       onChangeKey="updated"
+      onError={this.handleHasError}
     />
   )
 
   renderModal = () => {
-    const { editModalOpen, confirmModalOpen, test } = this.state
+    const { editModalOpen, confirmModalOpen, test, formHasError } = this.state
     const isOpen = editModalOpen || confirmModalOpen
     const editModalProps = {
       header: `Edit ${test.name}`,
@@ -197,7 +201,8 @@ class Test extends Component {
           key: 'submit',
           content: 'Submit',
           onClick: this.handleSubmit,
-          primary: true
+          primary: true,
+          disabled: formHasError
         }
       ],
       size: 'large',
