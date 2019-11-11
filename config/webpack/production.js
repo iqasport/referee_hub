@@ -2,7 +2,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'production'
 const { BugsnagBuildReporterPlugin, BugsnagSourceMapUploaderPlugin } = require('webpack-bugsnag-plugins')
 const environment = require('./environment')
 
-const apiKey = process.env.RAILS_ENV !== 'production' ? 'iamAFak3apiKey' : process.env.BUGSNAG_API_KEY
+const apiKey = process.env.BUGSNAG_API_KEY || 'iamAFak3apiKey'
 const buildReporter = new BugsnagBuildReporterPlugin({
   apiKey,
   sourceControl: {

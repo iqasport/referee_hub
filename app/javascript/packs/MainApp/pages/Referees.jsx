@@ -7,12 +7,21 @@ import RefereeTable from '../components/RefereeTable'
 
 const mapRefereeData = (certifications, nationalGoverningBodies) => ({ id, attributes, relationships }) => {
   const name = `${attributes.first_name} ${attributes.last_name}`.trim()
-  const mappedCerts = relationships?.referee_certifications?.data?.map(
-    certification => certifications.get(certification.id)
-  )
-  const mappedNGBs = relationships?.national_governing_bodies?.data?.map(
-    nationalGoverningBody => nationalGoverningBodies?.find(ngb => ngb.id === nationalGoverningBody.id)
-  )
+  const mappedCerts = relationships
+    && relationships.referee_certifications
+    && relationships.referee_certifications.data.map(
+      certification => certifications.get(certification.id)
+    )
+
+  const mappedNGBs = relationships
+    && relationships.national_governing_bodies
+    && relationships.national_governing_bodies.data.map(
+      nationalGoverningBody => (
+        nationalGoverningBodies
+          ? nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
+          : false
+      )
+    )
   const isCurrentReferee = attributes.is_editable
 
   return {
@@ -83,7 +92,7 @@ class Referees extends Component {
 
   setAllNGBs = ({ data: { data } }) => {
     this.setState({
-      nationalGoverningBodies: data?.map(nationalGoverningBody => ({
+      nationalGoverningBodies: data.map(nationalGoverningBody => ({
         id: nationalGoverningBody.id,
         name: nationalGoverningBody.attributes.name
       }))

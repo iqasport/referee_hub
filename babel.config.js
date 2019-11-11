@@ -80,12 +80,6 @@ module.exports = function(api) {
         {
           removeImport: true
         }
-      ],
-      [
-        require('@babel/plugin-proposal-optional-chaining').default,
-        {
-          loose: true,
-        }
       ]
     ].filter(Boolean)
   }
