@@ -11,7 +11,7 @@
     "@bugsnag/js": "^6.4.1",
     "@bugsnag/plugin-react": "^6.4.0",
     "@rails/webpacker": "4.0.7",
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "babel-loader": "^8.0.6",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "babel-preset-react": "^6.24.1",
