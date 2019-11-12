@@ -16,7 +16,8 @@ const getDisplayColor = (limit, minutes) => {
 
 class Counter extends Component {
   static propTypes = {
-    timeLimit: PropTypes.number.isRequired
+    timeLimit: PropTypes.number.isRequired,
+    onTimeLimitMet: PropTypes.func.isRequired
   }
 
   constructor(props) {
@@ -27,15 +28,20 @@ class Counter extends Component {
       seconds: 0
     }
 
-    this.startCounter()
+    this.interval = setInterval(this.handleTick, 1000)
   }
 
-  startCounter = () => {
-    setInterval(this.handleTick, 1000)
+  componentWillUnmount() {
+    clearInterval(this.interval)
   }
 
   handleTick = () => {
-    const { seconds } = this.state
+    const { seconds, minutes } = this.state
+    const { timeLimit, onTimeLimitMet } = this.props
+
+    if (minutes === timeLimit - 1 && seconds === 59) {
+      onTimeLimitMet()
+    }
 
     if (seconds < 59) {
       this.setState(prevState => ({ seconds: prevState.seconds + 1 }))

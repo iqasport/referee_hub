@@ -129,21 +129,18 @@ class CertificationLinks extends Component {
     const {
       link, title, enabled, color
     } = test
-    const { refereeId } = this.props
     if (!enabled) return null
 
-    // if link matches classmarker treat as href, otherwise push to test start route
-    const isClassmarker = /classmarker/.test(link)
     const labelProps = {
       key: title,
       size: 'big',
-      as: isClassmarker ? 'a' : 'button',
-      href: isClassmarker ? `${link}&cm_user_id=${refereeId}` : null,
-      onClick: isClassmarker ? null : this.handleTestClick(link),
-      target: isClassmarker ? '_blank' : null,
-      rel: isClassmarker ? 'noopener noreferrer' : null,
+      as: 'button',
+      onClick: this.handleTestClick(link),
       content: title,
       color,
+      style: {
+        cursor: 'pointer'
+      }
     }
 
     return <Label {...labelProps} />

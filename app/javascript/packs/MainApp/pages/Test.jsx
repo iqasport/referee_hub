@@ -190,7 +190,9 @@ class Test extends Component {
   )
 
   renderModal = () => {
-    const { editModalOpen, confirmModalOpen, test, formHasError } = this.state
+    const {
+      editModalOpen, confirmModalOpen, test, formHasError
+    } = this.state
     const isOpen = editModalOpen || confirmModalOpen
     const editModalProps = {
       header: `Edit ${test.name}`,

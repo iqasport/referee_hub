@@ -33,7 +33,7 @@ const buildRefereeAnswers = testQuestions => (
   testQuestions.map(question => ({ question_id: question.questionId, answer_id: question.selectedAnswer }))
 )
 
-const hasSelectedAnswer = currentQuestion => !isEmpty(currentQuestion.selectedAnswer)
+const hasSelectedAnswer = currentQuestion => currentQuestion && !isEmpty(currentQuestion.selectedAnswer)
 
 class StartTest extends Component {
   static propTypes = {
@@ -269,10 +269,11 @@ class StartTest extends Component {
     return (
       <TestTaker
         timeLimit={timeLimit}
-        currentQuestion={testQuestions[currentQuestionIndex]}
+        currentQuestion={this.currentQuestion}
         onAnswerSelect={this.handleAnswerSelect}
         totalQuestionCount={size(testQuestions)}
         currentQuestionIndex={currentQuestionIndex + 1}
+        onTimeLimitMet={this.handleFinishTest}
       />
     )
   }

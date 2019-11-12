@@ -23,6 +23,7 @@ class TestTaker extends Component {
     timeLimit: PropTypes.number.isRequired,
     totalQuestionCount: PropTypes.number.isRequired,
     currentQuestionIndex: PropTypes.number.isRequired,
+    onTimeLimitMet: PropTypes.func.isRequired
   }
 
   handleAnswerChange = (answerId) => {
@@ -51,7 +52,7 @@ class TestTaker extends Component {
 
   render() {
     const {
-      currentQuestion, timeLimit, currentQuestionIndex, totalQuestionCount
+      currentQuestion, timeLimit, currentQuestionIndex, totalQuestionCount, onTimeLimitMet
     } = this.props
 
     return (
@@ -63,7 +64,7 @@ class TestTaker extends Component {
           size="medium"
           color="teal"
         />
-        <Counter timeLimit={timeLimit} />
+        <Counter timeLimit={timeLimit} onTimeLimitMet={onTimeLimitMet} />
         <div dangerouslySetInnerHTML={{ __html: currentQuestion.description }} />
         <Divider />
         <div style={{ width: '50%', margin: '0 auto' }}>

@@ -48,9 +48,16 @@ module Services
 
     def grade_answers
       total_points_scored = 0
-      total_points_available = 0
+      # debugger
+      # This is to handle referees not completing every question. At the time of this change there were no questions
+      # with points_available greater than 1. This may need to be revisited if we adjust that in the future
+      total_points_available = test
+        .questions
+        .limit(test.testable_question_count)
+        .pluck(:points_available)
+        .inject {|points_available, point| points_available + point }
+
       test_attempt.referee_answers.includes(:question, :answer).each do |referee_answer|
-        total_points_available += referee_answer.question.points_available
         total_points_scored += 1 if referee_answer.correct?
       end
 
@@ -91,7 +98,7 @@ module Services
     end
 
     def calculate_percentage(points_scored, points_available)
-      return 0 if points_scored.zero? || points_available.zero?
+      return 0 if points_scored.zero?
 
       ((points_scored.to_f / points_available) * 100).round
     end
