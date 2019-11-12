@@ -26,5 +26,6 @@ FactoryBot.define do
     name { "#{FFaker::Job.title} Test" }
     description { FFaker::Lorem.paragraph }
     language { FFaker::Locale.language }
+    testable_question_count 5
   end
 end

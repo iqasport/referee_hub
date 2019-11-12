@@ -269,10 +269,11 @@ class StartTest extends Component {
     return (
       <TestTaker
         timeLimit={timeLimit}
-        currentQuestion={testQuestions[currentQuestionIndex]}
+        currentQuestion={this.currentQuestion}
         onAnswerSelect={this.handleAnswerSelect}
         totalQuestionCount={size(testQuestions)}
         currentQuestionIndex={currentQuestionIndex + 1}
+        onTimeLimitMet={this.handleFinishTest}
       />
     )
   }

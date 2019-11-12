@@ -1,5 +1,5 @@
 /* eslint-disable react/no-danger */
-import React, { Component, Fragment } from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {
   Form, Checkbox, Button
@@ -99,9 +99,9 @@ class Answer extends Component {
       />
     )
     return (
-      <Fragment>
+      <div style={{ marginLeft: '10px' }}>
         {isEditing ? input : renderedText}
-      </Fragment>
+      </div>
     )
   }
 

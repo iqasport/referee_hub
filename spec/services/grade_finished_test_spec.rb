@@ -125,7 +125,7 @@ describe Services::GradeFinishedTest do
         minimum_pass_percentage: test.minimum_pass_percentage,
         passed: false,
         percentage: 0,
-        points_available: 0,
+        points_available: 5,
         points_scored: 0,
         test_level: test.level
       }
