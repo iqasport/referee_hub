@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_16_230330) do
+ActiveRecord::Schema.define(version: 2019_11_16_232934) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -138,6 +138,16 @@ ActiveRecord::Schema.define(version: 2019_11_16_230330) do
     t.boolean "admin", default: false
     t.index ["email"], name: "index_referees_on_email", unique: true
     t.index ["reset_password_token"], name: "index_referees_on_reset_password_token", unique: true
+  end
+
+  create_table "social_accounts", force: :cascade do |t|
+    t.string "ownable_type"
+    t.bigint "ownable_id"
+    t.string "url", null: false
+    t.integer "account_type", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ownable_type", "ownable_id"], name: "index_social_accounts_on_ownable_type_and_ownable_id"
   end
 
   create_table "team_status_changesets", force: :cascade do |t|

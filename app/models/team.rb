@@ -40,4 +40,5 @@ class Team < ApplicationRecord
   has_many :team_status_changesets, dependent: :destroy
   has_many :referee_teams, dependent: :destroy
   has_many :referees, through: :referee_teams
+  has_many :social_accounts, as: :ownable, dependent: :destroy
 end
