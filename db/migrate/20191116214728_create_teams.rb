@@ -7,7 +7,7 @@ class CreateTeams < ActiveRecord::Migration[5.2]
       t.string :country, null: false
       t.integer :status, default: 0
       t.integer :type, default: 0
-      t.references :national_governing_body, null: false
+      t.references :national_governing_body, foreign_key: true
 
       t.timestamps
     end

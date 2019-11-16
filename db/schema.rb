@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_16_214728) do
+ActiveRecord::Schema.define(version: 2019_11_16_220548) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -107,6 +107,15 @@ ActiveRecord::Schema.define(version: 2019_11_16_214728) do
     t.index ["reset_password_token"], name: "index_referees_on_reset_password_token", unique: true
   end
 
+  create_table "team_status_changesets", force: :cascade do |t|
+    t.bigint "team_id"
+    t.string "previous_status"
+    t.string "new_status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["team_id"], name: "index_team_status_changesets_on_team_id"
+  end
+
   create_table "teams", force: :cascade do |t|
     t.string "name", null: false
     t.string "city", null: false
@@ -114,7 +123,7 @@ ActiveRecord::Schema.define(version: 2019_11_16_214728) do
     t.string "country", null: false
     t.integer "status", default: 0
     t.integer "type", default: 0
-    t.bigint "national_governing_body_id", null: false
+    t.bigint "national_governing_body_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["national_governing_body_id"], name: "index_teams_on_national_governing_body_id"
@@ -164,4 +173,6 @@ ActiveRecord::Schema.define(version: 2019_11_16_214728) do
     t.integer "testable_question_count", default: 0, null: false
   end
 
+  add_foreign_key "team_status_changesets", "teams"
+  add_foreign_key "teams", "national_governing_bodies"
 end
