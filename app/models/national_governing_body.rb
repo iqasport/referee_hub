@@ -15,4 +15,5 @@ class NationalGoverningBody < ApplicationRecord
   has_many :referee_locations, dependent: :destroy
   has_many :referees, through: :referee_locations
   has_many :certified_referees, -> { certified }, through: :referee_locations, source: :referee
+  has_many :teams, dependent: :destroy
 end
