@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_16_225149) do
+ActiveRecord::Schema.define(version: 2019_11_16_230330) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -40,6 +40,24 @@ ActiveRecord::Schema.define(version: 2019_11_16_225149) do
     t.string "image_url"
     t.string "country"
     t.string "acronym"
+  end
+
+  create_table "national_governing_body_stats", force: :cascade do |t|
+    t.bigint "national_governing_body_id"
+    t.integer "total_referees_count", default: 0
+    t.integer "head_referees_count", default: 0
+    t.integer "assistant_referees_count", default: 0
+    t.integer "snitch_referees_count", default: 0
+    t.integer "competitive_teams_count", default: 0
+    t.integer "developing_teams_count", default: 0
+    t.integer "inactive_teams_count", default: 0
+    t.integer "youth_teams_count", default: 0
+    t.integer "university_teams_count", default: 0
+    t.integer "community_teams_count", default: 0
+    t.integer "team_status_change_count", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["national_governing_body_id"], name: "ngb_stats_on_ngb_id"
   end
 
   create_table "questions", force: :cascade do |t|
@@ -188,6 +206,7 @@ ActiveRecord::Schema.define(version: 2019_11_16_225149) do
     t.integer "testable_question_count", default: 0, null: false
   end
 
+  add_foreign_key "national_governing_body_stats", "national_governing_bodies"
   add_foreign_key "referee_teams", "referees"
   add_foreign_key "referee_teams", "teams"
   add_foreign_key "team_status_changesets", "teams"
