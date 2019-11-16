@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_16_220548) do
+ActiveRecord::Schema.define(version: 2019_11_16_221614) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -82,6 +82,17 @@ ActiveRecord::Schema.define(version: 2019_11_16_220548) do
     t.index ["referee_id", "national_governing_body_id"], name: "index_referee_locations_on_referee_id_and_ngb_id", unique: true
   end
 
+  create_table "referee_teams", force: :cascade do |t|
+    t.bigint "team_id"
+    t.bigint "referee_id"
+    t.integer "association_type", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["referee_id", "association_type"], name: "index_referee_teams_on_referee_id_and_association_type", unique: true
+    t.index ["referee_id"], name: "index_referee_teams_on_referee_id"
+    t.index ["team_id"], name: "index_referee_teams_on_team_id"
+  end
+
   create_table "referees", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -122,7 +133,7 @@ ActiveRecord::Schema.define(version: 2019_11_16_220548) do
     t.string "state"
     t.string "country", null: false
     t.integer "status", default: 0
-    t.integer "type", default: 0
+    t.integer "group_affiliation", default: 0
     t.bigint "national_governing_body_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -173,6 +184,8 @@ ActiveRecord::Schema.define(version: 2019_11_16_220548) do
     t.integer "testable_question_count", default: 0, null: false
   end
 
+  add_foreign_key "referee_teams", "referees"
+  add_foreign_key "referee_teams", "teams"
   add_foreign_key "team_status_changesets", "teams"
   add_foreign_key "teams", "national_governing_bodies"
 end

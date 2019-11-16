@@ -45,6 +45,9 @@ class Referee < ApplicationRecord
   has_many :test_attempts, dependent: :destroy
   has_many :referee_answers, dependent: :destroy
 
+  has_many :referee_teams, dependent: :destroy
+  has_many :teams, through: :referee_teams
+
   scope :certified, -> { joins(:certifications).group('referees.id') }
 
   self.per_page = 25

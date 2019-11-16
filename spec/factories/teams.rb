@@ -28,8 +28,8 @@ FactoryBot.define do
     city 'Washington'
     state 'DC'
     country 'United States'
-    status 1
-    type 1
+    status 0
+    group_affiliation 0
     national_governing_body { create :national_governing_body }
   end
 end
