@@ -32,7 +32,7 @@ RSpec.describe RefereeTeam, type: :model do
 
   context 'when a referee already has a team' do
     let(:ngb) { create :national_governing_body }
-    let(:referee) { create :referee }
+    let(:referee) { create :user, :referee }
     let(:team_1) { create :team, national_governing_body: ngb }
     let(:team_2) { create :team, national_governing_body: ngb }
     let!(:existing_referee_team) { create :referee_team, team: team_1, referee: referee, association_type: 'player' }

@@ -14,13 +14,13 @@
 #
 # Indexes
 #
-#  index_referee_certifications_on_referee_id_and_certification_id  (referee_id,certification_id) UNIQUE WHERE (revoked_at IS NULL)
+#  index_referee_certs_on_ref_id_and_cert_id  (referee_id,certification_id) UNIQUE WHERE (revoked_at IS NULL)
 #
 
 require 'rails_helper'
 
 RSpec.describe RefereeCertification, type: :model do
-  let(:referee) { create :referee }
+  let(:referee) { create :user, :referee }
   let(:certification) { create :certification }
   let(:ref_cert) { build :referee_certification, referee: referee, certification: certification }
 

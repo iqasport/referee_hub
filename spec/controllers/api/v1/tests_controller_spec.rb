@@ -1,12 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::TestsController, type: :controller do
-  let(:admin) { create :referee, admin: true }
+  let(:admin) { create :user, :iqa_admin }
   let!(:cert) { create :certification, :snitch }
 
   shared_examples 'it fails when a referee is not an admin' do
-    let(:other_ref) { create :referee }
-    let(:expected_error) { ApplicationController::REFEREE_UNAUTHORIZED }
+    let(:other_ref) { create :user, :referee }
+    let(:expected_error) { ApplicationController::USER_UNAUTHORIZED }
 
     before { sign_in other_ref }
 
@@ -226,7 +226,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   end
 
   describe 'GET #start' do
-    let(:tester_ref) { create :referee }
+    let(:tester_ref) { create :user, :referee }
     let(:question_count) { 2 }
     let(:test) { create :test, testable_question_count: question_count }
     let!(:questions) { create_list(:question, 5, test: test) }
@@ -302,7 +302,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   end
 
   describe 'POST #finish' do
-    let(:tester_ref) { create :referee }
+    let(:tester_ref) { create :user, :referee }
     let(:test) { create :test }
     let(:questions) { create_list(:question, 5, test: test) }
     let(:started_at) { Time.now.utc }
