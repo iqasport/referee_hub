@@ -1,7 +1,7 @@
 module Api
   module V1
     class RefereeCertificationsController < ::ApplicationController
-      before_action :authenticate_referee!
+      before_action :authenticate_user!
       before_action :find_referee_certification, only: :update
       before_action :verify_admin, only: :create
       skip_before_action :verify_authenticity_token
@@ -9,7 +9,7 @@ module Api
       layout false
 
       def index
-        @referee_certifications = current_referee.referee_certifications
+        @referee_certifications = current_user.referee_certifications
 
         json_string = RefereeCertificationSerializer.new(@referee_certifications).serialized_json
 
@@ -48,7 +48,7 @@ module Api
       private
 
       def find_referee_certification
-        @referee_certification = current_referee.referee_certifications.find_by(id: params[:id])
+        @referee_certification = current_user.referee_certifications.find_by(id: params[:id])
       end
 
       def find_certification(level)

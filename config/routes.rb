@@ -2,13 +2,13 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
-  authenticate :referee, proc { |referee| referee.admin? } do
+  authenticate :user, proc { |user| user.iqa_admin? } do
     mount Sidekiq::Web => '/sidekiq'
   end
 
   namespace :api do
     namespace :v1 do
-      resources :referees, only: %i[index show update]
+      resources :users, only: %i[index show update]
       resources :national_governing_bodies, only: %i[index show]
       resources :referee_certifications, only: %i[index create update]
       resources :tests, only: %i[index create show update destroy] do
@@ -28,6 +28,9 @@ Rails.application.routes.draw do
       end
 
       post 'tests/import', to: 'tests#import'
+      get 'referees' => 'referees#index'
+      get 'referees/:id' => 'referees#show'
+      put 'referees/:id' => 'referees#update'
     end
   end
 
@@ -43,22 +46,22 @@ Rails.application.routes.draw do
 
   post 'webhook', to: 'classmarker#webhook'
 
-  devise_scope :referee do
-    get '/sign_up' => 'devise/registrations#new', as: :referee_registration
-    get '/sign_in' => 'devise/sessions#new', as: :new_referee_session
-    post '/sign_in' => 'devise/sessions#create', as: :referee_session
-    delete '/sign_out' => 'devise/sessions#destroy', as: :destroy_referee_session
-    get '/password' => 'devise/passwords#new', as: :new_referee_password
-    get '/password/edit' => 'devise/passwords#edit', as: :edit_referee_password
-    patch '/password' => 'devise/passwords#update', as: :update_referee_password
-    post '/password' => 'devise/passwords#create', as: :create_referee_password
-    get 'register/cancel' => 'devise/registrations#cancel', as: :cancel_referee_registration
-    patch '/register' => 'devise/registrations#update', as: :update_referee_registration
-    delete '/register' => 'devise/registrations#destroy', as: :destroy_referee_registration
-    post '/register' => 'devise/registrations#create', as: :create_referee_registration
+  devise_scope :user do
+    get '/sign_up' => 'devise/registrations#new', as: :user_registration
+    get '/sign_in' => 'devise/sessions#new', as: :new_user_session
+    post '/sign_in' => 'devise/sessions#create', as: :user_session
+    delete '/sign_out' => 'devise/sessions#destroy', as: :destroy_user_session
+    get '/password' => 'devise/passwords#new', as: :new_user_password
+    get '/password/edit' => 'devise/passwords#edit', as: :edit_user_password
+    patch '/password' => 'devise/passwords#update', as: :update_user_password
+    post '/password' => 'devise/passwords#create', as: :create_user_password
+    get 'register/cancel' => 'devise/registrations#cancel', as: :cancel_user_registration
+    patch '/register' => 'devise/registrations#update', as: :update_user_registration
+    delete '/register' => 'devise/registrations#destroy', as: :destroy_user_registration
+    post '/register' => 'devise/registrations#create', as: :create_user_registration
   end
 
-  devise_for :referees, skip: :all
+  devise_for :users, skip: :all
 
   root to: 'home#index'
 end

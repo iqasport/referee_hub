@@ -1,7 +1,7 @@
 module Api
   module V1
     class DiagnosticController < ApplicationController
-      before_action :authenticate_referee!
+      before_action :authenticate_user!
       before_action :verify_admin
       skip_before_action :verify_authenticity_token
 
@@ -14,7 +14,7 @@ module Api
           json_string = RefereeSerializer.new(
             referee,
             include: %i[referee_certifications national_governing_bodies test_attempts test_results],
-            params: { current_user: current_referee, include_tests: true }
+            params: { current_user: current_user, include_tests: true }
           ).serialized_json
 
           render json: json_string, status: :ok
@@ -24,13 +24,13 @@ module Api
       end
 
       def update_payment
-        referee = Referee.find_by(id: permitted_params[:referee_id])
+        referee = User.find_by(id: permitted_params[:referee_id])
 
         if referee.update!(submitted_payment_at: permitted_params[:submitted_payment_at])
           json_string = RefereeSerializer.new(
             referee,
             include: %i[referee_certifications national_governing_bodies test_attempts test_results],
-            params: { current_user: current_referee, include_tests: true }
+            params: { current_user: current_user, include_tests: true }
           ).serialized_json
 
           render json: json_string, status: :ok
@@ -48,7 +48,7 @@ module Api
       def find_referee
         search_query = permitted_params.delete(:referee_search)
 
-        Referee.find_by email: search_query
+        User.find_by email: search_query
       end
     end
   end

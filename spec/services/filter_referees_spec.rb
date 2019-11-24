@@ -4,7 +4,7 @@ require 'json'
 RSpec.describe Services::FilterReferees do
   let(:ngb) { create :national_governing_body }
   let(:cert) { create :certification, :snitch }
-  let(:referees) { create_list :referee, 3 }
+  let(:referees) { create_list :user, 3, :referee }
   let(:search_query) { 'test' }
   let(:certifications) { ['snitch'] }
   let(:ngbs) { [ngb.id] }
@@ -74,7 +74,7 @@ RSpec.describe Services::FilterReferees do
   end
 
   context 'when searching by name' do
-    let!(:referee) { create :referee }
+    let!(:referee) { create :user, :referee }
     let(:search_query) { 'nap' }
     let(:params) { { q: search_query } }
 
@@ -140,6 +140,18 @@ RSpec.describe Services::FilterReferees do
           expect(subject.length).to eq 0
         end
       end
+    end
+  end
+
+  context 'with different user types' do
+    let(:search_query) { nil }
+    let(:certifications) { nil }
+    let(:ngbs) { nil }
+
+    before { create_list(:user, 3, :iqa_admin) }
+
+    it 'should return only referee user types' do
+      expect(subject.length).to eq referees.length
     end
   end
 end

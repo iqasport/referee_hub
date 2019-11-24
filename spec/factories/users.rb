@@ -3,6 +3,7 @@
 # Table name: users
 #
 #  id                           :bigint(8)        not null, primary key
+#  admin                        :boolean          default(FALSE)
 #  bio                          :text
 #  confirmation_sent_at         :datetime
 #  confirmation_token           :string
@@ -43,5 +44,23 @@ FactoryBot.define do
     last_name { FFaker::Name.last_name }
     email { "#{first_name}.#{last_name}@example.com" }
     password { 'password' }
+
+    trait :referee do
+      after(:create) do |user, _|
+        create(:role, access_type: 'referee', user: user)
+      end
+    end
+
+    trait :iqa_admin do
+      after(:create) do |user, _|
+        create(:role, access_type: 'iqa_admin', user: user)
+      end
+    end
+
+    trait :ngb_admin do
+      after(:create) do |user, _|
+        create(:role, access_type: 'ngb_admin', user: user)
+      end
+    end
   end
 end

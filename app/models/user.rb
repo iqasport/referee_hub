@@ -3,6 +3,7 @@
 # Table name: users
 #
 #  id                           :bigint(8)        not null, primary key
+#  admin                        :boolean          default(FALSE)
 #  bio                          :text
 #  confirmation_sent_at         :datetime
 #  confirmation_token           :string
@@ -42,6 +43,27 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :trackable, :validatable, :confirmable, :lockable
 
   has_many :roles, dependent: :destroy
+  has_many :referee_locations, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
+  has_many :national_governing_bodies, through: :referee_locations
+
+  has_many :referee_certifications, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
+  has_many :certifications, through: :referee_certifications
+
+  has_many :test_results, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
+  has_many :test_attempts, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
+  has_many :referee_answers, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
+
+  has_many :referee_teams, dependent: :destroy
+  has_many :teams, through: :referee_teams
+
+  scope :certified, -> { joins(:certifications).group('referees.id') }
+  scope :referee, -> { where(roles: { access_type: 'referee' }) }
+
+  self.per_page = 25
+
+  def iqa_admin?
+    roles.exists?(access_type: 'iqa_admin')
+  end
 
   protected
 

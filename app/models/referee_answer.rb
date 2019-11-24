@@ -24,7 +24,7 @@ class RefereeAnswer < ApplicationRecord
   belongs_to :answer
   belongs_to :question
   belongs_to :test
-  belongs_to :referee
+  belongs_to :referee, class_name: 'User'
   belongs_to :test_attempt
 
   delegate :correct?, to: :answer

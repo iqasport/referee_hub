@@ -1,7 +1,7 @@
 module Api
   module V1
     class TestsController < ApplicationController
-      before_action :authenticate_referee!
+      before_action :authenticate_user!
       before_action :verify_admin, only: %i[create update destroy import]
       before_action :find_test, only: %i[update show destroy start finish]
       before_action :verify_valid_cool_down, only: :start
@@ -84,7 +84,7 @@ module Api
 
         enqueued_job = GradeJob.perform_later(
           @test,
-          current_referee,
+          current_user,
           test_timestamps,
           hashed_params[:referee_answers]
         )
@@ -137,7 +137,7 @@ module Api
       end
 
       def referee_test_attempts
-        @referee_test_attempts ||= current_referee.test_attempts.send(@test.level).order(created_at: :desc)
+        @referee_test_attempts ||= current_user.test_attempts.send(@test.level).order(created_at: :desc)
       end
 
       def verify_valid_cool_down

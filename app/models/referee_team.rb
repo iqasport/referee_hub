@@ -30,5 +30,5 @@ class RefereeTeam < ApplicationRecord
   validates :association_type, uniqueness: { scope: :referee_id }
 
   belongs_to :team
-  belongs_to :referee
+  belongs_to :referee, class_name: 'User'
 end

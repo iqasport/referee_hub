@@ -26,7 +26,7 @@ class RefereeCertification < ApplicationRecord
   CERTIFICATIONS_WITHOUT_PREREQS = %w[snitch assistant].freeze
 
   belongs_to :certification
-  belongs_to :referee
+  belongs_to :referee, class_name: 'User'
 
   validate :required_certifications, on: :create
 
