@@ -55,10 +55,13 @@ Rails.application.routes.draw do
     get '/password/edit' => 'devise/passwords#edit', as: :edit_user_password
     patch '/password' => 'devise/passwords#update', as: :update_user_password
     post '/password' => 'devise/passwords#create', as: :create_user_password
-    get 'register/cancel' => 'devise/registrations#cancel', as: :cancel_user_registration
+    get '/register/cancel' => 'devise/registrations#cancel', as: :cancel_user_registration
     patch '/register' => 'devise/registrations#update', as: :update_user_registration
     delete '/register' => 'devise/registrations#destroy', as: :destroy_user_registration
     post '/register' => 'devise/registrations#create', as: :create_user_registration
+    get '/confirmation/new' => 'devise/confirmations#new', as: :new_user_confirmation
+    get '/confirmation' => 'devise/confirmations#show', as: :user_confirmation
+    post '/confirmation' => 'devise/confirmations#create'
   end
 
   devise_for :users, skip: :all

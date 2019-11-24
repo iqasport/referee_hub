@@ -13,11 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   bugsnagClient.use(bugsnagReact, React);
   var ErrorBoundary = bugsnagClient.getPlugin('react');
+  var domElement = document.getElementById('main-app')
+  if(!domElement) return
 
   ReactDOM.render(
     <ErrorBoundary>
       <Routes />
     </ErrorBoundary>,
-    document.getElementById('main-app')
+    domElement
   );
 });

@@ -31,8 +31,14 @@
         <% end %>
       </div>
     </div>
-    <p class="notice"><%= notice %></p>
-    <p class="alert"><%= alert %></p>
+    <% if flash.present? %>
+      <div style='flex:1;margin:40px 0 0 0;'>
+        <% flash.each do |key, value| %>
+          <% next if key != 'error'%>
+          <p class=<%="alert ui #{key} message center"%>><%= value %></p>
+        <% end %>
+      </div>
+    <% end %>
     <%= yield %>
     <div class='ui inverted vertical footer segment' style='margin-top:50px;'>
       <div class='ui container'>

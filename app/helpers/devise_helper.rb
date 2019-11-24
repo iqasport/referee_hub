@@ -6,7 +6,7 @@ module DeviseHelper
     sentence = 'Uh Oh! Looks like there were some issues creating your account'
 
     html = <<-HTML
-    <div id="error_explanation" class='ui error message'>
+    <div id='error_explanation' class='ui error message'>
       <h2>#{sentence}</h2>
       <ul class='list'>#{messages}</ul>
     </div>
