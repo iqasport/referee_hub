@@ -1,57 +1,9 @@
 require 'rails_helper'
+require_relative '_shared_examples'
 
 RSpec.describe Api::V1::TestsController, type: :controller do
   let(:admin) { create :user, :iqa_admin }
   let!(:cert) { create :certification, :snitch }
-
-  shared_examples 'it fails when a referee is not an admin' do
-    let(:other_ref) { create :user, :referee }
-    let(:expected_error) { ApplicationController::USER_UNAUTHORIZED }
-
-    before { sign_in other_ref }
-
-    it 'returns an error' do
-      subject
-
-      expect(response).to have_http_status(:unauthorized)
-    end
-
-    it 'returns an error message' do
-      subject
-
-      response_data = JSON.parse(response.body)['error']
-
-      expect(response_data).to eq expected_error
-    end
-  end
-
-  shared_examples 'it reports to bugsnag on failure' do |method|
-    before do
-      allow_any_instance_of(Test).to receive(method).and_raise(StandardError)
-      allow_any_instance_of(Test).to receive(:errors).and_return(message_double)
-      allow(Bugsnag).to receive(:notify).and_call_original
-    end
-
-    it 'returns an error' do
-      subject
-
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-
-    it 'returns an error message' do
-      subject
-
-      response_data = JSON.parse(response.body)['error']
-
-      expect(response_data).to eq error_message
-    end
-
-    it 'calls bugsnag notify' do
-      expect(Bugsnag).to receive(:notify).at_least(:once)
-
-      subject
-    end
-  end
 
   describe 'GET #index' do
     let!(:tests) { create_list :test, 3 }
@@ -144,7 +96,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       let(:error_message) { ['I am an error'] }
       let(:message_double) { double(full_messages: error_message) }
 
-      it_behaves_like 'it reports to bugsnag on failure', :save!
+      it_behaves_like 'it reports to bugsnag on failure', :save!, Test
     end
   end
 
@@ -173,7 +125,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       let(:error_message) { ['I am an error'] }
       let(:message_double) { double(full_messages: error_message) }
 
-      it_behaves_like 'it reports to bugsnag on failure', :update!
+      it_behaves_like 'it reports to bugsnag on failure', :update!, Test
     end
   end
 
@@ -255,7 +207,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       let(:error_message) { ['I am an error'] }
       let(:message_double) { double(full_messages: error_message) }
 
-      it_behaves_like 'it reports to bugsnag on failure', :fetch_random_questions
+      it_behaves_like 'it reports to bugsnag on failure', :fetch_random_questions, Test
     end
 
     context 'when the test level is in the cool down period' do
