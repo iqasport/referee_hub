@@ -15,6 +15,6 @@
 
 # Join table between Referees and NationalGoverningBody
 class RefereeLocation < ApplicationRecord
-  belongs_to :referee
+  belongs_to :referee, class_name: 'User'
   belongs_to :national_governing_body
 end

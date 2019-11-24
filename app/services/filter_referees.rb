@@ -1,16 +1,21 @@
 module Services
   class FilterReferees
-    attr_accessor :search_query, :certifications, :national_governing_bodies, :relation
+    attr_accessor :search_query, :certifications, :national_governing_bodies, :relation, :query_hash
 
     def initialize(params)
       @search_query = params.delete(:q)
       @certifications = params.delete(:certifications)
       @national_governing_bodies = params.delete(:national_governing_bodies)
-      @relation = Referee.includes(:certifications, :national_governing_bodies).all
+      @relation = User.includes(:certifications, :national_governing_bodies, :roles).referee.all
+      @query_hash = {
+        search: search_query,
+        certifications: certifications,
+        national_governing_bodies: national_governing_bodies
+      }
     end
 
     def filter
-      return relation if certifications.blank? && search_query.blank? && national_governing_bodies.blank?
+      return relation if query_hash.values.blank?
 
       @relation = search_by_name if search_query.present?
       @relation = filter_by_certification if certifications.present?

@@ -16,17 +16,17 @@
   <body style='display: flex;min-height: 100vh;flex-direction: column;'>
     <div class='ui inverted fixed menu'>
       <div class='ui container'>
-        <% if referee_signed_in? %>
-          <%= link_to 'Sign Out', destroy_referee_session_path, method: :delete, class: 'item' %>
-          <%= link_to 'View Profile', "/referees/#{current_referee.id}", class: 'item' %>
+        <% if user_signed_in? %>
+          <%= link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'item' %>
+          <%= link_to 'View Profile', "/referees/#{current_user.id}", class: 'item' %>
         <% else %>
-          <%= link_to 'Signup', referee_registration_path, class: 'item' %>
-          <%= link_to 'Login', new_referee_session_path, class: 'item' %>
+          <%= link_to 'Signup', user_registration_path, class: 'item' %>
+          <%= link_to 'Login', new_user_session_path, class: 'item' %>
         <% end %>
 
         <%= link_to 'View All Referees', '/referees', class: 'item' %>
 
-        <% if referee_signed_in? && current_referee.admin? %>
+        <% if user_signed_in? && current_user.iqa_admin? %>
           <%= link_to 'Admin Tools', '/admin', class: 'item' %>
         <% end %>
       </div>

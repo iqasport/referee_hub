@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::RefereesController, type: :controller do
   describe 'GET #index' do
-    let!(:referees) { create_list :referee, 3 }
+    let!(:referees) { create_list :user, 3 }
 
     subject { get :index }
 
@@ -115,7 +115,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
   end
 
   describe 'GET #show' do
-    let!(:referee) { create :referee }
+    let!(:referee) { create :user, :referee }
 
     subject { get :show, params: { id: referee.id } }
 
@@ -151,7 +151,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
     end
 
     context 'when the referee signed in is different than the one being shown' do
-      let!(:other_ref) { create :referee }
+      let!(:other_ref) { create :user, :referee }
 
       before { sign_in other_ref }
 
@@ -166,7 +166,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
   end
 
   describe 'POST #update' do
-    let!(:referee) { create :referee }
+    let!(:referee) { create :user, :referee }
     let!(:national_governing_bodies) { create_list :national_governing_body, 3 }
     let(:ngb_ids) { national_governing_bodies.pluck(:id) }
 

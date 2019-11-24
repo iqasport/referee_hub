@@ -1,7 +1,7 @@
 module Api
   module V1
     class QuestionsController < ApplicationController
-      before_action :authenticate_referee!
+      before_action :authenticate_user!
       before_action :verify_admin, only: %i[create show update destroy]
       before_action :find_question, only: %i[show update destroy]
       before_action :find_test

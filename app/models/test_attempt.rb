@@ -12,7 +12,7 @@
 #
 
 class TestAttempt < ApplicationRecord
-  belongs_to :referee
+  belongs_to :referee, class_name: 'User'
   belongs_to :test, optional: true
   has_many :referee_answers, dependent: :destroy
 

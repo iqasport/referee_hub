@@ -1,7 +1,7 @@
 module Api
   module V1
     class RefereesController < ::ApplicationController
-      before_action :authenticate_referee!, only: :update
+      before_action :authenticate_user!, only: :update
       before_action :find_referee, only: %i[show update]
       skip_before_action :verify_authenticity_token
 
@@ -18,7 +18,7 @@ module Api
         json_string = RefereeSerializer.new(
           @referees,
           include: [:referee_certifications],
-          params: { current_user: current_referee, include_tests: false },
+          params: { current_user: current_user, include_tests: false },
           meta: { page: page, total: referee_total }
         ).serialized_json
 
@@ -60,7 +60,7 @@ module Api
       end
 
       def find_referee
-        @referee = Referee.find_by(id: params[:id])
+        @referee = User.find_by(id: params[:id])
       end
 
       def find_referees_from_filter
@@ -69,7 +69,7 @@ module Api
         if filter_results.respond_to?(:where)
           filter_results
         else
-          Referee.includes(:national_governing_bodies, :certifications).where(id: filter_results)
+          User.includes(:national_governing_bodies, :certifications).where(id: filter_results)
         end
       end
 
@@ -93,7 +93,7 @@ module Api
       def serializer_options
         @serializer_options ||= {
           include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results],
-          params: { current_user: current_referee, include_tests: true }
+          params: { current_user: current_user, include_tests: true }
         }
       end
     end

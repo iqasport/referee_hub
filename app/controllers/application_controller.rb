@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base
-  REFEREE_UNAUTHORIZED = 'Referee must be an Admin to access this API'.freeze
+  USER_UNAUTHORIZED = 'User must be an Admin to access this API'.freeze
 
   rescue_from Exception, with: :render_500
   rescue_from ActiveRecord::RecordInvalid, with: :render_unprocessable_entity_response
@@ -20,12 +20,12 @@ class ApplicationController < ActionController::Base
   private
 
   def after_sign_in_path_for(_resource_or_scope)
-    "/referees/#{current_referee.id}"
+    "/referees/#{current_user.id}"
   end
 
   def verify_admin
-    return true if current_referee.admin?
+    return true if current_user.iqa_admin?
 
-    render json: { error: REFEREE_UNAUTHORIZED }, status: :unauthorized
+    render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end
 end

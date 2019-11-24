@@ -7,7 +7,7 @@
     <%= form_for(
       resource,
       as: resource_name,
-      url: new_referee_session_path,
+      url: new_user_session_path,
       html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
       ) do |f| %>
       <%= devise_error_messages! %>
@@ -21,7 +21,7 @@
         <div class="<%= password_error? ? 'field error' : 'field' %>">
           <%= f.label :password %><br />
           <%= f.password_field :password, autocomplete: "off" %>
-          <%= link_to 'Forgot Password?', new_referee_password_path %>
+          <%= link_to 'Forgot Password?', new_user_password_path %>
         </div>
 
         <% if devise_mapping.rememberable? -%>

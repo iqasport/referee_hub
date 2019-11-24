@@ -7,7 +7,7 @@
     <%= form_for(
       resource,
       as: resource_name,
-      url: create_referee_registration_path,
+      url: create_user_registration_path,
       html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
       ) do |f| %>
       <%= devise_error_messages! %>

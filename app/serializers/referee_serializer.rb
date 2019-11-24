@@ -40,15 +40,15 @@ class RefereeSerializer
              :submitted_payment_at,
              :getting_started_dismissed_at
 
-  attribute :pronouns, if: proc { |referee, params|
+  attribute :pronouns, if: proc { |user, params|
     current_user = params.present? && params[:current_user]
-    referee.show_pronouns || current_user && current_user.id == referee.id
+    user.show_pronouns || current_user && current_user.id == user.id
   }
 
-  attribute :is_editable do |referee, params|
+  attribute :is_editable do |user, params|
     current_user = params.present? && params[:current_user]
 
-    current_user&.id == referee.id
+    current_user&.id == user.id
   end
 
   has_many :national_governing_bodies, serializer: :national_governing_body

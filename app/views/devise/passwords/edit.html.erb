@@ -7,7 +7,7 @@
     <%= form_for(
             resource,
             as: resource_name,
-            url: update_referee_password_path,
+            url: update_user_password_path,
             html: { method: :patch, class: (devise_error_messages? ? 'ui large form error' : 'ui large form') }
         ) do |f| %>
       <%= devise_error_messages! %>

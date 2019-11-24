@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::DiagnosticController, type: :controller do
-  let(:admin) { create :referee, admin: true }
-  let!(:search_ref) { create :referee }
+  let(:admin) { create :user, :iqa_admin }
+  let!(:search_ref) { create :user, :referee }
 
   describe 'POST #search' do
     before { sign_in admin }
@@ -68,9 +68,9 @@ RSpec.describe Api::V1::DiagnosticController, type: :controller do
   end
 
   context 'when signed in referee is not an admin' do
-    let(:other_ref) { create :referee }
+    let(:other_ref) { create :user, :referee }
     let(:body_data) { { referee_search: search_ref.email } }
-    let(:expected_error) { ApplicationController::REFEREE_UNAUTHORIZED }
+    let(:expected_error) { ApplicationController::USER_UNAUTHORIZED }
 
     before { sign_in other_ref }
 
