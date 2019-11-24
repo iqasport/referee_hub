@@ -1,14 +1,14 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::AnswersController, type: :controller do
-  let(:admin) { create :referee, admin: true }
-  let(:non_admin) { create :referee }
+  let(:admin) { create :user, :iqa_admin }
+  let(:non_admin) { create :user, :referee }
   let!(:test) { create :test }
   let!(:question) { create :question, test: test }
 
   shared_examples 'it fails when a referee is not an admin' do
-    let(:other_ref) { create :referee }
-    let(:expected_error) { ApplicationController::REFEREE_UNAUTHORIZED }
+    let(:other_ref) { create :user, :referee }
+    let(:expected_error) { ApplicationController::USER_UNAUTHORIZED }
 
     before { sign_in other_ref }
 

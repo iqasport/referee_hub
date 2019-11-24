@@ -14,7 +14,7 @@
 #
 # Indexes
 #
-#  index_referee_certifications_on_referee_id_and_certification_id  (referee_id,certification_id) UNIQUE WHERE (revoked_at IS NULL)
+#  index_referee_certs_on_ref_id_and_cert_id  (referee_id,certification_id) UNIQUE WHERE (revoked_at IS NULL)
 #
 
 # A join table between referees and certifications. This model includes some business logic on when a referee is

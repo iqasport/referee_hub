@@ -40,14 +40,14 @@
 
 require 'rails_helper'
 
-RSpec.describe Referee, type: :model do
-  let(:referee) { build :referee }
+RSpec.describe User, type: :model do
+  let(:user) { build :user }
 
-  subject { referee.save }
+  subject { user.save }
 
   it 'should default to false for show_pronouns attribute' do
     subject
-    expect(referee.show_pronouns).to eq false
+    expect(user.show_pronouns).to eq false
   end
 
   context 'with an associated NGB' do
@@ -55,11 +55,11 @@ RSpec.describe Referee, type: :model do
     let(:ngb_2) { create :national_governing_body, name: 'France' }
     let(:ngb_3) { create :national_governing_body, name: 'Australia' }
 
-    before { referee.national_governing_bodies << [ngb_1, ngb_2] }
+    before { user.national_governing_bodies << [ngb_1, ngb_2] }
 
     it 'returns the correct ngbs' do
       subject
-      expect(referee.national_governing_bodies.pluck(:id)).to include(ngb_1.id, ngb_2.id)
+      expect(user.national_governing_bodies.pluck(:id)).to include(ngb_1.id, ngb_2.id)
     end
   end
 end

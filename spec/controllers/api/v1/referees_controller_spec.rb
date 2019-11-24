@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::RefereesController, type: :controller do
   describe 'GET #index' do
-    let!(:referees) { create_list :user, 3 }
+    let!(:referees) { create_list :user, 3, :referee }
 
     subject { get :index }
 

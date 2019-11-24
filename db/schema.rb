@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_23_214158) do
+ActiveRecord::Schema.define(version: 2019_11_24_145235) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -93,7 +93,7 @@ ActiveRecord::Schema.define(version: 2019_11_23_214158) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "needs_renewal_at"
-    t.index ["referee_id", "certification_id"], name: "index_referee_certifications_on_referee_id_and_certification_id", unique: true, where: "(revoked_at IS NULL)"
+    t.index ["referee_id", "certification_id"], name: "index_referee_certs_on_ref_id_and_cert_id", unique: true, where: "(revoked_at IS NULL)"
   end
 
   create_table "referee_locations", force: :cascade do |t|

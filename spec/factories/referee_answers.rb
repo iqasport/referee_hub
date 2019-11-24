@@ -24,7 +24,7 @@ FactoryBot.define do
   factory :referee_answer do
     answer { create :answer }
     question { create :question }
-    referee { create :referee }
+    referee { create :user, :referee }
     test_attempt { create :test_attempt }
     test { create :test }
   end
