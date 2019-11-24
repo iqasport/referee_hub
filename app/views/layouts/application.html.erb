@@ -31,11 +31,10 @@
         <% end %>
       </div>
     </div>
-    <% if flash.present? %>
+    <% if flash[:error].present? %>
       <div style='flex:1;margin:40px 0 0 0;'>
         <% flash.each do |key, value| %>
-          <% next if key != 'error'%>
-          <p class=<%="alert ui #{key} message center"%>><%= value %></p>
+          <p class=<%="alert ui error message center"%>><%= value %></p>
         <% end %>
       </div>
     <% end %>
