@@ -50,6 +50,12 @@ RSpec.describe User, type: :model do
     expect(user.show_pronouns).to eq false
   end
 
+  it 'should create a referee role if one is not passed initially' do
+    subject
+    expect(user.reload.roles.length).to eq 1
+    expect(user.reload.roles.first.access_type).to eq 'referee'
+  end
+
   context 'with an associated NGB' do
     let(:ngb_1) { create :national_governing_body, name: 'United States' }
     let(:ngb_2) { create :national_governing_body, name: 'France' }
@@ -60,6 +66,16 @@ RSpec.describe User, type: :model do
     it 'returns the correct ngbs' do
       subject
       expect(user.national_governing_bodies.pluck(:id)).to include(ngb_1.id, ngb_2.id)
+    end
+  end
+
+  context 'with an associated role' do
+    let(:user) { build :user, roles_attributes: [{ access_type: 'iqa_admin' }] }
+
+    it 'only creates the passed role' do
+      subject
+      expect(user.roles.length).to eq 1
+      expect(user.roles.first.access_type).to eq 'iqa_admin'
     end
   end
 end

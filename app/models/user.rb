@@ -40,9 +40,12 @@
 
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :trackable, :validatable, :confirmable, :lockable
+         :recoverable, :rememberable, :trackable,
+         :validatable, :confirmable, :lockable
 
   has_many :roles, dependent: :destroy
+  accepts_nested_attributes_for :roles
+
   has_many :referee_locations, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
   has_many :national_governing_bodies, through: :referee_locations
 
@@ -61,6 +64,8 @@ class User < ApplicationRecord
 
   self.per_page = 25
 
+  after_save :ensure_role, on: :create
+
   def iqa_admin?
     roles.exists?(access_type: 'iqa_admin')
   end
@@ -71,5 +76,13 @@ class User < ApplicationRecord
     return true unless Rails.env.test?
 
     false
+  end
+
+  private
+
+  def ensure_role
+    return if roles.present?
+
+    Role.create!(user_id: id, access_type: 'referee')
   end
 end
