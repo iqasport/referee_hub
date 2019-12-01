@@ -2,13 +2,10 @@ module DeviseHelper
   def devise_error_messages!
     return '' unless devise_error_messages?
 
-    messages = resource.errors.full_messages.map { |msg| content_tag(:li, msg) }.join
-    sentence = 'Uh Oh! Looks like there were some issues creating your account'
-
     html = <<-HTML
     <div id='error_explanation' class='ui error message'>
-      <h2>#{sentence}</h2>
-      <ul class='list'>#{messages}</ul>
+      <h2>#{fetch_sentence}</h2>
+      <ul class='list'>#{fetch_messages}</ul>
     </div>
     HTML
 
@@ -16,7 +13,11 @@ module DeviseHelper
   end
 
   def devise_error_messages?
-    !resource.errors.empty?
+    !resource.errors.empty? || flash_errors?
+  end
+
+  def flash_errors?
+    flash.present?
   end
 
   def email_error?
@@ -29,5 +30,21 @@ module DeviseHelper
 
   def password_confirmation_error?
     !resource.errors[:password_confirmation].empty?
+  end
+
+  private
+
+  def fetch_messages
+    if flash_errors?
+      content_tag(:li, flash[:alert])
+    else
+      resource.errors.full_messages.map { |msg| content_tag(:li, msg) }.join
+    end
+  end
+
+  def fetch_sentence
+    return '' if flash_errors?
+
+    'Uh Oh! Looks like there were some issues with your account'
   end
 end
