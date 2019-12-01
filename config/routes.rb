@@ -6,34 +6,6 @@ Rails.application.routes.draw do
     mount Sidekiq::Web => '/sidekiq'
   end
 
-  namespace :api do
-    namespace :v1 do
-      resources :users, only: %i[index show update]
-      resources :national_governing_bodies, only: %i[index show]
-      resources :referee_certifications, only: %i[index create update]
-      resources :tests, only: %i[index create show update destroy] do
-        resources :questions, shallow: true do
-          resources :answers, shallow: true
-        end
-
-        member do
-          get :start
-          post :finish
-        end
-      end
-
-      scope '/admin' do
-        post '/search' => 'diagnostic#search'
-        patch '/update-payment' => 'diagnostic#update_payment'
-      end
-
-      post 'tests/import', to: 'tests#import'
-      get 'referees' => 'referees#index'
-      get 'referees/:id' => 'referees#show'
-      put 'referees/:id' => 'referees#update'
-    end
-  end
-
   get 'home/index'
   get 'referees', to: 'home#index'
   get 'referees/:id', to: 'home#index'
@@ -65,6 +37,35 @@ Rails.application.routes.draw do
   end
 
   devise_for :users, skip: :all
+
+  namespace :api do
+    namespace :v1 do
+      resources :users, only: %i[index show update]
+      resources :national_governing_bodies, only: %i[index show]
+      resources :referee_certifications, only: %i[index create update]
+      resources :tests, only: %i[index create show update destroy] do
+        resources :questions, shallow: true do
+          resources :answers, shallow: true
+        end
+
+        member do
+          get :start
+          post :finish
+        end
+      end
+
+      scope '/admin' do
+        post '/search' => 'diagnostic#search'
+        patch '/update-payment' => 'diagnostic#update_payment'
+      end
+
+      post 'tests/import', to: 'tests#import'
+      get 'referees' => 'referees#index'
+      get 'referees/:id' => 'referees#show'
+      put 'referees/:id' => 'referees#update'
+    end
+  end
+
 
   root to: 'home#index'
 end
