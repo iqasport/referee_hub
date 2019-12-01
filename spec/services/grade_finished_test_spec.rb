@@ -7,7 +7,7 @@ describe Services::GradeFinishedTest do
   let!(:certification) { create :certification, :snitch }
   let(:test) { create :test }
   let(:questions) { create_list(:question, 5, test: test) }
-  let(:referee) { create :user, :referee }
+  let(:referee) { create :user }
   let(:started_at) { Time.now.utc }
   let(:finished_at) { Time.now.utc + 15.minutes }
   let(:referee_answers) do

@@ -15,7 +15,7 @@
 
 FactoryBot.define do
   factory :referee_location do
-    referee { create :user, :referee }
+    referee { create :user }
     national_governing_body { create :national_governing_body }
   end
 end

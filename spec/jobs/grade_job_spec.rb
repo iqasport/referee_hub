@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe GradeJob, type: :job do
   let(:test_to_grade) { create :test }
-  let(:ref) { create :user, :referee }
+  let(:ref) { create :user }
   let(:test_timestamps) { { started_at: Time.now.utc.to_s, finished_at: Time.now.utc.to_s } }
   let(:referee_answers) { [{ question_id: 1, answer_id: 2 }] }
 

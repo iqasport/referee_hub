@@ -25,9 +25,9 @@ RSpec.describe NationalGoverningBody, type: :model do
   end
 
   context 'with associated referees' do
-    let(:ref_1) { create :user, :referee }
-    let(:ref_2) { create :user, :referee }
-    let(:ref_3) { create :user, :referee }
+    let(:ref_1) { create :user }
+    let(:ref_2) { create :user }
+    let(:ref_3) { create :user }
     let(:ngb) { build :national_governing_body }
 
     before { ngb.referees << [ref_1, ref_2] }

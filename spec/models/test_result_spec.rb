@@ -27,7 +27,7 @@
 require 'rails_helper'
 
 RSpec.describe TestResult, type: :model do
-  let(:referee) { create :user, :referee }
+  let(:referee) { create :user }
   let(:test) { create :test }
   let(:test_result) { build :test_result, referee: referee, test_level: :assistant, test: test }
   let!(:existing_certification) { create :certification }

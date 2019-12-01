@@ -1,5 +1,5 @@
 shared_examples 'it fails when a referee is not an admin' do
-  let(:other_ref) { create :user, :referee }
+  let(:other_ref) { create :user }
   let(:expected_error) { ApplicationController::USER_UNAUTHORIZED }
 
   before { sign_in other_ref }

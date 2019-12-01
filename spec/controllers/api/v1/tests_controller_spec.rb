@@ -178,7 +178,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   end
 
   describe 'GET #start' do
-    let(:tester_ref) { create :user, :referee }
+    let(:tester_ref) { create :user }
     let(:question_count) { 2 }
     let(:test) { create :test, testable_question_count: question_count }
     let!(:questions) { create_list(:question, 5, test: test) }
@@ -254,7 +254,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   end
 
   describe 'POST #finish' do
-    let(:tester_ref) { create :user, :referee }
+    let(:tester_ref) { create :user }
     let(:test) { create :test }
     let(:questions) { create_list(:question, 5, test: test) }
     let(:started_at) { Time.now.utc }

@@ -19,7 +19,7 @@
 
 FactoryBot.define do
   factory :referee_certification do
-    referee { create :user, :referee }
+    referee { create :user }
     certification { create :certification }
     received_at { DateTime.now.utc }
     revoked_at nil

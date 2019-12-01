@@ -20,7 +20,7 @@
 require 'rails_helper'
 
 RSpec.describe RefereeCertification, type: :model do
-  let(:referee) { create :user, :referee }
+  let(:referee) { create :user }
   let(:certification) { create :certification }
   let(:ref_cert) { build :referee_certification, referee: referee, certification: certification }
 

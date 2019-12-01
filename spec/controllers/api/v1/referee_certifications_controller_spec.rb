@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
   describe 'GET #index' do
-    let!(:referee) { create :user, :referee }
+    let!(:referee) { create :user }
     let!(:assistant) { create :referee_certification, referee: referee }
     let!(:snitch) { create :referee_certification, :snitch, referee: referee }
     let!(:head) { create :referee_certification, :head, referee: referee }
@@ -37,7 +37,7 @@ RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
   end
 
   describe 'POST #update' do
-    let!(:referee) { create :user, :referee }
+    let!(:referee) { create :user }
     let!(:assistant) { create :referee_certification, referee: referee }
 
     before { sign_in referee }

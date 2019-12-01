@@ -28,4 +28,8 @@ class Role < ApplicationRecord
   validates :access_type, uniqueness: { scope: :user_id }
 
   belongs_to :user
+
+  scope :referee, -> { where(access_type: 'referee') }
+  scope :ngb_admin, -> { where(access_type: 'ngb_admin') }
+  scope :iqa_admin, -> { where(access_type: 'iqa_admin') }
 end
