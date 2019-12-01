@@ -45,12 +45,6 @@ FactoryBot.define do
     email { "#{first_name}.#{last_name}@example.com" }
     password { 'password' }
 
-    trait :referee do
-      after(:create) do |user, _|
-        create(:role, access_type: 'referee', user: user)
-      end
-    end
-
     trait :iqa_admin do
       after(:create) do |user, _|
         create(:role, access_type: 'iqa_admin', user: user)

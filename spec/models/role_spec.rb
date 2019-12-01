@@ -21,7 +21,8 @@
 require 'rails_helper'
 
 RSpec.describe Role, type: :model do
-  let(:role) { build :role }
+  let(:user) { create :user, disable_ensure_role: true }
+  let(:role) { build :role, user: user }
 
   subject { role.valid? }
 

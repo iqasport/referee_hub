@@ -16,7 +16,7 @@
 require 'rails_helper'
 
 RSpec.describe RefereeLocation, type: :model do
-  let(:referee) { create :user, :referee }
+  let(:referee) { create :user }
   let(:ngb) { create :national_governing_body }
   let(:ref_location) { build :referee_location, referee: referee, national_governing_body: ngb }
 

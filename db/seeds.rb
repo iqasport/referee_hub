@@ -1,11 +1,3 @@
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
-#
-# Examples:
-#
-#   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
-#   Character.create(name: 'Luke', movie: movies.first)
-
 NGB_CONFIG = [
   {
     name: 'Argentina',
@@ -194,4 +186,9 @@ CERT_CONFIG = [
 
 CERT_CONFIG.each do |config|
   Certification.find_or_create_by(display_name: config[:display_name], level: config[:level])
+end
+
+USER_ROLES = %w[referee iqa_admin ngb_admin]
+USER_ROLES.each do |access_type|
+  FactoryBot.create(:user, password: 'password', roles_attributes: [{ access_type: access_type }])
 end

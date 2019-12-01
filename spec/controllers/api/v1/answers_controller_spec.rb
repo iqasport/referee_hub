@@ -3,7 +3,7 @@ require_relative '_shared_examples'
 
 RSpec.describe Api::V1::AnswersController, type: :controller do
   let(:admin) { create :user, :iqa_admin }
-  let(:non_admin) { create :user, :referee }
+  let(:non_admin) { create :user }
   let!(:test) { create :test }
   let!(:question) { create :question, test: test }
 

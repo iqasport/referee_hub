@@ -63,6 +63,7 @@ class User < ApplicationRecord
   scope :referee, -> { where(roles: { access_type: 'referee' }) }
 
   self.per_page = 25
+  attr_accessor :disable_ensure_role
 
   after_save :ensure_role, on: :create
 
@@ -81,7 +82,8 @@ class User < ApplicationRecord
   private
 
   def ensure_role
-    return if roles.present?
+    return if disable_ensure_role.present?
+    return if roles.present? || roles.referee.present?
 
     Role.create!(user_id: id, access_type: 'referee')
   end

@@ -24,7 +24,7 @@
 FactoryBot.define do
   factory :referee_team do
     team { create :team }
-    referee { create :user, :referee }
+    referee { create :user }
     association_type 0
   end
 end
