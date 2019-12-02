@@ -50,6 +50,12 @@ gem 'activerecord-import'
 gem 'time_difference'
 gem 'gdpr_rails'
 
+# feature flippers
+gem 'flipper'
+gem 'flipper-ui'
+gem 'flipper-active_record'
+gem 'flipper-api'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: %i[mri mingw x64_mingw]

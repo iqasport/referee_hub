@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 require 'sidekiq/web'
+require 'flipper-ui'
+require 'flipper-api'
 
 Rails.application.routes.draw do
   mount PolicyManager::Engine => '/policies'
+  mount Flipper::Api.app(Flipper) => '/flipper/api'
 
   authenticate :user, proc { |user| user.iqa_admin? } do
     mount Sidekiq::Web => '/sidekiq'
+    mount Flipper::UI.app(Flipper) => '/flipper'
   end
 
   get 'home/index'
