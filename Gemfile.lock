@@ -108,6 +108,18 @@ GEM
       activesupport (>= 4.2)
     ffaker (2.10.0)
     ffi (1.9.25)
+    flipper (0.17.1)
+    flipper-active_record (0.17.1)
+      activerecord (>= 4.2, < 7)
+      flipper (~> 0.17.1)
+    flipper-api (0.17.1)
+      flipper (~> 0.17.1)
+      rack (>= 1.4, < 3)
+    flipper-ui (0.17.1)
+      erubi (>= 1.0.0, < 2.0.0)
+      flipper (~> 0.17.1)
+      rack (>= 1.4, < 3)
+      rack-protection (>= 1.5.3, < 2.1.0)
     gdpr_rails (0.5.1)
       aasm
       chartkick (>= 3.2.0)
@@ -317,6 +329,10 @@ DEPENDENCIES
   factory_bot_rails (~> 4.0)
   fast_jsonapi
   ffaker
+  flipper
+  flipper-active_record
+  flipper-api
+  flipper-ui
   gdpr_rails
   listen (>= 3.0.5, < 3.2)
   loofah (>= 2.2.3)

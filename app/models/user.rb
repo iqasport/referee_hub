@@ -65,6 +65,7 @@ class User < ApplicationRecord
   scope :referee, -> { where(roles: { access_type: 'referee' }) }
 
   self.per_page = 25
+
   attr_accessor :disable_ensure_role
 
   after_save :ensure_role, on: :create
@@ -75,6 +76,10 @@ class User < ApplicationRecord
 
   def policy_term_on(term = 'privacy_terms')
     super(term)
+  end
+
+  def flipper_id
+    "User;#{id}"
   end
 
   protected
