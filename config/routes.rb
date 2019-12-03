@@ -63,6 +63,7 @@ Rails.application.routes.draw do
       get 'referees' => 'referees#index'
       get 'referees/:id' => 'referees#show'
       put 'referees/:id' => 'referees#update'
+      patch 'referees/:id' => 'referees#update'
     end
   end
 

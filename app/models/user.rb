@@ -56,7 +56,7 @@ class User < ApplicationRecord
   has_many :test_attempts, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
   has_many :referee_answers, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
 
-  has_many :referee_teams, dependent: :destroy
+  has_many :referee_teams, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
   has_many :teams, through: :referee_teams
 
   scope :certified, -> { joins(:certifications).group('referees.id') }
