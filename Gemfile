@@ -48,6 +48,7 @@ gem 'sidekiq'
 gem 'sidekiq-status'
 gem 'activerecord-import'
 gem 'time_difference'
+gem 'gdpr_rails'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

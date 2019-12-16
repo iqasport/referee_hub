@@ -2,6 +2,8 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
+  mount PolicyManager::Engine => "/policies"
+
   authenticate :user, proc { |user| user.iqa_admin? } do
     mount Sidekiq::Web => '/sidekiq'
   end
