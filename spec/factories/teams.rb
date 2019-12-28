@@ -24,10 +24,10 @@
 
 FactoryBot.define do
   factory :team do
-    name 'DC Quiddicth Club'
-    city 'Washington'
-    state 'DC'
-    country 'United States'
+    name "#{FFaker::Education.school} Quidditch Club"
+    city { FFaker::AddressUS.city }
+    state { FFaker::AddressUS.state }
+    country { FFaker::AddressUS.country }
     status 0
     group_affiliation 0
     national_governing_body { create :national_governing_body }

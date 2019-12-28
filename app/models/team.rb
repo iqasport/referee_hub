@@ -23,6 +23,11 @@
 #
 
 class Team < ApplicationRecord
+  require 'activerecord-import/base'
+  require 'activerecord-import/active_record/adapters/postgresql_adapter'
+
+  MAXIMUM_RETRIES = 6
+
   enum status: {
     competitive: 0,
     developing: 1,
