@@ -8,14 +8,27 @@
 #  image_url    :string
 #  name         :string           not null
 #  player_count :integer          default(0), not null
+#  region       :integer
 #  website      :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
+#
+# Indexes
+#
+#  index_national_governing_bodies_on_region  (region)
 #
 
 # Data model for NationalGoverningBodies, currently only used for Referees to assign for themselves and users to search
 # based this association
 class NationalGoverningBody < ApplicationRecord
+  enum region: {
+    north_america: 0,
+    south_america: 1,
+    europe: 2,
+    africa: 3,
+    asia: 4
+  }
+
   has_many :referee_locations, dependent: :destroy
   has_many :referees, through: :referee_locations
   has_many :certified_referees, -> { certified }, through: :referee_locations, source: :referee

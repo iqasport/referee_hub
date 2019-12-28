@@ -88,7 +88,7 @@ const PrivacyPolicy = () => (
     </Header>
     <p>
       You have the possibility to register on the website of the controller with the indication of personal data. For
-      this reason you may enter your email address. The entered email address is publicly visible on your referee
+      this reason you may enter your email address. The entered email address is not publicly visible on your referee
       profile. You are free to ask us to change your email address or to delete your referee profile including your
       email address.
     </p>

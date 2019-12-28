@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_24_145235) do
+ActiveRecord::Schema.define(version: 2019_12_23_135322) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -40,6 +40,8 @@ ActiveRecord::Schema.define(version: 2019_11_24_145235) do
     t.string "image_url"
     t.string "country"
     t.string "acronym"
+    t.integer "region"
+    t.index ["region"], name: "index_national_governing_bodies_on_region"
   end
 
   create_table "national_governing_body_stats", force: :cascade do |t|
