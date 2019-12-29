@@ -21,6 +21,9 @@
 # Data model for NationalGoverningBodies, currently only used for Referees to assign for themselves and users to search
 # based this association
 class NationalGoverningBody < ApplicationRecord
+  require 'activerecord-import/base'
+  require 'activerecord-import/active_record/adapters/postgresql_adapter'
+
   enum region: {
     north_america: 0,
     south_america: 1,

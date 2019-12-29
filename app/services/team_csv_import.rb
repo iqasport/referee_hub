@@ -1,13 +1,10 @@
 require 'csv'
-require 'activerecord-import/base'
-require 'activerecord-import/active_record/adapters/postgresql_adapter'
 
 module Services
   class TeamCsvImport
     attr_reader :file_path, :ngb
     attr_accessor :teams
 
-    ACCOUNT_TYPES = %w[facebook twitter youtube instagram].freeze
     NGBMissingError = Class.new(StandardError)
 
     def initialize(file_path, ngb)
@@ -21,12 +18,11 @@ module Services
 
       CSV.foreach(file_path, headers: true) do |row|
         row_data = row.to_h.with_indifferent_access
-        all_keys = row_data.keys
 
         team = find_or_initialize_team(row_data)
         next unless team&.valid?
 
-        team.social_accounts = find_or_initialize_social_accounts(row_data, all_keys)
+        team.social_accounts = find_or_initialize_social_accounts(row_data)
         teams << team
       end
 
@@ -34,13 +30,6 @@ module Services
     end
 
     private
-
-    def match_account_type(url)
-      account_type = url.match(/\.\w+\./)[0].delete '.'
-      return account_type if ACCOUNT_TYPES.include?(account_type)
-
-      'other'
-    end
 
     def find_or_initialize_team(row_data)
       team = Team.where(national_governing_body_id: ngb.id).find_or_initialize_by(name: row_data.dig(:name))
@@ -61,16 +50,17 @@ module Services
       team
     end
 
-    def find_or_initialize_social_accounts(row_data, all_keys)
+    def find_or_initialize_social_accounts(row_data)
       social_accounts = []
-
+      all_keys = row_data.keys
       url_keys = all_keys.select { |key| key =~ /url_\d+$/ }
+
       url_keys.each do |url_key|
         url = row_data.dig(url_key)
         new_social = SocialAccount.find_or_initialize_by(url: url)
         next if new_social.persisted? # we don't need to update an exisiting record with the same information
 
-        new_social.assign_attributes(account_type: match_account_type(url))
+        new_social.assign_attributes(account_type: SocialAccount.match_account_type(url))
         social_accounts << new_social
       end
 
