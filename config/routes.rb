@@ -21,21 +21,21 @@ Rails.application.routes.draw do
   post 'webhook', to: 'classmarker#webhook'
 
   devise_scope :user do
-    get '/sign_up' => 'devise/registrations#new', as: :user_registration
-    get '/sign_in' => 'devise/sessions#new', as: :new_user_session
-    post '/sign_in' => 'devise/sessions#create', as: :user_session
-    delete '/sign_out' => 'devise/sessions#destroy', as: :destroy_user_session
-    get '/password' => 'devise/passwords#new', as: :new_user_password
-    get '/password/edit' => 'devise/passwords#edit', as: :edit_user_password
-    patch '/password' => 'devise/passwords#update', as: :update_user_password
-    post '/password' => 'devise/passwords#create', as: :create_user_password
-    get '/register/cancel' => 'devise/registrations#cancel', as: :cancel_user_registration
-    patch '/register' => 'devise/registrations#update', as: :update_user_registration
-    delete '/register' => 'devise/registrations#destroy', as: :destroy_user_registration
-    post '/register' => 'devise/registrations#create', as: :create_user_registration
-    get '/confirmation/new' => 'devise/confirmations#new', as: :new_user_confirmation
-    get '/confirmation' => 'devise/confirmations#show', as: :user_confirmation
-    post '/confirmation' => 'devise/confirmations#create'
+    get '/sign_up' => 'users/registrations#new', as: :user_registration
+    get '/sign_in' => 'users/sessions#new', as: :new_user_session
+    post '/sign_in' => 'users/sessions#create', as: :user_session
+    delete '/sign_out' => 'users/sessions#destroy', as: :destroy_user_session
+    get '/password' => 'users/passwords#new', as: :new_user_password
+    get '/password/edit' => 'users/passwords#edit', as: :edit_user_password
+    patch '/password' => 'users/passwords#update', as: :update_user_password
+    post '/password' => 'users/passwords#create', as: :create_user_password
+    get '/register/cancel' => 'users/registrations#cancel', as: :cancel_user_registration
+    patch '/register' => 'users/registrations#update', as: :update_user_registration
+    delete '/register' => 'users/registrations#destroy', as: :destroy_user_registration
+    post '/register' => 'users/registrations#create', as: :create_user_registration
+    get '/confirmation/new' => 'users/confirmations#new', as: :new_user_confirmation
+    get '/confirmation' => 'users/confirmations#show', as: :user_confirmation
+    post '/confirmation' => 'users/confirmations#create'
   end
 
   devise_for :users, skip: :all

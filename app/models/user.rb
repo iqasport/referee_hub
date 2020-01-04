@@ -73,6 +73,10 @@ class User < ApplicationRecord
     roles.exists?(access_type: 'iqa_admin')
   end
 
+  def policy_term_on(term = 'privacy_terms')
+    super(term)
+  end
+
   protected
 
   def confirmation_required?
