@@ -2,7 +2,7 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
-  mount PolicyManager::Engine => "/policies"
+  mount PolicyManager::Engine => '/policies'
 
   authenticate :user, proc { |user| user.iqa_admin? } do
     mount Sidekiq::Web => '/sidekiq'
@@ -42,7 +42,12 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :users, only: %i[index show update]
+      resources :users, only: %i[index show update] do
+        member do
+          post :accept_policies
+          post :reject_policies
+        end
+      end
       resources :national_governing_bodies, only: %i[index show]
       resources :referee_certifications, only: %i[index create update]
       resources :tests, only: %i[index create show update destroy] do

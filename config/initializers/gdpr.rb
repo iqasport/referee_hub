@@ -9,3 +9,4 @@ PolicyManager::Config.setup do |c|
 end
 
 PolicyManager::UserTermsController.send(:include, Devise::Controllers::Helpers)
+PolicyManager::ApplicationController.send(:include, Devise::Controllers::Helpers)
