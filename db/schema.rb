@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_12_01_174625) do
+ActiveRecord::Schema.define(version: 2019_12_23_135322) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -31,22 +31,6 @@ ActiveRecord::Schema.define(version: 2019_12_01_174625) do
     t.index ["level"], name: "index_certifications_on_level", unique: true
   end
 
-  create_table "flipper_features", force: :cascade do |t|
-    t.string "key", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["key"], name: "index_flipper_features_on_key", unique: true
-  end
-
-  create_table "flipper_gates", force: :cascade do |t|
-    t.string "feature_key", null: false
-    t.string "key", null: false
-    t.string "value"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["feature_key", "key", "value"], name: "index_flipper_gates_on_feature_key_and_key_and_value", unique: true
-  end
-
   create_table "national_governing_bodies", force: :cascade do |t|
     t.string "name", null: false
     t.string "website"
@@ -56,6 +40,8 @@ ActiveRecord::Schema.define(version: 2019_12_01_174625) do
     t.string "image_url"
     t.string "country"
     t.string "acronym"
+    t.integer "region"
+    t.index ["region"], name: "index_national_governing_bodies_on_region"
   end
 
   create_table "national_governing_body_stats", force: :cascade do |t|
@@ -74,6 +60,36 @@ ActiveRecord::Schema.define(version: 2019_12_01_174625) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["national_governing_body_id"], name: "ngb_stats_on_ngb_id"
+  end
+
+  create_table "policy_manager_portability_requests", force: :cascade do |t|
+    t.integer "user_id"
+    t.string "state"
+    t.datetime "expire_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_policy_manager_portability_requests_on_user_id"
+  end
+
+  create_table "policy_manager_terms", force: :cascade do |t|
+    t.text "description"
+    t.string "rule"
+    t.string "state"
+    t.datetime "accepted_at"
+    t.datetime "rejected_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "policy_manager_user_terms", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "term_id"
+    t.string "state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["state"], name: "index_policy_manager_user_terms_on_state"
+    t.index ["term_id"], name: "index_policy_manager_user_terms_on_term_id"
+    t.index ["user_id"], name: "index_policy_manager_user_terms_on_user_id"
   end
 
   create_table "questions", force: :cascade do |t|
