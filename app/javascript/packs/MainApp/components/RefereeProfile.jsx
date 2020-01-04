@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import axios from 'axios'
 import { DateTime } from 'luxon'
 import {
-  Header, Message, Tab, Segment, Loader
+  Header, Message, Tab, Segment, Loader, Button
 } from 'semantic-ui-react'
 import RefereeProfileEdit from './RefereeProfileEdit'
 import ProfileContent from './ProfileContent'
@@ -44,7 +44,8 @@ class RefereeProfile extends Component {
     changedNGBs: null,
     changedBio: null,
     changedShowPronouns: null,
-    changedPronouns: null
+    changedPronouns: null,
+    policyAccepted: false
   }
 
   componentDidMount() {
@@ -52,6 +53,13 @@ class RefereeProfile extends Component {
       .get(this.currentRefereeApiRoute)
       .then(this.setComponentStateFromBackendData)
       .catch(this.setErrorStateFromBackendData)
+
+    axios.get('/policies/user_terms/pending.json')
+      .then(({ data }) => {
+        if (!data.length) {
+          this.setState({ policyAccepted: true })
+        }
+      })
   }
 
   get currentRefereeApiRoute() {
@@ -245,6 +253,19 @@ class RefereeProfile extends Component {
     this.setState({ [stateKey]: value })
   }
 
+  handleAcceptPolicy = () => {
+    const { match: { params } } = this.props
+    axios.post(`/api/v1/users/${params.id}/accept_policies`)
+      .then(() => {
+        this.setState({ policyAccepted: true })
+      })
+  }
+
+  handleRejectPolicy = () => {
+    const { match: { params } } = this.props
+    axios.post(`/api/v1/users/${params.id}/accept_policies`)
+  }
+
   renderProfileContent = () => {
     const { httpStatus, httpStatusText, referee } = this.state
 
@@ -296,6 +317,24 @@ class RefereeProfile extends Component {
     return <Fragment>{pronouns}</Fragment>
   }
 
+  renderAcceptPolicy = () => {
+    const { policyAccepted } = this.state
+    if (policyAccepted) return null
+
+    const content = "We've updated our privacy policy, please review and accept no later than June 1st, 2020."
+
+    return (
+      <Message warning>
+        <Message.Header>Privacy Policy</Message.Header>
+        <p>{content}</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button style={{ margin: '0 20px' }} content="Reject" color="red" onClick={this.handleRejectPolicy} />
+          <Button content="Accept" primary onClick={this.handleAcceptPolicy} />
+        </div>
+      </Message>
+    )
+  }
+
   render() {
     const { referee } = this.state
 
@@ -307,6 +346,7 @@ class RefereeProfile extends Component {
 
     return (
       <Segment>
+        {this.renderAcceptPolicy()}
         {this.renderPaymentMessage()}
         <Header as="h1" textAlign="center">
           {refHeader || 'Anonymous Referee'}
