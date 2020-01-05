@@ -32,4 +32,8 @@ class Users::SessionsController < Devise::SessionsController
   def configure_sign_in_params
     devise_parameter_sanitizer.permit(:sign_in, keys: [:policy_rule_privacy_terms])
   end
+
+  def after_sign_in_path_for(_resource_or_scope)
+    "/referees/#{current_user.id}"
+  end
 end

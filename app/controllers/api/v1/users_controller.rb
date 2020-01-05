@@ -10,7 +10,7 @@ module Api
       def accept_policies
         @user.confirm_all_policies!
 
-        json_string = RefereeSerializer.new(@user).serialized_json
+        json_string = RefereeSerializer.new(@user, params: { current_user: current_user }).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -18,7 +18,7 @@ module Api
       def reject_policies
         @user.reject_all_policies!
 
-        json_string = RefereeSerializer.new(@user).serialized_json
+        json_string = RefereeSerializer.new(@user, params: { current_user: current_user }).serialized_json
 
         render json: json_string, status: :ok
       end

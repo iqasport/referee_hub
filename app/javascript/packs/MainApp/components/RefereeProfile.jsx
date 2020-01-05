@@ -255,7 +255,7 @@ class RefereeProfile extends Component {
 
   handleAcceptPolicy = () => {
     const { match: { params } } = this.props
-    axios.post(`/api/v1/users/${params.id}/accept_policies`)
+    axios.post(`/api/v1/users/${params.id}/accept_policies`, { id: params.id })
       .then(() => {
         this.setState({ policyAccepted: true })
       })
@@ -321,12 +321,14 @@ class RefereeProfile extends Component {
     const { policyAccepted } = this.state
     if (policyAccepted) return null
 
-    const content = "We've updated our privacy policy, please review and accept no later than June 1st, 2020."
-
     return (
       <Message warning>
         <Message.Header>Privacy Policy</Message.Header>
-        <p>{content}</p>
+        <p>
+          {'We have updated our '}
+          <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
+          , please review and accept no later than June 1st, 2020.
+        </p>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button style={{ margin: '0 20px' }} content="Reject" color="red" onClick={this.handleRejectPolicy} />
           <Button content="Accept" primary onClick={this.handleAcceptPolicy} />
