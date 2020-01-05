@@ -32,11 +32,11 @@
         </div>
 
         <div class='field'>
-          <div class='ui checkbox'>
+          <p>
             <%= f.check_box :policy_rule_privacy_terms, {required: true}, true, false %>
             You have read and agree to the terms outlined in our
-            <a target="_blank" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
-          </div>
+            <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
+          </p>
         </div>
 
         <%= f.submit "Sign up", class: 'ui fluid large submit button' %>
