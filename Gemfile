@@ -49,6 +49,8 @@ gem 'sidekiq-status'
 gem 'activerecord-import'
 gem 'time_difference'
 gem 'gdpr_rails'
+gem 'aws-sdk-s3', '~> 1'
+gem 'paperclip', '~> 6.0.0'
 
 # feature flippers
 gem 'flipper'
