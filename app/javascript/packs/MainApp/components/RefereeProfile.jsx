@@ -34,7 +34,8 @@ class RefereeProfile extends Component {
       testAttempts: [],
       testResults: [],
       isEditable: false,
-      submittedPaymentAt: null
+      submittedPaymentAt: null,
+      hasPendingPolicies: false,
     },
     paymentError: false,
     paymentSuccess: false,
@@ -53,13 +54,6 @@ class RefereeProfile extends Component {
       .get(this.currentRefereeApiRoute)
       .then(this.setComponentStateFromBackendData)
       .catch(this.setErrorStateFromBackendData)
-
-    axios.get('/policies/user_terms/pending.json')
-      .then(({ data }) => {
-        if (!data.length) {
-          this.setState({ policyAccepted: true })
-        }
-      })
   }
 
   get currentRefereeApiRoute() {
@@ -128,8 +122,9 @@ class RefereeProfile extends Component {
         testResults,
         isEditable: attributes.is_editable,
         submittedPaymentAt: attributes.submitted_payment_at,
-        gettingStartedDismissedAt: attributes.getting_started_dismissed_at
-      }
+        gettingStartedDismissedAt: attributes.getting_started_dismissed_at,
+      },
+      policyAccepted: !attributes.has_pending_policies
     })
   }
 
@@ -318,7 +313,8 @@ class RefereeProfile extends Component {
   }
 
   renderAcceptPolicy = () => {
-    const { policyAccepted } = this.state
+    const { policyAccepted, referee: { isEditable } } = this.state
+    if (!isEditable) return null
     if (policyAccepted) return null
 
     return (
