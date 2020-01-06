@@ -35,7 +35,6 @@ class RefereeProfile extends Component {
       testResults: [],
       isEditable: false,
       submittedPaymentAt: null,
-      hasPendingPolicies: false,
     },
     paymentError: false,
     paymentSuccess: false,
