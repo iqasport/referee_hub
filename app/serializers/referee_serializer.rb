@@ -51,6 +51,12 @@ class RefereeSerializer
     current_user&.id == user.id
   end
 
+  attribute :has_pending_policies do |user, params|
+    current_user = params.present? && params[:current_user]
+
+    current_user&.id == user.id && user.pending_policies.present?
+  end
+
   has_many :national_governing_bodies, serializer: :national_governing_body
   has_many :referee_certifications, serializer: :referee_certification
   has_many :certifications, serializer: :certification

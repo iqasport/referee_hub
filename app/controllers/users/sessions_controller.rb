@@ -10,15 +10,7 @@ class Users::SessionsController < Devise::SessionsController
 
   # POST /resource/sign_in
   def create
-    super do |resource|
-      return if resource.has_consented_privacy_terms?
-
-      if sign_in_params.fetch(:policy_rule_privacy_terms)
-        resource.confirm_all_policies!
-      else
-        resource.reject_all_policies!
-      end
-    end
+    super
   end
 
   # DELETE /resource/sign_out
