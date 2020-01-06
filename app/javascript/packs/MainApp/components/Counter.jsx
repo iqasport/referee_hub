@@ -57,7 +57,13 @@ class Counter extends Component {
     const displaySecond = formatTime(seconds)
 
     return (
-      <Header as="h3" color={getDisplayColor(timeLimit, minutes)}>{`${displayMinute}:${displaySecond}`}</Header>
+      <Header
+        as="h3"
+        data-testid="counter"
+        color={getDisplayColor(timeLimit, minutes)}
+      >
+        {`${displayMinute}:${displaySecond}`}
+      </Header>
     )
   }
 }

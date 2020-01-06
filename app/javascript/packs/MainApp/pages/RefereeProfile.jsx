@@ -5,9 +5,9 @@ import { DateTime } from 'luxon'
 import {
   Header, Message, Tab, Segment, Loader, Button
 } from 'semantic-ui-react'
-import RefereeProfileEdit from './RefereeProfileEdit'
-import ProfileContent from './ProfileContent'
-import CertificationContent from './CertificationContent'
+import RefereeProfileEdit from '../components/RefereeProfileEdit'
+import ProfileContent from '../components/ProfileContent'
+import CertificationContent from '../components/CertificationContent'
 
 class RefereeProfile extends Component {
   static propTypes = {
