@@ -117,6 +117,8 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
   describe 'GET #show' do
     let!(:referee) { create :user }
 
+    before { allow_any_instance_of(User).to receive(:pending_policies).and_return([]) }
+
     subject { get :show, params: { id: referee.id } }
 
     it 'returns http success' do
@@ -170,7 +172,10 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
     let!(:national_governing_bodies) { create_list :national_governing_body, 3 }
     let(:ngb_ids) { national_governing_bodies.pluck(:id) }
 
-    before { sign_in referee }
+    before do
+      sign_in referee
+      allow_any_instance_of(User).to receive(:pending_policies).and_return([])
+    end
 
     subject { post :update, params: body_data }
 
