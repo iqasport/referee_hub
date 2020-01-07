@@ -34,7 +34,7 @@ gem 'bootsnap', '>= 1.1.0', require: false
 
 gem 'devise'
 
-gem 'webpacker'
+gem 'webpacker', '~> 4.2.2'
 
 gem 'fast_jsonapi'
 gem 'will_paginate'
