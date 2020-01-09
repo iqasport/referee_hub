@@ -10,14 +10,18 @@
         }
     },
     "env": {
-        "es6": true
+        "es6": true,
+        "jest/globals": true
     },
     "plugins": [
-        "react"
+        "react",
+        "jest"
     ],
     "extends": [
         "airbnb",
-        "plugin:react/recommended"
+        "plugin:react/recommended",
+        "plugin:jest/recommended",
+        "plugin:jest/style"
     ],
     "rules": {
         "semi": 0,

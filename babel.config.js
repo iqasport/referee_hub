@@ -1,3 +1,8 @@
+/* eslint-disable space-before-function-paren */
+/* eslint-disable operator-linebreak */
+/* eslint-disable prefer-template */
+/* eslint-disable no-var */
+/* eslint-disable func-names */
 module.exports = function(api) {
   var validEnv = ['development', 'test', 'production']
   var currentEnv = api.env()
@@ -50,6 +55,7 @@ module.exports = function(api) {
       '@babel/plugin-syntax-dynamic-import',
       isTestEnv && 'babel-plugin-dynamic-import-node',
       '@babel/plugin-transform-destructuring',
+      '@babel/plugin-proposal-export-default-from',
       [
         '@babel/plugin-proposal-class-properties',
         {
@@ -81,7 +87,7 @@ module.exports = function(api) {
         {
           removeImport: true
         }
-      ]
+      ],
     ].filter(Boolean)
   }
 }

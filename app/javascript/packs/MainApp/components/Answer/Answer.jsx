@@ -5,7 +5,7 @@ import {
   Form, Checkbox, Button
 } from 'semantic-ui-react';
 import { isEmpty } from 'lodash'
-import RichTextEditor from './RichTextEditor'
+import RichTextEditor from '../RichTextEditor'
 
 class Answer extends Component {
   static propTypes = {
@@ -74,12 +74,33 @@ class Answer extends Component {
 
     return (
       <div style={{ display: 'flex', justifyContent: 'flex-end', flex: '1' }}>
-        {!isEditing && <Button style={buttonStyle} icon="edit" color="green" onClick={this.handleEditClick} />}
-        {isDeletable && <Button style={buttonStyle} icon="trash alternate" negative onClick={this.handleDeleteClick} />}
-        {isEditing && <Button style={buttonStyle} icon="close" onClick={this.handleEditCancel} />}
+        {!isEditing
+          && (
+            <Button style={buttonStyle} icon="edit" color="green" onClick={this.handleEditClick} data-testid="edit" />
+          )
+        }
+        {isDeletable
+          && (
+            <Button
+              style={buttonStyle}
+              icon="trash alternate"
+              negative
+              onClick={this.handleDeleteClick}
+              data-testid="delete"
+            />
+          )
+        }
+        {isEditing && <Button style={buttonStyle} icon="close" onClick={this.handleEditCancel} data-testid="close" />}
         {isEditing
           && (
-            <Button style={buttonStyle} icon="checkmark" onClick={this.handleSave} primary disabled={isDisabled} />
+            <Button
+              style={buttonStyle}
+              icon="checkmark"
+              onClick={this.handleSave}
+              primary
+              disabled={isDisabled}
+              data-testid="save"
+            />
           )
         }
       </div>
@@ -90,7 +111,13 @@ class Answer extends Component {
     const { isEditing } = this.state
     const { isEditable } = this.props
 
-    const input = isEditable && <RichTextEditor value={this.descriptionValue} onChange={this.handleDescriptionChange} />
+    const input = isEditable && (
+      <RichTextEditor
+        value={this.descriptionValue}
+        onChange={this.handleDescriptionChange}
+        name="Description"
+      />
+    )
     // eslint-disable-next-line react/no-danger
     const renderedText = (
       <div
@@ -118,6 +145,7 @@ class Answer extends Component {
           disabled={isDisabled}
           checked={isCorrect}
           onClick={this.handleCorrectChange}
+          data-testid="checkbox"
         />
         {this.renderAnswer()}
         {isEditable && this.renderButtons()}

@@ -3,4 +3,5 @@ module.exports = {
   moduleDirectories: ['node_modules', './'],
   moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
   testRegex: '(/__tests__/.*|(\\.|/)(test))\\.(jsx?)$',
+  testEnvironment: 'jest-environment-jsdom-fourteen'
 }
