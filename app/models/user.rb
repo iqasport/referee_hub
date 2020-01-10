@@ -66,7 +66,7 @@ class User < ApplicationRecord
 
   self.per_page = 25
 
-  attr_accessor :disable_ensure_role
+  attr_accessor :disable_ensure_role, :policy_rule_privacy_terms
 
   after_save :ensure_role, on: :create
 
@@ -77,8 +77,6 @@ class User < ApplicationRecord
   def policy_term_on(term = 'privacy_terms')
     super(term)
   end
-
-  def policy_rule_privacy_terms; end
 
   def flipper_id
     "User;#{id}"
