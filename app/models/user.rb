@@ -78,6 +78,8 @@ class User < ApplicationRecord
     super(term)
   end
 
+  def policy_rule_privacy_terms; end
+
   def flipper_id
     "User;#{id}"
   end
