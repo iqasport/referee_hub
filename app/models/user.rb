@@ -66,7 +66,7 @@ class User < ApplicationRecord
 
   self.per_page = 25
 
-  attr_accessor :disable_ensure_role
+  attr_accessor :disable_ensure_role, :policy_rule_privacy_terms
 
   after_save :ensure_role, on: :create
 
