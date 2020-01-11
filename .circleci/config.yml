@@ -97,8 +97,8 @@ jobs:
       - store_test_results:
           path: /tmp/js-test-results
       - store_artifacts:
-          path: /tmp/js-test-results
-          destination: js-test-results
+          path: coverage
+          prefix: coverage
 
 workflows:
   version: 2
