@@ -53,7 +53,7 @@ jobs:
             bundle exec rspec $TEST_FILES
           test:
             post:
-              - bash <(curl -s https://codecov.io/bash)
+              - bash <(curl -s https://codecov.io/bash) -cF ruby
       # collect reports
       - store_test_results:
           path: /tmp/test-results
@@ -85,17 +85,20 @@ jobs:
             - ~/.yarn-cache
       - run:
           name: Run JS tests
-          command: yarn test
+          command: |
+            mkdir /tmp/js-test-results
+            TEST_FILES="$(circleci tests glob "app/javascript/packs/MainApp/**/*.test.jsx" | circleci tests split --split-by=timings)"
+
+            yarn test $TEST_FILES
           test:
             post:
-              - bash <(curl -s https://codecov.io/bash)
+              - bash <(curl -s https://codecov.io/bash) -cF javascript
 
+      - store_test_results:
+          path: /tmp/js-test-results
       - store_artifacts:
-          path: test-results.xml
-          prefix: tests
-      - store_artifacts:
-          path: coverage
-          prefix: coverage
+          path: /tmp/js-test-results
+          destination: js-test-results
 
 workflows:
   version: 2
