@@ -35,7 +35,8 @@ class ProfileContent extends Component {
           website: PropTypes.string
         })
       ),
-      isEditable: PropTypes.bool
+      isEditable: PropTypes.bool,
+      gettingStartedDismissedAt: PropTypes.string,
     }).isRequired,
     onDismiss: PropTypes.func.isRequired
   }

@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  test_ruby:
     working_directory: ~/referee_hub
     docker:
       # specify the version you desire here
@@ -19,7 +19,7 @@ jobs:
           POSTGRES_DB: referee_hub_test
           POSTGRES_PASSWORD: ""
       - image: circleci/redis:4.0.9-alpine
-        
+
     steps:
       - checkout
       # Download and cache dependencies
@@ -30,7 +30,7 @@ jobs:
           - v1-dependencies-
 
       - run:
-          name: install dependencies
+          name: install ruby dependencies
           command: |
             bundle install --jobs=4 --retry=3 --path vendor/bundle
 
@@ -45,19 +45,64 @@ jobs:
 
       # run tests!
       - run:
-          name: run tests
+          name: run ruby tests
           command: |
             mkdir /tmp/test-results
             TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
-            
+
             bundle exec rspec $TEST_FILES
           test:
             post:
-              - bash <(curl -s https://codecov.io/bash)
-
+              - bash <(curl -s https://codecov.io/bash) -cF ruby
       # collect reports
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
           path: /tmp/test-results
           destination: test-results
+
+  test_js:
+    working_directory: ~/referee_hub
+    docker:
+      - image: circleci/node:latest
+
+    steps:
+      - checkout
+      - run:
+          name: Update Node.js
+          command: |
+            curl -sSL "https://nodejs.org/dist/latest-v10.x/node-v10.18.1-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v10.18.1-linux-x64/bin/node
+      - run:
+          name: Install Yarn and dependencies
+          command: |
+            curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.21.1
+            yarn install
+
+      # Store yarn / webpacker cache
+      - save_cache:
+          key: yarn-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.yarn-cache
+      - run:
+          name: Run JS tests
+          command: |
+            mkdir /tmp/js-test-results
+            TEST_FILES="$(circleci tests glob "app/javascript/packs/MainApp/**/*.test.jsx" | circleci tests split --split-by=timings)"
+
+            yarn test $TEST_FILES
+          test:
+            post:
+              - bash <(curl -s https://codecov.io/bash) -cF javascript
+
+      - store_test_results:
+          path: /tmp/js-test-results
+      - store_artifacts:
+          path: coverage
+          prefix: coverage
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - test_ruby
+      - test_js

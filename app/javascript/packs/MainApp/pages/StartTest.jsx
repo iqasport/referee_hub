@@ -7,7 +7,7 @@ import {
   Segment, Header, Message, Icon, Divider, Button
 } from 'semantic-ui-react'
 
-import TestTaker from './TestTaker'
+import TestTaker from '../components/TestTaker'
 
 const formatAnswer = ({ id, attributes }) => ({
   id,
