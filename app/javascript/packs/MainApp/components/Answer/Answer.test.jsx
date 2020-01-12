@@ -64,7 +64,7 @@ describe('Answer', () => {
 
     fireEvent.click(screen.getByTestId('delete'))
 
-    expect(defaultProps.onDelete).toHaveBeenCalled()
+    expect(defaultProps.onDelete).toHaveBeenCalledWith(defaultProps.values.id)
   })
 
   test('it is selectable', () => {
@@ -73,7 +73,7 @@ describe('Answer', () => {
     fireEvent.click(screen.getByTestId('edit'))
     fireEvent.click(screen.getByTestId('checkbox'))
 
-    expect(defaultProps.onCorrectChange).toHaveBeenCalled()
+    expect(defaultProps.onCorrectChange).toHaveBeenCalledWith(defaultProps.values.id)
   })
 
   describe('when not editable', () => {

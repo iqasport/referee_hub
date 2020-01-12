@@ -4,13 +4,13 @@ import axios from 'axios'
 import { capitalize, groupBy } from 'lodash'
 import { Segment, Label, Message } from 'semantic-ui-react'
 
-import ContentSegment from './ContentSegment'
+import ContentSegment from '../ContentSegment'
 import {
   hasHeadCert,
   canTakeSnitchTest,
   canTakeAssistantTest,
   canTakeHeadTest,
-} from '../utils'
+} from '../../utils'
 
 const testColor = (testLevel) => {
   switch (testLevel) {
@@ -28,6 +28,8 @@ const testColor = (testLevel) => {
 const allLinksDisabled = linkArray => linkArray.filter(link => link.enabled).length === 0
 
 class CertificationLinks extends Component {
+  signal = axios.CancelToken.source()
+
   static propTypes = {
     hasPaid: PropTypes.bool.isRequired,
     refereeId: PropTypes.string.isRequired,
@@ -53,19 +55,39 @@ class CertificationLinks extends Component {
   }
 
   state = {
-    testLinks: []
+    testLinks: [],
+    httpStatus: null,
+    httpStatusText: null
   }
 
   componentDidMount() {
-    axios.get('/api/v1/tests', { params: { active_only: true } })
-      .then(({ data }) => {
-        const { data: testData } = data
+    this.onLoadTests()
+  }
 
-        if (testData) {
-          const testLinks = testData.map(this.buildTestLink)
-          this.setState({ testLinks })
-        }
+  componentWillUnmount() {
+    this.signal.cancel('component is being unmounted')
+  }
+
+  onLoadTests = async () => {
+    try {
+      const response = await axios.get('/api/v1/tests', {
+        params: { active_only: true },
+        cancelToken: this.signal.token,
       })
+      const testData = response.data.data
+
+      if (testData) {
+        const testLinks = testData.map(this.buildTestLink)
+        this.setState({ testLinks })
+      }
+    } catch (err) {
+      if (axios.isCancel(err)) {
+        // eslint-disable-next-line no-console
+        console.log(err.message)
+      } else {
+        this.setState({ httpStatus: 500, httpStatusText: err.message })
+      }
+    }
   }
 
   get canTakeSnitchTest() {
@@ -184,6 +206,7 @@ class CertificationLinks extends Component {
   )
 
   render() {
+    const { httpStatus, httpStatusText } = this.state
     const { refCertifications, levelsThatNeedRenewal } = this.props
     if (hasHeadCert(refCertifications, levelsThatNeedRenewal)) return null
 
@@ -195,8 +218,10 @@ class CertificationLinks extends Component {
 
     const headerContent = 'Available Written Tests'
     const segmentContent = anyTestsAvailable ? this.renderTests() : this.renderCoolDownNotice()
+    const renderedSegment = <ContentSegment segmentContent={segmentContent} headerContent={headerContent} />
+    const error = <Message header={httpStatus} content={httpStatusText} />
 
-    return <ContentSegment segmentContent={segmentContent} headerContent={headerContent} />
+    return httpStatus ? error : renderedSegment
   }
 }
 

@@ -1,157 +1,129 @@
 /* eslint-disable react/no-danger */
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import {
-  Form, Checkbox, Button
-} from 'semantic-ui-react';
+import { Form, Checkbox } from 'semantic-ui-react';
 import { isEmpty } from 'lodash'
 import RichTextEditor from '../RichTextEditor'
+import AnswerButtons from './AnswerButtons'
 
-class Answer extends Component {
-  static propTypes = {
-    values: PropTypes.shape({
-      description: PropTypes.string,
-      id: PropTypes.string
-    }).isRequired,
-    isCorrect: PropTypes.bool.isRequired,
-    onSave: PropTypes.func,
-    onCorrectChange: PropTypes.func.isRequired,
-    onDelete: PropTypes.func,
-    isEditable: PropTypes.bool
-  }
+const Answer = (props) => {
+  const {
+    isEditable, descriptionValue, onChange, isEditing
+  } = props
 
-  static defaultProps = {
-    isEditable: true,
-    onSave: () => {},
-    onDelete: () => {}
-  }
+  const input = isEditable && (
+    <RichTextEditor
+      value={descriptionValue}
+      onChange={onChange}
+      name="Description"
+    />
+  )
+  // eslint-disable-next-line react/no-danger
+  const renderedText = (
+    <div
+      style={{ textAlign: 'left' }}
+      dangerouslySetInnerHTML={{ __html: descriptionValue }}
+    />
+  )
 
-  state = {
-    updatedDescription: '',
-    updatedCorrect: false,
-    isEditing: false
-  }
-
-  get descriptionValue() {
-    const { values: { description } } = this.props
-    const { updatedDescription } = this.state
-
-    return updatedDescription || description
-  }
-
-  handleEditClick = () => this.setState({ isEditing: true })
-
-  handleEditCancel = () => this.setState({ isEditing: false })
-
-  handleDescriptionChange = (_e, { value }) => this.setState({ updatedDescription: value })
-
-  handleCorrectChange = () => {
-    const { onCorrectChange, values: { id }, isEditable } = this.props
-
-    if (isEditable) this.setState({ updatedCorrect: true })
-    onCorrectChange(id)
-  }
-
-  handleSave = () => {
-    const { onSave, values: { id } } = this.props
-
-    this.handleEditCancel()
-    if (onSave) onSave({ id, description: this.descriptionValue })
-  }
-
-  handleDeleteClick = () => {
-    const { onDelete, values: { id } } = this.props
-
-    if (onDelete) onDelete(id)
-  }
-
-  renderButtons = () => {
-    const { isEditing, updatedDescription, updatedCorrect } = this.state
-    const { values: { id } } = this.props
-    const buttonStyle = { margin: '0 10px' }
-    const isDisabled = isEmpty(updatedDescription) && !updatedCorrect
-    const isDeletable = !/null/.test(id) && !isEditing
-
-    return (
-      <div style={{ display: 'flex', justifyContent: 'flex-end', flex: '1' }}>
-        {!isEditing
-          && (
-            <Button style={buttonStyle} icon="edit" color="green" onClick={this.handleEditClick} data-testid="edit" />
-          )
-        }
-        {isDeletable
-          && (
-            <Button
-              style={buttonStyle}
-              icon="trash alternate"
-              negative
-              onClick={this.handleDeleteClick}
-              data-testid="delete"
-            />
-          )
-        }
-        {isEditing && <Button style={buttonStyle} icon="close" onClick={this.handleEditCancel} data-testid="close" />}
-        {isEditing
-          && (
-            <Button
-              style={buttonStyle}
-              icon="checkmark"
-              onClick={this.handleSave}
-              primary
-              disabled={isDisabled}
-              data-testid="save"
-            />
-          )
-        }
-      </div>
-    )
-  }
-
-  renderAnswer = () => {
-    const { isEditing } = this.state
-    const { isEditable } = this.props
-
-    const input = isEditable && (
-      <RichTextEditor
-        value={this.descriptionValue}
-        onChange={this.handleDescriptionChange}
-        name="Description"
-      />
-    )
-    // eslint-disable-next-line react/no-danger
-    const renderedText = (
-      <div
-        style={{ textAlign: 'left' }}
-        dangerouslySetInnerHTML={{ __html: this.descriptionValue }}
-      />
-    )
-    return (
-      <div style={{ marginLeft: '10px' }}>
-        {isEditing ? input : renderedText}
-      </div>
-    )
-  }
-
-  render() {
-    const { isCorrect, isEditable } = this.props
-    const { isEditing } = this.state
-    const isDisabled = !isEditable ? false : !isEditing
-
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', margin: '15px 0' }}>
-        <Form.Field
-          className="answer-checkbox"
-          control={Checkbox}
-          disabled={isDisabled}
-          checked={isCorrect}
-          onClick={this.handleCorrectChange}
-          data-testid="checkbox"
-        />
-        {this.renderAnswer()}
-        {isEditable && this.renderButtons()}
-      </div>
-    )
-  }
+  return (
+    <div style={{ marginLeft: '10px' }}>
+      {isEditing ? input : renderedText}
+    </div>
+  )
 }
 
-export default Answer
+Answer.propTypes = {
+  isEditable: PropTypes.bool.isRequired,
+  descriptionValue: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  isEditing: PropTypes.bool.isRequired,
+}
+
+const AnswerContainer = (props) => {
+  const {
+    values: { id: answerId, description }, isEditable, onDelete, onSave, onCorrectChange, isCorrect
+  } = props
+
+  // set state
+  const [updatedDescription, setUpdatedDescription] = useState('')
+  const [updatedCorrect, setUpdatedCorrect] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+
+  // set function variables
+  const descriptionValue = updatedDescription || description
+  const isCheckboxDisabled = !isEditable ? false : !isEditing
+  const isSaveDisabled = isEmpty(updatedDescription) && !updatedCorrect
+  const isDeletable = !/null/.test(answerId) && !isEditing
+
+  // set handler functions
+  const handleEditClick = () => setIsEditing(true)
+  const handleEditCancel = () => setIsEditing(false)
+  const handleDescriptionChange = (_e, { value }) => setUpdatedDescription(value)
+  const handleCorrectChange = () => {
+    if (isEditable) setUpdatedCorrect(true)
+    onCorrectChange(answerId)
+  }
+  const handleSave = () => {
+    handleEditCancel()
+    if (onSave) onSave({ id: answerId, description: descriptionValue })
+  }
+  const handleDeleteClick = () => { if (onDelete) onDelete(answerId) }
+
+  // render buttons
+  const buttons = (
+    <AnswerButtons
+      isDisabled={isSaveDisabled}
+      isDeletable={isDeletable}
+      isEditing={isEditing}
+      onEditClick={handleEditClick}
+      onDeleteClick={handleDeleteClick}
+      onEditCloseClick={handleEditCancel}
+      onSaveClick={handleSave}
+    />
+  )
+
+  const answer = (
+    <Answer
+      isEditable={isEditable}
+      descriptionValue={descriptionValue}
+      onChange={handleDescriptionChange}
+      isEditing={isEditing}
+    />
+  )
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', margin: '15px 0' }}>
+      <Form.Field
+        className="answer-checkbox"
+        control={Checkbox}
+        disabled={isCheckboxDisabled}
+        checked={isCorrect}
+        onClick={handleCorrectChange}
+        data-testid="checkbox"
+      />
+      {answer}
+      {isEditable && buttons}
+    </div>
+  )
+}
+
+AnswerContainer.propTypes = {
+  values: PropTypes.shape({
+    description: PropTypes.string,
+    id: PropTypes.string
+  }).isRequired,
+  isCorrect: PropTypes.bool.isRequired,
+  onSave: PropTypes.func,
+  onCorrectChange: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
+  isEditable: PropTypes.bool
+}
+
+AnswerContainer.defaultProps = {
+  isEditable: true,
+  onSave: () => {},
+  onDelete: () => {}
+}
+
+export default AnswerContainer
