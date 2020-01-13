@@ -59,6 +59,6 @@
     "webpack-dev-server": "^3.10.1"
   },
   "scripts": {
-    "test": "jest --config jest.config.js"
+    "test": "jest --config jest.config.js --coverage"
   }
 }

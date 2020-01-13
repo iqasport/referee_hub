@@ -5,5 +5,12 @@ module.exports = {
   testRegex: '(/__tests__/.*|(\\.|/)(test))\\.(jsx?)$',
   testEnvironment: 'jest-environment-jsdom-fourteen',
   collectCoverage: true,
-  coverageReporters: ['json']
+  coverageReporters: ['json'],
+  coverageThreshold: {
+    global: {
+      branches: 90,
+      functions: 90,
+      lines: 90,
+    }
+  }
 }

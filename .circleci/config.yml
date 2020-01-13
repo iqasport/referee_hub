@@ -92,7 +92,7 @@ jobs:
             yarn test $TEST_FILES
           test:
             post:
-              - bash <(curl -s https://codecov.io/bash) -cF javascript
+              - bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
 
       - store_test_results:
           path: /tmp/js-test-results
