@@ -7,7 +7,7 @@
 
     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
     <%= stylesheet_link_tag 'application' %>
-    <%= javascript_packs_with_chunks_tag 'MainApp/index' %>
+    <%= javascript_packs_with_chunks_tag 'MainApp/index', 'data-turbolinks-track': 'reload' %>
     <%= stylesheet_pack_tag 'MainApp/assets/stylesheets/app' %>
     <%= favicon_link_tag asset_path('favicon.ico'), :rel => 'icon', :type =>  'image/png' %>
   </head>

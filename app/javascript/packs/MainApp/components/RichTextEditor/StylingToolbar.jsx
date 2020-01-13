@@ -157,7 +157,7 @@ const StylingToolbar = (props) => {
   }
 
   return (
-    <div>
+    <div style={{ display: 'flex' }}>
       <InlineStyleControls onToggle={handleToggleStyle} editorState={editorState} />
       <ColorControls onToggle={handleToggleColor} editorState={editorState} />
     </div>
