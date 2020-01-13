@@ -1,57 +1,68 @@
-import React, { Component } from 'react'
-import ReactQuill from 'react-quill'
+import React, { useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
+import {
+  Editor, EditorState, convertFromHTML, ContentState, convertToRaw
+} from 'draft-js'
+import draftToHtml from 'draftjs-to-html'
+import StylingToolbar from './StylingToolbar'
+import { colorStyleMap } from '../../constants'
 
-const modules = {
-  toolbar: [
-    ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-    ['blockquote', 'code-block'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    [{ script: 'sub' }, { script: 'super' }], // superscript/subscript
-    [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
-    [{ direction: 'rtl' }, { direction: 'ltr' }], // text direction
-    [{ size: [] }],
-    [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-  ]
+const RichTextEditor = (props) => {
+  const { value, onChange, name } = props
+  let initialState
+  if (value.length) {
+    const blocksFromHTML = convertFromHTML(value);
+    const contentState = ContentState.createFromBlockArray(
+      blocksFromHTML.contentBlocks,
+      blocksFromHTML.entityMap,
+    )
+    initialState = EditorState.createWithContent(contentState)
+  } else {
+    initialState = EditorState.createEmpty()
+  }
+  const [editorState, setEditorState] = useState(initialState)
+
+  const editor = useRef(null)
+
+  function focusEditor() {
+    editor.current.focus()
+  }
+
+  useEffect(() => {
+    focusEditor()
+  }, [])
+
+  function handleEditorChange(newEditorState) {
+    const content = editorState.getCurrentContent()
+    const convertedContent = convertToRaw(content)
+    const htmlMarkup = draftToHtml(convertedContent)
+
+    setEditorState(newEditorState)
+
+    if (onChange) onChange({}, { name, value: `${htmlMarkup}` })
+  }
+
+  return (
+    <div>
+      <StylingToolbar editorState={editorState} handleEditorChange={handleEditorChange} />
+      <div role="textbox" onClick={focusEditor} onKeyPress={focusEditor} tabIndex={0}>
+        <Editor
+          customStyleMap={colorStyleMap}
+          ref={editor}
+          editorState={editorState}
+          onChange={handleEditorChange}
+        />
+      </div>
+    </div>
+  )
 }
 
-class RichTextEditor extends Component {
-  static propTypes = {
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.string.isRequired,
-    // eslint-disable-next-line react/require-default-props
-    placeholder: PropTypes.string,
-    name: PropTypes.string.isRequired
-  }
-
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      editorValue: props.value
-    }
-  }
-
-  handleChange = (content) => {
-    const { onChange, name } = this.props
-    this.setState({ editorValue: content })
-
-    if (onChange) onChange({}, { name, value: content })
-  }
-
-  render() {
-    const { editorValue } = this.state
-    const { placeholder } = this.props
-
-    return (
-      <ReactQuill
-        value={editorValue}
-        onChange={this.handleChange}
-        placeholder={placeholder}
-        modules={modules}
-      />
-    )
-  }
+RichTextEditor.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.string.isRequired,
+  // // eslint-disable-next-line react/require-default-props
+  // placeholder: PropTypes.string,
+  name: PropTypes.string.isRequired
 }
 
 export default RichTextEditor

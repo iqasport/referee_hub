@@ -7,10 +7,9 @@
 
     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
     <%= stylesheet_link_tag 'application' %>
-    <%= javascript_pack_tag 'MainApp/index' %>
+    <%= javascript_packs_with_chunks_tag 'MainApp/index' %>
     <%= stylesheet_pack_tag 'MainApp/assets/stylesheets/app' %>
     <%= favicon_link_tag asset_path('favicon.ico'), :rel => 'icon', :type =>  'image/png' %>
-    <link rel='stylesheet' href='//cdn.quilljs.com/1.2.6/quill.snow.css' />
   </head>
 
   <body style='display: flex;min-height: 100vh;flex-direction: column;'>

@@ -1,5 +1,7 @@
 const { environment } = require('@rails/webpacker')
 
+environment.splitChunks()
+
 environment.config.merge({
   module: {
     rules: [
