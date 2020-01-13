@@ -223,7 +223,33 @@ RSpec.describe Api::V1::TestsController, type: :controller do
         expect(response_data).to eq expected_error
       end
     end
-  end
+    context 'when the refeeree has too many test attempts in the last month' do 
+      let!(:old_test_attempts){create_list :test_attempt, 3, test: test, referee: tester_ref, test_level: test.level, created_at: 2.months.ago}
+      let!(:test_attempts){create_list :test_attempt, 3, test: test, referee: tester_ref, test_level: test.level, created_at: 1.day.ago}
+      let(:expected_error){described_class:: INVALID_TRY_COUNT}
+      
+      before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
+      
+      it 'returns an error' do 
+        subject
+
+       expect(response).to have_http_status(:successful)
+      end
+
+      it 'returns an error message' do 
+        subject 
+        response_data = JSON.parse(response.body)['data']
+  
+        expect(response_data.length).to eq question_count
+      end
+  end 
+end    
+  #Setup 
+  # - condition is set 
+  #Action 
+  # - ? 
+  #Validation 
+  # - determine whether the expected value was returned 
 
   describe 'POST #finish' do
     let(:tester_ref) { create :user }

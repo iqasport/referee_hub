@@ -150,7 +150,8 @@ module Api
       end
 
       def verify_valid_tries
-        try_count = referee_test_attempts.count
+        # debugger
+        try_count = referee_test_attempts.where('created_at > ?', 1.month.ago).count
 
         return true unless try_count >= Test::MAXIMUM_RETRIES
 
