@@ -60,8 +60,6 @@ const RichTextEditor = (props) => {
 RichTextEditor.propTypes = {
   onChange: PropTypes.func.isRequired,
   value: PropTypes.string.isRequired,
-  // // eslint-disable-next-line react/require-default-props
-  // placeholder: PropTypes.string,
   name: PropTypes.string.isRequired
 }
 
