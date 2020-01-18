@@ -45,6 +45,11 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :trackable,
          :validatable, :confirmable, :lockable
 
+  # There is a uniqueness constraint on the national_governing_body_admin table on user_id so a single user can
+  # not be an admin of more than on ngb. But an ngb can have multiple admins.
+  has_many :national_governing_body_admins, dependent: :destroy
+  has_many :owned_ngb, through: :national_governing_body_admins, source: :national_governing_body
+
   has_many :roles, dependent: :destroy
   accepts_nested_attributes_for :roles
 
@@ -72,6 +77,10 @@ class User < ApplicationRecord
 
   def iqa_admin?
     roles.exists?(access_type: 'iqa_admin')
+  end
+
+  def ngb_admin?
+    roles.exists?(access_type: 'ngb_admin')
   end
 
   def policy_term_on(term = 'privacy_terms')
