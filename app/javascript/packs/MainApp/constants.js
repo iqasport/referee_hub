@@ -129,3 +129,27 @@ export const TEST_FORM_CONFIG = (values) => {
     },
   ]
 }
+
+export const colorStyleMap = {
+  'color-red': {
+    color: 'red',
+  },
+  'color-orange': {
+    color: 'orange',
+  },
+  'color-yellow': {
+    color: 'yellow',
+  },
+  'color-green': {
+    color: 'green',
+  },
+  'color-blue': {
+    color: 'blue',
+  },
+  'color-indigo': {
+    color: 'indigo',
+  },
+  'color-violet': {
+    color: 'violet',
+  },
+}

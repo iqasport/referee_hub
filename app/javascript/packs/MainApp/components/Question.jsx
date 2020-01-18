@@ -71,8 +71,6 @@ class Question extends Component {
   renderQuestion = () => {
     const { isEditing } = this.state
     const { values: { description, feedback, pointsAvailable } } = this.props
-    const questionPlaceholder = 'Rich text of the test question.'
-    const feedbackPlaceholder = 'Information for Referees regarding this question, provided after finishing the test.'
 
     return (
       <Fragment>
@@ -85,7 +83,6 @@ class Question extends Component {
               ? (
                 <RichTextEditor
                   value={this.editValues.description}
-                  placeholder={questionPlaceholder}
                   onChange={this.handleChange}
                   name="Description"
                 />
@@ -103,7 +100,6 @@ class Question extends Component {
               ? (
                 <RichTextEditor
                   value={this.editValues.feedback}
-                  placeholder={feedbackPlaceholder}
                   onChange={this.handleChange}
                   name="Feedback"
                 />

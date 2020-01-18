@@ -26,10 +26,11 @@ const testColor = (testLevel) => {
 }
 
 const allLinksDisabled = linkArray => linkArray.filter(link => link.enabled).length === 0
+// eslint-disable-next-line prefer-destructuring
+const CancelToken = axios.CancelToken
+let cancel = CancelToken.source()
 
 class CertificationLinks extends Component {
-  signal = axios.CancelToken.source()
-
   static propTypes = {
     hasPaid: PropTypes.bool.isRequired,
     refereeId: PropTypes.string.isRequired,
@@ -65,14 +66,16 @@ class CertificationLinks extends Component {
   }
 
   componentWillUnmount() {
-    this.signal.cancel('component is being unmounted')
+    if (cancel !== undefined) {
+      cancel('component is being unmounted')
+    }
   }
 
   onLoadTests = async () => {
     try {
       const response = await axios.get('/api/v1/tests', {
         params: { active_only: true },
-        cancelToken: this.signal.token,
+        cancelToken: new CancelToken(function executor(c) { cancel = c }),
       })
       const testData = response.data.data
 
