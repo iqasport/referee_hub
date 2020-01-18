@@ -6,11 +6,4 @@ module.exports = {
   testEnvironment: 'jest-environment-jsdom-fourteen',
   collectCoverage: true,
   coverageReporters: ['json'],
-  coverageThreshold: {
-    global: {
-      branches: 90,
-      functions: 90,
-      lines: 90,
-    }
-  }
 }
