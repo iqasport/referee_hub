@@ -223,6 +223,19 @@ RSpec.describe Api::V1::TestsController, type: :controller do
         expect(response_data).to eq expected_error
       end
     end
+
+    context 'when the referee has more than the max attempts but they are older than a month' do
+      let!(:old_attempts) do
+        create_list :test_attempt, 4, test: test, referee: tester_ref, test_level: test.level, created_at: 2.months.ago
+      end
+      let!(:test_attempts) do
+        create_list :test_attempt, 3, test: test, referee: tester_ref, test_level: test.level, created_at: 1.day.ago
+      end
+
+      before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
+
+      it_behaves_like 'it is a successful request'
+    end
   end
 
   describe 'POST #finish' do
