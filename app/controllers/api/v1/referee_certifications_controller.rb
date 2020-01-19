@@ -1,6 +1,6 @@
 module Api
   module V1
-    class RefereeCertificationsController < ::ApplicationController
+    class RefereeCertificationsController < ApplicationController
       before_action :authenticate_user!
       before_action :find_referee_certification, only: :update
       before_action :verify_admin, only: :create

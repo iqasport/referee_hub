@@ -1,6 +1,6 @@
 module Api
   module V1
-    class NationalGoverningBodiesController < ::ApplicationController
+    class NationalGoverningBodiesController < ApplicationController
       before_action :find_ngb, only: :show
 
       def index

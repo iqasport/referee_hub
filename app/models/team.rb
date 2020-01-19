@@ -28,6 +28,8 @@ class Team < ApplicationRecord
 
   MAXIMUM_RETRIES = 6
 
+  self.per_page = 25
+
   enum status: {
     competitive: 0,
     developing: 1,

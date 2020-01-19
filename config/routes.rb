@@ -70,6 +70,14 @@ Rails.application.routes.draw do
         patch '/update-payment' => 'diagnostic#update_payment'
       end
 
+      scope '/ngb-admin' do
+        resources :teams,
+          only: %i[index show create update destroy],
+          controller: 'national_governing_body_teams'
+
+        post 'teams/import', to: 'national_governing_body_teams#import'
+      end
+
       post 'tests/import', to: 'tests#import'
       get 'referees' => 'referees#index'
       get 'referees/:id' => 'referees#show'
