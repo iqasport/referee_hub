@@ -17,19 +17,14 @@ module Api
 
       def index
         @tests = params[:active_only] ? Test.active : Test.all
-
         json_string = TestSerializer.new(@tests).serialized_json
-
         render json: json_string, status: :ok
       end
 
       def create
         @test = Test.new(permitted_params)
-
         @test.save!
-
         json_string = TestSerializer.new(@test).serialized_json
-
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
@@ -38,9 +33,7 @@ module Api
 
       def update
         @test.update!(permitted_params)
-
         json_string = TestSerializer.new(@test).serialized_json
-
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
@@ -49,15 +42,12 @@ module Api
 
       def show
         json_string = TestSerializer.new(@test).serialized_json
-
         render json: json_string, status: :ok
       end
 
       def destroy
         json_string = TestSerializer.new(@test).serialized_json
-
         @test.destroy!
-
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
@@ -66,9 +56,7 @@ module Api
 
       def start
         questions = @test.fetch_random_questions
-
         json_string = QuestionSerializer.new(questions, include: %i[answers]).serialized_json
-
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
@@ -77,11 +65,7 @@ module Api
 
       def finish
         hashed_params = permitted_finish_params.to_h
-        test_timestamps = {
-          started_at: hashed_params[:started_at],
-          finished_at: hashed_params[:finished_at]
-        }
-
+        test_timestamps = { started_at: hashed_params[:started_at], finished_at: hashed_params[:finished_at] }
         enqueued_job = GradeJob.perform_later(
           @test,
           current_user,
@@ -97,10 +81,8 @@ module Api
 
       def import
         Test.csv_import(params['file'].tempfile)
-
         new_tests = Test.all
         json_string = TestSerializer.new(new_tests).serialized_json
-
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
@@ -150,7 +132,6 @@ module Api
       end
 
       def verify_valid_tries
-        # debugger
         try_count = referee_test_attempts.where('created_at > ?', 1.month.ago).count
 
         return true unless try_count >= Test::MAXIMUM_RETRIES
