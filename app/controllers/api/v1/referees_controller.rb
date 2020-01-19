@@ -1,6 +1,6 @@
 module Api
   module V1
-    class RefereesController < ::ApplicationController
+    class RefereesController < ApplicationController
       before_action :authenticate_user!, only: :update
       before_action :find_referee, only: %i[show update]
       skip_before_action :verify_authenticity_token

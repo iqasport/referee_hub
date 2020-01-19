@@ -1,4 +1,5 @@
 require 'rails_helper'
+require_relative '_shared_examples'
 
 RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
   describe 'GET #index' do
@@ -11,11 +12,7 @@ RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
 
     subject { get :index }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns all of the referees certifications' do
       subject
@@ -47,11 +44,7 @@ RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
     context 'with valid params' do
       let(:body_data) { { id: assistant.id, needs_renewal_at: Time.zone.now } }
 
-      it 'returns http success' do
-        subject
-
-        expect(response).to have_http_status(:successful)
-      end
+      it_behaves_like 'it is a successful request'
 
       it 'updates the referee certification' do
         subject

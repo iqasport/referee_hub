@@ -35,7 +35,11 @@ class NationalGoverningBody < ApplicationRecord
   has_many :referee_locations, dependent: :destroy
   has_many :referees, through: :referee_locations
   has_many :certified_referees, -> { certified }, through: :referee_locations, source: :referee
+
   has_many :teams, dependent: :destroy
   has_many :stats, inverse_of: :national_governing_body, class_name: 'NationalGoverningBodyStat', dependent: :destroy
   has_many :social_accounts, as: :ownable, dependent: :destroy
+
+  has_many :national_governing_body_admins, dependent: :destroy
+  has_many :admins, through: :national_governing_body_admins, source: :user
 end

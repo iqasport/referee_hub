@@ -13,11 +13,7 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
 
     subject { get :index, params: { test_id: test.id } }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns all of the questions associated with the passed test' do
       subject
@@ -30,11 +26,7 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
     describe 'when a non-admin referee makes a request' do
       before { sign_in non_admin }
 
-      it 'is a successful request' do
-        subject
-
-        expect(response).to have_http_status(:successful)
-      end
+      it_behaves_like 'it is a successful request'
     end
   end
 
@@ -52,11 +44,7 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
 
     subject { post :create, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'creates a new question for the passed test' do
       subject
@@ -86,11 +74,7 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
 
     subject { get :show, params: { id: question.id, test_id: test.id } }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the requested question' do
       subject
@@ -111,11 +95,7 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
 
     subject { put :update, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'updates with the passed attributes' do
       subject
@@ -143,11 +123,7 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
 
     subject { delete :destroy, params: { id: id, test_id: test.id } }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the destroyed object' do
       subject

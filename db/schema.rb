@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_05_215012) do
+ActiveRecord::Schema.define(version: 2020_01_18_205734) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -58,6 +58,15 @@ ActiveRecord::Schema.define(version: 2020_01_05_215012) do
     t.string "acronym"
     t.integer "region"
     t.index ["region"], name: "index_national_governing_bodies_on_region"
+  end
+
+  create_table "national_governing_body_admins", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "national_governing_body_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["national_governing_body_id"], name: "index_national_governing_body_admins_on_ngb_id"
+    t.index ["user_id"], name: "index_national_governing_body_admins_on_user_id", unique: true
   end
 
   create_table "national_governing_body_stats", force: :cascade do |t|
@@ -281,6 +290,8 @@ ActiveRecord::Schema.define(version: 2020_01_05_215012) do
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
+  add_foreign_key "national_governing_body_admins", "national_governing_bodies"
+  add_foreign_key "national_governing_body_admins", "users"
   add_foreign_key "national_governing_body_stats", "national_governing_bodies"
   add_foreign_key "referee_teams", "teams"
   add_foreign_key "referee_teams", "users", column: "referee_id"

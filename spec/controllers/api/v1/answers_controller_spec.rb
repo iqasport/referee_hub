@@ -15,11 +15,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
     subject { get :index, params: { question_id: question.id, random: random } }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns all of the answers associated with the passed question' do
       subject
@@ -46,11 +42,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
       before { allow(question).to receive(:randomize_answers) }
 
-      it 'is a successful request' do
-        subject
-
-        expect(response).to have_http_status(:successful)
-      end
+      it_behaves_like 'it is a successful request'
 
       it 'returns all of the answers associated with the passed question' do
         subject
@@ -75,11 +67,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
     subject { post :create, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'creates a new answer for the passed question' do
       subject
@@ -108,11 +96,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
     subject { get :show, params: { id: answer.id, question_id: question.id } }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the requested question' do
       subject
@@ -133,11 +117,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
     subject { put :update, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'updates with the passed attributes' do
       subject
@@ -160,11 +140,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
       let!(:other_answer) { create :answer, question: question, correct: true }
       let(:body_data) { { correct: true, question_id: question.id, id: answer.id } }
 
-      it 'is a successful request' do
-        subject
-
-        expect(response).to have_http_status(:successful)
-      end
+      it_behaves_like 'it is a successful request'
 
       it 'updates the requested answer' do
         subject
@@ -189,11 +165,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
 
     subject { delete :destroy, params: { id: id, question_id: question.id } }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the destroyed object' do
       subject

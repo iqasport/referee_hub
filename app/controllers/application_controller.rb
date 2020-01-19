@@ -28,4 +28,10 @@ class ApplicationController < ActionController::Base
 
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end
+
+  def verify_ngb_admin
+    return true if current_user.ngb_admin?
+
+    render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
+  end
 end
