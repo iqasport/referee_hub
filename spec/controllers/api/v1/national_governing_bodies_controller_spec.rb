@@ -1,4 +1,5 @@
 require 'rails_helper'
+require_relative '_shared_examples'
 
 RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
   describe 'GET #index' do
@@ -6,11 +7,7 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
 
     subject { get :index }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns all of the ref data' do
       subject
@@ -26,11 +23,7 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
 
     subject { get :show, params: { id: national_governing_body.id } }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the passed id ref data' do
       subject

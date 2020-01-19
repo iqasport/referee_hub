@@ -5,12 +5,11 @@ module Api
       before_action :verify_ngb_admin
       before_action :find_team, only: %i[show update destroy]
       skip_before_action :verify_authenticity_token
-
       layout false
 
       def index
         page = params[:page] || 1
-        @teams = ngb_scope.teams
+        @teams = find_teams_from_filter
         teams_total = @teams.count
         @teams = @teams.page(page)
 
@@ -20,7 +19,7 @@ module Api
       end
 
       def create
-        social_accounts = create_social_account_attrs # setting this variable here so the urls get removed from params
+        social_accounts = Services::CreateAndUpdateSocial.new(params.delete(:urls), :create).perform
         team = Team.new(permitted_params)
         team.national_governing_body = ngb_scope
         team.social_accounts = social_accounts
@@ -41,9 +40,9 @@ module Api
       end
 
       def update
-        social_accounts = update_social_accounts
+        social_accounts = Services::CreateAndUpdateSocial.new(params.delete(:urls), :update, @team).perform
         @team.assign_attributes(permitted_params)
-        @team.social_accounts = social_accounts if social_accounts.present?
+        @team.social_accounts << social_accounts if social_accounts.present?
         @team.save!
 
         json_string = TeamSerializer.new(@team).serialized_json
@@ -89,31 +88,18 @@ module Api
         @ngb_scope ||= current_user.owned_ngb.first
       end
 
-      def create_social_account_attrs
-        return unless (urls = params.delete(:urls))
+      def find_teams_from_filter
+        filter_results = Services::FilterTeams.new(search_params).filter
 
-        generate_social_accounts(urls)
-      end
-
-      def update_social_accounts
-        return nil unless (updated_urls = params.delete(:urls))
-
-        existing_urls = @team.social_accounts.pluck(:url)
-        urls_to_remove = existing_urls - updated_urls
-        urls_to_add = existing_urls.concat(updated_urls).uniq - urls_to_remove
-
-        SocialAccount.where(url: urls_to_remove).destroy_all if urls_to_remove.present?
-
-        generate_social_accounts(urls_to_add)
-      end
-
-      def generate_social_accounts(urls)
-        urls.map do |url|
-          SocialAccount.new(
-            url: url,
-            account_type: SocialAccount.match_account_type(url)
-          )
+        if filter_results.respond_to?(:where)
+          filter_results
+        else
+          Team.where(id: filter_results)
         end
+      end
+
+      def search_params
+        params.permit(:q, national_governing_bodies: [], status: [], group_affiliation: [])
       end
 
       def permitted_params

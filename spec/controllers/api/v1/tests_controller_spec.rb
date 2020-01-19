@@ -12,11 +12,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     subject { get :index }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns all of the current tests' do
       subject
@@ -34,11 +30,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
       subject { get :index, params: params }
 
-      it 'is a successful request' do
-        subject
-
-        expect(response).to have_http_status(:successful)
-      end
+      it_behaves_like 'it is a successful request'
 
       it 'only returns the active test' do
         subject
@@ -69,11 +61,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     subject { post :create, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the created test' do
       subject
@@ -108,11 +96,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     subject { put :update, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'updates the test' do
       expect { subject }.to change { test.reload.name }.to(body_data[:name])
@@ -137,11 +121,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     subject { get :show, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the requested test' do
       subject
@@ -160,11 +140,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     subject { delete :destroy, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the data of the test that was deleted' do
       subject
@@ -188,11 +164,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     subject { get :start, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the correct amount of questions' do
       subject
@@ -280,11 +252,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     subject { post :finish, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the generated grade job id' do
       subject

@@ -6,11 +6,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
     subject { get :index }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns all of the ref data' do
       subject
@@ -121,11 +117,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
     subject { get :show, params: { id: referee.id } }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the passed id ref data' do
       subject
@@ -192,11 +184,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
         }
       end
 
-      it 'returns http success' do
-        subject
-
-        expect(response).to have_http_status(:successful)
-      end
+      it_behaves_like 'it is a successful request'
 
       it 'updates the data on the referee record' do
         subject

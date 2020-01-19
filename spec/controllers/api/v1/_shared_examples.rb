@@ -46,3 +46,11 @@ shared_examples 'it reports to bugsnag on failure' do |method, resource|
     subject
   end
 end
+
+shared_examples 'it is a successful request' do
+  it 'returns http success' do
+    subject
+
+    expect(response).to have_http_status(:successful)
+  end
+end

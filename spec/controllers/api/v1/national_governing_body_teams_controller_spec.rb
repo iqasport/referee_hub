@@ -7,19 +7,17 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
     let!(:user) { create :user, :ngb_admin }
     let!(:teams) { create_list :team, 5, national_governing_body: ngb }
     let!(:other_teams) { create_list :team, 5 }
+    let(:body_data) { { national_governing_bodies: [ngb.id] } }
 
     before do
       ngb.admins << user
       sign_in user
     end
 
-    subject { get :index }
+    subject { get :index, params: body_data }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it fails when a referee is not an admin'
+    it_behaves_like 'it is a successful request'
 
     it 'returns the teams associated with the current user ngb' do
       subject
@@ -37,7 +35,67 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
       expect(response_data).to eq 5
     end
 
-    it_behaves_like 'it fails when a referee is not an admin'
+    context 'with filters' do
+      let(:q) { 'test qc' }
+      let(:status) { ['inactive'] }
+      let(:group_affiliation) { ['community'] }
+      let(:body_data) do
+        {
+          national_governing_bodies: [ngb.id],
+          q: q,
+          status: status,
+          group_affiliation: group_affiliation
+        }
+      end
+
+      context 'when searching by name' do
+        let(:status) { nil }
+        let(:group_affiliation) { nil }
+
+        before { teams.first.update(name: q) }
+
+        it 'only returns the matching team' do
+          subject
+
+          response_data = JSON.parse(response.body)['data']
+
+          expect(response_data.length).to eq 1
+          expect(response_data[0]['id'].to_i).to eq teams.first.id
+        end
+      end
+
+      context 'when filtering by status' do
+        let(:q) { nil }
+        let(:group_affiliation) { nil }
+
+        before { teams[1].update(status: 'inactive') }
+
+        it 'only returns the matching team' do
+          subject
+
+          response_data = JSON.parse(response.body)['data']
+
+          expect(response_data.length).to eq 1
+          expect(response_data[0]['id'].to_i).to eq teams[1].id
+        end
+      end
+
+      context 'when filtering by group_affiliation' do
+        let(:q) { nil }
+        let(:status) { nil }
+
+        before { teams[2].update(group_affiliation: 'community') }
+
+        it 'only returns the matching team' do
+          subject
+
+          response_data = JSON.parse(response.body)['data']
+
+          expect(response_data.length).to eq 1
+          expect(response_data[0]['id'].to_i).to eq teams[2].id
+        end
+      end
+    end
   end
 
   describe 'POST #create' do
@@ -65,11 +123,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
     context 'with valid params' do
       let(:team) { ngb.reload.teams.last }
 
-      it 'returns http success' do
-        subject
-
-        expect(response).to have_http_status(:successful)
-      end
+      it_behaves_like 'it is a successful request'
 
       it 'creates a new team' do
         subject
@@ -107,11 +161,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
 
     subject { get :show, params: body_data }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'returns the correct team' do
       subject
@@ -152,11 +202,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
 
     subject { put :update, params: body_data }
 
-    it 'returns http success' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'updates the team' do
       subject
@@ -182,11 +228,11 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
         it 'removes the already existing account' do
           subject
 
-          expect(team.social_accounts.count).to eq 1
-          expect(team.social_accounts.first.url).to eq 'www.facebook.com/dcqc'
+          expect(team.reload.social_accounts.count).to eq 1
+          expect(team.reload.social_accounts.first.url).to eq 'www.facebook.com/dcqc'
         end
 
-        context "and it's includesd in the body data" do
+        context "and it's included in the body data" do
           let(:url) { 'www.twitter.com/dcqc' }
           let!(:other_social) { create :social_account, ownable_id: team.id, ownable_type: 'Team', url: url }
           let(:body_data) do
@@ -199,7 +245,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
           it 'does not add the already existing account' do
             subject
 
-            expect(team.social_accounts.count).to eq 2
+            expect(team.reload.social_accounts.count).to eq 2
           end
         end
       end
@@ -230,11 +276,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
 
     subject { delete :destroy, params: body_data }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'destroys the team' do
       subject
@@ -271,11 +313,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
 
     subject { post :import, params: { file: @file } }
 
-    it 'is a successful request' do
-      subject
-
-      expect(response).to have_http_status(:successful)
-    end
+    it_behaves_like 'it is a successful request'
 
     it 'calls the team csv import service' do
       expect(Services::TeamCsvImport).to receive(:new).with(instance_of(String), ngb)
