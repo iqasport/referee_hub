@@ -51,6 +51,7 @@ gem 'time_difference'
 gem 'gdpr_rails'
 gem 'aws-sdk-s3', '~> 1'
 gem 'paperclip', '~> 6.0.0'
+gem 'fog-aws'
 
 # feature flippers
 gem 'flipper'
