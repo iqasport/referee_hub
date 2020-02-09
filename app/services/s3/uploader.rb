@@ -31,7 +31,7 @@ module Services
           public: public_access
         )
 
-        "https://#{ENV['AWS_BUCKET']}.s3.amazonaws.com/#{key}"
+        "https://#{bucket_name}.s3.amazonaws.com/#{key}"
       end
 
       private
@@ -39,14 +39,39 @@ module Services
       def storage
         @storage ||= Fog::Storage.new(
           provider: 'AWS',
-          aws_access_key_id: ENV['AWS_ACCESS_KEY_ID'],
-          aws_secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+          aws_access_key_id: aws_access_key_id,
+          aws_secret_access_key: aws_secret_access_key,
           region: 'eu-central-1'
         )
       end
 
       def bucket
-        @bucket ||= storage.directories.get(ENV['AWS_BUCKET'])
+        @bucket ||= begin
+          if storage.directories.blank?
+            # ensure the bucket is available to upload the file into
+            storage.put_bucket(bucket_name)
+          end
+
+          storage.directories.get(bucket_name)
+        end
+      end
+
+      def aws_access_key_id
+        return 'nonsense' if Rails.env.test?
+
+        ENV['AWS_ACCESS_KEY_ID']
+      end
+
+      def aws_secret_access_key
+        return 'nonsense' if Rails.env.test?
+
+        ENV['AWS_SECRET_ACCESS_KEY']
+      end
+
+      def bucket_name
+        return 'nonsense' if Rails.env.test?
+
+        ENV['AWS_BUCKET']
       end
     end
   end

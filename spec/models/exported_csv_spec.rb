@@ -20,5 +20,37 @@
 require 'rails_helper'
 
 RSpec.describe ExportedCsv, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  include ActiveJob::TestHelper
+
+  let(:user) { create :user }
+  let(:csv) { user.exported_csvs.last }
+
+  before { Fog.mock! }
+
+  subject { ExportedCsv::TeamExport.create!(user: user) }
+
+  it 'processes the csv' do
+    subject
+
+    expect(csv.url).to_not be_nil
+    expect(csv.processed_at).to_not be_nil
+  end
+
+  it 'enqueues a result email' do
+    ActiveJob::Base.queue_adapter = :test
+    expect { subject }.to have_enqueued_job.on_queue('mailers')
+  end
+
+  it 'delivers the email' do
+    expect { perform_enqueued_jobs { subject } }.to change { ActionMailer::Base.deliveries.size }.by(1)
+  end
+
+  it 'sends to the correct user' do
+    perform_enqueued_jobs do
+      subject
+    end
+
+    sent_mail = ActionMailer::Base.deliveries.last
+    expect(sent_mail.to[0]).to eq user.email
+  end
 end

@@ -24,8 +24,8 @@ class ExportedCsv < ApplicationRecord
 
   after_save :mail_csv, if: proc { |csv| csv.saved_change_to_processed_at? && !csv.sent_at? }
 
-  def self.format_type(type)
-    type.split('::')[1].titleize
+  def self.format_type(type_string)
+    type_string.split('::')[1].titleize
   end
 
   def process_csv
@@ -35,14 +35,12 @@ class ExportedCsv < ApplicationRecord
     save
   end
 
-  def generate_csv_data
-    raise 'Subclass must define this method'
-  end
+  def generate_csv_data; end
 
   def upload(csv_data)
     current_time = Time.now.utc
     iso_time = format('%10.5f', current_time.to_f).to_i
-    type_folder = ExportedCsv.format_type(type).parameterize('_')
+    type_folder = ExportedCsv.format_type(type).parameterize(separator: '_')
     key = "exports/#{type_folder}/#{iso_time}.csv"
 
     url = Services::S3::Uploader.new(
@@ -50,7 +48,7 @@ class ExportedCsv < ApplicationRecord
       data: csv_data,
       content_type: 'text/csv',
       extension: 'csv',
-      public: false
+      public_access: false
     ).perform
 
     self.url = url

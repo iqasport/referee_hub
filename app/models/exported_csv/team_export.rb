@@ -30,7 +30,7 @@ class ExportedCsv::TeamExport < ExportedCsv
   ].freeze
 
   def generate_csv_data
-    teams = Services::FilterTeams.new(export_options.to_h).perform
+    teams = Services::FilterTeams.new(JSON.parse(export_options)).filter
     teams = teams.respond_to?(:where) ? teams : Team.where(id: teams)
 
     CSV.generate(col_sep: ',', quote_char: '"') do |csv|
