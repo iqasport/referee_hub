@@ -1,15 +1,15 @@
-# Preview all emails at http://localhost:3000/rails/mailers/referee_mailer
-class RefereeMailerPreview < ActionMailer::Preview
+# Preview all emails at http://localhost:3000/rails/mailers/user_mailer
+class UserMailerPreview < ActionMailer::Preview
   def referee_answer_feedback_email
     started_at = Time.now.utc.to_s
     finished_at = (Time.now.utc + 15.minutes).to_s
-    referee = Referee.create!(
+    referee = User.create(
       first_name: 'Test',
       last_name: 'Testerton',
       email: "#{FFaker::Name.first_name}.tester@example.com",
       password: 'password'
     )
-
+    referee.confirm_all_policies!
     test_attrs = {
       level: 0,
       name: '2018-2020 Snitch Referee Test',
@@ -48,8 +48,21 @@ class RefereeMailerPreview < ActionMailer::Preview
     ).perform
     test_attempt = referee.test_attempts.last
 
-    RefereeMailer
+    UserMailer
       .with(referee: referee, test_attempt: test_attempt, test_result: test_result)
       .referee_answer_feedback_email
+  end
+
+  def export_csv_email
+    user = User.create(
+      first_name: 'Test',
+      last_name: 'Testerton',
+      email: "#{FFaker::Name.first_name}.tester@example.com",
+      password: 'password'
+    )
+    user.confirm_all_policies!
+    csv = ExportedCsv.create!(user_id: user.id, url: FFaker::Internet.http_url)
+
+    UserMailer.with(user: user, csv: csv).export_csv_email
   end
 end
