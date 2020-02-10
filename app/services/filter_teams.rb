@@ -2,7 +2,7 @@ module Services
   class FilterTeams
     attr_accessor :search_query, :national_governing_bodies, :status, :group_affiliation, :relation, :query_hash
 
-    def initialize(params)
+    def initialize(params = {})
       @search_query = params.delete(:q)
       @national_governing_bodies = params.delete(:national_governing_bodies)
       @status = params.delete(:status)

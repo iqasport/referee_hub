@@ -30,7 +30,8 @@ class ExportedCsv::TeamExport < ExportedCsv
   ].freeze
 
   def generate_csv_data
-    teams = Services::FilterTeams.new(JSON.parse(export_options)).filter
+    options = filter_options.presence || {}
+    teams = Services::FilterTeams.new(options).filter
     teams = teams.respond_to?(:where) ? teams : Team.where(id: teams)
 
     CSV.generate(col_sep: ',', quote_char: '"') do |csv|
@@ -51,5 +52,16 @@ class ExportedCsv::TeamExport < ExportedCsv
       team.status,
       team.group_affiliation
     ]
+  end
+
+  private
+
+  def filter_options
+    case export_options.class
+    when Hash
+      export_options
+    when String
+      JSON.parse(export_options)
+    end
   end
 end
