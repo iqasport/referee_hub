@@ -323,4 +323,25 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
 
     it_behaves_like 'it fails when a referee is not an admin'
   end
+
+  describe 'GET #export' do
+    let!(:user) { create :user, :ngb_admin }
+    let!(:ngb) { create :national_governing_body }
+    let!(:teams) { create_list :team, 5, national_governing_body: ngb }
+
+    before do
+      ngb.admins << user
+      sign_in user
+    end
+
+    subject { get :export }
+
+    it 'should enqueue an export csv job' do
+      subject
+
+      response_data = JSON.parse(response.body)['data']
+
+      expect(response_data['job_id']).to_not be_nil
+    end
+  end
 end

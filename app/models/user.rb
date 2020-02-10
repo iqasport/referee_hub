@@ -66,6 +66,8 @@ class User < ApplicationRecord
   has_many :referee_teams, foreign_key: :referee_id, inverse_of: :referee, dependent: :destroy
   has_many :teams, through: :referee_teams
 
+  has_many :exported_csvs, dependent: :destroy
+
   scope :certified, -> { joins(:certifications).group('referees.id') }
   scope :referee, -> { where(roles: { access_type: 'referee' }) }
 

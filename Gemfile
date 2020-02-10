@@ -51,6 +51,7 @@ gem 'time_difference'
 gem 'gdpr_rails'
 gem 'aws-sdk-s3', '~> 1'
 gem 'paperclip', '~> 6.0.0'
+gem 'fog-aws'
 
 # feature flippers
 gem 'flipper'
@@ -77,6 +78,7 @@ group :development do
   gem 'spring-watcher-listen', '~> 2.0.0'
   gem 'pre-commit', require: false
   gem 'rubocop', require: false
+  gem 'solargraph', require: false
 end
 
 group :test do

@@ -76,6 +76,7 @@ Rails.application.routes.draw do
           controller: 'national_governing_body_teams'
 
         post 'teams/import', to: 'national_governing_body_teams#import'
+        get 'teams/export', to: 'national_governing_body_teams#export'
       end
 
       post 'tests/import', to: 'tests#import'

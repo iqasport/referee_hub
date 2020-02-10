@@ -78,6 +78,20 @@ module Api
         render json: { error: exception.full_message }, status: :unprocessable_entity
       end
 
+      def export
+        export_options = search_params.presence || { national_governing_bodies: [ngb_scope.id] }
+        enqueued_job = ExportCsvJob.perform_later(
+          user: current_user,
+          type: 'ExportedCsv::TeamExport',
+          export_options: export_options.to_json
+        )
+
+        render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: "Error exporting teams: #{exception}" }, status: :unprocessable_entity
+      end
+
       private
 
       def find_team

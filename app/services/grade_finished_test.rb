@@ -48,14 +48,6 @@ module Services
 
     def grade_answers
       total_points_scored = 0
-      # debugger
-      # This is to handle referees not completing every question. At the time of this change there were no questions
-      # with points_available greater than 1. This may need to be revisited if we adjust that in the future
-      total_points_available = test
-        .questions
-        .limit(test.testable_question_count)
-        .pluck(:points_available)
-        .inject {|points_available, point| points_available + point }
 
       test_attempt.referee_answers.includes(:question, :answer).each do |referee_answer|
         total_points_scored += 1 if referee_answer.correct?
@@ -86,7 +78,7 @@ module Services
       recent_test_results = referee.test_results.send(test.level).order(created_at: :desc).last
       return false if recent_test_results.blank?
 
-      recent_test_results.created_at.to_date == Date.today
+      recent_test_results.created_at.to_date == Time.zone.today
     end
 
     def calculate_duration
@@ -103,8 +95,18 @@ module Services
       ((points_scored.to_f / points_available) * 100).round
     end
 
+    def total_points_available
+      # This is to handle referees not completing every question. At the time of this change there were no questions
+      # with points_available greater than 1. This may need to be revisited if we adjust that in the future
+      test
+        .questions
+        .limit(test.testable_question_count)
+        .pluck(:points_available)
+        .inject { |points_available, point| points_available + point }
+    end
+
     def send_result_email(test_result)
-      RefereeMailer
+      UserMailer
         .with(referee: referee, test_attempt: test_attempt, test_result: test_result)
         .referee_answer_feedback_email
         .deliver_later
