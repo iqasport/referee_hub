@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_18_205734) do
+ActiveRecord::Schema.define(version: 2020_02_09_233009) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,6 +29,18 @@ ActiveRecord::Schema.define(version: 2020_01_18_205734) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["level"], name: "index_certifications_on_level", unique: true
+  end
+
+  create_table "exported_csvs", force: :cascade do |t|
+    t.string "type"
+    t.integer "user_id", null: false
+    t.string "url"
+    t.datetime "processed_at"
+    t.datetime "sent_at"
+    t.json "export_options", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_exported_csvs_on_user_id"
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -223,7 +235,6 @@ ActiveRecord::Schema.define(version: 2020_01_18_205734) do
   end
 
   create_table "test_results", force: :cascade do |t|
-    t.integer "cm_link_result_id"
     t.integer "referee_id", null: false
     t.time "time_started"
     t.time "time_finished"

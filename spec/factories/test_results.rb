@@ -15,7 +15,6 @@
 #  time_started            :time
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
-#  cm_link_result_id       :integer
 #  referee_id              :integer          not null
 #  test_id                 :integer
 #
