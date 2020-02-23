@@ -19,6 +19,12 @@ class ApplicationController < ActionController::Base
     render json: { error: exception.message }, status: :internal_server_error
   end
 
+  protected
+
+  def authenticate_inviter!
+    verify_admin
+  end
+
   private
 
   def after_sign_in_path_for(_resource_or_scope)
