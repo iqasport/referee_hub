@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::Base
+  before_action :configure_permitted_parameters, if: :devise_controller?
+
   USER_UNAUTHORIZED = 'User must be an Admin to access this API'.freeze
 
   rescue_from Exception, with: :render_500
@@ -17,6 +19,12 @@ class ApplicationController < ActionController::Base
     render json: { error: exception.message }, status: :internal_server_error
   end
 
+  protected
+
+  def authenticate_inviter!
+    verify_admin
+  end
+
   private
 
   def after_sign_in_path_for(_resource_or_scope)
@@ -33,5 +41,10 @@ class ApplicationController < ActionController::Base
     return true if current_user.ngb_admin?
 
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
+  end
+
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.permit(:accept_invitation, keys: %i[first_name last_name policy_rule_privacy_terms])
+    devise_parameter_sanitizer.permit(:invite, keys: [:ngb_to_admin])
   end
 end

@@ -40,6 +40,10 @@ Rails.application.routes.draw do
     get '/confirmation/new' => 'users/confirmations#new', as: :new_user_confirmation
     get '/confirmation' => 'users/confirmations#show', as: :user_confirmation
     post '/confirmation' => 'users/confirmations#create'
+    get '/invitation' => 'users/invitations#new', as: :new_user_invitation
+    post '/invitation' => 'users/invitations#create', as: :user_invitation
+    get '/invitation/accept' => 'users/invitations#edit', as: :accept_user_invitation
+    put '/invitation' => 'users/invitations#update', as: :update_user_invitation
   end
 
   devise_for :users, skip: :all
@@ -72,8 +76,8 @@ Rails.application.routes.draw do
 
       scope '/ngb-admin' do
         resources :teams,
-          only: %i[index show create update destroy],
-          controller: 'national_governing_body_teams'
+                  only: %i[index show create update destroy],
+                  controller: 'national_governing_body_teams'
 
         post 'teams/import', to: 'national_governing_body_teams#import'
         get 'teams/export', to: 'national_governing_body_teams#export'
@@ -86,7 +90,6 @@ Rails.application.routes.draw do
       patch 'referees/:id' => 'referees#update'
     end
   end
-
 
   root to: 'home#index'
 end
