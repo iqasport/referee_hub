@@ -34,6 +34,7 @@ module Api
       def update
         national_governing_body_ids = params.delete(:national_governing_body_ids)
         update_national_governing_bodies(national_governing_body_ids) if national_governing_body_ids.present?
+        update_teams(params.delete(:teams))
 
         if @referee.update!(permitted_params)
           json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
@@ -57,6 +58,23 @@ module Api
 
         ngb_records = NationalGoverningBody.where(id: national_governing_body_add)
         @referee.national_governing_bodies << ngb_records if ngb_records.present?
+      end
+
+      def update_teams(teams_data)
+        current_team_ids = @referee.teams.pluck(:id)
+        new_team_ids = teams_data.present? ? teams_data.keys : []
+        teams_to_remove = current_team_ids - new_team_ids
+
+        to_remove = @referee.referee_teams.where(team_id: teams_to_remove)
+        to_remove.destroy_all if to_remove.present?
+        return if teams_data.blank?
+
+        teams_data.each do |team_id, position|
+          referee_team = RefereeTeam.find_or_initialize_by(referee: @referee, team_id: team_id)
+          referee_team.association_type = position
+
+          referee_team.save!
+        end
       end
 
       def find_referee
