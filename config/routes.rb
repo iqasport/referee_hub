@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   mount PolicyManager::Engine => '/policies'
   mount Flipper::Api.app(Flipper) => '/flipper/api'
 
-  authenticate :user, proc { |user| user.iqa_admin? } do
+  authenticate :user, (proc { |user| user.iqa_admin? }) do
     mount Sidekiq::Web => '/sidekiq'
     mount Flipper::UI.app(Flipper) => '/flipper'
   end
@@ -88,6 +88,7 @@ Rails.application.routes.draw do
       get 'referees/:id' => 'referees#show'
       put 'referees/:id' => 'referees#update'
       patch 'referees/:id' => 'referees#update'
+      get 'referees/export' => 'referees#export'
     end
   end
 

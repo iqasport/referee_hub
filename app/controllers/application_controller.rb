@@ -43,6 +43,12 @@ class ApplicationController < ActionController::Base
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end
 
+  def verify_ngb_or_iqa_admin
+    return true if current_user.ngb_admin? || current_user.iqa_admin?
+
+    render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
+  end
+
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:accept_invitation, keys: %i[first_name last_name policy_rule_privacy_terms])
     devise_parameter_sanitizer.permit(:invite, keys: [:ngb_to_admin])

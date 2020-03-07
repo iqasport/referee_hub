@@ -306,4 +306,41 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       end
     end
   end
+
+  describe 'GET #export' do
+    let!(:user) { create :user, :ngb_admin }
+    let!(:ngb) { create :national_governing_body }
+    let!(:referees) { create_list :user, 5, national_governing_bodies: [ngb] }
+
+    before do
+      ngb.admins << user
+      sign_in user
+    end
+
+    subject { get :export }
+
+    it 'should enqueue an export csv job' do
+      subject
+
+      response_data = JSON.parse(response.body)['data']
+
+      expect(response_data['job_id']).to_not be_nil
+    end
+
+    context 'with iqa admin' do
+      let!(:iqa_user) { create :user, :iqa_admin }
+
+      before { sign_in iqa_user }
+
+      subject { get :export, params: { national_governing_bodies: [ngb.id] } }
+
+      it 'should enqueue an export csv job' do
+        subject
+
+        response_data = JSON.parse(response.body)['data']
+
+        expect(response_data['job_id']).to_not be_nil
+      end
+    end
+  end
 end
