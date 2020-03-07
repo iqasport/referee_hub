@@ -203,7 +203,7 @@ GEM
     msgpack (1.2.4)
     multi_json (1.13.1)
     nio4r (2.3.1)
-    nokogiri (1.10.7)
+    nokogiri (1.10.8)
       mini_portile2 (~> 2.4.0)
     numerizer (0.1.1)
     orm_adapter (0.5.0)
@@ -222,7 +222,7 @@ GEM
     pre-commit (0.38.1)
       pluginator (~> 1.5)
     public_suffix (3.0.3)
-    puma (3.12.2)
+    puma (3.12.4)
     rack (2.1.1)
     rack-protection (2.0.5)
       rack
