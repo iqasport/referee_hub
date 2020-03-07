@@ -26,6 +26,13 @@
 @import "semantic-ui/elements/icon";
 @import "semantic-ui/elements/flag";
 
+/* purgecss start ignore */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+/* purgecss end ignore */
+
+@import "tailwindcss/utilities";
+
 body {
   background-color: #F4F4F4;
 }
