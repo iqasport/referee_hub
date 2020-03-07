@@ -109,6 +109,10 @@ class User < ApplicationRecord
     "User;#{id}"
   end
 
+  def full_name
+    "#{first_name.presence || ''} #{last_name.presence || ''}"
+  end
+
   protected
 
   def confirmation_required?
