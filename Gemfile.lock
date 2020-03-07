@@ -222,7 +222,7 @@ GEM
     pre-commit (0.38.1)
       pluginator (~> 1.5)
     public_suffix (3.0.3)
-    puma (3.12.2)
+    puma (3.12.4)
     rack (2.1.1)
     rack-protection (2.0.5)
       rack
