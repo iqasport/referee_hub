@@ -1,4 +1,5 @@
 require 'rails_helper'
+require_relative '_shared_examples'
 
 RSpec.describe Api::V1::RefereesController, type: :controller do
   describe 'GET #index' do
@@ -249,6 +250,58 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
           expect(referee.reload.national_governing_bodies.count).to eq 2
           expect(referee.reload.national_governing_bodies.pluck(:id)).to match_array ngb_ids
+        end
+      end
+    end
+
+    context 'with teams params' do
+      let!(:teams) { create_list :team, 2 }
+      let(:teams_data) { { [teams.first.id] => 'player', [teams.last.id] => 'coach' } }
+      let(:body_data) do
+        {
+          id: referee.id,
+          teams: teams_data
+        }
+      end
+
+      it 'adds the two teams to the referee' do
+        expect { subject }.to change { referee.teams.count }.from(0).to(2)
+      end
+
+      context 'when one is being updated and the other is being added' do
+        before { RefereeTeam.create(referee: referee, team: teams.first, association_type: 'coach') }
+
+        it 'updates the existing and adds the new' do
+          subject
+
+          expect(referee.referee_teams.where(association_type: 'player').first.team_id).to eq teams.first.id
+          expect(referee.reload.referee_teams.where(association_type: 'coach').first.team_id).to eq teams.last.id
+        end
+      end
+
+      context 'when an existing team is missing from the request' do
+        let(:teams_data) { { [teams.last.id] => 'coach' } }
+
+        before { RefereeTeam.create(referee: referee, team: teams.first, association_type: 'player') }
+
+        it 'removes the team' do
+          subject
+
+          expect(referee.referee_teams.find_by(team_id: teams.first.id)).to be_nil
+          expect(referee.referee_teams.count).to eq 1
+        end
+      end
+
+      context 'when teams data is missing and there are existing teams' do
+        let(:teams_data) { {} }
+
+        before do
+          referee.referee_teams.create(team: teams.first, association_type: 'player')
+          referee.referee_teams.create(team: teams.last, association_type: 'coach')
+        end
+
+        it 'deletes the existing team associations' do
+          expect { subject }.to change { referee.reload.teams.count }.from(2).to(0)
         end
       end
     end
