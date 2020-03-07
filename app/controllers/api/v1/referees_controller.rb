@@ -1,7 +1,8 @@
 module Api
   module V1
-    class RefereesController < ApplicationController
+    class RefereesController < ApplicationController # rubocop:disable Metrics/ClassLength
       before_action :authenticate_user!, only: :update
+      before_action :verify_ngb_or_iqa_admin, only: :export
       before_action :find_referee, only: %i[show update]
       skip_before_action :verify_authenticity_token
 
@@ -9,9 +10,7 @@ module Api
 
       def index
         page = params[:page] || 1
-
         @referees = find_referees_from_filter
-
         referee_total = @referees.count
         @referees = @referees.page(page)
 
@@ -27,7 +26,6 @@ module Api
 
       def show
         json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
-
         render json: json_string, status: :ok
       end
 
@@ -43,6 +41,20 @@ module Api
         else
           render json: { error: @referee.errors.messages }, status: :unprocessable_entity
         end
+      end
+
+      def export
+        export_options = search_params.presence || { national_governing_bodies: [current_user.owned_ngb.first.id] }
+        enqueued_job = ExportCsvJob.perform_later(
+          user: current_user,
+          type: 'ExportedCsv::RefereeExport',
+          export_options: export_options.to_json
+        )
+
+        render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: "Error exporting referees: #{exception}" }, status: :unprocessable_entity
       end
 
       private
@@ -100,7 +112,8 @@ module Api
           :pronouns,
           :show_pronouns,
           :submitted_payment_at,
-          :getting_started_dismissed_at
+          :getting_started_dismissed_at,
+          :export_name
         )
       end
 

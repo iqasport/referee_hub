@@ -12,6 +12,7 @@
 #  current_sign_in_ip           :inet
 #  email                        :string           default(""), not null
 #  encrypted_password           :string           default(""), not null
+#  export_name                  :boolean          default(TRUE)
 #  failed_attempts              :integer          default(0), not null
 #  first_name                   :string
 #  getting_started_dismissed_at :datetime
@@ -106,6 +107,10 @@ class User < ApplicationRecord
 
   def flipper_id
     "User;#{id}"
+  end
+
+  def full_name
+    "#{first_name.presence || ''} #{last_name.presence || ''}"
   end
 
   protected

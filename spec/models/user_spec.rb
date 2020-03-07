@@ -12,6 +12,7 @@
 #  current_sign_in_ip           :inet
 #  email                        :string           default(""), not null
 #  encrypted_password           :string           default(""), not null
+#  export_name                  :boolean          default(TRUE)
 #  failed_attempts              :integer          default(0), not null
 #  first_name                   :string
 #  getting_started_dismissed_at :datetime
