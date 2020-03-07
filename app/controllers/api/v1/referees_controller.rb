@@ -100,7 +100,8 @@ module Api
           :pronouns,
           :show_pronouns,
           :submitted_payment_at,
-          :getting_started_dismissed_at
+          :getting_started_dismissed_at,
+          :export_name
         )
       end
 
