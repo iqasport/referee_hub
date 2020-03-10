@@ -350,6 +350,8 @@ GEM
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
     statsd-ruby (1.4.0)
+    tailwindcss (1.0.3)
+      railties (>= 4.1.0, <= 6.1)
     terrapin (0.6.0)
       climate_control (>= 0.0.3, < 1.0)
     thor (1.0.1)
@@ -427,6 +429,7 @@ DEPENDENCIES
   solargraph
   spring
   spring-watcher-listen (~> 2.0.0)
+  tailwindcss (~> 1.0.0)
   time_difference
   timecop
   tzinfo-data

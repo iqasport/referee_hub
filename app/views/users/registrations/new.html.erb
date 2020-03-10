@@ -1,46 +1,112 @@
-<div class='ui main container center grid' style='flex:1;margin-top: 50px;width: 80%;'>
-  <div class='column'>
-    <h2 class='ui header'>
-      <div>Become a Referee</div>
-    </h2>
-
-    <%= form_for(
-      resource,
-      as: resource_name,
-      url: create_user_registration_path,
-      html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
-      ) do |f| %>
-      <%= devise_error_messages! %>
-
-      <div class='ui stacked segment'>
-        <div class="<%= email_error? ? 'field error' : 'field' %>">
-          <%= f.label :email %><br />
-          <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+<% if Flipper.enabled?(:new_design) %>
+  <div class="main-background static h-screen w-full">
+    <%= image_tag 'background1.png', class: '-z-1 h-full object-covers' %>
+    <div class="z-1 absolute inset-0 h-full w-full" style="background-color: rgba(114, 186, 108, 0.5);">
+      <div class="grid grid-cols-2 m-12 h-screen">
+        <div>
+          <%= image_tag 'IQA_long_white.png' %>
+          <h1>
+            Management Hub
+          <h1>
         </div>
+        <div class="bg-white rounded w-1/2 h-full">
+          <h1>Welcome to the hub!</h1>
+          <h2>Create your account below</h2>
+          <%= form_for(
+            resource,
+            as: resource_name,
+            url: create_user_registration_path
+            ) do |f| %>
+            <%= devise_error_messages! %>
 
-        <div class="<%= password_error? ? 'field error' : 'field' %>">
-          <%= f.label :password %>
-          <% if @minimum_password_length %>
-          <em>(<%= @minimum_password_length %> characters minimum)</em>
-          <% end %><br />
-          <%= f.password_field :password, autocomplete: "off" %>
+            <div class="flex flex-wrap">
+              <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                <%= f.label :first_name, class: 'block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2' %>
+                <%= f.text_field :first_name, class: 'appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white' %>
+                <p class="text-red-500 text-xs italic">Please fill out this field.</p>
+              </div>
+              <div class="w-full md:w-1/2 px-3">
+                <%= f.label :last_name, class: 'block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2' %>
+                <%= f.text_field :last_name, class: 'appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500' %>
+              </div>
+            </div>
+            <div class="<%= email_error? ? 'field error' : 'field' %>">
+              <%= f.label :email %><br />
+              <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+            </div>
+
+            <div class="<%= password_error? ? 'field error' : 'field' %>">
+              <%= f.label :password %>
+              <% if @minimum_password_length %>
+              <em>(<%= @minimum_password_length %> characters minimum)</em>
+              <% end %><br />
+              <%= f.password_field :password, autocomplete: "off" %>
+            </div>
+
+            <div class="<%= password_confirmation_error? ? 'field error' : 'field' %>">
+              <%= f.label :password_confirmation %><br />
+              <%= f.password_field :password_confirmation, autocomplete: "off" %>
+            </div>
+
+            <div class='field'>
+              <p>
+                <%= f.check_box :policy_rule_privacy_terms, {required: true}, true, false %>
+                You have read and agree to the terms outlined in our
+                <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
+              </p>
+            </div>
+
+            <%= f.submit "Sign up", class: 'ui fluid large submit button' %>
+          <% end %>
         </div>
-
-        <div class="<%= password_confirmation_error? ? 'field error' : 'field' %>">
-          <%= f.label :password_confirmation %><br />
-          <%= f.password_field :password_confirmation, autocomplete: "off" %>
-        </div>
-
-        <div class='field'>
-          <p>
-            <%= f.check_box :policy_rule_privacy_terms, {required: true}, true, false %>
-            You have read and agree to the terms outlined in our
-            <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
-          </p>
-        </div>
-
-        <%= f.submit "Sign up", class: 'ui fluid large submit button' %>
       </div>
-    <% end %>
+    </div>
   </div>
-</div>
+<% else %>
+  <div class='ui main container center grid' style='flex:1;margin-top: 50px;width: 80%;'>
+    <div class='column'>
+      <h2 class='ui header'>
+        <div>Become a Referee</div>
+      </h2>
+
+      <%= form_for(
+        resource,
+        as: resource_name,
+        url: create_user_registration_path,
+        html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
+        ) do |f| %>
+        <%= devise_error_messages! %>
+
+        <div class='ui stacked segment'>
+          <div class="<%= email_error? ? 'field error' : 'field' %>">
+            <%= f.label :email %><br />
+            <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+          </div>
+
+          <div class="<%= password_error? ? 'field error' : 'field' %>">
+            <%= f.label :password %>
+            <% if @minimum_password_length %>
+            <em>(<%= @minimum_password_length %> characters minimum)</em>
+            <% end %><br />
+            <%= f.password_field :password, autocomplete: "off" %>
+          </div>
+
+          <div class="<%= password_confirmation_error? ? 'field error' : 'field' %>">
+            <%= f.label :password_confirmation %><br />
+            <%= f.password_field :password_confirmation, autocomplete: "off" %>
+          </div>
+
+          <div class='field'>
+            <p>
+              <%= f.check_box :policy_rule_privacy_terms, {required: true}, true, false %>
+              You have read and agree to the terms outlined in our
+              <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
+            </p>
+          </div>
+
+          <%= f.submit "Sign up", class: 'ui fluid large submit button' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

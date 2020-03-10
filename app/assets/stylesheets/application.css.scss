@@ -26,13 +26,15 @@
 @import "semantic-ui/elements/icon";
 @import "semantic-ui/elements/flag";
 
-/* purgecss start ignore */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-/* purgecss end ignore */
-
-@import "tailwindcss/utilities";
-
 body {
   background-color: #F4F4F4;
+}
+
+.main-background {
+  height: 100%;
+  width: 100%;
+}
+
+.green-overlay {
+  background-color: rgba(114, 186, 108, 0.5)
 }

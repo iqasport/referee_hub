@@ -41,6 +41,7 @@ gem 'fast_jsonapi'
 gem 'will_paginate'
 
 gem 'semantic-ui-sass'
+gem 'tailwindcss', '~> 1.0.0'
 
 gem 'loofah', '>= 2.2.3'
 gem 'rack', '2.1.2'
