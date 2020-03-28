@@ -6,70 +6,76 @@
     <%= csp_meta_tag %>
 
     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
-    <%= stylesheet_link_tag 'application' %>
+    <%= stylesheet_pack_tag 'application' %>
     <%= javascript_packs_with_chunks_tag 'MainApp/index', 'data-turbolinks-track': 'reload' %>
     <%= stylesheet_pack_tag 'MainApp/assets/stylesheets/app' %>
-    <%= favicon_link_tag asset_path('favicon.ico'), :rel => 'icon', :type =>  'image/png' %>
+    <%= favicon_link_tag asset_path('favicon.ico'), :rel => 'icon', :type => 'image/png' %>
   </head>
 
-  <body style='display: flex;min-height: 100vh;flex-direction: column;'>
-    <div class='ui inverted fixed menu'>
-      <div class='ui container'>
-        <% if user_signed_in? %>
-          <%= link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'item' %>
-          <%= link_to 'View Profile', "/referees/#{current_user.id}", class: 'item' %>
-        <% else %>
-          <%= link_to 'Signup', user_registration_path, class: 'item' %>
-          <%= link_to 'Login', new_user_session_path, class: 'item' %>
-        <% end %>
+  <% if Flipper.enabled?(:new_design) %>
+    <body>
+      <%= yield %>
+    </body>
+  <% else %>
+    <body style='display: flex;min-height: 100vh;flex-direction: column;'>
+      <div class='ui inverted fixed menu'>
+        <div class='ui container'>
+          <% if user_signed_in? %>
+            <%= link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'item' %>
+            <%= link_to 'View Profile', "/referees/#{current_user.id}", class: 'item' %>
+          <% else %>
+            <%= link_to 'Signup', user_registration_path, class: 'item' %>
+            <%= link_to 'Login', new_user_session_path, class: 'item' %>
+          <% end %>
 
-        <%= link_to 'View All Referees', '/referees', class: 'item' %>
+          <%= link_to 'View All Referees', '/referees', class: 'item' %>
 
-        <% if user_signed_in? && current_user.iqa_admin? %>
-          <%= link_to 'Admin Tools', '/admin', class: 'item' %>
-        <% end %>
+          <% if user_signed_in? && current_user.iqa_admin? %>
+            <%= link_to 'Admin Tools', '/admin', class: 'item' %>
+          <% end %>
+        </div>
       </div>
-    </div>
-    <% if flash[:error].present? %>
-      <div style='flex:1;margin:40px 0 0 0;'>
-        <% flash.each do |key, value| %>
-          <p class=<%="alert ui error message center"%>><%= value %></p>
-        <% end %>
-      </div>
-    <% end %>
-    <%= yield %>
-    <div class='ui inverted vertical footer segment' style='margin-top:50px;'>
-      <div class='ui container'>
-        <div class='ui stackable inverted divided equal height stackable grid bottom'>
-          <div class='nine wide column'>
-            <div style='display: flex;'>
-              <div style='height:50%;width:50%;text-align:center;'>
-                <%= image_tag 'IQAWhiteLogo.png', style: 'flex:1;width:50%;height:50%;' %>
+      <% if flash[:error].present? %>
+        <div style='flex:1;margin:40px 0 0 0;'>
+          <% flash.each do |key, value| %>
+            <p class=<%="alert ui error message center"%>><%= value %></p>
+          <% end %>
+        </div>
+      <% end %>
+      <%= yield %>
+      <div class='ui inverted vertical footer segment' style='margin-top:50px;'>
+        <div class='ui container'>
+          <div class='ui stackable inverted divided equal height stackable grid bottom'>
+            <div class='nine wide column'>
+              <div style='display: flex;'>
+                <div style='height:50%;width:50%;text-align:center;'>
+                  <%= image_tag 'IQAWhiteLogo.png', style: 'flex:1;width:50%;height:50%;' %>
+                </div>
+                <p style='flex: 1;margin-left:10px;'>
+                  IQA and its activities are not licensed by, sponsored by or associated with Warner Bros., J.K. Rowling or their affiliates. 'Quidditch,' 'Harry Potter' and all related names, characters and indicia are trademarks of and © Warner Bros. - Harry Potter publishing rights © J.K. Rowling
+                </p>
               </div>
-              <p style='flex: 1;margin-left:10px;'>
-                IQA and its activities are not licensed by, sponsored by or associated with Warner Bros., J.K. Rowling or their affiliates. 'Quidditch,' 'Harry Potter' and all related names, characters and indicia are trademarks of and © Warner Bros. - Harry Potter publishing rights © J.K. Rowling
-              </p>
             </div>
-          </div>
-          <div class='three wide column'>
-            <h4 class='ui inverted header'>About the IQA</h4>
-            <div class='ui inverted link list'>
-              <a href='https://iqasport.com/history' class='item'>History</a>
-              <a href='https://iqasport.com/board-of-trustees' class='item'>Trustees</a>
-              <a href='https://iqasport.com/volunteer' class='item'>Volunteers</a>
-              <%= link_to 'Privacy Policy', "/privacy", class: 'item' %>
+            <div class='three wide column'>
+              <h4 class='ui inverted header'>About the IQA</h4>
+              <div class='ui inverted link list'>
+                <a href='https://iqasport.com/history' class='item'>History</a>
+                <a href='https://iqasport.com/board-of-trustees' class='item'>Trustees</a>
+                <a href='https://iqasport.com/volunteer' class='item'>Volunteers</a>
+                <%= link_to 'Privacy Policy', "/privacy", class: 'item' %>
+              </div>
             </div>
-          </div>
-          <div class='three wide column'>
-            <h4 class='ui inverted header'>Get In Touch</h4>
-            <div class='ui inverted link list'>
-              <a href='https://www.facebook.com/InternationalQuidditchAssociation' class='item'>Facebook</a>
-              <a href='https://twitter.com/iqasport' class='item'>Twitter</a>
-              <a href='https://goo.gl/forms/2cIMC8mC5VNK8wmb2' target='_blank' class='item'>Give Us Feedback</a>
+            <div class='three wide column'>
+              <h4 class='ui inverted header'>Get In Touch</h4>
+              <div class='ui inverted link list'>
+                <a href='https://www.facebook.com/InternationalQuidditchAssociation' class='item'>Facebook</a>
+                <a href='https://twitter.com/iqasport' class='item'>Twitter</a>
+                <a href='https://goo.gl/forms/2cIMC8mC5VNK8wmb2' target='_blank' class='item'>Give Us Feedback</a>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </body>
+    </body>
+  <% end %>
 </html>
