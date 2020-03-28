@@ -22,8 +22,12 @@ module.exports = {
     },
     zIndex: {
       '-1': '-1'
+    },
+    borderRadius: {
+      default: '3px',
+      lg: '25px'
     }
   },
   variants: {},
-  plugins: [],
-}
+  plugins: []
+};

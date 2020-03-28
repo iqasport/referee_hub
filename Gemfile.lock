@@ -175,6 +175,9 @@ GEM
       activesupport (>= 4.2)
     i18n (1.8.1)
       concurrent-ruby (~> 1.0)
+    inline_svg (1.7.1)
+      activesupport (>= 3.0)
+      nokogiri (>= 1.6)
     io-like (0.3.0)
     ipaddress (0.8.3)
     jaro_winkler (1.5.1)
@@ -411,6 +414,7 @@ DEPENDENCIES
   flipper-ui
   fog-aws
   gdpr_rails
+  inline_svg
   listen (>= 3.0.5, < 3.2)
   loofah (>= 2.2.3)
   paperclip (~> 6.0.0)
