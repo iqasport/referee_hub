@@ -1,3 +1,23 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+.error-message {
+    @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-5;
+}
+
+.error-message > h2 {
+    @apply font-bold;
+}
+
+.list > li {
+    @apply appearance-none list-disc;
+}
+
+.bottom-border-input {
+    @apply w-full h-8 flex-shrink flex items-center border-b border-b-2 border-navy-blue py-2;
+}
+
+.bottom-border-error {
+    @apply w-full h-8 flex-shrink flex items-center border-b border-b-2 border-red-400 py-2;
+}

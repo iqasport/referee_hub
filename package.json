@@ -18,6 +18,7 @@
     "@bugsnag/js": "^6.4.1",
     "@bugsnag/plugin-react": "^6.4.0",
     "@rails/webpacker": "4.2.2",
+    "@tailwindcss/custom-forms": "^0.2.1",
     "@testing-library/react": "^9.4.0",
     "autoprefixer": "^9.7.4",
     "axios": "^0.19.0",
