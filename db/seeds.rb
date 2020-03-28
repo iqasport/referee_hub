@@ -190,5 +190,8 @@ end
 
 USER_ROLES = %w[referee iqa_admin ngb_admin]
 USER_ROLES.each do |access_type|
-  FactoryBot.create(:user, password: 'password', roles_attributes: [{ access_type: access_type }])
+  user = FactoryBot.create(:user, password: 'password', roles_attributes: [{ access_type: access_type }])
+  user.confirm
 end
+
+PolicyManagerTerm.create(description: 'This is a dummy policy', rule: 'privacy_terms', state: 'published')
