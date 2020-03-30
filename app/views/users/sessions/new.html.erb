@@ -21,7 +21,7 @@
               html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
               ) do |f| %>
 
-              <div class="w-full h-8 flex-shrink flex items-center border-b border-b-2 border-navy-blue py-2 mb-10">
+              <div class="bottom-border-input mb-10">
                 <%= inline_svg_tag 'email.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
                 <%= 
                   f.email_field :email, 
@@ -30,7 +30,7 @@
                   placeholder: 'youremail@example.com' %>
               </div>
 
-              <div class="<%= password_error? ? 'bg-red-lighter border-b border-b-1 border-red' : '' %> w-full h-8 flex-shrink flex items-center border-b border-b-2 border-navy-blue py-2 mb-5">
+              <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-5">
                 <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
                 <%= 
                   f.password_field :password, 
