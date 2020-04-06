@@ -9,6 +9,7 @@ class Users::InvitationsController < Devise::InvitationsController
       else
         resource.reject_all_policies!
       end
+      resource.confirm # set confirmed_at
     end
   end
 end

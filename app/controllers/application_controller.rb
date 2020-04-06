@@ -22,7 +22,7 @@ class ApplicationController < ActionController::Base
   protected
 
   def authenticate_inviter!
-    verify_admin
+    return current_user if verify_admin
   end
 
   private
@@ -32,19 +32,19 @@ class ApplicationController < ActionController::Base
   end
 
   def verify_admin
-    return true if current_user.iqa_admin?
+    return true if current_user&.iqa_admin?
 
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end
 
   def verify_ngb_admin
-    return true if current_user.ngb_admin?
+    return true if current_user&.ngb_admin?
 
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end
 
   def verify_ngb_or_iqa_admin
-    return true if current_user.ngb_admin? || current_user.iqa_admin?
+    return true if current_user&.ngb_admin? || current_user&.iqa_admin?
 
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end

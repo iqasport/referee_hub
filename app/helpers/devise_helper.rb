@@ -3,9 +3,9 @@ module DeviseHelper
     return '' unless devise_error_messages?
 
     html = <<-HTML
-    <div id='error_explanation' class='ui error message'>
+    <div id='error_explanation' class='error-message'>
       <h2>#{fetch_sentence}</h2>
-      <ul class='list'>#{fetch_messages}</ul>
+      <ul class='list px-8'>#{fetch_messages}</ul>
     </div>
     HTML
 

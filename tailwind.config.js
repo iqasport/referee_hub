@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 module.exports = {
   theme: {
     extend: {
@@ -29,5 +30,7 @@ module.exports = {
     }
   },
   variants: {},
-  plugins: []
+  plugins: [
+    require('@tailwindcss/custom-forms'),
+  ]
 };

@@ -9,21 +9,21 @@
             Management Hub
           <h1>
         </div>
-        <div class="bg-white rounded-lg w-1/2 h-900 px-8 py-20 flex-1">
+        <div class="bg-white rounded-lg w-1/2 h-900 p-8 flex-1">
+          <%= devise_error_messages! %>
           <h1 class="text-4xl font-bold text-navy-blue">Welcome to the hub!</h1>
           <h2 class="text-2xl font-thin text-navy-blue">Create your account below.</h2>
           <div class="mt-10">
             <%= form_for(resource, as: resource_name, url: create_user_registration_path) do |f| %>
-              <%= devise_error_messages! %>
               <div class="flex mb-10">
-                <div class="w-full h-8 flex-shrink md:mb-0 flex items-center border-b border-b-2 border-navy-blue py-2 mr-1">
+                <div class="bottom-border-input mr-1 md:mb-0">
                   <%= inline_svg_tag 'user.svg', aria: true, title: 'First Name', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
                   <%= 
                     f.text_field :first_name, 
                     class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none', 
                     placeholder: 'First Name' %>
                 </div>
-                <div class="w-full h-8 flex-shrink md:mb-0 flex items-center border-b border-b-2 border-navy-blue py-2 ml-1">
+                <div class="bottom-border-input ml-1 md:mb-0">
                   <%= inline_svg_tag 'user.svg', aria: true, title: 'Last Name', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
                   <%= 
                     f.text_field :last_name, 
@@ -31,7 +31,7 @@
                     placeholder: 'Last Name' %>
                 </div>
               </div>
-              <div class="w-full h-8 flex-shrink flex items-center border-b border-b-2 border-navy-blue py-2 mb-10">
+              <div class="<%= email_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
                 <%= inline_svg_tag 'email.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
                 <%= 
                   f.email_field :email, 
@@ -40,16 +40,16 @@
                   placeholder: 'youremail@example.com' %>
               </div>
 
-              <div class="<%= password_error? ? 'bg-red-lighter border-b border-b-1 border-red' : '' %> w-full h-8 flex-shrink flex items-center border-b border-b-2 border-navy-blue py-2 mb-10">
+              <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
                 <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
                 <%= 
-                  f.password_field :password, 
+                  f.password_field :password,
                   autocomplete: 'off', 
                   class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
                   placeholder: 'Password (8 characters minimum)' %>
               </div>
 
-              <div class="<%= password_confirmation_error? ? 'bg-red-lighter border-b border-b-1 border-red' : '' %> w-full h-8 flex-shrink flex items-center border-b border-b-2 border-navy-blue py-2 mb-10">
+              <div class="<%= password_confirmation_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-8">
                 <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
                 <%= 
                   f.password_field :password_confirmation, 
@@ -58,11 +58,11 @@
                   placeholder: 'Confirm Password' %>
               </div>
 
-              <p>
-                <%= f.check_box :policy_rule_privacy_terms, {required: true}, true, false %>
+              <div class="flex items-center text-navy-blue">
+                <%= f.check_box :policy_rule_privacy_terms, {class: 'form-checkbox text-green mr-2', required: true}, true, false %>
                 You have read and agree to the terms outlined in our
-                <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy" class="text-blue-darker">Privacy Policy</a>
-              </p>
+                <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy" class="text-blue-darker ml-1">Privacy Policy</a>
+              </div>
 
               <div class="m-10 text-center">
                 <%= f.submit "Create Account", class: 'bg-navy-blue text-white font-bold py-2 px-8 rounded' %>
