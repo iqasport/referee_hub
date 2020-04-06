@@ -3,7 +3,15 @@
 @import "tailwindcss/utilities";
 
 .error-message {
-    @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-5;
+    @apply bg-red-100;
+    @apply border;
+    @apply border-red-400;
+    @apply text-red-700;
+    @apply px-4; 
+    @apply py-3; 
+    @apply rounded; 
+    @apply relative; 
+    @apply my-5;
 }
 
 .error-message > h2 {
@@ -11,13 +19,30 @@
 }
 
 .list > li {
-    @apply appearance-none list-disc;
+    @apply appearance-none;
+    @apply list-disc;
 }
 
 .bottom-border-input {
-    @apply w-full h-8 flex-shrink flex items-center border-b border-b-2 border-navy-blue py-2;
+    @apply w-full;
+    @apply h-8;
+    @apply flex-shrink;
+    @apply flex;
+    @apply items-center;
+    @apply border-b;
+    @apply border-b-2;
+    @apply border-navy-blue;
+    @apply py-2;
 }
 
 .bottom-border-error {
-    @apply w-full h-8 flex-shrink flex items-center border-b border-b-2 border-red-400 py-2;
+    @apply w-full;
+    @apply h-8;
+    @apply flex-shrink;
+    @apply flex;
+    @apply items-center;
+    @apply border-b;
+    @apply border-b-2;
+    @apply border-red-400;
+    @apply py-2;
 }
