@@ -22,11 +22,13 @@ module.exports = {
       }
     },
     zIndex: {
-      '-1': '-1'
+      '-1': '-1',
+      
     },
     borderRadius: {
       default: '3px',
-      lg: '25px'
+      lg: '25px',
+      full: '9999px'
     }
   },
   variants: {},

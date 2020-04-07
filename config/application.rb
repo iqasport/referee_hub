@@ -17,7 +17,7 @@ module RefereeHub
     # -- all .rb files in that directory are automatically loaded after loading
     # the framework and any gems in your application.
     config.enable_dependency_loading = true
-    config.autoload_paths += %W[#{config.root}/app #{config.root}/app/services]
+    config.autoload_paths += %W[#{config.root}/app #{config.root}/app/services #{config.root}/lib]
     config.active_job.queue_adapter = :sidekiq
   end
 end

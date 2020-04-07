@@ -46,3 +46,41 @@
     @apply border-red-400;
     @apply py-2;
 }
+
+.avatar {
+    @apply appearance-none;
+    @apply rounded-full;
+    @apply bg-gray-600;
+    @apply text-white;
+    @apply font-bold;
+    @apply h-8;
+    @apply w-8;
+    @apply flex;
+    @apply items-center;
+    @apply justify-center;
+    @apply flex-shrink;
+    @apply cursor-pointer;
+    @apply relative;
+}
+
+.avatar-dropdown {
+    @apply hidden;
+    @apply absolute;
+    @apply bg-gray-100;
+    @apply text-black;
+    @apply shadow-md;
+    @apply py-2;
+    @apply px-4;
+    @apply right-0;
+    z-index: 1;
+    top: 2.5rem;
+}
+
+.dropdown-visible {
+    @apply block;
+}
+
+.avatar-dropdown > ul > li {
+    @apply mb-2;
+    @apply text-center;
+}

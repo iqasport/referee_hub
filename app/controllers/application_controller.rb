@@ -27,10 +27,6 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def after_sign_in_path_for(_resource_or_scope)
-    "/referees/#{current_user.id}"
-  end
-
   def verify_admin
     return true if current_user&.iqa_admin?
 

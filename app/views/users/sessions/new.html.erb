@@ -39,7 +39,7 @@
                   placeholder: 'Password' %>
               </div>
 
-              <div class="flex justify-between mb-10">
+              <div class="flex justify-between mb-10 items-center">
                 <% if devise_mapping.rememberable? -%>
                   <div class="flex-shrink flex text-navy-blue items-center">
                     <%= f.check_box :remember_me, class: 'mr-2 form-checkbox text-green' %>
@@ -47,7 +47,7 @@
                   </div>
                 <% end -%>
                 <div class="flex-shrink">
-                  <%= link_to 'Resend confirmation instructions?', new_user_confirmation, class: 'text-navy-blue' %>
+                  <%= link_to 'Resend confirmation instructions?', new_user_confirmation_path, class: 'text-navy-blue' %>
                 </div>
                 <div class="flex-shrink">
                   <%= link_to 'Forgot password?', new_user_password_path, class: 'text-navy-blue' %>
