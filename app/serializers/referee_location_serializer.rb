@@ -14,14 +14,8 @@
 #  index_referee_locations_on_referee_id_and_ngb_id  (referee_id,national_governing_body_id) UNIQUE
 #
 
-# Join table between Referees and NationalGoverningBody
-class RefereeLocation < ApplicationRecord
-  belongs_to :referee, class_name: 'User'
-  belongs_to :national_governing_body
+class RefereeLocationSerializer
+  include FastJsonapi::ObjectSerializer
 
-  enum association_type: {
-    primary: 0,
-    secondary: 1,
-    other: 2
-  }
+  attributes :referee_id, :association_type, :national_governing_body_id
 end

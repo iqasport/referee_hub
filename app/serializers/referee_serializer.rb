@@ -58,6 +58,7 @@ class RefereeSerializer
     current_user&.id == user.id && user.pending_policies.present?
   end
 
+  has_many :referee_locations, serializer: :referee_location
   has_many :national_governing_bodies, serializer: :national_governing_body, if: proc { |_referee, params| params[:include_associations] }
   has_many :referee_certifications, serializer: :referee_certification, if: proc { |_referee, params| params[:include_associations] }
   has_many :certifications, serializer: :certification, if: proc { |_referee, params| params[:include_associations] }

@@ -16,8 +16,8 @@ module Api
 
         json_string = RefereeSerializer.new(
           @referees,
-          include: [:referee_certifications],
-          params: { current_user: current_user, include_tests: false },
+          include: %i[referee_certifications referee_locations],
+          params: { current_user: current_user, include_tests: false, include_associations: true },
           meta: { page: page, total: referee_total }
         ).serialized_json
 
@@ -30,8 +30,7 @@ module Api
       end
 
       def update
-        national_governing_body_ids = params.delete(:national_governing_body_ids)
-        update_national_governing_bodies(national_governing_body_ids) if national_governing_body_ids.present?
+        update_national_governing_bodies(params.delete(:ngb_data))
         update_teams(params.delete(:teams))
 
         if @referee.update!(permitted_params)
@@ -59,17 +58,21 @@ module Api
 
       private
 
-      def update_national_governing_bodies(ngb_ids)
+      def update_national_governing_bodies(ngb_data)
         current_ngb_ids = @referee.national_governing_bodies.pluck(:id)
-        national_governing_body_remove = current_ngb_ids - ngb_ids
-        national_governing_body_add = ngb_ids - current_ngb_ids
-        return unless national_governing_body_remove.present? || national_governing_body_add.present?
+        new_ngb_ids = ngb_data.present? ? ngb_data.keys : []
+        ngbs_to_remove = current_ngb_ids - new_ngb_ids
 
-        to_remove = @referee.referee_locations.where(national_governing_body_id: national_governing_body_remove)
+        to_remove = @referee.referee_locations.where(national_governing_body_id: ngbs_to_remove)
         to_remove.destroy_all if to_remove.present?
+        return if ngb_data.blank?
 
-        ngb_records = NationalGoverningBody.where(id: national_governing_body_add)
-        @referee.national_governing_bodies << ngb_records if ngb_records.present?
+        ngb_data.each do |ngb_id, association|
+          referee_location = RefereeLocation.find_or_initialize_by(referee: @referee, national_governing_body_id: ngb_id)
+          referee_location.association_type = association
+
+          referee_location.save!
+        end
       end
 
       def update_teams(teams_data)
@@ -123,7 +126,7 @@ module Api
 
       def serializer_options
         @serializer_options ||= {
-          include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results],
+          include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results referee_locations],
           params: { current_user: current_user, include_tests: true, include_associations: true }
         }
       end
