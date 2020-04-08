@@ -5,7 +5,7 @@ import axios from 'axios';
 
 import Avatar from './components/Avatar'
 import Referees from './pages/Referees'
-import RefereeProfile from './pages/RefereeProfile'
+import RefereeProfile from './pages/RefereeProfile/RefereeProfile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Admin from './pages/Admin'
 import RefereeDiagnostic from './pages/RefereeDiagnostic'

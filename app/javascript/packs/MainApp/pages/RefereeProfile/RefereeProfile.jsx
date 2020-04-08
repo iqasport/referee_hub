@@ -1,13 +1,14 @@
-import React, { Component, Fragment } from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import { DateTime } from 'luxon'
 import {
-  Header, Message, Tab, Segment, Loader, Button
+  Message, Tab, Loader, Button
 } from 'semantic-ui-react'
-import RefereeProfileEdit from '../components/RefereeProfileEdit'
-import ProfileContent from '../components/ProfileContent'
-import CertificationContent from '../components/CertificationContent'
+
+import ProfileContent from '../../components/ProfileContent'
+import CertificationContent from '../../components/CertificationContent'
+import RefereeHeader from './RefereeHeader'
 
 class RefereeProfile extends Component {
   static propTypes = {
@@ -257,7 +258,7 @@ class RefereeProfile extends Component {
 
   handleRejectPolicy = () => {
     const { match: { params } } = this.props
-    axios.post(`/api/v1/users/${params.id}/accept_policies`)
+    axios.post(`/api/v1/users/${params.id}/reject_policies`)
   }
 
   renderProfileContent = () => {
@@ -304,13 +305,6 @@ class RefereeProfile extends Component {
     )
   }
 
-  renderPronouns = () => {
-    const { referee: { showPronouns, pronouns } } = this.state
-    if (!showPronouns) return null
-
-    return <Fragment>{pronouns}</Fragment>
-  }
-
   renderAcceptPolicy = () => {
     const { policyAccepted, referee: { isEditable } } = this.state
     if (!isEditable) return null
@@ -335,33 +329,16 @@ class RefereeProfile extends Component {
   render() {
     const { referee } = this.state
 
-    const refHeader = (referee.firstName || referee.lastName) && `${referee.firstName} ${referee.lastName}`
-    const panes = [
-      { menuItem: 'Profile', render: this.renderProfileContent },
-      { menuItem: 'Certifications', render: this.renderCertificationContent }
-    ]
-
     return (
-      <Segment>
+      <div className="m-auto w-3/4 mt-10">
         {this.renderAcceptPolicy()}
         {this.renderPaymentMessage()}
-        <Header as="h1" textAlign="center">
-          {refHeader || 'Anonymous Referee'}
-          <Header sub>{this.renderPronouns()}</Header>
-          {
-            referee.isEditable
-            && (
-              <RefereeProfileEdit
-                values={this.refereeEditValues}
-                onSubmit={this.handleSubmit}
-                onChange={this.handleInputChange}
-              />
-            )
-          }
-        </Header>
-        <Tab panes={panes} />
-      </Segment>
-    )
+        <RefereeHeader referee={referee} />
+        <div className="w-full border-b-2 border-navy-blue">
+          <h3 className="text-xl">Details</h3>
+        </div>
+      </div>
+    );
   }
 }
 
