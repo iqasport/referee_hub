@@ -4,10 +4,10 @@
     "no-empty-interface": false,
     "object-literal-sort-keys": true,
     "ordered-imports": true,
-    "no-console": false,
+    "no-console": true,
     "member-ordering": false,
     "jsx-no-lambda": false,
-    "interface-name": true,
+    "interface-name": false,
     "no-any": true
   },
   "defaultSeverity": "warning"

@@ -1,25 +1,30 @@
 /* eslint-disable */
-import React from 'react'
-import ReactDOM from 'react-dom'
-import Routes from './routes'
 import bugsnag from '@bugsnag/js'
 import bugsnagReact from '@bugsnag/plugin-react'
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { Provider } from 'react-redux'
+
+import Routes from './routes'
+import store from './store';
 
 document.addEventListener('DOMContentLoaded', () => {
-  var apiKey = process.env.RAILS_ENV !== 'production' ? 'iamAFak3apiKey' : process.env.BUGSNAG_API_KEY
-  var bugsnagClient = bugsnag({
+  const apiKey = process.env.RAILS_ENV !== 'production' ? 'iamAFak3apiKey' : process.env.BUGSNAG_API_KEY
+  const bugsnagClient = bugsnag({
     apiKey,
     autoCaptureSessions: false,
   });
   bugsnagClient.use(bugsnagReact, React);
-  var ErrorBoundary = bugsnagClient.getPlugin('react');
-  var domElement = document.getElementById('main-app')
+  const ErrorBoundary = bugsnagClient.getPlugin('react');
+  const domElement = document.getElementById('main-app')
   if(!domElement) return
 
   ReactDOM.render(
-    <ErrorBoundary>
-      <Routes />
-    </ErrorBoundary>,
+    <Provider store={store}>
+      <ErrorBoundary>
+          <Routes />
+      </ErrorBoundary>
+    </Provider>,
     domElement
   );
 });

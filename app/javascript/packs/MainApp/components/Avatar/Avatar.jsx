@@ -1,10 +1,12 @@
+import axios from 'axios'
 import PropTypes from 'prop-types'
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import axios from 'axios'
 
 const Avatar = (props) => {
   const { firstName, lastName } = props
+  if (!firstName || !lastName) return null
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const history = useHistory()
 

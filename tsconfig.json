@@ -4,7 +4,6 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "allowJs": true,
     "lib": ["es6", "dom"],
     "module": "es6",
     "moduleResolution": "node",
