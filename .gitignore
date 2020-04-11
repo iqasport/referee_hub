@@ -45,3 +45,6 @@ yarn-debug.log*
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
+
+# data dump file to convert api responses to typescript. It should never be checked in.
+/app/javascript/packs/MainApp/schema.json

@@ -30,9 +30,7 @@
 #  index_referees_on_reset_password_token  (reset_password_token) UNIQUE
 #
 
-class RefereeSerializer
-  include FastJsonapi::ObjectSerializer
-
+class RefereeSerializer < BaseSerializer
   attributes :first_name,
              :last_name,
              :bio,
@@ -64,5 +62,4 @@ class RefereeSerializer
   has_many :certifications, serializer: :certification, if: proc { |_referee, params| params[:include_associations] }
   has_many :test_results, if: proc { |_referee, params| params[:include_tests] }
   has_many :test_attempts, if: proc { |_referee, params| params[:include_tests] }
-  has_many :roles, if: proc { |_referee, params| params[:include_roles] } 
 end

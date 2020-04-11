@@ -1,8 +1,6 @@
-import axios from 'axios';
-/* eslint-disable */
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Redirect, Route, BrowserRouter as Router } from 'react-router-dom'
+import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 
 import Avatar from './components/Avatar'
 import { fetchCurrentUser } from './modules/currentUser/currentUser'
@@ -18,8 +16,8 @@ import { RootState } from './rootReducer'
 
 const App = () => {
   const dispatch = useDispatch()
-  const { currentUser, roles } = useSelector((state: RootState) => state.currentUser)
-  console.log({ roles })
+  const { currentUser, roles, id } = useSelector((state: RootState) => state.currentUser)
+
   useEffect(() => {
     try {
       dispatch(fetchCurrentUser())
@@ -32,7 +30,7 @@ const App = () => {
     if (roles.includes("iqa_admin")) return "/admin"
     if (roles.includes("ngb_admin")) return "/privacy" // TODO: replace with ngb admin route once ready
 
-    return `/referees/${currentUser?.id}`
+    return `/referees/${id}`
   }
 
   if(!currentUser) return null

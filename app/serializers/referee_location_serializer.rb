@@ -14,8 +14,6 @@
 #  index_referee_locations_on_referee_id_and_ngb_id  (referee_id,national_governing_body_id) UNIQUE
 #
 
-class RefereeLocationSerializer
-  include FastJsonapi::ObjectSerializer
-
+class RefereeLocationSerializer < BaseSerializer
   attributes :referee_id, :association_type, :national_governing_body_id
 end

@@ -18,8 +18,6 @@
 #  index_national_governing_bodies_on_region  (region)
 #
 
-class NationalGoverningBodySerializer
-  include FastJsonapi::ObjectSerializer
-
+class NationalGoverningBodySerializer < BaseSerializer
   attributes :name, :website
 end

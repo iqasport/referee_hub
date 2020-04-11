@@ -23,9 +23,7 @@
 #  index_test_results_on_referee_id  (referee_id)
 #
 
-class TestResultSerializer
-  include FastJsonapi::ObjectSerializer
-
+class TestResultSerializer < BaseSerializer
   attributes :duration,
              :minimum_pass_percentage,
              :passed,

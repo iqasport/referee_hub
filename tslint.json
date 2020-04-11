@@ -10,5 +10,8 @@
     "interface-name": false,
     "no-any": true
   },
-  "defaultSeverity": "warning"
+  "defaultSeverity": "warning",
+  "linterOptions": {
+    "exclude": ["./app/javascript/packs/MainApp/schemas/**"]
+  }
 }

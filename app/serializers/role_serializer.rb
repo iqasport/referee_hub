@@ -18,8 +18,6 @@
 #  fk_rails_...  (user_id => users.id)
 #
 
-class RoleSerializer
-  include FastJsonapi::ObjectSerializer
-
+class RoleSerializer < BaseSerializer
   attributes :access_type, :user_id
 end

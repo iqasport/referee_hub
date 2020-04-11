@@ -10,9 +10,7 @@
 #  question_id :integer          not null
 #
 
-class AnswerSerializer
-  include FastJsonapi::ObjectSerializer
-
+class AnswerSerializer < BaseSerializer
   attributes :description, :question_id
   attribute :correct, if: proc { |_referee, params| params && params[:include_correct] }
 end

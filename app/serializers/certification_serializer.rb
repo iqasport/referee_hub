@@ -13,8 +13,6 @@
 #  index_certifications_on_level  (level) UNIQUE
 #
 
-class CertificationSerializer
-  include FastJsonapi::ObjectSerializer
-
+class CertificationSerializer < BaseSerializer
   attributes :level
 end

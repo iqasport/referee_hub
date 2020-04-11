@@ -18,9 +18,7 @@
 #  certification_id        :integer
 #
 
-class TestSerializer
-  include FastJsonapi::ObjectSerializer
-
+class TestSerializer < BaseSerializer
   attributes :description,
              :language,
              :level,

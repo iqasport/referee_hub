@@ -11,9 +11,7 @@
 #  test_id          :integer          not null
 #
 
-class QuestionSerializer
-  include FastJsonapi::ObjectSerializer
-
+class QuestionSerializer < BaseSerializer
   attributes :description, :feedback, :test_id, :points_available
 
   has_many :answers, serializer: :answer
