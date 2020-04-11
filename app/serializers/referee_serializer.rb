@@ -36,7 +36,6 @@ class RefereeSerializer < BaseSerializer
              :bio,
              :show_pronouns,
              :submitted_payment_at,
-             :getting_started_dismissed_at,
              :export_name
 
   attribute :pronouns, if: proc { |user, params|

@@ -9,7 +9,6 @@ describe('RefereeHeader', () => {
     bio: 'words',
     exportName: false,
     firstName: 'Build',
-    gettingStartedDismissedAt: new Date(),
     hasPendingPolicies: false,
     isEditable: true,
     lastName: 'Stuff',

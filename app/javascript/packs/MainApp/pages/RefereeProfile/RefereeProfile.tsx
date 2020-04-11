@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 import {
-  Button, Loader, Message, Tab
+  Loader, Message, Tab
 } from 'semantic-ui-react'
 
 import CertificationContent from '../../components/CertificationContent'
@@ -15,18 +15,12 @@ import RefereeHeader from './RefereeHeader'
 
 type IdParams = { id: string }
 // state = {
-//   httpStatus: 0,
-//   httpStatusText: '',
-//   paymentError: false,
-//   paymentSuccess: false,
-//   paymentCancel: false,
 //   changedFirstName: null,
 //   changedLastName: null,
 //   changedNGBs: null,
 //   changedBio: null,
 //   changedShowPronouns: null,
 //   changedPronouns: null,
-//   policyAccepted: false
 // }
 type PaymentState = {
   success: boolean;
@@ -170,15 +164,6 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
     setPaymentState(initialPaymentState)
   }
 
-  const handleGetStartedDismiss = () => {
-    // axios
-    //   .patch(this.currentRefereeApiRoute, {
-    //     getting_started_dismissed_at: DateTime.local().toString()
-    //   })
-    //   .then(this.setComponentStateFromBackendData)
-    //   .catch(this.setErrorStateFromBackendData)
-  }
-
   const handleInputChange = (stateKey: string, value: string) => {
     // this.setState({ [stateKey]: value })
   }
@@ -191,7 +176,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
     if (error) {
       content = <h1>{error}</h1>
     } else {
-      content = <ProfileContent referee={referee} onDismiss={handleGetStartedDismiss} />
+      content = <ProfileContent referee={referee} />
     }
 
     return (
