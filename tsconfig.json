@@ -4,8 +4,9 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "lib": ["es6", "dom"],
-    "module": "es6",
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "es5",
@@ -13,7 +14,6 @@
     "rootDir": "./app/javascript/packs/MainApp"
   },
   "exclude": [
-    "**/*.spec.ts",
     "node_modules",
     "vendor",
     "public"

@@ -71,3 +71,5 @@ export const fetchReferee = (refId: string): AppThunk => async dispatch => {
     dispatch(getRefereeFailure(err))
   }
 }
+
+export default getReferee.reducer

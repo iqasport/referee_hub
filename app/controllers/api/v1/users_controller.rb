@@ -10,7 +10,7 @@ module Api
       def get_current_user
         raise StandardError, 'Not logged in' unless current_user.present?
 
-        json_string = UserSerializer.new(current_user, params: { current_user: current_user, include_roles: true }, include: %i[roles]).serialized_json
+        json_string = UserSerializer.new(current_user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
@@ -20,7 +20,7 @@ module Api
       def accept_policies
         @user.confirm_all_policies!
 
-        json_string = UserSerializer.new(@user, params: { current_user: current_user }).serialized_json
+        json_string = UserSerializer.new(@user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -28,7 +28,7 @@ module Api
       def reject_policies
         @user.reject_all_policies!
 
-        json_string = UserSerializer.new(@user, params: { current_user: current_user }).serialized_json
+        json_string = UserSerializer.new(@user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -37,6 +37,13 @@ module Api
 
       def find_user
         @user = User.find(params[:id])
+      end
+
+      def serializer_options
+        @serializer_options ||= {
+          include: [:roles],
+          params: { current_user: current_user, include_roles: true }
+        }
       end
     end
   end

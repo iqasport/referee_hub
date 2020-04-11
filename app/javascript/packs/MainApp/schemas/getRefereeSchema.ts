@@ -20,14 +20,14 @@ export interface Data {
 }
 
 export interface DataAttributes {
-    firstName:                 string;
-    lastName:                  string;
-    bio:                       string;
+    firstName:                 string | null;
+    lastName:                  string | null;
+    bio:                       string | null;
     showPronouns:              boolean;
-    submittedPaymentAt:        null;
-    gettingStartedDismissedAt: null;
+    submittedPaymentAt:        Date | null;
+    gettingStartedDismissedAt: Date | null;
     exportName:                boolean;
-    pronouns:                  string;
+    pronouns:                  string | null;
     isEditable:                boolean;
     hasPendingPolicies:        boolean;
 }
