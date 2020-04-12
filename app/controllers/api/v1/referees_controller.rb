@@ -30,6 +30,7 @@ module Api
       end
 
       def update
+        debugger
         update_national_governing_bodies(params.delete(:ngb_data))
         update_teams(params.delete(:teams))
 

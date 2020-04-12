@@ -6,50 +6,69 @@ import {
   Loader, Message, Tab
 } from 'semantic-ui-react'
 
+import { AssociationData, UpdateRefereeRequest } from '../../apis/referee';
 import CertificationContent from '../../components/CertificationContent'
 import ProfileContent from '../../components/ProfileContent'
 import { updateUserPolicy } from '../../modules/currentUser/currentUser'
-import { fetchReferee } from '../../modules/referee/getReferee';
+import { fetchReferee, RefereeState, updateReferee } from '../../modules/referee/referee';
 import { RootState } from '../../rootReducer';
 import RefereeHeader from './RefereeHeader'
+import RefereeLocation from './RefereeLocation'
+import RefereeProfileEdit from '../../components/RefereeProfileEdit'
+import { DataAttributes, IncludedAttributes } from '../../schemas/getRefereeSchema';
 
 type IdParams = { id: string }
-// state = {
-//   changedFirstName: null,
-//   changedLastName: null,
-//   changedNGBs: null,
-//   changedBio: null,
-//   changedShowPronouns: null,
-//   changedPronouns: null,
-// }
+const selectRefereeState = (state: RootState): Omit<RefereeState, 'id'> => {
+  return {
+    certifications: state.referee.certifications,
+    error: state.referee.error,
+    isLoading: state.referee.isLoading,
+    locations: state.referee.locations,
+    ngbs: state.referee.ngbs,
+    referee: state.referee.referee,
+    testAttempts: state.referee.testAttempts,
+    testResults: state.referee.testResults,
+  };
+}
+
 type PaymentState = {
   success: boolean;
   cancel: boolean;
   failure: boolean;
 }
- const initialPaymentState: PaymentState = {
-   cancel: false,
-   failure: false,
-   success: false,
- }
+
+const initialPaymentState: PaymentState = {
+  cancel: false,
+  failure: false,
+  success: false,
+}
+
+const initialUpdateState = (referee: DataAttributes, locations: IncludedAttributes[]) => {
+  const ngbData = locations.reduce((data, location): AssociationData => {
+    data[location.nationalGoverningBodyId.toString()] = location.associationType
+    return data
+  }, {} as AssociationData)
+
+  return {
+    bio: referee?.bio,
+    exportName: referee?.exportName,
+    ngbData,
+    pronouns: referee?.pronouns,
+    showPronouns: referee?.showPronouns,
+    submittedPaymentAt: referee?.submittedPaymentAt,
+    teamsData: {},
+  }
+}
 
 const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id }}} = props
   const dispatch = useDispatch()
   const history = useHistory();
-  const { isLoading, referee, certifications, error, ngbs, testAttempts, testResults } = useSelector((state: RootState) => {
-    return {
-      certifications: state.referee.certifications,
-      error: state.referee.error,
-      isLoading: state.referee.isLoading,
-      ngbs: state.referee.ngbs,
-      referee: state.referee.referee,
-      testAttempts: state.referee.testAttempts,
-      testResults: state.referee.testResults,
-    }
-  }, shallowEqual)
+  const { isLoading, referee, certifications, error, ngbs, testAttempts, testResults, locations } = useSelector(selectRefereeState, shallowEqual)
   const [paymentState, setPaymentState] = useState<PaymentState>(initialPaymentState)
-  
+  const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations))
+  const [isEditing, setIsEditing] = useState(false)
+
   useEffect(() => {
     if(id) {
       dispatch(fetchReferee(id))
@@ -57,79 +76,24 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   }, [id, dispatch])
 
   if (!referee) return null
-  // get refereeEditValues() {
-  //   const {
-  //     referee, changedFirstName, changedLastName, changedNGBs, changedBio, changedShowPronouns, changedPronouns
-  //   } = this.state
-
-  //   return {
-  //     firstName: changedFirstName || referee.firstName,
-  //     lastName: changedLastName || referee.lastName,
-  //     nationalGoverningBodies: changedNGBs || referee.nationalGoverningBodies,
-  //     bio: changedBio || referee.bio,
-  //     showPronouns: changedShowPronouns || referee.showPronouns,
-  //     pronouns: changedPronouns || referee.pronouns
-  //   }
-  // }
-
 
   const handleRouteChange = (newRoute) => history.push(newRoute)
 
   const handleSubmit = () => {
-    // const {
-    //   referee: {
-    //     firstName,
-    //     lastName,
-    //     bio,
-    //     showPronouns,
-    //     pronouns,
-    //     nationalGoverningBodies
-    //   },
-    //   changedFirstName,
-    //   changedLastName,
-    //   changedNGBs,
-    //   changedBio,
-    //   changedShowPronouns,
-    //   changedPronouns
-    // } = state
-
-    // const ngbState = changedNGBs
-    //   ? changedNGBs.map(ngbId => Number(ngbId))
-    //   : nationalGoverningBodies.map(ngb => Number(ngb.id))
-
-    // axios
-    //   .patch(this.currentRefereeApiRoute, {
-    //     first_name: changedFirstName || firstName,
-    //     last_name: changedLastName || lastName,
-    //     bio: changedBio || bio,
-    //     show_pronouns: changedShowPronouns || showPronouns,
-    //     pronouns: changedPronouns || pronouns,
-    //     national_governing_body_ids: ngbState
-    //   })
-    //   .then(this.setComponentStateFromBackendData)
-    //   .catch(this.setErrorStateFromBackendData)
+    dispatch(updateReferee(updatedReferee, id))
   };
 
+  // Payment handlers
+  const clearPaymentState = () => setPaymentState(initialPaymentState)
+  const handlePaymentError = () => setPaymentState({ success: false, cancel: false, failure: true })
+  const handlePaymentCancel = () => setPaymentState({ success: false, cancel: true, failure: false })
   const handlePaymentSuccess = (payment) => {
     const { paid } = payment
     if (paid) {
       setPaymentState({success: true, cancel: false, failure: false})
     }
-    //   axios
-    //     .patch(this.currentRefereeApiRoute, {
-    //       submitted_payment_at: DateTime.local().toString()
-    //     })
-    //     .then(this.setComponentStateFromBackendData)
-    //     .catch(this.setErrorStateFromBackendData)
-    // }
-  }
 
-  const handlePaymentError = () => {
-    setPaymentState({ success: false, cancel: false, failure: true });
-  }
-
-  const handlePaymentCancel = () => {
-    setPaymentState({ success: false, cancel: true, failure: false });
+    dispatch(updateReferee({...updatedReferee, submittedPaymentAt: DateTime.local().toString()}, id))
   }
 
   const renderPaymentMessage = () => {
@@ -160,32 +124,15 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
     )
   }
 
-  const clearPaymentState = () => {
-    setPaymentState(initialPaymentState)
+  const handleInputChange = (value: string, stateKey: string) => {
+    setUpdatedReferee({ ...updatedReferee, [stateKey]: value })
   }
-
-  const handleInputChange = (stateKey: string, value: string) => {
-    // this.setState({ [stateKey]: value })
+  const handleAssociationChange = (value: AssociationData, stateKey: string) => {
+    setUpdatedReferee({...updatedReferee, [stateKey]: value})
   }
 
   const handleAcceptPolicy = () => dispatch(updateUserPolicy(id, 'accept'))
   const handleRejectPolicy = () => dispatch(updateUserPolicy(id, 'reject'))
-
-  const renderProfileContent = () => {
-    let content
-    if (error) {
-      content = <h1>{error}</h1>
-    } else {
-      content = <ProfileContent referee={referee} />
-    }
-
-    return (
-      <Tab.Pane>
-        {isLoading && <Loader active={true} />}
-        {content}
-      </Tab.Pane>
-    )
-  }
 
   const renderCertificationContent = () => {
     const { isEditable, submittedPaymentAt } = referee
@@ -237,9 +184,15 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
         <div className="w-full border-b-2 border-navy-blue">
           <h3 className="text-xl">Details</h3>
         </div>
+        <div className="flex">
+          <RefereeLocation ngbs={ngbs} locations={locations} isEditing={isEditing} onChange={handleAssociationChange} value={updatedReferee.ngbData} />
+        </div>
+        {isEditing && (
+          <button className="rounded border-green border-2 text-green p-4 cursor-pointer" onClick={handleSubmit}>Save Changes</button>
+        )}
       </div>
     </>
-  )
+  );
 }
 
 export default RefereeProfile
