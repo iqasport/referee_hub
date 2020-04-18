@@ -14,6 +14,7 @@ export interface RefereeState {
   locations: IncludedAttributes[] | null;
   error: string | null;
   isLoading: boolean;
+  teams: IncludedAttributes[] | null;
 }
 
 const initialState: RefereeState = {
@@ -24,6 +25,7 @@ const initialState: RefereeState = {
   locations: [],
   ngbs: [],
   referee: null,
+  teams: [],
   testAttempts: [],
   testResults: [],
 }
@@ -38,6 +40,7 @@ function refereeFailure(state: RefereeState, action: PayloadAction<string>) {
   state.error = action.payload;
   state.isLoading = false;
   state.locations = initialState.locations;
+  state.teams = initialState.teams;
 }
 
 function refereeStart(state: RefereeState) {
@@ -54,6 +57,7 @@ function refereeSuccess(state: RefereeState, action: PayloadAction<RefereeRespon
   state.error = null
   state.isLoading = false
   state.locations = action.payload.locations
+  state.teams = action.payload.teams
 }
 
 const referee = createSlice({

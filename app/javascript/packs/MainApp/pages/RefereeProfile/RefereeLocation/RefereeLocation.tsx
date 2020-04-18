@@ -1,6 +1,6 @@
 import { omitBy } from 'lodash'
 import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 
 import { AssociationData } from '../../../apis/referee';
 import { getNationalGoverningBodies } from '../../../modules/nationalGoverningBody/nationalGoverningBodies';
@@ -23,7 +23,7 @@ const RefereeLocation = (props: LocationProps) => {
     return {
       allNgbs: state.nationalGoverningBodies.nationalGoverningBodies,
     }
-  })
+  }, shallowEqual)
 
   useEffect(() => {
     if(isEditing) {

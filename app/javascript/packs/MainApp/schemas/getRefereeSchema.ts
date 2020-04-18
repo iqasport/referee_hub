@@ -55,6 +55,13 @@ export interface Included {
     attributes: IncludedAttributes;
 }
 
+export enum AssociationType {
+    Primary = "primary",
+    Secondary = "secondary",
+    Player = "player",
+    Coach = "coach",
+}
+
 export interface IncludedAttributes {
     level?:                   string;
     name?:                    string;
@@ -65,7 +72,7 @@ export interface IncludedAttributes {
     revokedAt?:               null;
     refereeId?:               number;
     certificationId?:         number;
-    associationType?:         string;
+    associationType?:         AssociationType;
     nationalGoverningBodyId?: number;
     nextAttemptAt?:           string;
     testLevel?:               string;
@@ -77,6 +84,7 @@ export interface IncludedAttributes {
     pointsScored?:            number;
     timeFinished?:            string;
     timeStarted?:             string;
+    teamId?:                  number;
 }
 
 // Converts JSON strings to/from your types

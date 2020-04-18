@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { transform, snakeCase } from 'lodash'
+import { snakeCase, transform } from 'lodash'
 
 const BASE_URL = "/api/v1/";
 

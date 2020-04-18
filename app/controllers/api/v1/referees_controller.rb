@@ -30,9 +30,8 @@ module Api
       end
 
       def update
-        debugger
         update_national_governing_bodies(params.delete(:ngb_data))
-        update_teams(params.delete(:teams))
+        update_teams(params.delete(:teams_data))
 
         if @referee.update!(permitted_params)
           json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
@@ -126,7 +125,7 @@ module Api
 
       def serializer_options
         @serializer_options ||= {
-          include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results referee_locations],
+          include: %i[referee_certifications certifications national_governing_bodies test_attempts test_results referee_locations referee_teams teams],
           params: { current_user: current_user, include_tests: true, include_associations: true }
         }
       end

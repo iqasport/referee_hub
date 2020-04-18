@@ -269,7 +269,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       let(:body_data) do
         {
           id: referee.id,
-          teams: teams_data
+          teams_data: teams_data
         }
       end
 

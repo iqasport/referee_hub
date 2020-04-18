@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 import {
-  Loader, Message, Tab
+  Message, Tab
 } from 'semantic-ui-react'
 
 import { AssociationData, UpdateRefereeRequest } from '../../apis/referee';
@@ -12,10 +12,11 @@ import ProfileContent from '../../components/ProfileContent'
 import { updateUserPolicy } from '../../modules/currentUser/currentUser'
 import { fetchReferee, RefereeState, updateReferee } from '../../modules/referee/referee';
 import { RootState } from '../../rootReducer';
+import { DataAttributes, IncludedAttributes } from '../../schemas/getRefereeSchema';
+
 import RefereeHeader from './RefereeHeader'
 import RefereeLocation from './RefereeLocation'
-import RefereeProfileEdit from '../../components/RefereeProfileEdit'
-import { DataAttributes, IncludedAttributes } from '../../schemas/getRefereeSchema';
+import RefereeTeam from './RefereeTeam'
 
 type IdParams = { id: string }
 const selectRefereeState = (state: RootState): Omit<RefereeState, 'id'> => {
@@ -26,6 +27,7 @@ const selectRefereeState = (state: RootState): Omit<RefereeState, 'id'> => {
     locations: state.referee.locations,
     ngbs: state.referee.ngbs,
     referee: state.referee.referee,
+    teams: state.referee.teams,
     testAttempts: state.referee.testAttempts,
     testResults: state.referee.testResults,
   };
@@ -43,9 +45,13 @@ const initialPaymentState: PaymentState = {
   success: false,
 }
 
-const initialUpdateState = (referee: DataAttributes, locations: IncludedAttributes[]) => {
+const initialUpdateState = (referee: DataAttributes, locations: IncludedAttributes[], teams: IncludedAttributes[]) => {
   const ngbData = locations.reduce((data, location): AssociationData => {
     data[location.nationalGoverningBodyId.toString()] = location.associationType
+    return data
+  }, {} as AssociationData)
+  const teamsData = teams.reduce((data, team): AssociationData => {
+    data[team.teamId.toString()] = team.associationType
     return data
   }, {} as AssociationData)
 
@@ -56,7 +62,7 @@ const initialUpdateState = (referee: DataAttributes, locations: IncludedAttribut
     pronouns: referee?.pronouns,
     showPronouns: referee?.showPronouns,
     submittedPaymentAt: referee?.submittedPaymentAt,
-    teamsData: {},
+    teamsData,
   }
 }
 
@@ -64,24 +70,32 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id }}} = props
   const dispatch = useDispatch()
   const history = useHistory();
-  const { isLoading, referee, certifications, error, ngbs, testAttempts, testResults, locations } = useSelector(selectRefereeState, shallowEqual)
+  const { referee, certifications, ngbs, locations, teams } = useSelector(selectRefereeState, shallowEqual)
   const [paymentState, setPaymentState] = useState<PaymentState>(initialPaymentState)
-  const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations))
+  const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations, teams))
   const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
-    if(id) {
+    if (id) {
       dispatch(fetchReferee(id))
     }
   }, [id, dispatch])
+
+  useEffect(() => {
+    if (referee) {
+      setUpdatedReferee(initialUpdateState(referee, locations, teams));
+    }
+  }, [referee])
 
   if (!referee) return null
 
   const handleRouteChange = (newRoute) => history.push(newRoute)
 
   const handleSubmit = () => {
+    setIsEditing(false)
     dispatch(updateReferee(updatedReferee, id))
   };
+  const handleEditClick = () => setIsEditing(true)
 
   // Payment handlers
   const clearPaymentState = () => setPaymentState(initialPaymentState)
@@ -128,32 +142,11 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value })
   }
   const handleAssociationChange = (value: AssociationData, stateKey: string) => {
-    setUpdatedReferee({...updatedReferee, [stateKey]: value})
+    setUpdatedReferee({ ...updatedReferee, [stateKey]: value})
   }
 
   const handleAcceptPolicy = () => dispatch(updateUserPolicy(id, 'accept'))
   const handleRejectPolicy = () => dispatch(updateUserPolicy(id, 'reject'))
-
-  const renderCertificationContent = () => {
-    const { isEditable, submittedPaymentAt } = referee
-
-    return (
-      <Tab.Pane>
-        <CertificationContent
-          refereeId={id}
-          isEditable={isEditable}
-          hasPaid={!!submittedPaymentAt}
-          testResults={testResults}
-          testAttempts={testAttempts}
-          refCertifications={certifications}
-          onSuccess={handlePaymentSuccess}
-          onError={handlePaymentError}
-          onCancel={handlePaymentCancel}
-          onRouteChange={handleRouteChange}
-        />
-      </Tab.Pane>
-    )
-  }
 
   const renderAcceptPolicy = () => {
     const { isEditable, hasPendingPolicies } = referee
@@ -186,9 +179,13 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
         </div>
         <div className="flex">
           <RefereeLocation ngbs={ngbs} locations={locations} isEditing={isEditing} onChange={handleAssociationChange} value={updatedReferee.ngbData} />
+          <RefereeTeam teams={teams} locations={locations} isEditing={isEditing} onChange={handleAssociationChange} value={updatedReferee.teamsData} isDisabled={locations.length < 1} />
         </div>
         {isEditing && (
           <button className="rounded border-green border-2 text-green p-4 cursor-pointer" onClick={handleSubmit}>Save Changes</button>
+        )}
+        {!isEditing && (
+          <button className="rounded bg-green p-4 cursor-pointer" onClick={handleEditClick}>Edit</button>
         )}
       </div>
     </>

@@ -61,4 +61,6 @@ class RefereeSerializer < BaseSerializer
   has_many :certifications, serializer: :certification, if: proc { |_referee, params| params[:include_associations] }
   has_many :test_results, if: proc { |_referee, params| params[:include_tests] }
   has_many :test_attempts, if: proc { |_referee, params| params[:include_tests] }
+  has_many :teams, serializer: :team
+  has_many :referee_teams, serializer: :referee_team
 end
