@@ -84,3 +84,53 @@
     @apply mb-2;
     @apply text-center;
 }
+
+.toggle {
+    @apply relative;
+    @apply select-none;
+    @apply w-12;
+    @apply mr-2;
+    @apply leading-normal;
+}
+
+.toggle-checkbox {
+    @apply hidden;
+}
+
+.toggle-label {
+    @apply block;
+    @apply overflow-hidden;
+    @apply cursor-pointer;
+    @apply bg-white;
+    @apply border;
+    @apply rounded-full; 
+    @apply h-6;
+    @apply shadow-inner;
+    @apply inset-0;
+
+    transition: background-color 0.2s ease-in;
+}
+
+.toggle-label:before {
+    @apply absolute;
+    @apply block;
+    @apply bg-white;
+    @apply w-6;
+    @apply border;
+    @apply rounded-full;
+    @apply -ml-1;
+    @apply h-6;
+
+    right: 50%;
+    content: "";
+    transition: all 0.2s ease-in;
+}
+
+.toggle-checkbox:checked + .toggle-label {
+    @apply bg-green;
+    @apply shadow-none;
+}
+
+.toggle-checkbox:checked + .toggle-label:before {
+    transform: translateX(25px)
+}

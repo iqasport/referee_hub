@@ -1,4 +1,5 @@
 import { AxiosResponse } from 'axios';
+
 import { DataAttributes, GetRefereeSchema, Included, IncludedAttributes } from '../schemas/getRefereeSchema';
 import { baseAxios } from './utils'
 
@@ -16,7 +17,7 @@ export interface RefereeResponse {
 export interface AssociationData {
   [key: string]: string;
 }
-type ForbiddenUpdates = 'firstName' | 'lastName' | 'isEditable' | 'hasPendingPolicies'
+type ForbiddenUpdates = 'isEditable' | 'hasPendingPolicies'
 export interface UpdateRefereeRequest extends Omit<DataAttributes, ForbiddenUpdates> {
   teamsData: AssociationData | null;
   ngbData: AssociationData | null; 

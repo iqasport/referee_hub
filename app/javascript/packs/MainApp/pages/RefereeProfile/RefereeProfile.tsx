@@ -2,18 +2,13 @@ import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
-import {
-  Message, Tab
-} from 'semantic-ui-react'
+import { Message } from 'semantic-ui-react'
 
 import { AssociationData, UpdateRefereeRequest } from '../../apis/referee';
-import CertificationContent from '../../components/CertificationContent'
-import ProfileContent from '../../components/ProfileContent'
 import { updateUserPolicy } from '../../modules/currentUser/currentUser'
 import { fetchReferee, RefereeState, updateReferee } from '../../modules/referee/referee';
 import { RootState } from '../../rootReducer';
 import { DataAttributes, IncludedAttributes } from '../../schemas/getRefereeSchema';
-
 import RefereeHeader from './RefereeHeader'
 import RefereeLocation from './RefereeLocation'
 import RefereeTeam from './RefereeTeam'
@@ -45,7 +40,7 @@ const initialPaymentState: PaymentState = {
   success: false,
 }
 
-const initialUpdateState = (referee: DataAttributes, locations: IncludedAttributes[], teams: IncludedAttributes[]) => {
+const initialUpdateState = (referee: DataAttributes, locations: IncludedAttributes[], teams: IncludedAttributes[]): UpdateRefereeRequest => {
   const ngbData = locations.reduce((data, location): AssociationData => {
     data[location.nationalGoverningBodyId.toString()] = location.associationType
     return data
@@ -58,6 +53,8 @@ const initialUpdateState = (referee: DataAttributes, locations: IncludedAttribut
   return {
     bio: referee?.bio,
     exportName: referee?.exportName,
+    firstName: referee?.firstName,
+    lastName: referee?.lastName,
     ngbData,
     pronouns: referee?.pronouns,
     showPronouns: referee?.showPronouns,
@@ -74,6 +71,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const [paymentState, setPaymentState] = useState<PaymentState>(initialPaymentState)
   const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations, teams))
   const [isEditing, setIsEditing] = useState(false)
+  const [hasUpdated, setHasUpdated] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -138,11 +136,13 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
     )
   }
 
-  const handleInputChange = (value: string, stateKey: string) => {
+  const handleInputChange = (value: string | boolean, stateKey: string) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value })
+    setHasUpdated(true)
   }
   const handleAssociationChange = (value: AssociationData, stateKey: string) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value})
+    setHasUpdated(true)
   }
 
   const handleAcceptPolicy = () => dispatch(updateUserPolicy(id, 'accept'))
@@ -173,7 +173,15 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
       {renderAcceptPolicy()}
       {renderPaymentMessage()}
       <div className="m-auto w-3/4 mt-10">
-        <RefereeHeader referee={referee} certifications={certifications} />
+        <RefereeHeader 
+          referee={referee} 
+          certifications={certifications} 
+          onChange={handleInputChange} 
+          onEditClick={handleEditClick} 
+          isEditing={isEditing} 
+          onSubmit={handleSubmit}
+          updatedValues={updatedReferee}
+          isSaveDisabled={!hasUpdated} />
         <div className="w-full border-b-2 border-navy-blue">
           <h3 className="text-xl">Details</h3>
         </div>
@@ -181,12 +189,6 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
           <RefereeLocation ngbs={ngbs} locations={locations} isEditing={isEditing} onChange={handleAssociationChange} value={updatedReferee.ngbData} />
           <RefereeTeam teams={teams} locations={locations} isEditing={isEditing} onChange={handleAssociationChange} value={updatedReferee.teamsData} isDisabled={locations.length < 1} />
         </div>
-        {isEditing && (
-          <button className="rounded border-green border-2 text-green p-4 cursor-pointer" onClick={handleSubmit}>Save Changes</button>
-        )}
-        {!isEditing && (
-          <button className="rounded bg-green p-4 cursor-pointer" onClick={handleEditClick}>Edit</button>
-        )}
       </div>
     </>
   );
