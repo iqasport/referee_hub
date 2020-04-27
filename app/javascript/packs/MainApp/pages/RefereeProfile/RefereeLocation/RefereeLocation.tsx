@@ -1,6 +1,6 @@
 import { omitBy } from 'lodash'
 import React, { useEffect } from 'react'
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { AssociationData } from '../../../apis/referee';
 import { getNationalGoverningBodies } from '../../../modules/nationalGoverningBody/nationalGoverningBodies';
@@ -68,7 +68,7 @@ const RefereeLocation = (props: LocationProps) => {
   const renderOption = (ngb: Datum) => <option key={ngb.id} value={ngb.id}>{ngb.attributes.name}</option>
   const renderDropdown = (type: string) => {
     return (
-      <select className="form-select block w-1/2 mt-1" onChange={handleChange(type)} value={getSelectedNgb(type)}>
+      <select className="form-select block mt-1" onChange={handleChange(type)} value={getSelectedNgb(type)}>
         {type === 'secondary' && <option value="-1">None</option>}
         {allNgbs.map(renderOption)}
       </select>
@@ -77,7 +77,7 @@ const RefereeLocation = (props: LocationProps) => {
   const emptyNgb = 'National Governing Body not selected'
 
   return (
-    <div className="flex flex-col w-1/2 p-12">
+    <div className="flex flex-col w-1/2 p-4">
       <div className="w-full mb-4">
         <h4 className="text-sm mb-2">Primary NGB</h4>
         {!isEditing && (

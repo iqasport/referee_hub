@@ -95,7 +95,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
       <label>
         {isDisabled && 'Please select a Primary NGB to select a team'}
         <select
-          className="form-select block w-1/2 mt-1"
+          className="form-select block mt-1"
           onChange={handleChange(type)}
           value={getSelectedTeam(type)}
           disabled={isDisabled}
@@ -109,7 +109,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   const emptyTeam = "Team not selected";
 
   return (
-    <div className="flex flex-col w-1/2 p-12">
+    <div className="flex flex-col w-1/2 p-4">
       <div className="w-full mb-4">
         <h4 className="text-sm mb-2">Playing Team</h4>
         {!isEditing && (

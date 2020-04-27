@@ -173,23 +173,43 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
     <>
       {renderAcceptPolicy()}
       {renderPaymentMessage()}
-      <div className="m-auto w-3/4 mt-10">
-        <RefereeHeader 
-          referee={referee} 
-          certifications={certifications} 
-          onChange={handleInputChange} 
-          onEditClick={handleEditClick} 
-          isEditing={isEditing} 
+      <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">
+        <RefereeHeader
+          referee={referee}
+          certifications={certifications}
+          onChange={handleInputChange}
+          onEditClick={handleEditClick}
+          isEditing={isEditing}
           onSubmit={handleSubmit}
           updatedValues={updatedReferee}
-          isSaveDisabled={!hasUpdated}
-          id={stateId} />
-        <div className="w-full border-b-2 border-navy-blue">
-          <h3 className="text-xl">Details</h3>
-        </div>
-        <div className="flex">
-          <RefereeLocation ngbs={ngbs} locations={locations} isEditing={isEditing} onChange={handleAssociationChange} value={updatedReferee.ngbData} />
-          <RefereeTeam teams={teams} locations={locations} isEditing={isEditing} onChange={handleAssociationChange} value={updatedReferee.teamsData} isDisabled={locations.length < 1} />
+          id={stateId}
+        />
+        <div className="flex flex-col lg:flex-row xl:flex-row w-full">
+          <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-200 p-4 mb-8">
+            <h3 className="border-b-2 border-green text-xl px-2 w-1/6 text-center">
+              Details
+            </h3>
+            <RefereeLocation
+              ngbs={ngbs}
+              locations={locations}
+              isEditing={isEditing}
+              onChange={handleAssociationChange}
+              value={updatedReferee.ngbData}
+            />
+            <RefereeTeam
+              teams={teams}
+              locations={locations}
+              isEditing={isEditing}
+              onChange={handleAssociationChange}
+              value={updatedReferee.teamsData}
+              isDisabled={locations.length < 1}
+            />
+          </div>
+          <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-200 p-4 lg:ml-8 xl:ml-8">
+            <h3 className="border-b-2 border-green text-xl px-2 w-1/3 text-center">
+              Certifications
+            </h3>
+          </div>
         </div>
       </div>
     </>

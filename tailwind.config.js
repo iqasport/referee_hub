@@ -35,7 +35,7 @@ module.exports = {
       default: '3px',
       lg: '25px',
       full: '9999px'
-    }
+    },
   },
   variants: {},
   plugins: [

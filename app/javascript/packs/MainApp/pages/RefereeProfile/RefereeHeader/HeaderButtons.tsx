@@ -4,7 +4,6 @@ type HeaderButtonsProps = {
   isEditing: boolean;
   onEdit: () => void;
   onSubmit: () => void;
-  isSaveDisabled: boolean;
 }
 
 const HeaderButtons = (props: HeaderButtonsProps) => {

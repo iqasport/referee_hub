@@ -16,7 +16,6 @@ type HeaderProps = {
   onEditClick: () => void;
   onSubmit: () => void;
   updatedValues: UpdateRefereeRequest;
-  isSaveDisabled: boolean;
   id: string,
 }
 
@@ -87,39 +86,52 @@ const RefereeHeader = (props: HeaderProps) => {
     if(!isEditing) {
       return referee.bio
     } else {
-      return <textarea aria-multiline="true" className="form-textarea block w-full" onChange={handleChange('bio')} value={updatedValues.bio} />
+      return (
+        <textarea 
+          aria-multiline="true" 
+          className="bg-gray-200 rounded p-4 text-lg block w-full"
+          style={{resize: 'none'}} 
+          onChange={handleChange('bio')} 
+          value={updatedValues.bio} 
+        />
+      )
     }
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-col lg:flex-row xl:flex-row">
       <HeaderImage avatarUrl={referee.avatarUrl} id={id} />
       <div className="w-5/6">
-        <div className="flex items-center mb-8">
-          <div className="flex-shrink mr-20 w-1/3">
-            {<HeaderName 
-              isEditing={isEditing} 
-              onChange={handleChange} 
-              onToggleChange={handleToggleChange} 
-              updatedValues={updatedValues} 
-              name={refName()} />}
+        <div className="flex flex-col items-center mb-8 md:flex-row lg:flex-row xl:flex-row">
+          <div className="flex-shrink w-full lg:mr-5 xl:mr-5 md:w-1/2 lg:w-1/2 xl:w-1/2">
+            {
+              <HeaderName
+                isEditing={isEditing}
+                onChange={handleChange}
+                onToggleChange={handleToggleChange}
+                updatedValues={updatedValues}
+                name={refName()}
+              />
+            }
           </div>
-          <div className="flex items-center justify-around">
+          <div className="flex items-center w-full">
             {renderCertifications()}
           </div>
-          <div className="flex justify-end w-1/2">
-            {referee.isEditable && <HeaderButtons isEditing={isEditing} onEdit={onEditClick} onSubmit={onSubmit} isSaveDisabled={props.isSaveDisabled} />}
+          <div className="justify-end w-1/2 hidden md:flex lg:flex xl:flex">
+            {referee.isEditable && (
+              <HeaderButtons
+                isEditing={isEditing}
+                onEdit={onEditClick}
+                onSubmit={onSubmit}
+              />
+            )}
           </div>
         </div>
-        <div className="flex mb-8">
-          {renderPronouns()}
-        </div>
-        <div className="text-2xl mb-4 h-24">
-          {renderBio()}
-        </div>
+        <div className="flex mb-8">{renderPronouns()}</div>
+        <div className="text-2xl mb-4 h-24">{renderBio()}</div>
       </div>
     </div>
-  )
+  );
 }
 
 export default RefereeHeader

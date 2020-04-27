@@ -41,7 +41,6 @@ describe('RefereeHeader', () => {
     certifications,
     id: '123',
     isEditing: false,
-    isSaveDisabled: false,
     onChange: jest.fn(),
     onEditClick: jest.fn(),
     onSubmit: jest.fn(),
