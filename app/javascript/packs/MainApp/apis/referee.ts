@@ -17,10 +17,10 @@ export interface RefereeResponse {
 export interface AssociationData {
   [key: string]: string;
 }
-type ForbiddenUpdates = 'isEditable' | 'hasPendingPolicies'
+type ForbiddenUpdates = 'isEditable' | 'hasPendingPolicies' | 'avatarUrl'
 export interface UpdateRefereeRequest extends Omit<DataAttributes, ForbiddenUpdates> {
   teamsData: AssociationData | null;
-  ngbData: AssociationData | null; 
+  ngbData: AssociationData | null;
 }
 
 const mapAttributes = (record: Included) => record.attributes
@@ -79,8 +79,8 @@ export async function getReferee(refereeId: string | number): Promise<RefereeRes
 }
 
 export async function updateReferee(updatedReferee: UpdateRefereeRequest, refereeId: string | number): Promise<RefereeResponse> {
-  const url = `referees/${refereeId}`
-
+  const url = `/referees/${refereeId}`
+  
   try {
     const refereeResponse = await baseAxios.patch<GetRefereeSchema>(url, updatedReferee)
     return formatRefereeResponse(refereeResponse)

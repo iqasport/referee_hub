@@ -29,6 +29,7 @@ export interface DataAttributes {
     pronouns:                  string | null;
     isEditable:                boolean;
     hasPendingPolicies:        boolean;
+    avatarUrl:                 string | null;
 }
 
 export interface Relationships {

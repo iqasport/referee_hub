@@ -1,9 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import {getReferee as getRefereeApi} from '../../apis/referee';
-import { getCurrentUser, updatePolicyAcceptance, UserResponse } from '../../apis/user';
+import { getCurrentUser, updateAvatar, updatePolicyAcceptance, UserResponse } from '../../apis/user';
 import { DataAttributes } from '../../schemas/currentUserSchema';
 import { AppThunk } from '../../store';
+import { fetchReferee } from '../referee/referee';
 
 interface CurrentUserState {
   currentUser: DataAttributes | null;
@@ -19,30 +20,28 @@ const initialState: CurrentUserState = {
   roles: [],
 }
 
+function userSuccess(state: CurrentUserState, action: PayloadAction<UserResponse>) {
+  state.currentUser = action.payload.user;
+  state.roles = action.payload.roles;
+  state.error = null;
+}
+
+function userFailure(state, action: PayloadAction<string>) {
+  state.currentUser = null;
+  state.roles = [];
+  state.error = action.payload;
+}
+
 const currentUser = createSlice({
   initialState,
   name: "currentUser",
   reducers: {
-    getCurrentUserSuccess(state, action: PayloadAction<UserResponse>) {
-      state.currentUser = action.payload.user;
-      state.roles = action.payload.roles;
-      state.error = null;
-    },
-    getCurrentUserFailure(state, action: PayloadAction<string>) {
-      state.currentUser = null;
-      state.roles = [];
-      state.error = action.payload;
-    },
-    updatePolicySuccess(state, action: PayloadAction<UserResponse>) {
-      state.currentUser = action.payload.user;
-      state.roles = action.payload.roles;
-      state.error = null;
-    },
-    updatePolicyFailure(state, action: PayloadAction<string>) {
-      state.currentUser = null;
-      state.roles = [];
-      state.error = action.payload;
-    },
+    getCurrentUserFailure: userFailure,
+    getCurrentUserSuccess: userSuccess,
+    updateAvatarFailure: userFailure,
+    updateAvatarSuccess: userSuccess,
+    updatePolicyFailure: userFailure,
+    updatePolicySuccess: userSuccess,
   },
 });
 
@@ -50,7 +49,9 @@ export const {
   getCurrentUserSuccess,
   getCurrentUserFailure,
   updatePolicySuccess,
-  updatePolicyFailure
+  updatePolicyFailure,
+  updateAvatarFailure,
+  updateAvatarSuccess,
 } = currentUser.actions
 
 export const fetchCurrentUser = (): AppThunk => async dispatch => {
@@ -66,10 +67,18 @@ export const updateUserPolicy = (userId: string, type: string): AppThunk => asyn
   try {
     const userResponse = await updatePolicyAcceptance(userId, type)
     dispatch(updatePolicySuccess(userResponse))
-    getRefereeApi(userId)
+    dispatch(fetchReferee(userId))
   } catch (err) {
-    dispatch(updatePolicyFailure(err))
+    dispatch(updatePolicyFailure(err.toString()))
   }
 }
 
+export const updateUserAvatar = (userId: string, avatar: File): AppThunk => async dispatch => {
+  try {
+    const userResponse = await updateAvatar(userId, avatar)
+    dispatch(updateAvatarSuccess(userResponse))
+  } catch (err) {
+    dispatch(updateAvatarFailure(err.toString()))
+  }
+}
 export default currentUser.reducer

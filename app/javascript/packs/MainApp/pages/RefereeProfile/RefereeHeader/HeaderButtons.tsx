@@ -21,7 +21,6 @@ const HeaderButtons = (props: HeaderButtonsProps) => {
     <button
       className="rounded border-green border-2 text-green py-2 px-6 cursor-pointer"
       onClick={props.onSubmit}
-      disabled={props.isSaveDisabled}
     >
       Save Changes
     </button>

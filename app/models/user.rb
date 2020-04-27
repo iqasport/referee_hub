@@ -52,6 +52,7 @@
 
 class User < ApplicationRecord
   include PolicyManager::Concerns::UserBehavior
+  include Rails.application.routes.url_helpers # needed to generate avtar image route
 
   devise :invitable, :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable,
@@ -79,6 +80,8 @@ class User < ApplicationRecord
   has_many :teams, through: :referee_teams
 
   has_many :exported_csvs, dependent: :destroy
+
+  has_one_attached :avatar
 
   scope :certified, -> { joins(:certifications).group('referees.id') }
   scope :referee, -> { where(roles: { access_type: 'referee' }) }
@@ -110,6 +113,12 @@ class User < ApplicationRecord
 
   def full_name
     "#{first_name.presence || ''} #{last_name.presence || ''}"
+  end
+
+  def avatar_url
+    return nil unless self.avatar.attached?
+
+    rails_blob_url(self.avatar)
   end
 
   protected

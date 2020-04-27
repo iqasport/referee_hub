@@ -5,6 +5,7 @@ import { UpdateRefereeRequest } from '../../../apis/referee';
 import Toggle from '../../../components/Toggle';
 import { DataAttributes, IncludedAttributes } from '../../../schemas/getRefereeSchema';
 import HeaderButtons from './HeaderButtons';
+import HeaderImage from './HeaderImage';
 import HeaderName from './HeaderName';
 
 type HeaderProps = {
@@ -16,6 +17,7 @@ type HeaderProps = {
   onSubmit: () => void;
   updatedValues: UpdateRefereeRequest;
   isSaveDisabled: boolean;
+  id: string,
 }
 
 const RefereeHeader = (props: HeaderProps) => {
@@ -27,6 +29,7 @@ const RefereeHeader = (props: HeaderProps) => {
     onEditClick,
     onSubmit,
     updatedValues,
+    id
   } = props;
   
   const refName = () => {
@@ -89,30 +92,33 @@ const RefereeHeader = (props: HeaderProps) => {
   }
 
   return (
-    <>
-      <div className="flex items-center mb-8">
-        <div className="flex-shrink mr-20">
-          {<HeaderName 
-            isEditing={isEditing} 
-            onChange={handleChange} 
-            onToggleChange={handleToggleChange} 
-            updatedValues={updatedValues} 
-            name={refName()} />}
+    <div className="flex">
+      <HeaderImage avatarUrl={referee.avatarUrl} id={id} />
+      <div className="w-5/6">
+        <div className="flex items-center mb-8">
+          <div className="flex-shrink mr-20 w-1/3">
+            {<HeaderName 
+              isEditing={isEditing} 
+              onChange={handleChange} 
+              onToggleChange={handleToggleChange} 
+              updatedValues={updatedValues} 
+              name={refName()} />}
+          </div>
+          <div className="flex items-center justify-around">
+            {renderCertifications()}
+          </div>
+          <div className="flex justify-end w-1/2">
+            {referee.isEditable && <HeaderButtons isEditing={isEditing} onEdit={onEditClick} onSubmit={onSubmit} isSaveDisabled={props.isSaveDisabled} />}
+          </div>
         </div>
-        <div className="flex items-center justify-around">
-          {renderCertifications()}
+        <div className="flex mb-8">
+          {renderPronouns()}
         </div>
-        <div className="flex justify-end w-1/2">
-          {referee.isEditable && <HeaderButtons isEditing={isEditing} onEdit={onEditClick} onSubmit={onSubmit} isSaveDisabled={props.isSaveDisabled} />}
+        <div className="text-2xl mb-4 h-24">
+          {renderBio()}
         </div>
       </div>
-      <div className="flex mb-8">
-        {renderPronouns()}
-      </div>
-      <div className="text-2xl mb-8 h-24">
-        {renderBio()}
-      </div>
-    </>
+    </div>
   )
 }
 

@@ -14,10 +14,11 @@ import RefereeLocation from './RefereeLocation'
 import RefereeTeam from './RefereeTeam'
 
 type IdParams = { id: string }
-const selectRefereeState = (state: RootState): Omit<RefereeState, 'id'> => {
+const selectRefereeState = (state: RootState): RefereeState => {
   return {
     certifications: state.referee.certifications,
     error: state.referee.error,
+    id: state.referee.id,
     isLoading: state.referee.isLoading,
     locations: state.referee.locations,
     ngbs: state.referee.ngbs,
@@ -67,7 +68,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id }}} = props
   const dispatch = useDispatch()
   const history = useHistory();
-  const { referee, certifications, ngbs, locations, teams } = useSelector(selectRefereeState, shallowEqual)
+  const { referee, certifications, ngbs, locations, teams, id: stateId } = useSelector(selectRefereeState, shallowEqual)
   const [paymentState, setPaymentState] = useState<PaymentState>(initialPaymentState)
   const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations, teams))
   const [isEditing, setIsEditing] = useState(false)
@@ -181,7 +182,8 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
           isEditing={isEditing} 
           onSubmit={handleSubmit}
           updatedValues={updatedReferee}
-          isSaveDisabled={!hasUpdated} />
+          isSaveDisabled={!hasUpdated}
+          id={stateId} />
         <div className="w-full border-b-2 border-navy-blue">
           <h3 className="text-xl">Details</h3>
         </div>

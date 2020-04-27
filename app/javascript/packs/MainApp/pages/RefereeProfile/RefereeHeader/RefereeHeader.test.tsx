@@ -7,6 +7,7 @@ import RefereeHeader from './RefereeHeader'
 
 describe('RefereeHeader', () => {
   const referee: DataAttributes = {
+    avatarUrl: null,
     bio: 'words',
     exportName: false,
     firstName: 'Build',
@@ -38,6 +39,7 @@ describe('RefereeHeader', () => {
   }
   const defaultProps = {
     certifications,
+    id: '123',
     isEditing: false,
     isSaveDisabled: false,
     onChange: jest.fn(),

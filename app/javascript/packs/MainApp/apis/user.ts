@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import {
   CurrentUserSchema,
   DataAttributes,
@@ -41,6 +41,20 @@ export async function updatePolicyAcceptance(userId: string, type: string): Prom
 
   try {
     const userResponse = await baseAxios.post(url, {id: userId})
+    return formatUserResponse(userResponse)
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function updateAvatar(userId: string, avatar: File): Promise<UserResponse> {
+  const url = `/api/v1/users/${userId}/update_avatar`
+
+  try {
+    const data = new FormData()
+    data.append('avatar', avatar)
+
+    const userResponse = await axios.post(url, data)
     return formatUserResponse(userResponse)
   } catch (err) {
     throw err

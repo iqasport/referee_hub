@@ -23,6 +23,7 @@ export interface DataAttributes {
     firstName:          string;
     lastName:           string;
     hasPendingPolicies: boolean;
+    avatarUrl:          string | null;
 }
 
 export interface Relationships {

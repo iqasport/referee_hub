@@ -87,6 +87,7 @@ Rails.application.routes.draw do
       get 'users/current_user' => 'users#get_current_user'
       post 'users/:id/accept_policies' => 'users#accept_policies'
       post 'users/:id/reject_policies' => 'users#reject_policies'
+      post 'users/:id/update_avatar' => 'users#update_avatar'
     end
   end
 

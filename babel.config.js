@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 /* eslint-disable space-before-function-paren */
 /* eslint-disable operator-linebreak */
 /* eslint-disable prefer-template */
@@ -88,6 +89,12 @@ module.exports = function(api) {
           removeImport: true
         }
       ],
+      [require('babel-plugin-module-resolver').default, {
+        root: ['./app'],
+        alias: {
+          assets: './assets'
+        }
+      }]
     ].filter(Boolean)
   }
 }
