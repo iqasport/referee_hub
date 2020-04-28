@@ -51,7 +51,7 @@
 #
 
 class UserSerializer < BaseSerializer
-  attributes :first_name, :last_name, :avatar_url
+  attributes :first_name, :last_name, :avatar_url, :enabled_features
 
   attribute :has_pending_policies do |user, params|
     current_user = params.present? && params[:current_user]

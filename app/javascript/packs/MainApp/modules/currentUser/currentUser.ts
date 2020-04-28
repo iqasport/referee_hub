@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import {getReferee as getRefereeApi} from '../../apis/referee';
 import { getCurrentUser, updateAvatar, updatePolicyAcceptance, UserResponse } from '../../apis/user';
 import { DataAttributes } from '../../schemas/currentUserSchema';
 import { AppThunk } from '../../store';
@@ -24,12 +23,14 @@ function userSuccess(state: CurrentUserState, action: PayloadAction<UserResponse
   state.currentUser = action.payload.user;
   state.roles = action.payload.roles;
   state.error = null;
+  state.id = action.payload.id;
 }
 
 function userFailure(state, action: PayloadAction<string>) {
   state.currentUser = null;
   state.roles = [];
   state.error = action.payload;
+  state.id = null;
 }
 
 const currentUser = createSlice({

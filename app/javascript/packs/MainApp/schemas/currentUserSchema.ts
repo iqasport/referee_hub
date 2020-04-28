@@ -24,6 +24,7 @@ export interface DataAttributes {
     lastName:           string;
     hasPendingPolicies: boolean;
     avatarUrl:          string | null;
+    enabledFeatures:    string[];
 }
 
 export interface Relationships {

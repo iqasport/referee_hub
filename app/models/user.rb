@@ -121,6 +121,17 @@ class User < ApplicationRecord
     rails_blob_url(self.avatar)
   end
 
+  def enabled_features
+    Flipper.features.inject({}) { |hash, feature|
+      hash[feature.key] = feature_enabled?(feature)
+      hash
+    }.select { |k, v| v }.keys
+  end
+
+  def feature_enabled?(feature)
+    feature.enabled?(Flipper::Actor.new(self.flipper_id))
+  end
+
   protected
 
   def confirmation_required?
