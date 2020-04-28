@@ -15,11 +15,11 @@ const sanitizeTestData = (test) => {
     description,
     language,
     level,
-    minimum_pass_percentage,
+    minimumPassPercentage,
     name,
-    negative_feedback,
-    positive_feedback,
-    time_limit
+    negativeFeedback,
+    positiveFeedback,
+    timeLimit
   } = attributes
 
   return {
@@ -27,11 +27,11 @@ const sanitizeTestData = (test) => {
     description,
     language,
     level: capitalize(level),
-    minimumPassPercentage: minimum_pass_percentage,
+    minimumPassPercentage,
     name,
-    negativeFeedback: negative_feedback,
-    positiveFeedback: positive_feedback,
-    timeLimit: time_limit,
+    negativeFeedback,
+    positiveFeedback,
+    timeLimit,
     id
   }
 }

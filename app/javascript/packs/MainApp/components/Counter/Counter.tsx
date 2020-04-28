@@ -14,12 +14,12 @@ export const getDisplayColor = (limit: number, minutes: number): string => {
   return 'grey'
 }
 
-interface ICounterProps {
+interface CounterProps {
   timeLimit: number;
   onTimeLimitMet: () => void;
 }
 
-const Counter = (props: ICounterProps) => {
+const Counter = (props: CounterProps) => {
   const [minutes, setMinutes] = useState(0)
   const [seconds, setSeconds] = useState(0)
   const { timeLimit, onTimeLimitMet } = props

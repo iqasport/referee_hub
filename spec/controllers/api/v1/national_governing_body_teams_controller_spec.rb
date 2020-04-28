@@ -341,7 +341,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
 
       response_data = JSON.parse(response.body)['data']
 
-      expect(response_data['job_id']).to_not be_nil
+      expect(response_data['jobId']).to_not be_nil
     end
   end
 end

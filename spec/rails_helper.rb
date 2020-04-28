@@ -71,4 +71,7 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
 
   config.include Devise::Test::ControllerHelpers, type: :controller
+  config.before(:suite) do 
+    PolicyManager::Term.create(description: 'This is a dummy policy', rule: 'privacy_terms', state: 'published')
+  end
 end

@@ -92,27 +92,27 @@ class Test extends Component {
       description,
       language,
       level,
-      minimum_pass_percentage,
+      minimumPassPercentage,
       name,
-      negative_feedback,
-      positive_feedback,
-      time_limit,
-      testable_question_count,
-    } = attributes
+      negativeFeedback,
+      positiveFeedback,
+      timeLimit,
+      testableQuestionCount,
+    } = attributes;
 
     const test = {
       active,
       description,
       language,
-      level,
-      minimumPassPercentage: minimum_pass_percentage,
+      level: capitalize(level),
+      minimumPassPercentage,
       name,
-      negativeFeedback: negative_feedback,
-      positiveFeedback: positive_feedback,
-      timeLimit: time_limit,
+      negativeFeedback,
+      positiveFeedback,
+      timeLimit,
       id,
-      testableQuestionCount: testable_question_count,
-    }
+      testableQuestionCount
+    };
 
     this.setState({ test, httpStatus: status, httpStatusText: statusText })
   }

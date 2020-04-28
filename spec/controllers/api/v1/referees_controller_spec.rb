@@ -100,7 +100,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
           subject
 
           response_data = JSON.parse(response.body)['data']
-          ngb_data = response_data[0]['relationships']['national_governing_bodies']['data']
+          ngb_data = response_data[0]['relationships']['nationalGoverningBodies']['data']
 
           expect(response_data.length).to eq 1
           expect(ngb_data.length).to eq 2
@@ -126,11 +126,11 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       response_data = Array.wrap(JSON.parse(response.body)['data'])
 
       expect(response_data.length).to eq 1
-      expect(response_data[0]['attributes']['first_name']).to eq referee.first_name
-      expect(response_data[0]['attributes']['last_name']).to eq referee.last_name
+      expect(response_data[0]['attributes']['firstName']).to eq referee.first_name
+      expect(response_data[0]['attributes']['lastName']).to eq referee.last_name
       expect(response_data[0]['attributes']['bio']).to eq referee.bio
       expect(response_data[0]['attributes']['pronouns']).to eq referee.pronouns
-      expect(response_data[0]['attributes']['show_pronouns']).to eq referee.show_pronouns
+      expect(response_data[0]['attributes']['showPronouns']).to eq referee.show_pronouns
     end
 
     context 'when the referee signed in is the same as the referee being returned' do
@@ -141,7 +141,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
         response_data = Array.wrap(JSON.parse(response.body)['data'])
 
-        expect(response_data[0]['attributes']['is_editable']).to eq true
+        expect(response_data[0]['attributes']['isEditable']).to eq true
       end
     end
 
@@ -155,7 +155,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
         response_data = Array.wrap(JSON.parse(response.body)['data'])
 
-        expect(response_data[0]['attributes']['is_editable']).to eq false
+        expect(response_data[0]['attributes']['isEditable']).to eq false
       end
     end
   end
@@ -333,7 +333,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
       response_data = JSON.parse(response.body)['data']
 
-      expect(response_data['job_id']).to_not be_nil
+      expect(response_data['jobId']).to_not be_nil
     end
 
     context 'with iqa admin' do
@@ -348,7 +348,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
         response_data = JSON.parse(response.body)['data']
 
-        expect(response_data['job_id']).to_not be_nil
+        expect(response_data['jobId']).to_not be_nil
       end
     end
   end
