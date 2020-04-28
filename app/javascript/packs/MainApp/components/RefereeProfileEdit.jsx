@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import {
-  Button, Form, Header, Icon, Message, Modal
+  Button, Form, Header, Icon, Message, Modal, Popup
 } from 'semantic-ui-react'
 import { isEmpty } from 'lodash'
 
@@ -16,7 +16,8 @@ class RefereeProfileEdit extends Component {
       nationalGoverningBodies: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string,
         name: PropTypes.string
-      }))
+      })),
+      pronouns: PropTypes.string,
     }).isRequired,
     onChange: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired
@@ -106,11 +107,16 @@ class RefereeProfileEdit extends Component {
     const { open, validationErrors } = this.state
 
     const modalTrigger = (
-      <Button onClick={this.openForm}>
-        <Icon name="edit" />
-        Edit
-      </Button>
-    )
+      <div data-tooltip="Profile editing is temporarily disabled">
+        <Button
+          onClick={this.openForm}
+          disabled
+        >
+          <Icon name="edit" />
+          Edit
+        </Button>
+      </div>
+    );
     const hasNGBS = !isEmpty(nationalGoverningBodies)
     const initialNGBValues = hasNGBS ? nationalGoverningBodies.map(ngb => ngb.id) : null
 
