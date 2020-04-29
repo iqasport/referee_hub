@@ -87,6 +87,7 @@
     "webpack-dev-server": "^3.10.1"
   },
   "scripts": {
-    "test": "jest --config jest.config.js --coverage"
+    "test": "jest --config jest.config.js --coverage",
+    "test:ci": "jest --ci --runInBand --coverage --config jest.config.js --reporters=default --reporters=jest-junit"
   }
 }

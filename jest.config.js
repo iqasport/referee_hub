@@ -10,5 +10,6 @@ module.exports = {
   coverageReporters: ['json'],
   transform: {
     ...tsjPreset.transform,
-  }
+  },
+  reporters: ['default', 'jest-junit'],
 }

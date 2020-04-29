@@ -68,28 +68,25 @@ jobs:
 
     steps:
       - checkout
-      - run:
-          name: Update Node.js
-          command: |
-            curl -sSL "https://nodejs.org/dist/latest-v10.x/node-v10.19.0-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v10.19.0-linux-x64/bin/node
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
       - run:
           name: Install Yarn and dependencies
-          command: |
-            curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.21.1
-            yarn install
-
-      # Store yarn / webpacker cache
+          command: yarn install --frozen-lockfile
       - save_cache:
           key: yarn-cache-{{ checksum "yarn.lock" }}
           paths:
-            - ~/.yarn-cache
+            - ~/.cache/yarn
       - run:
-          name: Run JS tests
-          command: |
-            mkdir /tmp/js-test-results
-            TEST_FILES="$(circleci tests glob "app/javascript/packs/MainApp/**/*.test.jsx" | circleci tests split --split-by=timings)"
-
-            yarn test $TEST_FILES
+          name: Install JUnit coverage reporter
+          command: yarn add --dev jest-junit
+      - run:
+          name: Run tests with JUnit as reporter
+          command: yarn test:ci
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "reports/junit/js-test-results.xml"
           test:
             post:
               - bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
