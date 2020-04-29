@@ -1,4 +1,4 @@
-import { Datum, GroupAffiliation, Status, GetTeamsSchema, Meta } from '../schemas/getTeamsSchema';
+import { Datum, GetTeamsSchema, GroupAffiliation, Meta, Status } from '../schemas/getTeamsSchema';
 import { baseAxios } from './utils'
 
 export interface TeamResponse {

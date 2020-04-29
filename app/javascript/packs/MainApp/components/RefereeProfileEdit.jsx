@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import axios from 'axios'
 import {
-  Button, Form, Header, Icon, Message, Modal, Popup
+  Button, Form, Header, Icon, Message, Modal
 } from 'semantic-ui-react'
 import { isEmpty } from 'lodash'
 

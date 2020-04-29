@@ -333,7 +333,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
       response_data = JSON.parse(response.body)['data']
 
-      expect(response_data['jobId']).to_not be_nil
+      expect(response_data['job_id']).to_not be_nil
     end
 
     context 'with iqa admin' do
@@ -348,7 +348,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
         response_data = JSON.parse(response.body)['data']
 
-        expect(response_data['jobId']).to_not be_nil
+        expect(response_data['job_id']).to_not be_nil
       end
     end
   end

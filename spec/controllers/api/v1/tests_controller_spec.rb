@@ -71,11 +71,11 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       expect(response_data['description']).to eq body_data[:description]
       expect(response_data['language']).to eq body_data[:language]
       expect(response_data['level']).to eq body_data[:level]
-      expect(response_data['minimum_pass_percentage']).to eq body_data[:minimum_pass_percentage]
+      expect(response_data['minimumPassPercentage']).to eq body_data[:minimum_pass_percentage]
       expect(response_data['name']).to eq body_data[:name]
-      expect(response_data['negative_feedback']).to eq body_data[:negative_feedback]
-      expect(response_data['positive_feedback']).to eq body_data[:positive_feedback]
-      expect(response_data['time_limit']).to eq body_data[:time_limit]
+      expect(response_data['negativeFeedback']).to eq body_data[:negative_feedback]
+      expect(response_data['positiveFeedback']).to eq body_data[:positive_feedback]
+      expect(response_data['timeLimit']).to eq body_data[:time_limit]
     end
 
     it_behaves_like 'it fails when a referee is not an admin'
