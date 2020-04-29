@@ -75,17 +75,17 @@ class RefereeDiagnostic extends Component {
 
   handleApiResponse = ({ data }) => {
     const { data: { attributes, id }, included } = data
-    const nationalGoverningBodies = filterByType(included, 'national_governing_body')
-    const certifications = filterByType(included, 'referee_certification')
-    const testResults = filterByType(included, 'test_result')
-    const testAttempts = filterByType(included, 'test_attempt')
+    const nationalGoverningBodies = filterByType(included, 'nationalGoverningBody')
+    const certifications = filterByType(included, 'refereeCertification')
+    const testResults = filterByType(included, 'testResult')
+    const testAttempts = filterByType(included, 'testAttempt')
 
     this.setState({
       referee: {
-        firstName: attributes.first_name,
-        lastName: attributes.last_name,
+        firstName: attributes.firstName,
+        lastName: attributes.lastName,
         pronouns: attributes.pronouns,
-        submittedPaymentAt: attributes.submitted_payment_at,
+        submittedPaymentAt: attributes.submittedPaymentAt,
         refereeId: id,
         nationalGoverningBodies,
         certifications,

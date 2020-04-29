@@ -53,8 +53,8 @@ RSpec.describe Api::V1::QuestionsController, type: :controller do
 
       expect(response_data['description']).to eq body_data[:description]
       expect(response_data['feedback']).to eq body_data[:feedback]
-      expect(response_data['points_available']).to eq body_data[:points_available]
-      expect(response_data['test_id']).to eq body_data[:test_id]
+      expect(response_data['pointsAvailable']).to eq body_data[:points_available]
+      expect(response_data['testId']).to eq body_data[:test_id]
     end
 
     it_behaves_like 'it fails when a referee is not an admin'

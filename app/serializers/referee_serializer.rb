@@ -30,16 +30,14 @@
 #  index_referees_on_reset_password_token  (reset_password_token) UNIQUE
 #
 
-class RefereeSerializer
-  include FastJsonapi::ObjectSerializer
-
+class RefereeSerializer < BaseSerializer
   attributes :first_name,
              :last_name,
              :bio,
              :show_pronouns,
              :submitted_payment_at,
-             :getting_started_dismissed_at,
-             :export_name
+             :export_name,
+             :avatar_url
 
   attribute :pronouns, if: proc { |user, params|
     current_user = params.present? && params[:current_user]
@@ -58,9 +56,12 @@ class RefereeSerializer
     current_user&.id == user.id && user.pending_policies.present?
   end
 
-  has_many :national_governing_bodies, serializer: :national_governing_body
-  has_many :referee_certifications, serializer: :referee_certification
-  has_many :certifications, serializer: :certification
+  has_many :referee_locations, serializer: :referee_location
+  has_many :national_governing_bodies, serializer: :national_governing_body, if: proc { |_referee, params| params[:include_associations] }
+  has_many :referee_certifications, serializer: :referee_certification, if: proc { |_referee, params| params[:include_associations] }
+  has_many :certifications, serializer: :certification, if: proc { |_referee, params| params[:include_associations] }
   has_many :test_results, if: proc { |_referee, params| params[:include_tests] }
   has_many :test_attempts, if: proc { |_referee, params| params[:include_tests] }
+  has_many :teams, serializer: :team
+  has_many :referee_teams, serializer: :referee_team
 end

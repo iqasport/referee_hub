@@ -22,9 +22,7 @@
 #  fk_rails_...  (national_governing_body_id => national_governing_bodies.id)
 #
 
-class TeamSerializer
-  include FastJsonapi::ObjectSerializer
-
+class TeamSerializer < BaseSerializer
   attributes :city, :country, :group_affiliation, :name, :state, :status
 
   belongs_to :national_governing_body, serializer: :national_governing_body

@@ -21,6 +21,7 @@ gem 'bootsnap', '>= 1.1.0', require: false
 gem 'devise'
 gem 'devise_invitable', '~> 2.0.0'
 
+# frontend
 gem 'webpacker', '~> 4.2.2'
 
 # api 
@@ -47,7 +48,7 @@ gem 'activerecord-import'
 gem 'time_difference'
 gem 'gdpr_rails'
 
-# file storage and 
+# file storage and aws
 gem 'aws-sdk-s3', '~> 1'
 gem 'paperclip', '~> 6.0.0'
 gem 'fog-aws'

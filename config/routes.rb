@@ -50,12 +50,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :users, only: %i[index show update] do
-        member do
-          post :accept_policies
-          post :reject_policies
-        end
-      end
+      resources :teams, only: :index
       resources :national_governing_bodies, only: %i[index show]
       resources :referee_certifications, only: %i[index create update]
       resources :tests, only: %i[index create show update destroy] do
@@ -89,6 +84,10 @@ Rails.application.routes.draw do
       put 'referees/:id' => 'referees#update'
       patch 'referees/:id' => 'referees#update'
       get 'referees/export' => 'referees#export'
+      get 'users/current_user' => 'users#get_current_user'
+      post 'users/:id/accept_policies' => 'users#accept_policies'
+      post 'users/:id/reject_policies' => 'users#reject_policies'
+      post 'users/:id/update_avatar' => 'users#update_avatar'
     end
   end
 

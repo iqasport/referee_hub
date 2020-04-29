@@ -9,7 +9,7 @@ import RefereeProfileEdit from '../components/RefereeProfileEdit'
 import ProfileContent from '../components/ProfileContent'
 import CertificationContent from '../components/CertificationContent'
 
-class RefereeProfile extends Component {
+class OldRefereeProfile extends Component {
   static propTypes = {
     match: PropTypes.shape({
       params: PropTypes.object
@@ -82,48 +82,47 @@ class RefereeProfile extends Component {
       .filter(({ type }) => type === 'certification')
       .map(certification => certification.attributes) || []
     const nationalGoverningBodies = included
-      .filter(({ type }) => type === 'national_governing_body')
+      .filter(({ type }) => type === 'nationalGoverningBody')
       .map(nationalGoverningBody => ({
         id: nationalGoverningBody.id,
         name: nationalGoverningBody.attributes.name,
         website: nationalGoverningBody.attributes.website
       })) || []
     const testAttempts = included
-      .filter(({ type }) => type === 'test_attempt')
+      .filter(({ type }) => type === 'testAttempt')
       .map(testAttempt => testAttempt.attributes) || []
     const testResults = included
-      .filter(({ type }) => type === 'test_result')
+      .filter(({ type }) => type === 'testResult')
       .map(testResult => ({
         duration: testResult.attributes.duration,
-        minimumPassPercentage: testResult.attributes.minimum_pass_percentage,
+        minimumPassPercentage: testResult.attributes.minimumPassPercentage,
         passed: testResult.attributes.passed,
         percentage: testResult.attributes.percentage,
-        pointsAvailable: testResult.attributes.points_available,
-        pointsScored: testResult.attributes.points_scored,
-        timeFinished: testResult.attributes.time_finished,
-        timeStarted: testResult.attributes.time_started,
-        testLevel: testResult.attributes.test_level
+        pointsAvailable: testResult.attributes.pointsAvailable,
+        pointsScored: testResult.attributes.pointsScored,
+        timeFinished: testResult.attributes.timeFinished,
+        timeStarted: testResult.attributes.timeStarted,
+        testLevel: testResult.attributes.testLevel
       })) || []
 
     this.setState({
       httpStatus: status,
       httpStatusText: statusText,
       referee: {
-        firstName: attributes.first_name,
-        lastName: attributes.last_name,
+        firstName: attributes.firstName,
+        lastName: attributes.lastName,
         bio: attributes.bio,
         email: attributes.email,
-        showPronouns: attributes.show_pronouns,
+        showPronouns: attributes.showPronouns,
         pronouns: attributes.pronouns,
         nationalGoverningBodies,
         certifications,
         testAttempts,
         testResults,
-        isEditable: attributes.is_editable,
-        submittedPaymentAt: attributes.submitted_payment_at,
-        gettingStartedDismissedAt: attributes.getting_started_dismissed_at,
+        isEditable: attributes.isEditable,
+        submittedPaymentAt: attributes.submittedPaymentAt,
       },
-      policyAccepted: !attributes.has_pending_policies
+      policyAccepted: !attributes.hasPendingPolicies
     })
   }
 
@@ -234,15 +233,6 @@ class RefereeProfile extends Component {
     this.setState({ paymentError: false, paymentSuccess: false, paymentCancel: false })
   }
 
-  handleGetStartedDismiss = () => {
-    axios
-      .patch(this.currentRefereeApiRoute, {
-        getting_started_dismissed_at: DateTime.local().toString()
-      })
-      .then(this.setComponentStateFromBackendData)
-      .catch(this.setErrorStateFromBackendData)
-  }
-
   handleInputChange = (stateKey, value) => {
     this.setState({ [stateKey]: value })
   }
@@ -267,7 +257,7 @@ class RefereeProfile extends Component {
     if (httpStatus !== 200) {
       content = <h1>{httpStatusText}</h1>
     } else {
-      content = <ProfileContent referee={referee} onDismiss={this.handleGetStartedDismiss} />
+      content = <ProfileContent referee={referee} />
     }
 
     return (
@@ -365,4 +355,4 @@ class RefereeProfile extends Component {
   }
 }
 
-export default RefereeProfile
+export default OldRefereeProfile

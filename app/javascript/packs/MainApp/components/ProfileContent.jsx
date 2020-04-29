@@ -1,7 +1,6 @@
 import React, { Component, Fragment } from 'react'
 import PropTypes from 'prop-types'
 import {
-  Message,
   Flag,
   Label
 } from 'semantic-ui-react'
@@ -38,7 +37,6 @@ class ProfileContent extends Component {
       isEditable: PropTypes.bool,
       gettingStartedDismissedAt: PropTypes.string,
     }).isRequired,
-    onDismiss: PropTypes.func.isRequired
   }
 
   renderNGBItem = ({ id, name, website }) => (
@@ -47,33 +45,6 @@ class ProfileContent extends Component {
       {name}
     </Label>
   )
-
-  renderGettingStartedMessage = () => {
-    const { referee, onDismiss } = this.props
-    const {
-      isEditable,
-      firstName,
-      lastName,
-      gettingStartedDismissedAt
-    } = referee
-    if (!isEditable) return null
-    if (gettingStartedDismissedAt) return null
-
-    const notFirstAndLastName = !firstName && !lastName
-    const getStarted = " Let's start by adding your name and NGB affiliation, click on the edit button to get started"
-    const headerText = 'Welcome to your Referee Profile'
-
-    return (
-      <Message info onDismiss={onDismiss}>
-        <Message.Header>{headerText}</Message.Header>
-        <p>
-          Here you can pay for and take your referee tests, give a little bit of background in your bio, and select any
-          National Governing Bodies that you are affiliated with officially, or regularly officiate games.
-          {notFirstAndLastName && getStarted}
-        </p>
-      </Message>
-    )
-  }
 
   renderNationalGoverningBodies = () => {
     const { referee: { nationalGoverningBodies } } = this.props
@@ -100,7 +71,6 @@ class ProfileContent extends Component {
   render() {
     return (
       <Fragment>
-        {this.renderGettingStartedMessage()}
         {this.renderNationalGoverningBodies()}
         {this.renderBio()}
       </Fragment>

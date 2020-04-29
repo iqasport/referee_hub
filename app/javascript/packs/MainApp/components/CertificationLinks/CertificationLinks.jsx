@@ -10,7 +10,7 @@ import {
   canTakeSnitchTest,
   canTakeAssistantTest,
   canTakeHeadTest,
-} from '../../utils'
+} from '../../utils/certUtils'
 
 const testColor = (testLevel) => {
   switch (testLevel) {
@@ -48,8 +48,8 @@ class CertificationLinks extends Component {
     ).isRequired,
     testAttempts: PropTypes.arrayOf(
       PropTypes.shape({
-        next_attempt_at: PropTypes.string,
-        test_level: PropTypes.string
+        nextAttemptAt: PropTypes.string,
+        testLevel: PropTypes.string
       })
     ).isRequired,
     onRouteChange: PropTypes.func.isRequired,
@@ -75,6 +75,7 @@ class CertificationLinks extends Component {
     try {
       const response = await axios.get('/api/v1/tests', {
         params: { active_only: true },
+        // eslint-disable-next-line prefer-arrow-callback
         cancelToken: new CancelToken(function executor(c) { cancel = c }),
       })
       const testData = response.data.data

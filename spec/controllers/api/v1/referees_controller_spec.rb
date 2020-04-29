@@ -100,7 +100,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
           subject
 
           response_data = JSON.parse(response.body)['data']
-          ngb_data = response_data[0]['relationships']['national_governing_bodies']['data']
+          ngb_data = response_data[0]['relationships']['nationalGoverningBodies']['data']
 
           expect(response_data.length).to eq 1
           expect(ngb_data.length).to eq 2
@@ -126,11 +126,11 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       response_data = Array.wrap(JSON.parse(response.body)['data'])
 
       expect(response_data.length).to eq 1
-      expect(response_data[0]['attributes']['first_name']).to eq referee.first_name
-      expect(response_data[0]['attributes']['last_name']).to eq referee.last_name
+      expect(response_data[0]['attributes']['firstName']).to eq referee.first_name
+      expect(response_data[0]['attributes']['lastName']).to eq referee.last_name
       expect(response_data[0]['attributes']['bio']).to eq referee.bio
       expect(response_data[0]['attributes']['pronouns']).to eq referee.pronouns
-      expect(response_data[0]['attributes']['show_pronouns']).to eq referee.show_pronouns
+      expect(response_data[0]['attributes']['showPronouns']).to eq referee.show_pronouns
     end
 
     context 'when the referee signed in is the same as the referee being returned' do
@@ -141,7 +141,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
         response_data = Array.wrap(JSON.parse(response.body)['data'])
 
-        expect(response_data[0]['attributes']['is_editable']).to eq true
+        expect(response_data[0]['attributes']['isEditable']).to eq true
       end
     end
 
@@ -155,14 +155,14 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
         response_data = Array.wrap(JSON.parse(response.body)['data'])
 
-        expect(response_data[0]['attributes']['is_editable']).to eq false
+        expect(response_data[0]['attributes']['isEditable']).to eq false
       end
     end
   end
 
   describe 'POST #update' do
     let!(:referee) { create :user }
-    let!(:national_governing_bodies) { create_list :national_governing_body, 3 }
+    let!(:ngbs) { create_list :national_governing_body, 3 }
     let(:ngb_ids) { national_governing_bodies.pluck(:id) }
 
     before do
@@ -180,8 +180,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
           last_name: 'Testerton',
           bio: 'I am a brand new referee',
           pronouns: 'She/Her',
-          show_pronouns: true,
-          national_governing_body_ids: ngb_ids
+          show_pronouns: true
         }
       end
 
@@ -195,7 +194,6 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
         expect(referee.reload.bio).to eq 'I am a brand new referee'
         expect(referee.reload.pronouns).to eq 'She/Her'
         expect(referee.reload.show_pronouns).to eq true
-        expect(referee.reload.national_governing_bodies.pluck(:id)).to eq ngb_ids
       end
     end
 
@@ -214,42 +212,53 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       end
     end
 
-    context 'when referee already has national governing bodies' do
+    context 'with ngb params' do
+      let(:ngb_data) { { [ngbs.first.id] => 'primary', [ngbs[1].id] => 'secondary' } }
       let(:body_data) do
         {
           id: referee.id,
-          national_governing_body_ids: ngb_ids
+          ngb_data: ngb_data
         }
       end
 
-      before { referee.national_governing_bodies << national_governing_bodies }
+      it 'adds the two ngbs to the referee' do
+        expect { subject }.to change { referee.national_governing_bodies.count }.from(0).to(2)
+      end
 
-      context 'and passed ids is equal to already existing ids' do
-        it "doesn't change the referee locations" do
-          expect { subject }.to_not change { referee.national_governing_bodies }
+      context 'when one is being updated and the other is being added' do
+        before { RefereeLocation.create(referee: referee, national_governing_body: ngbs.first, association_type: 'other') }
+
+        it 'updates the existing and adds the new' do
+          subject
+
+          expect(referee.referee_locations.where(association_type: 'primary').first.national_governing_body_id).to eq ngbs.first.id
+          expect(referee.reload.referee_locations.where(association_type: 'secondary').first.national_governing_body_id).to eq ngbs[1].id
         end
       end
 
-      context 'and passed ids includes a new id' do
-        let!(:new_ngb) { create :national_governing_body }
-        let(:ngb_ids) { national_governing_bodies.pluck(:id) << new_ngb.id }
+      context 'when an existing ngb is missing from the request' do
+        let(:ngb_data) { { [ngbs[1].id] => 'secondary' } }
 
-        it 'adds the new ngb while keeping the old ones' do
+        before { RefereeLocation.create(referee: referee, national_governing_body: ngbs.first, association_type: 'primary') }
+
+        it 'removes the ngb' do
           subject
 
-          expect(referee.reload.national_governing_bodies.count).to eq 4
-          expect(referee.reload.national_governing_bodies.last.id).to eq new_ngb.id
+          expect(referee.referee_locations.find_by(national_governing_body_id: ngbs.first.id)).to be_nil
+          expect(referee.referee_locations.count).to eq 1
         end
       end
 
-      context 'and passed ids does not include an existing id' do
-        let(:ngb_ids) { national_governing_bodies[0..1].pluck(:id) }
+      context 'when ngb data is missing and there are existing teams' do
+        let(:ngb_data) { {} }
 
-        it 'removes the id that is no longer there' do
-          subject
+        before do
+          referee.referee_locations.create(national_governing_body: ngbs.first, association_type: 'primary')
+          referee.referee_locations.create(national_governing_body: ngbs[1], association_type: 'secondary')
+        end
 
-          expect(referee.reload.national_governing_bodies.count).to eq 2
-          expect(referee.reload.national_governing_bodies.pluck(:id)).to match_array ngb_ids
+        it 'deletes the existing ngb associations' do
+          expect { subject }.to change { referee.reload.national_governing_bodies.count }.from(2).to(0)
         end
       end
     end
@@ -260,7 +269,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       let(:body_data) do
         {
           id: referee.id,
-          teams: teams_data
+          teams_data: teams_data
         }
       end
 

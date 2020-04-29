@@ -5,6 +5,7 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
     <%= stylesheet_pack_tag 'application' %>
     <%= javascript_packs_with_chunks_tag 'MainApp/index', 'data-turbolinks-track': 'reload' %>
@@ -12,12 +13,12 @@
     <%= favicon_link_tag asset_path('favicon.ico'), :rel => 'icon', :type => 'image/png' %>
   </head>
 
-  <% if Flipper.enabled?(:new_design) %>
+  <% if current_user.feature_enabled?(Flipper[:new_design]) %>
     <body>
       <%= yield %>
     </body>
   <% else %>
-    <body style='display: flex;min-height: 100vh;flex-direction: column;'>
+    <body style='display: flex;min-height: 100vh;flex-direction: column;background-color:#f4f4f4'>
       <div class='ui inverted fixed menu'>
         <div class='ui container'>
           <% if user_signed_in? %>

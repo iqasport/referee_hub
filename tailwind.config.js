@@ -18,16 +18,24 @@ module.exports = {
           default: '#FFBE45',
           lighter: '#FFE6B8',
           darker: '#D49011'
+        },
+        smoke: {
+          default: 'rgba(0,0,0,0.5)',
+          light: 'rgba(0,0,0,0.25)',
+          dark: 'rgba(0,0,0,0.75)',
         }
       }
     },
     zIndex: {
-      '-1': '-1'
+      '-1': '-1',
+      1: '1',
+      50: '50'
     },
     borderRadius: {
       default: '3px',
-      lg: '25px'
-    }
+      lg: '25px',
+      full: '9999px'
+    },
   },
   variants: {},
   plugins: [

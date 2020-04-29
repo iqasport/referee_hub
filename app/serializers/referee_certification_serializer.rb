@@ -17,9 +17,7 @@
 #  index_referee_certs_on_ref_id_and_cert_id  (referee_id,certification_id) UNIQUE WHERE (revoked_at IS NULL)
 #
 
-class RefereeCertificationSerializer
-  include FastJsonapi::ObjectSerializer
-
+class RefereeCertificationSerializer < BaseSerializer
   attributes :needs_renewal_at,
              :received_at,
              :renewed_at,

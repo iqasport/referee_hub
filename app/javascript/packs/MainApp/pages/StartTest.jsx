@@ -67,7 +67,7 @@ class StartTest extends Component {
         const testData = {
           name: attributes.name,
           description: attributes.description,
-          timeLimit: attributes.time_limit
+          timeLimit: attributes.timeLimit
         }
         this.setState({ status, statusText, ...testData })
       })

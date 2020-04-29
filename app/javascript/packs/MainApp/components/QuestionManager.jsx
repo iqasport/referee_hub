@@ -11,13 +11,13 @@ const sanitizeQuestionData = (test) => {
   const { id, attributes } = test
   const {
     // eslint-disable-next-line camelcase
-    description, feedback, points_available
+    description, feedback, pointsAvailable
   } = attributes
 
   return {
     description,
     feedback,
-    pointsAvailable: String(points_available),
+    pointsAvailable: String(pointsAvailable),
     id
   }
 }
@@ -47,8 +47,8 @@ class QuestionManager extends Component {
       .then(({ data }) => {
         const { data: questionData } = data
 
-        const sanitzedData = questionData.map(sanitizeQuestionData)
-        this.setState({ questions: sanitzedData })
+        const sanitizedData = questionData.map(sanitizeQuestionData)
+        this.setState({ questions: sanitizedData })
       })
       .catch(this.setDataFromError)
   }

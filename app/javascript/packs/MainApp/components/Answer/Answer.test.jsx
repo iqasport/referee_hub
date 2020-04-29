@@ -1,5 +1,5 @@
 import React from 'react'
-import { screen, render, fireEvent } from '@testing-library/react'
+import { screen, render, fireEvent } from '../../utils/test-utils'
 import Answer from '.'
 
 jest.mock('../RichTextEditor', () => ({ onChange }) => (

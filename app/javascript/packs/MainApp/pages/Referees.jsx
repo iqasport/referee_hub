@@ -7,14 +7,14 @@ import RefereeTable from '../components/RefereeTable'
 const mapRefereeData = (certifications, nationalGoverningBodies) => ({ id, attributes, relationships }) => {
   const name = `${attributes.first_name} ${attributes.last_name}`.trim()
   const mappedCerts = relationships
-    && relationships.referee_certifications
-    && relationships.referee_certifications.data.map(
+    && relationships.refereeCertifications
+    && relationships.refereeCertifications.data.map(
       certification => certifications.get(certification.id)
     )
 
   const mappedNGBs = relationships
-    && relationships.national_governing_bodies
-    && relationships.national_governing_bodies.data.map(
+    && relationships.nationalGoverningBodies
+    && relationships.nationalGoverningBodies.data.map(
       nationalGoverningBody => (
         nationalGoverningBodies
           ? nationalGoverningBodies.find(ngb => ngb.id === nationalGoverningBody.id)
@@ -72,7 +72,7 @@ class Referees extends Component {
     const certifications = new Map()
 
     included.forEach((include) => {
-      if (include.type === 'referee_certification') {
+      if (include.type === 'refereeCertification') {
         certifications.set(include.id, include.attributes.level)
       }
     })

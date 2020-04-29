@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 /* eslint-disable space-before-function-paren */
 /* eslint-disable operator-linebreak */
 /* eslint-disable prefer-template */
@@ -22,6 +23,10 @@ module.exports = function(api) {
 
   return {
     presets: [
+      ['@babel/preset-typescript', {
+        isTSX: true,
+        allExtensions: true,
+      }],
       isTestEnv && [
         '@babel/preset-env',
         {
@@ -56,6 +61,7 @@ module.exports = function(api) {
       isTestEnv && 'babel-plugin-dynamic-import-node',
       '@babel/plugin-transform-destructuring',
       '@babel/plugin-proposal-export-default-from',
+      '@babel/plugin-transform-typescript',
       [
         '@babel/plugin-proposal-class-properties',
         {
@@ -88,6 +94,12 @@ module.exports = function(api) {
           removeImport: true
         }
       ],
+      [require('babel-plugin-module-resolver').default, {
+        root: ['./app'],
+        alias: {
+          assets: './assets'
+        }
+      }]
     ].filter(Boolean)
   }
 }

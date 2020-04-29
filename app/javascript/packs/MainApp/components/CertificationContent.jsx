@@ -13,7 +13,7 @@ import PaypalButton from './PaypalButton'
 import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
 import CertificationLinks from './CertificationLinks'
-import { hasAssistantCert, hasSnitchCert } from '../utils'
+import { hasAssistantCert, hasSnitchCert } from '../utils/certUtils'
 
 class CertificationContent extends Component {
   static propTypes = {
@@ -43,8 +43,8 @@ class CertificationContent extends Component {
     })).isRequired,
     testAttempts: PropTypes.arrayOf(
       PropTypes.shape({
-        next_attempt_at: PropTypes.string,
-        test_level: PropTypes.string
+        nextAttemptAt: PropTypes.string,
+        testLevel: PropTypes.string
       })
     ).isRequired
   }
@@ -65,11 +65,11 @@ class CertificationContent extends Component {
           const renewalLevels = []
           if (data && data.data) {
             data.data.forEach((refCertification) => {
-              const { needs_renewal_at: needsRenewal, level } = refCertification.attributes
+              const { needsRenewalAt, level } = refCertification.attributes
               const refCertDetailData = { level, id: refCertification.id }
 
               refCertificationDetails.push(refCertDetailData)
-              if (needsRenewal) { renewalLevels.push(refCertDetailData) }
+              if (needsRenewalAt) { renewalLevels.push(refCertDetailData) }
             })
           }
 

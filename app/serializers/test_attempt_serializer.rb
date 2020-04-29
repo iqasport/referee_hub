@@ -11,8 +11,6 @@
 #  test_id         :integer
 #
 
-class TestAttemptSerializer
-  include FastJsonapi::ObjectSerializer
-
+class TestAttemptSerializer < BaseSerializer
   attributes :next_attempt_at, :test_level
 end

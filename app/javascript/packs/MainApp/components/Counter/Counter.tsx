@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
-import { Header } from 'semantic-ui-react'
+
 import useInterval from '../../hooks'
 
-export const formatTime = time => (time < 10 ? `0${time}` : time)
+export const formatTime = (time: number): string | number => (time < 10 ? `0${time}` : time)
 
-export const getDisplayColor = (limit, minutes) => {
+export const getDisplayColor = (limit: number, minutes: number): string => {
   const goodLimit = limit - Math.round(limit * 0.3)
 
   if (minutes < goodLimit) return 'grey'
@@ -15,7 +14,12 @@ export const getDisplayColor = (limit, minutes) => {
   return 'grey'
 }
 
-const Counter = (props) => {
+interface CounterProps {
+  timeLimit: number;
+  onTimeLimitMet: () => void;
+}
+
+const Counter = (props: CounterProps) => {
   const [minutes, setMinutes] = useState(0)
   const [seconds, setSeconds] = useState(0)
   const { timeLimit, onTimeLimitMet } = props
@@ -38,19 +42,13 @@ const Counter = (props) => {
   useInterval(handleTick, 1000)
 
   return (
-    <Header
-      as="h3"
+    <h3
       data-testid="counter"
-      color={getDisplayColor(timeLimit, minutes)}
+      className={`font-bold ${getDisplayColor(timeLimit, minutes)}`}
     >
       {`${displayMinute}:${displaySecond}`}
-    </Header>
+    </h3>
   )
-}
-
-Counter.propTypes = {
-  timeLimit: PropTypes.number.isRequired,
-  onTimeLimitMet: PropTypes.func.isRequired
 }
 
 export default Counter
