@@ -1,13 +1,13 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
 import Counter from '.'
+import { render, screen } from '../../utils/test-utils'
 import { formatTime, getDisplayColor } from './Counter'
 
 describe('Counter', () => {
   const defaultProps = {
+    onTimeLimitMet: jest.fn(),
     timeLimit: 10,
-    onTimeLimitMet: jest.fn()
   }
 
   beforeEach(() => { jest.useFakeTimers() })

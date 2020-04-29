@@ -48,3 +48,5 @@ yarn-debug.log*
 
 # data dump file to convert api responses to typescript. It should never be checked in.
 /app/javascript/packs/MainApp/schema.json
+
+junit.xml

@@ -23,6 +23,10 @@ module.exports = function(api) {
 
   return {
     presets: [
+      ['@babel/preset-typescript', {
+        isTSX: true,
+        allExtensions: true,
+      }],
       isTestEnv && [
         '@babel/preset-env',
         {
@@ -57,6 +61,7 @@ module.exports = function(api) {
       isTestEnv && 'babel-plugin-dynamic-import-node',
       '@babel/plugin-transform-destructuring',
       '@babel/plugin-proposal-export-default-from',
+      '@babel/plugin-transform-typescript',
       [
         '@babel/plugin-proposal-class-properties',
         {

@@ -59,7 +59,7 @@ const RefereeHeader = (props: HeaderProps) => {
     ))
   }
 
-  const renderPronouns = () => {
+  const renderPronouns = (): JSX.Element | null => {
     if(!isEditing && referee.showPronouns) {
       return <h2 className="text-l">{referee.pronouns}</h2>
     } else if (isEditing) {
@@ -79,6 +79,8 @@ const RefereeHeader = (props: HeaderProps) => {
           />
         </div>
       );
+    } else {
+      return null
     }
   }
 

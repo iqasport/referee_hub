@@ -13,7 +13,7 @@ import PaypalButton from './PaypalButton'
 import ContentSegment from './ContentSegment'
 import TestResultsTable from './TestResultsTable'
 import CertificationLinks from './CertificationLinks'
-import { hasAssistantCert, hasSnitchCert } from '../utils'
+import { hasAssistantCert, hasSnitchCert } from '../utils/certUtils'
 
 class CertificationContent extends Component {
   static propTypes = {

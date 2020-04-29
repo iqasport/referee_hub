@@ -8,13 +8,15 @@
   "dependencies": {
     "@babel/core": "^7.0.0-bridge.0",
     "@babel/plugin-proposal-class-properties": "^7.7.4",
-    "@babel/plugin-proposal-export-default-from": "^7.8.0",
+    "@babel/plugin-proposal-export-default-from": "^7.8.3",
     "@babel/plugin-proposal-object-rest-spread": "^7.7.7",
     "@babel/plugin-syntax-dynamic-import": "^7.7.4",
     "@babel/plugin-transform-modules-commonjs": "^7.7.5",
     "@babel/plugin-transform-runtime": "7.8.0",
+    "@babel/plugin-transform-typescript": "^7.9.4",
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.9.0",
     "@bugsnag/js": "^6.4.1",
     "@bugsnag/plugin-react": "^6.4.0",
     "@fortawesome/fontawesome-free": "^5.13.0",
@@ -27,6 +29,7 @@
     "@testing-library/react": "^9.4.0",
     "@types/classnames": "^2.2.10",
     "@types/jest": "^25.2.1",
+    "@types/lodash": "^4.14.150",
     "@types/react": "^16.9.32",
     "@types/react-dom": "^16.9.6",
     "@types/react-redux": "^7.1.7",
@@ -82,12 +85,13 @@
     "eslint-plugin-react": "^7.11.0",
     "jest": "25.0.0",
     "jest-environment-jsdom-fourteen": "^1.0.1",
+    "jest-junit": "^10.0.0",
     "react-test-renderer": "^16.12.0",
     "ts-jest": "^25.3.1",
     "webpack-dev-server": "^3.10.1"
   },
   "scripts": {
-    "test": "jest --config jest.config.js --coverage",
+    "test": "jest --coverage",
     "test:ci": "jest --ci --runInBand --coverage --config jest.config.js --reporters=default --reporters=jest-junit"
   }
 }

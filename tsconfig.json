@@ -5,18 +5,25 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "allowJs": true,
     "lib": ["esnext", "dom"],
     "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "es5",
     "jsx": "react",
-    "rootDir": "./app/javascript/packs/MainApp"
+    "rootDir": "./app/javascript/packs/MainApp",
+    "baseUrl": "./app/javascript/packs/MainApp",
   },
+  "includes": [
+    "./app/javascript/packs/MainApp/**/*"
+  ],
   "exclude": [
     "node_modules",
     "vendor",
     "public"
   ],
-  "compileOnSave": false
+  "compileOnSave": true
 }

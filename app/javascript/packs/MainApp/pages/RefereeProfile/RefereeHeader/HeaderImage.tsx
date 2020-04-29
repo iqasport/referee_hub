@@ -33,12 +33,11 @@ const HeaderImage = (props: HeaderImageProps) => {
     handleClose()
   }
 
-  const renderAvatar = () => {
+  const renderAvatar = (): JSX.Element | null => {
     const fileSrc = tmpUrl || avatarUrl
+    if (!fileSrc) return null
 
-    if (fileSrc) {
-      return <img src={fileSrc} alt="referee avatar" className="object-cover h-full w-full overflow-hidden" />
-    }
+    return <img src={fileSrc} alt="referee avatar" className="object-cover h-full w-full overflow-hidden" />
   }
 
   return (

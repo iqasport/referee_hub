@@ -26,7 +26,7 @@ function userSuccess(state: CurrentUserState, action: PayloadAction<UserResponse
   state.id = action.payload.id;
 }
 
-function userFailure(state, action: PayloadAction<string>) {
+function userFailure(state: CurrentUserState, action: PayloadAction<string>) {
   state.currentUser = null;
   state.roles = [];
   state.error = action.payload;

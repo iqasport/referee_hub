@@ -10,7 +10,7 @@ import {
   canTakeSnitchTest,
   canTakeAssistantTest,
   canTakeHeadTest,
-} from '../../utils'
+} from '../../utils/certUtils'
 
 const testColor = (testLevel) => {
   switch (testLevel) {

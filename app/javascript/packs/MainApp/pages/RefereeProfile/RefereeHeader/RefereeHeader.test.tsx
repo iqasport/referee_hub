@@ -1,9 +1,13 @@
-import { fireEvent, render } from '@testing-library/react'
 import React from 'react'
+import { fireEvent, render } from '../../../utils/test-utils'
 
 import { UpdateRefereeRequest } from '../../../apis/referee';
 import { DataAttributes, IncludedAttributes } from '../../../schemas/getRefereeSchema';
 import RefereeHeader from './RefereeHeader'
+// import { Provider } from 'react-redux';
+// import store from '../../../store'
+
+// const Wrapper = ({ children }) => <Provider store={store}>{children}</Provider>
 
 describe('RefereeHeader', () => {
   const referee: DataAttributes = {
