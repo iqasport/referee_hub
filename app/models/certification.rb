@@ -5,6 +5,7 @@
 #  id           :bigint(8)        not null, primary key
 #  display_name :string           default(""), not null
 #  level        :integer          not null
+#  version      :integer          default("eighteen")
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #
@@ -24,5 +25,11 @@ class Certification < ApplicationRecord
     assistant: 1,
     head: 2,
     field: 3
+  }
+
+  # refers to the year the rulebook version was released
+  enum version: {
+    eighteen: 0,
+    twenty: 1
   }
 end
