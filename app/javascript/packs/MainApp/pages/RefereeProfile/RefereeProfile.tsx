@@ -72,7 +72,6 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const [paymentState, setPaymentState] = useState<PaymentState>(initialPaymentState)
   const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations, teams))
   const [isEditing, setIsEditing] = useState(false)
-  const [hasUpdated, setHasUpdated] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -139,11 +138,9 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
 
   const handleInputChange = (value: string | boolean, stateKey: string) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value })
-    setHasUpdated(true)
   }
   const handleAssociationChange = (value: AssociationData, stateKey: string) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value})
-    setHasUpdated(true)
   }
 
   const handleAcceptPolicy = () => dispatch(updateUserPolicy(id, 'accept'))

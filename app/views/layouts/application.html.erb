@@ -13,7 +13,7 @@
     <%= favicon_link_tag asset_path('favicon.ico'), :rel => 'icon', :type => 'image/png' %>
   </head>
 
-  <% if current_user.feature_enabled?(Flipper[:new_design]) %>
+  <% if current_user&.feature_enabled?(Flipper[:new_design]) || Flipper.enabled?(:new_design) %>
     <body>
       <%= yield %>
     </body>

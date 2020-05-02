@@ -1,1 +1,1 @@
-export default from './CertificationLinks'
+export { default } from './CertificationLinks'

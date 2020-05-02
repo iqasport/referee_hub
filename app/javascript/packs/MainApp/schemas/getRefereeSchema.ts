@@ -24,7 +24,7 @@ export interface DataAttributes {
     lastName:                  string | null;
     bio:                       string | null;
     showPronouns:              boolean;
-    submittedPaymentAt:        Date | null;
+    submittedPaymentAt:        Date | string | null;
     exportName:                boolean;
     pronouns:                  string | null;
     isEditable:                boolean;
