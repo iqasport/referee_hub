@@ -134,3 +134,11 @@
 .toggle-checkbox:checked + .toggle-label:before {
     transform: translateX(25px)
 }
+
+.clickable-icon-label {
+    @apply cursor-pointer;
+    @apply flex;
+    @apply justify-between;
+    @apply items-center;
+    width: 3.5rem;
+}

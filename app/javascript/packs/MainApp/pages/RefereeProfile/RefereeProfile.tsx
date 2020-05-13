@@ -5,70 +5,20 @@ import { RouteComponentProps, useHistory } from 'react-router-dom'
 import { Message } from 'semantic-ui-react'
 
 import { AssociationData, UpdateRefereeRequest } from '../../apis/referee';
+import TestResultCards from '../../components/TestResultCards'
 import { updateUserPolicy } from '../../modules/currentUser/currentUser'
-import { fetchReferee, RefereeState, updateReferee } from '../../modules/referee/referee';
-import { RootState } from '../../rootReducer';
-import { DataAttributes, IncludedAttributes } from '../../schemas/getRefereeSchema';
+import { fetchReferee, updateReferee } from '../../modules/referee/referee';
 import RefereeHeader from './RefereeHeader'
 import RefereeLocation from './RefereeLocation'
 import RefereeTeam from './RefereeTeam'
-
-type IdParams = { id: string }
-const selectRefereeState = (state: RootState): RefereeState => {
-  return {
-    certifications: state.referee.certifications,
-    error: state.referee.error,
-    id: state.referee.id,
-    isLoading: state.referee.isLoading,
-    locations: state.referee.locations,
-    ngbs: state.referee.ngbs,
-    referee: state.referee.referee,
-    teams: state.referee.teams,
-    testAttempts: state.referee.testAttempts,
-    testResults: state.referee.testResults,
-  };
-}
-
-type PaymentState = {
-  success: boolean;
-  cancel: boolean;
-  failure: boolean;
-}
-
-const initialPaymentState: PaymentState = {
-  cancel: false,
-  failure: false,
-  success: false,
-}
-
-const initialUpdateState = (referee: DataAttributes, locations: IncludedAttributes[], teams: IncludedAttributes[]): UpdateRefereeRequest => {
-  const ngbData = locations.reduce((data, location): AssociationData => {
-    data[location.nationalGoverningBodyId.toString()] = location.associationType
-    return data
-  }, {} as AssociationData)
-  const teamsData = teams.reduce((data, team): AssociationData => {
-    data[team.teamId.toString()] = team.associationType
-    return data
-  }, {} as AssociationData)
-
-  return {
-    bio: referee?.bio,
-    exportName: referee?.exportName,
-    firstName: referee?.firstName,
-    lastName: referee?.lastName,
-    ngbData,
-    pronouns: referee?.pronouns,
-    showPronouns: referee?.showPronouns,
-    submittedPaymentAt: referee?.submittedPaymentAt,
-    teamsData,
-  }
-}
+import { IdParams, PaymentState } from './types'
+import { initialPaymentState, initialUpdateState, selectRefereeState } from './utils'
 
 const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id }}} = props
   const dispatch = useDispatch()
   const history = useHistory();
-  const { referee, certifications, ngbs, locations, teams, id: stateId } = useSelector(selectRefereeState, shallowEqual)
+  const { referee, certifications, ngbs, locations, teams, id: stateId, testResults } = useSelector(selectRefereeState, shallowEqual)
   const [paymentState, setPaymentState] = useState<PaymentState>(initialPaymentState)
   const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations, teams))
   const [isEditing, setIsEditing] = useState(false)
@@ -182,7 +132,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
           id={stateId}
         />
         <div className="flex flex-col lg:flex-row xl:flex-row w-full">
-          <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-200 p-4 mb-8">
+          <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 mb-8">
             <h3 className="border-b-2 border-green text-xl px-2 w-1/6 text-center">
               Details
             </h3>
@@ -202,10 +152,11 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
               isDisabled={locations.length < 1}
             />
           </div>
-          <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-200 p-4 lg:ml-8 xl:ml-8">
+          <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 lg:ml-8 xl:ml-8">
             <h3 className="border-b-2 border-green text-xl px-2 w-1/3 text-center">
               Certifications
             </h3>
+            <TestResultCards testResults={testResults} />
           </div>
         </div>
       </div>

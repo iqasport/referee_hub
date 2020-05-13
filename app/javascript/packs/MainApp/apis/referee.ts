@@ -3,15 +3,19 @@ import { AxiosResponse } from 'axios';
 import { DataAttributes, GetRefereeSchema, Included, IncludedAttributes } from '../schemas/getRefereeSchema';
 import { baseAxios } from './utils'
 
+export interface IdAttributes extends IncludedAttributes {
+  id: string;
+}
+
 export interface RefereeResponse {
   referee: DataAttributes | null;
   id: string | null;
-  ngbs: IncludedAttributes[] | null;
-  testAttempts: IncludedAttributes[] | null;
-  testResults: IncludedAttributes[] | null;
-  certifications: IncludedAttributes[] | null;
-  locations: IncludedAttributes[] | null;
-  teams: IncludedAttributes[] | null;
+  ngbs: IdAttributes[] | null;
+  testAttempts: IdAttributes[] | null;
+  testResults: IdAttributes[] | null;
+  certifications: IdAttributes[] | null;
+  locations: IdAttributes[] | null;
+  teams: IdAttributes[] | null;
 }
 
 export interface AssociationData {
@@ -23,7 +27,7 @@ export interface UpdateRefereeRequest extends Omit<DataAttributes, ForbiddenUpda
   ngbData: AssociationData | null;
 }
 
-const mapAttributes = (record: Included) => record.attributes
+const mapAttributes = (record: Included) => ({ id: record.id, ...record.attributes })
 
 const formatRefereeResponse = (response: AxiosResponse<GetRefereeSchema>): RefereeResponse => {
   const locations = response.data.included
@@ -40,14 +44,14 @@ const formatRefereeResponse = (response: AxiosResponse<GetRefereeSchema>): Refer
     .map(mapAttributes);
   const ngbs = response.data.included
     .filter((record: Included) => record.type === "nationalGoverningBody")
-    .map((record: Included): IncludedAttributes => ({...record.attributes, nationalGoverningBodyId: parseInt(record.id, 10)}))
+    .map((record: Included): IdAttributes => ({...record.attributes, nationalGoverningBodyId: parseInt(record.id, 10), id: record.id }))
   const teamsData = response.data.included
     .filter((record: Included) => record.type === "team")
-    .map((record: Included): IncludedAttributes => ({...record.attributes, teamId: parseInt(record.id, 10)}))
+    .map((record: Included): IdAttributes => ({...record.attributes, teamId: parseInt(record.id, 10), id: record.id }))
   const teams = response.data.included
     .filter((record: Included) => record.type === "refereeTeam")
-    .map((refereeTeam: Included): IncludedAttributes => {
-      const team = teamsData.find((teamData: IncludedAttributes) => teamData.teamId === refereeTeam.attributes.teamId)
+    .map((refereeTeam: Included): IdAttributes => {
+      const team = teamsData.find((teamData: IdAttributes) => teamData.teamId === refereeTeam.attributes.teamId)
       return {...team, associationType: refereeTeam.attributes.associationType}
     })
 

@@ -87,6 +87,7 @@ export interface IncludedAttributes {
     timeStarted?:             string;
     teamId?:                  number;
     version?:                 string;
+    createdAt?:               string;
 }
 
 // Converts JSON strings to/from your types

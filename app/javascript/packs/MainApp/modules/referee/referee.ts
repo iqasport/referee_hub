@@ -1,20 +1,20 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { getReferee as getRefereeApi, RefereeResponse, updateReferee as updateRefereeApi, UpdateRefereeRequest } from '../../apis/referee';
-import { DataAttributes, IncludedAttributes } from '../../schemas/getRefereeSchema';
+import { getReferee as getRefereeApi, IdAttributes, RefereeResponse, updateReferee as updateRefereeApi, UpdateRefereeRequest } from '../../apis/referee';
+import { DataAttributes } from '../../schemas/getRefereeSchema';
 import { AppThunk } from '../../store';
 
 export interface RefereeState {
   referee: DataAttributes | null;
   id: string | null;
-  ngbs: IncludedAttributes[] | null;
-  testAttempts: IncludedAttributes[] | null;
-  testResults: IncludedAttributes[] | null;
-  certifications: IncludedAttributes[] | null;
-  locations: IncludedAttributes[] | null;
+  ngbs: IdAttributes[] | null;
+  testAttempts: IdAttributes[] | null;
+  testResults: IdAttributes[] | null;
+  certifications: IdAttributes[] | null;
+  locations: IdAttributes[] | null;
   error: string | null;
   isLoading: boolean;
-  teams: IncludedAttributes[] | null;
+  teams: IdAttributes[] | null;
 }
 
 const initialState: RefereeState = {
