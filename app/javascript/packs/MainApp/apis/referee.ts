@@ -21,7 +21,7 @@ export interface RefereeResponse {
 export interface AssociationData {
   [key: string]: string;
 }
-type ForbiddenUpdates = 'isEditable' | 'hasPendingPolicies' | 'avatarUrl'
+type ForbiddenUpdates = 'isEditable' | 'hasPendingPolicies' | 'avatarUrl' | 'createdAt'
 export interface UpdateRefereeRequest extends Omit<DataAttributes, ForbiddenUpdates> {
   teamsData: AssociationData | null;
   ngbData: AssociationData | null;

@@ -13,6 +13,7 @@ describe('RefereeHeader', () => {
   const referee: DataAttributes = {
     avatarUrl: null,
     bio: 'words',
+    createdAt: new Date().toString(),
     exportName: false,
     firstName: 'Build',
     hasPendingPolicies: false,
@@ -45,6 +46,7 @@ describe('RefereeHeader', () => {
     certifications,
     id: '123',
     isEditing: false,
+    onCancel: jest.fn(),
     onChange: jest.fn(),
     onEditClick: jest.fn(),
     onSubmit: jest.fn(),

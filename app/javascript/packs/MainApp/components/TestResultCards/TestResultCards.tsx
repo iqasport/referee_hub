@@ -1,6 +1,6 @@
 import { IdAttributes } from 'apis/referee'
 import React, { useState } from 'react'
-import TestResultPreview from './TestResultPreview'
+import TestResultCard from './TestResultCard'
 
 type TestResultsProps = {
   testResults: IdAttributes[]
@@ -11,7 +11,7 @@ const TestResultCards = (props: TestResultsProps) => {
 
   const renderTestResult = (result: IdAttributes): JSX.Element => {
     return (
-      <TestResultPreview 
+      <TestResultCard
         key={result.id} 
         isExpanded={expandedId === result.id} 
         onExpandClick={setExpandedId} 

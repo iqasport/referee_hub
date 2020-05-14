@@ -1,4 +1,8 @@
+import { faUser } from '@fortawesome/free-regular-svg-icons';
+import { faMapPin } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { capitalize } from 'lodash'
+import { DateTime } from 'luxon';
 import React from 'react'
 
 import { UpdateRefereeRequest } from '../../../apis/referee';
@@ -15,6 +19,7 @@ type HeaderProps = {
   onChange: (value: string | boolean, stateKey: string) => void;
   onEditClick: () => void;
   onSubmit: () => void;
+  onCancel: () => void;
   updatedValues: UpdateRefereeRequest;
   id: string,
 }
@@ -28,7 +33,8 @@ const RefereeHeader = (props: HeaderProps) => {
     onEditClick,
     onSubmit,
     updatedValues,
-    id
+    id,
+    onCancel,
   } = props;
   
   const refName = () => {
@@ -61,7 +67,12 @@ const RefereeHeader = (props: HeaderProps) => {
 
   const renderPronouns = (): JSX.Element | null => {
     if(!isEditing && referee.showPronouns) {
-      return <h2 className="text-l">{referee.pronouns}</h2>
+      return (
+        <h2 className="text-l">
+          <FontAwesomeIcon icon={faUser} className="mr-2" />          
+          {referee.pronouns}
+        </h2>
+      )
     } else if (isEditing) {
       return (
         <div className="flex items-center">
@@ -82,6 +93,18 @@ const RefereeHeader = (props: HeaderProps) => {
     } else {
       return null
     }
+  }
+
+  const renderJoined = (): JSX.Element | null => {
+    if (isEditing) return null
+
+    const joinDate = DateTime.fromSQL(referee.createdAt.slice(0, -3).trim()).year
+    return (
+      <h2 className="text-l">
+        <FontAwesomeIcon className="mr-2" icon={faMapPin} />
+        {`Joined ${joinDate}`}
+      </h2>
+    )
   }
 
   const renderBio = () => {
@@ -125,11 +148,15 @@ const RefereeHeader = (props: HeaderProps) => {
                 isEditing={isEditing}
                 onEdit={onEditClick}
                 onSubmit={onSubmit}
+                onCancel={onCancel}
               />
             )}
           </div>
         </div>
-        <div className="flex mb-8">{renderPronouns()}</div>
+        <div className="flex mb-8 justify-between w-56">
+          {renderJoined()}
+          {renderPronouns()}
+        </div>
         <div className="text-2xl mb-4 h-24">{renderBio()}</div>
       </div>
     </div>

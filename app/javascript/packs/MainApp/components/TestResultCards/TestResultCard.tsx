@@ -15,13 +15,14 @@ type CardProps = {
   isDisabled: boolean;
 }
 
-const TestResultPreview = (props: CardProps) => {
+const TestResultCard = (props: CardProps) => {
   const { 
     testResult: { 
       testLevel, createdAt, minimumPassPercentage, percentage, id, duration, passed
     }, 
     onExpandClick,
-    isExpanded
+    isExpanded,
+    isDisabled,
   } = props
   const formattedDate = DateTime.fromSQL(createdAt.slice(0, -3).trim()).toLocaleString()
   const expandText = isExpanded ? 'less' : 'more'
@@ -36,7 +37,7 @@ const TestResultPreview = (props: CardProps) => {
   }
 
   return (
-    <div className="w-full">
+    <div className={classnames("w-full p-4 bg-white my-4", { 'opacity-50 pointer-events-none': isDisabled, 'z-1 shadow': isExpanded })}>
       <div className="flex h-20 items-center">
         <table className="table-fixed w-1/2">
           <thead>
@@ -82,4 +83,4 @@ const TestResultPreview = (props: CardProps) => {
   )
 }
 
-export default TestResultPreview
+export default TestResultCard

@@ -30,6 +30,7 @@ export interface DataAttributes {
     isEditable:                boolean;
     hasPendingPolicies:        boolean;
     avatarUrl:                 string | null;
+    createdAt:                 string;
 }
 
 export interface Relationships {

@@ -92,6 +92,10 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const handleAssociationChange = (value: AssociationData, stateKey: string) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value})
   }
+  const handleCancel = () => {
+    setIsEditing(false)
+    setUpdatedReferee(initialUpdateState(referee, locations, teams))
+  }
 
   const handleAcceptPolicy = () => dispatch(updateUserPolicy(id, 'accept'))
   const handleRejectPolicy = () => dispatch(updateUserPolicy(id, 'reject'))
@@ -130,12 +134,15 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
           onSubmit={handleSubmit}
           updatedValues={updatedReferee}
           id={stateId}
+          onCancel={handleCancel}
         />
         <div className="flex flex-col lg:flex-row xl:flex-row w-full">
           <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 mb-8">
-            <h3 className="border-b-2 border-green text-xl px-2 w-1/6 text-center">
-              Details
-            </h3>
+            <div className="flex">
+              <h3 className="border-b-2 border-green text-xl text-center">
+                Details
+              </h3>
+            </div>
             <RefereeLocation
               ngbs={ngbs}
               locations={locations}
@@ -152,12 +159,19 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
               isDisabled={locations.length < 1}
             />
           </div>
-          <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 lg:ml-8 xl:ml-8">
-            <h3 className="border-b-2 border-green text-xl px-2 w-1/3 text-center">
-              Certifications
-            </h3>
-            <TestResultCards testResults={testResults} />
-          </div>
+          {referee.isEditable && !isEditing && (
+            <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 lg:ml-8 xl:ml-8">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="border-b-2 border-green text-xl text-center">
+                  Certifications
+                </h3>
+                <button type="button" className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white">
+                  Take Tests
+                </button>
+              </div>
+              <TestResultCards testResults={testResults} />
+            </div>
+          )}
         </div>
       </div>
     </>
