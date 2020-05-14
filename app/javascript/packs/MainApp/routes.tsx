@@ -5,10 +5,11 @@ import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 import Avatar from './components/Avatar'
 import { fetchCurrentUser } from './modules/currentUser/currentUser'
 import Admin from './pages/Admin'
+import NgbProfile from './pages/NgbProfile'
 import OldRefereeProfile from './pages/OldRefereeProfile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import RefereeDiagnostic from './pages/RefereeDiagnostic'
-import RefereeProfile from './pages/RefereeProfile/RefereeProfile'
+import RefereeProfile from './pages/RefereeProfile'
 import Referees from './pages/Referees'
 import StartTest from './pages/StartTest'
 import Test from './pages/Test'
@@ -34,7 +35,7 @@ const App = () => {
   const getRedirect = () => {
     if (!roles.length) return "/sign_in"
     if (roles.includes("iqa_admin")) return "/admin"
-    if (roles.includes("ngb_admin")) return "/privacy" // TODO: replace with ngb admin route once ready
+    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser.ownedNgbId}`
     
     return `/referees/${id}`
   }
@@ -61,6 +62,7 @@ const App = () => {
         <Route exact={true} path='/admin/tests' component={Tests} />
         <Route exact={true} path='/admin/tests/:id' component={Test} />
         <Route exact={true} path='/referees/:refereeId/tests/:testId' component={StartTest} />
+        <Route exact={true} path='/national_governing_bodies/:id' component={NgbProfile} />
       </div>
     </Router>
   )

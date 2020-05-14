@@ -21,8 +21,7 @@ Rails.application.routes.draw do
   get 'admin/tests', to: 'home#index'
   get 'admin/tests/:id', to: 'home#index'
   get '/referees/:referee_id/tests/:test_id', to: 'home#index'
-
-  post 'webhook', to: 'classmarker#webhook'
+  get 'national_governing_bodies/:id', to: 'home#index'
 
   devise_scope :user do
     get '/sign_up' => 'users/registrations#new', as: :user_registration

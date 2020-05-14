@@ -52,7 +52,7 @@
 
 class User < ApplicationRecord
   include PolicyManager::Concerns::UserBehavior
-  include Rails.application.routes.url_helpers # needed to generate avtar image route
+  include Rails.application.routes.url_helpers # needed to generate avatar image route
 
   devise :invitable, :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable,
@@ -130,6 +130,10 @@ class User < ApplicationRecord
 
   def feature_enabled?(feature)
     feature.enabled?(Flipper::Actor.new(self.flipper_id))
+  end
+
+  def owned_ngb_id
+    owned_ngb.first&.id
   end
 
   protected
