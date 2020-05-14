@@ -1,7 +1,7 @@
-import { AssociationData, IdAttributes, UpdateRefereeRequest } from "../../apis/referee";
-import { RefereeState } from "../../modules/referee/referee";
 import { RootState } from "rootReducer";
 import { DataAttributes } from "schemas/getRefereeSchema";
+import { AssociationData, IdAttributes, UpdateRefereeRequest } from "../../apis/referee";
+import { RefereeState } from "../../modules/referee/referee";
 import { PaymentState } from "./types";
 
 export const selectRefereeState = (state: RootState): RefereeState => {
