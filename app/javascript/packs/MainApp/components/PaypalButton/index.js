@@ -1,1 +1,1 @@
-export default from './PaypalButton'
+export { default } from './PaypalButton'

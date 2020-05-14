@@ -32,5 +32,6 @@ class TestResultSerializer < BaseSerializer
              :points_scored,
              :time_finished,
              :time_started,
-             :test_level
+             :test_level,
+             :created_at
 end

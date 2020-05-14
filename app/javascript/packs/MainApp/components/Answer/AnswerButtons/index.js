@@ -1,1 +1,1 @@
-export default from './AnswerButtons'
+export { default } from './AnswerButtons'

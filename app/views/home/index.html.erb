@@ -1,4 +1,4 @@
-<% if current_user.feature_enabled?(Flipper[:new_design]) %>
+<% if current_user&.feature_enabled?(Flipper[:new_design]) || Flipper.enabled?(:new_design) %>
   <div id='main-app' class='w-full' />
 <% else %>
   <div id='main-app' class='ui main container' style='flex:1;margin-top: 50px;width: 80%;' />

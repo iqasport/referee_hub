@@ -5,6 +5,7 @@
 #  id           :bigint(8)        not null, primary key
 #  display_name :string           default(""), not null
 #  level        :integer          not null
+#  version      :integer          default("eighteen")
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #

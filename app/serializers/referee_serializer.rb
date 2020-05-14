@@ -37,7 +37,8 @@ class RefereeSerializer < BaseSerializer
              :show_pronouns,
              :submitted_payment_at,
              :export_name,
-             :avatar_url
+             :avatar_url,
+             :created_at
 
   attribute :pronouns, if: proc { |user, params|
     current_user = params.present? && params[:current_user]

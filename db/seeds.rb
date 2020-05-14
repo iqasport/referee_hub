@@ -161,6 +161,7 @@ NGB_CONFIG = [
   },
 ].freeze
 
+puts "Creating NGBs..."
 NGB_CONFIG.each do |config|
   NationalGoverningBody.find_or_create_by(name: config[:name], website: config[:website])
 end
@@ -184,14 +185,20 @@ CERT_CONFIG = [
   },
 ].freeze
 
+puts "Creating certifications..."
 CERT_CONFIG.each do |config|
   Certification.find_or_create_by(display_name: config[:display_name], level: config[:level])
 end
 
+
+PolicyManager::Term.create(description: 'This is a dummy policy', rule: 'privacy_terms', state: 'published')
+
+puts "Creating Users..."
 USER_ROLES = %w[referee iqa_admin ngb_admin]
 USER_ROLES.each do |access_type|
-  user = FactoryBot.create(:user, password: 'password', roles_attributes: [{ access_type: access_type }])
+  user = FactoryBot.build(:user, password: 'password', roles_attributes: [{ access_type: access_type }], email: "#{access_type}@example.com")
   user.confirm
+  user.confirm_all_policies!
+  user.save!
 end
 
-PolicyManagerTerm.create(description: 'This is a dummy policy', rule: 'privacy_terms', state: 'published')

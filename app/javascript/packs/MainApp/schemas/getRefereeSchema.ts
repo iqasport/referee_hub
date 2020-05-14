@@ -24,12 +24,13 @@ export interface DataAttributes {
     lastName:                  string | null;
     bio:                       string | null;
     showPronouns:              boolean;
-    submittedPaymentAt:        Date | null;
+    submittedPaymentAt:        Date | string | null;
     exportName:                boolean;
     pronouns:                  string | null;
     isEditable:                boolean;
     hasPendingPolicies:        boolean;
     avatarUrl:                 string | null;
+    createdAt:                 string;
 }
 
 export interface Relationships {
@@ -86,6 +87,8 @@ export interface IncludedAttributes {
     timeFinished?:            string;
     timeStarted?:             string;
     teamId?:                  number;
+    version?:                 string;
+    createdAt?:               string;
 }
 
 // Converts JSON strings to/from your types
