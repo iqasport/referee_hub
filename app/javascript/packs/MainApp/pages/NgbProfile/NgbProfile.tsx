@@ -3,6 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps } from 'react-router-dom'
 
 import { RootState } from 'rootReducer'
+import NewRefereeTable from '../../components/NewRefereeTable'
 import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import Sidebar from './Sidebar'
 
@@ -50,8 +51,8 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
           <div>
             <p>NGB Stats</p>
           </div>
-          <div>
-            <p>Ref table</p>
+          <div className="w-full">
+            <NewRefereeTable />
           </div>
         </div>
       </div>

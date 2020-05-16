@@ -142,3 +142,26 @@
     @apply items-center;
     width: 3.5rem;
 }
+
+.rounded-table-header {
+    @apply border-collapse;
+    @apply w-full;
+    @apply table-fixed;
+    @apply bg-gray-300;
+    @apply my-4;
+    border-radius: 6px;
+    -moz-border-radius: 6px;
+}
+
+.rounded-table {
+    @apply border-collapse;
+    @apply w-full;
+    @apply table-fixed;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+}
+
+.rounded-table > tr {
+    @apply border;
+    @apply border-gray-300;
+}
