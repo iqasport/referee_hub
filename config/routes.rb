@@ -50,7 +50,11 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :teams, only: :index
-      resources :national_governing_bodies, only: %i[index show]
+      resources :national_governing_bodies, only: %i[index show] do
+        member do
+          post :update_logo
+        end
+      end
       resources :referee_certifications, only: %i[index create update]
       resources :tests, only: %i[index create show update destroy] do
         resources :questions, shallow: true do

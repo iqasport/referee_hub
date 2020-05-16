@@ -39,6 +39,9 @@ module Api
         json_string = UserSerializer.new(@user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: "Error updating avatar: #{exception}" }, status: :unprocessable_entity
       end
 
       private

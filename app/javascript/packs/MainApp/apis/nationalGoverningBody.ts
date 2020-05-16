@@ -1,3 +1,5 @@
+import axios, { AxiosResponse } from 'axios'
+
 import { Datum, GetNationalGoverningBodiesSchema } from '../schemas/getNationalGoverningBodiesSchema';
 import { DataAttributes, GetNationalGoverningBodySchema, IncludedAttributes } from '../schemas/getNationalGoverningBodySchema';
 import { baseAxios } from './utils'
@@ -12,6 +14,20 @@ export interface NgbResponse {
   socialAccounts: IncludedAttributes[];
   teamCount: number;
   refereeCount: number;
+}
+
+const formatNgbResponse = (response: AxiosResponse<GetNationalGoverningBodySchema>): NgbResponse => {
+  const socialAccounts = response.data.included.map((account): IncludedAttributes => account.attributes)
+  const teamCount = response.data.data.relationships.teams.data.length
+  const refereeCount = response.data.data.relationships.referees.data.length
+
+  return {
+    id: response.data.data.id,
+    nationalGoverningBody: response.data.data.attributes,
+    refereeCount,
+    socialAccounts,
+    teamCount,
+  }
 }
 
 export async function getNationalGoverningBodies(): Promise<NgbsResponse> {
@@ -33,17 +49,21 @@ export async function getNationalGoverningBody(id: number): Promise<NgbResponse>
 
   try {
     const ngbResponse = await baseAxios.get<GetNationalGoverningBodySchema>(url)
-    const socialAccounts = ngbResponse.data.included.map((account): IncludedAttributes => account.attributes)
-    const teamCount = ngbResponse.data.data.relationships.teams.data.length
-    const refereeCount = ngbResponse.data.data.relationships.referees.data.length
+    return formatNgbResponse(ngbResponse)
+  } catch (err) {
+    throw err
+  }
+}
 
-    return {
-      id: ngbResponse.data.data.id,
-      nationalGoverningBody: ngbResponse.data.data.attributes,
-      refereeCount,
-      socialAccounts,
-      teamCount,
-    }
+export async function updateLogo(ngbId: string, logo: File): Promise<NgbResponse> {
+  const url = `/api/v1/national_governing_bodies/${ngbId}/update_logo`
+
+  try {
+    const data = new FormData()
+    data.append('logo', logo)
+
+    const ngbResponse = await axios.post(url, data)
+    return formatNgbResponse(ngbResponse)
   } catch (err) {
     throw err
   }

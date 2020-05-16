@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps } from 'react-router-dom'
 
 import { RootState } from 'rootReducer'
@@ -21,7 +21,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
       socialAccounts: state.nationalGoverningBody.socialAccounts,
       teamCount: state.nationalGoverningBody.teamCount,
     }
-  })
+  }, shallowEqual)
 
   useEffect(() => {
     if (id) {

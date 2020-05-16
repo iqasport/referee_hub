@@ -24,7 +24,7 @@
 
 FactoryBot.define do
   factory :team do
-    name "#{FFaker::AddressUS.city} Quidditch Club"
+    name { FFaker::AddressUS.city }
     city { FFaker::AddressUS.city }
     state { FFaker::AddressUS.state }
     country { FFaker::AddressUS.country }

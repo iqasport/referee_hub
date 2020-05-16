@@ -2,10 +2,13 @@ import { faFacebookSquare, faInstagramSquare, faTwitterSquare, faYoutubeSquare }
 import { faComments } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classnames from 'classnames'
+import { capitalize, words } from 'lodash'
 import React from 'react'
+import { useDispatch } from 'react-redux'
 
 import DataLabel from '../../components/DataLabel'
 import UploadedImage from '../../components/UploadedImage'
+import { updateNgbLogo } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import { DataAttributes, IncludedAttributes } from '../../schemas/getNationalGoverningBodySchema'
 
 type SocialConfig = {
@@ -48,10 +51,11 @@ type SidebarProps = {
 }
 
 const Sidebar = (props: SidebarProps) => {
-  const { ngb, socialAccounts, teamCount, refereeCount } = props
+  const { ngb, socialAccounts, teamCount, refereeCount, ngbId } = props
+  const dispatch = useDispatch()
 
   const handleLogoUpdate = (file: File) => {
-    console.log(file)
+    dispatch(updateNgbLogo(ngbId, file))
   }
 
   const renderSocialMedia = (account: IncludedAttributes, index) => {
@@ -73,7 +77,7 @@ const Sidebar = (props: SidebarProps) => {
       <div className="px-24">
         <UploadedImage
           imageAlt="national governing body logo"
-          imageUrl="https://www.usquidditch.org/img/uploads/IQA_Logo_2013.jpg"
+          imageUrl={ngb.logoUrl}
           onSubmit={handleLogoUpdate}
         />
       </div>
@@ -88,9 +92,17 @@ const Sidebar = (props: SidebarProps) => {
           <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">{ngb.playerCount}</h3>
         </DataLabel>
       </div>
-      <DataLabel label="acronym">
-        <h3 className="uppercase text-navy-blue font-bold pt-2">{ngb.acronym}</h3>
-      </DataLabel>
+      <div className="w-full flex flex-row justify-between">
+        <DataLabel label="acronym" customClass="flex-shrink">
+          <h3 className="uppercase text-navy-blue font-bold pt-2">{ngb.acronym}</h3>
+        </DataLabel>
+        <DataLabel label="region" customClass="flex-shrink">
+          <h3 className="text-navy-blue font-bold pt-2">{words(ngb.region).map(word => capitalize(word)).join(' ')}</h3>
+        </DataLabel>
+        <DataLabel label="country" customClass="flex-shrink">
+          <h3 className="text-navy-blue font-bold pt-2">{ngb.country}</h3>
+        </DataLabel>
+      </div>
       <DataLabel label="website" customClass="w-full">
         <h3 className="text-navy-blue font-bold pt-2 truncate">
           <a href={ngb.website} target="_blank">{ngb.website}</a>

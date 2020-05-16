@@ -19,13 +19,22 @@ export interface Data {
     relationships: Relationships;
 }
 
+export enum Region {
+    NorthAmerica = 'north_america',
+    SouthAmerica = 'south_america',
+    Europe = 'europe',
+    Africa = 'africa',
+    Asia = 'asia',
+}
+
 export interface DataAttributes {
     name:        string;
     website:     string;
     acronym:     string;
     playerCount: number;
-    region:      null;
-    country:     null;
+    region:      Region;
+    country:     string;
+    logoUrl:     string | null;
 }
 
 export interface Relationships {

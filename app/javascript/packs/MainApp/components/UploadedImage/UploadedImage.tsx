@@ -67,14 +67,14 @@ const UploadedImage = (props: UploadedImageProps) => {
             type="submit"
             className={classnames("bg-blue-darker py-2 px-6 rounded text-white ml-2", { 'opacity-50 cursor-not-allowed': !tmpUrl })}
             onClick={handleSubmit}
-            disabled={!!file}
+            disabled={!file}
           >
             Upload
           </button>
         </div>
       </Modal>
     </>
-  );
+  ); 
 }
 
 export default UploadedImage
