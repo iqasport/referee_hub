@@ -12,7 +12,7 @@ module Api
       end
 
       def show
-        json_string = NationalGoverningBodySerializer.new(@ngb).serialized_json
+        json_string = NationalGoverningBodySerializer.new(@ngb, include: [:social_accounts]).serialized_json
 
         render json: json_string, status: :ok
       end

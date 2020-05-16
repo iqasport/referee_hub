@@ -18,8 +18,6 @@
 #  index_national_governing_bodies_on_region  (region)
 #
 
-# Data model for NationalGoverningBodies, currently only used for Referees to assign for themselves and users to search
-# based this association
 class NationalGoverningBody < ApplicationRecord
   require 'activerecord-import/base'
   require 'activerecord-import/active_record/adapters/postgresql_adapter'
