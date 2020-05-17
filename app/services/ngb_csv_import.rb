@@ -54,7 +54,7 @@ module Services
       url_keys.each do |url_key|
         url = row_data.dig(url_key)
         new_social = SocialAccount.find_or_initialize_by(url: url)
-        next if new_social.persisted? # we don't need to update an exisiting record with the same information
+        next if new_social.persisted? # we don't need to update an existing record with the same information
 
         new_social.assign_attributes(account_type: SocialAccount.match_account_type(url))
         social_accounts << new_social

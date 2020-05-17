@@ -7,11 +7,15 @@
 #  community_teams_count      :integer          default(0)
 #  competitive_teams_count    :integer          default(0)
 #  developing_teams_count     :integer          default(0)
+#  end                        :datetime
 #  head_referees_count        :integer          default(0)
 #  inactive_teams_count       :integer          default(0)
 #  snitch_referees_count      :integer          default(0)
+#  start                      :datetime
 #  team_status_change_count   :integer          default(0)
 #  total_referees_count       :integer          default(0)
+#  total_teams_count          :integer          default(0)
+#  uncertified_count          :integer          default(0)
 #  university_teams_count     :integer          default(0)
 #  youth_teams_count          :integer          default(0)
 #  created_at                 :datetime         not null

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'sidekiq/web'
+require 'sidekiq/cron/web'
 require 'flipper-ui'
 require 'flipper-api'
 

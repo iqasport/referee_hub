@@ -42,6 +42,7 @@ gem 'bugsnag', '~> 6.11'
 # job queuing
 gem 'sidekiq'
 gem 'sidekiq-status'
+gem 'sidekiq-cron', '~> 1.1'
 
 # misc
 gem 'activerecord-import'

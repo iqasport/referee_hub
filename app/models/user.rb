@@ -83,8 +83,12 @@ class User < ApplicationRecord
 
   has_one_attached :avatar
 
-  scope :certified, -> { joins(:certifications).group('referees.id') }
+  scope :certified, -> { joins(:certifications).group('users.id') }
   scope :referee, -> { where(roles: { access_type: 'referee' }) }
+  scope :uncertified, -> { left_outer_joins(:referee_certifications, :roles).where('referee_certifications.referee_id IS NULL')}
+  scope :assistant, -> { joins(:certifications).where(certifications: { level: 'assistant' }) }
+  scope :snitch, -> { joins(:certifications).where(certifications: { level: 'snitch' }) }
+  scope :head, -> { joins(:certifications).where(certifications: { level: 'head' }) }
 
   self.per_page = 25
 
