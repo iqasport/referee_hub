@@ -2,7 +2,7 @@ import { AxiosResponse } from 'axios';
 
 import { DataAttributes, GetRefereeSchema, Included, IncludedAttributes, Relationships } from '../schemas/getRefereeSchema';
 import { GetRefereesSchema, Meta } from '../schemas/getRefereesSchema';
-import { baseAxios } from './utils'
+import { baseAxios, camelToSnake } from './utils'
 
 export interface IdAttributes extends IncludedAttributes {
   id: string;
@@ -31,6 +31,12 @@ type ForbiddenUpdates = 'isEditable' | 'hasPendingPolicies' | 'avatarUrl' | 'cre
 export interface UpdateRefereeRequest extends Omit<DataAttributes, ForbiddenUpdates> {
   teamsData: AssociationData | null;
   ngbData: AssociationData | null;
+}
+
+export interface GetRefereesFilter {
+  nationalGoverningBodies?: number[];
+  certifications?: string[];
+  q?: string;
 }
 
 const mapAttributes = (record: Included) => ({ id: record.id, ...record.attributes })
@@ -114,11 +120,12 @@ export async function updateReferee(updatedReferee: UpdateRefereeRequest, refere
   }
 }
 
-export async function getReferees(): Promise<RefereesResponse> {
+export async function getReferees(filter: GetRefereesFilter): Promise<RefereesResponse> {
   const url = 'referees'
-
+  const transformedFilter = camelToSnake(filter)
+  
   try {
-    const refereeResponse = await baseAxios.get<GetRefereesSchema>(url)
+    const refereeResponse = await baseAxios.get<GetRefereesSchema>(url, { params: transformedFilter })
     const included = refereeResponse.data.included
     const referees = refereeResponse.data.data.map((ref) => {
       return formatRefereeResponse(

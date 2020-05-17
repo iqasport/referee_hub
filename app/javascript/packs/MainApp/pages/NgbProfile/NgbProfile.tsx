@@ -52,7 +52,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
             <p>NGB Stats</p>
           </div>
           <div className="w-full">
-            <NewRefereeTable />
+            <NewRefereeTable ngbId={parseInt(id, 10)} />
           </div>
         </div>
       </div>

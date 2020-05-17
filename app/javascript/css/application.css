@@ -165,3 +165,25 @@
     @apply border;
     @apply border-gray-300;
 }
+
+.table-container {
+    @apply overflow-scroll;
+    height: 30rem;
+    overflow-x: hidden;
+    scrollbar-color: #72BA6C grey;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 15px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    @apply bg-gray-300;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    @apply bg-green;
+    @apply border-2;
+    @apply border-gray-300;
+    border-radius: 6px;
+}
