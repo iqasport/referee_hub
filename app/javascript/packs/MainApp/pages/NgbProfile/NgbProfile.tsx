@@ -3,6 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps } from 'react-router-dom'
 
 import { RootState } from 'rootReducer'
+import CurrentRefereeStats from '../../components/CurrentRefereeStats'
 import NewRefereeTable from '../../components/NewRefereeTable'
 import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import Sidebar from './Sidebar'
@@ -12,7 +13,7 @@ type IdParams = { id: string }
 const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id } } } = props
   const dispatch = useDispatch()
-  const { ngb, socialAccounts, refereeCount, teamCount } = useSelector((state: RootState): SingleNationalGoverningBodyState => {
+  const { ngb, socialAccounts, refereeCount, teamCount, stats } = useSelector((state: RootState): SingleNationalGoverningBodyState => {
     return {
       error: state.nationalGoverningBody.error,
       id: state.nationalGoverningBody.id,
@@ -20,6 +21,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
       ngb: state.nationalGoverningBody.ngb,
       refereeCount: state.nationalGoverningBody.refereeCount,
       socialAccounts: state.nationalGoverningBody.socialAccounts,
+      stats: state.nationalGoverningBody.stats,
       teamCount: state.nationalGoverningBody.teamCount,
     }
   }, shallowEqual)
@@ -31,6 +33,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
   }, [id, dispatch])
 
   if (!ngb) return null
+  const currentStat = stats[0]
 
   return (
     <div className="w-5/6 mx-auto my-8">
@@ -48,8 +51,14 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
           ngbId={id} 
         />
         <div className="flex flex-col w-3/4 px-8">
-          <div>
-            <p>NGB Stats</p>
+          <div className="w-full rounded-lg bg-gray-300 flex justify-between p-8">
+            <CurrentRefereeStats
+              headCount={currentStat.headRefereesCount}
+              assistantCount={currentStat.assistantRefereesCount}
+              snitchCount={currentStat.snitchRefereesCount}
+              uncertifiedCount={currentStat.uncertifiedCount}
+              total={currentStat.totalRefereesCount}
+            />
           </div>
           <div className="w-full">
             <NewRefereeTable ngbId={parseInt(id, 10)} />

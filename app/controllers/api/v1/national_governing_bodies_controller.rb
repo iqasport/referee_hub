@@ -15,7 +15,7 @@ module Api
       end
 
       def show
-        json_string = NationalGoverningBodySerializer.new(@ngb, include: [:social_accounts]).serialized_json
+        json_string = NationalGoverningBodySerializer.new(@ngb, include: [:social_accounts, :stats]).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -23,7 +23,7 @@ module Api
       def update_logo
         @ngb.logo.attach(params['logo'])
 
-        json_string = NationalGoverningBodySerializer.new(@ngb, include: [:social_accounts]).serialized_json
+        json_string = NationalGoverningBodySerializer.new(@ngb, include: [:social_accounts, :stats]).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception

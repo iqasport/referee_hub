@@ -14,10 +14,16 @@ export interface NgbResponse {
   socialAccounts: IncludedAttributes[];
   teamCount: number;
   refereeCount: number;
+  stats: IncludedAttributes[];
 }
 
 const formatNgbResponse = (response: AxiosResponse<GetNationalGoverningBodySchema>): NgbResponse => {
-  const socialAccounts = response.data.included.map((account): IncludedAttributes => account.attributes)
+  const socialAccounts = response.data.included
+    .filter(record => record.type === 'socialAccount')
+    .map((account): IncludedAttributes => account.attributes)
+  const stats = response.data.included
+    .filter(record => record.type === 'nationalGoverningBodyStat')
+    .map(stat => stat.attributes)
   const teamCount = response.data.data.relationships.teams.data.length
   const refereeCount = response.data.data.relationships.referees.data.length
 
@@ -26,6 +32,7 @@ const formatNgbResponse = (response: AxiosResponse<GetNationalGoverningBodySchem
     nationalGoverningBody: response.data.data.attributes,
     refereeCount,
     socialAccounts,
+    stats,
     teamCount,
   }
 }

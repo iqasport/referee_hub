@@ -41,6 +41,7 @@ export interface Relationships {
     socialAccounts: Relationship;
     teams:          Relationship;
     referees:       Relationship;
+    stats:          Relationship;
 }
 
 export interface Relationship {
@@ -59,8 +60,23 @@ export interface Included {
 }
 
 export interface IncludedAttributes {
-    accountType: string;
-    url:         string;
+    accountType?:            string;
+    url?:                    string;
+    assistantRefereesCount?: number; 
+    communityTeamsCount?:    number;
+    competitiveTeamsCount?:  number;
+    developingTeamsCount?:   number;
+    headRefereesCount?:      number;
+    inactiveTeamsCount?:     number;
+    snitchRefereesCount?:    number;
+    teamStatusChangeCount?:  number;
+    totalRefereesCount?:     number;
+    totalTeamsCount?:        number;
+    uncertifiedCount?:       number;
+    universityTeamsCount?:   number;
+    youthTeamsCount?:        number;
+    start?:                  string;
+    end?:                    string;
 }
 
 // Converts JSON strings to/from your types

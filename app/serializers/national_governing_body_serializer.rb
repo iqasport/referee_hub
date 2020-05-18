@@ -30,4 +30,5 @@ class NationalGoverningBodySerializer < BaseSerializer
   has_many :social_accounts
   has_many :teams
   has_many :referees
+  has_many :stats, serializer: :national_governing_body_stat
 end

@@ -12,6 +12,7 @@ export interface SingleNationalGoverningBodyState {
   socialAccounts: IncludedAttributes[];
   teamCount: number;
   refereeCount: number;
+  stats: IncludedAttributes[];
 }
 
 const initialState: SingleNationalGoverningBodyState = {
@@ -21,6 +22,7 @@ const initialState: SingleNationalGoverningBodyState = {
   ngb: null,
   refereeCount: 0,
   socialAccounts: [],
+  stats: [],
   teamCount: 0,
 }
 
@@ -31,6 +33,7 @@ function ngbSuccess(state: SingleNationalGoverningBodyState, action: PayloadActi
   state.socialAccounts = action.payload.socialAccounts
   state.teamCount = action.payload.teamCount
   state.refereeCount = action.payload.refereeCount
+  state.stats = action.payload.stats
 }
 
 function ngbFailure(state: SingleNationalGoverningBodyState, action: PayloadAction<string>) {
@@ -41,6 +44,7 @@ function ngbFailure(state: SingleNationalGoverningBodyState, action: PayloadActi
   state.socialAccounts = [];
   state.teamCount = 0
   state.refereeCount = 0
+  state.stats = []
 }
 
 const nationalGoverningBody = createSlice({
