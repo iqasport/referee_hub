@@ -2,12 +2,12 @@ import { faUser } from '@fortawesome/free-regular-svg-icons';
 import { faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { capitalize } from 'lodash'
-import { DateTime } from 'luxon';
 import React from 'react'
 
 import { UpdateRefereeRequest } from '../../../apis/referee';
 import Toggle from '../../../components/Toggle';
 import { DataAttributes, IncludedAttributes } from '../../../schemas/getRefereeSchema';
+import { toDateTime } from '../../../utils/dateUtils';
 import HeaderButtons from './HeaderButtons';
 import HeaderImage from './HeaderImage';
 import HeaderName from './HeaderName';
@@ -98,7 +98,7 @@ const RefereeHeader = (props: HeaderProps) => {
   const renderJoined = (): JSX.Element | null => {
     if (isEditing) return null
 
-    const joinDate = DateTime.fromSQL(referee.createdAt.slice(0, -3).trim()).year
+    const joinDate = toDateTime(referee.createdAt).year
     return (
       <h2 className="text-l">
         <FontAwesomeIcon className="mr-2" icon={faMapPin} />

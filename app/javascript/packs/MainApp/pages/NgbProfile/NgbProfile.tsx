@@ -3,8 +3,8 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps } from 'react-router-dom'
 
 import { RootState } from 'rootReducer'
-import CurrentRefereeStats from '../../components/CurrentRefereeStats'
 import NewRefereeTable from '../../components/NewRefereeTable'
+import StatsViewer from '../../components/StatsViewer'
 import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import Sidebar from './Sidebar'
 
@@ -50,16 +50,8 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
           isEditing={false} 
           ngbId={id} 
         />
-        <div className="flex flex-col w-3/4 px-8">
-          <div className="w-full rounded-lg bg-gray-300 flex justify-between p-8">
-            <CurrentRefereeStats
-              headCount={currentStat.headRefereesCount}
-              assistantCount={currentStat.assistantRefereesCount}
-              snitchCount={currentStat.snitchRefereesCount}
-              uncertifiedCount={currentStat.uncertifiedCount}
-              total={currentStat.totalRefereesCount}
-            />
-          </div>
+        <div className="flex flex-col w-4/5 pl-8">
+          <StatsViewer stats={stats} />
           <div className="w-full">
             <NewRefereeTable ngbId={parseInt(id, 10)} />
           </div>
