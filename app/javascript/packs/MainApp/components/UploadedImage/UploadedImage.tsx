@@ -9,10 +9,11 @@ type UploadedImageProps = {
   imageUrl: string;
   onSubmit: (file: File) => void;
   imageAlt: string;
+  isEditable: boolean;
 }
 
 const UploadedImage = (props: UploadedImageProps) => {
-  const { imageUrl, onSubmit, imageAlt } = props
+  const { imageUrl, onSubmit, imageAlt, isEditable } = props
   const [isOpen, setIsOpen] = useState(false)
   const [tmpUrl, setTmpUrl] = useState<string>()
   const [file, setFile] = useState<File>()
@@ -42,7 +43,7 @@ const UploadedImage = (props: UploadedImageProps) => {
     <>
       <div className="w-40 h-40 bg-gray-400 mr-10 block relative border-gray-600 border">
         {renderAvatar()}
-        {
+        {isEditable &&
           <div
             className="absolute z-1 right-0 bottom-0 pr-1 cursor-pointer"
             onClick={handleOpen}

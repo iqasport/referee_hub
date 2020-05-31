@@ -6,18 +6,19 @@ import { updateUserAvatar } from '../../../modules/currentUser/currentUser';
 
 type HeaderImageProps = {
   avatarUrl: string;
-  id: string
+  id: string;
+  isEditable: boolean;
 }
 
 const HeaderImage = (props: HeaderImageProps) => {
-  const { avatarUrl, id } = props
+  const { avatarUrl, id, isEditable } = props
   const dispatch = useDispatch();
   
   const handleSubmit = (file: File) => {
     dispatch(updateUserAvatar(id, file))
   }
 
-  return <UploadedImage imageAlt="referee avatar" imageUrl={avatarUrl} onSubmit={handleSubmit} />;
+  return <UploadedImage imageAlt="referee avatar" imageUrl={avatarUrl} onSubmit={handleSubmit} isEditable={isEditable} />;
 }
 
 export default HeaderImage

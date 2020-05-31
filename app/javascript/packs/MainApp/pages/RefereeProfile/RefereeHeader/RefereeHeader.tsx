@@ -125,7 +125,7 @@ const RefereeHeader = (props: HeaderProps) => {
 
   return (
     <div className="flex flex-col lg:flex-row xl:flex-row">
-      <HeaderImage avatarUrl={referee.avatarUrl} id={id} />
+      <HeaderImage avatarUrl={referee.avatarUrl} id={id} isEditable={referee.isEditable} />
       <div className="w-5/6">
         <div className="flex flex-col items-center my-8 md:flex-row lg:flex-row xl:flex-row">
           <div className="flex-shrink w-full lg:mr-5 xl:mr-5 md:w-2/3 lg:w-2/3 xl:w-2/3">

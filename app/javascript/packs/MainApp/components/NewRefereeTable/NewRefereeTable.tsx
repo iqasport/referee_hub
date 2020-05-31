@@ -51,7 +51,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
     const handleClick = () => history.push(`/referees/${referee.id}`)
 
     return (
-      <tr key={referee?.id} className="border border-gray-300 hover:bg-gray-600" onClick={handleClick}>
+      <tr key={referee?.id} className="border border-gray-300 hover:bg-gray-300" onClick={handleClick}>
         <td className="w-1/4 py-4 px-8">{fullName}</td>
         <td className="w-1/4 py-4 px-8">{highestCertText}</td>
         <td className="w-1/4 py-4 px-8">{teamNames}</td>

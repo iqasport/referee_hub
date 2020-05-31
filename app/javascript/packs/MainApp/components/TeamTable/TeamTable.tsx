@@ -30,7 +30,7 @@ const TeamTable = (props: TeamTableProps) => {
   const renderRow = (team: Datum) => {
     const teamCity = `${team.attributes.city}, ${team.attributes.state}`
     return (
-      <tr key={team?.id} className="border border-gray-300 hover:bg-gray-600">
+      <tr key={team?.id} className="border border-gray-300 hover:bg-gray-300">
         <td className="w-1/4 py-4 px-8">{team.attributes.name}</td>
         <td className="w-1/4 py-4 px-8">{teamCity}</td>
         <td className="w-1/4 py-4 px-8">{team.attributes.groupAffiliation}</td>
