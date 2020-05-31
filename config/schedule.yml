@@ -1,0 +1,4 @@
+stats_generator:
+  cron: "1 * 1 * *"
+  class: 'GenerateNgbStats'
+  queue: mailers

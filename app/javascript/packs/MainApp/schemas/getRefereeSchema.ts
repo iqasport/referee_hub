@@ -40,6 +40,8 @@ export interface Relationships {
     certifications:          Relationship;
     testResults:             Relationship;
     testAttempts:            Relationship;
+    teams:                   Relationship;
+    refereeTeams:            Relationship;
 }
 
 export interface Relationship {
@@ -68,10 +70,10 @@ export interface IncludedAttributes {
     level?:                   string;
     name?:                    string;
     website?:                 string;
-    needsRenewalAt?:          null;
+    needsRenewalAt?:          null | string;
     receivedAt?:              null | string;
-    renewedAt?:               null;
-    revokedAt?:               null;
+    renewedAt?:               null | string;
+    revokedAt?:               null | string;
     refereeId?:               number;
     certificationId?:         number;
     associationType?:         AssociationType;

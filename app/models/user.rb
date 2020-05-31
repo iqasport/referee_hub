@@ -52,7 +52,7 @@
 
 class User < ApplicationRecord
   include PolicyManager::Concerns::UserBehavior
-  include Rails.application.routes.url_helpers # needed to generate avtar image route
+  include Rails.application.routes.url_helpers # needed to generate avatar image route
 
   devise :invitable, :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable,
@@ -83,8 +83,12 @@ class User < ApplicationRecord
 
   has_one_attached :avatar
 
-  scope :certified, -> { joins(:certifications).group('referees.id') }
+  scope :certified, -> { joins(:certifications).group('users.id') }
   scope :referee, -> { where(roles: { access_type: 'referee' }) }
+  scope :uncertified, -> { left_outer_joins(:referee_certifications, :roles).where('referee_certifications.referee_id IS NULL')}
+  scope :assistant, -> { joins(:certifications).where(certifications: { level: 'assistant' }) }
+  scope :snitch, -> { joins(:certifications).where(certifications: { level: 'snitch' }) }
+  scope :head, -> { joins(:certifications).where(certifications: { level: 'head' }) }
 
   self.per_page = 25
 
@@ -130,6 +134,10 @@ class User < ApplicationRecord
 
   def feature_enabled?(feature)
     feature.enabled?(Flipper::Actor.new(self.flipper_id))
+  end
+
+  def owned_ngb_id
+    owned_ngb.first&.id
   end
 
   protected

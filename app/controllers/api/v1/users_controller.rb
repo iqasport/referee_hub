@@ -11,10 +11,10 @@ module Api
         raise StandardError, 'Not logged in' unless current_user.present?
 
         json_string = UserSerializer.new(current_user, serializer_options).serialized_json
-
+        
         render json: json_string, status: :ok
       rescue => exception
-        render json: { error: "Not logged in" }, status: :unprocessable_entity
+        render json: { error: exception }, status: :unprocessable_entity
       end
 
       def accept_policies
@@ -39,6 +39,9 @@ module Api
         json_string = UserSerializer.new(@user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: "Error updating avatar: #{exception}" }, status: :unprocessable_entity
       end
 
       private

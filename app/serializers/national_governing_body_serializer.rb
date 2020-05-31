@@ -19,5 +19,16 @@
 #
 
 class NationalGoverningBodySerializer < BaseSerializer
-  attributes :name, :website
+  attributes :name, 
+             :website, 
+             :acronym, 
+             :player_count, 
+             :region, 
+             :country, 
+             :logo_url
+
+  has_many :social_accounts
+  has_many :teams
+  has_many :referees
+  has_many :stats, serializer: :national_governing_body_stat
 end

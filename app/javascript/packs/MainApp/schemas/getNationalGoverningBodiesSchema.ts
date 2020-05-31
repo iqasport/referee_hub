@@ -7,6 +7,8 @@
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
 
+import { Region } from "./getNationalGoverningBodySchema";
+
 export interface GetNationalGoverningBodiesSchema {
     data: Datum[];
 }
@@ -18,8 +20,13 @@ export interface Datum {
 }
 
 export interface Attributes {
-    name:    string;
-    website: string;
+    name:        string;
+    website:     string;
+    acronym:     string;
+    playerCount: number;
+    region:      Region;
+    country:     string;
+    logoUrl:     string | null;
 }
 
 export enum Type {

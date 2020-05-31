@@ -18,9 +18,9 @@ RSpec.describe Services::FilterTeams do
   end
 
   before do
-    teams.first.update(name: search_query) if search_query.present?
-    teams[1].update(status: 'developing')
-    teams[2].update(group_affiliation: 'community')
+    teams.first.update!(name: search_query) if search_query.present?
+    teams[1].update!(status: 'developing')
+    teams[2].update!(group_affiliation: 'community')
   end
 
   subject { described_class.new(params).filter }

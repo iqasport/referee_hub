@@ -6,7 +6,7 @@ module Services
       @search_query = params.delete(:q)
       @certifications = params.delete(:certifications)
       @national_governing_bodies = params.delete(:national_governing_bodies)
-      @relation = User.includes(:certifications, :national_governing_bodies, :roles).referee.all
+      @relation = User.includes(:certifications, :roles, :referee_locations, :national_governing_bodies).referee.all
       @query_hash = {
         search: search_query,
         certifications: certifications,
@@ -39,7 +39,13 @@ module Services
     def filter_by_national_governing_body
       return relation if national_governing_bodies.blank?
 
-      relation.where(national_governing_bodies: { id: national_governing_bodies })
+      query_hash = if Flipper.enabled?(:new_design)
+                     { referee_locations: { national_governing_body_id: national_governing_bodies, association_type: 'primary' } }
+                   else
+                     { national_governing_bodies: { id: national_governing_bodies } }
+                   end
+
+      relation.where(query_hash)
     end
   end
 end

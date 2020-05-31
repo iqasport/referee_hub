@@ -82,4 +82,5 @@ export const updateUserAvatar = (userId: string, avatar: File): AppThunk => asyn
     dispatch(updateAvatarFailure(err.toString()))
   }
 }
+
 export default currentUser.reducer

@@ -25,6 +25,7 @@ export interface DataAttributes {
     hasPendingPolicies: boolean;
     avatarUrl:          string | null;
     enabledFeatures:    string[];
+    ownedNgbId:         number | null;
 }
 
 export interface Relationships {

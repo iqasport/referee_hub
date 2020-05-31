@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { getNationalGoverningBodies as getNgbsApi, NgbResponse } from '../../apis/nationalGoverningBody';
+import { getNationalGoverningBodies as getNgbsApi, NgbsResponse } from '../../apis/nationalGoverningBody';
 import { Datum } from '../../schemas/getNationalGoverningBodiesSchema';
 import { AppThunk } from '../../store'
 
@@ -16,14 +16,14 @@ const initialState: NationalGoverningBodyState = {
   nationalGoverningBodies: [],
 }
 
-const nationalGoverningBody = createSlice({
+const nationalGoverningBodies = createSlice({
   initialState,
   name: 'nationalGoverningBodies',
   reducers: {
     getNationalGoverningBodiesStart(state: NationalGoverningBodyState) {
       state.isLoading = true;
     },
-    getNationalGoverningBodiesSuccess(state: NationalGoverningBodyState, action: PayloadAction<NgbResponse>) {
+    getNationalGoverningBodiesSuccess(state: NationalGoverningBodyState, action: PayloadAction<NgbsResponse>) {
       state.isLoading = false
       state.nationalGoverningBodies = action.payload.nationalGoverningBodies
     },
@@ -39,7 +39,7 @@ export const {
   getNationalGoverningBodiesFailure,
   getNationalGoverningBodiesStart,
   getNationalGoverningBodiesSuccess,
-} = nationalGoverningBody.actions
+} = nationalGoverningBodies.actions
 
 export const getNationalGoverningBodies = (): AppThunk => async dispatch => {
   try {
@@ -51,4 +51,4 @@ export const getNationalGoverningBodies = (): AppThunk => async dispatch => {
   }
 }
 
-export default nationalGoverningBody.reducer
+export default nationalGoverningBodies.reducer

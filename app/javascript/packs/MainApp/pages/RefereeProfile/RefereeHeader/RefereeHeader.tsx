@@ -2,12 +2,12 @@ import { faUser } from '@fortawesome/free-regular-svg-icons';
 import { faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { capitalize } from 'lodash'
-import { DateTime } from 'luxon';
 import React from 'react'
 
 import { UpdateRefereeRequest } from '../../../apis/referee';
 import Toggle from '../../../components/Toggle';
 import { DataAttributes, IncludedAttributes } from '../../../schemas/getRefereeSchema';
+import { toDateTime } from '../../../utils/dateUtils';
 import HeaderButtons from './HeaderButtons';
 import HeaderImage from './HeaderImage';
 import HeaderName from './HeaderName';
@@ -98,7 +98,7 @@ const RefereeHeader = (props: HeaderProps) => {
   const renderJoined = (): JSX.Element | null => {
     if (isEditing) return null
 
-    const joinDate = DateTime.fromSQL(referee.createdAt.slice(0, -3).trim()).year
+    const joinDate = toDateTime(referee.createdAt).year
     return (
       <h2 className="text-l">
         <FontAwesomeIcon className="mr-2" icon={faMapPin} />
@@ -125,7 +125,7 @@ const RefereeHeader = (props: HeaderProps) => {
 
   return (
     <div className="flex flex-col lg:flex-row xl:flex-row">
-      <HeaderImage avatarUrl={referee.avatarUrl} id={id} />
+      <HeaderImage avatarUrl={referee.avatarUrl} id={id} isEditable={referee.isEditable} />
       <div className="w-5/6">
         <div className="flex flex-col items-center my-8 md:flex-row lg:flex-row xl:flex-row">
           <div className="flex-shrink w-full lg:mr-5 xl:mr-5 md:w-2/3 lg:w-2/3 xl:w-2/3">

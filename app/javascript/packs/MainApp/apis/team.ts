@@ -1,5 +1,5 @@
 import { Datum, GetTeamsSchema, GroupAffiliation, Meta, Status } from '../schemas/getTeamsSchema';
-import { baseAxios } from './utils'
+import { baseAxios, camelToSnake } from './utils'
 
 export interface TeamResponse {
   teams: Datum[];
@@ -15,9 +15,10 @@ export interface GetTeamsFilter {
 
 export async function getTeams(filter: GetTeamsFilter) {
   const url = 'teams'
+  const transformedFilter = camelToSnake(filter)
 
   try {
-    const teamsResponse = await baseAxios.get<GetTeamsSchema>(url, { params: filter })
+    const teamsResponse = await baseAxios.get<GetTeamsSchema>(url, { params: transformedFilter })
 
     return {
       meta: teamsResponse.data.meta,

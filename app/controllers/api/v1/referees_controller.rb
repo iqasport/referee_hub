@@ -16,7 +16,7 @@ module Api
 
         json_string = RefereeSerializer.new(
           @referees,
-          include: %i[referee_certifications referee_locations],
+          include: %i[referee_certifications referee_locations referee_teams teams certifications national_governing_bodies],
           params: { current_user: current_user, include_tests: false, include_associations: true },
           meta: { page: page, total: referee_total }
         ).serialized_json

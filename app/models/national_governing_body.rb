@@ -18,9 +18,8 @@
 #  index_national_governing_bodies_on_region  (region)
 #
 
-# Data model for NationalGoverningBodies, currently only used for Referees to assign for themselves and users to search
-# based this association
 class NationalGoverningBody < ApplicationRecord
+  include Rails.application.routes.url_helpers # needed to generate logo image route
   require 'activerecord-import/base'
   require 'activerecord-import/active_record/adapters/postgresql_adapter'
 
@@ -42,4 +41,12 @@ class NationalGoverningBody < ApplicationRecord
 
   has_many :national_governing_body_admins, dependent: :destroy
   has_many :admins, through: :national_governing_body_admins, source: :user
+
+  has_one_attached :logo
+
+  def logo_url
+    return nil unless self.logo.attached?
+
+    rails_blob_url(self.logo)
+  end
 end

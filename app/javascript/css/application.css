@@ -142,3 +142,66 @@
     @apply items-center;
     width: 3.5rem;
 }
+
+.rounded-table-header {
+    @apply border-collapse;
+    @apply w-full;
+    @apply table-fixed;
+    @apply bg-gray-300;
+    @apply my-4;
+    border-radius: 6px;
+    -moz-border-radius: 6px;
+}
+
+.rounded-table {
+    @apply border-collapse;
+    @apply w-full;
+    @apply table-fixed;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+}
+
+.rounded-table > tr {
+    @apply border;
+    @apply border-gray-300;
+}
+
+.table-container {
+    @apply overflow-scroll;
+    height: 30rem;
+    overflow-x: hidden;
+    scrollbar-color: #72BA6C grey;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 15px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    @apply bg-gray-300;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    @apply bg-green;
+    @apply border-2;
+    @apply border-gray-300;
+    border-radius: 6px;
+}
+
+.button-tab {
+    @apply border-2;
+    @apply border-gray-600;
+    @apply cursor-pointer;
+    @apply text-navy-blue;
+    @apply py-2;
+    @apply px-4;
+    @apply mr-4;
+    @apply rounded;
+    @apply font-bold;
+}
+
+.active-button-tab {
+    @apply bg-navy-blue;
+    @apply text-white;
+    @apply border-navy-blue;
+}

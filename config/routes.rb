@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'sidekiq/web'
+require 'sidekiq/cron/web'
 require 'flipper-ui'
 require 'flipper-api'
 
@@ -21,8 +22,7 @@ Rails.application.routes.draw do
   get 'admin/tests', to: 'home#index'
   get 'admin/tests/:id', to: 'home#index'
   get '/referees/:referee_id/tests/:test_id', to: 'home#index'
-
-  post 'webhook', to: 'classmarker#webhook'
+  get 'national_governing_bodies/:id', to: 'home#index'
 
   devise_scope :user do
     get '/sign_up' => 'users/registrations#new', as: :user_registration
@@ -51,7 +51,11 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :teams, only: :index
-      resources :national_governing_bodies, only: %i[index show]
+      resources :national_governing_bodies, only: %i[index show] do
+        member do
+          post :update_logo
+        end
+      end
       resources :referee_certifications, only: %i[index create update]
       resources :tests, only: %i[index create show update destroy] do
         resources :questions, shallow: true do

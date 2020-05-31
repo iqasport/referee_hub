@@ -26,6 +26,8 @@ class Team < ApplicationRecord
   require 'activerecord-import/base'
   require 'activerecord-import/active_record/adapters/postgresql_adapter'
 
+  around_update :generate_changeset, if: :status_changed?
+
   MAXIMUM_RETRIES = 6
 
   self.per_page = 25
@@ -48,4 +50,11 @@ class Team < ApplicationRecord
   has_many :referee_teams, dependent: :destroy
   has_many :referees, through: :referee_teams
   has_many :social_accounts, as: :ownable, dependent: :destroy
+
+  private 
+
+  def generate_changeset
+    TeamStatusChangeset.create!(new_status: status_change[1], previous_status: status_change[0], team_id: id)
+    yield
+  end
 end
