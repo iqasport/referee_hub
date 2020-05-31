@@ -6,7 +6,7 @@ module Services
       @search_query = params.delete(:q)
       @certifications = params.delete(:certifications)
       @national_governing_bodies = params.delete(:national_governing_bodies)
-      @relation = User.includes(:certifications, :roles, :referee_locations).referee.all
+      @relation = User.includes(:certifications, :roles, :referee_locations, :national_governing_bodies).referee.all
       @query_hash = {
         search: search_query,
         certifications: certifications,

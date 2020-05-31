@@ -31,6 +31,7 @@ RSpec.describe Team, type: :model do
 
   it 'generates a changeset' do
     expect { subject }.to change { team.reload.team_status_changesets.count }.by(1)
+    expect(team.reload.status).to eq 'developing'
   end
 
   context 'when updating a different attribute' do

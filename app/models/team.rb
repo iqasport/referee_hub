@@ -55,5 +55,6 @@ class Team < ApplicationRecord
 
   def generate_changeset
     TeamStatusChangeset.create!(new_status: status_change[1], previous_status: status_change[0], team_id: id)
+    yield
   end
 end
