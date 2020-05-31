@@ -187,3 +187,21 @@
     @apply border-gray-300;
     border-radius: 6px;
 }
+
+.button-tab {
+    @apply border-2;
+    @apply border-gray-600;
+    @apply cursor-pointer;
+    @apply text-navy-blue;
+    @apply py-2;
+    @apply px-4;
+    @apply mr-4;
+    @apply rounded;
+    @apply font-bold;
+}
+
+.active-button-tab {
+    @apply bg-navy-blue;
+    @apply text-white;
+    @apply border-navy-blue;
+}
