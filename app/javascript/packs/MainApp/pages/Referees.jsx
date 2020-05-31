@@ -5,7 +5,7 @@ import { Header, Pagination, Segment } from 'semantic-ui-react'
 import RefereeTable from '../components/RefereeTable'
 
 const mapRefereeData = (certifications, nationalGoverningBodies) => ({ id, attributes, relationships }) => {
-  const name = `${attributes.first_name} ${attributes.last_name}`.trim()
+  const name = `${attributes.firstName} ${attributes.lastName}`.trim()
   const mappedCerts = relationships
     && relationships.refereeCertifications
     && relationships.refereeCertifications.data.map(
@@ -112,7 +112,7 @@ class Referees extends Component {
     return Math.round(total / 25) + 1
   }
 
-  hasRefereeName = ({ attributes }) => attributes.first_name || attributes.last_name
+  hasRefereeName = ({ attributes }) => attributes.firstName || attributes.lastName
 
   handleRefereeClick = (refId) => {
     const { history } = this.props
