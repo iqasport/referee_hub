@@ -1,7 +1,9 @@
 module Api
   module V1
     class NationalGoverningBodiesController < ApplicationController
+      before_action :authenticate_user!
       before_action :find_ngb, only: %i[show update_logo]
+      before_action :verify_update_admin, only: :update_logo
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -35,6 +37,12 @@ module Api
 
       def find_ngb
         @ngb = NationalGoverningBody.find_by(id: params[:id])
+      end
+
+      def verify_update_admin
+        return true if @ngb.admins.pluck(:user_id).include?(current_user.id) || current_user.iqa_admin?
+
+        render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
       end
     end
   end
