@@ -8,7 +8,7 @@ import TeamStatusStats from '../TeamStatusStats'
 import TeamTypeStats from '../TeamTypeStats'
 
 const sortByTimestamp = (stats: IncludedAttributes[]): IncludedAttributes[] => {
-  return stats.sort((a, b) => {
+  return stats.slice().sort((a, b) => {
     const aEndTime = toDateTime(a.end)
     const aStartTime = toDateTime(a.start)
     const bEndTime = toDateTime(b.end)
