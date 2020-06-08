@@ -47,7 +47,7 @@ const TeamTypeStats = (props: TeamTypeProps) => {
 
   return (
     <div className={classnames({ ["w-full"]: showFull, ["w-1/3 mx-4"]: !showFull })}>
-      <h3 className="text-blue-darker text-xl font-bold mb-4">Team Status</h3>
+      <h3 className="text-blue-darker text-xl font-bold mb-4">Team Type</h3>
       <div className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer" onClick={onClick}>
         <div className="w-full h-64 flex-1">
           <StatBarChart maxData={total} barConfig={barConfig} chartData={chartData} />

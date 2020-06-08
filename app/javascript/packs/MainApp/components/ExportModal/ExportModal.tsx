@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import Modal, { ModalSize } from '../Modal/Modal'
 
@@ -14,11 +14,26 @@ interface ExportModalProps {
 }
 
 const ExportModal = (props: ExportModalProps) => {
-  const { open, onClose } = props
+  const { open, onClose, onExport } = props
+  const [selectedExport, setSelectedExport] = useState<string>() 
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const exportValue = event.target.value
+    setSelectedExport(exportValue);
+  }
+  const handleExport = () => {
+    onExport(ExportType[selectedExport])
+  }
 
   return (
     <Modal open={open} onClose={onClose} showClose={true} size={ModalSize.Medium}>
-      <h1 className="my-2 font-bold text-2xl">Export Data</h1>
+      <h1 className="my-2 font-bold text-2xl">Export</h1>
+      <select className="form-select block mt-1" onChange={handleChange}>
+        <option key="team" value={ExportType.Team}>team</option>
+        <option key="referee" value={ExportType.Referee}>referee</option>
+      </select>
+      <button onClick={handleExport}>
+        Submit
+      </button>
     </Modal>
   )
 }

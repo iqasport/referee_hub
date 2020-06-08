@@ -45,9 +45,9 @@ module Api
       def export
         export_options = search_params.presence || { national_governing_bodies: [current_user.owned_ngb.first.id] }
         enqueued_job = ExportCsvJob.perform_later(
-          user: current_user,
-          type: 'ExportedCsv::RefereeExport',
-          export_options: export_options.to_json
+          current_user,
+          'ExportedCsv::RefereeExport',
+          export_options.to_json
         )
 
         render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok

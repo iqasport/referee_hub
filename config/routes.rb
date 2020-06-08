@@ -78,8 +78,8 @@ Rails.application.routes.draw do
                   only: %i[index show create update destroy],
                   controller: 'national_governing_body_teams'
 
-        post 'teams/import', to: 'national_governing_body_teams#import'
-        get 'teams/export', to: 'national_governing_body_teams#export'
+        post 'teams_import', to: 'national_governing_body_teams#import'
+        get 'teams_export', to: 'national_governing_body_teams#export'
       end
 
       post 'tests/import', to: 'tests#import'

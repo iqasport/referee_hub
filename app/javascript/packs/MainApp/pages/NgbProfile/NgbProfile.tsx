@@ -8,6 +8,7 @@ import ExportModal, { ExportType } from '../../components/ExportModal/ExportModa
 import NewRefereeTable from '../../components/NewRefereeTable'
 import StatsViewer from '../../components/StatsViewer'
 import TeamTable from '../../components/TeamTable'
+import { exportNgbTeams } from '../../modules/job/job'
 import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import ActionsButton from './ActionsButton'
 import Sidebar from './Sidebar'
@@ -60,7 +61,13 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
   const handleEditClick = () => setIsEditing(true)
   const handleOpenModal = (type: ModalType) => () => setOpenModal(type)
   const handleCloseModal = () => setOpenModal(null)
-  const handleExport = (type: ExportType) => console.log(type);
+  const handleExport = (type: ExportType) => {
+    handleCloseModal()
+    switch(type) {
+      case ExportType.Team:
+        dispatch(exportNgbTeams());
+    }
+  }
 
   const renderModals = () => {
     switch(openModal) {
