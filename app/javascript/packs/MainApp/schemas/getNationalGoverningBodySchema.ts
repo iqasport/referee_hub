@@ -76,7 +76,7 @@ export interface IncludedAttributes {
     universityTeamsCount?:   number;
     youthTeamsCount?:        number;
     start?:                  string;
-    end?:                    string;
+    endTime?:                string;
 }
 
 // Converts JSON strings to/from your types

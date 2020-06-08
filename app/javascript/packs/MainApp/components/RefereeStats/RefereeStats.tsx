@@ -20,7 +20,7 @@ interface RefereeStatsProps {
 const RefereeStats = (props: RefereeStatsProps) => {
   const { total, headCount, assistantCount, snitchCount, showFull, onClick, stats } = props
   const historicChartData = getMonths().map((month) => {
-    const foundStat = stats.find((stat) => toDateTime(stat.end).monthShort === month)
+    const foundStat = stats.find((stat) => toDateTime(stat.endTime).monthShort === month)
     if (!foundStat) {
       return { month, assistantRefereesCount: 0, snitchRefereesCount: 0, headRefereesCount: 0, uncertifiedCount: 0 }
     }

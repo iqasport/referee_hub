@@ -9,9 +9,9 @@ import TeamTypeStats from '../TeamTypeStats'
 
 const sortByTimestamp = (stats: IncludedAttributes[]): IncludedAttributes[] => {
   return stats.slice().sort((a, b) => {
-    const aEndTime = toDateTime(a.end)
+    const aEndTime = toDateTime(a.endTime)
     const aStartTime = toDateTime(a.start)
-    const bEndTime = toDateTime(b.end)
+    const bEndTime = toDateTime(b.endTime)
     const aInterval = Interval.fromDateTimes(aStartTime, aEndTime)
 
     if (aInterval.isBefore(bEndTime)) {

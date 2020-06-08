@@ -19,7 +19,7 @@ interface TeamTypeProps {
 const TeamTypeStats = (props: TeamTypeProps) => {
   const { total, communityCount, universityCount, youthCount, showFull, onClick, stats } = props
   const historicChartData = getMonths().map((month) => {
-    const foundStat = stats.find((stat) => toDateTime(stat.end).monthShort === month)
+    const foundStat = stats.find((stat) => toDateTime(stat.endTime).monthShort === month)
     if (!foundStat) {
       return { month, universityTeamsCount: 0, youthTeamsCount: 0, communityTeamsCount: 0 }
     }
