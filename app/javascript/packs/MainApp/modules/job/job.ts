@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { exportNgbTeams as exportNgbTeamsApi, JobResponse } from '../../apis/job';
+import { exportNgbReferees as exportNgbRefereesApi, exportNgbTeams as exportNgbTeamsApi, JobResponse } from '../../apis/job';
 import { AppThunk } from '../../store';
 
 export interface JobState {
@@ -13,23 +13,32 @@ const initialState: JobState = {
   jobId: null,
 }
 
+function jobSuccess(state: JobState, action: PayloadAction<JobResponse>) {
+  state.jobId = action.payload.jobId
+  state.error = null
+}
+
+function jobFailure(state: JobState, action: PayloadAction<string>) {
+  state.jobId = null
+  state.error = action.payload
+}
+
 const job = createSlice({
   initialState,
   name: 'jobs',
   reducers: {
-    exportNgbTeamsSuccess(state: JobState, action: PayloadAction<JobResponse>) {
-      state.jobId = action.payload.jobId
-    },
-    exportNgbTeamsFailure(state: JobState, action: PayloadAction<string>) {
-      state.jobId = null
-      state.error = action.payload
-    }
+    exportNgbRefereesFailure: jobFailure,
+    exportNgbRefereesSuccess: jobSuccess,
+    exportNgbTeamsFailure: jobFailure,
+    exportNgbTeamsSuccess: jobSuccess,
   }
 })
 
 export const {
   exportNgbTeamsFailure,
-  exportNgbTeamsSuccess
+  exportNgbTeamsSuccess,
+  exportNgbRefereesFailure,
+  exportNgbRefereesSuccess
 } = job.actions
 
 export const exportNgbTeams = (): AppThunk => async dispatch => {
@@ -38,6 +47,15 @@ export const exportNgbTeams = (): AppThunk => async dispatch => {
     dispatch(exportNgbTeamsSuccess(jobResponse))
   } catch (err) {
     dispatch(exportNgbTeamsFailure(err))
+  }
+}
+
+export const exportNgbReferees = (): AppThunk => async dispatch => {
+  try {
+    const jobResponse = await exportNgbRefereesApi()
+    dispatch(exportNgbRefereesSuccess(jobResponse))
+  } catch (err) {
+    dispatch(exportNgbRefereesFailure(err))
   }
 }
 

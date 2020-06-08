@@ -43,7 +43,7 @@ module Api
       end
 
       def export
-        export_options = search_params.presence || { national_governing_bodies: [current_user.owned_ngb.first.id] }
+        export_options = search_params.presence || { national_governing_bodies: [current_user.owned_ngb&.first.id] }
         enqueued_job = ExportCsvJob.perform_later(
           current_user,
           'ExportedCsv::RefereeExport',

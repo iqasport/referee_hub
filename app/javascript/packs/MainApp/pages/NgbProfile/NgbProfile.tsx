@@ -8,7 +8,7 @@ import ExportModal, { ExportType } from '../../components/ExportModal/ExportModa
 import NewRefereeTable from '../../components/NewRefereeTable'
 import StatsViewer from '../../components/StatsViewer'
 import TeamTable from '../../components/TeamTable'
-import { exportNgbTeams } from '../../modules/job/job'
+import { exportNgbTeams, exportNgbReferees } from '../../modules/job/job'
 import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import ActionsButton from './ActionsButton'
 import Sidebar from './Sidebar'
@@ -63,9 +63,12 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
   const handleCloseModal = () => setOpenModal(null)
   const handleExport = (type: ExportType) => {
     handleCloseModal()
+    debugger
     switch(type) {
       case ExportType.Team:
         dispatch(exportNgbTeams());
+      case ExportType.Referee:
+        dispatch(exportNgbReferees());
     }
   }
 
