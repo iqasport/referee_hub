@@ -40,7 +40,7 @@ const ExportModal = (props: ExportModalProps) => {
           We will send you an email with the attached file once your export is done.
           If you don't get the email within 30 minutes, something's up! Email tech@iqasport.org for help.
         </p>
-        <button className="rounded bg-white border-2 border-green text-green py-2 px-4 uppercase h-12" onClick={handleExport}>
+        <button className="green-button-outline h-12" onClick={handleExport}>
           Submit
         </button>
       </div>
