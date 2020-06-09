@@ -7,7 +7,7 @@
 #  community_teams_count      :integer          default(0)
 #  competitive_teams_count    :integer          default(0)
 #  developing_teams_count     :integer          default(0)
-#  end                        :datetime
+#  end_time                   :datetime
 #  head_referees_count        :integer          default(0)
 #  inactive_teams_count       :integer          default(0)
 #  snitch_referees_count      :integer          default(0)
@@ -33,7 +33,7 @@
 
 FactoryBot.define do
   factory :national_governing_body_stat do
-    national_governing_body nil
+    national_governing_body { create :national_governing_body }
     total_referees_count 1
     head_referees_count 1
     assistant_referees_count 1

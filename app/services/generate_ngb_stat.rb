@@ -10,13 +10,14 @@ module Services
 
     def perform
       raise StandardError, 'ngb_id provided is invalid' unless national_governing_body
-      
+      return nil if national_governing_body.stats.by_month(end_time.strftime('%m')).present?
+
       NationalGoverningBodyStat.create!(
         assistant_referees_count: referee_counts[:assistant],
         community_teams_count: team_counts[:community],   
         competitive_teams_count: team_counts[:competitive], 
         developing_teams_count: team_counts[:developing],  
-        end: end_time,
+        end_time: end_time,
         head_referees_count: referee_counts[:head],     
         inactive_teams_count: team_counts[:inactive],
         snitch_referees_count: referee_counts[:snitch],   

@@ -21,7 +21,7 @@ const Modal: FunctionComponent<ModalProps> = (props) => {
 
   const closeButton = (
     <div className="cursor-pointer absolute top-0 right-0 m-2" onClick={props.onClose}>
-      <FontAwesomeIcon icon={faTimes} className="" />
+      <FontAwesomeIcon icon={faTimes} />
     </div>
   );
 

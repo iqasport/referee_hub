@@ -7,7 +7,7 @@
 #  community_teams_count      :integer          default(0)
 #  competitive_teams_count    :integer          default(0)
 #  developing_teams_count     :integer          default(0)
-#  end                        :datetime
+#  end_time                   :datetime
 #  head_referees_count        :integer          default(0)
 #  inactive_teams_count       :integer          default(0)
 #  snitch_referees_count      :integer          default(0)
@@ -33,4 +33,8 @@
 
 class NationalGoverningBodyStat < ApplicationRecord
   belongs_to :national_governing_body
+
+  def self.by_month(month)
+    where('EXTRACT(month FROM end_time::date)::integer = ?', month)
+  end
 end
