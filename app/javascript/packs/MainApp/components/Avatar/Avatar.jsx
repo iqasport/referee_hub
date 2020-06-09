@@ -10,7 +10,6 @@ const Avatar = (props) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const history = useHistory()
 
-  const handleOpen = () => setIsDropdownOpen(true)
   const handleClose = () => setIsDropdownOpen(false)
   const handleToggle = () => setIsDropdownOpen(!isDropdownOpen)
 
@@ -32,22 +31,32 @@ const Avatar = (props) => {
   }
 
   return (
-    <div tabIndex={0} className="avatar" role="button" onClick={handleToggle} onKeyPress={handleOpen}>
-      <span>{`${firstName[0]}${lastName[0]}`}</span>
-      <div className={`avatar-dropdown ${isDropdownOpen && 'dropdown-visible'}`}>
-        <ul>
-          <li>
-            <button type="button" className="appearance-none" onClick={handleHomeClick}>
-              Home
-            </button>
-          </li>
-          <li>
-            <button onClick={handleLogoutClick} type="button">
-              Logout
-            </button>
-          </li>
-        </ul>
-      </div>
+    <div className="relative">
+      <button onClick={handleToggle} className="avatar" type="button">{`${firstName[0]}${lastName[0]}`}</button>
+      {isDropdownOpen && (
+        <button
+          onClick={handleClose}
+          type="button"
+          tabIndex={-1}
+          className="fixed inset-0 h-full w-full cursor-default"
+        />
+      )}
+      {isDropdownOpen && (
+        <div className="bg-white rounded py-2 w-32 mt-1 shadow-lg absolute right-0 z-1">
+          <ul>
+            <li className="block px-4 py-2 text-black hover:bg-gray-300 text-left">
+              <button type="button" className="appearance-none" onClick={handleHomeClick}>
+                Home
+              </button>
+            </li>
+            <li className="block px-4 py-2 text-black hover:bg-gray-300 text-left">
+              <button onClick={handleLogoutClick} type="button">
+                Logout
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

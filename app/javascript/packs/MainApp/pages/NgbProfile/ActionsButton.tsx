@@ -1,3 +1,5 @@
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState } from 'react'
 
 interface ActionsButtonProps {
@@ -11,42 +13,50 @@ const ActionsButton = (props: ActionsButtonProps) => {
   const [isDropdownActive, setIsDropdownActive] = useState(false)
   
   const handleActionClick = () => setIsDropdownActive(!isDropdownActive)
+  const handleActionClose = () => setIsDropdownActive(false)
   const handleEditClick = () => {
-    handleActionClick()
+    handleActionClose()
     onEditClick()
   }
   const handleImportClick = () => {
-    handleActionClick()
+    handleActionClose()
     onImportClick()
   }
   const handleExportClick = () => {
-    handleActionClick()
+    handleActionClose()
     onExportClick()
   }
 
+
   return (
-    <>
-      <button onClick={handleActionClick} className="rounded bg-white border-2 border-green text-green py-2 px-4 uppercase">Actions</button>
-      <div className={`avatar-dropdown ${isDropdownActive && 'dropdown-visible'}`}>
-        <ul>
-          <li>
-            <button type="button" className="appearance-none" onClick={handleEditClick}>
-              Edit
-            </button>
-          </li>
-          <li>
-            <button onClick={handleImportClick} type="button">
-              Import
-            </button>
-          </li>
-          <li>
-            <button onClick={handleExportClick} type="button">
-              Export
-            </button>
-          </li>
-        </ul>
-      </div>
-    </>
+    <div className="relative">
+      <button onClick={handleActionClick} className="flex items-center green-button-outline z-1 relative">
+        Actions
+        <FontAwesomeIcon icon={faCaretDown} className="ml-4" />
+      </button>
+      {isDropdownActive && <button onClick={handleActionClose} tabIndex={-1} className="fixed inset-0 h-full w-full cursor-default" />}
+      {isDropdownActive && (
+        <div className="bg-white rounded py-2 w-32 mt-1 shadow-lg absolute right-0 z-1">
+          <ul>
+            <li className="block px-4 py-2 hover:bg-gray-300">
+              <button type="button" className="appearance-none" onClick={handleEditClick}>
+                Edit
+              </button>
+            </li>
+            <li className="block px-4 py-2 hover:bg-gray-300">
+              <button onClick={handleImportClick} type="button">
+                Import
+              </button>
+            </li>
+            <li className="block px-4 py-2 hover:bg-gray-300">
+              <button onClick={handleExportClick} type="button">
+                Export
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
   )
 }
 
