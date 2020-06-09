@@ -19,7 +19,7 @@ interface TeamTypeProps {
 const TeamTypeStats = (props: TeamTypeProps) => {
   const { total, communityCount, universityCount, youthCount, showFull, onClick, stats } = props
   const historicChartData = getMonths().map((month) => {
-    const foundStat = stats.find((stat) => toDateTime(stat.end).monthShort === month)
+    const foundStat = stats.find((stat) => toDateTime(stat.endTime).monthShort === month)
     if (!foundStat) {
       return { month, universityTeamsCount: 0, youthTeamsCount: 0, communityTeamsCount: 0 }
     }
@@ -47,7 +47,7 @@ const TeamTypeStats = (props: TeamTypeProps) => {
 
   return (
     <div className={classnames({ ["w-full"]: showFull, ["w-1/3 mx-4"]: !showFull })}>
-      <h3 className="text-blue-darker text-xl font-bold mb-4">Team Status</h3>
+      <h3 className="text-blue-darker text-xl font-bold mb-4">Team Type</h3>
       <div className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer" onClick={onClick}>
         <div className="w-full h-64 flex-1">
           <StatBarChart maxData={total} barConfig={barConfig} chartData={chartData} />

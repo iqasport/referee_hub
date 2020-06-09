@@ -1,6 +1,7 @@
 import { combineReducers }from '@reduxjs/toolkit'
 
 import currentUserReducer from './modules/currentUser/currentUser'
+import jobsReducer from './modules/job/job'
 import nationalGoverningBodiesReducer from './modules/nationalGoverningBody/nationalGoverningBodies'
 import nationalGoverningBodyReducer from './modules/nationalGoverningBody/nationalGoverningBody';
 import getRefereeReducer from './modules/referee/referee';
@@ -9,6 +10,7 @@ import teamsReducer from './modules/team/team'
 
 const rootReducer = combineReducers({
   currentUser: currentUserReducer,
+  jobs: jobsReducer,
   nationalGoverningBodies: nationalGoverningBodiesReducer,
   nationalGoverningBody: nationalGoverningBodyReducer,
   referee: getRefereeReducer,

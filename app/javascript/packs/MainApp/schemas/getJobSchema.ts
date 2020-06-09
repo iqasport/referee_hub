@@ -1,93 +1,29 @@
 // To parse this data:
 //
-//   import { Convert, GetNationalGoverningBodySchema } from "./file";
+//   import { Convert, GetJobSchema } from "./file";
 //
-//   const getNationalGoverningBodySchema = Convert.toGetNationalGoverningBodySchema(json);
+//   const getJobSchema = Convert.toGetJobSchema(json);
 //
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
 
-export interface GetNationalGoverningBodySchema {
-    data:     Data;
-    included: Included[];
+export interface GetJobSchema {
+    data: Data;
 }
 
 export interface Data {
-    id:            string;
-    type:          string;
-    attributes:    DataAttributes;
-    relationships: Relationships;
-}
-
-export enum Region {
-    NorthAmerica = 'north_america',
-    SouthAmerica = 'south_america',
-    Europe = 'europe',
-    Africa = 'africa',
-    Asia = 'asia',
-}
-
-export interface DataAttributes {
-    name:        string;
-    website:     string;
-    acronym:     string;
-    playerCount: number;
-    region:      Region;
-    country:     string;
-    logoUrl:     string | null;
-}
-
-export interface Relationships {
-    socialAccounts: Relationship;
-    teams:          Relationship;
-    referees:       Relationship;
-    stats:          Relationship;
-}
-
-export interface Relationship {
-    data: Datum[];
-}
-
-export interface Datum {
-    id:   string;
-    type: string;
-}
-
-export interface Included {
-    id:         string;
-    type:       string;
-    attributes: IncludedAttributes;
-}
-
-export interface IncludedAttributes {
-    accountType?:            string;
-    url?:                    string;
-    assistantRefereesCount?: number; 
-    communityTeamsCount?:    number;
-    competitiveTeamsCount?:  number;
-    developingTeamsCount?:   number;
-    headRefereesCount?:      number;
-    inactiveTeamsCount?:     number;
-    snitchRefereesCount?:    number;
-    teamStatusChangeCount?:  number;
-    totalRefereesCount?:     number;
-    totalTeamsCount?:        number;
-    uncertifiedCount?:       number;
-    universityTeamsCount?:   number;
-    youthTeamsCount?:        number;
-    start?:                  string;
-    endTime?:                string;
+    job_id: string;
 }
 
 // Converts JSON strings to/from your types
 // and asserts the results of JSON.parse at runtime
 export class Convert {
-    public static toGetNationalGoverningBodySchema(json: string): GetNationalGoverningBodySchema {
-        return cast(JSON.parse(json), r("GetNationalGoverningBodySchema"));
+    public static toGetJobSchema(json: string): GetJobSchema {
+        return cast(JSON.parse(json), r("GetJobSchema"));
     }
 
-    public static getNationalGoverningBodySchemaToJson(value: GetNationalGoverningBodySchema): string {
-        return JSON.stringify(uncast(value, r("GetNationalGoverningBodySchema")), null, 2);
+    public static getJobSchemaToJson(value: GetJobSchema): string {
+        return JSON.stringify(uncast(value, r("GetJobSchema")), null, 2);
     }
 }
 
@@ -221,43 +157,10 @@ function r(name: string) {
 }
 
 const typeMap: any = {
-    "GetNationalGoverningBodySchema": o([
+    "GetJobSchema": o([
         { json: "data", js: "data", typ: r("Data") },
-        { json: "included", js: "included", typ: a(r("Included")) },
     ], false),
     "Data": o([
-        { json: "id", js: "id", typ: "" },
-        { json: "type", js: "type", typ: "" },
-        { json: "attributes", js: "attributes", typ: r("DataAttributes") },
-        { json: "relationships", js: "relationships", typ: r("Relationships") },
-    ], false),
-    "DataAttributes": o([
-        { json: "name", js: "name", typ: "" },
-        { json: "website", js: "website", typ: "" },
-        { json: "acronym", js: "acronym", typ: "" },
-        { json: "playerCount", js: "playerCount", typ: 0 },
-        { json: "region", js: "region", typ: null },
-        { json: "country", js: "country", typ: null },
-    ], false),
-    "Relationships": o([
-        { json: "socialAccounts", js: "socialAccounts", typ: r("Referees") },
-        { json: "teams", js: "teams", typ: r("Referees") },
-        { json: "referees", js: "referees", typ: r("Referees") },
-    ], false),
-    "Referees": o([
-        { json: "data", js: "data", typ: a(r("Datum")) },
-    ], false),
-    "Datum": o([
-        { json: "id", js: "id", typ: "" },
-        { json: "type", js: "type", typ: "" },
-    ], false),
-    "Included": o([
-        { json: "id", js: "id", typ: "" },
-        { json: "type", js: "type", typ: "" },
-        { json: "attributes", js: "attributes", typ: r("IncludedAttributes") },
-    ], false),
-    "IncludedAttributes": o([
-        { json: "accountType", js: "accountType", typ: "" },
-        { json: "url", js: "url", typ: "" },
+        { json: "job_id", js: "job_id", typ: "" },
     ], false),
 };
