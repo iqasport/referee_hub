@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_17_171543) do
+ActiveRecord::Schema.define(version: 2020_06_08_141251) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -121,7 +121,7 @@ ActiveRecord::Schema.define(version: 2020_05_17_171543) do
     t.integer "total_teams_count", default: 0
     t.integer "uncertified_count", default: 0
     t.datetime "start"
-    t.datetime "end"
+    t.datetime "end_time"
     t.index ["national_governing_body_id"], name: "ngb_stats_on_ngb_id"
   end
 

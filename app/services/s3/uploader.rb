@@ -37,6 +37,8 @@ module Services
       private
 
       def storage
+        Fog.mock! if Rails.env.test? || Rails.env.development?
+        
         @storage ||= Fog::Storage.new(
           provider: 'AWS',
           aws_access_key_id: aws_access_key_id,
@@ -57,19 +59,19 @@ module Services
       end
 
       def aws_access_key_id
-        return 'nonsense' if Rails.env.test?
+        return 'nonsense' if Rails.env.test? || Rails.env.development?
 
         ENV['AWS_ACCESS_KEY_ID']
       end
 
       def aws_secret_access_key
-        return 'nonsense' if Rails.env.test?
+        return 'nonsense' if Rails.env.test? || Rails.env.development?
 
         ENV['AWS_SECRET_ACCESS_KEY']
       end
 
       def bucket_name
-        return 'nonsense' if Rails.env.test?
+        return 'nonsense' if Rails.env.test? || Rails.env.development?
 
         ENV['AWS_BUCKET']
       end

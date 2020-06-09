@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classnames from 'classnames'
 import React, { useState } from 'react'
 
-import Modal, { ModalSize } from '../Modal'
+import Modal, { ModalSize } from '../Modal/Modal'
 
 type UploadedImageProps = {
   imageUrl: string;

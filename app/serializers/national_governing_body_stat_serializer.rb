@@ -7,7 +7,7 @@
 #  community_teams_count      :integer          default(0)
 #  competitive_teams_count    :integer          default(0)
 #  developing_teams_count     :integer          default(0)
-#  end                        :datetime
+#  end_time                   :datetime
 #  head_referees_count        :integer          default(0)
 #  inactive_teams_count       :integer          default(0)
 #  snitch_referees_count      :integer          default(0)
@@ -46,5 +46,5 @@ class NationalGoverningBodyStatSerializer < BaseSerializer
              :university_teams_count,
              :youth_teams_count,
              :start,
-             :end
+             :end_time
 end
