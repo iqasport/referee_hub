@@ -1,24 +1,17 @@
-import classnames from 'classnames'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
-import { RouteComponentProps } from 'react-router-dom'
+import { RouteComponentProps, useHistory } from 'react-router-dom'
 
 import { RootState } from 'rootReducer'
 import ExportModal, { ExportType } from '../../components/ExportModal/ExportModal'
-import NewRefereeTable from '../../components/NewRefereeTable'
 import StatsViewer from '../../components/StatsViewer'
-import TeamTable from '../../components/TeamTable'
 import { exportNgbReferees, exportNgbTeams } from '../../modules/job/job'
 import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import ActionsButton from './ActionsButton'
+import NgbTables from './NgbTables'
 import Sidebar from './Sidebar'
 
 type IdParams = { id: string }
-
-enum SelectedTable {
-  Referees = 'referees',
-  Teams = 'teams',
-}
 
 enum ModalType {
   Export = 'export',
@@ -27,10 +20,10 @@ enum ModalType {
 
 const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id } } } = props
-  const [selectedTable, setSelectedTable] = useState(SelectedTable.Referees)
   const [openModal, setOpenModal] = useState<ModalType>()
   const [isEditing, setIsEditing] = useState(false)
   const dispatch = useDispatch()
+  const history = useHistory()
   const { ngb, socialAccounts, refereeCount, teamCount, stats } = useSelector((state: RootState): SingleNationalGoverningBodyState => {
     return {
       error: state.nationalGoverningBody.error,
@@ -52,12 +45,6 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
 
   if (!ngb) return null
 
-  const handleTableToggle = (table: SelectedTable) => (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    event.preventDefault()
-    if (selectedTable === table) return
-
-    setSelectedTable(table)
-  }
   const handleEditClick = () => setIsEditing(true)
   const handleOpenModal = (type: ModalType) => () => setOpenModal(type)
   const handleCloseModal = () => setOpenModal(null)
@@ -71,6 +58,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
         dispatch(exportNgbReferees());
     }
   }
+  const handleImportClick = () => history.push('/import/ngb')
 
   const renderModals = () => {
     switch(openModal) {
@@ -80,8 +68,6 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
         return null
     }
   }
-  const isRefereesActive = selectedTable === SelectedTable.Referees
-  const isTeamsActive = selectedTable === SelectedTable.Teams
 
   return (
     <div className="w-5/6 mx-auto my-8">
@@ -89,7 +75,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
         <h1 className="w-full text-4xl text-navy-blue font-extrabold">{ngb.name}</h1>
         <ActionsButton 
           onEditClick={handleEditClick} 
-          onImportClick={handleOpenModal(ModalType.Import)} 
+          onImportClick={handleImportClick}
           onExportClick={handleOpenModal(ModalType.Export)} 
         />
       </div>
@@ -104,24 +90,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
         />
         <div className="flex flex-col w-4/5 pl-8">
           <StatsViewer stats={stats} />
-          <div className="w-full">
-            <div className="flex justify-start w-full mt-8">
-              <button 
-                className={classnames('button-tab', { ['active-button-tab']: isRefereesActive })} 
-                onClick={handleTableToggle(SelectedTable.Referees)}
-              >
-                Referees
-              </button>
-              <button 
-                className={classnames('button-tab', { ['active-button-tab']: isTeamsActive })}
-                onClick={handleTableToggle(SelectedTable.Teams)}
-              >
-                Teams
-              </button>
-            </div>
-            {isRefereesActive && <NewRefereeTable ngbId={parseInt(id, 10)} />}
-            {isTeamsActive && <TeamTable ngbId={parseInt(id, 10)} />}
-          </div>
+          <NgbTables ngbId={parseInt(id, 10)} />
         </div>
       </div>
       {renderModals()}

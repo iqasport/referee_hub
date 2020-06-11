@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 import Avatar from './components/Avatar'
 import { fetchCurrentUser } from './modules/currentUser/currentUser'
 import Admin from './pages/Admin'
+import ImportWizard from './pages/ImportWizard'
 import NgbProfile from './pages/NgbProfile'
 import OldRefereeProfile from './pages/OldRefereeProfile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -63,6 +64,7 @@ const App = () => {
         <Route exact={true} path='/admin/tests/:id' component={Test} />
         <Route exact={true} path='/referees/:refereeId/tests/:testId' component={StartTest} />
         <Route exact={true} path='/national_governing_bodies/:id' component={NgbProfile} />
+        <Route exact={true} path='/import/:scope' component={ImportWizard} />
       </div>
     </Router>
   )
