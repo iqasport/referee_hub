@@ -1,11 +1,28 @@
+import { faEnvelopeOpenText, faRoute, faUpload, IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router-dom';
 import StepDescriptions from './StepDescriptions';
+import UploadStep from './UploadStep';
 
-const stepTextMap: { [stepCount: number]: string } = {
-  1: 'Upload',
-  2: 'Map',
-  3: 'Finish',
+type StepConfig = {
+  title: string;
+  icon: IconDefinition
+}
+
+const stepTextMap: { [stepCount: number]: StepConfig } = {
+  1: {
+    icon: faUpload,
+    title: 'Upload',
+  },
+  2: {
+    icon: faRoute,
+    title: 'Map',
+  },
+  3: {
+    icon: faEnvelopeOpenText,
+    title: 'Finish'
+  },
 }
 
 const ImportWizard = () => {
@@ -15,7 +32,8 @@ const ImportWizard = () => {
   const isFinalStep = stepCount === 3;
   const buttonText = isFinalStep ? 'Done' : 'Next';
   const isDisabled = stepCount === 1 && !uploadedFile
-  
+  const currentStepConfig = stepTextMap[stepCount]
+
   const goForward = () => setStepCount(stepCount + 1)
   
   const handleHomeClick = () => history.goBack()
@@ -29,11 +47,12 @@ const ImportWizard = () => {
       goForward()
     }
   }
+  const handleFileUpload = (selectedFile: File) => setUploadedFile(selectedFile)
 
   const renderStepContent = (): JSX.Element | null => {
     switch(stepCount) {
       case 1:
-        return <div>upload step</div>
+        return <UploadStep onFileUpload={handleFileUpload} uploadedFile={uploadedFile} />
       default:
         return null
     }
@@ -47,13 +66,16 @@ const ImportWizard = () => {
       <h1 className="font-extrabold text-3xl w-full pl-10">Import</h1>
       <StepDescriptions currentStep={stepCount} scopes={['team']} />
       <div className="rounded-lg bg-green w-3/4 flex justify-between py-4 px-12 text-navy-blue mb-4">
-        <h3 className="text-xl font-bold">{stepTextMap[stepCount]}</h3>
-        <p>{`Step ${stepCount}/3`}</p>
+        <h3 className="text-xl font-bold flex items-center">
+          {currentStepConfig.title}
+          <FontAwesomeIcon icon={currentStepConfig.icon} className="ml-4" />
+        </h3>
+        <p className="uppercase">{`Step ${stepCount}/3`}</p>
       </div>
-      <div className="rounded border border-gray-300 w-3/4">
+      <div className="rounded border border-gray-400 w-3/4">
         {renderStepContent()}
       </div>
-      <div className="justify-end w-full flex">
+      <div className="justify-end w-full flex mt-8">
         <button className="green-button-outline" onClick={handleButtonClick} disabled={isDisabled}>{buttonText}</button>
       </div>
     </div>

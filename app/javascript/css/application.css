@@ -185,7 +185,7 @@
     @apply border-navy-blue;
 }
 
-button:focus {
+*:focus {
     outline: none;
 }
 
@@ -198,6 +198,10 @@ button:focus {
     @apply py-2;
     @apply px-4;
     @apply uppercase;
+}
+
+.green-button-outline:disabled {
+    @apply cursor-not-allowed;
 }
 
 .step-circle {
