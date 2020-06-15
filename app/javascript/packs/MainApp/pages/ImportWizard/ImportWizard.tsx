@@ -2,12 +2,18 @@ import { faEnvelopeOpenText, faRoute, faUpload, IconDefinition } from '@fortawes
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router-dom';
+
+import MapStep from './MapStep';
 import StepDescriptions from './StepDescriptions';
 import UploadStep from './UploadStep';
 
 type StepConfig = {
   title: string;
   icon: IconDefinition
+}
+
+export type HeadersMap = {
+  [original: string]: string
 }
 
 const stepTextMap: { [stepCount: number]: StepConfig } = {
@@ -28,6 +34,7 @@ const stepTextMap: { [stepCount: number]: StepConfig } = {
 const ImportWizard = () => {
   const [stepCount, setStepCount] = useState(1)
   const [uploadedFile, setUploadedFile] = useState<File>()
+  const [mappedData, setMappedData] = useState<HeadersMap>({})
   const history = useHistory();
   const isFinalStep = stepCount === 3;
   const buttonText = isFinalStep ? 'Done' : 'Next';
@@ -53,6 +60,8 @@ const ImportWizard = () => {
     switch(stepCount) {
       case 1:
         return <UploadStep onFileUpload={handleFileUpload} uploadedFile={uploadedFile} />
+      case 2:
+        return <MapStep uploadedFile={uploadedFile} onMappingUpdate={setMappedData} mappedData={mappedData} />
       default:
         return null
     }
