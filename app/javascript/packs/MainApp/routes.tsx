@@ -34,12 +34,6 @@ const App = () => {
     }
   }, []);
   
-  if (!(window.location.pathname === '/referees') && error) {
-    window.location.href = `${window.location.origin}/sign_in`;
-  }
-
-  const newDesignEnabled = currentUser?.enabledFeatures.includes('new_design')
-  const refProfile = newDesignEnabled ? RefereeProfile : OldRefereeProfile;
   const getRedirect = () => {
     if (!roles.length) return "/sign_in"
     if (roles.includes("iqa_admin")) return "/admin"
@@ -47,6 +41,13 @@ const App = () => {
     
     return `/referees/${id}`
   }
+  
+  if (!(window.location.pathname === '/referees') && error) {
+    window.location.href = `${window.location.origin}${getRedirect()}`;
+  }
+
+  const newDesignEnabled = currentUser?.enabledFeatures.includes('new_design')
+  const refProfile = newDesignEnabled ? RefereeProfile : OldRefereeProfile;
 
   return (
     <Router>
