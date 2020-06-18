@@ -302,6 +302,17 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
     let!(:user) { create :user, :ngb_admin }
     let!(:ngb) { create :national_governing_body }
     let(:service_double) { double(return_value: :perform) }
+    let(:mapped_headers) do
+      {
+        'name': 'name',
+        'city': 'city',
+        'country': 'country',
+        'state': 'state',
+        'age_group': 'age_group',
+        'status': 'status',
+        'url_1': 'url_1',
+      }.to_json
+    end
 
     before do
       ngb.admins << user
@@ -311,12 +322,12 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
       @file = fixture_file_upload('import_test.csv', 'text/csv')
     end
 
-    subject { post :import, params: { file: @file } }
+    subject { post :import, params: { file: @file, mapped_headers: mapped_headers } }
 
     it_behaves_like 'it is a successful request'
 
     it 'calls the team csv import service' do
-      expect(Services::TeamCsvImport).to receive(:new).with(instance_of(String), ngb)
+      expect(Services::TeamCsvImport).to receive(:new).with(instance_of(String), ngb, mapped_headers)
 
       subject
     end

@@ -28,7 +28,7 @@ describe Services::TeamCsvImport do
 
   after(:each) { File.delete(file_path) }
 
-  subject { described_class.new(file_path, ngb, mapped_headers).perform }
+  subject { described_class.new(file_path, ngb, mapped_headers.to_json).perform }
 
   it 'returns the imported team ids' do
     expect(subject.length).to eq 3
