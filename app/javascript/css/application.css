@@ -222,7 +222,7 @@
     @apply border-gray-400;
     @apply absolute;
     top: 36px;
-    left: 125px;
-    width: 66%;
+    left: 145px;
+    width: 70%;
     z-index: -1;
 }

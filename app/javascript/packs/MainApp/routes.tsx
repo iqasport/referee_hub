@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect } from 'react'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 
 import Avatar from './components/Avatar'
-import { fetchCurrentUser } from './modules/currentUser/currentUser'
+import { CurrentUserState, fetchCurrentUser } from './modules/currentUser/currentUser'
 import Admin from './pages/Admin'
 import ImportWizard from './pages/ImportWizard'
 import NgbProfile from './pages/NgbProfile'
@@ -19,24 +19,31 @@ import { RootState } from './rootReducer'
 
 const App = () => {
   const dispatch = useDispatch()
-  const { currentUser, roles, id } = useSelector((state: RootState) => state.currentUser)
+  const { currentUser, roles, id, error } = useSelector((state: RootState): CurrentUserState => {
+    return {
+      currentUser: state.currentUser.currentUser,
+      error: state.currentUser.error,
+      id: state.currentUser.id,
+      roles: state.currentUser.roles,
+    }
+  }, shallowEqual)
   
   useEffect(() => {
-    try {
+    if (!currentUser) {
       dispatch(fetchCurrentUser())
-    } catch {
-      window.location.href = `${window.location.origin}/sign_in`;
     }
   }, []);
   
-  if(!currentUser) return null
+  if (!(window.location.pathname === '/referees') && error) {
+    window.location.href = `${window.location.origin}/sign_in`;
+  }
 
-  const newDesignEnabled = currentUser.enabledFeatures.includes('new_design')
+  const newDesignEnabled = currentUser?.enabledFeatures.includes('new_design')
   const refProfile = newDesignEnabled ? RefereeProfile : OldRefereeProfile;
   const getRedirect = () => {
     if (!roles.length) return "/sign_in"
     if (roles.includes("iqa_admin")) return "/admin"
-    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser.ownedNgbId}`
+    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`
     
     return `/referees/${id}`
   }

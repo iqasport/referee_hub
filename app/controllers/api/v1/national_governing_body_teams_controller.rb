@@ -64,9 +64,9 @@ module Api
       end
 
       def import
-        Services::TeamCsvImport.new(params['file'].tempfile.path, ngb_scope).perform
+        imported_ids = Services::TeamCsvImport.new(params['file'].tempfile.path, ngb_scope, params['mapped_headers']).perform
 
-        new_teams = ngb_scope.teams
+        new_teams = ngb_scope.teams.where(id: imported_ids)
         page = params[:page] || 1
         teams_total = new_teams.count
         new_teams = new_teams.page(page)

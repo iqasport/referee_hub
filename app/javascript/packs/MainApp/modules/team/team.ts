@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { getTeams as getTeamsApi, GetTeamsFilter, TeamResponse } from '../../apis/team';
+import { getTeams as getTeamsApi, GetTeamsFilter, importNgbTeams, TeamResponse } from '../../apis/team';
+import { HeadersMap } from '../../pages/ImportWizard/MapStep';
 import { Datum, Meta } from '../../schemas/getTeamsSchema';
 import { AppThunk } from '../../store';
 
@@ -18,30 +19,36 @@ const initialState: TeamsState = {
   teams: [],
 }
 
+function teamsSuccess(state: TeamsState, action: PayloadAction<TeamResponse>) {
+  state.teams = action.payload.teams
+  state.meta = action.payload.meta
+  state.error = null
+  state.isLoading = false
+}
+
+function teamsFailure(state: TeamsState, action: PayloadAction<string>) {
+  state.teams = initialState.teams
+  state.error = action.payload
+  state.isLoading = false
+}
+
 const team = createSlice({
   initialState,
   name: 'teams',
   reducers: {
+    getTeamsFailure: teamsFailure,
     getTeamsStart(state: TeamsState) {
       state.isLoading = true
     },
-    getTeamsSuccess(state: TeamsState, action: PayloadAction<TeamResponse>) {
-      state.teams = action.payload.teams
-      state.meta = action.payload.meta
-      state.error = null
-      state.isLoading = false
-    },
-    getTeamsFailure(state: TeamsState, action: PayloadAction<string>) {
-      state.teams = initialState.teams
-      state.error = action.payload
-      state.isLoading = false
-    },
+    getTeamsSuccess: teamsSuccess,
     updateFilters(state: TeamsState, action: PayloadAction<GetTeamsFilter>) {
       state.filters = action.payload
     },
     clearFilters(state: TeamsState) {
       state.filters = null
-    }
+    },
+    importTeamsFailure: teamsFailure,
+    importTeamsSuccess: teamsSuccess,
   }
 })
 
@@ -50,6 +57,8 @@ export const {
   getTeamsFailure,
   getTeamsStart,
   getTeamsSuccess,
+  importTeamsFailure,
+  importTeamsSuccess,
   updateFilters,
 } = team.actions
 
@@ -60,6 +69,15 @@ export const getTeams = (filters: GetTeamsFilter): AppThunk => async dispatch =>
     dispatch(getTeamsSuccess(teamsResponse))
   } catch (err) {
     dispatch(getTeamsFailure(err))
+  }
+}
+
+export const importTeams = (file: File, mappedData: HeadersMap): AppThunk => async dispatch => {
+  try {
+    const teamsResponse = await importNgbTeams(file, mappedData)
+    dispatch(importTeamsSuccess(teamsResponse))
+  } catch (err) {
+    dispatch(importTeamsFailure(err))
   }
 }
 

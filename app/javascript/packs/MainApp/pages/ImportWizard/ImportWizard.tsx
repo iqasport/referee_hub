@@ -1,19 +1,19 @@
 import { faEnvelopeOpenText, faRoute, faUpload, IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 
-import MapStep from './MapStep';
+import { importTeams, TeamsState } from '../../modules/team/team';
+import { RootState } from '../../rootReducer';
+import FinishStep from './FinishStep';
+import MapStep, { HeadersMap, REQUIRED_HEADERS } from './MapStep';
 import StepDescriptions from './StepDescriptions';
 import UploadStep from './UploadStep';
 
 type StepConfig = {
   title: string;
   icon: IconDefinition
-}
-
-export type HeadersMap = {
-  [original: string]: string
 }
 
 const stepTextMap: { [stepCount: number]: StepConfig } = {
@@ -31,11 +31,27 @@ const stepTextMap: { [stepCount: number]: StepConfig } = {
   },
 }
 
+const defaultHeadersMap: HeadersMap = REQUIRED_HEADERS.reduce((acc, value) => {
+  acc[value] = value
+  return acc
+}, {})
+
 const ImportWizard = () => {
   const [stepCount, setStepCount] = useState(1)
   const [uploadedFile, setUploadedFile] = useState<File>()
-  const [mappedData, setMappedData] = useState<HeadersMap>({})
+  const [mappedData, setMappedData] = useState<HeadersMap>(defaultHeadersMap)
+
+  const { meta, error } = useSelector((state: RootState): TeamsState => {
+    return {
+      error: state.teams.error,
+      isLoading: state.teams.isLoading,
+      meta: state.teams.meta,
+      teams: state.teams.teams,
+    }
+  }, shallowEqual);
   const history = useHistory();
+  const dispatch = useDispatch();
+  
   const isFinalStep = stepCount === 3;
   const buttonText = isFinalStep ? 'Done' : 'Next';
   const isDisabled = stepCount === 1 && !uploadedFile
@@ -48,7 +64,7 @@ const ImportWizard = () => {
     if (isFinalStep) {
       handleHomeClick()
     } else if (stepCount === 2) {
-      // submit csv
+      dispatch(importTeams(uploadedFile, mappedData))
       goForward()
     } else {
       goForward()
@@ -62,6 +78,8 @@ const ImportWizard = () => {
         return <UploadStep onFileUpload={handleFileUpload} uploadedFile={uploadedFile} />
       case 2:
         return <MapStep uploadedFile={uploadedFile} onMappingUpdate={setMappedData} mappedData={mappedData} />
+      case 3:
+        return <FinishStep meta={meta} error={error} />
       default:
         return null
     }
@@ -73,7 +91,9 @@ const ImportWizard = () => {
         <button className="py-4 px-8" onClick={handleHomeClick}>Home</button>
       </div>
       <h1 className="font-extrabold text-3xl w-full pl-10">Import</h1>
-      <StepDescriptions currentStep={stepCount} scopes={['team']} />
+      <div className="lg:block xl:block hidden">
+        <StepDescriptions currentStep={stepCount} scopes={['team']} />
+      </div>
       <div className="rounded-lg bg-green w-3/4 flex justify-between py-4 px-12 text-navy-blue mb-4">
         <h3 className="text-xl font-bold flex items-center">
           {currentStepConfig.title}

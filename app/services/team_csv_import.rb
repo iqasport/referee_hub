@@ -2,14 +2,15 @@ require 'csv'
 
 module Services
   class TeamCsvImport
-    attr_reader :file_path, :ngb
+    attr_reader :file_path, :ngb, :mapped_headers
     attr_accessor :teams
 
     NGBMissingError = Class.new(StandardError)
 
-    def initialize(file_path, ngb)
+    def initialize(file_path, ngb, mapped_headers)
       @file_path = file_path
       @ngb = ngb
+      @mapped_headers = ActiveSupport::JSON.decode(mapped_headers).with_indifferent_access
       @teams = []
     end
 
@@ -21,29 +22,33 @@ module Services
 
         team = find_or_initialize_team(row_data)
         next unless team&.valid?
-
         team.social_accounts = find_or_initialize_social_accounts(row_data)
         teams << team
       end
 
-      Team.import teams, recursive: true, on_duplicate_key_update: %i[city country state group_affiliation status]
+      import_results = Team.import(
+        teams, 
+        recursive: true, 
+        on_duplicate_key_update: %i[city country state group_affiliation status], 
+        returning: :name
+      )
+      import_results.ids
     end
 
     private
 
     def find_or_initialize_team(row_data)
-      team = Team.where(national_governing_body_id: ngb.id).find_or_initialize_by(name: row_data.dig(:name))
-      status = row_data.dig(:status)
-      group_affiliation = row_data.dig(:age_group)
+      team = Team.where(national_governing_body_id: ngb.id).find_or_initialize_by(name: row_data.dig(mapped_headers['name']))
+      status = row_data.dig(mapped_headers['status'])
+      group_affiliation = row_data.dig(mapped_headers['age_group'])
       return unless Team.statuses.key?(status)
       return unless Team.group_affiliations.key?(group_affiliation)
 
       team.assign_attributes(
-        city: row_data.dig(:city),
-        country: row_data.dig(:country),
+        city: row_data.dig(mapped_headers['city']),
+        country: row_data.dig(mapped_headers['country']),
         group_affiliation: group_affiliation,
-        name: row_data.dig(:name),
-        state: row_data.dig(:state),
+        state: row_data.dig(mapped_headers['state']),
         status: status
       )
 
@@ -52,8 +57,8 @@ module Services
 
     def find_or_initialize_social_accounts(row_data)
       social_accounts = []
-      all_keys = row_data.keys
-      url_keys = all_keys.select { |key| key =~ /url_\d+$/ }
+      mapped_keys = mapped_headers.keys.select { |key| key =~ /url_\d+$/ }      
+      url_keys = mapped_keys.map { |key| mapped_headers[key] }
 
       url_keys.each do |url_key|
         url = row_data.dig(url_key)
