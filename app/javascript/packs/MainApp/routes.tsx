@@ -19,14 +19,7 @@ import { RootState } from './rootReducer'
 
 const App = () => {
   const dispatch = useDispatch()
-  const { currentUser, roles, id, error } = useSelector((state: RootState): CurrentUserState => {
-    return {
-      currentUser: state.currentUser.currentUser,
-      error: state.currentUser.error,
-      id: state.currentUser.id,
-      roles: state.currentUser.roles,
-    }
-  }, shallowEqual)
+  const { currentUser, roles, id, error } = useSelector((state: RootState) => state.currentUser)
   
   useEffect(() => {
     if (!currentUser) {
@@ -40,10 +33,6 @@ const App = () => {
     if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`
     
     return `/referees/${id}`
-  }
-  
-  if (!(window.location.pathname === '/referees') && error) {
-    window.location.href = `${window.location.origin}${getRedirect()}`;
   }
 
   const newDesignEnabled = currentUser?.enabledFeatures.includes('new_design')
@@ -64,7 +53,9 @@ const App = () => {
           <Redirect to={getRedirect()} />
         </Route>
         <Route exact={true} path='/privacy' component={PrivacyPolicy} />
-        <Route exact={true} path='/referees' component={Referees} />
+        <Route exact={true} path='/referees' component={Referees}>
+          {!currentUser && error && <Redirect to={getRedirect()} />}
+        </Route>
         <Route exact={true} path='/referees/:id' component={refProfile} />
         <Route exact={true} path='/admin' component={Admin} />
         <Route exact={true} path='/admin/referee-diagnostic' component={RefereeDiagnostic} />

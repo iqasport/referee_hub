@@ -1,4 +1,4 @@
-import { faEnvelopeOpenText, faRoute, faUpload, IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { faCaretLeft, faEnvelopeOpenText, faRoute, faUpload, IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
@@ -41,14 +41,7 @@ const ImportWizard = () => {
   const [uploadedFile, setUploadedFile] = useState<File>()
   const [mappedData, setMappedData] = useState<HeadersMap>(defaultHeadersMap)
 
-  const { meta, error } = useSelector((state: RootState): TeamsState => {
-    return {
-      error: state.teams.error,
-      isLoading: state.teams.isLoading,
-      meta: state.teams.meta,
-      teams: state.teams.teams,
-    }
-  }, shallowEqual);
+  const { meta, error } = useSelector((state: RootState) => state.teams, shallowEqual);
   const history = useHistory();
   const dispatch = useDispatch();
   
@@ -88,9 +81,12 @@ const ImportWizard = () => {
   return (
     <div className="w-full px-10 py-4 flex flex-col h-screen items-center">
       <div className="justify-start w-full">
-        <button className="py-4 px-8" onClick={handleHomeClick}>Home</button>
+        <button className="py-4 px-8 flex items-center text-xl" onClick={handleHomeClick}>
+          <FontAwesomeIcon icon={faCaretLeft} className="mr-2" />
+          Home
+        </button>
       </div>
-      <h1 className="font-extrabold text-3xl w-full pl-10">Import</h1>
+      <h1 className="font-extrabold text-3xl w-full pl-32">Import</h1>
       <div className="lg:block xl:block hidden">
         <StepDescriptions currentStep={stepCount} scopes={['team']} />
       </div>
