@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect } from 'react'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 
 import Avatar from './components/Avatar'
-import { fetchCurrentUser } from './modules/currentUser/currentUser'
+import { CurrentUserState, fetchCurrentUser } from './modules/currentUser/currentUser'
 import Admin from './pages/Admin'
+import ImportWizard from './pages/ImportWizard'
 import NgbProfile from './pages/NgbProfile'
 import OldRefereeProfile from './pages/OldRefereeProfile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -18,27 +19,24 @@ import { RootState } from './rootReducer'
 
 const App = () => {
   const dispatch = useDispatch()
-  const { currentUser, roles, id } = useSelector((state: RootState) => state.currentUser)
+  const { currentUser, roles, id, error } = useSelector((state: RootState) => state.currentUser)
   
   useEffect(() => {
-    try {
+    if (!currentUser) {
       dispatch(fetchCurrentUser())
-    } catch {
-      window.location.href = `${window.location.origin}/sign_in`;
     }
   }, []);
   
-  if(!currentUser) return null
-
-  const newDesignEnabled = currentUser.enabledFeatures.includes('new_design')
-  const refProfile = newDesignEnabled ? RefereeProfile : OldRefereeProfile;
   const getRedirect = () => {
     if (!roles.length) return "/sign_in"
     if (roles.includes("iqa_admin")) return "/admin"
-    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser.ownedNgbId}`
+    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`
     
     return `/referees/${id}`
   }
+
+  const newDesignEnabled = currentUser?.enabledFeatures.includes('new_design')
+  const refProfile = newDesignEnabled ? RefereeProfile : OldRefereeProfile;
 
   return (
     <Router>
@@ -55,7 +53,9 @@ const App = () => {
           <Redirect to={getRedirect()} />
         </Route>
         <Route exact={true} path='/privacy' component={PrivacyPolicy} />
-        <Route exact={true} path='/referees' component={Referees} />
+        <Route exact={true} path='/referees' component={Referees}>
+          {!currentUser && error && <Redirect to={getRedirect()} />}
+        </Route>
         <Route exact={true} path='/referees/:id' component={refProfile} />
         <Route exact={true} path='/admin' component={Admin} />
         <Route exact={true} path='/admin/referee-diagnostic' component={RefereeDiagnostic} />
@@ -63,6 +63,7 @@ const App = () => {
         <Route exact={true} path='/admin/tests/:id' component={Test} />
         <Route exact={true} path='/referees/:refereeId/tests/:testId' component={StartTest} />
         <Route exact={true} path='/national_governing_bodies/:id' component={NgbProfile} />
+        <Route exact={true} path='/import/:scope' component={ImportWizard} />
       </div>
     </Router>
   )

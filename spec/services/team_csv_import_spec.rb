@@ -5,10 +5,21 @@ describe Services::TeamCsvImport do
   let(:ngb) { create :national_governing_body }
   let(:headers) { 'name,city,country,state,age_group,status,url_1' }
   let(:row1) { 'DCQC,Washington,USA,DC,community,competitive,www.usquidditch.com/dcqc' }
-  let(:row2) { 'Bowling Green Quiddicth,Bowling Green,USA,OH,university,developing,www.facebook.com/bgsu' }
+  let(:row2) { 'Bowling Green Quidditch,Bowling Green,USA,OH,university,developing,www.facebook.com/bgsu' }
   let(:row3) { 'Vassar Quidditch,Poughkeepsie,USA,NY,youth,inactive,www.twitter.com/vassar' }
   let(:rows) { [headers, row1, row2, row3] }
   let(:file_path) { 'tmp/team_csv_import_test.csv' }
+  let(:mapped_headers) do
+    {
+      'name': 'name',
+      'city': 'city',
+      'country': 'country',
+      'state': 'state',
+      'age_group': 'age_group',
+      'status': 'status',
+      'url_1': 'url_1',
+    }
+  end
   let!(:csv) do
     CSV.open(file_path, 'w') do |csv|
       rows.each { |row| csv << row.split(',') }
@@ -17,7 +28,11 @@ describe Services::TeamCsvImport do
 
   after(:each) { File.delete(file_path) }
 
-  subject { described_class.new(file_path, ngb).perform }
+  subject { described_class.new(file_path, ngb, mapped_headers.to_json).perform }
+
+  it 'returns the imported team ids' do
+    expect(subject.length).to eq 3
+  end
 
   it 'creates 3 teams under the provided ngb' do
     expect { subject }.to change { ngb.teams.count }.by 3

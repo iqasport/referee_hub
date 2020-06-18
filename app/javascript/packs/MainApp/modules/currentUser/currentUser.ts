@@ -5,7 +5,7 @@ import { DataAttributes } from '../../schemas/currentUserSchema';
 import { AppThunk } from '../../store';
 import { fetchReferee } from '../referee/referee';
 
-interface CurrentUserState {
+export interface CurrentUserState {
   currentUser: DataAttributes | null;
   roles: string[];
   id: string | null;
