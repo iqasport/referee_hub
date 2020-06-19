@@ -9,7 +9,7 @@ export enum ModalSize {
   Large = 'large',
 } 
 
-type ModalProps = {
+export interface ModalProps {
   open: boolean;
   onClose: () => void;
   showClose: boolean;
@@ -31,9 +31,9 @@ const Modal: FunctionComponent<ModalProps> = (props) => {
         className={classnames(
           "relative p-8 bg-white w-full m-auto flex-col",
           {
-            'max-w-lg': props.size === ModalSize.Medium,
+            'max-w-3xl': props.size === ModalSize.Large,
             'max-w-md': props.size === ModalSize.Small,
-            'max-w-xl': props.size === ModalSize.Large,
+            'max-w-xl': props.size === ModalSize.Medium,
           }
         )}
       >

@@ -5,6 +5,7 @@ import { RouteComponentProps, useHistory } from 'react-router-dom'
 import { RootState } from 'rootReducer'
 import ExportModal, { ExportType } from '../../components/ExportModal/ExportModal'
 import StatsViewer from '../../components/StatsViewer'
+import TeamEditModal from '../../components/TeamEditModal'
 import { exportNgbReferees, exportNgbTeams } from '../../modules/job/job'
 import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import ActionsButton from './ActionsButton'
@@ -15,7 +16,7 @@ type IdParams = { id: string }
 
 enum ModalType {
   Export = 'export',
-  Import = 'import',
+  Team = 'team',
 }
 
 const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
@@ -64,6 +65,8 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
     switch(openModal) {
       case ModalType.Export:
         return <ExportModal open={true} onClose={handleCloseModal} onExport={handleExport} />
+      case ModalType.Team:
+        return <TeamEditModal open={true} onClose={handleCloseModal} showClose={true} />
       default:
         return null
     }
@@ -76,7 +79,8 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
         <ActionsButton 
           onEditClick={handleEditClick} 
           onImportClick={handleImportClick}
-          onExportClick={handleOpenModal(ModalType.Export)} 
+          onExportClick={handleOpenModal(ModalType.Export)}
+          onTeamClick={handleOpenModal(ModalType.Team)}
         />
       </div>
       <div className="flex w-full flex-row">
