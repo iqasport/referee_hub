@@ -54,7 +54,7 @@ const MultiInput = (props: MultiInputProps) => {
   }
 
   const renderInput = (input: InputConfig) => {
-    return <Input value={input.value} id={input.id} onChange={handleChange} onRemove={handleRemove} />
+    return <Input key={input.id} value={input.value} id={input.id} onChange={handleChange} onRemove={handleRemove} />
   }
 
   return (

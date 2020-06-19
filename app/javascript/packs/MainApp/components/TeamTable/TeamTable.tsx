@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'rootReducer'
 import { Datum } from 'schemas/getTeamsSchema'
 import { GetTeamsFilter } from '../../apis/team'
-import { getTeams, TeamsState, updateFilters } from '../../modules/team/team'
+import { getTeams, TeamsState, updateFilters } from '../../modules/team/teams'
 
 interface TeamTableProps {
   ngbId: number

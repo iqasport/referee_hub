@@ -4,7 +4,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { AssociationData } from "../../../apis/referee";
 import { GetTeamsFilter } from '../../../apis/team';
-import { getTeams, updateFilters } from "../../../modules/team/team";
+import { getTeams, updateFilters } from "../../../modules/team/teams";
 import { RootState } from "../../../rootReducer";
 import { AssociationType, IncludedAttributes } from "../../../schemas/getRefereeSchema";
 import { Datum } from '../../../schemas/getTeamsSchema';

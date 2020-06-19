@@ -25,7 +25,7 @@ module Api
         team.social_accounts = social_accounts
         team.save!
 
-        json_string = TeamSerializer.new(team).serialized_json
+        json_string = TeamSerializer.new(team, include: [:social_accounts]).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
@@ -34,7 +34,7 @@ module Api
       end
 
       def show
-        json_string = TeamSerializer.new(@team).serialized_json
+        json_string = TeamSerializer.new(@team, include: [:social_accounts]).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -45,7 +45,7 @@ module Api
         @team.social_accounts << social_accounts if social_accounts.present?
         @team.save!
 
-        json_string = TeamSerializer.new(@team).serialized_json
+        json_string = TeamSerializer.new(@team, include: [:social_accounts]).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
