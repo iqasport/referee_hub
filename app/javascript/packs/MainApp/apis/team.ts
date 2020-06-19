@@ -44,6 +44,22 @@ export async function getTeams(filter: GetTeamsFilter) {
   }
 }
 
+export async function getNgbTeams(filter?: GetTeamsFilter) {
+  const url = 'ngb-admin/teams'
+  const transformedFilter = camelToSnake(filter)
+
+  try {
+    const teamsResponse = await baseAxios.get<GetTeamsSchema>(url, { params: transformedFilter })
+
+    return {
+      meta: teamsResponse.data.meta,
+      teams: teamsResponse.data.data,
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
 export async function importNgbTeams(file: File, mappedData: HeadersMap) {
   const url = '/api/v1/ngb-admin/teams_import'
   const reversedMap = transform(mappedData, (acc, value, key) => {
@@ -89,6 +105,23 @@ export async function getTeam(id: string): Promise<TeamResponse> {
 
   try {
     const teamResponse = await baseAxios.get<GetTeamSchema>(url)
+    const socialAccounts = teamResponse.data.included.map((account) => account.attributes)
+
+    return {
+      id: teamResponse.data.data.id,
+      socialAccounts,
+      team: teamResponse.data.data.attributes,
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function updateTeam(id: string, team: UpdateTeamRequest): Promise<TeamResponse> {
+  const url = `ngb-admin/teams/${id}`
+
+  try {
+    const teamResponse = await baseAxios.put<GetTeamSchema>(url, {...team})
     const socialAccounts = teamResponse.data.included.map((account) => account.attributes)
 
     return {

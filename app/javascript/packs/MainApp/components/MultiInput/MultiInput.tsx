@@ -13,7 +13,7 @@ const emptyInput = (): InputConfig => ({
 })
 
 const generateInputConfig = (values?: string[]): InputConfig[] => {
-  if (!values) {
+  if (!values || !values.length) {
     return [emptyInput()]
   }
 
@@ -26,20 +26,24 @@ const generateInputConfig = (values?: string[]): InputConfig[] => {
 }
 
 interface MultiInputProps {
-  values?: string[]
+  values?: string[];
+  onChange: (newValues: string[]) => void;
 }
 
 const MultiInput = (props: MultiInputProps) => {
-  const { values } = props
+  const { values, onChange } = props
   const [inputConfigs, setInputConfigs] = useState(generateInputConfig(values))
 
   const handleChange = (value: string, id: string) => {
+    const newValues: string[] = []
     const newInputs = inputConfigs.map((input) => {
+      newValues.push(input.value)
       if (input.id !== id) return input;
 
       return { ...input, value }
     })
 
+    onChange(newValues)
     setInputConfigs(newInputs)
   }
 

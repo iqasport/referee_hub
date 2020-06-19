@@ -13,7 +13,7 @@ module Api
         teams_total = @teams.count
         @teams = @teams.page(page)
 
-        json_string = TeamSerializer.new(@teams, meta: { page: page, total: teams_total }).serialized_json
+        json_string = TeamSerializer.new(@teams.order(:name), meta: { page: page, total: teams_total }).serialized_json
 
         render json: json_string, status: :ok
       end

@@ -1,8 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { createTeam as createTeamApi, getTeam as getTeamApi, TeamResponse, UpdateTeamRequest } from '../../apis/team';
+import { 
+  createTeam as createTeamApi, 
+  getTeam as getTeamApi, 
+  TeamResponse, 
+  updateTeam as updateTeamApi, 
+  UpdateTeamRequest
+} from '../../apis/team';
 import { DataAttributes, IncludedAttributes } from '../../schemas/getTeamSchema';
 import { AppThunk } from '../../store';
+import { getNgbTeams } from './teams';
 
 export interface TeamState {
   team: DataAttributes;
@@ -46,6 +53,11 @@ const team = createSlice({
       state.isLoading = true
     },
     getTeamSuccess: teamSuccess,
+    updateTeamFailure: teamFailure,
+    updateTeamStart(state: TeamState) {
+      state.isLoading = true
+    },
+    updateTeamSuccess: teamSuccess,
   }
 })
 
@@ -56,6 +68,9 @@ export const {
   getTeamFailure,
   getTeamStart,
   getTeamSuccess,
+  updateTeamFailure,
+  updateTeamStart,
+  updateTeamSuccess,
 } = team.actions
 
 export const getTeam = (id: string): AppThunk => async dispatch => {
@@ -75,6 +90,17 @@ export const createTeam = (newTeam: UpdateTeamRequest): AppThunk => async dispat
     dispatch(createTeamSuccess(teamResponse))
   } catch(err) {
     dispatch(createTeamFailure(err.toString()))
+  }
+}
+
+export const updateTeam = (id: string, newTeam: UpdateTeamRequest): AppThunk => async dispatch => {
+  try {
+    dispatch(updateTeamStart())
+    const teamResponse = await updateTeamApi(id, newTeam)
+    dispatch(updateTeamSuccess(teamResponse))
+    dispatch(getNgbTeams())
+  } catch (err) {
+    dispatch(updateTeamFailure(err.toString()))
   }
 }
 

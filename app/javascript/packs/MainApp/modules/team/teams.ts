@@ -1,6 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { getTeams as getTeamsApi, GetTeamsFilter, importNgbTeams, TeamsResponse } from '../../apis/team';
+import { 
+  getNgbTeams as getNgbTeamsApi, 
+  getTeams as getTeamsApi,
+  GetTeamsFilter, 
+  importNgbTeams, 
+  TeamsResponse 
+} from '../../apis/team';
 import { HeadersMap } from '../../pages/ImportWizard/MapStep';
 import { Datum, Meta } from '../../schemas/getTeamsSchema';
 import { AppThunk } from '../../store';
@@ -36,6 +42,11 @@ const teams = createSlice({
   initialState,
   name: 'teams',
   reducers: {
+    getNgbTeamsFailure: teamsFailure,
+    getNgbTeamsStart(state: TeamsState) {
+      state.isLoading = true
+    },
+    getNgbTeamsSuccess: teamsSuccess,
     getTeamsFailure: teamsFailure,
     getTeamsStart(state: TeamsState) {
       state.isLoading = true
@@ -54,6 +65,9 @@ const teams = createSlice({
 
 export const {
   clearFilters,
+  getNgbTeamsFailure,
+  getNgbTeamsStart,
+  getNgbTeamsSuccess,
   getTeamsFailure,
   getTeamsStart,
   getTeamsSuccess,
@@ -68,7 +82,7 @@ export const getTeams = (filters: GetTeamsFilter): AppThunk => async dispatch =>
     const teamsResponse = await getTeamsApi(filters)
     dispatch(getTeamsSuccess(teamsResponse))
   } catch (err) {
-    dispatch(getTeamsFailure(err))
+    dispatch(getTeamsFailure(err.toString()))
   }
 }
 
@@ -77,7 +91,17 @@ export const importTeams = (file: File, mappedData: HeadersMap): AppThunk => asy
     const teamsResponse = await importNgbTeams(file, mappedData)
     dispatch(importTeamsSuccess(teamsResponse))
   } catch (err) {
-    dispatch(importTeamsFailure(err))
+    dispatch(importTeamsFailure(err.toString()))
+  }
+}
+
+export const getNgbTeams = (filter?: GetTeamsFilter): AppThunk => async dispatch => {
+  try {
+    dispatch(getNgbTeamsStart())
+    const teamsResponse = await getNgbTeamsApi(filter)
+    dispatch(getNgbTeamsSuccess(teamsResponse))
+  } catch (err) {
+    dispatch(getNgbTeamsFailure(err.toString()))
   }
 }
 
