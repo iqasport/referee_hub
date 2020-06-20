@@ -3,6 +3,8 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 
 import { RootState } from 'rootReducer'
 import TeamEditModal from '../../components/TeamEditModal'
+import WarningModal from '../../components/WarningModal'
+import { deleteTeam } from '../../modules/team/team'
 import { getNgbTeams, TeamsState } from '../../modules/team/teams'
 import { Datum } from '../../schemas/getTeamsSchema'
 import ActionDropdown from './ActionDropdown'
@@ -32,11 +34,21 @@ const TeamTable = (props: TeamTableProps) => {
     setActiveTeamId(teamId)
     setOpenModal(ModalType.Edit)
   }
+  const handleDeleteClick = (teamId: string) => {
+    setActiveTeamId(teamId)
+    setOpenModal(ModalType.Delete)
+  }
+  const handleDeleteConfirm = () => {
+    dispatch(deleteTeam(activeTeamId))
+    handleCloseModal()
+  }
 
   const renderModals = () => {
     switch(openModal) {
       case ModalType.Edit:
         return <TeamEditModal teamId={activeTeamId} open={true} onClose={handleCloseModal} showClose={true} />
+      case ModalType.Delete:
+        return <WarningModal open={true} onCancel={handleCloseModal} action="delete" dataType="team" onConfirm={handleDeleteConfirm} />
       default:
         return null
     }
@@ -50,7 +62,9 @@ const TeamTable = (props: TeamTableProps) => {
         <td className="w-1/4 py-4 px-8">{teamCity}</td>
         <td className="w-1/4 py-4 px-8">{team.attributes.groupAffiliation}</td>
         <td className="w-1/4 py-4 px-8">{team.attributes.status}</td>
-        <td className="w-1/4 py-4 px-8 text-right"><ActionDropdown teamId={team.id} onEditClick={handleEditClick} /></td>
+        <td className="w-1/4 py-4 px-8 text-right">
+          <ActionDropdown teamId={team.id} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
+        </td>
       </tr>
     )
   }

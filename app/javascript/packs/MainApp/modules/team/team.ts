@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { 
-  createTeam as createTeamApi, 
+  createTeam as createTeamApi,
+  deleteTeam as deleteTeamApi,
   getTeam as getTeamApi, 
   TeamResponse, 
   updateTeam as updateTeamApi, 
@@ -48,6 +49,11 @@ const team = createSlice({
       state.isLoading = true
     },
     createTeamSuccess: teamSuccess,
+    deleteTeamFailure: teamFailure,
+    deleteTeamStart(state: TeamState) {
+      state.isLoading = true
+    },
+    deleteTeamSuccess: teamSuccess,
     getTeamFailure: teamFailure,
     getTeamStart(state: TeamState) {
       state.isLoading = true
@@ -65,6 +71,9 @@ export const {
   createTeamFailure,
   createTeamStart,
   createTeamSuccess,
+  deleteTeamFailure,
+  deleteTeamStart,
+  deleteTeamSuccess,
   getTeamFailure,
   getTeamStart,
   getTeamSuccess,
@@ -101,6 +110,17 @@ export const updateTeam = (id: string, newTeam: UpdateTeamRequest): AppThunk => 
     dispatch(getNgbTeams())
   } catch (err) {
     dispatch(updateTeamFailure(err.toString()))
+  }
+}
+
+export const deleteTeam = (id: string): AppThunk => async dispatch => {
+  try {
+    dispatch(deleteTeamStart())
+    const teamResponse = await deleteTeamApi(id)
+    dispatch(deleteTeamSuccess(teamResponse))
+    dispatch(getNgbTeams())
+  } catch (err) {
+    dispatch(deleteTeamFailure(err.toString()))
   }
 }
 

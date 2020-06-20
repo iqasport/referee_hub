@@ -11,7 +11,7 @@ export enum ModalSize {
 
 export interface ModalProps {
   open: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   showClose: boolean;
   size: ModalSize
 }

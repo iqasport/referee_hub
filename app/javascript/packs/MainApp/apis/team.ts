@@ -133,3 +133,19 @@ export async function updateTeam(id: string, team: UpdateTeamRequest): Promise<T
     throw err
   }
 }
+
+export async function deleteTeam(id: string): Promise<TeamResponse> {
+  const url = `ngb-admin/teams/${id}`
+
+  try {
+    const teamResponse = await baseAxios.delete<GetTeamSchema>(url)
+
+    return {
+      id: teamResponse.data.data.id,
+      socialAccounts: [],
+      team: teamResponse.data.data.attributes
+    }
+  } catch (err) {
+    throw err
+  }
+}

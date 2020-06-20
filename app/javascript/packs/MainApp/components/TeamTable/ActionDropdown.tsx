@@ -7,10 +7,11 @@ import DropdownMenu from '../../components/DropdownMenu'
 interface ActionDropdownProps {
   teamId: string;
   onEditClick: (teamId: string) => void;
+  onDeleteClick: (teamId: string) => void;
 }
 
 const ActionDropdown = (props: ActionDropdownProps) => {
-  const { teamId, onEditClick } = props
+  const { teamId, onEditClick, onDeleteClick } = props
 
   const renderTrigger = (onClick: () => void) => {
     return (
@@ -21,11 +22,16 @@ const ActionDropdown = (props: ActionDropdownProps) => {
   }
 
   const handleEditOpen = () => onEditClick(teamId)
+  const handleDeleteOpen = () => onDeleteClick(teamId)
 
   const items = [
     {
       content: 'Edit',
       onClick: handleEditOpen
+    },
+    {
+      content: 'Delete',
+      onClick: handleDeleteOpen,
     }
   ]
 
