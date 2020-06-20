@@ -1,5 +1,7 @@
+import { faPlusCircle } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { uniqueId } from 'lodash'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Input from './Input'
 
 type InputConfig = {
@@ -12,11 +14,7 @@ const emptyInput = (): InputConfig => ({
   value: '',
 })
 
-const generateInputConfig = (values?: string[]): InputConfig[] => {
-  if (!values || !values.length) {
-    return [emptyInput()]
-  }
-
+const generateInputConfig = (values: string[]): InputConfig[] => {
   return values.map((value) => {
     return {
       id: uniqueId('input'),
@@ -32,7 +30,18 @@ interface MultiInputProps {
 
 const MultiInput = (props: MultiInputProps) => {
   const { values, onChange } = props
-  const [inputConfigs, setInputConfigs] = useState(generateInputConfig(values))
+  const [inputConfigs, setInputConfigs] = useState<InputConfig[]>()
+
+  useEffect(() => {
+    let initialInputs: InputConfig[]
+    if (!values || !values.length) {
+      initialInputs = [emptyInput()]
+    } else {
+      initialInputs = generateInputConfig(values)
+    }
+
+    setInputConfigs(initialInputs)
+  }, [values])
 
   const handleChange = (value: string, id: string) => {
     const newValues: string[] = []
@@ -58,13 +67,26 @@ const MultiInput = (props: MultiInputProps) => {
   }
 
   const renderInput = (input: InputConfig) => {
-    return <Input key={input.id} value={input.value} id={input.id} onChange={handleChange} onRemove={handleRemove} />
+    return (
+      <Input 
+        key={input.id}
+        value={input.value}
+        id={input.id}
+        onChange={handleChange}
+        onRemove={handleRemove}
+        placeholder="https://iqasport.org"
+      />
+    )
   }
 
   return (
     <div>
-      {inputConfigs.map(renderInput)}
-      <button type="button" onClick={handleAdd}>Add</button>
+      {inputConfigs?.map(renderInput)}
+      <div className="my-4">
+        <button type="button" className="align-center" onClick={handleAdd}>
+          <FontAwesomeIcon icon={faPlusCircle} size="2x" className="text-blue-darker ml-2" />
+        </button>
+      </div>
     </div>
   )
 }

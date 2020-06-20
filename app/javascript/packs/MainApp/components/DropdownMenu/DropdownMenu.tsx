@@ -24,7 +24,7 @@ const DropdownMenu = (props: DropdownMenuProps) => {
     }
 
     return (
-      <li key={item.content} className="block px-4 py-2 text-black hover:bg-gray-300 text-left">
+      <li key={item.content} className="block px-4 py-2 text-black hover:bg-gray-300 text-left" onClick={handleClick}>
         <button type="button" className="appearance-none" onClick={handleClick}>
           {item.content}
         </button>

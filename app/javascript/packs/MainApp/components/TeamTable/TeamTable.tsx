@@ -50,7 +50,7 @@ const TeamTable = (props: TeamTableProps) => {
         <td className="w-1/4 py-4 px-8">{teamCity}</td>
         <td className="w-1/4 py-4 px-8">{team.attributes.groupAffiliation}</td>
         <td className="w-1/4 py-4 px-8">{team.attributes.status}</td>
-        <td className="w-1/4 py-4 px-8"><ActionDropdown teamId={team.id} onEditClick={handleEditClick} /></td>
+        <td className="w-1/4 py-4 px-8 text-right"><ActionDropdown teamId={team.id} onEditClick={handleEditClick} /></td>
       </tr>
     )
   }
@@ -85,7 +85,7 @@ const TeamTable = (props: TeamTableProps) => {
               <td className="w-1/4 py-4 px-8">city</td>
               <td className="w-1/4 py-4 px-8">type</td>
               <td className="w-1/4 py-4 px-8">status</td>
-              <td className="w-1/4 py-4 px-8" />
+              <td className="w-1/4 py-4 px-8 text-right">actions</td>
             </tr>
           </tbody>
         </table>

@@ -103,7 +103,8 @@ module Api
       end
 
       def find_teams_from_filter
-        filter_results = Services::FilterTeams.new(search_params).filter
+        search_options = search_params.presence || { national_governing_bodies: [ngb_scope.id] }
+        filter_results = Services::FilterTeams.new(search_options).filter
 
         if filter_results.respond_to?(:where)
           filter_results

@@ -1,3 +1,5 @@
+import { faMinusCircle } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react'
 
 interface InputProps {
@@ -20,14 +22,16 @@ const Input = (props: InputProps) => {
   }
 
   return (
-    <div className="flex">
+    <div className="flex items-center">
       <input 
-        className="form-input mt-1 block w-full"
+        className="form-input mt-1 mr-4 block w-full"
         placeholder={placeholder}
         value={value} 
         onChange={handleChange} 
       />
-      <button type="button" onClick={handleRemove}>Remove</button>
+      <button type="button" onClick={handleRemove} className="text-red-600">
+        <FontAwesomeIcon icon={faMinusCircle} size="2x" />
+      </button>
     </div>
   )
 }

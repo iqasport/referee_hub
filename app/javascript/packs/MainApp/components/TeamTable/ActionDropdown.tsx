@@ -14,7 +14,7 @@ const ActionDropdown = (props: ActionDropdownProps) => {
 
   const renderTrigger = (onClick: () => void) => {
     return (
-      <button className="relative" onClick={onClick}>
+      <button className="relative text-navy-blue" onClick={onClick}>
         <FontAwesomeIcon icon={faEllipsisV} />
       </button>
     )
