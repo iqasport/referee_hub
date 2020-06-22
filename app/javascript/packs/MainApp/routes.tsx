@@ -21,6 +21,7 @@ const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>()
   const dispatch = useDispatch()
   const { currentUser, roles, id, error } = useSelector((state: RootState) => state.currentUser)
+  const isViewingRefs = window.location.pathname.match(/referees/)
 
   const getRedirect = () => {
     if (roles.includes("iqa_admin")) return "/admin"
@@ -31,11 +32,17 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (!currentUser && window.location.pathname !== 'referees') {
+    if (!currentUser && !isViewingRefs) {
       dispatch(fetchCurrentUser())
     }
-  }, []);
+  }, [currentUser]);
   
+  useEffect(() => {
+    if (error && !isViewingRefs) {
+      window.location.href = `${window.location.origin}/sign_in`
+    }
+  }, [error])
+
   useEffect(() => {
     setRedirectTo(getRedirect())
   }, [currentUser, roles])
