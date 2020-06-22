@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 
@@ -18,22 +18,27 @@ import Tests from './pages/Tests'
 import { RootState } from './rootReducer'
 
 const App = () => {
+  const [redirectTo, setRedirectTo] = useState<string>()
   const dispatch = useDispatch()
   const { currentUser, roles, id, error } = useSelector((state: RootState) => state.currentUser)
-  
+
+  const getRedirect = () => {
+    if (roles.includes("iqa_admin")) return "/admin"
+    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`
+    if (roles.includes("referee")) return `/referees/${id}`
+
+    return '/referees'
+  }
+
   useEffect(() => {
-    if (!currentUser) {
+    if (!currentUser && window.location.pathname !== 'referees') {
       dispatch(fetchCurrentUser())
     }
   }, []);
   
-  const getRedirect = () => {
-    if (!roles.length) return "/sign_in"
-    if (roles.includes("iqa_admin")) return "/admin"
-    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`
-    
-    return `/referees/${id}`
-  }
+  useEffect(() => {
+    setRedirectTo(getRedirect())
+  }, [currentUser, roles])
 
   const newDesignEnabled = currentUser?.enabledFeatures.includes('new_design')
   const refProfile = newDesignEnabled ? RefereeProfile : OldRefereeProfile;
@@ -50,12 +55,10 @@ const App = () => {
           )
         }
         <Route exact={true} path='/'>
-          <Redirect to={getRedirect()} />
+          {redirectTo && <Redirect to={redirectTo} />}
         </Route>
         <Route exact={true} path='/privacy' component={PrivacyPolicy} />
-        <Route exact={true} path='/referees' component={Referees}>
-          {!currentUser && error && <Redirect to={getRedirect()} />}
-        </Route>
+        <Route exact={true} path='/referees' component={Referees} />
         <Route exact={true} path='/referees/:id' component={refProfile} />
         <Route exact={true} path='/admin' component={Admin} />
         <Route exact={true} path='/admin/referee-diagnostic' component={RefereeDiagnostic} />
