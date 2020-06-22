@@ -1,31 +1,58 @@
-import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect, useState } from 'react'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 
 import { RootState } from 'rootReducer'
-import { Datum } from 'schemas/getTeamsSchema'
-import { GetTeamsFilter } from '../../apis/team'
-import { getTeams, TeamsState, updateFilters } from '../../modules/team/team'
+import TeamEditModal from '../../components/TeamEditModal'
+import WarningModal from '../../components/WarningModal'
+import { deleteTeam } from '../../modules/team/team'
+import { getNgbTeams, TeamsState } from '../../modules/team/teams'
+import { Datum } from '../../schemas/getTeamsSchema'
+import ActionDropdown from './ActionDropdown'
+
+enum ModalType {
+  Edit = 'edit',
+  Delete = 'delete',
+}
 
 interface TeamTableProps {
   ngbId: number
 }
 
 const TeamTable = (props: TeamTableProps) => {
+  const [openModal, setOpenModal] = useState<ModalType>()
+  const [activeTeamId, setActiveTeamId] = useState<string>()
+
   const dispatch = useDispatch()
-  const { teams, meta, isLoading } = useSelector((state: RootState): TeamsState => {
-    return {
-      error: state.teams.error,
-      isLoading: state.teams.isLoading,
-      meta: state.teams.meta,
-      teams: state.teams.teams,
-    }
-  })
+  const { teams, isLoading } = useSelector((state: RootState): TeamsState => state.teams, shallowEqual)
 
   useEffect(() => {
-    const filter: GetTeamsFilter = { nationalGoverningBodies: [props.ngbId] }
-    dispatch(updateFilters(filter))
-    dispatch(getTeams(filter))
+    dispatch(getNgbTeams())
   }, [])
+
+  const handleCloseModal = () => setOpenModal(null)
+  const handleEditClick = (teamId: string) => {
+    setActiveTeamId(teamId)
+    setOpenModal(ModalType.Edit)
+  }
+  const handleDeleteClick = (teamId: string) => {
+    setActiveTeamId(teamId)
+    setOpenModal(ModalType.Delete)
+  }
+  const handleDeleteConfirm = () => {
+    dispatch(deleteTeam(activeTeamId))
+    handleCloseModal()
+  }
+
+  const renderModals = () => {
+    switch(openModal) {
+      case ModalType.Edit:
+        return <TeamEditModal teamId={activeTeamId} open={true} onClose={handleCloseModal} showClose={true} />
+      case ModalType.Delete:
+        return <WarningModal open={true} onCancel={handleCloseModal} action="delete" dataType="team" onConfirm={handleDeleteConfirm} />
+      default:
+        return null
+    }
+  }
 
   const renderRow = (team: Datum) => {
     const teamCity = `${team.attributes.city}, ${team.attributes.state}`
@@ -35,6 +62,9 @@ const TeamTable = (props: TeamTableProps) => {
         <td className="w-1/4 py-4 px-8">{teamCity}</td>
         <td className="w-1/4 py-4 px-8">{team.attributes.groupAffiliation}</td>
         <td className="w-1/4 py-4 px-8">{team.attributes.status}</td>
+        <td className="w-1/4 py-4 px-8 text-right">
+          <ActionDropdown teamId={team.id} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
+        </td>
       </tr>
     )
   }
@@ -69,6 +99,7 @@ const TeamTable = (props: TeamTableProps) => {
               <td className="w-1/4 py-4 px-8">city</td>
               <td className="w-1/4 py-4 px-8">type</td>
               <td className="w-1/4 py-4 px-8">status</td>
+              <td className="w-1/4 py-4 px-8 text-right">actions</td>
             </tr>
           </tbody>
         </table>
@@ -78,6 +109,7 @@ const TeamTable = (props: TeamTableProps) => {
           {teams.length ? renderBody() : renderEmpty()}
         </table>
       </div>
+      {renderModals()}
     </>
   )
 }

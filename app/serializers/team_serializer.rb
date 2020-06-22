@@ -26,4 +26,5 @@ class TeamSerializer < BaseSerializer
   attributes :city, :country, :group_affiliation, :name, :state, :status
 
   belongs_to :national_governing_body, serializer: :national_governing_body
+  has_many :social_accounts, serializer: :social_account
 end

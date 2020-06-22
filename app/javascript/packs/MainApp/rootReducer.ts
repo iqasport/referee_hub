@@ -6,7 +6,8 @@ import nationalGoverningBodiesReducer from './modules/nationalGoverningBody/nati
 import nationalGoverningBodyReducer from './modules/nationalGoverningBody/nationalGoverningBody';
 import getRefereeReducer from './modules/referee/referee';
 import refereesReducer from './modules/referee/referees'
-import teamsReducer from './modules/team/team'
+import teamReducer from './modules/team/team'
+import teamsReducer from './modules/team/teams'
 
 const rootReducer = combineReducers({
   currentUser: currentUserReducer,
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
   nationalGoverningBody: nationalGoverningBodyReducer,
   referee: getRefereeReducer,
   referees: refereesReducer,
+  team: teamReducer,
   teams: teamsReducer,
 })
 

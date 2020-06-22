@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 
-import { importTeams, TeamsState } from '../../modules/team/team';
+import { importTeams } from '../../modules/team/teams';
 import { RootState } from '../../rootReducer';
 import FinishStep from './FinishStep';
 import MapStep, { HeadersMap, REQUIRED_HEADERS } from './MapStep';

@@ -16,7 +16,7 @@ module Services
     end
 
     def perform
-      return nil if urls.blank?
+      return [] if urls.blank?
       raise InvalidActionError, ACTION_ERROR unless VALID_ACTIONS.include?(action)
       raise OwnerMissingError, OWNER_ERROR unless valid_owner?
 

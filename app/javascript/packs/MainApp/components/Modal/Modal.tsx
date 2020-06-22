@@ -9,9 +9,9 @@ export enum ModalSize {
   Large = 'large',
 } 
 
-type ModalProps = {
+export interface ModalProps {
   open: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   showClose: boolean;
   size: ModalSize
 }
@@ -29,11 +29,11 @@ const Modal: FunctionComponent<ModalProps> = (props) => {
     <div className="animated fadeIn fixed z-50 inset-0 overflow-auto bg-smoke flex">
       <div
         className={classnames(
-          "relative p-8 bg-white w-full m-auto flex-col",
+          "relative p-8 bg-gray-200 w-full m-auto flex-col",
           {
-            'max-w-lg': props.size === ModalSize.Medium,
+            'max-w-3xl': props.size === ModalSize.Large,
             'max-w-md': props.size === ModalSize.Small,
-            'max-w-xl': props.size === ModalSize.Large,
+            'max-w-xl': props.size === ModalSize.Medium,
           }
         )}
       >
