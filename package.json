@@ -2,7 +2,7 @@
   "name": "referee_hub",
   "private": true,
   "engines": {
-    "node": ">=10.15.3",
+    "node": ">=10.17.0",
     "yarn": ">=1.16.0"
   },
   "dependencies": {
