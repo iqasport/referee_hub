@@ -14,8 +14,13 @@
     "sourceMap": true,
     "target": "es5",
     "jsx": "react",
-    "rootDir": "./app/javascript/packs/MainApp",
-    "baseUrl": "./app/javascript/packs/MainApp",
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "node_modules/**/*",
+        "app/javascript/**/*"
+      ]
+    },
   },
   "includes": [
     "./app/javascript/packs/MainApp/**/*"
