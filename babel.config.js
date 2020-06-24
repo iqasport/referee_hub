@@ -23,10 +23,6 @@ module.exports = function(api) {
 
   return {
     presets: [
-      ['@babel/preset-typescript', {
-        isTSX: true,
-        allExtensions: true,
-      }],
       isTestEnv && [
         '@babel/preset-env',
         {
@@ -53,7 +49,11 @@ module.exports = function(api) {
           development: isDevelopmentEnv || isTestEnv,
           useBuiltIns: true
         }
-      ]
+      ],
+      ['@babel/preset-typescript', {
+        isTSX: true,
+        allExtensions: true,
+      }],
     ].filter(Boolean),
     plugins: [
       'babel-plugin-macros',
@@ -62,6 +62,8 @@ module.exports = function(api) {
       '@babel/plugin-transform-destructuring',
       '@babel/plugin-proposal-export-default-from',
       '@babel/plugin-transform-typescript',
+      '@babel/plugin-proposal-nullish-coalescing-operator',
+      '@babel/plugin-proposal-optional-chaining',
       [
         '@babel/plugin-proposal-class-properties',
         {
