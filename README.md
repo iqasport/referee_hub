@@ -7,12 +7,12 @@
 
 ## Getting Started
 
-It's highly recommended you use a ruby version manager during development of this app. The locked ruby version is '2.5.1'
+It's highly recommended you use a ruby version manager during development of this app. The locked ruby version is '2.7.1'
 and is required to develop on the application.
 
 - System dependencies
 
-  - ruby 2.5.1
+  - ruby 2.7.1
   - bundler
   - yarn
   - postgresql

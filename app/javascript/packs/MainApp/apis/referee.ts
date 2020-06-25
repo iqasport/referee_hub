@@ -123,7 +123,7 @@ export async function updateReferee(updatedReferee: UpdateRefereeRequest, refere
 export async function getReferees(filter: GetRefereesFilter): Promise<RefereesResponse> {
   const url = 'referees'
   const transformedFilter = camelToSnake(filter)
-  
+
   try {
     const refereeResponse = await baseAxios.get<GetRefereesSchema>(url, { params: transformedFilter })
     const included = refereeResponse.data.included
