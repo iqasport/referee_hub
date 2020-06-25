@@ -50,3 +50,4 @@ yarn-debug.log*
 /app/javascript/packs/MainApp/schema.json
 junit.xml
 dump.rdb
+stats.json

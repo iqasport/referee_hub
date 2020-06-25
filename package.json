@@ -98,10 +98,12 @@
     "jest-junit": "^10.0.0",
     "react-test-renderer": "^16.12.0",
     "ts-jest": "^25.3.1",
+    "webpack-bundle-analyzer": "^3.8.0",
     "webpack-dev-server": "^3.11.0"
   },
   "scripts": {
     "test": "jest --coverage",
-    "test:ci": "jest --ci --runInBand --coverage --config jest.config.js --reporters=default --reporters=jest-junit"
+    "test:ci": "jest --ci --runInBand --coverage --config jest.config.js --reporters=default --reporters=jest-junit",
+    "webpack:analyze": "mkdir -p public/packs && node_modules/.bin/webpack --config config/webpack/production.js --profile --json > public/packs/stats.json && node_modules/.bin/webpack-bundle-analyzer public/packs/stats.json"
   }
 }
