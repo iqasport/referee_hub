@@ -1,10 +1,10 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '2.5.1'
+ruby '2.7.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.2.0'
+gem 'rails', '~> 6.0.3'
 # Use postgresql as the database for Active Record
 gem 'pg', '>= 0.18', '< 2.0'
 # Use Puma as the app server
@@ -13,20 +13,21 @@ gem 'puma', '~> 3.12'
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'
+gem 'json', '~> 2.3'
 
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '>= 1.1.0', require: false
 
 # authentication
 gem 'devise'
-gem 'devise_invitable', '~> 2.0.0'
+gem 'devise_invitable', '~> 2.0.2'
 
 # frontend
 gem 'webpacker', '~> 5.1.1'
 
 # api 
 gem 'fast_jsonapi'
-gem 'will_paginate'
+gem 'will_paginate', '~> 3.3.0'
 
 # styles
 gem 'semantic-ui-sass'
@@ -36,7 +37,7 @@ gem 'inline_svg'
 # metrics and tracking
 gem 'loofah', '>= 2.2.3'
 gem 'rack', '2.1.2'
-gem 'barnes'
+gem 'barnes', '0.0.8'
 gem 'bugsnag', '~> 6.11'
 
 # job queuing
@@ -46,8 +47,8 @@ gem 'sidekiq-cron', '~> 1.1'
 
 # misc
 gem 'activerecord-import'
-gem 'time_difference'
-gem 'gdpr_rails'
+gem 'time_difference', git: 'https://github.com/iqasport/time_difference.git'
+gem 'gdpr_rails', git: 'https://github.com/HipSpec/gdpr_rails.git', branch: 'rails-6-minor-travis-fix'
 
 # file storage and aws
 gem 'aws-sdk-s3', '~> 1'

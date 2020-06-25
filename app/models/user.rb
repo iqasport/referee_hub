@@ -94,7 +94,7 @@ class User < ApplicationRecord
 
   attr_accessor :disable_ensure_role, :policy_rule_privacy_terms, :ngb_to_admin
 
-  after_save :ensure_role, on: :create
+  after_create :ensure_role
   after_save :create_admin, if: proc { |user| user.ngb_to_admin.present? }
 
   def iqa_admin?
