@@ -1,7 +1,7 @@
 import classnames from 'classnames'
 import React from 'react';
 
-import { IncludedAttributes } from 'schemas/getNationalGoverningBodySchema';
+import { IncludedAttributes } from '../../schemas/getNationalGoverningBodySchema';
 import { getMonths, toDateTime } from '../../utils/dateUtils';
 import HistoricChart from '../HistoricChart';
 import StatBarChart from '../StatBarChart';

@@ -1,5 +1,6 @@
-import { IdAttributes } from 'apis/referee'
 import React, { useState } from 'react'
+
+import { IdAttributes } from '../../apis/referee'
 import TestResultCard from './TestResultCard'
 
 type TestResultsProps = {

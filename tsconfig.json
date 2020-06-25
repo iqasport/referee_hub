@@ -9,22 +9,28 @@
     "noImplicitThis": true,
     "allowJs": true,
     "lib": ["esnext", "dom"],
-    "module": "esnext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "sourceMap": true,
-    "target": "es5",
+    "target": "ESNext",
     "jsx": "react",
-    "rootDir": "./app/javascript/packs/MainApp",
-    "baseUrl": "./app/javascript/packs/MainApp",
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "app/javascript/*"
+      ]
+    },
   },
   "includes": [
     "./app/javascript/packs/MainApp/**/*"
   ],
   "exclude": [
-    "node_modules",
+    "node_modules/*",
     "vendor",
     "public",
     "**/*.test.tsx",
+    "./app/assets/**/*"
   ],
   "compileOnSave": true
 }

@@ -5,6 +5,7 @@ require 'flipper-ui'
 require 'flipper-api'
 
 Rails.application.routes.draw do
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
   mount PolicyManager::Engine => '/policies'
   mount Flipper::Api.app(Flipper) => '/flipper/api'
 

@@ -2,10 +2,10 @@ import { capitalize } from 'lodash'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
-import { RootState } from 'rootReducer'
 
 import { GetRefereesFilter } from '../../apis/referee'
 import { getReferees, Referee, RefereesState, updateFilters } from '../../modules/referee/referees'
+import { RootState } from '../../rootReducer'
 import { AssociationType } from '../../schemas/getRefereesSchema'
 
 type NewRefereeTableProps = {

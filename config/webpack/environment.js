@@ -1,5 +1,4 @@
 const { environment } = require('@rails/webpacker')
-const typescript = require('./loaders/typescript')
 
 environment.splitChunks()
 
@@ -16,7 +15,5 @@ environment.config.merge({
     ]
   }
 })
-
-environment.loaders.prepend('typescript', typescript)
 
 module.exports = environment

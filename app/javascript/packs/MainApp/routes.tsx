@@ -3,7 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 
 import Avatar from './components/Avatar'
-import { CurrentUserState, fetchCurrentUser } from './modules/currentUser/currentUser'
+import { fetchCurrentUser } from './modules/currentUser/currentUser'
 import Admin from './pages/Admin'
 import ImportWizard from './pages/ImportWizard'
 import NgbProfile from './pages/NgbProfile'
@@ -20,7 +20,7 @@ import { RootState } from './rootReducer'
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>()
   const dispatch = useDispatch()
-  const { currentUser, roles, id, error } = useSelector((state: RootState) => state.currentUser)
+  const { currentUser, roles, id, error } = useSelector((state: RootState) => state.currentUser, shallowEqual)
   const isViewingRefs = window.location.pathname.match(/referees/)
 
   const getRedirect = () => {
