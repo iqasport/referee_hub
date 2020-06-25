@@ -4,10 +4,9 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
 
 import Avatar from './components/Avatar'
+import Loader from './components/Loader'
 import { fetchCurrentUser } from './modules/currentUser/currentUser'
 import { RootState } from './rootReducer'
-import Loader from './components/Loader'
-import Referees from './pages/Referees'
 
 const AsyncPage = loadable(props => import(`./pages/${props.page}`), {
   fallback: <Loader />
