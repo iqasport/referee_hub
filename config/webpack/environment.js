@@ -1,6 +1,18 @@
 const { environment } = require('@rails/webpacker')
 
-environment.splitChunks()
+environment.splitChunks(
+  (config) => Object.assign(
+    {}, 
+    config, 
+    {
+      optimization: {
+        splitChunks: {
+          chunks: 'all',
+        },
+      }
+    }
+  )
+)
 
 environment.config.merge({
   module: {

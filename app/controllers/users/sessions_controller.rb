@@ -42,7 +42,7 @@ class Users::SessionsController < Devise::SessionsController
   def determine_redirect
     roles = current_user.roles.map(&:access_type)
     return '/admin' if roles.include?('iqa_admin')
-    return "/national_governing_bodies/#{current_user.owned_ngb.first.id}" if roles.include?('ngb_admin')
+    return "/national_governing_bodies/#{current_user.owned_ngb&.first&.id}" if roles.include?('ngb_admin')
     return "/referees/#{current_user.id}" if roles.include?('referee')
 
     return '/referees'
