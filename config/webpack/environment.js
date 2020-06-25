@@ -1,9 +1,9 @@
 const { environment } = require('@rails/webpacker')
 
 environment.splitChunks(
-  (config) => Object.assign(
-    {}, 
-    config, 
+  config => Object.assign(
+    {},
+    config,
     {
       optimization: {
         splitChunks: {
