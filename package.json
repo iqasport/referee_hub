@@ -106,6 +106,6 @@
   "scripts": {
     "test": "jest --coverage",
     "test:ci": "jest --ci --runInBand --coverage --config jest.config.js --reporters=default --reporters=jest-junit",
-    "webpack:analyze": "mkdir -p public/packs && node_modules/.bin/webpack --config config/webpack/production.js --profile --json > public/packs/stats.json && node_modules/.bin/webpack-bundle-analyzer public/packs/stats.json"
+    "webpack:analyze": "node_modules/.bin/webpack --config config/webpack/production.js --profile --json > public/packs/stats.json && node_modules/.bin/webpack-bundle-analyzer public/packs/stats.json"
   }
 }
