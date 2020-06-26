@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { UpdateTeamRequest } from '../../apis/team';
-import Modal, { ModalProps, ModalSize } from '../../components/Modal/Modal';
-import MultiInput from '../../components/MultiInput';
 import { createTeam, getTeam, updateTeam } from '../../modules/team/team';
 import { RootState } from '../../rootReducer';
+
+import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
+import MultiInput from '../MultiInput';
 
 const STATUS_OPTIONS = ['competitive', 'developing', 'inactive']
 const TYPE_OPTIONS = ['community', 'university', 'youth']
