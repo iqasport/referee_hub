@@ -23,10 +23,10 @@
     },
   },
   "includes": [
-    "./app/javascript/packs/MainApp/**/*"
+    "./app/javascript/MainApp/**/*"
   ],
   "exclude": [
-    "node_modules/*",
+    "node_modules",
     "vendor",
     "public",
     "**/*.test.tsx",

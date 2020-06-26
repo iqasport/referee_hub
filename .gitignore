@@ -47,7 +47,7 @@ yarn-debug.log*
 .yarn-integrity
 
 # data dump file to convert api responses to typescript. It should never be checked in.
-/app/javascript/packs/MainApp/schema.json
+/app/javascript/MainApp/schema.json
 junit.xml
 dump.rdb
 stats.json

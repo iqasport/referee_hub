@@ -12,6 +12,6 @@
   },
   "defaultSeverity": "warning",
   "linterOptions": {
-    "exclude": ["./app/javascript/packs/MainApp/schemas/**"]
+    "exclude": ["./app/javascript/MainApp/schemas/**"]
   }
 }
