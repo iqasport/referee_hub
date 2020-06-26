@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 
-import TeamEditModal from '../../components/TeamEditModal'
-import WarningModal from '../../components/WarningModal'
+import TeamEditModal from '../TeamEditModal'
+import WarningModal from '../WarningModal'
 import { deleteTeam } from '../../modules/team/team'
 import { getNgbTeams, TeamsState } from '../../modules/team/teams'
 import { RootState } from '../../rootReducer'
