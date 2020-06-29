@@ -27,7 +27,7 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (!currentUser && !isViewingRefs) {
+    if (!currentUser) {
       dispatch(fetchCurrentUser())
     }
   }, [currentUser]);
