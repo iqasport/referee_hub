@@ -16,7 +16,7 @@ const formatAnswer = ({ id, attributes }) => ({
 
 const formatQuestions = (questions, allAnswers) => (
   questions.reduce((accObj, question, index) => {
-    const questionAnswers = allAnswers.filter(({ attributes }) => String(attributes.question_id) === question.id)
+    const questionAnswers = allAnswers.filter(({ attributes }) => String(attributes.questionId) === question.id)
     const formattedAnswers = questionAnswers.map(formatAnswer)
     // eslint-disable-next-line no-param-reassign
     accObj[index] = {
