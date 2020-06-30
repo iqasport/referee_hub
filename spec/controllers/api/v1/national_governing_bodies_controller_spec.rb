@@ -60,6 +60,7 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
     subject { put :update, params: body_data }
 
     it_behaves_like 'it is a successful request'
+    it_behaves_like 'it fails when a referee is not an admin'
 
     it 'updates the ngb' do
       subject
@@ -107,6 +108,13 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
         end
       end
     end
+
+    context 'when the request fails' do
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :save!, NationalGoverningBody
+    end
   end
 
   describe 'POST #update_logo' do
@@ -122,6 +130,7 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
     subject { post :update_logo, params: { id: national_governing_body.id, logo: @file } }
 
     it_behaves_like 'it is a successful request'
+    it_behaves_like 'it fails when a referee is not an admin'
 
     it 'attachs the logo to the ngb' do
       subject
@@ -129,6 +138,13 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
       response_data = Array.wrap(JSON.parse(response.body)['data'])
 
       expect(response_data[0]['attributes']['logoUrl']).to_not be_nil
+    end
+
+    context 'when the request fails' do
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :logo, NationalGoverningBody
     end
   end
 end

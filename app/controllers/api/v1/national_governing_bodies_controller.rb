@@ -33,7 +33,7 @@ module Api
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
-        render json: { error: "Error updating NGB: #{exception}" }, status: :unprocessable_entity
+        render json: { error: @ngb.errors.full_messages }, status: :unprocessable_entity
       end
 
       def update_logo
@@ -44,7 +44,7 @@ module Api
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
-        render json: { error: "Error updating logo: #{exception}" }, status: :unprocessable_entity
+        render json: { error: @ngb.errors.full_messages }, status: :unprocessable_entity
       end
 
       private
