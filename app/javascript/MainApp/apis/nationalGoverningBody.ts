@@ -17,6 +17,11 @@ export interface NgbResponse {
   stats: IncludedAttributes[];
 }
 
+type OmittedAttributes = 'region' | 'logoUrl'
+export interface UpdateNgbRequest extends Omit<DataAttributes, OmittedAttributes> {
+  urls: string[];
+}
+
 const formatNgbResponse = (response: AxiosResponse<GetNationalGoverningBodySchema>): NgbResponse => {
   const socialAccounts = response.data.included
     .filter(record => record.type === 'socialAccount')
@@ -70,6 +75,17 @@ export async function updateLogo(ngbId: string, logo: File): Promise<NgbResponse
     data.append('logo', logo)
 
     const ngbResponse = await axios.post(url, data)
+    return formatNgbResponse(ngbResponse)
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function updateNationalGoverningBody(id: number, ngb: UpdateNgbRequest): Promise<NgbResponse> {
+  const url = `national_governing_bodies/${id}`
+
+  try {
+    const ngbResponse = await baseAxios.put<GetNationalGoverningBodySchema>(url, {...ngb})
     return formatNgbResponse(ngbResponse)
   } catch (err) {
     throw err

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 
+import { GetTeamsFilter } from '../../apis/team'
 import { deleteTeam } from '../../modules/team/team'
-import { getNgbTeams, TeamsState } from '../../modules/team/teams'
+import { getTeams, TeamsState, updateFilters } from '../../modules/team/teams'
 import { RootState } from '../../rootReducer'
 import { Datum } from '../../schemas/getTeamsSchema'
 
@@ -27,7 +28,9 @@ const TeamTable = (props: TeamTableProps) => {
   const { teams, isLoading } = useSelector((state: RootState): TeamsState => state.teams, shallowEqual)
 
   useEffect(() => {
-    dispatch(getNgbTeams())
+    const filter: GetTeamsFilter = { nationalGoverningBodies: [props.ngbId] }
+    dispatch(updateFilters(filter))
+    dispatch(getTeams(filter))
   }, [])
 
   const handleCloseModal = () => setOpenModal(null)
