@@ -53,7 +53,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :teams, only: :index
-      resources :national_governing_bodies, only: %i[index show] do
+      resources :national_governing_bodies, only: %i[index show update] do
         member do
           post :update_logo
         end

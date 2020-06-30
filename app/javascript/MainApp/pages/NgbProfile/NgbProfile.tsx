@@ -3,6 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
 import ExportModal, { ExportType } from '../../components/ExportModal/ExportModal'
+import NgbEditModal from '../../components/NgbEditModal'
 import StatsViewer from '../../components/StatsViewer'
 import TeamEditModal from '../../components/TeamEditModal'
 import { exportNgbReferees, exportNgbTeams } from '../../modules/job/job'
@@ -18,12 +19,12 @@ type IdParams = { id: string }
 enum ModalType {
   Export = 'export',
   Team = 'team',
+  Edit = 'edit',
 }
 
 const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id } } } = props
   const [openModal, setOpenModal] = useState<ModalType>()
-  const [isEditing, setIsEditing] = useState(false)
   const dispatch = useDispatch()
   const history = useHistory()
   const { ngb, socialAccounts, refereeCount, teamCount, stats } = useSelector((state: RootState): SingleNationalGoverningBodyState => {
@@ -47,7 +48,6 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
 
   if (!ngb) return null
 
-  const handleEditClick = () => setIsEditing(true)
   const handleOpenModal = (type: ModalType) => () => setOpenModal(type)
   const handleCloseModal = () => setOpenModal(null)
   const handleExport = (type: ExportType) => {
@@ -68,6 +68,8 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
         return <ExportModal open={true} onClose={handleCloseModal} onExport={handleExport} />
       case ModalType.Team:
         return <TeamEditModal open={true} onClose={handleCloseModal} showClose={true} />
+      case ModalType.Edit:
+        return <NgbEditModal open={true} onClose={handleCloseModal} showClose={true} ngbId={parseInt(id, 10)} />
       default:
         return null
     }
@@ -78,7 +80,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
       <div className="flex justify-between w-full mb-8">
         <h1 className="w-full text-4xl text-navy-blue font-extrabold">{ngb.name}</h1>
         <ActionsButton 
-          onEditClick={handleEditClick} 
+          onEditClick={handleOpenModal(ModalType.Edit)}
           onImportClick={handleImportClick}
           onExportClick={handleOpenModal(ModalType.Export)}
           onTeamClick={handleOpenModal(ModalType.Team)}

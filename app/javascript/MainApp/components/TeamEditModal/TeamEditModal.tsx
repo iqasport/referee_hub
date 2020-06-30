@@ -194,7 +194,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <button
             type="button"
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {'opacity-50 cursor-default': !hasChangedTeam})} 
-            onClick={handleSubmit} 
+            onClick={handleSubmit}
             disabled={!hasChangedTeam}
           >
             Done

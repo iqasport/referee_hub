@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { getNationalGoverningBody as getNgbApi, NgbResponse, updateLogo } from '../../apis/nationalGoverningBody';
+import { getNationalGoverningBody as getNgbApi, NgbResponse, updateLogo, updateNationalGoverningBody, UpdateNgbRequest } from '../../apis/nationalGoverningBody';
 import { DataAttributes, IncludedAttributes } from '../../schemas/getNationalGoverningBodySchema';
 import { AppThunk } from '../../store';
 
@@ -58,6 +58,11 @@ const nationalGoverningBody = createSlice({
     getNationalGoverningBodySuccess: ngbSuccess,
     updateLogoFailure: ngbFailure,
     updateLogoSuccess: ngbSuccess,
+    updateNgbFailure: ngbFailure,
+    updateNgbStart(state: SingleNationalGoverningBodyState) {
+      state.isLoading = true;
+    },
+    updateNgbSuccess: ngbSuccess,
   }
 })
 
@@ -67,6 +72,9 @@ export const {
   getNationalGoverningBodySuccess,
   updateLogoFailure,
   updateLogoSuccess,
+  updateNgbFailure,
+  updateNgbStart,
+  updateNgbSuccess,
 } = nationalGoverningBody.actions
 
 export const getNationalGoverningBody = (id: number): AppThunk => async dispatch => {
@@ -75,7 +83,7 @@ export const getNationalGoverningBody = (id: number): AppThunk => async dispatch
     const ngbResponse = await getNgbApi(id)
     dispatch(getNationalGoverningBodySuccess(ngbResponse))
   } catch (err) {
-    dispatch(getNationalGoverningBodyFailure(err))
+    dispatch(getNationalGoverningBodyFailure(err.toString()))
   }
 }
 
@@ -85,6 +93,16 @@ export const updateNgbLogo = (ngbId: string, logo: File): AppThunk => async disp
     dispatch(updateLogoSuccess(ngbResponse))
   } catch (err) {
     dispatch(updateLogoFailure(err.toString()))
+  }
+}
+
+export const updateNgb = (id: number, ngb: UpdateNgbRequest): AppThunk => async dispatch => {
+  try {
+    dispatch(updateNgbStart())
+    const ngbResponse = await updateNationalGoverningBody(id, ngb)
+    dispatch(updateNgbSuccess(ngbResponse))
+  } catch (err) {
+    dispatch(updateNgbFailure(err.toString()))
   }
 }
 
