@@ -42,7 +42,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const [errors, setErrors] = useState<string[]>()
   const [hasChangedTeam, setHasChangedTeam] = useState(false)
   const [newTeam, setNewTeam] = useState<UpdateTeamRequest>(initialNewTeam)
-  const [urls, setNewUrls] = useState<string[]>()
+  const [urls, setUrls] = useState<string[]>()
   const { team, socialAccounts } = useSelector((state: RootState) => state.team, shallowEqual)
   const dispatch = useDispatch()
 
@@ -88,7 +88,13 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target
 
+    setHasChangedTeam(true)
     handleDataChange(name, value)
+  }
+
+  const handleUrlChange = (newUrls: string[]) => {
+    setHasChangedTeam(true)
+    setUrls(newUrls);
   }
 
   const renderOption = (value: string) => {
@@ -181,14 +187,14 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         <div className="w-full my-8">
           <label>
             <span className="text-gray-700">Social Media</span>
-            <MultiInput onChange={setNewUrls} values={newTeam.urls || []} />
+            <MultiInput onChange={handleUrlChange} values={newTeam.urls || []} />
           </label>
         </div>
         <div className="w-full text-center">
           <button
             type="button"
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {'opacity-50 cursor-default': !hasChangedTeam})} 
-            onClick={handleSubmit} 
+            onClick={handleSubmit}
             disabled={!hasChangedTeam}
           >
             Done

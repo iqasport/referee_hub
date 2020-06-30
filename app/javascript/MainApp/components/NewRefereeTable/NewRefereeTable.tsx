@@ -1,6 +1,6 @@
 import { capitalize } from 'lodash'
 import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
 import { GetRefereesFilter } from '../../apis/referee'
@@ -15,15 +15,7 @@ type NewRefereeTableProps = {
 const NewRefereeTable = (props: NewRefereeTableProps) => {
   const history = useHistory()
   const dispatch = useDispatch()
-  const { referees, meta, isLoading } = useSelector((state: RootState): RefereesState => {
-    return {
-      error: state.referees.error,
-      filters: state.referees.filters,
-      isLoading: state.referees.isLoading,
-      meta: state.referees.meta,
-      referees: state.referees.referees,
-    }
-  })
+  const { referees, isLoading } = useSelector((state: RootState) => state.referees, shallowEqual)
 
   useEffect(() => {
     const filter: GetRefereesFilter = { nationalGoverningBodies: [props.ngbId] }
