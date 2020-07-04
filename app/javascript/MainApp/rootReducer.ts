@@ -8,6 +8,7 @@ import getRefereeReducer from './modules/referee/referee'
 import refereesReducer from './modules/referee/referees'
 import teamReducer from './modules/team/team'
 import teamsReducer from './modules/team/teams'
+import testReducer from './modules/test/test'
 import testsReducer from './modules/test/tests'
 
 const rootReducer = combineReducers({
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   referees: refereesReducer,
   team: teamReducer,
   teams: teamsReducer,
+  test: testReducer,
   tests: testsReducer,
 })
 

@@ -88,6 +88,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
       rowConfig={rowConfig}
       onRowClick={handleRowClick}
       emptyRenderer={renderEmpty}
+      isHeightRestricted={true}
     />
   )
 }

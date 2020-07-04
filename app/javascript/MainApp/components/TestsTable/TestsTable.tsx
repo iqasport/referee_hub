@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
+import { updateTest } from 'MainApp/modules/test/test'
 import { getTests } from 'MainApp/modules/test/tests'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getTestsSchema'
@@ -26,7 +27,8 @@ const TestsTable = () => {
   }
 
   const handleToggle = (value: boolean, id: string) => {
-    // dispatch()
+    const newTest = { active: value }
+    dispatch(updateTest(id, newTest))
   }
 
   const renderEmpty = () => {
@@ -71,14 +73,18 @@ const TestsTable = () => {
   ]
 
   return (
-    <Table
-      items={tests}
-      isLoading={isLoading}
-      headerCells={HEADER_CELLS}
-      onRowClick={handleRowClick}
-      emptyRenderer={renderEmpty}
-      rowConfig={rowConfig}
-    />
+    <>
+      <h2 className="text-navy-blue text-2xl font-semibold my-4">{`All Tests(${tests.length})`}</h2>
+      <Table
+        items={tests}
+        isLoading={isLoading}
+        headerCells={HEADER_CELLS}
+        onRowClick={handleRowClick}
+        emptyRenderer={renderEmpty}
+        rowConfig={rowConfig}
+        isHeightRestricted={false}
+      />
+    </>
   )
 }
 

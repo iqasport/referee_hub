@@ -167,6 +167,11 @@
     border-radius: 6px;
 }
 
+.full-height-table {
+    @apply h-full;
+    @apply overflow-auto;
+}
+
 .button-tab {
     @apply border-2;
     @apply border-gray-600;

@@ -1,3 +1,4 @@
+import classnames from 'classnames'
 import React from 'react'
 
 import Loader from 'MainApp/components/Loader'
@@ -16,10 +17,11 @@ interface TableProps<T> {
   emptyRenderer: () => JSX.Element;
   isLoading: boolean;
   onRowClick?: (id: string) => void;
+  isHeightRestricted: boolean;
 }
 
 const Table = <T extends Referee | Datum>(props: TableProps<T>) => {
-  const { items, isLoading, headerCells, rowConfig, emptyRenderer, onRowClick } = props
+  const { items, isLoading, headerCells, rowConfig, emptyRenderer, onRowClick, isHeightRestricted } = props
 
   const handleRowClick = (id: string) => () => {
     onRowClick(id)
@@ -70,7 +72,7 @@ const Table = <T extends Referee | Datum>(props: TableProps<T>) => {
           </tbody>
         </table>
       )}
-      <div className="table-container">
+      <div className={classnames("table-container", { 'full-height-table': !isHeightRestricted })}>
         <table className="rounded-table">
           {items.length ? renderBody() : renderEmpty()}
         </table>
