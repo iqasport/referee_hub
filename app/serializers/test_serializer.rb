@@ -28,5 +28,6 @@ class TestSerializer < BaseSerializer
              :positive_feedback,
              :time_limit,
              :active,
-             :testable_question_count
+             :testable_question_count,
+             :updated_at
 end

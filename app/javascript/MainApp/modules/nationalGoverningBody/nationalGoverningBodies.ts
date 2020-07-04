@@ -47,7 +47,7 @@ export const getNationalGoverningBodies = (): AppThunk => async dispatch => {
     const ngbResponse = await getNgbsApi()
     dispatch(getNationalGoverningBodiesSuccess(ngbResponse))
   } catch (err) {
-    dispatch(getNationalGoverningBodiesFailure(err))
+    dispatch(getNationalGoverningBodiesFailure(err.toString()))
   }
 }
 

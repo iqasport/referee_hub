@@ -44,6 +44,7 @@ const App = () => {
 
   const newDesignEnabled = currentUser?.enabledFeatures.includes('new_design')
   const refProfile = newDesignEnabled ? 'RefereeProfile' : 'OldRefereeProfile';
+  const tests = newDesignEnabled ? 'Tests' : 'NewTests';
 
   return (
     <Router>
@@ -64,7 +65,7 @@ const App = () => {
         <Route exact={true} path='/referees/:id' render={(props) => <AsyncPage {...props} page={refProfile} />} />
         <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page="Admin" />} />
         <Route exact={true} path='/admin/referee-diagnostic' render={(props) => <AsyncPage {...props} page="RefereeDiagnostic" />} />
-        <Route exact={true} path='/admin/tests' render={(props) => <AsyncPage {...props} page="Tests" />} />
+        <Route exact={true} path='/admin/tests' render={(props) => <AsyncPage {...props} page={tests} />} />
         <Route exact={true} path='/admin/tests/:id' render={(props) => <AsyncPage {...props} page="Test" />} />
         <Route exact={true} path='/referees/:refereeId/tests/:testId' render={(props) => <AsyncPage {...props} page="StartTest" />} />
         <Route exact={true} path='/national_governing_bodies/:id' render={(props) => <AsyncPage {...props} page="NgbProfile" /> } />
