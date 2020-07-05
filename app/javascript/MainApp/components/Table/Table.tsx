@@ -2,12 +2,14 @@ import classnames from 'classnames'
 import React from 'react'
 
 import Loader from 'MainApp/components/Loader'
-import { Datum } from 'MainApp/schemas/getTestsSchema'
+import { Datum as Team } from 'MainApp/schemas/getTeamsSchema'
+import { Datum as Test } from 'MainApp/schemas/getTestsSchema'
 import { Referee } from '../../modules/referee/referees'
 
 export interface CellConfig<T> {
   dataKey: string;
   cellRenderer: (item: T) => JSX.Element | string;
+  customStyle?: string;
 }
 
 interface TableProps<T> {
@@ -20,18 +22,25 @@ interface TableProps<T> {
   isHeightRestricted: boolean;
 }
 
-const Table = <T extends Referee | Datum>(props: TableProps<T>) => {
+const Table = <T extends Referee | Test | Team>(props: TableProps<T>) => {
   const { items, isLoading, headerCells, rowConfig, emptyRenderer, onRowClick, isHeightRestricted } = props
 
   const handleRowClick = (id: string) => () => {
-    onRowClick(id)
+    if(onRowClick) onRowClick(id)
   }
 
   const renderRow = (item: T) => {
     return (
       <tr key={item.id} className="border border-gray-300 hover:bg-gray-300" onClick={handleRowClick(item.id)}>
         {rowConfig.map((cell) => {
-          return <td key={cell.dataKey} className="w-1/4 py-4 px-8">{cell.cellRenderer(item)}</td>
+          return (
+            <td
+              key={cell.dataKey}
+              className={`w-1/4 py-4 px-8 ${cell.customStyle}`}
+            >
+              {cell.cellRenderer(item)}
+            </td>
+          )
         })}
       </tr>
     )
@@ -66,7 +75,12 @@ const Table = <T extends Referee | Datum>(props: TableProps<T>) => {
           <tbody>
             <tr className="text-left">
               {headerCells.map((header) => (
-                <td key={header} className="w-1/4 py-4 px-8">{header}</td>
+                <td
+                  key={header}
+                  className={classnames("w-1/4 py-4 px-8", {'text-right': header === 'actions'})}
+                >
+                  {header}
+                </td>
               ))}
             </tr>
           </tbody>
