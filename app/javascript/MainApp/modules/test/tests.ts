@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { getTests as getTestsApi, TestsResponse } from '../../apis/test'
+import { getTests as getTestsApi, IdAttributes, TestsResponse } from '../../apis/test'
 import { Datum } from '../../schemas/getTestsSchema'
 import { AppThunk } from '../../store'
 
@@ -8,9 +8,11 @@ export interface TestsState {
   tests: Datum[];
   error: string | null;
   isLoading: boolean;
+  certifications: IdAttributes[]
 }
 
 const initialState: TestsState = {
+  certifications: [],
   error: null,
   isLoading: false,
   tests: [],
@@ -27,11 +29,13 @@ const tests = createSlice({
       state.isLoading = false
       state.error = null
       state.tests = action.payload.tests
+      state.certifications = action.payload.certifications
     },
     getTestsFailure(state: TestsState, action: PayloadAction<string>) {
       state.isLoading = false
       state.tests = []
       state.error = action.payload
+      state.certifications = []
     }
   }
 })

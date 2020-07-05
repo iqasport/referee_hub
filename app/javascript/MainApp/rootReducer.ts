@@ -1,5 +1,6 @@
 import { combineReducers }from '@reduxjs/toolkit'
 
+import certificationsReducer from './modules/certification/certifications'
 import currentUserReducer from './modules/currentUser/currentUser'
 import jobsReducer from './modules/job/job'
 import nationalGoverningBodiesReducer from './modules/nationalGoverningBody/nationalGoverningBodies'
@@ -12,6 +13,7 @@ import testReducer from './modules/test/test'
 import testsReducer from './modules/test/tests'
 
 const rootReducer = combineReducers({
+  certifications: certificationsReducer,
   currentUser: currentUserReducer,
   jobs: jobsReducer,
   nationalGoverningBodies: nationalGoverningBodiesReducer,

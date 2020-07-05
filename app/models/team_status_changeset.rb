@@ -2,12 +2,12 @@
 #
 # Table name: team_status_changesets
 #
-#  id              :bigint(8)        not null, primary key
+#  id              :bigint           not null, primary key
 #  new_status      :string
 #  previous_status :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  team_id         :bigint(8)
+#  team_id         :bigint
 #
 # Indexes
 #

@@ -2,7 +2,7 @@
 #
 # Table name: teams
 #
-#  id                         :bigint(8)        not null, primary key
+#  id                         :bigint           not null, primary key
 #  city                       :string           not null
 #  country                    :string           not null
 #  group_affiliation          :integer          default("university")
@@ -11,7 +11,7 @@
 #  status                     :integer          default("competitive")
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null
-#  national_governing_body_id :bigint(8)
+#  national_governing_body_id :bigint
 #
 # Indexes
 #

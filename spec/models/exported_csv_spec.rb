@@ -2,7 +2,7 @@
 #
 # Table name: exported_csvs
 #
-#  id             :bigint(8)        not null, primary key
+#  id             :bigint           not null, primary key
 #  export_options :json             not null
 #  processed_at   :datetime
 #  sent_at        :datetime

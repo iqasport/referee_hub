@@ -25,7 +25,7 @@ const NewTests = () => {
         </div>
         <TestsTable />
       </div>
-      <TestEditModal open={isCreateOpen} showClose={true} onClose={handleClose} />
+      {isCreateOpen && <TestEditModal open={isCreateOpen} showClose={true} onClose={handleClose} />}
     </>
   )
 }

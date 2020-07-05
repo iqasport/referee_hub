@@ -4,11 +4,18 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { UpdateTestRequest } from 'MainApp/apis/test';
+import { getCertifications } from 'MainApp/modules/certification/certifications';
 import { createTest, getTest, updateTest } from 'MainApp/modules/test/test';
 import { RootState } from 'MainApp/rootReducer';
+import { TestLevel } from 'MainApp/schemas/getTestSchema';
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
 
-const REQUIRED_FIELDS = [
+type UpdateCertification = {
+  level: TestLevel;
+  version: string;
+}
+
+const REQUIRED_TEST_FIELDS = [
   'name',
   'description',
   'language',
@@ -16,9 +23,14 @@ const REQUIRED_FIELDS = [
   'testableQuestionCount',
   'timeLimit',
   'positiveFeedback',
-  'negativeFeedback'
+  'negativeFeedback',
 ]
+const REQUIRED_CERT_FIELDS = ['version', 'level']
+const LEVEL_OPTIONS = ['snitch', 'assistant', 'head', 'field']
+const VERSION_OPTIONS = ['eighteen', 'twenty']
+
 const initialNewTest: UpdateTestRequest = {
+  certificationId: null,
   description: '',
   language: '',
   level: null,
@@ -29,14 +41,26 @@ const initialNewTest: UpdateTestRequest = {
   testableQuestionCount: 0,
   timeLimit: 0,
 }
+const initialCertification: UpdateCertification = {
+  level: null,
+  version: '',
+}
 
-const validateInput = (test: UpdateTestRequest): string[] => {
-  return Object.keys(test).filter((dataKey: string) => {
-    if (REQUIRED_FIELDS.includes(dataKey) && !test[dataKey]) {
+const validateInput = (test: UpdateTestRequest, cert: UpdateCertification): string[] => {
+  const testErrors = Object.keys(test).filter((dataKey: string) => {
+    if (REQUIRED_TEST_FIELDS.includes(dataKey) && !test[dataKey]) {
       return true
     }
     return false
   })
+  const certErrors = Object.keys(cert).filter((dataKey: string) => {
+    if (REQUIRED_CERT_FIELDS.includes(dataKey) && !cert[dataKey]) {
+      return true
+    }
+    return false
+  })
+
+  return testErrors.concat(certErrors)
 }
 
 interface TestEditModalProps extends Omit<ModalProps, 'size'> {
@@ -49,7 +73,9 @@ const TestEditModal = (props: TestEditModalProps) => {
   const [errors, setErrors] = useState<string[]>()
   const [hasChangedTest, setHasChangedTest] = useState(false)
   const [newTest, setNewTest] = useState<UpdateTestRequest>(initialNewTest)
-  const { test } = useSelector((state: RootState) => state.test, shallowEqual)
+  const [newCert, setNewCert] = useState<UpdateCertification>(initialCertification)
+  const { test, certification } = useSelector((state: RootState) => state.test, shallowEqual)
+  const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual)
   const dispatch = useDispatch()
 
   const formType = testId ? 'Edit' : 'New'
@@ -64,20 +90,30 @@ const TestEditModal = (props: TestEditModalProps) => {
   useEffect(() => {
     if (test) {
       setNewTest({ ...test.attributes })
+      setNewCert({ level: certification.level, version: certification.version })
     }
-  }, [test])
+  }, [test, certification])
+
+  useEffect(() => {
+    dispatch(getCertifications())
+  }, [])
 
   const handleSubmit = () => {
-    const validationErrors = validateInput(newTest)
+    const validationErrors = validateInput(newTest, newCert)
     if (validationErrors.length) {
       setErrors(validationErrors)
       return null
     }
 
+    const matchedCert = certifications.find(({ attributes: { level, version }}) => (
+      level === newCert.level && version === newCert.version
+    ))
+    const testToSend: UpdateTestRequest = { ...newTest, ...newCert, certificationId: parseInt(matchedCert?.id, 10) }
+
     if (testId) {
-      dispatch(updateTest(testId, {...newTest}))
+      dispatch(updateTest(testId, testToSend))
     } else {
-      dispatch(createTest({...newTest}))
+      dispatch(createTest(testToSend))
     }
 
     setHasChangedTest(false)
@@ -88,7 +124,11 @@ const TestEditModal = (props: TestEditModalProps) => {
     const { name, value } = event.target
 
     if (!hasChangedTest) setHasChangedTest(true)
-    setNewTest({ ...newTest, [name]: value })
+    if (Object.keys(newCert).includes(name)) {
+      setNewCert({ ...newCert, [name]: value })
+    } else {
+      setNewTest({ ...newTest, [name]: value })
+    }
   }
 
   const handleClose = () => {
@@ -99,6 +139,14 @@ const TestEditModal = (props: TestEditModalProps) => {
 
   const renderError = (attr: string) => {
     return hasError(attr) && <span className="text-red-500 text-sm">Cannot be blank</span>
+  }
+
+  const renderOption = (value: string) => {
+    return (
+      <option key={value} value={value}>
+        {capitalize(value)}
+      </option>
+    )
   }
 
   return (
@@ -166,6 +214,60 @@ const TestEditModal = (props: TestEditModalProps) => {
         </label>
         <div className="flex w-full my-8">
           <label className="w-1/3 mr-4">
+            <span className="text-gray-700">Language</span>
+            <input
+              className={
+                classnames(
+                  "form-input mt-1 block w-full",
+                  { 'border border-red-500': hasError('language') }
+                )
+              }
+              name="language"
+              value={newTest.language}
+              onChange={handleChange}
+            />
+            {renderError('language')}
+          </label>
+          <label className="w-1/3 mr-4">
+            <span className="text-gray-700">Level</span>
+            <select
+              className={
+                classnames(
+                  "form-select mt-1 block w-full",
+                  { 'border border-red-500': hasError('level') }
+                )
+              }
+              placeholder="Select the level"
+              name="level"
+              onChange={handleChange}
+              value={newCert.level || ''}
+            >
+              <option value="">Select the level</option>
+              {LEVEL_OPTIONS.map(renderOption)}
+            </select>
+            {renderError('level')}
+          </label>
+          <label className="w-1/3">
+            <span className="text-gray-700">Version</span>
+            <select
+              className={
+                classnames(
+                  "form-select mt-1 block w-full",
+                  { 'border border-red-500': hasError('version') }
+                )
+              }
+              name="version"
+              onChange={handleChange}
+              value={newCert.version}
+            >
+              <option value="">Select rulebook version</option>
+              {VERSION_OPTIONS.map(renderOption)}
+            </select>
+            {renderError('version')}
+          </label>
+        </div>
+        <div className="flex w-full my-8">
+          <label className="w-1/3 mr-4">
             <span className="text-gray-700">Minimum Pass Percentage</span>
             <input
               type="number"
@@ -200,7 +302,7 @@ const TestEditModal = (props: TestEditModalProps) => {
             />
             {renderError('testableQuestionCount')}
           </label>
-          <label className="w-1/3 mr-4">
+          <label className="w-1/3">
             <span className="text-gray-700">Time Limit</span>
             <input
               type="number"

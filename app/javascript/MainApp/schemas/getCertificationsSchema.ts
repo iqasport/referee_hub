@@ -1,63 +1,36 @@
 // To parse this data:
 //
-//   import { Convert, GetTestSchema } from "./file";
+//   import { Convert, GetCertificationsSchema } from "./file";
 //
-//   const getTestSchema = Convert.toGetTestSchema(json);
+//   const getCertificationsSchema = Convert.toGetCertificationsSchema(json);
 //
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
 
-export interface GetTestSchema {
-  data: Data;
-  included: Included[];
+export interface GetCertificationsSchema {
+  data: Datum[];
 }
 
-export interface Data {
+export interface Datum {
   id: string;
   type: string;
   attributes: Attributes;
 }
 
-export enum TestLevel {
-  Snitch = 'snitch',
-  Assistant = 'assistant',
-  Head = 'head'
-}
-
 export interface Attributes {
-  description?: string;
-  language?: string;
-  level?: TestLevel;
-  minimumPassPercentage?: number;
-  name?: string;
-  negativeFeedback?: string;
-  positiveFeedback?: string;
-  timeLimit?: number;
-  active?: boolean;
-  testableQuestionCount?: number;
-  updatedAt?: string;
-  certificationId?: number;
-}
-
-export interface Included {
-  id: string;
-  type: string;
-  attributes: IncludedAttributes;
-}
-
-export interface IncludedAttributes {
-  level: TestLevel;
+  level: string;
   version: string;
 }
+
 // Converts JSON strings to/from your types
 // and asserts the results of JSON.parse at runtime
 export class Convert {
-  public static toGetTestSchema(json: string): GetTestSchema {
-    return cast(JSON.parse(json), r("GetTestSchema"));
+  public static toGetCertificationsSchema(json: string): GetCertificationsSchema {
+    return cast(JSON.parse(json), r("GetCertificationsSchema"));
   }
 
-  public static getTestSchemaToJson(value: GetTestSchema): string {
-    return JSON.stringify(uncast(value, r("GetTestSchema")), null, 2);
+  public static getCertificationsSchemaToJson(value: GetCertificationsSchema): string {
+    return JSON.stringify(uncast(value, r("GetCertificationsSchema")), null, 2);
   }
 }
 
@@ -191,25 +164,16 @@ function r(name: string) {
 }
 
 const typeMap: any = {
-  "GetTestSchema": o([
-    { json: "data", js: "data", typ: r("Data") },
+  "GetCertificationsSchema": o([
+    { json: "data", js: "data", typ: a(r("Datum")) },
   ], false),
-  "Data": o([
+  "Datum": o([
     { json: "id", js: "id", typ: "" },
     { json: "type", js: "type", typ: "" },
     { json: "attributes", js: "attributes", typ: r("Attributes") },
   ], false),
   "Attributes": o([
-    { json: "description", js: "description", typ: "" },
-    { json: "language", js: "language", typ: "" },
     { json: "level", js: "level", typ: "" },
-    { json: "minimumPassPercentage", js: "minimumPassPercentage", typ: 0 },
-    { json: "name", js: "name", typ: "" },
-    { json: "negativeFeedback", js: "negativeFeedback", typ: "" },
-    { json: "positiveFeedback", js: "positiveFeedback", typ: "" },
-    { json: "timeLimit", js: "timeLimit", typ: 0 },
-    { json: "active", js: "active", typ: true },
-    { json: "testableQuestionCount", js: "testableQuestionCount", typ: 0 },
-    { json: "updatedAt", js: "updatedAt", typ: "" },
+    { json: "version", js: "version", typ: "" },
   ], false),
 };

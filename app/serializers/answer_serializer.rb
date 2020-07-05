@@ -2,7 +2,7 @@
 #
 # Table name: answers
 #
-#  id          :bigint(8)        not null, primary key
+#  id          :bigint           not null, primary key
 #  correct     :boolean          default(FALSE), not null
 #  description :text             not null
 #  created_at  :datetime         not null

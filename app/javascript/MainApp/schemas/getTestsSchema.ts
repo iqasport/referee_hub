@@ -7,8 +7,11 @@
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
 
+import { TestLevel } from "./getTestSchema";
+
 export interface GetTestsSchema {
   data: Datum[];
+  included: Included[];
 }
 
 export interface Datum {
@@ -20,7 +23,7 @@ export interface Datum {
 export interface Attributes {
   description: string;
   language: string;
-  level: string;
+  level: TestLevel;
   minimumPassPercentage: number;
   name: string;
   negativeFeedback: string;
@@ -29,6 +32,18 @@ export interface Attributes {
   active: boolean;
   testableQuestionCount: number;
   updatedAt: string;
+  certificationId: number;
+}
+
+export interface Included {
+  id: string;
+  type: string;
+  attributes: IncludedAttributes;
+}
+
+export interface IncludedAttributes {
+  level: TestLevel;
+  version: string;
 }
 
 // Converts JSON strings to/from your types

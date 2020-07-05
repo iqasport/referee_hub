@@ -2,7 +2,7 @@
 #
 # Table name: tests
 #
-#  id                      :bigint(8)        not null, primary key
+#  id                      :bigint           not null, primary key
 #  active                  :boolean          default(FALSE), not null
 #  description             :text             not null
 #  language                :string
@@ -18,14 +18,14 @@
 #  certification_id        :integer
 #
 
-# This model stores the test information sent by classmarker.
-# It connects to our certification model to ensure the test result gives referees the right certification.
 class Test < ApplicationRecord
   require 'csv'
   require 'activerecord-import/base'
   require 'activerecord-import/active_record/adapters/postgresql_adapter'
 
   MAXIMUM_RETRIES = 6
+
+  belongs_to :certification
 
   has_many :questions, dependent: :destroy
   has_many :referee_answers, dependent: :destroy

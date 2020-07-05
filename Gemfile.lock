@@ -143,6 +143,8 @@ GEM
     concurrent-ruby (1.1.6)
     connection_pool (2.2.2)
     crass (1.0.6)
+    data_migrate (6.3.0)
+      rails (>= 5.0)
     devise (4.7.2)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
@@ -443,6 +445,7 @@ DEPENDENCIES
   chromedriver-helper
   codecov
   colored
+  data_migrate
   devise
   devise_invitable (~> 2.0.2)
   factory_bot_rails (~> 4.0)

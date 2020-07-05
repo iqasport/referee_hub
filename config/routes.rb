@@ -69,6 +69,7 @@ Rails.application.routes.draw do
           post :finish
         end
       end
+      resources :certifications, only: :index
 
       scope '/admin' do
         post '/search' => 'diagnostic#search'

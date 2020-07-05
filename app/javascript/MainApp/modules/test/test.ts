@@ -3,9 +3,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import {
   createTest as createTestApi,
   getTest as getTestApi,
+  IdAttributes,
   TestResponse,
   updateTest as updateTestApi,
-  UpdateTestRequest
+  UpdateTestRequest,
 } from '../../apis/test'
 import { Data } from '../../schemas/getTestSchema'
 import { AppThunk } from '../../store'
@@ -15,9 +16,11 @@ export interface TestState {
   test: Data | null;
   isLoading: boolean;
   error: string | null;
+  certification: IdAttributes;
 }
 
 const initialState: TestState = {
+  certification: null,
   error: null,
   isLoading: false,
   test: null,
@@ -27,12 +30,14 @@ function testSuccess(state: TestState, action: PayloadAction<TestResponse>) {
   state.isLoading = false
   state.error = null
   state.test = action.payload.test
+  state.certification = action.payload.certification
 }
 
 function testFailure(state: TestState, action: PayloadAction<string>) {
   state.isLoading = false
   state.test = null
   state.error = action.payload
+  state.certification = null
 }
 
 const test = createSlice({

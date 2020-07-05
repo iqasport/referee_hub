@@ -2,14 +2,14 @@
 #
 # Table name: referee_answers
 #
-#  id              :bigint(8)        not null, primary key
+#  id              :bigint           not null, primary key
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  answer_id       :bigint(8)        not null
-#  question_id     :bigint(8)        not null
-#  referee_id      :bigint(8)        not null
-#  test_attempt_id :bigint(8)        not null
-#  test_id         :bigint(8)        not null
+#  answer_id       :bigint           not null
+#  question_id     :bigint           not null
+#  referee_id      :bigint           not null
+#  test_attempt_id :bigint           not null
+#  test_id         :bigint           not null
 #
 # Indexes
 #

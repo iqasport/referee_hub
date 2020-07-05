@@ -49,6 +49,7 @@ gem 'sidekiq-cron', '~> 1.1'
 gem 'activerecord-import'
 gem 'time_difference', git: 'https://github.com/iqasport/time_difference.git'
 gem 'gdpr_rails', git: 'https://github.com/HipSpec/gdpr_rails.git', branch: 'rails-6-minor-travis-fix'
+gem 'data_migrate'
 
 # file storage and aws
 gem 'aws-sdk-s3', '~> 1'

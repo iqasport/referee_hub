@@ -11,16 +11,29 @@ import { toDateTime } from 'MainApp/utils/dateUtils'
 import Table, { CellConfig } from '../Table/Table'
 import Toggle from '../Toggle'
 
-const HEADER_CELLS = ['title', 'level', 'language', 'active', 'last updated']
+const HEADER_CELLS = ['title', 'level', 'version', 'language', 'active', 'last updated']
 
 const TestsTable = () => {
   const history = useHistory()
   const dispatch = useDispatch()
-  const { tests, isLoading } = useSelector((state: RootState) => state.tests, shallowEqual)
+  const { tests, isLoading, certifications } = useSelector((state: RootState) => state.tests, shallowEqual)
 
   useEffect(() => {
     dispatch(getTests())
   }, [])
+
+  const getVersion = (certId: number): string => {
+    const certVersion = certifications.find((cert) => cert.id === certId.toString()).version
+
+    switch(certVersion) {
+      case 'eighteen':
+        return '2018-2020'
+      case 'twenty':
+        return '2020-2022'
+      default:
+        return 'Unknown'
+    }
+  }
 
   const handleRowClick = (id: string) => {
     history.push(`/tests/${id}`)
@@ -47,6 +60,12 @@ const TestsTable = () => {
         return capitalize(item.attributes.level)
       },
       dataKey: 'level'
+    },
+    {
+      cellRenderer: (item: Datum) => {
+        return getVersion(item.attributes.certificationId)
+      },
+      dataKey: 'certificationId'
     },
     {
       cellRenderer: (item: Datum) => {

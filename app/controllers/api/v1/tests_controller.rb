@@ -17,7 +17,7 @@ module Api
 
       def index
         @tests = params[:active_only] ? Test.active : Test.all
-        json_string = TestSerializer.new(@tests).serialized_json
+        json_string = TestSerializer.new(@tests, include: [:certification]).serialized_json
         render json: json_string, status: :ok
       end
 
@@ -41,7 +41,7 @@ module Api
       end
 
       def show
-        json_string = TestSerializer.new(@test).serialized_json
+        json_string = TestSerializer.new(@test, include: [:certification]).serialized_json
         render json: json_string, status: :ok
       end
 
@@ -102,7 +102,8 @@ module Api
           :positive_feedback,
           :time_limit,
           :active,
-          :testable_question_count
+          :testable_question_count,
+          :certification_id
         )
       end
 
