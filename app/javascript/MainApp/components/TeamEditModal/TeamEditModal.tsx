@@ -81,7 +81,6 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }
 
   const handleDataChange = (dataKey: string, newValue: string) => {
-    setHasChangedTeam(true)
     setNewTeam({ ...newTeam, [dataKey]: newValue })
   }
 
