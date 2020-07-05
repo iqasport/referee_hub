@@ -23,7 +23,8 @@
 require 'rails_helper'
 
 describe RefereeAnswer, type: :model do
-  let(:test) { create :test }
+  let!(:cert) { create :certification }
+  let!(:test) { create :test, certification_id: cert.id }
   let(:test_attempt) { create :test_attempt, test: test }
   let(:referee_answer) { build :referee_answer, test: test, test_attempt: test_attempt }
 
@@ -35,8 +36,9 @@ describe RefereeAnswer, type: :model do
   end
 
   context '#correct?' do
-    let(:answer) { create :answer, correct: true }
-    let!(:referee_answer) { create :referee_answer, answer: answer, test: test, test_attempt: test_attempt }
+    let(:question) { create :question, test: test }
+    let(:answer) { create :answer, correct: true, question: question }
+    let!(:referee_answer) { create :referee_answer, answer: answer, question: question, test: test, test_attempt: test_attempt }
 
     subject { referee_answer.correct? }
 
@@ -45,7 +47,7 @@ describe RefereeAnswer, type: :model do
     end
 
     context 'when answer is not correct' do
-      let(:answer) { create :answer, correct: false }
+      let(:answer) { create :answer, correct: false, question: question }
 
       it 'should return false' do
         expect(subject).to be_falsey

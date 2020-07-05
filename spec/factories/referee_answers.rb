@@ -22,10 +22,10 @@
 
 FactoryBot.define do
   factory :referee_answer do
-    answer { create :answer }
-    question { create :question }
+    test { create :test }
+    question { create :question, test: test }
+    answer { create :answer, question: question }
     referee { create :user }
     test_attempt { create :test_attempt }
-    test { create :test }
   end
 end

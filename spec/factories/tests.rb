@@ -27,5 +27,6 @@ FactoryBot.define do
     description { FFaker::Lorem.paragraph }
     language { FFaker::Locale.language }
     testable_question_count 5
+    certification { create :certification }
   end
 end
