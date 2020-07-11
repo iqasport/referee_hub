@@ -231,3 +231,18 @@
     width: 70%;
     z-index: -1;
 }
+
+.step-container {
+    @apply flex;
+    @apply flex-col;
+    @apply items-center;
+    @apply text-gray-400;
+    @apply mx-12;
+    width: 33.33%
+}
+
+.step-number {
+    @apply uppercase;
+    @apply font-bold;
+    @apply text-gray-400;
+}

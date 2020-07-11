@@ -36,7 +36,7 @@ const TestsTable = () => {
   }
 
   const handleRowClick = (id: string) => {
-    history.push(`/tests/${id}`)
+    history.push(`/admin/tests/${id}`)
   }
 
   const handleToggle = (value: boolean, id: string) => {

@@ -67,6 +67,7 @@ Rails.application.routes.draw do
         member do
           get :start
           post :finish
+          post :import
         end
       end
       resources :certifications, only: :index
@@ -85,7 +86,6 @@ Rails.application.routes.draw do
         get 'teams_export', to: 'national_governing_body_teams#export'
       end
 
-      post 'tests/import', to: 'tests#import'
       get 'referees' => 'referees#index'
       get 'referees/:id' => 'referees#show'
       put 'referees/:id' => 'referees#update'

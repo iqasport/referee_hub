@@ -8,16 +8,47 @@ export type HeadersMap = {
   [original: string]: string
 }
 
-export const REQUIRED_HEADERS = ['name', 'city', 'country', 'state', 'age_group', 'status', 'url']
+const URL_REGEX = /url/
+const ANSWER_REGEX = /answer/
+const TEAM_REQUIRED_HEADERS = ['name', 'city', 'country', 'state', 'age_group', 'status', 'url']
+const TEST_REQUIRED_HEADERS = [
+  'description',
+  'feedback',
+  'points_available',
+  'answer',
+  'correct_answer'
+]
+
+export const getRequiredHeaders = (scope: string): string[] => {
+  switch (scope) {
+    case 'team':
+      return TEAM_REQUIRED_HEADERS
+    case 'test':
+      return TEST_REQUIRED_HEADERS
+    default:
+      return []
+  }
+}
+
+const findSelectedValue = (mappedValue: string): string => {
+  if (mappedValue.match(URL_REGEX)) {
+    return 'url'
+  } else if (mappedValue.match(ANSWER_REGEX)) {
+    return 'answer'
+  } else {
+    return mappedValue
+  }
+}
 
 interface MapStepProps {
   uploadedFile: File;
   mappedData: HeadersMap;
   onMappingUpdate: (mappedHeaders: HeadersMap) => void;
+  scope: string;
 }
 
 const MapStep = (props: MapStepProps) => {
-  const { uploadedFile, mappedData, onMappingUpdate } = props
+  const { uploadedFile, mappedData, onMappingUpdate, scope } = props
   const [originalHeaders, setOriginalHeaders] = useState<string[]>()
   const [originalData, setOriginalData] = useState<string[]>()
 
@@ -41,10 +72,13 @@ const MapStep = (props: MapStepProps) => {
     const mapClone = Object.assign({}, mappedData)
     delete mapClone[mappedColumn]
 
-    const urls = Object.values(mapClone).filter(value => value.match(/url/))
-    
+    const urls = Object.values(mapClone).filter(value => value.match(/url_\d+/))
+    const answers = Object.values(mapClone).filter(value => value.match(/answer_\d+/))
+
     if (mappedColumn === 'url') {
       mappedColumn = `url_${urls.length + 1}` 
+    } else if (mappedColumn === 'answer') {
+      mappedColumn = `answer_${answers.length + 1}`
     }
 
     onMappingUpdate({ ...mapClone, [columnName]: mappedColumn })
@@ -54,7 +88,7 @@ const MapStep = (props: MapStepProps) => {
     const columnIndex = originalHeaders.indexOf(columnName)
     const value = originalData && originalData[columnIndex]
     const mappedValue = mappedData[columnName] || ''
-    const selectedValue = mappedValue?.match(/url/) ? 'url' : mappedValue
+    const selectedValue = findSelectedValue(mappedValue)
 
     return (
       <div className="flex justify-between items-center mb-4" key={columnName}>
@@ -73,7 +107,7 @@ const MapStep = (props: MapStepProps) => {
             value={selectedValue}
           >
             <option value="">Select</option>
-            {REQUIRED_HEADERS.map((header) => {
+            {getRequiredHeaders(scope).map((header) => {
               return (
                 <option key={header} value={header} disabled={header === selectedValue}>
                   {header.split('_').map(word => capitalize(word)).join(' ')}
@@ -87,7 +121,7 @@ const MapStep = (props: MapStepProps) => {
   }
 
   const renderMapping = () => {
-    const needsMapping = originalHeaders ? difference(originalHeaders, REQUIRED_HEADERS) : []
+    const needsMapping = originalHeaders ? difference(originalHeaders, getRequiredHeaders(scope)) : []
     if (!needsMapping.length) return <h1>All headers are correctly mapped, click Next to upload your csv</h1>
 
     return (

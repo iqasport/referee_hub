@@ -5,30 +5,29 @@ import React from 'react'
 
 interface StepDescriptionProps {
   currentStep: number;
-  scopes: string[];
+  scope: string;
 }
 
 const StepDescriptions = (props: StepDescriptionProps) => {
-  const { scopes, currentStep } = props
-  const scopeString = scopes.length > 1 ? scopes.join(' or ') : scopes[0]
+  const { scope, currentStep } = props
   const isStepActive = (stepNum: number): boolean => currentStep === stepNum;
 
   return (
     <div className="relative my-12 mx-auto">
       <div className="step-connector" />
       <div className="flex w-full z-1">
-        <div className={classnames("w-1/3 flex flex-col items-center text-gray-400 mx-12", { ["text-navy-blue"]: isStepActive(1) })}>
-          <h3 className={classnames("uppercase font-bold text-gray-400", { ["text-navy-blue"]: isStepActive(1) })}>Step 1</h3>
+        <div className={classnames("step-container", { ["text-navy-blue"]: isStepActive(1) })}>
+          <h3 className={classnames("step-number", { ["text-navy-blue"]: isStepActive(1) })}>Step 1</h3>
           <div className={classnames("step-circle", { ["border-navy-blue"]: isStepActive(1) })}>
             <FontAwesomeIcon icon={faUpload} />
           </div>
           <p>
             <span className="font-bold">Upload</span>
-            {` your CSV file of ${scopeString} data.`}
+            {` your CSV file of ${scope} data.`}
           </p>
         </div>
-        <div className={classnames("w-1/3 flex flex-col items-center text-gray-400 mx-12", { ["text-navy-blue"]: isStepActive(2) })}>
-          <h3 className={classnames("uppercase font-bold text-gray-400", { ["text-navy-blue"]: isStepActive(2) })}>Step 2</h3>
+        <div className={classnames("step-container", { ["text-navy-blue"]: isStepActive(2) })}>
+          <h3 className={classnames("step-number", { ["text-navy-blue"]: isStepActive(2) })}>Step 2</h3>
           <div className={classnames("step-circle", { ["border-navy-blue"]: isStepActive(2) })}>
             <FontAwesomeIcon icon={faRoute} />
           </div>
@@ -37,8 +36,8 @@ const StepDescriptions = (props: StepDescriptionProps) => {
             {` your custom headers to the required headers`}
           </p>
         </div>
-        <div className={classnames("w-1/3 flex flex-col items-center text-gray-400 mx-12", { ["text-navy-blue"]: isStepActive(3) })}>
-          <h3 className={classnames("uppercase font-bold text-gray-400", { ["text-navy-blue"]: isStepActive(3) })}>Step 3</h3>
+        <div className={classnames("step-container", { ["text-navy-blue"]: isStepActive(3) })}>
+          <h3 className={classnames("step-number", { ["text-navy-blue"]: isStepActive(3) })}>Step 3</h3>
           <div className={classnames("step-circle", { ["border-navy-blue"]: isStepActive(3) })}>
             <FontAwesomeIcon icon={faEnvelopeOpenText} />
           </div>

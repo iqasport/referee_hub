@@ -1,6 +1,12 @@
+import axios from 'axios'
+import { transform } from 'lodash'
+
+import { HeadersMap } from 'MainApp/pages/ImportWizard/MapStep'
+import { GetQuestionsSchema } from 'MainApp/schemas/getQuestionsSchema'
 import { Attributes, Data, GetTestSchema } from '../schemas/getTestSchema'
 import { Datum, GetTestsSchema, IncludedAttributes } from '../schemas/getTestsSchema'
 
+import { QuestionsResponse } from './question'
 import { baseAxios } from './utils'
 
 export interface IdAttributes extends IncludedAttributes {
@@ -77,6 +83,29 @@ export async function createTest(newTest: UpdateTestRequest): Promise<TestRespon
     return {
       certification,
       test: testResponse.data.data,
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function importTests(file: File, mappedData: HeadersMap, testId: string): Promise<QuestionsResponse> {
+  const url = `/api/v1/tests/${testId}/import`
+  const reversedMap = transform(mappedData, (acc, value, key) => {
+    acc[value] = key
+    return acc
+  }, {})
+
+  try {
+    const data = new FormData()
+    data.append('file', file)
+    data.append('mapped_headers', JSON.stringify(reversedMap))
+
+    const questionsResponse = await axios.post<GetQuestionsSchema>(url, data)
+
+    return {
+      meta: questionsResponse.data.meta,
+      questions: questionsResponse.data.data,
     }
   } catch (err) {
     throw err

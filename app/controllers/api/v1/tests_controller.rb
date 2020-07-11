@@ -3,7 +3,7 @@ module Api
     class TestsController < ApplicationController
       before_action :authenticate_user!
       before_action :verify_admin, only: %i[create update destroy import]
-      before_action :find_test, only: %i[update show destroy start finish]
+      before_action :find_test, only: %i[update show destroy start finish import]
       before_action :verify_valid_cool_down, only: :start
       before_action :verify_valid_tries, only: :start
       skip_before_action :verify_authenticity_token
@@ -80,9 +80,18 @@ module Api
       end
 
       def import
-        Test.csv_import(params['file'].tempfile)
-        new_tests = Test.all
-        json_string = TestSerializer.new(new_tests).serialized_json
+        imported_ids = Services::TestCsvImport.new(
+          params['file'].tempfile.path,
+          @test,
+          params['mapped_headers']
+        ).perform
+
+        new_questions = @test.questions.where(id: imported_ids)
+        page = params[:page] || 1
+        questions_total = new_questions.count
+        new_questions = new_questions.page(1)
+
+        json_string = QuestionSerializer.new(new_questions, meta: { page: page, total: questions_total}).serialized_json
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)

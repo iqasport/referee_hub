@@ -18,32 +18,36 @@ const initialState: TestsState = {
   tests: [],
 }
 
+function testsSuccess(state: TestsState, action: PayloadAction<TestsResponse>) {
+  state.isLoading = false
+  state.error = null
+  state.tests = action.payload.tests
+  state.certifications = action.payload.certifications
+}
+
+function testsFailure(state: TestsState, action: PayloadAction<string>) {
+  state.isLoading = false
+  state.tests = []
+  state.error = action.payload
+  state.certifications = []
+}
+
 const tests = createSlice({
   initialState,
   name: 'tests',
   reducers: {
+    getTestsFailure: testsFailure,
     getTestsStart(state: TestsState) {
       state.isLoading = true;
     },
-    getTestsSuccess(state: TestsState, action: PayloadAction<TestsResponse>) {
-      state.isLoading = false
-      state.error = null
-      state.tests = action.payload.tests
-      state.certifications = action.payload.certifications
-    },
-    getTestsFailure(state: TestsState, action: PayloadAction<string>) {
-      state.isLoading = false
-      state.tests = []
-      state.error = action.payload
-      state.certifications = []
-    }
+    getTestsSuccess: testsSuccess,
   }
 })
 
 export const {
   getTestsFailure,
   getTestsStart,
-  getTestsSuccess
+  getTestsSuccess,
 } = tests.actions
 
 export const getTests = (): AppThunk => async dispatch => {

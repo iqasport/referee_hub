@@ -2,13 +2,14 @@ require 'csv'
 
 module Services
   class TestCsvImport
-    attr_reader :file_path, :test_to_import
+    attr_reader :file_path, :test_to_import, :mapped_headers
     attr_accessor :questions
 
     TestMissingError = Class.new(StandardError)
-    def initialize(file_path, test_to_import)
+    def initialize(file_path, test_to_import, mapped_headers)
       @file_path = file_path
       @test_to_import = test_to_import
+      @mapped_headers = ActiveSupport::JSON.decode(mapped_headers).with_indifferent_access
       @questions = []
     end
 
@@ -23,34 +24,38 @@ module Services
         questions << question
       end
 
-      Question.import questions, recursive: true
+      import_results = Question.import questions, recursive: true, returning: :description
+      import_results.ids
     end
 
     private
 
     def build_new_question(row_data)
       Question.new(
-        description: row_data.dig('description'),
-        feedback: row_data.dig('feedback'),
-        points_available: row_data.dig('points_available'),
+        description: row_data.dig(mapped_headers['description']),
+        feedback: row_data.dig(mapped_headers['feedback']),
+        points_available: row_data.dig(mapped_headers['points_available']),
         test_id: test_to_import.id
       )
     end
 
     def build_new_answer(row_data, answer_key)
+      correct = row_data.dig(mapped_headers['correct_answer']) == answer_key
+
       Answer.new(
-        description: row_data.dig("#{answer_key}_description"),
-        correct: row_data.dig("#{answer_key}_correct")
+        description: row_data.dig(answer_key),
+        correct: correct
       )
     end
 
     def build_test_question(row_data, all_keys)
       new_question = build_new_question(row_data)
 
-      answer_keys = all_keys.select { |key| key =~ /answer_\d/ }
-      answer_numbers = answer_keys.map { |key| key.gsub(/_\D+/, '') }.uniq!
+      mapped_keys = mapped_headers.keys.select { |key| key =~ /answer_\d+/ }
+      answer_keys = mapped_keys.select { |key| mapped_headers[key] }
+
       answers = []
-      answer_numbers.each { |answer_key| answers << build_new_answer(row_data, answer_key) }
+      answer_keys.each { |answer_key| answers << build_new_answer(row_data, answer_key) }
 
       new_question.answers = answers
       new_question
