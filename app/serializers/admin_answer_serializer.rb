@@ -10,6 +10,6 @@
 #  question_id :integer          not null
 #
 
-class AnswerSerializer < BaseSerializer
-  attributes :description, :question_id
+class AdminAnswerSerializer < BaseSerializer
+  attributes :description, :question_id, :correct
 end

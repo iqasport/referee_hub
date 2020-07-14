@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
+import QuestionsManager from 'MainApp/components/QuestionsManager'
 import Toggle from 'MainApp/components/Toggle'
 import { getTest, updateTest } from 'MainApp/modules/test/test'
 import { RootState } from 'MainApp/rootReducer'
@@ -45,7 +46,7 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
       case SelectedTab.Details:
         return <div>Details content</div>
       case SelectedTab.Questions:
-        return <div>Questions content</div>
+        return <QuestionsManager testId={id} />
     }
   }
 

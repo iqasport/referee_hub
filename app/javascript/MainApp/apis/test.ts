@@ -104,6 +104,7 @@ export async function importTests(file: File, mappedData: HeadersMap, testId: st
     const questionsResponse = await axios.post<GetQuestionsSchema>(url, data)
 
     return {
+      answers: questionsResponse.data.included,
       meta: questionsResponse.data.meta,
       questions: questionsResponse.data.data,
     }

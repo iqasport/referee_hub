@@ -10,7 +10,8 @@ module Api
       layout false
 
       def index
-        json_string = AnswerSerializer.new(answers, params: { include_correct: true }).serialized_json
+        klass = current_user.iqa_admin? ? AdminAnswerSerializer : AnswerSerializer
+        json_string = klass.new(answers).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -21,7 +22,7 @@ module Api
         answer.question_id = @question.id
         answer.save!
 
-        json_string = AnswerSerializer.new(answer, params: { include_correct: true }).serialized_json
+        json_string = AdminAnswerSerializer.new(answer).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
@@ -30,7 +31,7 @@ module Api
       end
 
       def show
-        json_string = AnswerSerializer.new(@answer, params: { include_correct: true }).serialized_json
+        json_string = AdminAnswerSerializer.new(@answer).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -39,7 +40,7 @@ module Api
         existing_correct.update!(correct: false) if existing_correct.present?
         @answer.update!(permitted_params)
 
-        json_string = AnswerSerializer.new(@answer, params: { include_correct: true }).serialized_json
+        json_string = AdminAnswerSerializer.new(@answer).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
@@ -48,7 +49,7 @@ module Api
       end
 
       def destroy
-        json_string = AnswerSerializer.new(@answer, params: { include_correct: true }).serialized_json
+        json_string = AdminAnswerSerializer.new(@answer).serialized_json
 
         @answer.destroy!
 

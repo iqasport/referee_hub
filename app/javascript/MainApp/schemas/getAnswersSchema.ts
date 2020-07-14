@@ -1,79 +1,37 @@
 // To parse this data:
 //
-//   import { Convert, GetQuestionsSchema } from "./file";
+//   import { Convert, GetAnswersSchema } from "./file";
 //
-//   const getQuestionsSchema = Convert.toGetQuestionsSchema(json);
+//   const getAnswersSchema = Convert.toGetAnswersSchema(json);
 //
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
 
-export interface GetQuestionsSchema {
-  data: GetQuestionsSchemaDatum[];
-  included: Included[];
-  meta?: Meta;
+export interface GetAnswersSchema {
+  data: Datum[];
 }
 
-export interface GetQuestionsSchemaDatum {
+export interface Datum {
   id: string;
   type: string;
-  attributes: DatumAttributes;
-  relationships: Relationships;
+  attributes: Attributes;
 }
 
-export interface DatumAttributes {
-  description: string;
-  feedback: string;
-  testId: number;
-  pointsAvailable: number;
-}
-
-export interface Relationships {
-  answers: Answers;
-}
-
-export interface Answers {
-  data: AnswersDatum[];
-}
-
-export interface AnswersDatum {
-  id: string;
-  type: DatumType;
-}
-
-export enum DatumType {
-  Answer = "answer",
-}
-
-export interface Included {
-  id: string;
-  type: IncludedType;
-  attributes: IncludedAttributes;
-}
-
-export interface IncludedAttributes {
+export interface Attributes {
   description: string;
   questionId: number;
   correct: boolean;
 }
 
-export enum IncludedType {
-  AdminAnswer = "adminAnswer",
-}
-
-export interface Meta {
-  page: number;
-  total: number;
-}
-
 // Converts JSON strings to/from your types
 // and asserts the results of JSON.parse at runtime
 export class Convert {
-  public static toGetQuestionsSchema(json: string): GetQuestionsSchema {
-    return cast(JSON.parse(json), r("GetQuestionsSchema"));
+  public static toGetAnswersSchema(json: string): GetAnswersSchema {
+    return cast(JSON.parse(json), r("GetAnswersSchema"));
   }
 
-  public static getQuestionsSchemaToJson(value: GetQuestionsSchema): string {
-    return JSON.stringify(uncast(value, r("GetQuestionsSchema")), null, 2);
+  public static getAnswersSchemaToJson(value: GetAnswersSchema): string {
+    return JSON.stringify(uncast(value, r("GetAnswersSchema")), null, 2);
   }
 }
 
@@ -207,46 +165,17 @@ function r(name: string) {
 }
 
 const typeMap: any = {
-  "GetQuestionsSchema": o([
-    { json: "data", js: "data", typ: a(r("GetQuestionsSchemaDatum")) },
-    { json: "included", js: "included", typ: a(r("Included")) },
+  "GetAnswersSchema": o([
+    { json: "data", js: "data", typ: a(r("Datum")) },
   ], false),
-  "GetQuestionsSchemaDatum": o([
+  "Datum": o([
     { json: "id", js: "id", typ: "" },
     { json: "type", js: "type", typ: "" },
-    { json: "attributes", js: "attributes", typ: r("DatumAttributes") },
-    { json: "relationships", js: "relationships", typ: r("Relationships") },
+    { json: "attributes", js: "attributes", typ: r("Attributes") },
   ], false),
-  "DatumAttributes": o([
-    { json: "description", js: "description", typ: "" },
-    { json: "feedback", js: "feedback", typ: "" },
-    { json: "testId", js: "testId", typ: 0 },
-    { json: "pointsAvailable", js: "pointsAvailable", typ: 0 },
-  ], false),
-  "Relationships": o([
-    { json: "answers", js: "answers", typ: r("Answers") },
-  ], false),
-  "Answers": o([
-    { json: "data", js: "data", typ: a(r("AnswersDatum")) },
-  ], false),
-  "AnswersDatum": o([
-    { json: "id", js: "id", typ: "" },
-    { json: "type", js: "type", typ: r("DatumType") },
-  ], false),
-  "Included": o([
-    { json: "id", js: "id", typ: "" },
-    { json: "type", js: "type", typ: r("IncludedType") },
-    { json: "attributes", js: "attributes", typ: r("IncludedAttributes") },
-  ], false),
-  "IncludedAttributes": o([
+  "Attributes": o([
     { json: "description", js: "description", typ: "" },
     { json: "questionId", js: "questionId", typ: 0 },
     { json: "correct", js: "correct", typ: true },
   ], false),
-  "DatumType": [
-    "answer",
-  ],
-  "IncludedType": [
-    "adminAnswer",
-  ],
 };
