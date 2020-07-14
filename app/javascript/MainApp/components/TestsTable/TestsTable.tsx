@@ -1,19 +1,30 @@
 import { capitalize } from 'lodash'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
-import { updateTest } from 'MainApp/modules/test/test'
+import { deleteTest, updateTest } from 'MainApp/modules/test/test'
 import { getTests } from 'MainApp/modules/test/tests'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getTestsSchema'
 import { toDateTime } from 'MainApp/utils/dateUtils'
 import Table, { CellConfig } from '../Table/Table'
+import TestEditModal from '../TestEditModal'
 import Toggle from '../Toggle'
+import WarningModal from '../WarningModal'
 
-const HEADER_CELLS = ['title', 'level', 'version', 'language', 'active', 'last updated']
+import ActionDropdown from './ActionDropdown'
+
+const HEADER_CELLS = ['title', 'level', 'version', 'language', 'last updated', 'actions']
+
+enum ActiveModal {
+  Edit = 'edit',
+  Delete = 'delete'
+}
 
 const TestsTable = () => {
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null)
+  const [activeTest, setActiveTest] = useState<string>(null)
   const history = useHistory()
   const dispatch = useDispatch()
   const { tests, isLoading, certifications } = useSelector((state: RootState) => state.tests, shallowEqual)
@@ -43,6 +54,17 @@ const TestsTable = () => {
     const newTest = { active: value }
     dispatch(updateTest(id, newTest))
   }
+
+  const handleActiveToggle = (item: Datum) => (testId: string) => {
+    const newValue = !item.attributes.active
+    handleToggle(newValue, testId)
+  }
+  const handleModalClick = (newModal: ActiveModal) => (testId: string) => {
+    setActiveTest(testId)
+    setActiveModal(newModal)
+  }
+  const handleModalClose = () => setActiveModal(null)
+  const handleDelete = () => dispatch(deleteTest(activeTest))
 
   const renderEmpty = () => {
     return <h2>No tests found</h2>
@@ -88,8 +110,49 @@ const TestsTable = () => {
         return toDateTime(item.attributes.updatedAt).toFormat('D')
       },
       dataKey: 'updatedAt'
+    },
+    {
+      cellRenderer: (item: Datum) => {
+        return (
+          <ActionDropdown
+            testId={item.id}
+            onActiveToggle={handleActiveToggle(item)}
+            onEditClick={handleModalClick(ActiveModal.Edit)}
+            onDeleteClick={handleModalClick(ActiveModal.Delete)}
+          />
+        )
+      },
+      customStyle: 'text-right',
+      dataKey: 'actions'
     }
   ]
+
+  const renderModals = () => {
+    switch (activeModal) {
+      case ActiveModal.Edit:
+        return (
+          <TestEditModal
+            testId={activeTest}
+            open={true}
+            showClose={true}
+            onClose={handleModalClose}
+            shouldUpdateTests={false}
+          />
+        )
+      case ActiveModal.Delete:
+        return (
+          <WarningModal
+            open={true}
+            action="delete"
+            dataType="test"
+            onCancel={handleModalClose}
+            onConfirm={handleDelete}
+          />
+        )
+      default:
+        return null
+    }
+  }
 
   return (
     <>
@@ -103,6 +166,7 @@ const TestsTable = () => {
         rowConfig={rowConfig}
         isHeightRestricted={false}
       />
+      {renderModals()}
     </>
   )
 }

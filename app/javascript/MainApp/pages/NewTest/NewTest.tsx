@@ -1,3 +1,5 @@
+import { faCaretLeft } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classnames from 'classnames'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
@@ -98,7 +100,10 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
   return (
     <>
       <div className="w-5/6 mx-auto my-8">
-        <button className="block" onClick={handleBackClick}>back</button>
+        <button className="block" onClick={handleBackClick}>
+          <FontAwesomeIcon icon={faCaretLeft} className="mr-2" />
+          back
+        </button>
         <div className="w-full flex justify-end items-center">
           <div className="flex w-1/2 items-center">
             <h1 className="text-3xl font-extrabold text-right mr-4">{test?.attributes.name}</h1>

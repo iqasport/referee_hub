@@ -31,12 +31,15 @@ const Table = <T extends Referee | Test | Team>(props: TableProps<T>) => {
 
   const renderRow = (item: T) => {
     return (
-      <tr key={item.id} className="border border-gray-300 hover:bg-gray-300" onClick={handleRowClick(item.id)}>
+      <tr key={item.id} className="border border-gray-300 hover:bg-gray-300">
         {rowConfig.map((cell) => {
+          const handleClick = cell.dataKey === 'actions' ? null : handleRowClick(item.id)
+
           return (
             <td
               key={cell.dataKey}
               className={`w-1/4 py-4 px-8 ${cell.customStyle}`}
+              onClick={handleClick}
             >
               {cell.cellRenderer(item)}
             </td>
