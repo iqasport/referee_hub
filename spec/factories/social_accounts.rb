@@ -2,13 +2,13 @@
 #
 # Table name: social_accounts
 #
-#  id           :bigint(8)        not null, primary key
+#  id           :bigint           not null, primary key
 #  account_type :integer          default("facebook"), not null
 #  ownable_type :string
 #  url          :string           not null
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
-#  ownable_id   :bigint(8)
+#  ownable_id   :bigint
 #
 # Indexes
 #

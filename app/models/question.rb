@@ -2,7 +2,7 @@
 #
 # Table name: questions
 #
-#  id               :bigint(8)        not null, primary key
+#  id               :bigint           not null, primary key
 #  description      :text             not null
 #  feedback         :text
 #  points_available :integer          default(1), not null

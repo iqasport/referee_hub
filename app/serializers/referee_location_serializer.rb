@@ -2,7 +2,7 @@
 #
 # Table name: referee_locations
 #
-#  id                         :bigint(8)        not null, primary key
+#  id                         :bigint           not null, primary key
 #  association_type           :integer          default("primary")
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null

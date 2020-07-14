@@ -2,12 +2,12 @@
 #
 # Table name: referee_teams
 #
-#  id               :bigint(8)        not null, primary key
+#  id               :bigint           not null, primary key
 #  association_type :integer          default("player")
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
-#  referee_id       :bigint(8)
-#  team_id          :bigint(8)
+#  referee_id       :bigint
+#  team_id          :bigint
 #
 # Indexes
 #
@@ -17,7 +17,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (referee_id => referees.id)
+#  fk_rails_...  (referee_id => users.id)
 #  fk_rails_...  (team_id => teams.id)
 #
 

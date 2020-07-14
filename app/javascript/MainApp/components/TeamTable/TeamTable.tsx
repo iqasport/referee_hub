@@ -7,6 +7,7 @@ import { getTeams, TeamsState, updateFilters } from '../../modules/team/teams'
 import { RootState } from '../../rootReducer'
 import { Datum } from '../../schemas/getTeamsSchema'
 
+import Table, { CellConfig } from '../Table/Table'
 import TeamEditModal from '../TeamEditModal'
 import WarningModal from '../WarningModal'
 import ActionDropdown from './ActionDropdown'
@@ -58,61 +59,53 @@ const TeamTable = (props: TeamTableProps) => {
     }
   }
 
-  const renderRow = (team: Datum) => {
-    const teamCity = `${team.attributes.city}, ${team.attributes.state}`
-    return (
-      <tr key={team?.id} className="border border-gray-300 hover:bg-gray-300">
-        <td className="w-1/4 py-4 px-8">{team.attributes.name}</td>
-        <td className="w-1/4 py-4 px-8">{teamCity}</td>
-        <td className="w-1/4 py-4 px-8">{team.attributes.groupAffiliation}</td>
-        <td className="w-1/4 py-4 px-8">{team.attributes.status}</td>
-        <td className="w-1/4 py-4 px-8 text-right">
-          <ActionDropdown teamId={team.id} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
-        </td>
-      </tr>
-    )
-  }
+  const renderEmpty = () => <h2>No teams found</h2>
 
-  const renderBody = () => {
-    return (
-      <tbody>
-        {teams.map(renderRow)}
-      </tbody>
-    )
-  }
-
-  const renderEmpty = () => {
-    return (
-      <tbody>
-        <tr>
-          <td>
-            <h2>{isLoading ? 'Loading...' : 'No teams found'}</h2>
-          </td>
-        </tr>
-      </tbody>
-    )
-  }
+  const HEADER_CELLS = ['name', 'city', 'type', 'status', 'actions']
+  const rowConfig: CellConfig<Datum>[] = [
+    {
+      cellRenderer: (item: Datum) => {
+        return item.attributes.name
+      },
+      dataKey: 'name'
+    },
+    {
+      cellRenderer: (item: Datum) => {
+        return `${item.attributes.city}, ${item.attributes.state}`
+      },
+      dataKey: 'city'
+    },
+    {
+      cellRenderer: (item: Datum) => {
+        return item.attributes.groupAffiliation
+      },
+      dataKey: 'groupAffiliation'
+    },
+    {
+      cellRenderer: (item: Datum) => {
+        return item.attributes.status
+      },
+      dataKey: 'status'
+    },
+    {
+      cellRenderer: (item: Datum) => {
+        return <ActionDropdown teamId={item.id} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
+      },
+      customStyle: 'text-right',
+      dataKey: 'actions',
+    }
+  ]
 
   return (
     <>
-      {teams.length && (
-        <table className="rounded-table-header">
-          <tbody>
-            <tr className="text-left">
-              <td className="w-1/4 py-4 px-8">name</td>
-              <td className="w-1/4 py-4 px-8">city</td>
-              <td className="w-1/4 py-4 px-8">type</td>
-              <td className="w-1/4 py-4 px-8">status</td>
-              <td className="w-1/4 py-4 px-8 text-right">actions</td>
-            </tr>
-          </tbody>
-        </table>
-      )}
-      <div className="table-container">
-        <table className="rounded-table">
-          {teams.length ? renderBody() : renderEmpty()}
-        </table>
-      </div>
+      <Table
+        items={teams}
+        isLoading={isLoading}
+        headerCells={HEADER_CELLS}
+        rowConfig={rowConfig}
+        emptyRenderer={renderEmpty}
+        isHeightRestricted={true}
+      />
       {renderModals()}
     </>
   )

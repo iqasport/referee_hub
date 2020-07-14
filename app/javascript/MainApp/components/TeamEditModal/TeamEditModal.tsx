@@ -81,7 +81,6 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }
 
   const handleDataChange = (dataKey: string, newValue: string) => {
-    setHasChangedTeam(true)
     setNewTeam({ ...newTeam, [dataKey]: newValue })
   }
 
@@ -158,7 +157,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <label className="w-1/2 mr-4">
             <span className="text-gray-700">Type</span>
             <select 
-              className={classnames("form-input mt-1 block w-full", { 'border border-red-500': hasError('groupAffiliation') })} 
+              className={
+                classnames(
+                  "form-select mt-1 block w-full",
+                  { 'border border-red-500': hasError('groupAffiliation') }
+                )
+              }
               placeholder="Select the age group"
               name="groupAffiliation" 
               onChange={handleInputChange}
@@ -172,7 +176,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <label className="w-1/2">
             <span className="text-gray-700">Status</span>
             <select
-              className={classnames("form-input mt-1 block w-full", { 'border border-red-500': hasError('status') })} 
+              className={classnames("form-select mt-1 block w-full", { 'border border-red-500': hasError('status') })}
               placeholder="Select the playing status" 
               name="status" 
               onChange={handleInputChange}

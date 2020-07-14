@@ -2,7 +2,7 @@
 #
 # Table name: national_governing_body_stats
 #
-#  id                         :bigint(8)        not null, primary key
+#  id                         :bigint           not null, primary key
 #  assistant_referees_count   :integer          default(0)
 #  community_teams_count      :integer          default(0)
 #  competitive_teams_count    :integer          default(0)
@@ -20,7 +20,7 @@
 #  youth_teams_count          :integer          default(0)
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null
-#  national_governing_body_id :bigint(8)
+#  national_governing_body_id :bigint
 #
 # Indexes
 #

@@ -60,7 +60,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
         dispatch(exportNgbReferees());
     }
   }
-  const handleImportClick = () => history.push('/import/ngb')
+  const handleImportClick = () => history.push('/import/team')
 
   const renderModals = () => {
     switch(openModal) {

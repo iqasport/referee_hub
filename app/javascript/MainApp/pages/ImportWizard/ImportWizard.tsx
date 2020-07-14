@@ -2,12 +2,13 @@ import { faCaretLeft, faEnvelopeOpenText, faRoute, faUpload, IconDefinition } fr
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router-dom';
+import { RouteComponentProps, useHistory } from 'react-router-dom';
 
-import { importTeams } from '../../modules/team/teams';
-import { RootState } from '../../rootReducer';
+import { importTestQuestions } from 'MainApp/modules/question/questions';
+import { importTeams } from 'MainApp/modules/team/teams';
+import { RootState } from 'MainApp/rootReducer';
 import FinishStep from './FinishStep';
-import MapStep, { HeadersMap, REQUIRED_HEADERS } from './MapStep';
+import MapStep, { getRequiredHeaders, HeadersMap } from './MapStep';
 import StepDescriptions from './StepDescriptions';
 import UploadStep from './UploadStep';
 
@@ -31,33 +32,45 @@ const stepTextMap: { [stepCount: number]: StepConfig } = {
   },
 }
 
-const defaultHeadersMap: HeadersMap = REQUIRED_HEADERS.reduce((acc, value) => {
-  acc[value] = value
-  return acc
-}, {})
+const defaultHeadersMap = (scope: string): HeadersMap => (
+  getRequiredHeaders(scope).reduce((acc, value) => {
+    acc[value] = value
+    return acc
+  }, {})
+)
 
-const ImportWizard = () => {
+type ScopeParams = { scope: string }
+
+const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
+  const { match: { params: { scope } } } = props
+  const [parsedScope, testId] = scope.split('_')
+
   const [stepCount, setStepCount] = useState(1)
   const [uploadedFile, setUploadedFile] = useState<File>()
-  const [mappedData, setMappedData] = useState<HeadersMap>(defaultHeadersMap)
+  const [mappedData, setMappedData] = useState<HeadersMap>(defaultHeadersMap(parsedScope))
 
   const { meta, error } = useSelector((state: RootState) => state.teams, shallowEqual);
+  const { meta: questionMeta, error: questionError } = useSelector((state: RootState) => state.questions, shallowEqual);
   const history = useHistory();
   const dispatch = useDispatch();
-  
+
   const isFinalStep = stepCount === 3;
   const buttonText = isFinalStep ? 'Done' : 'Next';
   const isDisabled = stepCount === 1 && !uploadedFile
   const currentStepConfig = stepTextMap[stepCount]
 
   const goForward = () => setStepCount(stepCount + 1)
-  
+
   const handleHomeClick = () => history.goBack()
   const handleButtonClick = () => {
     if (isFinalStep) {
       handleHomeClick()
     } else if (stepCount === 2) {
-      dispatch(importTeams(uploadedFile, mappedData))
+      if (scope === 'team') {
+        dispatch(importTeams(uploadedFile, mappedData))
+      } else if (scope.match(/test_/)) {
+        dispatch(importTestQuestions(uploadedFile, mappedData, testId))
+      }
       goForward()
     } else {
       goForward()
@@ -66,13 +79,21 @@ const ImportWizard = () => {
   const handleFileUpload = (selectedFile: File) => setUploadedFile(selectedFile)
 
   const renderStepContent = (): JSX.Element | null => {
+    const finishedMeta = meta || questionMeta
     switch(stepCount) {
       case 1:
         return <UploadStep onFileUpload={handleFileUpload} uploadedFile={uploadedFile} />
       case 2:
-        return <MapStep uploadedFile={uploadedFile} onMappingUpdate={setMappedData} mappedData={mappedData} />
+        return (
+          <MapStep
+            uploadedFile={uploadedFile}
+            onMappingUpdate={setMappedData}
+            mappedData={mappedData}
+            scope={parsedScope}
+          />
+        )
       case 3:
-        return <FinishStep meta={meta} error={error} />
+        return <FinishStep meta={finishedMeta} error={error || questionError} />
       default:
         return null
     }
@@ -88,7 +109,7 @@ const ImportWizard = () => {
       </div>
       <h1 className="font-extrabold text-3xl w-full pl-32">Import</h1>
       <div className="lg:block xl:block hidden">
-        <StepDescriptions currentStep={stepCount} scopes={['team']} />
+        <StepDescriptions currentStep={stepCount} scope={parsedScope} />
       </div>
       <div className="rounded-lg bg-green w-3/4 flex justify-between py-4 px-12 text-navy-blue mb-4">
         <h3 className="text-xl font-bold flex items-center">

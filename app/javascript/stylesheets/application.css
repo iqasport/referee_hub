@@ -167,6 +167,11 @@
     border-radius: 6px;
 }
 
+.full-height-table {
+    @apply h-screen;
+    @apply overflow-auto;
+}
+
 .button-tab {
     @apply border-2;
     @apply border-gray-600;
@@ -186,7 +191,7 @@
 }
 
 *:focus {
-    outline: none;
+    outline: none !important;
 }
 
 .green-button-outline {
@@ -225,4 +230,74 @@
     left: 145px;
     width: 70%;
     z-index: -1;
+}
+
+.step-container {
+    @apply flex;
+    @apply flex-col;
+    @apply items-center;
+    @apply text-gray-400;
+    @apply mx-12;
+    width: 33.33%
+}
+
+.step-number {
+    @apply uppercase;
+    @apply font-bold;
+    @apply text-gray-400;
+}
+
+.tab-row {
+    @apply w-full;
+    @apply relative;
+}
+
+.tab-row:before {
+    @apply z-1;
+}
+
+.tab-row:after {
+    @apply absolute;
+    @apply w-full;
+    @apply bottom-0;
+    @apply left-0;
+    @apply border-b;
+    @apply z-1;
+    content: "";
+}
+
+.tab-row button {
+    @apply relative;
+    @apply py-2;
+    @apply px-8;
+    @apply inline-block;
+    z-index: 0;
+}
+
+.tab-selected:before,
+.tab-selected:after {
+    @apply absolute;
+    bottom: -1px;
+    width: 6px;
+    height: 6px;
+    content: " ";
+}
+.tab-selected:last-child:before {
+    left: -6px;
+    box-shadow: 2px 2px 0 #FFF;
+    border-bottom-right-radius: 6px;
+    border-width: 0 1px 1px 0;
+}
+.tab-selected:after {
+    right: -6px;
+    box-shadow: -2px 2px 0 #FFF;
+    border-bottom-left-radius: 6px;
+    border-width: 0 0 1px 1px;
+}
+
+.tab-selected {
+    @apply border;
+    @apply rounded;
+    z-index: 2 !important;
+    border-bottom-color: #FFF;
 }

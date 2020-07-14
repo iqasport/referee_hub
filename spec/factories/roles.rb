@@ -2,11 +2,11 @@
 #
 # Table name: roles
 #
-#  id          :bigint(8)        not null, primary key
+#  id          :bigint           not null, primary key
 #  access_type :integer          default("referee"), not null
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
-#  user_id     :bigint(8)
+#  user_id     :bigint
 #
 # Indexes
 #

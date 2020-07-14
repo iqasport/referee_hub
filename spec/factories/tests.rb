@@ -2,7 +2,7 @@
 #
 # Table name: tests
 #
-#  id                      :bigint(8)        not null, primary key
+#  id                      :bigint           not null, primary key
 #  active                  :boolean          default(FALSE), not null
 #  description             :text             not null
 #  language                :string
@@ -27,5 +27,6 @@ FactoryBot.define do
     description { FFaker::Lorem.paragraph }
     language { FFaker::Locale.language }
     testable_question_count 5
+    certification { create :certification }
   end
 end

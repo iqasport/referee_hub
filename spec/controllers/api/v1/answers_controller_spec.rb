@@ -36,7 +36,7 @@ RSpec.describe Api::V1::AnswersController, type: :controller do
     end
 
     context 'when random is present' do
-      let(:question) { create :question }
+      let(:question) { create :question, test_id: test.id }
       let!(:answers) { create_list :answer, 3, question_id: question.id }
       let(:random) { true }
 

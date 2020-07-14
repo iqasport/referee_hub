@@ -2,14 +2,14 @@
 #
 # Table name: referee_answers
 #
-#  id              :bigint(8)        not null, primary key
+#  id              :bigint           not null, primary key
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  answer_id       :bigint(8)        not null
-#  question_id     :bigint(8)        not null
-#  referee_id      :bigint(8)        not null
-#  test_attempt_id :bigint(8)        not null
-#  test_id         :bigint(8)        not null
+#  answer_id       :bigint           not null
+#  question_id     :bigint           not null
+#  referee_id      :bigint           not null
+#  test_attempt_id :bigint           not null
+#  test_id         :bigint           not null
 #
 # Indexes
 #
@@ -22,10 +22,10 @@
 
 FactoryBot.define do
   factory :referee_answer do
-    answer { create :answer }
-    question { create :question }
+    test { create :test }
+    question { create :question, test: test }
+    answer { create :answer, question: question }
     referee { create :user }
     test_attempt { create :test_attempt }
-    test { create :test }
   end
 end

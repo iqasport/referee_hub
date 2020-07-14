@@ -2,7 +2,7 @@
 #
 # Table name: users
 #
-#  id                     :bigint(8)        not null, primary key
+#  id                     :bigint           not null, primary key
 #  admin                  :boolean          default(FALSE)
 #  bio                    :text
 #  confirmation_sent_at   :datetime
@@ -36,7 +36,7 @@
 #  unlock_token           :string
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
-#  invited_by_id          :bigint(8)
+#  invited_by_id          :bigint
 #
 # Indexes
 #

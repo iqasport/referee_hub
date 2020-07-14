@@ -13,7 +13,6 @@ const UploadStep = (props: UploadStepProps) => {
 
   return (
     <div className="w-1/2 mx-auto my-4 py-12">
-      <p className="">I'm importing team data</p>
       <DragNDrop {...props} />
       <p className="my-4">Uploaded File:</p>
       <p>{fileName}</p>

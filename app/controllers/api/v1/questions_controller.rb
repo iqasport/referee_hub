@@ -12,7 +12,8 @@ module Api
       def index
         questions = @test.questions
 
-        json_string = QuestionSerializer.new(questions, include: [:answers]).serialized_json
+        klass = current_user.iqa_admin? ? AdminQuestionSerializer : QuestionSerializer
+        json_string = klass.new(questions, include: [:answers]).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -23,7 +24,7 @@ module Api
         question.test_id = @test.id
         question.save!
 
-        json_string = QuestionSerializer.new(question).serialized_json
+        json_string = AdminQuestionSerializer.new(question).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
@@ -32,7 +33,8 @@ module Api
       end
 
       def show
-        json_string = QuestionSerializer.new(@question, include: [:answers]).serialized_json
+        klass = current_user.iqa_admin? ? AdminQuestionSerializer : QuestionSerializer
+        json_string = klass.new(@question, include: [:answers]).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -40,7 +42,7 @@ module Api
       def update
         @question.update!(permitted_params)
 
-        json_string = QuestionSerializer.new(@question, include: [:answers]).serialized_json
+        json_string = AdminQuestionSerializer.new(@question, include: [:answers]).serialized_json
 
         render json: json_string, status: :ok
       rescue => exception
@@ -49,7 +51,7 @@ module Api
       end
 
       def destroy
-        json_string = QuestionSerializer.new(@question).serialized_json
+        json_string = AdminQuestionSerializer.new(@question).serialized_json
 
         @question.destroy!
         render json: json_string, status: :ok

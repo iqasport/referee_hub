@@ -2,7 +2,7 @@
 #
 # Table name: certifications
 #
-#  id           :bigint(8)        not null, primary key
+#  id           :bigint           not null, primary key
 #  display_name :string           default(""), not null
 #  level        :integer          not null
 #  version      :integer          default("eighteen")
@@ -11,7 +11,7 @@
 #
 # Indexes
 #
-#  index_certifications_on_level  (level) UNIQUE
+#  index_certifications_on_level_and_version  (level,version) UNIQUE
 #
 
 require 'rails_helper'

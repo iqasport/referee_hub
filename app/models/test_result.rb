@@ -2,7 +2,7 @@
 #
 # Table name: test_results
 #
-#  id                      :bigint(8)        not null, primary key
+#  id                      :bigint           not null, primary key
 #  certificate_url         :string
 #  duration                :string
 #  minimum_pass_percentage :integer

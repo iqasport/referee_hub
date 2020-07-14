@@ -2,7 +2,7 @@
 #
 # Table name: tests
 #
-#  id                      :bigint(8)        not null, primary key
+#  id                      :bigint           not null, primary key
 #  active                  :boolean          default(FALSE), not null
 #  description             :text             not null
 #  language                :string
@@ -28,5 +28,9 @@ class TestSerializer < BaseSerializer
              :positive_feedback,
              :time_limit,
              :active,
-             :testable_question_count
+             :testable_question_count,
+             :updated_at,
+             :certification_id
+
+  belongs_to :certification
 end

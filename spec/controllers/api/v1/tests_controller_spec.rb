@@ -3,12 +3,23 @@ require_relative '_shared_examples'
 
 RSpec.describe Api::V1::TestsController, type: :controller do
   let(:admin) { create :user, :iqa_admin }
-  let!(:cert) { create :certification, :snitch }
+  let!(:snitch) { create :certification, :snitch }
+  let!(:assistant) { create :certification }
+  let!(:head) { create :certification, :head }
+  let!(:tests) { [] }
+
+  before do
+    tests.push(create(:test, certification_id: snitch.id))
+    tests.push(create(:test, certification_id: assistant.id))
+    tests.push(create(:test, certification_id: head.id))
+  end
+
+  after { Certification.all.destroy_all }
 
   describe 'GET #index' do
-    let!(:tests) { create_list :test, 3 }
-
-    before { sign_in admin }
+    before do
+      sign_in admin
+    end
 
     subject { get :index }
 
@@ -53,7 +64,8 @@ RSpec.describe Api::V1::TestsController, type: :controller do
         name: 'Test Name',
         negative_feedback: 'This is negative',
         positive_feedback: 'This is positive',
-        time_limit: 20
+        time_limit: 20,
+        certification_id: snitch.id
       }
     end
 
@@ -76,6 +88,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       expect(response_data['negativeFeedback']).to eq body_data[:negative_feedback]
       expect(response_data['positiveFeedback']).to eq body_data[:positive_feedback]
       expect(response_data['timeLimit']).to eq body_data[:time_limit]
+      expect(response_data['certificationId']).to eq body_data[:certification_id]
     end
 
     it_behaves_like 'it fails when a referee is not an admin'
@@ -89,7 +102,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   end
 
   describe 'PUT #update' do
-    let!(:test) { create :test }
+    let!(:test) { create :test, certification_id: snitch.id }
     let(:body_data) { { id: test.id, name: 'This is a different name' } }
 
     before { sign_in admin }
@@ -114,7 +127,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   end
 
   describe 'GET #show' do
-    let(:test) { create :test }
+    let(:test) { create :test, certification_id: snitch.id }
     let(:body_data) { { id: test.id } }
 
     before { sign_in admin }
@@ -133,7 +146,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    let(:test) { create :test }
+    let(:test) { create :test, certification_id: snitch.id }
     let(:body_data) { { id: test.id } }
 
     before { sign_in admin }
@@ -156,7 +169,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   describe 'GET #start' do
     let(:tester_ref) { create :user }
     let(:question_count) { 2 }
-    let(:test) { create :test, testable_question_count: question_count }
+    let(:test) { create :test, testable_question_count: question_count, certification_id: snitch.id }
     let!(:questions) { create_list(:question, 5, test: test) }
     let(:body_data) { { id: test.id } }
 
@@ -240,7 +253,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
   describe 'POST #finish' do
     let(:tester_ref) { create :user }
-    let(:test) { create :test }
+    let(:test) { create :test, certification_id: snitch.id }
     let(:questions) { create_list(:question, 5, test: test) }
     let(:started_at) { Time.now.utc }
     let(:finished_at) { Time.now.utc + 15.minutes }
@@ -304,5 +317,39 @@ RSpec.describe Api::V1::TestsController, type: :controller do
         subject
       end
     end
+  end
+
+  describe 'POST #import' do
+    include ActionDispatch::TestProcess
+
+    let(:service_double) { double(return_value: :perform) }
+    let(:mapped_headers) do
+      {
+        'description': 'description',
+        'feedback': 'feedback',
+        'points_available': 'points_available',
+        'answer_1': 'answer_1',
+        'correct_answer': 'correct_answer'
+      }.to_json
+    end
+
+    before do
+      sign_in admin
+      allow(Services::TestCsvImport).to receive(:new).and_return(service_double)
+      allow(service_double).to receive(:perform).and_return(true)
+      @file = fixture_file_upload('import_test.csv', 'text/csv')
+    end
+
+    subject { post :import, params: { file: @file, mapped_headers: mapped_headers, id: tests[0].id } }
+
+    it_behaves_like 'it is a successful request'
+
+    it 'calls the test csv import service' do
+      expect(Services::TestCsvImport).to receive(:new).with(instance_of(String), tests[0], mapped_headers)
+
+      subject
+    end
+
+    it_behaves_like 'it fails when a referee is not an admin'
   end
 end
