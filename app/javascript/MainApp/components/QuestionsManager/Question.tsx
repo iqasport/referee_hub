@@ -24,8 +24,8 @@ const Question = (props: QuestionProps) => {
   const handleTabClick = (newTab: ActiveTab) => () => setActiveTab(newTab)
   const renderAnswer = (answer: Included) => {
     return (
-      <li className="my-4">
-        <p key={answer.id} className={classnames({ "font-bold": answer.attributes.correct })}>
+      <li key={answer.id} className="my-4">
+        <p className={classnames({ "font-bold": answer.attributes.correct })}>
           {answer.attributes.description}
         </p>
       </li>

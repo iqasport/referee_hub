@@ -3,11 +3,14 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
+import Loader from 'MainApp/components/Loader'
 import QuestionsManager from 'MainApp/components/QuestionsManager'
 import Toggle from 'MainApp/components/Toggle'
 import { getTest, updateTest } from 'MainApp/modules/test/test'
 import { RootState } from 'MainApp/rootReducer'
 import { IdParams } from '../RefereeProfile/types'
+
+import Details from './Details'
 
 enum SelectedTab {
   Details = 'details',
@@ -20,7 +23,7 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Details)
   const dispatch = useDispatch()
   const history = useHistory()
-  const { test } = useSelector((state: RootState) => state.test, shallowEqual)
+  const { test, isLoading } = useSelector((state: RootState) => state.test, shallowEqual)
   const isSelected = (tab: SelectedTab) => selectedTab === tab
 
   useEffect(() => {
@@ -44,7 +47,7 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
   const renderContent = () => {
     switch(selectedTab) {
       case SelectedTab.Details:
-        return <div>Details content</div>
+        return <Details test={test} />
       case SelectedTab.Questions:
         return <QuestionsManager testId={id} />
     }
@@ -56,7 +59,7 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
       <div className="w-full flex justify-end items-center">
         <div className="flex w-1/2 items-center">
           <h1 className="text-3xl font-extrabold text-right mr-4">{test?.attributes.name}</h1>
-          <Toggle name="active" onChange={handleToggle} checked={test?.attributes.active} />
+          <Toggle name="active" onChange={handleToggle} checked={test?.attributes.active || false} />
         </div>
         <button className="green-button-outline" onClick={handleImportClick}>Import Questions</button>
       </div>
@@ -76,7 +79,7 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
           </button>
         </div>
         <div className="border border-t-0 p-4">
-          {renderContent()}
+          {isLoading ? <Loader /> : renderContent()}
         </div>
       </div>
     </div>
