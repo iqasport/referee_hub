@@ -65,10 +65,11 @@ const validateInput = (test: UpdateTestRequest, cert: UpdateCertification): stri
 
 interface TestEditModalProps extends Omit<ModalProps, 'size'> {
   testId?: string;
+  shouldUpdateTests?: boolean;
 }
 
 const TestEditModal = (props: TestEditModalProps) => {
-  const { testId, onClose } = props
+  const { testId, onClose, shouldUpdateTests } = props
 
   const [errors, setErrors] = useState<string[]>()
   const [hasChangedTest, setHasChangedTest] = useState(false)
@@ -82,7 +83,7 @@ const TestEditModal = (props: TestEditModalProps) => {
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey)
 
   useEffect(() => {
-    if (testId) {
+    if (testId && !test) {
       dispatch(getTest(testId))
     }
   }, [testId, dispatch])
@@ -111,7 +112,7 @@ const TestEditModal = (props: TestEditModalProps) => {
     const testToSend: UpdateTestRequest = { ...newTest, ...newCert, certificationId: parseInt(matchedCert?.id, 10) }
 
     if (testId) {
-      dispatch(updateTest(testId, testToSend))
+      dispatch(updateTest(testId, testToSend, shouldUpdateTests))
     } else {
       dispatch(createTest(testToSend))
     }

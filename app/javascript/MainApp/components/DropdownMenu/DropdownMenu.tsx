@@ -44,7 +44,10 @@ const DropdownMenu = (props: DropdownMenuProps) => {
         />
       )}
       {isDropdownOpen && (
-        <div className="bg-white rounded py-2 w-32 mt-1 shadow-lg absolute right-0 z-1">
+        <div
+          className="bg-white rounded py-2 min-w-32 mt-1 shadow-lg absolute right-0 z-1"
+          style={{ minWidth: 'max-content' }}
+        >
           <ul>
             {items.map(renderItems)}
           </ul>

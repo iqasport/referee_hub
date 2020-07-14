@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import {
   createTest as createTestApi,
+  deleteTest as deleteTestApi,
   getTest as getTestApi,
   IdAttributes,
   TestResponse,
@@ -49,6 +50,11 @@ const test = createSlice({
       state.isLoading = true
     },
     createTestSuccess: testSuccess,
+    deleteTestFailure: testFailure,
+    deleteTestStart(state: TestState) {
+      state.isLoading = true
+    },
+    deleteTestSuccess: testSuccess,
     getTestFailure: testFailure,
     getTestStart(state: TestState) {
       state.isLoading = true
@@ -66,6 +72,9 @@ export const {
   createTestFailure,
   createTestStart,
   createTestSuccess,
+  deleteTestFailure,
+  deleteTestStart,
+  deleteTestSuccess,
   getTestFailure,
   getTestStart,
   getTestSuccess,
@@ -84,12 +93,16 @@ export const getTest = (id: string): AppThunk => async dispatch => {
   }
 }
 
-export const updateTest = (id: string, updatedTest: UpdateTestRequest): AppThunk => async dispatch => {
+export const updateTest = (
+  id: string,
+  updatedTest: UpdateTestRequest,
+  shouldUpdateTests: boolean = true
+): AppThunk => async dispatch => {
   try {
     dispatch(updateTestStart())
     const testResponse = await updateTestApi(id, updatedTest)
     dispatch(updateTestSuccess(testResponse))
-    dispatch(getTests())
+    if (shouldUpdateTests) dispatch(getTests())
   } catch (err) {
     dispatch(updateTestFailure(err.toString()))
   }
@@ -103,6 +116,17 @@ export const createTest = (newTest: UpdateTestRequest): AppThunk => async dispat
     dispatch(getTests())
   } catch (err) {
     dispatch(createTestFailure(err.toString()))
+  }
+}
+
+export const deleteTest = (id: string): AppThunk => async dispatch => {
+  try {
+    dispatch(deleteTestStart())
+    const testResponse = await deleteTestApi(id)
+    dispatch(deleteTestSuccess(testResponse))
+    dispatch(getTests())
+  } catch(err) {
+    dispatch(deleteTestFailure(err.toString()))
   }
 }
 

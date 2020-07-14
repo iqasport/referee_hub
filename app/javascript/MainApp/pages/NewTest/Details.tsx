@@ -10,7 +10,7 @@ interface DetailsProps {
 
 const Details = (props: DetailsProps) => {
   const { test } = props
-  if (!test) return null
+  const dataToRender = test ? test.attributes : [];
 
   const renderData = (entry: [string, string]) => {
     if (EXCLUDED_ATTRIBUTES.includes(entry[0])) return null
@@ -27,7 +27,7 @@ const Details = (props: DetailsProps) => {
 
   return (
     <div>
-      {Object.entries(test.attributes).map(renderData)}
+      {Object.entries(dataToRender).map(renderData)}
     </div>
   )
 }

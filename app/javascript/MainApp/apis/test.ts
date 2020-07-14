@@ -30,7 +30,7 @@ export async function getTests(): Promise<TestsResponse> {
 
   try {
     const testsResponse = await baseAxios.get<GetTestsSchema>(url)
-    const certifications = testsResponse.data.included.map((cert) => ({ id: cert.id, ...cert.attributes }))
+    const certifications = testsResponse?.data?.included?.map((cert) => ({ id: cert.id, ...cert.attributes }))
 
     return {
       certifications,
@@ -46,7 +46,7 @@ export async function getTest(id: string): Promise<TestResponse> {
 
   try {
     const testResponse = await baseAxios.get<GetTestSchema>(url)
-    const certification = testResponse.data.included.map((cert) => ({ id: cert.id, ...cert.attributes }))[0]
+    const certification = testResponse?.data?.included?.map((cert) => ({ id: cert.id, ...cert.attributes }))[0]
 
     return {
       certification,
@@ -62,7 +62,7 @@ export async function updateTest(id: string, updatedTest: UpdateTestRequest): Pr
 
   try {
     const testResponse = await baseAxios.patch<GetTestSchema>(url, {...updatedTest})
-    const certification = testResponse.data.included.map((cert) => ({ id: cert.id, ...cert.attributes }))[0]
+    const certification = testResponse?.data?.included?.map((cert) => ({ id: cert.id, ...cert.attributes }))[0]
 
     return {
       certification,
@@ -78,7 +78,7 @@ export async function createTest(newTest: UpdateTestRequest): Promise<TestRespon
 
   try {
     const testResponse = await baseAxios.post<GetTestSchema>(url, { ...newTest})
-    const certification = testResponse.data.included.map((cert) => ({ id: cert.id, ...cert.attributes }))[0]
+    const certification = testResponse?.data?.included?.map((cert) => ({ id: cert.id, ...cert.attributes }))[0]
 
     return {
       certification,
@@ -112,3 +112,18 @@ export async function importTests(file: File, mappedData: HeadersMap, testId: st
     throw err
   }
 }
+
+export async function deleteTest(id: string): Promise<TestResponse> {
+  const url = `tests/${id}`
+
+  try {
+    const testResponse = await baseAxios.delete<GetTestSchema>(url)
+
+    return {
+      certification: null,
+      test: testResponse.data.data,
+    }
+  } catch (err) {
+    throw err
+  }
+};
