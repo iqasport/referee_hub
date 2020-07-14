@@ -318,4 +318,38 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       end
     end
   end
+
+  describe 'POST #import' do
+    include ActionDispatch::TestProcess
+
+    let(:service_double) { double(return_value: :perform) }
+    let(:mapped_headers) do
+      {
+        'description': 'description',
+        'feedback': 'feedback',
+        'points_available': 'points_available',
+        'answer_1': 'answer_1',
+        'correct_answer': 'correct_answer'
+      }.to_json
+    end
+
+    before do
+      sign_in admin
+      allow(Services::TestCsvImport).to receive(:new).and_return(service_double)
+      allow(service_double).to receive(:perform).and_return(true)
+      @file = fixture_file_upload('import_test.csv', 'text/csv')
+    end
+
+    subject { post :import, params: { file: @file, mapped_headers: mapped_headers, id: tests[0].id } }
+
+    it_behaves_like 'it is a successful request'
+
+    it 'calls the test csv import service' do
+      expect(Services::TestCsvImport).to receive(:new).with(instance_of(String), tests[0], mapped_headers)
+
+      subject
+    end
+
+    it_behaves_like 'it fails when a referee is not an admin'
+  end
 end
