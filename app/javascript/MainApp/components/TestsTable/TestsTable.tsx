@@ -97,16 +97,6 @@ const TestsTable = () => {
     },
     {
       cellRenderer: (item: Datum) => {
-        const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-          const value = event.currentTarget.checked
-          handleToggle(value, item.id)
-        }
-        return <Toggle name="active" checked={item.attributes.active} onChange={handleChange} />
-      },
-      dataKey: 'active'
-    },
-    {
-      cellRenderer: (item: Datum) => {
         return toDateTime(item.attributes.updatedAt).toFormat('D')
       },
       dataKey: 'updatedAt'

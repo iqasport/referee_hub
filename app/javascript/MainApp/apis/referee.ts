@@ -37,6 +37,7 @@ export interface GetRefereesFilter {
   nationalGoverningBodies?: number[];
   certifications?: string[];
   q?: string;
+  page?: number;
 }
 
 const mapAttributes = (record: Included) => ({ id: record.id, ...record.attributes })

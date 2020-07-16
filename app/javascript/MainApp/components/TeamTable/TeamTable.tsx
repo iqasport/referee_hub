@@ -1,12 +1,14 @@
+import { isInteger } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 
 import { GetTeamsFilter } from '../../apis/team'
 import { deleteTeam } from '../../modules/team/team'
-import { getTeams, TeamsState, updateFilters } from '../../modules/team/teams'
+import { clearFilters, getTeams, TeamsState, updateFilters } from '../../modules/team/teams'
 import { RootState } from '../../rootReducer'
 import { Datum } from '../../schemas/getTeamsSchema'
 
+import FilterToolbar from '../FilterToolbar'
 import Table, { CellConfig } from '../Table/Table'
 import TeamEditModal from '../TeamEditModal'
 import WarningModal from '../WarningModal'
@@ -26,7 +28,13 @@ const TeamTable = (props: TeamTableProps) => {
   const [activeTeamId, setActiveTeamId] = useState<string>()
 
   const dispatch = useDispatch()
-  const { teams, isLoading } = useSelector((state: RootState): TeamsState => state.teams, shallowEqual)
+  const { teams, isLoading, meta, filters } = useSelector((state: RootState): TeamsState => state.teams, shallowEqual)
+  const getTotalPages = (): number => {
+    const estimatedPages = meta?.total / 25
+    if (isInteger(estimatedPages)) return estimatedPages
+
+    return Math.floor(estimatedPages) + 1
+  }
 
   useEffect(() => {
     const filter: GetTeamsFilter = { nationalGoverningBodies: [props.ngbId] }
@@ -46,6 +54,20 @@ const TeamTable = (props: TeamTableProps) => {
   const handleDeleteConfirm = () => {
     dispatch(deleteTeam(activeTeamId))
     handleCloseModal()
+  }
+
+  const handleClearSearch = () => handleSearch('')
+
+  const handleSearch = (newValue: string) => {
+    const newFilters: GetTeamsFilter = { ...filters, q: newValue }
+    dispatch(updateFilters(newFilters))
+    dispatch(getTeams(newFilters))
+  }
+
+  const handlePageSelect = (newPage: number) => {
+    const newFilters: GetTeamsFilter = { ...filters, page: newPage }
+    dispatch(updateFilters(newFilters))
+    dispatch(getTeams(newFilters))
   }
 
   const renderModals = () => {
@@ -97,7 +119,14 @@ const TeamTable = (props: TeamTableProps) => {
   ]
 
   return (
-    <>
+    <div className="w-full">
+      <FilterToolbar
+        currentPage={parseInt(meta?.page, 10)}
+        onClearSearch={handleClearSearch}
+        total={meta?.total}
+        onSearchInput={handleSearch}
+        onPageSelect={handlePageSelect}
+      />
       <Table
         items={teams}
         isLoading={isLoading}
@@ -107,7 +136,7 @@ const TeamTable = (props: TeamTableProps) => {
         isHeightRestricted={true}
       />
       {renderModals()}
-    </>
+    </div>
   )
 }
 

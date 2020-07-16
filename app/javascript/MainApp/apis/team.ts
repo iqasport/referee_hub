@@ -22,6 +22,7 @@ export interface GetTeamsFilter {
   status?: Status[];
   q?: string;
   groupAffiliation?: GroupAffiliation[];
+  page?: number;
 }
 
 export interface UpdateTeamRequest extends Attributes {

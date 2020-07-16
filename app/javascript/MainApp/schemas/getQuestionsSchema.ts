@@ -61,7 +61,7 @@ export enum IncludedType {
 }
 
 export interface Meta {
-  page: number;
+  page: string;
   total: number;
 }
 

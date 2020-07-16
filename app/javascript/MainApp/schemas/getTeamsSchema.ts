@@ -62,7 +62,7 @@ export enum DatumType {
 }
 
 export interface Meta {
-    page:  number;
+    page:  string;
     total: number;
 }
 
