@@ -54,7 +54,13 @@ const App = () => {
           newDesignEnabled && (
             <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
               <p className="flex-shrink mx-8">Management Hub</p>
-              <Avatar firstName={currentUser?.firstName} lastName={currentUser?.lastName} />
+              <Avatar
+                firstName={currentUser?.firstName}
+                lastName={currentUser?.lastName}
+                roles={roles}
+                userId={id}
+                ownedNgbId={currentUser?.ownedNgbId}
+              />
             </div>
           )
         }
@@ -65,11 +71,27 @@ const App = () => {
         <Route exact={true} path='/referees' render={(props) => <AsyncPage {...props} page="Referees" />} />
         <Route exact={true} path='/referees/:id' render={(props) => <AsyncPage {...props} page={refProfile} />} />
         <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page="Admin" />} />
-        <Route exact={true} path='/admin/referee-diagnostic' render={(props) => <AsyncPage {...props} page="RefereeDiagnostic" />} />
-        {currentUser && <Route exact={true} path='/admin/tests' render={(props) => <AsyncPage {...props} page={tests} />} />}
-        {currentUser && <Route exact={true} path='/admin/tests/:id' render={(props) => <AsyncPage {...props} page={test} />} />}
-        <Route exact={true} path='/referees/:refereeId/tests/:testId' render={(props) => <AsyncPage {...props} page="StartTest" />} />
-        <Route exact={true} path='/national_governing_bodies/:id' render={(props) => <AsyncPage {...props} page="NgbProfile" /> } />
+        <Route
+          exact={true}
+          path='/admin/referee-diagnostic'
+          render={(props) => <AsyncPage {...props} page="RefereeDiagnostic" />}
+        />
+        {currentUser && (
+          <Route exact={true} path='/admin/tests' render={(props) => <AsyncPage {...props} page={tests} />} />
+        )}
+        {currentUser && (
+          <Route exact={true} path='/admin/tests/:id' render={(props) => <AsyncPage {...props} page={test} />} />
+        )}
+        <Route
+          exact={true}
+          path='/referees/:refereeId/tests/:testId'
+          render={(props) => <AsyncPage {...props} page="StartTest" />}
+        />
+        <Route
+          exact={true}
+          path='/national_governing_bodies/:id'
+          render={(props) => <AsyncPage {...props} page="NgbProfile" /> }
+        />
         <Route exact={true} path='/import/:scope' render={(props) => <AsyncPage {...props} page="ImportWizard" />} />
       </div>
     </Router>
