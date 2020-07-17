@@ -86,9 +86,9 @@ export const getTeams = (filters: GetTeamsFilter): AppThunk => async dispatch =>
   }
 }
 
-export const importTeams = (file: File, mappedData: HeadersMap): AppThunk => async dispatch => {
+export const importTeams = (file: File, mappedData: HeadersMap, ngbId: string): AppThunk => async dispatch => {
   try {
-    const teamsResponse = await importNgbTeams(file, mappedData)
+    const teamsResponse = await importNgbTeams(file, mappedData, ngbId)
     dispatch(importTeamsSuccess(teamsResponse))
   } catch (err) {
     dispatch(importTeamsFailure(err.toString()))

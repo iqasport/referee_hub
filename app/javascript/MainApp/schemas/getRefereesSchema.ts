@@ -112,7 +112,7 @@ export interface IncludedRelationships {
 }
 
 export interface Meta {
-    page:  number;
+    page:  string;
     total: number;
 }
 

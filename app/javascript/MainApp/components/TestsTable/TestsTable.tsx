@@ -1,3 +1,6 @@
+import { faCircle } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import classnames from 'classnames'
 import { capitalize } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
@@ -10,12 +13,11 @@ import { Datum } from 'MainApp/schemas/getTestsSchema'
 import { toDateTime } from 'MainApp/utils/dateUtils'
 import Table, { CellConfig } from '../Table/Table'
 import TestEditModal from '../TestEditModal'
-import Toggle from '../Toggle'
 import WarningModal from '../WarningModal'
 
 import ActionDropdown from './ActionDropdown'
 
-const HEADER_CELLS = ['title', 'level', 'version', 'language', 'last updated', 'actions']
+const HEADER_CELLS = ['title', 'level', 'version', 'language', 'active', 'last updated', 'actions']
 
 enum ActiveModal {
   Edit = 'edit',
@@ -97,11 +99,12 @@ const TestsTable = () => {
     },
     {
       cellRenderer: (item: Datum) => {
-        const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-          const value = event.currentTarget.checked
-          handleToggle(value, item.id)
-        }
-        return <Toggle name="active" checked={item.attributes.active} onChange={handleChange} />
+        return (
+          <FontAwesomeIcon
+            icon={faCircle}
+            className={classnames("text-gray-500", { "text-green": item.attributes.active })}
+          />
+        )
       },
       dataKey: 'active'
     },

@@ -7,6 +7,7 @@ import { getTeams, TeamsState, updateFilters } from '../../modules/team/teams'
 import { RootState } from '../../rootReducer'
 import { Datum } from '../../schemas/getTeamsSchema'
 
+import FilterToolbar from '../FilterToolbar'
 import Table, { CellConfig } from '../Table/Table'
 import TeamEditModal from '../TeamEditModal'
 import WarningModal from '../WarningModal'
@@ -18,18 +19,22 @@ enum ModalType {
 }
 
 interface TeamTableProps {
-  ngbId: number
+  ngbId: string;
 }
 
 const TeamTable = (props: TeamTableProps) => {
+  const { ngbId } = props
   const [openModal, setOpenModal] = useState<ModalType>()
   const [activeTeamId, setActiveTeamId] = useState<string>()
 
   const dispatch = useDispatch()
-  const { teams, isLoading } = useSelector((state: RootState): TeamsState => state.teams, shallowEqual)
+  const { teams, isLoading, meta, filters } = useSelector((state: RootState): TeamsState => state.teams, shallowEqual)
 
   useEffect(() => {
-    const filter: GetTeamsFilter = { nationalGoverningBodies: [props.ngbId] }
+    const filter: GetTeamsFilter = {
+      nationalGoverningBodies: [parseInt(props.ngbId, 10)],
+      nationalGoverningBodyId: ngbId
+    }
     dispatch(updateFilters(filter))
     dispatch(getTeams(filter))
   }, [])
@@ -44,16 +49,46 @@ const TeamTable = (props: TeamTableProps) => {
     setOpenModal(ModalType.Delete)
   }
   const handleDeleteConfirm = () => {
-    dispatch(deleteTeam(activeTeamId))
+    dispatch(deleteTeam(activeTeamId, ngbId))
     handleCloseModal()
+  }
+
+  const handleClearSearch = () => handleSearch('')
+
+  const handleSearch = (newValue: string) => {
+    const newFilters: GetTeamsFilter = { ...filters, q: newValue }
+    dispatch(updateFilters(newFilters))
+    dispatch(getTeams(newFilters))
+  }
+
+  const handlePageSelect = (newPage: number) => {
+    const newFilters: GetTeamsFilter = { ...filters, page: newPage }
+    dispatch(updateFilters(newFilters))
+    dispatch(getTeams(newFilters))
   }
 
   const renderModals = () => {
     switch(openModal) {
       case ModalType.Edit:
-        return <TeamEditModal teamId={activeTeamId} open={true} onClose={handleCloseModal} showClose={true} />
+        return (
+          <TeamEditModal
+            teamId={activeTeamId}
+            open={true}
+            onClose={handleCloseModal}
+            showClose={true}
+            ngbId={ngbId}
+          />
+        )
       case ModalType.Delete:
-        return <WarningModal open={true} onCancel={handleCloseModal} action="delete" dataType="team" onConfirm={handleDeleteConfirm} />
+        return (
+          <WarningModal
+            open={true}
+            onCancel={handleCloseModal}
+            action="delete"
+            dataType="team"
+            onConfirm={handleDeleteConfirm}
+          />
+        )
       default:
         return null
     }
@@ -97,7 +132,16 @@ const TeamTable = (props: TeamTableProps) => {
   ]
 
   return (
-    <>
+    <div className="w-full">
+      {teams.length > 0 && (
+        <FilterToolbar
+          currentPage={parseInt(meta?.page, 10)}
+          onClearSearch={handleClearSearch}
+          total={meta?.total}
+          onSearchInput={handleSearch}
+          onPageSelect={handlePageSelect}
+        />
+      )}
       <Table
         items={teams}
         isLoading={isLoading}
@@ -107,7 +151,7 @@ const TeamTable = (props: TeamTableProps) => {
         isHeightRestricted={true}
       />
       {renderModals()}
-    </>
+    </div>
   )
 }
 

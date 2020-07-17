@@ -73,7 +73,7 @@ const Table = <T extends Referee | Test | Team>(props: TableProps<T>) => {
 
   return (
     <>
-      {items.length && (
+      {items.length > 0 && (
         <table className="rounded-table-header">
           <tbody>
             <tr className="text-left">

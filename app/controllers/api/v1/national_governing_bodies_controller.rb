@@ -11,7 +11,10 @@ module Api
       def index
         @national_governing_bodies = NationalGoverningBody.all
 
-        json_string = NationalGoverningBodySerializer.new(@national_governing_bodies, fields: { national_governing_body: [:name]}).serialized_json
+        json_string = NationalGoverningBodySerializer.new(
+          @national_governing_bodies,
+          fields: { national_governing_body: [:name]}
+        ).serialized_json
 
         render json: json_string, status: :ok
       end
@@ -60,7 +63,7 @@ module Api
       end
 
       def permitted_params
-        params.permit(:name, :acronym, :country, :player_count, :website, urls: [])
+        params.permit(:name, :acronym, :country, :player_count, :website, :region, urls: [])
       end
     end
   end

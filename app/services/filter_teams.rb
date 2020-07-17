@@ -36,7 +36,7 @@ module Services
     end
 
     def search_by_name
-      relation.where('name ilike ?', search_query)
+      relation.where("name ilike '%' || ? || '%'", search_query)
     end
 
     def filter_by_status

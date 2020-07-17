@@ -82,10 +82,10 @@ export const {
   updateTeamSuccess,
 } = team.actions
 
-export const getTeam = (id: string): AppThunk => async dispatch => {
+export const getTeam = (id: string, ngbId: string): AppThunk => async dispatch => {
   try {
     dispatch(getTeamStart())
-    const teamResponse = await getTeamApi(id)
+    const teamResponse = await getTeamApi(id, ngbId)
     dispatch(getTeamSuccess(teamResponse))
   } catch (err) {
     dispatch(getTeamFailure(err.toString()))
@@ -97,6 +97,10 @@ export const createTeam = (newTeam: UpdateTeamRequest): AppThunk => async dispat
     dispatch(createTeamStart())
     const teamResponse = await createTeamApi(newTeam)
     dispatch(createTeamSuccess(teamResponse))
+    dispatch(getNgbTeams({
+      nationalGoverningBodies: [parseInt(newTeam.nationalGoverningBodyId, 10)],
+      nationalGoverningBodyId: newTeam.nationalGoverningBodyId
+    }))
   } catch(err) {
     dispatch(createTeamFailure(err.toString()))
   }
@@ -107,18 +111,21 @@ export const updateTeam = (id: string, newTeam: UpdateTeamRequest): AppThunk => 
     dispatch(updateTeamStart())
     const teamResponse = await updateTeamApi(id, newTeam)
     dispatch(updateTeamSuccess(teamResponse))
-    dispatch(getNgbTeams())
+    dispatch(getNgbTeams({
+      nationalGoverningBodies: [parseInt(newTeam.nationalGoverningBodyId, 10)],
+      nationalGoverningBodyId: newTeam.nationalGoverningBodyId
+    }))
   } catch (err) {
     dispatch(updateTeamFailure(err.toString()))
   }
 }
 
-export const deleteTeam = (id: string): AppThunk => async dispatch => {
+export const deleteTeam = (id: string, ngbId: string): AppThunk => async dispatch => {
   try {
     dispatch(deleteTeamStart())
-    const teamResponse = await deleteTeamApi(id)
+    const teamResponse = await deleteTeamApi(id, ngbId)
     dispatch(deleteTeamSuccess(teamResponse))
-    dispatch(getNgbTeams())
+    dispatch(getNgbTeams({ nationalGoverningBodyId: ngbId }))
   } catch (err) {
     dispatch(deleteTeamFailure(err.toString()))
   }

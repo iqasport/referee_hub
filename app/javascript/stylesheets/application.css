@@ -301,3 +301,30 @@
     z-index: 2 !important;
     border-bottom-color: #FFF;
 }
+
+.pagination {
+    @apply flex;
+    @apply justify-center;
+    @apply text-gray-700;
+    @apply rounded-full;
+    @apply bg-gray-300;
+}
+
+.pagination > li {
+    @apply h-8;
+    @apply w-8;
+    @apply mr-2;
+    @apply flex;
+    @apply items-center;
+    @apply rounded-full;
+    @apply justify-center;
+    @apply cursor-pointer;
+}
+
+.pagination > li.rc-pagination-item-active {
+    @apply bg-green;
+}
+
+.pagination > li.rc-pagination-options {
+    @apply hidden;
+}

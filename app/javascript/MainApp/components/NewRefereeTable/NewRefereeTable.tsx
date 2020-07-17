@@ -7,6 +7,7 @@ import { GetRefereesFilter } from '../../apis/referee'
 import { getReferees, Referee, updateFilters } from '../../modules/referee/referees'
 import { RootState } from '../../rootReducer'
 import { AssociationType } from '../../schemas/getRefereesSchema'
+import FilterToolbar from '../FilterToolbar'
 import Table, { CellConfig } from '../Table/Table'
 
 const HEADER_CELLS = ['name', 'highest certification', 'associated teams', 'secondary NGB']
@@ -62,7 +63,7 @@ type NewRefereeTableProps = {
 const NewRefereeTable = (props: NewRefereeTableProps) => {
   const history = useHistory()
   const dispatch = useDispatch()
-  const { referees, isLoading } = useSelector((state: RootState) => state.referees, shallowEqual)
+  const { referees, isLoading, meta, filters } = useSelector((state: RootState) => state.referees, shallowEqual)
 
   useEffect(() => {
     const filter: GetRefereesFilter = { nationalGoverningBodies: [props.ngbId] }
@@ -74,6 +75,20 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
     history.push(`/referees/${id}`)
   }
 
+  const handleClearSearch = () => handleSearch('')
+
+  const handleSearch = (newValue: string) => {
+    const newFilters: GetRefereesFilter = { ...filters, q: newValue }
+    dispatch(updateFilters(newFilters))
+    dispatch(getReferees(newFilters))
+  }
+
+  const handlePageSelect = (newPage: number) => {
+    const newFilters: GetRefereesFilter = { ...filters, page: newPage }
+    dispatch(updateFilters(newFilters))
+    dispatch(getReferees(newFilters))
+  }
+
   const renderEmpty = () => {
     return (
       <h2>No referees found.</h2>
@@ -81,15 +96,26 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
   }
 
   return (
-    <Table
-      items={referees}
-      isLoading={isLoading}
-      headerCells={HEADER_CELLS}
-      rowConfig={rowConfig}
-      onRowClick={handleRowClick}
-      emptyRenderer={renderEmpty}
-      isHeightRestricted={true}
-    />
+    <div className="w-full">
+      {referees.length > 0 && (
+        <FilterToolbar
+          currentPage={parseInt(meta?.page, 10)}
+          onClearSearch={handleClearSearch}
+          total={meta?.total}
+          onSearchInput={handleSearch}
+          onPageSelect={handlePageSelect}
+        />
+      )}
+      <Table
+        items={referees}
+        isLoading={isLoading}
+        headerCells={HEADER_CELLS}
+        rowConfig={rowConfig}
+        onRowClick={handleRowClick}
+        emptyRenderer={renderEmpty}
+        isHeightRestricted={true}
+      />
+    </div>
   )
 }
 

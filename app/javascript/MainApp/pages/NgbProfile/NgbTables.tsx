@@ -43,7 +43,7 @@ const NgbTables = (props: NgbTablesProps) => {
         </button>
       </div>
       {isRefereesActive && <NewRefereeTable ngbId={ngbId} />}
-      {isTeamsActive && <TeamTable ngbId={ngbId} />}
+      {isTeamsActive && <TeamTable ngbId={ngbId.toString()} />}
     </div>
   )
 }

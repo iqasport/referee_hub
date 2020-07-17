@@ -6,6 +6,8 @@ import { DataAttributes, GetTeamSchema, IncludedAttributes } from '../schemas/ge
 import { Attributes, Datum, GetTeamsSchema, GroupAffiliation, Meta, Status } from '../schemas/getTeamsSchema';
 import { baseAxios, camelToSnake } from './utils'
 
+export const NGB_ID = 'national_governing_body_id'
+
 export interface TeamsResponse {
   teams: Datum[];
   meta: Meta;
@@ -22,10 +24,13 @@ export interface GetTeamsFilter {
   status?: Status[];
   q?: string;
   groupAffiliation?: GroupAffiliation[];
+  page?: number;
+  nationalGoverningBodyId: string;
 }
 
 export interface UpdateTeamRequest extends Attributes {
   urls: string[]
+  nationalGoverningBodyId: string;
 }
 
 export async function getTeams(filter: GetTeamsFilter) {
@@ -60,7 +65,7 @@ export async function getNgbTeams(filter?: GetTeamsFilter) {
   }
 }
 
-export async function importNgbTeams(file: File, mappedData: HeadersMap) {
+export async function importNgbTeams(file: File, mappedData: HeadersMap, ngbId: string) {
   const url = '/api/v1/ngb-admin/teams_import'
   const reversedMap = transform(mappedData, (acc, value, key) => {
     acc[value] = key
@@ -71,6 +76,7 @@ export async function importNgbTeams(file: File, mappedData: HeadersMap) {
     const data = new FormData()
     data.append('file', file)
     data.append('mapped_headers', JSON.stringify(reversedMap))
+    data.append(NGB_ID, ngbId)
 
     const teamsResponse = await axios.post<GetTeamsSchema>(url, data)
 
@@ -100,11 +106,14 @@ export async function createTeam(team: UpdateTeamRequest): Promise<TeamResponse>
   }
 }
 
-export async function getTeam(id: string): Promise<TeamResponse> {
+export async function getTeam(id: string, ngbId: string): Promise<TeamResponse> {
   const url = `ngb-admin/teams/${id}`
+  const params: { [key: string]: string } = {
+    [NGB_ID]: ngbId
+  }
 
   try {
-    const teamResponse = await baseAxios.get<GetTeamSchema>(url)
+    const teamResponse = await baseAxios.get<GetTeamSchema>(url, { params })
     const socialAccounts = teamResponse.data.included.map((account) => account.attributes)
 
     return {
@@ -134,11 +143,14 @@ export async function updateTeam(id: string, team: UpdateTeamRequest): Promise<T
   }
 }
 
-export async function deleteTeam(id: string): Promise<TeamResponse> {
+export async function deleteTeam(id: string, ngbId: string): Promise<TeamResponse> {
   const url = `ngb-admin/teams/${id}`
+  const params: {[key: string]: string} = {
+    [NGB_ID]: ngbId
+  }
 
   try {
-    const teamResponse = await baseAxios.delete<GetTeamSchema>(url)
+    const teamResponse = await baseAxios.delete<GetTeamSchema>(url, { params })
 
     return {
       id: teamResponse.data.data.id,

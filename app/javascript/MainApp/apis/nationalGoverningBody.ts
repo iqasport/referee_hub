@@ -1,7 +1,11 @@
 import axios, { AxiosResponse } from 'axios'
 
 import { Datum, GetNationalGoverningBodiesSchema } from '../schemas/getNationalGoverningBodiesSchema';
-import { DataAttributes, GetNationalGoverningBodySchema, IncludedAttributes } from '../schemas/getNationalGoverningBodySchema';
+import {
+  DataAttributes,
+  GetNationalGoverningBodySchema,
+  IncludedAttributes
+} from '../schemas/getNationalGoverningBodySchema';
 import { baseAxios } from './utils'
 
 export interface NgbsResponse {
@@ -17,7 +21,7 @@ export interface NgbResponse {
   stats: IncludedAttributes[];
 }
 
-type OmittedAttributes = 'region' | 'logoUrl'
+type OmittedAttributes = 'logoUrl'
 export interface UpdateNgbRequest extends Omit<DataAttributes, OmittedAttributes> {
   urls: string[];
 }
