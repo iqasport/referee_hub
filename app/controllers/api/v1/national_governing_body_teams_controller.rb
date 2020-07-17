@@ -2,7 +2,8 @@ module Api
   module V1
     class NationalGoverningBodyTeamsController < ApplicationController
       before_action :authenticate_user!
-      before_action :verify_ngb_admin
+      before_action :verify_ngb_or_iqa_admin
+      before_action :find_ngb
       before_action :find_team, only: %i[show update destroy]
       skip_before_action :verify_authenticity_token
       layout false
@@ -21,7 +22,7 @@ module Api
       def create
         social_accounts = Services::CreateAndUpdateSocial.new(params.delete(:urls), :create).perform
         team = Team.new(permitted_params)
-        team.national_governing_body = ngb_scope
+        team.national_governing_body = @ngb
         team.social_accounts = social_accounts
         team.save!
 
@@ -66,11 +67,11 @@ module Api
       def import
         imported_ids = Services::TeamCsvImport.new(
           params['file'].tempfile.path,
-          ngb_scope,
+          @ngb,
           params['mapped_headers']
         ).perform
 
-        new_teams = ngb_scope.teams.where(id: imported_ids)
+        new_teams = @ngb.teams.where(id: imported_ids)
         page = params[:page] || 1
         teams_total = new_teams.count
         new_teams = new_teams.page(page)
@@ -83,7 +84,7 @@ module Api
       end
 
       def export
-        export_options = search_params.presence || { national_governing_bodies: [ngb_scope.id] }
+        export_options = search_params.presence || { national_governing_bodies: [@ngb.id] }
         enqueued_job = ExportCsvJob.perform_later(
           current_user,
           'ExportedCsv::TeamExport',
@@ -99,15 +100,17 @@ module Api
       private
 
       def find_team
-        @team = ngb_scope.teams.find(params[:id])
+        @team = @ngb.teams.find(params[:id])
       end
 
-      def ngb_scope
-        @ngb_scope ||= current_user.owned_ngb.first
+      def find_ngb
+        @ngb = NationalGoverningBody.find(params[:national_governing_body_id])
+      rescue
+        render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
       end
 
       def find_teams_from_filter
-        search_options = search_params.presence || { national_governing_bodies: [ngb_scope.id] }
+        search_options = search_params.presence || { national_governing_bodies: [@ngb.id] }
         filter_results = Services::FilterTeams.new(search_options).filter
 
         if filter_results.respond_to?(:where)
@@ -122,7 +125,16 @@ module Api
       end
 
       def permitted_params
-        params.permit(:name, :group_affiliation, :status, :city, :country, :state, urls: [])
+        params.permit(
+          :name,
+          :group_affiliation,
+          :status,
+          :city,
+          :country,
+          :state,
+          :national_governing_body_id,
+          urls: []
+        )
       end
     end
   end

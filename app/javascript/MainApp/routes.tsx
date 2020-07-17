@@ -69,7 +69,11 @@ const App = () => {
         </Route>
         <Route exact={true} path='/privacy' render={(props) => <AsyncPage {...props} page="PrivacyPolicy" />} />
         <Route exact={true} path='/referees' render={(props) => <AsyncPage {...props} page="Referees" />} />
-        <Route exact={true} path='/referees/:id' render={(props) => <AsyncPage {...props} page={refProfile} />} />
+        {
+          currentUser && (
+            <Route exact={true} path='/referees/:id' render={(props) => <AsyncPage {...props} page={refProfile} />} />
+          )
+        }
         <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page="Admin" />} />
         <Route
           exact={true}

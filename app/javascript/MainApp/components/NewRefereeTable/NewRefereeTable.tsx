@@ -97,13 +97,15 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
 
   return (
     <div className="w-full">
-      <FilterToolbar
-        currentPage={parseInt(meta?.page, 10)}
-        onClearSearch={handleClearSearch}
-        total={meta?.total}
-        onSearchInput={handleSearch}
-        onPageSelect={handlePageSelect}
-      />
+      {referees.length > 0 && (
+        <FilterToolbar
+          currentPage={parseInt(meta?.page, 10)}
+          onClearSearch={handleClearSearch}
+          total={meta?.total}
+          onSearchInput={handleSearch}
+          onPageSelect={handlePageSelect}
+        />
+      )}
       <Table
         items={referees}
         isLoading={isLoading}

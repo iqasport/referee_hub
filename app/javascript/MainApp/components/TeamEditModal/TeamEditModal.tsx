@@ -18,6 +18,7 @@ const initialNewTeam: UpdateTeamRequest = {
   country: '',
   groupAffiliation: null,
   name: '',
+  nationalGoverningBodyId: '',
   state: '',
   status: null,
   urls: [],
@@ -34,10 +35,11 @@ const validateInput = (team: UpdateTeamRequest): string[] => {
 
 interface TeamEditModalProps extends Omit<ModalProps, 'size'> {
   teamId?: string;
+  ngbId: string;
 }
 
 const TeamEditModal = (props: TeamEditModalProps) => {
-  const { teamId, onClose } = props
+  const { teamId, onClose, ngbId } = props
 
   const [errors, setErrors] = useState<string[]>()
   const [hasChangedTeam, setHasChangedTeam] = useState(false)
@@ -51,14 +53,14 @@ const TeamEditModal = (props: TeamEditModalProps) => {
 
   useEffect(() => {
     if (teamId) {
-      dispatch(getTeam(teamId))
+      dispatch(getTeam(teamId, ngbId))
     }
   }, [teamId, dispatch])
   
   useEffect(() => {
     if (team) {
       const existingUrls = socialAccounts.length ? socialAccounts.map((account) => account.url) : []
-      setNewTeam({ ...team, urls: existingUrls })
+      setNewTeam({ ...team, urls: existingUrls, nationalGoverningBodyId: ngbId })
     }
   }, [team, socialAccounts])
 
@@ -69,7 +71,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       return null
     }
     
-    const teamToSend = { ...newTeam, urls }
+    const teamToSend = { ...newTeam, urls, nationalGoverningBodyId: ngbId }
     if (teamId) {
       dispatch(updateTeam(teamId, teamToSend))
     } else {

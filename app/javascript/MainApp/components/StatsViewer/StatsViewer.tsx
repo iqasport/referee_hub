@@ -8,6 +8,8 @@ import TeamStatusStats from '../TeamStatusStats'
 import TeamTypeStats from '../TeamTypeStats'
 
 const sortByTimestamp = (stats: IncludedAttributes[]): IncludedAttributes[] => {
+  if (!stats.length) return []
+
   return stats.slice().sort((a, b) => {
     const aEndTime = toDateTime(a.endTime)
     const aStartTime = toDateTime(a.start)
@@ -58,11 +60,11 @@ const StatsViewer = (props: StatsViewerProps) => {
       <>
         { (!selectedStat || refereeSelected) && 
           <RefereeStats
-            headCount={currentStat.headRefereesCount}
-            assistantCount={currentStat.assistantRefereesCount}
-            snitchCount={currentStat.snitchRefereesCount}
-            uncertifiedCount={currentStat.uncertifiedCount}
-            total={currentStat.totalRefereesCount}
+            headCount={currentStat?.headRefereesCount}
+            assistantCount={currentStat?.assistantRefereesCount}
+            snitchCount={currentStat?.snitchRefereesCount}
+            uncertifiedCount={currentStat?.uncertifiedCount}
+            total={currentStat?.totalRefereesCount}
             onClick={handleStatClick(SelectedStat.Referee)}
             showFull={refereeSelected}
             stats={orderedStats}
@@ -71,10 +73,10 @@ const StatsViewer = (props: StatsViewerProps) => {
         {
           (!selectedStat || teamTypeSelected) && 
           <TeamTypeStats 
-            communityCount={currentStat.communityTeamsCount}
-            universityCount={currentStat.universityTeamsCount}
-            youthCount={currentStat.youthTeamsCount}
-            total={currentStat.totalTeamsCount}
+            communityCount={currentStat?.communityTeamsCount}
+            universityCount={currentStat?.universityTeamsCount}
+            youthCount={currentStat?.youthTeamsCount}
+            total={currentStat?.totalTeamsCount}
             onClick={handleStatClick(SelectedStat.TeamType)}
             showFull={teamTypeSelected}
             stats={orderedStats}
@@ -83,10 +85,10 @@ const StatsViewer = (props: StatsViewerProps) => {
         {
           (!selectedStat || teamStatusSelected) &&
           <TeamStatusStats 
-            competitiveCount={currentStat.competitiveTeamsCount}
-            developingCount={currentStat.developingTeamsCount}
-            inactiveCount={currentStat.inactiveTeamsCount}
-            total={currentStat.totalTeamsCount}
+            competitiveCount={currentStat?.competitiveTeamsCount}
+            developingCount={currentStat?.developingTeamsCount}
+            inactiveCount={currentStat?.inactiveTeamsCount}
+            total={currentStat?.totalTeamsCount}
             onClick={handleStatClick(SelectedStat.TeamStatus)}
             showFull={teamStatusSelected}
             stats={orderedStats}

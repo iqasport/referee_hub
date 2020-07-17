@@ -1,4 +1,5 @@
 import classnames from 'classnames'
+import { capitalize, words } from 'lodash';
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
@@ -9,12 +10,14 @@ import { RootState } from 'MainApp/rootReducer';
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
 import MultiInput from '../MultiInput';
 
-const REQUIRED_FIELDS = ['name']
+const REQUIRED_FIELDS = ['name', 'region']
+const REGION_OPTIONS = ['north_america', 'south_america', 'europe', 'africa', 'asia']
 const initialNewNgb: UpdateNgbRequest = {
   acronym: '',
   country: '',
   name: '',
   playerCount: 0,
+  region: null,
   urls: [],
   website: '',
 }
@@ -41,10 +44,12 @@ const NgbEditModal = (props: NgbEditModalProps) => {
   const [newNgb, setNewNgb] = useState<UpdateNgbRequest>(initialNewNgb)
   const [urls, setUrls] = useState<string[]>()
   const { ngb, socialAccounts } = useSelector((state: RootState) => state.nationalGoverningBody, shallowEqual)
+  const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual)
   const dispatch = useDispatch()
 
   const formType = ngbId ? 'Edit' : 'New'
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey)
+  const isIqaAdmin = roles.includes('iqa_admin')
 
   useEffect(() => {
     if (ngbId) {
@@ -75,7 +80,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
     onClose()
   }
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target
     let newValue: string | number = value
 
@@ -88,6 +93,14 @@ const NgbEditModal = (props: NgbEditModalProps) => {
   const handleUrlChange = (newUrls: string[]) => {
     if (!hasChangedNgb) setHasChangedNgb(true)
     setUrls(newUrls);
+  }
+
+  const renderOption = (value: string) => {
+    return (
+      <option key={value} value={value}>
+        {words(value).map(word => capitalize(word)).join(' ')}
+      </option>
+    )
   }
 
   return (
@@ -105,16 +118,35 @@ const NgbEditModal = (props: NgbEditModalProps) => {
           />
           {hasError('name') && <span className="text-red-500">Name cannot be blank</span>}
         </label>
+        <label className="block my-8">
+          <span className="text-gray-700">Country</span>
+          <input
+            className="form-input mt-1 block w-full"
+            placeholder="United States"
+            name="country"
+            onChange={handleInputChange}
+            value={newNgb.country}
+          />
+        </label>
         <div className="flex w-full my-8">
-          <label className="w-1/3 mr-4">
-            <span className="text-gray-700">Country</span>
-            <input
-              className="form-input mt-1 block w-full"
-              placeholder="United States"
-              name="country"
+          <label className="w-1/2 mr-4">
+            <span className="text-gray-700">Type</span>
+            <select
+              disabled={!isIqaAdmin}
+              className={
+                classnames(
+                  "form-select mt-1 block w-full",
+                  { 'border border-red-500': hasError('region') }
+                )
+              }
+              name="region"
               onChange={handleInputChange}
-              value={newNgb.country}
-            />
+              value={newNgb.region || ''}
+            >
+              <option value="" />
+              {REGION_OPTIONS.map(renderOption)}
+            </select>
+            {hasError('region') && <span className="text-red-500">Region cannot be blank</span>}
           </label>
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Acronym</span>

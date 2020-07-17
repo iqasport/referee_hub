@@ -7,7 +7,10 @@ import NgbEditModal from '../../components/NgbEditModal'
 import StatsViewer from '../../components/StatsViewer'
 import TeamEditModal from '../../components/TeamEditModal'
 import { exportNgbReferees, exportNgbTeams } from '../../modules/job/job'
-import { getNationalGoverningBody, SingleNationalGoverningBodyState } from '../../modules/nationalGoverningBody/nationalGoverningBody'
+import {
+  getNationalGoverningBody,
+  SingleNationalGoverningBodyState
+} from '../../modules/nationalGoverningBody/nationalGoverningBody'
 import { RootState } from '../../rootReducer'
 
 import ActionsButton from './ActionsButton'
@@ -22,7 +25,7 @@ enum ModalType {
   Edit = 'edit',
 }
 
-const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
+const NgbProfile = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id } } } = props
   const [openModal, setOpenModal] = useState<ModalType>()
   const dispatch = useDispatch()
@@ -67,7 +70,7 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
       case ModalType.Export:
         return <ExportModal open={true} onClose={handleCloseModal} onExport={handleExport} />
       case ModalType.Team:
-        return <TeamEditModal open={true} onClose={handleCloseModal} showClose={true} />
+        return <TeamEditModal open={true} onClose={handleCloseModal} showClose={true} ngbId={id} />
       case ModalType.Edit:
         return <NgbEditModal open={true} onClose={handleCloseModal} showClose={true} ngbId={parseInt(id, 10)} />
       default:
@@ -105,4 +108,4 @@ const NgbAdmin = (props: RouteComponentProps<IdParams>) => {
   )
 }
 
-export default NgbAdmin
+export default NgbProfile
