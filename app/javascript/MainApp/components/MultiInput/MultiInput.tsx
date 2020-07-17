@@ -46,10 +46,13 @@ const MultiInput = (props: MultiInputProps) => {
   const handleChange = (value: string, id: string) => {
     const newValues: string[] = []
     const newInputs = inputConfigs.map((input) => {
-      newValues.push(input.value)
-      if (input.id !== id) return input;
-
-      return { ...input, value }
+      if (input.id !== id) {
+        newValues.push(input.value)
+        return input;
+      } else {
+        newValues.push(value)
+        return { ...input, value }
+      }
     })
 
     onChange(newValues)
