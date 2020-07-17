@@ -6,7 +6,7 @@ import { DataAttributes, GetTeamSchema, IncludedAttributes } from '../schemas/ge
 import { Attributes, Datum, GetTeamsSchema, GroupAffiliation, Meta, Status } from '../schemas/getTeamsSchema';
 import { baseAxios, camelToSnake } from './utils'
 
-const NGB_ID = 'national_governing_body_id'
+export const NGB_ID = 'national_governing_body_id'
 
 export interface TeamsResponse {
   teams: Datum[];
@@ -65,7 +65,7 @@ export async function getNgbTeams(filter?: GetTeamsFilter) {
   }
 }
 
-export async function importNgbTeams(file: File, mappedData: HeadersMap) {
+export async function importNgbTeams(file: File, mappedData: HeadersMap, ngbId: string) {
   const url = '/api/v1/ngb-admin/teams_import'
   const reversedMap = transform(mappedData, (acc, value, key) => {
     acc[value] = key
@@ -76,6 +76,7 @@ export async function importNgbTeams(file: File, mappedData: HeadersMap) {
     const data = new FormData()
     data.append('file', file)
     data.append('mapped_headers', JSON.stringify(reversedMap))
+    data.append(NGB_ID, ngbId)
 
     const teamsResponse = await axios.post<GetTeamsSchema>(url, data)
 

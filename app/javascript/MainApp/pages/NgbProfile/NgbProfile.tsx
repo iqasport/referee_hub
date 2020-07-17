@@ -58,12 +58,12 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
 
     switch(type) {
       case ExportType.Team:
-        dispatch(exportNgbTeams());
+        dispatch(exportNgbTeams(id));
       case ExportType.Referee:
-        dispatch(exportNgbReferees());
+        dispatch(exportNgbReferees(id));
     }
   }
-  const handleImportClick = () => history.push('/import/team')
+  const handleImportClick = () => history.push(`/import/team_${id}`)
 
   const renderModals = () => {
     switch(openModal) {

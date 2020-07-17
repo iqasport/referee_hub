@@ -43,7 +43,7 @@ type ScopeParams = { scope: string }
 
 const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
   const { match: { params: { scope } } } = props
-  const [parsedScope, testId] = scope.split('_')
+  const [parsedScope, scopeId] = scope.split('_')
 
   const [stepCount, setStepCount] = useState(1)
   const [uploadedFile, setUploadedFile] = useState<File>()
@@ -66,10 +66,10 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
     if (isFinalStep) {
       handleHomeClick()
     } else if (stepCount === 2) {
-      if (scope === 'team') {
-        dispatch(importTeams(uploadedFile, mappedData))
-      } else if (scope.match(/test_/)) {
-        dispatch(importTestQuestions(uploadedFile, mappedData, testId))
+      if (parsedScope === 'team') {
+        dispatch(importTeams(uploadedFile, mappedData, scopeId))
+      } else if (parsedScope === 'test') {
+        dispatch(importTestQuestions(uploadedFile, mappedData, scopeId))
       }
       goForward()
     } else {

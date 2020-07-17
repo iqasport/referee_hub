@@ -41,18 +41,18 @@ export const {
   exportNgbRefereesSuccess
 } = job.actions
 
-export const exportNgbTeams = (): AppThunk => async dispatch => {
+export const exportNgbTeams = (ngbId: string): AppThunk => async dispatch => {
   try {
-    const jobResponse = await exportNgbTeamsApi()
+    const jobResponse = await exportNgbTeamsApi(ngbId)
     dispatch(exportNgbTeamsSuccess(jobResponse))
   } catch (err) {
     dispatch(exportNgbTeamsFailure(err))
   }
 }
 
-export const exportNgbReferees = (): AppThunk => async dispatch => {
+export const exportNgbReferees = (ngbId: string): AppThunk => async dispatch => {
   try {
-    const jobResponse = await exportNgbRefereesApi()
+    const jobResponse = await exportNgbRefereesApi(ngbId)
     dispatch(exportNgbRefereesSuccess(jobResponse))
   } catch (err) {
     dispatch(exportNgbRefereesFailure(err))
