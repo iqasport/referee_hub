@@ -1,10 +1,10 @@
-import { capitalize, isInteger } from 'lodash'
+import { capitalize } from 'lodash'
 import React, { useEffect } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
 import { GetRefereesFilter } from '../../apis/referee'
-import { clearFilters, getReferees, Referee, updateFilters } from '../../modules/referee/referees'
+import { getReferees, Referee, updateFilters } from '../../modules/referee/referees'
 import { RootState } from '../../rootReducer'
 import { AssociationType } from '../../schemas/getRefereesSchema'
 import FilterToolbar from '../FilterToolbar'

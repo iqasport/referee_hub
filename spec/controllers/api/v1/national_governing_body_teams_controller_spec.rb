@@ -7,7 +7,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
     let!(:user) { create :user, :ngb_admin }
     let!(:teams) { create_list :team, 5, national_governing_body: ngb }
     let!(:other_teams) { create_list :team, 5 }
-    let(:body_data) { { national_governing_bodies: [ngb.id] } }
+    let(:body_data) { { national_governing_bodies: [ngb.id], national_governing_body_id: ngb.id } }
 
     before do
       ngb.admins << user
@@ -44,7 +44,8 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
           national_governing_bodies: [ngb.id],
           q: q,
           status: status,
-          group_affiliation: group_affiliation
+          group_affiliation: group_affiliation,
+          national_governing_body_id: ngb.id
         }
       end
 
@@ -109,7 +110,8 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
         city: 'Washington',
         state: 'DC',
         country: 'USA',
-        urls: ['www.facebook.com/dcqc', 'www.twitter.com/dcqc']
+        urls: ['www.facebook.com/dcqc', 'www.twitter.com/dcqc'],
+        national_governing_body_id: ngb.id
       }
     end
 
@@ -152,7 +154,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
     let!(:ngb) { create :national_governing_body }
     let!(:user) { create :user, :ngb_admin }
     let!(:team) { create :team, national_governing_body: ngb }
-    let(:body_data) { { id: team.id } }
+    let(:body_data) { { id: team.id, national_governing_body_id: ngb.id } }
 
     before do
       ngb.admins << user
@@ -191,7 +193,8 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
     let(:body_data) do
       {
         name: 'DCQC',
-        id: team.id
+        id: team.id,
+        national_governing_body_id: ngb.id
       }
     end
 
@@ -214,7 +217,8 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
       let(:body_data) do
         {
           id: team.id,
-          urls: ['www.facebook.com/dcqc']
+          urls: ['www.facebook.com/dcqc'],
+          national_governing_body_id: ngb.id
         }
       end
 
@@ -267,7 +271,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
     let!(:user) { create :user, :ngb_admin }
     let!(:team) { create :team, national_governing_body: ngb, id: id }
 
-    let(:body_data) { { id: team.id } }
+    let(:body_data) { { id: team.id, national_governing_body_id: ngb.id } }
 
     before do
       ngb.admins << user
@@ -322,7 +326,9 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
       @file = fixture_file_upload('import_test.csv', 'text/csv')
     end
 
-    subject { post :import, params: { file: @file, mapped_headers: mapped_headers } }
+    subject do
+      post :import, params: { file: @file, mapped_headers: mapped_headers, national_governing_body_id: ngb.id }
+    end
 
     it_behaves_like 'it is a successful request'
 
@@ -345,7 +351,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
       sign_in user
     end
 
-    subject { get :export }
+    subject { get :export, params: { national_governing_body_id: ngb.id } }
 
     it 'should enqueue an export csv job' do
       subject
