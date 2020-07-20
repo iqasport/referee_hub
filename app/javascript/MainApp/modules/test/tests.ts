@@ -1,6 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { getTests as getTestsApi, IdAttributes, TestsResponse } from '../../apis/test'
+import {
+  getRefereeTests as getRefereeTestsApi,
+  getTests as getTestsApi,
+  IdAttributes,
+  TestsResponse
+} from '../../apis/test'
 import { Datum } from '../../schemas/getTestsSchema'
 import { AppThunk } from '../../store'
 
@@ -36,6 +41,11 @@ const tests = createSlice({
   initialState,
   name: 'tests',
   reducers: {
+    getRefereeTestsFailure: testsFailure,
+    getRefereeTestsStart(state: TestsState) {
+      state.isLoading = true
+    },
+    getRefereeTestsSuccess: testsSuccess,
     getTestsFailure: testsFailure,
     getTestsStart(state: TestsState) {
       state.isLoading = true;
@@ -45,6 +55,9 @@ const tests = createSlice({
 })
 
 export const {
+  getRefereeTestsFailure,
+  getRefereeTestsStart,
+  getRefereeTestsSuccess,
   getTestsFailure,
   getTestsStart,
   getTestsSuccess,
@@ -57,6 +70,16 @@ export const getTests = (): AppThunk => async dispatch => {
     dispatch(getTestsSuccess(testsResponse))
   } catch (err) {
     dispatch(getTestsFailure(err.toString()))
+  }
+}
+
+export const getRefereeTests = (refId: string): AppThunk => async dispatch => {
+  try {
+    dispatch(getRefereeTestsStart())
+    const testsResponse = await getRefereeTestsApi(refId)
+    dispatch(getRefereeTestsSuccess(testsResponse))
+  } catch (err) {
+    dispatch(getRefereeTestsFailure(err.toString()))
   }
 }
 

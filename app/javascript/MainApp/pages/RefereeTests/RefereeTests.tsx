@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps } from 'react-router-dom'
 
-import TestsTable from 'MainApp/components/TestsTable'
+import RefereeTestsTable from 'MainApp/components/RefereeTestsTable'
 import { fetchReferee, RefereeState } from 'MainApp/modules/referee/referee'
 import { RootState } from 'MainApp/rootReducer'
 
@@ -14,7 +14,7 @@ const RefereeTests = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { refereeId } } } = props
 
   const dispatch = useDispatch()
-  const { referee, certifications, id } = useSelector((state: RootState): RefereeState => state.referee, shallowEqual)
+  const { referee, id } = useSelector((state: RootState): RefereeState => state.referee, shallowEqual)
 
   useEffect(() => {
     if (!referee || id !== refereeId) {
@@ -34,7 +34,7 @@ const RefereeTests = (props: RouteComponentProps<IdParams>) => {
           </button>
         </div>
       </div>
-      <TestsTable />
+      <RefereeTestsTable refId={refereeId} />
     </div>
   )
 }

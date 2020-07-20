@@ -127,3 +127,19 @@ export async function deleteTest(id: string): Promise<TestResponse> {
     throw err
   }
 };
+
+export async function getRefereeTests(refId: string): Promise<TestsResponse> {
+  const url = `referees/${refId}/tests`
+
+  try {
+    const testsResponse = await baseAxios.get<GetTestsSchema>(url)
+    const certifications = testsResponse?.data?.included?.map((cert) => ({ id: cert.id, ...cert.attributes }))
+
+    return {
+      certifications,
+      tests: testsResponse.data.data,
+    }
+  } catch (err) {
+    throw err
+  }
+}
