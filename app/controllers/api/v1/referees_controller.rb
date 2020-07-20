@@ -3,10 +3,12 @@ module Api
     class RefereesController < ApplicationController # rubocop:disable Metrics/ClassLength
       before_action :authenticate_user!, only: :update
       before_action :verify_ngb_or_iqa_admin, only: :export
-      before_action :find_referee, only: %i[show update]
+      before_action :find_referee, only: %i[show update tests]
       skip_before_action :verify_authenticity_token
 
       layout false
+
+      UNAUTHORIZED_UPDATE = 'This account is unable to be updated'.freeze
 
       def index
         page = params[:page] || 1
@@ -30,16 +32,19 @@ module Api
       end
 
       def update
+        raise StandardError if current_user.id != @referee.id
+
         update_national_governing_bodies(params.delete(:ngb_data))
         update_teams(params.delete(:teams_data))
 
-        if @referee.update!(permitted_params)
-          json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
+        @referee.update!(permitted_params)
+        json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
 
-          render json: json_string, status: :ok
-        else
-          render json: { error: @referee.errors.messages }, status: :unprocessable_entity
-        end
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        error_message = @referee.errors.present? ? @referee.errors.messages : UNAUTHORIZED_UPDATE
+        render json: { error: error_message }, status: :unprocessable_entity
       end
 
       def export
@@ -54,6 +59,16 @@ module Api
       rescue => exception
         Bugsnag.notify(exception)
         render json: { error: "Error exporting referees: #{exception}" }, status: :unprocessable_entity
+      end
+
+      def tests
+        tests = @referee.available_tests
+
+        json_string = TestSerializer.new(tests, include: [:certification]).serialized_json
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: "Errors fetching available tests: #{exception}" }, status: :unprocessable_entity
       end
 
       private

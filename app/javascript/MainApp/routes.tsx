@@ -97,6 +97,11 @@ const App = () => {
           render={(props) => <AsyncPage {...props} page="NgbProfile" /> }
         />
         <Route exact={true} path='/import/:scope' render={(props) => <AsyncPage {...props} page="ImportWizard" />} />
+        <Route
+          exact={true}
+          path='/referees/:refereeId/tests'
+          render={(props) => <AsyncPage {...props} page="RefereeTests" />}
+        />
       </div>
     </Router>
   )

@@ -75,4 +75,24 @@ RSpec.describe RefereeCertification, type: :model do
       expect(subject).to be_empty
     end
   end
+
+  context 'with certifications in different version' do
+    let(:new_cert) { create :certification, version: 'twenty' }
+    let(:ref_cert) { build :referee_certification, referee: referee, certification: new_cert }
+    let!(:old_cert_diff_version) { create :referee_certification, referee: referee, certification: certification }
+
+    it 'is a valid certificiation' do
+      expect(ref_cert).to be_valid
+      expect { subject }.to_not raise_error
+    end
+
+    context 'without a prerequisite in the same version' do
+      let(:new_cert) { create :certification, :snitch, version: 'twenty' }
+
+      it 'is not a valid certification' do
+        subject
+        expect(ref_cert.errors.messages[:certification][0]).to eq described_class::SNITCH_CERTIFICATION_ERROR
+      end
+    end
+  end
 end

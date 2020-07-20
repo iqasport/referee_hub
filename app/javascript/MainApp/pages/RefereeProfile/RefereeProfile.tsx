@@ -44,6 +44,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
     dispatch(updateReferee(updatedReferee, id))
   };
   const handleEditClick = () => setIsEditing(true)
+  const handleTestsClick = () => history.push(`/referees/${id}/tests`)
 
   // Payment handlers
   const clearPaymentState = () => setPaymentState(initialPaymentState)
@@ -165,7 +166,11 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
                 <h3 className="border-b-2 border-green text-xl text-center">
                   Certifications
                 </h3>
-                <button type="button" className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white">
+                <button
+                  type="button"
+                  className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
+                  onClick={handleTestsClick}
+                >
                   Take Tests
                 </button>
               </div>
