@@ -141,36 +141,7 @@ class User < ApplicationRecord
   end
 
   def available_tests
-    return Test.active.where(level: 'assistant') if certifications.blank?
-
-    potential_versions = Certification.versions.keys
-    grouped_certs = certifications.group_by { |cert| cert.version }
-    levels_to_return = {}.tap do |certs_to_return|
-      grouped_certs.each do |version, certs|
-        cert = nil
-        if filter_by_level_and_version(certs, 'assistant', version).blank?
-          cert = 'assistant'
-        elsif filter_by_level_and_version(certs, 'snitch', version).blank?
-          cert = 'snitch'
-        elsif filter_by_level_and_version(certs, 'head', version).blank?
-          cert = 'head'
-        end
-
-        certs_to_return[version] = cert if cert
-      end
-
-      potential_versions.each do |version|
-        if !certs_to_return[version]
-          certs_to_return[version] = 'assistant'
-        end
-      end
-    end
-
-    cert_ids = levels_to_return.map do |version, level|
-      Certification.all.where(version: version, level: level).pluck(:id)
-    end
-
-    Test.active.where(certification_id: cert_ids.flatten)
+    Services::FindAvailableUserTests.new(self).perform
   end
 
   protected
