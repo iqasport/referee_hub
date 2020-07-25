@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_05_214553) do
+ActiveRecord::Schema.define(version: 2020_07_25_153820) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -42,6 +42,14 @@ ActiveRecord::Schema.define(version: 2020_07_05_214553) do
     t.boolean "correct", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "certification_payments", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "certification_id", null: false
+    t.string "stripe_session_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "certifications", force: :cascade do |t|
@@ -333,6 +341,7 @@ ActiveRecord::Schema.define(version: 2020_07_05_214553) do
     t.bigint "invited_by_id"
     t.integer "invitations_count", default: 0
     t.boolean "export_name", default: true
+    t.string "stripe_customer_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true

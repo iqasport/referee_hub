@@ -2291,6 +2291,18 @@
     prop-types "^15.7.2"
     react-is "^16.6.3"
 
+"@stripe/react-stripe-js@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@stripe/react-stripe-js/-/react-stripe-js-1.1.2.tgz#a7f5ef5b4d7dc7fa723501b706644414cfe6dcba"
+  integrity sha512-07hu8RJXwWKGbvdvd1yt1cYvGtDB8jFX+q10f7FQuItUt9rlSo0am3WIx845iMHANiYgxyRb1PS201Yle9xxPQ==
+  dependencies:
+    prop-types "^15.7.2"
+
+"@stripe/stripe-js@^1.8.0":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-1.8.0.tgz#100f102d757cd024f94635dba231993554c8cfba"
+  integrity sha512-VsIohJw70LIdB4b621RN6pTyw49ZMy+QjB81fl+Psu5X5ppiq/c+rG0F+XKHSVpp4JZRNDkQnsOGeuHow0aluA==
+
 "@tailwindcss/custom-forms@^0.2.1":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@tailwindcss/custom-forms/-/custom-forms-0.2.1.tgz#40e5ed1fff6d29d8ed1c508a0b2aaf8da96962e0"

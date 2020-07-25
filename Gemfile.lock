@@ -395,6 +395,11 @@ GEM
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
     statsd-ruby (1.4.0)
+    stripe (5.22.0)
+    stripe-rails (1.10.1)
+      rails (>= 3)
+      responders
+      stripe (>= 1.36.2)
     tailwindcss (1.0.3)
       railties (>= 4.1.0, <= 6.1)
     terrapin (0.6.0)
@@ -478,6 +483,7 @@ DEPENDENCIES
   solargraph
   spring
   spring-watcher-listen (~> 2.0.0)
+  stripe-rails
   tailwindcss (~> 1.0.0)
   time_difference!
   timecop

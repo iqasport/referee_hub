@@ -19,6 +19,7 @@ class Certification < ApplicationRecord
   has_many :tests, dependent: :destroy
   has_many :referee_certifications, dependent: :destroy
   has_many :referees, through: :referee_certifications
+  has_many :certification_payments, dependent: :destroy
 
   enum level: {
     snitch: 0,
