@@ -42,11 +42,13 @@ RSpec.describe Services::FindAvailableUserTests do
     end
   end
 
-  context 'with existing snitch certs' do
+  context 'with existing snitch certs and certification payment' do
     let!(:assistant_eighteen) { create :referee_certification, referee: user, certification: assistant_cert_eighteen }
     let!(:assistant_twenty) { create :referee_certification, referee: user, certification: assistant_cert_twenty }
     let!(:snitch_eighteen) { create :referee_certification, referee: user, certification: snitch_cert_eighteen }
     let!(:snitch_twenty) { create :referee_certification, referee: user, certification: snitch_cert_twenty }
+    let!(:eighteen_payment) { create :certification_payment, user: user, certification: head_cert_eighteen }
+    let!(:twenty_payment) { create :certification_payment, user: user, certification: head_cert_twenty }
 
     it 'returns the head tests' do
       expect(subject.pluck(:id)).to include(head_test_eighteen.id, head_test_twenty.id)
@@ -56,6 +58,7 @@ RSpec.describe Services::FindAvailableUserTests do
   context 'with varying version certs' do
     let!(:assistant_eighteen) { create :referee_certification, referee: user, certification: assistant_cert_eighteen }
     let!(:snitch_eighteen) { create :referee_certification, referee: user, certification: snitch_cert_eighteen }
+    let!(:eighteen_payment) { create :certification_payment, user: user, certification: head_cert_eighteen }
 
     it 'returns the head test for one version and the assistant test for the other' do
       expect(subject.pluck(:id)).to include(head_test_eighteen.id, assistant_test_twenty.id)
@@ -66,6 +69,15 @@ RSpec.describe Services::FindAvailableUserTests do
     let(:test_attempt) { create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user }
 
     it 'does not return the test with a recent cool down period' do
+      expect(subject.pluck(:id)).to include(assistant_test_twenty.id)
+    end
+  end
+
+  context 'without head ref payment' do
+    let!(:assistant_eighteen) { create :referee_certification, referee: user, certification: assistant_cert_eighteen }
+    let!(:snitch_eighteen) { create :referee_certification, referee: user, certification: snitch_cert_eighteen }
+
+    it 'only returns the assistant test' do
       expect(subject.pluck(:id)).to include(assistant_test_twenty.id)
     end
   end

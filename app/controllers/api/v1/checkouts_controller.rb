@@ -25,16 +25,11 @@ module Api
           payment_method_types: ['card'],
           mode: 'payment',
           line_items: [{ quantity: '1', price: params[:price] }],
+          customer_email: current_user.email,
           metadata: {
             certification_id: params[:certification_id],
           }
         }
-
-        if current_user.stripe_customer_id.present?
-          session_data.merge(customer: current_user.stripe_customer_id)
-        else
-          session_data.merge(customer_email: current_user.email)
-        end
 
         session = Stripe::Checkout::Session.create(session_data)
 

@@ -52,8 +52,8 @@ module Api
 
       def serializer_options
         @serializer_options ||= {
-          include: [:roles],
-          params: { current_user: current_user, include_roles: true }
+          include: %i[roles certification_payments],
+          params: { current_user: current_user }
         }
       end
     end

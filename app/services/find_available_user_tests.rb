@@ -61,7 +61,12 @@ module Services
 
     def find_certification_ids(levels_to_return)
       cert_ids = levels_to_return.map do |version, level|
-        Certification.all.where(version: version, level: level).pluck(:id)
+        ids = Certification.all.where(version: version, level: level).pluck(:id)
+        if level == 'head'
+          next if !has_paid(ids)
+        end
+
+        ids
       end
 
       cert_ids.flatten
@@ -73,6 +78,10 @@ module Services
       end
 
       valid_test_attempts.map(&:test_id)
+    end
+
+    def has_paid(cert_ids)
+      user.certification_payments.where(certification_id: cert_ids).exists?
     end
   end
 end

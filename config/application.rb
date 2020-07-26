@@ -19,8 +19,8 @@ module RefereeHub
     config.enable_dependency_loading = true
     config.autoload_paths += %W[#{config.root}/app #{config.root}/app/services #{config.root}/lib]
     config.active_job.queue_adapter = :sidekiq
-    config.stripe.publishable_key = ENV['STRIPE_PUBLISHABLE_KEY'] || ""
-    config.stripe.secret_key = ENV['STRIPE_SECRET_KEY'] || ""
+    config.stripe.publishable_key = ENV['STRIPE_PUBLISHABLE_KEY']
+    config.stripe.secret_key = ENV['STRIPE_SECRET_KEY']
     config.stripe.signing_secrets = ['whsec_VODTQ2agBWcqUSskoPQzLT4iX8eLXMKJ']
   end
 end

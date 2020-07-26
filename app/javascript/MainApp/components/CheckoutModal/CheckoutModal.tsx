@@ -5,6 +5,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { getCertifications } from 'MainApp/modules/certification/certifications';
 import { createSession } from 'MainApp/modules/checkout/checkout';
 import { getProducts } from 'MainApp/modules/checkout/products';
+import { fetchCurrentUser } from 'MainApp/modules/currentUser/currentUser';
 import { RootState } from 'MainApp/rootReducer';
 import { GetProductsSchema } from 'MainApp/schemas/getProductsSchema';
 
@@ -14,6 +15,7 @@ import Modal, { ModalSize } from '../Modal/Modal';
 interface CheckoutModalProps {
   refId: string;
   open: boolean;
+  onClose: () => void;
 }
 
 const CheckoutModal = (props: CheckoutModalProps) => {
@@ -22,8 +24,10 @@ const CheckoutModal = (props: CheckoutModalProps) => {
   const { products } = useSelector((state: RootState) => state.products, shallowEqual)
   const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual)
   const { sessionId, isLoading } = useSelector((state: RootState) => state.checkout, shallowEqual)
+  const { certificationPayments, currentUser } = useSelector((state: RootState) => state.currentUser, shallowEqual)
 
   const showLoader = isLoading || isRedirect
+  const hasPaidForCerts = certificationPayments.length === products.length
 
   useEffect(() => {
     if (!products?.length) {
@@ -36,6 +40,12 @@ const CheckoutModal = (props: CheckoutModalProps) => {
       dispatch(getCertifications())
     }
   }, [certifications])
+
+  useEffect(() => {
+    if (!currentUser) {
+      dispatch(fetchCurrentUser())
+    }
+  }, [currentUser])
 
   useEffect(() => {
     if (sessionId) {
@@ -60,7 +70,7 @@ const CheckoutModal = (props: CheckoutModalProps) => {
     let version = 'twenty'
     if (product.name.match(/2018/)) version = 'eighteen'
 
-    return certifications.find(({ attributes }) => attributes.level === 'head' && attributes.version === version)
+    return certifications?.find(({ attributes }) => attributes.level === 'head' && attributes.version === version)
   }
 
   const handleCheckout = (product: GetProductsSchema) => () => {
@@ -71,6 +81,9 @@ const CheckoutModal = (props: CheckoutModalProps) => {
   }
 
   const renderProduct = (product: GetProductsSchema) => {
+    const certificationId = findCertification(product)?.id
+    if (certificationPayments.includes(parseInt(certificationId, 10))) return null
+
     const price = product.prices[0]
     const formattedPrice = `$${price.unit_amount / 100} ${price.currency}`
 
@@ -91,12 +104,17 @@ const CheckoutModal = (props: CheckoutModalProps) => {
   }
 
   return (
-    <Modal open={props.open} showClose={false} size={ModalSize.Large}>
-      <div>
-        <h1 className="font-bold text-xl text-navy-blue text-center">Head Ref Certifications</h1>
-        {!showLoader && products.map(renderProduct)}
-        {showLoader && <Loader />}
-      </div>
+    <Modal open={props.open} showClose={true} size={ModalSize.Large} onClose={props.onClose}>
+      <h1 className="font-bold text-xl text-navy-blue text-center">Head Ref Certifications</h1>
+      {!showLoader && products.map(renderProduct)}
+      {hasPaidForCerts && (
+        <h2
+          className="text-center text-lg text-navy-blue my-8"
+        >
+          All certifications paid for, you may close this window
+        </h2>
+      )}
+      {showLoader && <Loader />}
     </Modal>
   )
 }

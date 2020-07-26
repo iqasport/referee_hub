@@ -11,6 +11,8 @@
 #
 FactoryBot.define do
   factory :certification_payment do
-    
+    user { create :user }
+    certification { create :certification }
+    stripe_session_id { FFaker::Identification.drivers_license }
   end
 end

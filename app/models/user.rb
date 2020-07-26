@@ -58,7 +58,7 @@ class User < ApplicationRecord
 
   after_customer_created! do |customer, event|
     user = User.find_by(email: customer.email)
-    return if user.blank?
+    return if user.blank? || user.stripe_customer_id.present?
 
     user.update!(stripe_customer_id: customer.id)
   end

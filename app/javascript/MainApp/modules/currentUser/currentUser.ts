@@ -8,11 +8,13 @@ import { fetchReferee } from '../referee/referee';
 export interface CurrentUserState {
   currentUser: DataAttributes | null;
   roles: string[];
+  certificationPayments: number[];
   id: string | null;
   error: string | null;
 }
 
 const initialState: CurrentUserState = {
+  certificationPayments: [],
   currentUser: null,
   error: null,
   id: null,
@@ -24,6 +26,7 @@ function userSuccess(state: CurrentUserState, action: PayloadAction<UserResponse
   state.roles = action.payload.roles;
   state.error = null;
   state.id = action.payload.id;
+  state.certificationPayments = action.payload.certificationPayments
 }
 
 function userFailure(state: CurrentUserState, action: PayloadAction<string>) {
@@ -31,6 +34,7 @@ function userFailure(state: CurrentUserState, action: PayloadAction<string>) {
   state.roles = [];
   state.error = action.payload;
   state.id = null;
+  state.certificationPayments = []
 }
 
 const currentUser = createSlice({

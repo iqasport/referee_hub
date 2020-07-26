@@ -61,4 +61,5 @@ class UserSerializer < BaseSerializer
   end
 
   has_many :roles
+  has_many :certification_payments
 end
