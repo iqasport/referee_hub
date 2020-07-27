@@ -396,5 +396,36 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       expect(response_data.length).to eq 1
       expect(response_data[0]['id'].to_i).to eq test.id
     end
+
+    context 'when the test fetch fails' do
+      let(:body_data) { { id: referee.id, nonsense: 'nonsense' } }
+      let(:error_message) { ['I am an error'] }
+
+      before do
+        allow_any_instance_of(User).to receive(:available_tests).and_raise(StandardError)
+        allow_any_instance_of(StandardError).to receive(:message).and_return(error_message)
+        allow(Bugsnag).to receive(:notify).and_call_original
+      end
+
+      it 'returns an error' do
+        subject
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        response_data = JSON.parse(response.body)['error']
+
+        expect(response_data).to eq error_message
+      end
+
+      it 'calls bugsnag notify' do
+        expect(Bugsnag).to receive(:notify).at_least(:once)
+
+        subject
+      end
+    end
   end
 end

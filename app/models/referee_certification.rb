@@ -59,7 +59,5 @@ class RefereeCertification < ApplicationRecord
     return existing_certs.assistant.where(version: new_cert_version).count == 1 if certification.level == 'snitch'
     return existing_certs.snitch.where(version: new_cert_version).count == 1 if certification.level == 'head'
     return existing_certs.head.where(version: new_cert_version).count == 1 if certification.level == 'field'
-
-    return true
   end
 end

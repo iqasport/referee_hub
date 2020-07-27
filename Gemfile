@@ -93,6 +93,7 @@ group :test do
   gem 'chromedriver-helper'
   gem 'codecov', require: false
   gem 'timecop'
+  gem 'stripe-ruby-mock'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

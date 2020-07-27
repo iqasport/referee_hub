@@ -68,7 +68,7 @@ module Api
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
-        render json: { error: "Errors fetching available tests: #{exception}" }, status: :unprocessable_entity
+        render json: { error: exception.message }, status: :unprocessable_entity
       end
 
       private
