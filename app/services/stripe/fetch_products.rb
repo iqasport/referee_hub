@@ -12,7 +12,7 @@ module Services
       end
 
       def perform
-        products, resp = client.request do
+        products, _resp = client.request do
           ::Stripe::Product.list()
         end
 
@@ -29,7 +29,7 @@ module Services
       private
 
       def fetch_prices(product)
-        prices, resp = client.request do
+        prices, _resp = client.request do
           ::Stripe::Price.list({ product: product.id })
         end
 

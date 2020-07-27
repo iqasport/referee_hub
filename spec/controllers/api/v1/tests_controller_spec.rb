@@ -169,7 +169,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   describe 'GET #start' do
     let(:tester_ref) { create :user }
     let(:question_count) { 2 }
-    let(:test) { create :test, testable_question_count: question_count, certification_id: snitch.id }
+    let(:test) { create :test, testable_question_count: question_count, certification: assistant }
     let!(:questions) { create_list(:question, 5, test: test) }
     let(:body_data) { { id: test.id } }
 
@@ -196,7 +196,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     end
 
     context 'when the test level is in the cool down period' do
-      let!(:test_attempt) { create :test_attempt, test: test, referee: tester_ref }
+      let!(:test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant' }
       let(:expected_error) { "#{described_class::INVALID_TEST_ATTEMPT} 24 hours" }
 
       before { allow(test_attempt).to receive(:in_cool_down_period?).and_return(true) }

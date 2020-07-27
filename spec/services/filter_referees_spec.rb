@@ -3,10 +3,10 @@ require 'json'
 
 RSpec.describe Services::FilterReferees do
   let(:ngb) { create :national_governing_body }
-  let(:cert) { create :certification, :snitch }
+  let(:cert) { create :certification }
   let(:referees) { create_list :user, 3 }
   let(:search_query) { 'test' }
-  let(:certifications) { ['snitch'] }
+  let(:certifications) { ['assistant'] }
   let(:ngbs) { [ngb.id] }
   let(:params) do
     {
