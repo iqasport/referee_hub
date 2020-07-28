@@ -177,8 +177,4 @@ class User < ApplicationRecord
 
     NationalGoverningBodyAdmin.create!(user: self, national_governing_body_id: ngb_to_admin)
   end
-
-  def filter_by_level_and_version(certs, level, version)
-    certs.filter { |cert| cert.level == level && cert.version == version }
-  end
 end
