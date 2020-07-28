@@ -29,6 +29,7 @@ module.exports = {
     zIndex: {
       '-1': '-1',
       1: '1',
+      3: '3',
       50: '50'
     },
     borderRadius: {
