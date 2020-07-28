@@ -37,6 +37,7 @@
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #  invited_by_id          :bigint
+#  stripe_customer_id     :string
 #
 # Indexes
 #
@@ -88,6 +89,24 @@ RSpec.describe User, type: :model do
       subject
       expect(user.roles.length).to eq 1
       expect(user.roles.first.access_type).to eq 'iqa_admin'
+    end
+  end
+
+  context '#available_tests' do
+    let(:user) { create :user }
+    let(:service_double) { double(return_value: :perform) }
+
+    before do
+      allow(Services::FindAvailableUserTests).to receive(:new).with(user).and_return(service_double)
+      allow(service_double).to receive(:perform).and_return(true)
+    end
+
+    subject { user.available_tests }
+
+    it 'calls the service' do
+      expect(Services::FindAvailableUserTests).to receive(:new).with(user).once
+
+      subject
     end
   end
 end

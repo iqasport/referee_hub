@@ -9,14 +9,26 @@ import { baseAxios } from './utils';
 export interface UserResponse {
   user: DataAttributes;
   roles: string[];
+  certificationPayments: number[];
   id: string;
 }
 
 const formatUserResponse = (response: AxiosResponse<CurrentUserSchema>): UserResponse => {
-  const mapRolesAttributes = (role: Included): string => role.attributes.accessType;
-  const roles = Object.values(response.data.included).map(mapRolesAttributes)
+  const roles = response.data.included.map((role: Included): string | null => {
+    if (role.type === 'role') {
+      return role.attributes.accessType
+    }
+    return null
+  })
+  const paidCerts = response.data.included.map((certPayment: Included): number | null => {
+    if (certPayment.type === 'certificationPayment') {
+      return certPayment.attributes.certificationId
+    }
+    return null
+  })
 
   return {
+    certificationPayments: paidCerts,
     id: response.data.data.id,
     roles,
     user: {

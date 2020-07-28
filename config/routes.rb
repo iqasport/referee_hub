@@ -22,9 +22,10 @@ Rails.application.routes.draw do
   get 'admin/referee-diagnostic', to: 'home#index'
   get 'admin/tests', to: 'home#index'
   get 'admin/tests/:id', to: 'home#index'
-  get '/referees/:referee_id/tests/:test_id', to: 'home#index'
+  get 'referees/:referee_id/tests/:test_id', to: 'home#index'
   get 'national_governing_bodies/:id', to: 'home#index'
   get 'import/:scope', to: 'home#index'
+  get 'referees/:referee_id/tests', to: 'home#index'
 
   devise_scope :user do
     get '/sign_up' => 'users/registrations#new', as: :user_registration
@@ -91,10 +92,14 @@ Rails.application.routes.draw do
       put 'referees/:id' => 'referees#update'
       patch 'referees/:id' => 'referees#update'
       get 'referees_export' => 'referees#export'
+      get 'referees/:id/tests' => 'referees#tests'
       get 'users/current_user' => 'users#get_current_user'
       post 'users/:id/accept_policies' => 'users#accept_policies'
       post 'users/:id/reject_policies' => 'users#reject_policies'
       post 'users/:id/update_avatar' => 'users#update_avatar'
+      get 'checkouts/products' => 'checkouts#products'
+      post 'checkouts' => 'checkouts#create'
+      get 'checkouts/:id' => 'checkouts#show'
     end
   end
 

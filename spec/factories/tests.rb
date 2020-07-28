@@ -22,7 +22,7 @@ require 'ffaker'
 
 FactoryBot.define do
   factory :test do
-    level 0
+    level 1
     name { "#{FFaker::Job.title} Test" }
     description { FFaker::Lorem.paragraph }
     language { FFaker::Locale.language }

@@ -29,10 +29,11 @@ export interface DataAttributes {
 }
 
 export interface Relationships {
-    roles: Roles;
+    roles: Relationship;
+    certificationPayments: Relationship;
 }
 
-export interface Roles {
+export interface Relationship {
     data: Datum[];
 }
 
@@ -48,8 +49,10 @@ export interface Included {
 }
 
 export interface IncludedAttributes {
-    accessType: string;
+    accessType?: string;
     userId:     number;
+    certificationId?: number;
+    stripeSessionId?: string;
 }
 
 // Converts JSON strings to/from your types

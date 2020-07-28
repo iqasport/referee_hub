@@ -50,6 +50,7 @@ gem 'activerecord-import'
 gem 'time_difference', git: 'https://github.com/iqasport/time_difference.git'
 gem 'gdpr_rails', git: 'https://github.com/HipSpec/gdpr_rails.git', branch: 'rails-6-minor-travis-fix'
 gem 'data_migrate'
+gem 'stripe-rails'
 
 # file storage and aws
 gem 'aws-sdk-s3', '~> 1'
@@ -92,6 +93,7 @@ group :test do
   gem 'chromedriver-helper'
   gem 'codecov', require: false
   gem 'timecop'
+  gem 'stripe-ruby-mock'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

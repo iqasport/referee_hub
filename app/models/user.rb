@@ -37,6 +37,7 @@
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #  invited_by_id          :bigint
+#  stripe_customer_id     :string
 #
 # Indexes
 #
@@ -53,6 +54,14 @@
 class User < ApplicationRecord
   include PolicyManager::Concerns::UserBehavior
   include Rails.application.routes.url_helpers # needed to generate avatar image route
+  include Stripe::Callbacks
+
+  after_customer_created! do |customer, event|
+    user = User.find_by(email: customer.email)
+    return if user.blank? || user.stripe_customer_id.present?
+
+    user.update!(stripe_customer_id: customer.id)
+  end
 
   devise :invitable, :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable,
@@ -80,6 +89,8 @@ class User < ApplicationRecord
   has_many :teams, through: :referee_teams
 
   has_many :exported_csvs, dependent: :destroy
+
+  has_many :certification_payments, dependent: :destroy
 
   has_one_attached :avatar
 
@@ -138,6 +149,10 @@ class User < ApplicationRecord
 
   def owned_ngb_id
     owned_ngb.first&.id
+  end
+
+  def available_tests
+    Services::FindAvailableUserTests.new(self).perform
   end
 
   protected

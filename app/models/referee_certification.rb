@@ -23,7 +23,9 @@ class RefereeCertification < ApplicationRecord
   FIELD_CERTIFICATION_ERROR = 'A Head Referee Certification is required before receiving a Field Certification'.freeze
   HEAD_CERTIFICATION_ERROR =
     'Both Snitch and Assistant Certifications are required before receiving a Head Referee Certification'.freeze
-  CERTIFICATIONS_WITHOUT_PREREQS = %w[snitch assistant].freeze
+  SNITCH_CERTIFICATION_ERROR =
+    'An Assistant Referee Certification is required before receiving a Snitch Certification'.freeze
+  CERTIFICATIONS_WITHOUT_PREREQS = %w[assistant].freeze
 
   belongs_to :certification
   belongs_to :referee, class_name: 'User'
@@ -44,6 +46,7 @@ class RefereeCertification < ApplicationRecord
     unless new_certification_valid?(existing_certs)
       errors.add(:certification, HEAD_CERTIFICATION_ERROR) if certification.level == 'head'
       errors.add(:certification, FIELD_CERTIFICATION_ERROR) if certification.level == 'field'
+      errors.add(:certification, SNITCH_CERTIFICATION_ERROR) if certification.level == 'snitch'
     end
 
     true
@@ -52,10 +55,9 @@ class RefereeCertification < ApplicationRecord
   private
 
   def new_certification_valid?(existing_certs)
-    if certification.level == 'head'
-      existing_certs.snitch.count == 1 && existing_certs.assistant.count == 1
-    elsif certification.level == 'field'
-      existing_certs.head.count == 1
-    end
+    new_cert_version = certification.version
+    return existing_certs.assistant.where(version: new_cert_version).count == 1 if certification.level == 'snitch'
+    return existing_certs.snitch.where(version: new_cert_version).count == 1 if certification.level == 'head'
+    return existing_certs.head.where(version: new_cert_version).count == 1 if certification.level == 'field'
   end
 end

@@ -37,6 +37,7 @@
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #  invited_by_id          :bigint
+#  stripe_customer_id     :string
 #
 # Indexes
 #
@@ -60,4 +61,5 @@ class UserSerializer < BaseSerializer
   end
 
   has_many :roles
+  has_many :certification_payments
 end

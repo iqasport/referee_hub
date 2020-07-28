@@ -41,11 +41,11 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
     end
 
     context 'when filtering by certification' do
-      let!(:certification) { create :certification, :snitch }
+      let!(:certification) { create :certification }
 
       before { referees.first.update!(certifications: [certification]) }
 
-      subject { get :index, params: { certifications: ['snitch'] } }
+      subject { get :index, params: { certifications: ['assistant'] } }
 
       it 'only returns the matching referee' do
         subject
@@ -57,9 +57,9 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
       end
 
       context 'when a referee has more than one certification' do
-        let(:assistant_certification) { create :certification }
+        let(:snitch_certification) { create :certification, :snitch }
 
-        before { referees.first.update!(certifications: [certification, assistant_certification]) }
+        before { referees.first.update!(certifications: [certification, snitch_certification]) }
 
         it 'should return both associations' do
           subject
@@ -70,7 +70,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
           expect(response_data.length).to eq 1
           expect(cert_data.length).to eq 2
           expect(cert_data[0]['id'].to_i).to eq certification.id
-          expect(cert_data[1]['id'].to_i).to eq assistant_certification.id
+          expect(cert_data[1]['id'].to_i).to eq snitch_certification.id
         end
       end
     end
@@ -314,6 +314,29 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
         end
       end
     end
+
+    context 'with an invalid user' do
+      let(:body_data) { { id: referee.id, first_name: 'person' } }
+      let(:other_user) { create :user }
+
+      before { sign_in other_user }
+
+      it 'is a failed request' do
+        subject
+
+        response_data = JSON.parse(response.body)['error']
+
+        expect(response_data).to eq described_class::UNAUTHORIZED_UPDATE
+      end
+    end
+
+    context 'when the update fails' do
+      let(:body_data) { { id: referee.id, nonsense: 'nonsense' } }
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :update!, User
+    end
   end
 
   describe 'GET #export' do
@@ -349,6 +372,59 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
         response_data = JSON.parse(response.body)['data']
 
         expect(response_data['job_id']).to_not be_nil
+      end
+    end
+  end
+
+  describe 'GET #tests' do
+    let(:referee) { create :user }
+    let(:snitch) { create :certification, :snitch }
+    let!(:test) { create :test, level: 'assistant', active: true }
+    let!(:other_test) { create :test, certification: snitch }
+
+    before { sign_in referee }
+
+    subject { get :tests, params: { id: referee.id } }
+
+    it_behaves_like 'it is a successful request'
+
+    it 'returns only the tests for that user' do
+      subject
+
+      response_data = JSON.parse(response.body)['data']
+
+      expect(response_data.length).to eq 1
+      expect(response_data[0]['id'].to_i).to eq test.id
+    end
+
+    context 'when the test fetch fails' do
+      let(:body_data) { { id: referee.id, nonsense: 'nonsense' } }
+      let(:error_message) { ['I am an error'] }
+
+      before do
+        allow_any_instance_of(User).to receive(:available_tests).and_raise(StandardError)
+        allow_any_instance_of(StandardError).to receive(:message).and_return(error_message)
+        allow(Bugsnag).to receive(:notify).and_call_original
+      end
+
+      it 'returns an error' do
+        subject
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        response_data = JSON.parse(response.body)['error']
+
+        expect(response_data).to eq error_message
+      end
+
+      it 'calls bugsnag notify' do
+        expect(Bugsnag).to receive(:notify).at_least(:once)
+
+        subject
       end
     end
   end

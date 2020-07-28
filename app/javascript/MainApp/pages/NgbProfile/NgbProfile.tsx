@@ -30,18 +30,9 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
   const [openModal, setOpenModal] = useState<ModalType>()
   const dispatch = useDispatch()
   const history = useHistory()
-  const { ngb, socialAccounts, refereeCount, teamCount, stats } = useSelector((state: RootState): SingleNationalGoverningBodyState => {
-    return {
-      error: state.nationalGoverningBody.error,
-      id: state.nationalGoverningBody.id,
-      isLoading: state.nationalGoverningBody.isLoading,
-      ngb: state.nationalGoverningBody.ngb,
-      refereeCount: state.nationalGoverningBody.refereeCount,
-      socialAccounts: state.nationalGoverningBody.socialAccounts,
-      stats: state.nationalGoverningBody.stats,
-      teamCount: state.nationalGoverningBody.teamCount,
-    }
-  }, shallowEqual)
+  const { ngb, socialAccounts, refereeCount, teamCount, stats } = useSelector(
+    (state: RootState): SingleNationalGoverningBodyState => state.nationalGoverningBody, shallowEqual
+  )
 
   useEffect(() => {
     if (id) {

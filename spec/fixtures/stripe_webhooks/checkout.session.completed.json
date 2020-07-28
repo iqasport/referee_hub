@@ -1,0 +1,39 @@
+{
+  "livemode": false,
+  "id": "evt_00000000000000",
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_b0fQu6NWQ7fvikJSqgVBKp6XYd2qbSTq0WA1uH69cCm5WikmpCabUR1X",
+      "object": "checkout.session",
+      "amount_subtotal": 1500,
+      "amount_total": 1500,
+      "billing_address_collection": null,
+      "cancel_url": "http://localhost:3000/referees/1/tests?status=cancelled",
+      "client_reference_id": null,
+      "currency": "usd",
+      "customer": "cus_Hj00BDfJVk8nX5",
+      "customer_email": "referee@example.com",
+      "livemode": false,
+      "locale": null,
+      "metadata": {
+        "certification_id": "3"
+      },
+      "mode": "payment",
+      "payment_intent": "pi_1H9XzfDRERIU1VQqdErLAowO",
+      "payment_method_types": [
+        "card"
+      ],
+      "setup_intent": null,
+      "shipping": null,
+      "shipping_address_collection": null,
+      "submit_type": null,
+      "subscription": null,
+      "success_url": "http://localhost:3000/referees/1/tests?status=success",
+      "total_details": {
+        "amount_discount": 0,
+        "amount_tax": 0
+      }
+    }
+  }
+}

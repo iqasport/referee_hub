@@ -1,8 +1,6 @@
-import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
-import { Message } from 'semantic-ui-react'
 
 import { AssociationData, UpdateRefereeRequest } from '../../apis/referee';
 import TestResultCards from '../../components/TestResultCards'
@@ -11,16 +9,19 @@ import { fetchReferee, updateReferee } from '../../modules/referee/referee';
 import RefereeHeader from './RefereeHeader'
 import RefereeLocation from './RefereeLocation'
 import RefereeTeam from './RefereeTeam'
-import { IdParams, PaymentState } from './types'
-import { initialPaymentState, initialUpdateState, selectRefereeState } from './utils'
+import { IdParams } from './types'
+import { initialUpdateState, selectRefereeState } from './utils'
 
 const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id }}} = props
   const dispatch = useDispatch()
   const history = useHistory();
-  const { referee, certifications, ngbs, locations, teams, id: stateId, testResults } = useSelector(selectRefereeState, shallowEqual)
-  const [paymentState, setPaymentState] = useState<PaymentState>(initialPaymentState)
-  const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(initialUpdateState(referee, locations, teams))
+  const { referee, certifications, ngbs, locations, teams, id: stateId, testResults } = useSelector(
+    selectRefereeState, shallowEqual
+  )
+  const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(
+    initialUpdateState(referee, locations, teams)
+  )
   const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
@@ -37,54 +38,12 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
 
   if (!referee) return null
 
-  const handleRouteChange = (newRoute) => history.push(newRoute)
-
   const handleSubmit = () => {
     setIsEditing(false)
     dispatch(updateReferee(updatedReferee, id))
   };
   const handleEditClick = () => setIsEditing(true)
-
-  // Payment handlers
-  const clearPaymentState = () => setPaymentState(initialPaymentState)
-  const handlePaymentError = () => setPaymentState({ success: false, cancel: false, failure: true })
-  const handlePaymentCancel = () => setPaymentState({ success: false, cancel: true, failure: false })
-  const handlePaymentSuccess = (payment) => {
-    const { paid } = payment
-    if (paid) {
-      setPaymentState({success: true, cancel: false, failure: false})
-    }
-
-    dispatch(updateReferee({...updatedReferee, submittedPaymentAt: DateTime.local().toString()}, id))
-  }
-
-  const renderPaymentMessage = () => {
-    const { failure, success, cancel } = paymentState
-    if (!failure && !success && !cancel) return null
-
-    const successMessage = 'Your payment was successful.'
-    const errorMessage = 'There was an issue with your payment, please try again.'
-    const cancelMessage = 'Your payment was cancelled.'
-
-    let messageProps
-    if (failure) {
-      messageProps = { error: true }
-    } else if (success) {
-      messageProps = { positive: true }
-    } else if (cancel) {
-      messageProps = { warning: true }
-    }
-
-    return (
-      <Message {...messageProps} size="small" onDismiss={clearPaymentState}>
-        <p>
-          {success && successMessage}
-          {failure && errorMessage}
-          {cancel && cancelMessage}
-        </p>
-      </Message>
-    )
-  }
+  const handleTestsClick = () => history.push(`/referees/${id}/tests`)
 
   const handleInputChange = (value: string | boolean, stateKey: string) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value })
@@ -123,7 +82,6 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   return (
     <>
       {renderAcceptPolicy()}
-      {renderPaymentMessage()}
       <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">
         <RefereeHeader
           referee={referee}
@@ -165,7 +123,11 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
                 <h3 className="border-b-2 border-green text-xl text-center">
                   Certifications
                 </h3>
-                <button type="button" className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white">
+                <button
+                  type="button"
+                  className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
+                  onClick={handleTestsClick}
+                >
                   Take Tests
                 </button>
               </div>
