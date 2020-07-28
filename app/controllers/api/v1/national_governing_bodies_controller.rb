@@ -9,7 +9,7 @@ module Api
       layout false
 
       def index
-        @national_governing_bodies = NationalGoverningBody.all
+        @national_governing_bodies = NationalGoverningBody.all.order(:name)
 
         json_string = NationalGoverningBodySerializer.new(
           @national_governing_bodies,

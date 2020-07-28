@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom'
 
 import NewRefereeTable from 'MainApp/components/NewRefereeTable'
 import NgbEditModal from 'MainApp/components/NgbEditModal'
+import NgbTable from 'MainApp/components/NgbTable'
 import TestEditModal from 'MainApp/components/TestEditModal'
 import TestsTable from 'MainApp/components/TestsTable'
 
@@ -43,7 +44,7 @@ const NewAdmin = () => {
   const renderContent = () => {
     switch(selectedTab) {
       case SelectedTab.Ngbs:
-        return <div>NGB table</div>
+        return <NgbTable />
       case SelectedTab.Referees:
         return <NewRefereeTable isHeightRestricted={false} />
       case SelectedTab.Tests:

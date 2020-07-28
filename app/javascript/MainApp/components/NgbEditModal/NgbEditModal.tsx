@@ -52,13 +52,13 @@ const NgbEditModal = (props: NgbEditModalProps) => {
   const isIqaAdmin = roles.includes('iqa_admin')
 
   useEffect(() => {
-    if (ngbId) {
+    if (ngbId && !ngb) {
       dispatch(getNationalGoverningBody(ngbId))
     }
   }, [ngbId, dispatch])
 
   useEffect(() => {
-    if (ngb) {
+    if (ngb && ngbId) {
       const existingUrls = socialAccounts.length ? socialAccounts.map((account) => account.url) : []
       setNewNgb({ ...ngb, urls: existingUrls })
     }
