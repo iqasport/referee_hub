@@ -2,12 +2,13 @@ require 'csv'
 
 module Services
   class NgbCsvImport
-    attr_reader :file_path
+    attr_reader :file_path, :mapped_headers
     attr_accessor :ngbs
 
-    def initialize(file_path)
+    def initialize(file_path, mapped_headers)
       @file_path = file_path
       @ngbs = []
+      @mapped_headers = ActiveSupport::JSON.decode(mapped_headers).with_indifferent_access
     end
 
     def perform
@@ -31,16 +32,16 @@ module Services
     private
 
     def find_or_initialize_ngb(row_data)
-      ngb = NationalGoverningBody.find_or_initialize_by(name: row_data.dig(:name))
-      region = row_data.dig(:region)
+      ngb = NationalGoverningBody.find_or_initialize_by(name: row_data.dig(mapped_headers['name']))
+      region = row_data.dig(mapped_headers['region'])
       return unless NationalGoverningBody.regions.key?(region)
 
       ngb.assign_attributes(
-        acronym: row_data.dig(:acronym),
-        country: row_data.dig(:country),
-        player_count: row_data.dig(:player_count),
+        acronym: row_data.dig(mapped_headers['acronym']),
+        country: row_data.dig(mapped_headers['country']),
+        player_count: row_data.dig(mapped_headers['player_count']),
         region: region,
-        website: row_data.dig(:website)
+        website: row_data.dig(mapped_headers['website'])
       )
 
       ngb
@@ -48,8 +49,8 @@ module Services
 
     def find_or_initialize_social_accounts(row_data)
       social_accounts = []
-      all_keys = row_data.keys
-      url_keys = all_keys.select { |key| key =~ /url_\d+$/ }
+      mapped_keys = mapped_headers.keys.select { |key| key =~ /url_\d+$/ }
+      url_keys = mapped_keys.map { |key| mapped_headers[key] }
 
       url_keys.each do |url_key|
         url = row_data.dig(url_key)

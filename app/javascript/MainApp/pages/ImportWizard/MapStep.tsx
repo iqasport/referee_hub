@@ -18,6 +18,7 @@ const TEST_REQUIRED_HEADERS = [
   'answer',
   'correct_answer'
 ]
+const NGB_REQUIRED_HEADERS = ['name', 'country', 'region', 'acronym', 'country', 'player_count', 'website', 'url']
 
 export const getRequiredHeaders = (scope: string): string[] => {
   switch (scope) {

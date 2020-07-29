@@ -4,9 +4,11 @@ import React, { useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 
+import { importNgbs } from 'MainApp/modules/nationalGoverningBody/nationalGoverningBodies';
 import { importTestQuestions } from 'MainApp/modules/question/questions';
 import { importTeams } from 'MainApp/modules/team/teams';
 import { RootState } from 'MainApp/rootReducer';
+
 import FinishStep from './FinishStep';
 import MapStep, { getRequiredHeaders, HeadersMap } from './MapStep';
 import StepDescriptions from './StepDescriptions';
@@ -70,6 +72,8 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
         dispatch(importTeams(uploadedFile, mappedData, scopeId))
       } else if (parsedScope === 'test') {
         dispatch(importTestQuestions(uploadedFile, mappedData, scopeId))
+      } else if (parsedScope === 'ngb') {
+        dispatch(importNgbs(uploadedFile, mappedData))
       }
       goForward()
     } else {

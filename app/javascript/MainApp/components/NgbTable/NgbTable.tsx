@@ -2,15 +2,15 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
+import { AnnotatedNgb } from 'MainApp/apis/nationalGoverningBody'
 import { getNationalGoverningBodies } from 'MainApp/modules/nationalGoverningBody/nationalGoverningBodies'
 import { RootState } from 'MainApp/rootReducer'
-import { Datum } from 'MainApp/schemas/getNationalGoverningBodiesSchema'
 
 import NgbEditModal from '../NgbEditModal'
 import Table, { CellConfig } from '../Table/Table'
 import ActionDropdown from './ActionDropdown'
 
-const HEADER_CELLS = ['name', 'region', 'acronym', 'player count', 'website', 'actions']
+const HEADER_CELLS = ['name', 'region', 'player count', 'team count', 'referee count', 'actions']
 
 const NgbTable = () => {
   const [activeEdit, setActiveEdit] = useState<string>(null)
@@ -32,39 +32,39 @@ const NgbTable = () => {
 
   const renderEmpty = () => <h2>No National Governing Bodies found</h2>
 
-  const rowConfig: CellConfig<Datum>[] = [
+  const rowConfig: CellConfig<AnnotatedNgb>[] = [
     {
-      cellRenderer: (item: Datum) => {
+      cellRenderer: (item: AnnotatedNgb) => {
         return item?.attributes.name
       },
       dataKey: 'name'
     },
     {
-      cellRenderer: (item: Datum) => {
+      cellRenderer: (item: AnnotatedNgb) => {
         return item?.attributes.region
       },
       dataKey: 'region'
     },
     {
-      cellRenderer: (item: Datum) => {
-        return item?.attributes.acronym
-      },
-      dataKey: 'acronym'
-    },
-    {
-      cellRenderer: (item: Datum) => {
+      cellRenderer: (item: AnnotatedNgb) => {
         return item?.attributes.playerCount.toString()
       },
       dataKey: 'playerCount'
     },
     {
-      cellRenderer: (item: Datum) => {
-        return item?.attributes.website
+      cellRenderer: (item: AnnotatedNgb) => {
+        return item?.teamCount.toString()
       },
-      dataKey: 'website'
+      dataKey: 'teamCount'
     },
     {
-      cellRenderer: (item: Datum) => {
+      cellRenderer: (item: AnnotatedNgb) => {
+        return item?.refereeCount.toString()
+      },
+      dataKey: 'refereeCount'
+    },
+    {
+      cellRenderer: (item: AnnotatedNgb) => {
         return <ActionDropdown ngbId={item.id} onEditClick={handleEditClick} />
       },
       customStyle: 'text-right',

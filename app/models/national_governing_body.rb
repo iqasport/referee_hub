@@ -23,6 +23,8 @@ class NationalGoverningBody < ApplicationRecord
   require 'activerecord-import/base'
   require 'activerecord-import/active_record/adapters/postgresql_adapter'
 
+  self.per_page = 50
+
   enum region: {
     north_america: 0,
     south_america: 1,

@@ -28,8 +28,6 @@ class Team < ApplicationRecord
 
   around_update :generate_changeset, if: :status_changed?
 
-  MAXIMUM_RETRIES = 6
-
   self.per_page = 25
 
   enum status: {
