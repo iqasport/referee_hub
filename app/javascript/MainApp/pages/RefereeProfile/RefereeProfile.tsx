@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
-import { AssociationData, UpdateRefereeRequest } from '../../apis/referee';
-import TestResultCards from '../../components/TestResultCards'
-import { updateUserPolicy } from '../../modules/currentUser/currentUser'
-import { fetchReferee, updateReferee } from '../../modules/referee/referee';
+import { AssociationData, UpdateRefereeRequest } from 'MainApp/apis/referee';
+import AdminCertificationsModal from 'MainApp/components/AdminCertificationsModal';
+import TestResultCards from 'MainApp/components/TestResultCards'
+import { updateUserPolicy } from 'MainApp/modules/currentUser/currentUser'
+import { fetchReferee, updateReferee } from 'MainApp/modules/referee/referee';
+import { RootState } from 'MainApp/rootReducer';
+
 import RefereeHeader from './RefereeHeader'
 import RefereeLocation from './RefereeLocation'
 import RefereeTeam from './RefereeTeam'
@@ -14,6 +17,8 @@ import { initialUpdateState, selectRefereeState } from './utils'
 
 const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id }}} = props
+  const [isEditing, setIsEditing] = useState(false)
+  const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false)
   const dispatch = useDispatch()
   const history = useHistory();
   const { referee, certifications, ngbs, locations, teams, id: stateId, testResults } = useSelector(
@@ -22,7 +27,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(
     initialUpdateState(referee, locations, teams)
   )
-  const [isEditing, setIsEditing] = useState(false)
+  const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual)
 
   useEffect(() => {
     if (id) {
@@ -38,12 +43,22 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
 
   if (!referee) return null
 
+  const isIqaAdmin = roles.includes('iqa_admin')
+  const isCertificationsVisible = (referee.isEditable && !isEditing) || isIqaAdmin
+
   const handleSubmit = () => {
     setIsEditing(false)
     dispatch(updateReferee(updatedReferee, id))
   };
   const handleEditClick = () => setIsEditing(true)
-  const handleTestsClick = () => history.push(`/referees/${id}/tests`)
+  const handleTestsClick = () => {
+    if (referee.isEditable) {
+      history.push(`/referees/${id}/tests`)
+    } else {
+      setIsCertificationModalOpen(true)
+    }
+  }
+  const handleCertificationModalClose = () => setIsCertificationModalOpen(false)
 
   const handleInputChange = (value: string | boolean, stateKey: string) => {
     setUpdatedReferee({ ...updatedReferee, [stateKey]: value })
@@ -117,7 +132,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
               isDisabled={locations.length < 1}
             />
           </div>
-          {referee.isEditable && !isEditing && (
+          {isCertificationsVisible && (
             <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 lg:ml-8 xl:ml-8">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="border-b-2 border-green text-xl text-center">
@@ -128,7 +143,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
                   className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
                   onClick={handleTestsClick}
                 >
-                  Take Tests
+                  {isIqaAdmin ? 'Manage Certifications' : 'Take Tests'}
                 </button>
               </div>
               <TestResultCards testResults={testResults} />
@@ -136,6 +151,11 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
           )}
         </div>
       </div>
+      <AdminCertificationsModal
+        open={isCertificationModalOpen}
+        refereeId={id}
+        onClose={handleCertificationModalClose}
+      />
     </>
   );
 }
