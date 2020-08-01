@@ -10,7 +10,7 @@ export type HeadersMap = {
 
 const URL_REGEX = /url/
 const ANSWER_REGEX = /answer/
-const TEAM_REQUIRED_HEADERS = ['name', 'city', 'country', 'state', 'age_group', 'status', 'url']
+const TEAM_REQUIRED_HEADERS = ['name', 'city', 'country', 'state', 'age_group', 'status', 'joined_at', 'url']
 const TEST_REQUIRED_HEADERS = [
   'description',
   'feedback',
@@ -18,17 +18,21 @@ const TEST_REQUIRED_HEADERS = [
   'answer',
   'correct_answer'
 ]
-const NGB_REQUIRED_HEADERS = ['name', 'country', 'region', 'acronym', 'country', 'player_count', 'website', 'url']
+const NGB_REQUIRED_HEADERS = [
+  'name',
+  'country',
+  'region',
+  'acronym',
+  'player_count',
+  'website',
+  'membership_status',
+  'url'
+]
 
-export const getRequiredHeaders = (scope: string): string[] => {
-  switch (scope) {
-    case 'team':
-      return TEAM_REQUIRED_HEADERS
-    case 'test':
-      return TEST_REQUIRED_HEADERS
-    default:
-      return []
-  }
+export const requiredHeaders: { [key: string]: string[] } = {
+  'ngb': NGB_REQUIRED_HEADERS,
+  'team': TEAM_REQUIRED_HEADERS,
+  'test': TEST_REQUIRED_HEADERS,
 }
 
 const findSelectedValue = (mappedValue: string): string => {
@@ -108,7 +112,7 @@ const MapStep = (props: MapStepProps) => {
             value={selectedValue}
           >
             <option value="">Select</option>
-            {getRequiredHeaders(scope).map((header) => {
+            {requiredHeaders[scope].map((header) => {
               return (
                 <option key={header} value={header} disabled={header === selectedValue}>
                   {header.split('_').map(word => capitalize(word)).join(' ')}
@@ -122,7 +126,7 @@ const MapStep = (props: MapStepProps) => {
   }
 
   const renderMapping = () => {
-    const needsMapping = originalHeaders ? difference(originalHeaders, getRequiredHeaders(scope)) : []
+    const needsMapping = originalHeaders ? difference(originalHeaders, requiredHeaders[scope]) : []
     if (!needsMapping.length) return <h1>All headers are correctly mapped, click Next to upload your csv</h1>
 
     return (

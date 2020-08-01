@@ -4,6 +4,7 @@ module Api
       before_action :authenticate_user!, only: %i[show update update_logo]
       before_action :find_ngb, only: %i[show update update_logo]
       before_action :verify_update_admin, only: %i[update update_logo]
+      before_action :verify_valid_update_params, only: %i[update]
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -83,13 +84,22 @@ module Api
       end
 
       def verify_update_admin
-        return true if @ngb.admins.pluck(:user_id).include?(current_user.id) || current_user.iqa_admin?
+        return true if @ngb.is_admin?(current_user.id) || current_user.iqa_admin?
+
+        render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
+      end
+
+      def verify_valid_update_params
+        has_membership_status = permitted_params[:membership_status].present?
+        has_region = permitted_params[:region].present?
+        return true if (!has_membership_status && !has_region) && @ngb.is_admin?(current_user.id)
+        return true if (has_membership_status || has_region) && current_user.iqa_admin?
 
         render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
       end
 
       def permitted_params
-        params.permit(:name, :acronym, :country, :player_count, :website, :region, urls: [])
+        params.permit(:name, :acronym, :country, :player_count, :website, :region, :membership_status, urls: [])
       end
     end
   end

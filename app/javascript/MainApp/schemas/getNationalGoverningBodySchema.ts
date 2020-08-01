@@ -27,6 +27,13 @@ export enum Region {
     Asia = 'asia',
 }
 
+export enum MembershipStatus {
+    AreaOfInterest = 'area_of_interest',
+    Emerging = 'emerging',
+    Developing = 'developing',
+    Full = 'full',
+}
+
 export interface DataAttributes {
     name:        string;
     website:     string;
@@ -35,6 +42,7 @@ export interface DataAttributes {
     region:      Region;
     country:     string;
     logoUrl:     string | null;
+    membershipStatus: MembershipStatus;
 }
 
 export interface Relationships {

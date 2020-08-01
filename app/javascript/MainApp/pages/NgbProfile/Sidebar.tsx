@@ -1,4 +1,9 @@
-import { faFacebookSquare, faInstagramSquare, faTwitterSquare, faYoutubeSquare } from '@fortawesome/free-brands-svg-icons'
+import {
+  faFacebookSquare,
+  faInstagramSquare,
+  faTwitterSquare,
+  faYoutubeSquare
+} from '@fortawesome/free-brands-svg-icons'
 import { faComments } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classnames from 'classnames'
@@ -97,11 +102,13 @@ const Sidebar = (props: SidebarProps) => {
         <DataLabel label="acronym" customClass="flex-shrink">
           <h3 className="uppercase text-navy-blue font-bold pt-2">{ngb.acronym}</h3>
         </DataLabel>
+        <DataLabel label="membership status" customClass="flex-shrink">
+          <h3 className="text-navy-blue font-bold pt-2">
+            {words(ngb.membershipStatus).map(word => capitalize(word)).join(' ')}
+          </h3>
+        </DataLabel>
         <DataLabel label="region" customClass="flex-shrink">
           <h3 className="text-navy-blue font-bold pt-2">{words(ngb.region).map(word => capitalize(word)).join(' ')}</h3>
-        </DataLabel>
-        <DataLabel label="country" customClass="flex-shrink">
-          <h3 className="text-navy-blue font-bold pt-2">{ngb.country}</h3>
         </DataLabel>
       </div>
       <DataLabel label="website" customClass="w-full">

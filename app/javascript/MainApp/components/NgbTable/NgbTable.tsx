@@ -1,3 +1,4 @@
+import { capitalize } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
@@ -10,7 +11,7 @@ import NgbEditModal from '../NgbEditModal'
 import Table, { CellConfig } from '../Table/Table'
 import ActionDropdown from './ActionDropdown'
 
-const HEADER_CELLS = ['name', 'region', 'player count', 'team count', 'referee count', 'actions']
+const HEADER_CELLS = ['name', 'region', 'membership status', 'player count', 'team count', 'referee count', 'actions']
 
 const NgbTable = () => {
   const [activeEdit, setActiveEdit] = useState<string>(null)
@@ -41,9 +42,15 @@ const NgbTable = () => {
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes.region
+        return item?.attributes?.region?.split('_').map((word) => capitalize(word)).join(' ')
       },
       dataKey: 'region'
+    },
+    {
+      cellRenderer: (item: AnnotatedNgb) => {
+        return item?.attributes?.membershipStatus?.split('_').map((word) => capitalize(word)).join(' ')
+      },
+      dataKey: 'membershipStatus'
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {

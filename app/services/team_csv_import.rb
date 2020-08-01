@@ -43,13 +43,15 @@ module Services
       group_affiliation = row_data.dig(mapped_headers['age_group'])
       return unless Team.statuses.key?(status)
       return unless Team.group_affiliations.key?(group_affiliation)
-
+      # convert mapped_headers['joined_at'] to a datetime. Can only be day-month-year
+      joined_at = Date.strptime(row_data.dig(mapped_headers['joined_at']), '%d-%m-%Y').to_datetime
       team.assign_attributes(
         city: row_data.dig(mapped_headers['city']),
         country: row_data.dig(mapped_headers['country']),
         group_affiliation: group_affiliation,
         state: row_data.dig(mapped_headers['state']),
-        status: status
+        status: status,
+        joined_at: joined_at
       )
 
       team

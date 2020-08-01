@@ -26,6 +26,7 @@ export interface Attributes {
     name:             string;
     state:            string;
     status:           Status;
+    joinedAt:         string;
 }
 
 export enum GroupAffiliation {

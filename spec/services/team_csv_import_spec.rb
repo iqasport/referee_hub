@@ -3,10 +3,10 @@ require 'rails_helper'
 
 describe Services::TeamCsvImport do
   let(:ngb) { create :national_governing_body }
-  let(:headers) { 'name,city,country,state,age_group,status,url_1' }
-  let(:row1) { 'DCQC,Washington,USA,DC,community,competitive,www.usquidditch.com/dcqc' }
-  let(:row2) { 'Bowling Green Quidditch,Bowling Green,USA,OH,university,developing,www.facebook.com/bgsu' }
-  let(:row3) { 'Vassar Quidditch,Poughkeepsie,USA,NY,youth,inactive,www.twitter.com/vassar' }
+  let(:headers) { 'name,city,country,state,age_group,status,joined_at,url_1' }
+  let(:row1) { 'DCQC,Washington,USA,DC,community,competitive,01-01-2018,www.usquidditch.com/dcqc' }
+  let(:row2) { 'Bowling Green Quidditch,Bowling Green,USA,OH,university,developing,02-01-2018,www.facebook.com/bgsu' }
+  let(:row3) { 'Vassar Quidditch,Poughkeepsie,USA,NY,youth,inactive,03-01-2018,www.twitter.com/vassar' }
   let(:rows) { [headers, row1, row2, row3] }
   let(:file_path) { 'tmp/team_csv_import_test.csv' }
   let(:mapped_headers) do
@@ -17,6 +17,7 @@ describe Services::TeamCsvImport do
       'state': 'state',
       'age_group': 'age_group',
       'status': 'status',
+      'joined_at': 'joined_at',
       'url_1': 'url_1',
     }
   end
@@ -25,6 +26,7 @@ describe Services::TeamCsvImport do
       rows.each { |row| csv << row.split(',') }
     end
   end
+  let(:expected_datetime) { Date.strptime('01-01-2018', '%d-%m-%Y').to_datetime }
 
   after(:each) { File.delete(file_path) }
 
@@ -44,6 +46,12 @@ describe Services::TeamCsvImport do
     expect(ngb.teams.first.social_accounts.count).to be 1
     expect(ngb.teams.first.social_accounts.first.account_type).to eq 'other'
     expect(ngb.teams.first.social_accounts.first.url).to eq 'www.usquidditch.com/dcqc'
+  end
+
+  it 'correctly parses the joined date' do
+    subject
+
+    expect(ngb.teams.first.joined_at).to eq expected_datetime
   end
 
   context 'when the team already exists' do

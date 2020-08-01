@@ -58,6 +58,10 @@ Rails.application.routes.draw do
         member do
           post :update_logo
         end
+
+        collection do
+          post :import
+        end
       end
       resources :referee_certifications, only: %i[index create update]
       resources :tests, only: %i[index create show update destroy] do

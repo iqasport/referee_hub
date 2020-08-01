@@ -2,16 +2,17 @@
 #
 # Table name: national_governing_bodies
 #
-#  id           :bigint           not null, primary key
-#  acronym      :string
-#  country      :string
-#  image_url    :string
-#  name         :string           not null
-#  player_count :integer          default(0), not null
-#  region       :integer
-#  website      :string
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
+#  id                :bigint           not null, primary key
+#  acronym           :string
+#  country           :string
+#  image_url         :string
+#  membership_status :integer          default("area_of_interest"), not null
+#  name              :string           not null
+#  player_count      :integer          default(0), not null
+#  region            :integer
+#  website           :string
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
 #
 # Indexes
 #

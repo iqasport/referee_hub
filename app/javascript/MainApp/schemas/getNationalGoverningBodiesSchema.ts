@@ -1,4 +1,4 @@
-import { Region } from "./getNationalGoverningBodySchema";
+import { Region, MembershipStatus } from "./getNationalGoverningBodySchema";
 
 export interface GetNationalGoverningBodiesSchema {
     data: Datum[];
@@ -20,6 +20,7 @@ export interface Attributes {
     region:      Region;
     country:     string;
     logoUrl:     string | null;
+    membershipStatus: MembershipStatus;
 }
 
 export interface Relationships {
@@ -50,6 +51,6 @@ export enum Type {
 }
 
 export interface Meta {
-    page: number;
+    page: string;
     total: number;
 }

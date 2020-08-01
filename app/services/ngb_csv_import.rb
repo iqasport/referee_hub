@@ -34,14 +34,17 @@ module Services
     def find_or_initialize_ngb(row_data)
       ngb = NationalGoverningBody.find_or_initialize_by(name: row_data.dig(mapped_headers['name']))
       region = row_data.dig(mapped_headers['region'])
+      membership = row_data.dig(mapped_headers['membership_status'])
       return unless NationalGoverningBody.regions.key?(region)
+      return unless NationalGoverningBody.membership_statuses.key?(membership)
 
       ngb.assign_attributes(
         acronym: row_data.dig(mapped_headers['acronym']),
         country: row_data.dig(mapped_headers['country']),
         player_count: row_data.dig(mapped_headers['player_count']),
         region: region,
-        website: row_data.dig(mapped_headers['website'])
+        website: row_data.dig(mapped_headers['website']),
+        membership_status: membership,
       )
 
       ngb
@@ -54,6 +57,7 @@ module Services
 
       url_keys.each do |url_key|
         url = row_data.dig(url_key)
+        next if url.blank?
         new_social = SocialAccount.find_or_initialize_by(url: url)
         next if new_social.persisted? # we don't need to update an existing record with the same information
 

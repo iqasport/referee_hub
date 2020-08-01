@@ -28,7 +28,7 @@ export interface GetTeamsFilter {
   nationalGoverningBodyId: string;
 }
 
-export interface UpdateTeamRequest extends Attributes {
+export interface UpdateTeamRequest extends Omit<Attributes, 'joinedAt'> {
   urls: string[]
   nationalGoverningBodyId: string;
 }
