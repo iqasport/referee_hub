@@ -2,6 +2,7 @@ import classnames from 'classnames'
 import React from 'react'
 
 import Loader from 'MainApp/components/Loader'
+import { Datum as Ngb } from 'MainApp/schemas/getNationalGoverningBodiesSchema'
 import { Datum as Team } from 'MainApp/schemas/getTeamsSchema'
 import { Datum as Test } from 'MainApp/schemas/getTestsSchema'
 import { Referee } from '../../modules/referee/referees'
@@ -22,7 +23,7 @@ interface TableProps<T> {
   isHeightRestricted: boolean;
 }
 
-const Table = <T extends Referee | Test | Team>(props: TableProps<T>) => {
+const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
   const { items, isLoading, headerCells, rowConfig, emptyRenderer, onRowClick, isHeightRestricted } = props
 
   const handleRowClick = (id: string) => () => {

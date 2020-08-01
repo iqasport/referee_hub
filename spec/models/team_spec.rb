@@ -6,6 +6,7 @@
 #  city                       :string           not null
 #  country                    :string           not null
 #  group_affiliation          :integer          default("university")
+#  joined_at                  :datetime
 #  name                       :string           not null
 #  state                      :string
 #  status                     :integer          default("competitive")

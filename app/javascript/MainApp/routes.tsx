@@ -46,6 +46,7 @@ const App = () => {
   const refProfile = newDesignEnabled ? 'RefereeProfile' : 'OldRefereeProfile';
   const tests = newDesignEnabled ? 'NewTests' : 'Tests';
   const test = newDesignEnabled ? 'NewTest' : 'Test';
+  const admin = newDesignEnabled ? 'NewAdmin' : 'Admin';
 
   return (
     <Router>
@@ -74,7 +75,11 @@ const App = () => {
             <Route exact={true} path='/referees/:id' render={(props) => <AsyncPage {...props} page={refProfile} />} />
           )
         }
-        <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page="Admin" />} />
+        {
+          currentUser && (
+            <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page={admin} />} />
+          )
+        }
         <Route
           exact={true}
           path='/admin/referee-diagnostic'

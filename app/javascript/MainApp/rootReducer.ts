@@ -1,6 +1,7 @@
 import { combineReducers }from '@reduxjs/toolkit'
 
 import certificationsReducer from './modules/certification/certifications'
+import refCertificationReducer from './modules/certification/refCertification'
 import checkoutReducer from './modules/checkout/checkout'
 import productsReducer from './modules/checkout/products'
 import currentUserReducer from './modules/currentUser/currentUser'
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
   nationalGoverningBody: nationalGoverningBodyReducer,
   products: productsReducer,
   questions: questionsReducer,
+  refCertification: refCertificationReducer,
   referee: getRefereeReducer,
   referees: refereesReducer,
   team: teamReducer,

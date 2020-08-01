@@ -45,7 +45,7 @@ const DropdownMenu = (props: DropdownMenuProps) => {
       )}
       {isDropdownOpen && (
         <div
-          className="bg-white rounded py-2 min-w-32 mt-1 shadow-lg absolute right-0 z-1"
+          className="bg-white rounded py-2 min-w-32 mt-1 shadow-lg absolute right-0 z-3"
           style={{ minWidth: 'max-content' }}
         >
           <ul>

@@ -1,22 +1,15 @@
-// To parse this data:
-//
-//   import { Convert, GetNationalGoverningBodiesSchema } from "./file";
-//
-//   const getNationalGoverningBodiesSchema = Convert.toGetNationalGoverningBodiesSchema(json);
-//
-// These functions will throw an error if the JSON doesn't
-// match the expected interface, even if the JSON is valid.
-
-import { Region } from "./getNationalGoverningBodySchema";
+import { Region, MembershipStatus } from "./getNationalGoverningBodySchema";
 
 export interface GetNationalGoverningBodiesSchema {
     data: Datum[];
+    meta: Meta;
 }
 
 export interface Datum {
     id:         string;
     type:       Type;
     attributes: Attributes;
+    relationships: Relationships;
 }
 
 export interface Attributes {
@@ -27,167 +20,37 @@ export interface Attributes {
     region:      Region;
     country:     string;
     logoUrl:     string | null;
+    membershipStatus: MembershipStatus;
+}
+
+export interface Relationships {
+    socialAccounts: Relationship;
+    teams: Relationship;
+    referees: Relationship;
+    stats: Relationship;
+}
+
+export interface Relationship {
+    data: RelationshipDatum[];
+}
+
+export interface RelationshipDatum {
+    id: string;
+    type: RealtionshipType;
+}
+
+export enum RealtionshipType {
+    Referee = "referee",
+    SocialAccount = "socialAccount",
+    Stat = "stat",
+    Team = "team",
 }
 
 export enum Type {
     NationalGoverningBody = "nationalGoverningBody",
 }
 
-// Converts JSON strings to/from your types
-// and asserts the results of JSON.parse at runtime
-export class Convert {
-    public static toGetNationalGoverningBodiesSchema(json: string): GetNationalGoverningBodiesSchema {
-        return cast(JSON.parse(json), r("GetNationalGoverningBodiesSchema"));
-    }
-
-    public static getNationalGoverningBodiesSchemaToJson(value: GetNationalGoverningBodiesSchema): string {
-        return JSON.stringify(uncast(value, r("GetNationalGoverningBodiesSchema")), null, 2);
-    }
+export interface Meta {
+    page: string;
+    total: number;
 }
-
-function invalidValue(typ: any, val: any): never {
-    throw Error(`Invalid value ${JSON.stringify(val)} for type ${JSON.stringify(typ)}`);
-}
-
-function jsonToJSProps(typ: any): any {
-    if (typ.jsonToJS === undefined) {
-        var map: any = {};
-        typ.props.forEach((p: any) => map[p.json] = { key: p.js, typ: p.typ });
-        typ.jsonToJS = map;
-    }
-    return typ.jsonToJS;
-}
-
-function jsToJSONProps(typ: any): any {
-    if (typ.jsToJSON === undefined) {
-        var map: any = {};
-        typ.props.forEach((p: any) => map[p.js] = { key: p.json, typ: p.typ });
-        typ.jsToJSON = map;
-    }
-    return typ.jsToJSON;
-}
-
-function transform(val: any, typ: any, getProps: any): any {
-    function transformPrimitive(typ: string, val: any): any {
-        if (typeof typ === typeof val) return val;
-        return invalidValue(typ, val);
-    }
-
-    function transformUnion(typs: any[], val: any): any {
-        // val must validate against one typ in typs
-        var l = typs.length;
-        for (var i = 0; i < l; i++) {
-            var typ = typs[i];
-            try {
-                return transform(val, typ, getProps);
-            } catch (_) {}
-        }
-        return invalidValue(typs, val);
-    }
-
-    function transformEnum(cases: string[], val: any): any {
-        if (cases.indexOf(val) !== -1) return val;
-        return invalidValue(cases, val);
-    }
-
-    function transformArray(typ: any, val: any): any {
-        // val must be an array with no invalid elements
-        if (!Array.isArray(val)) return invalidValue("array", val);
-        return val.map(el => transform(el, typ, getProps));
-    }
-
-    function transformDate(typ: any, val: any): any {
-        if (val === null) {
-            return null;
-        }
-        const d = new Date(val);
-        if (isNaN(d.valueOf())) {
-            return invalidValue("Date", val);
-        }
-        return d;
-    }
-
-    function transformObject(props: { [k: string]: any }, additional: any, val: any): any {
-        if (val === null || typeof val !== "object" || Array.isArray(val)) {
-            return invalidValue("object", val);
-        }
-        var result: any = {};
-        Object.getOwnPropertyNames(props).forEach(key => {
-            const prop = props[key];
-            const v = Object.prototype.hasOwnProperty.call(val, key) ? val[key] : undefined;
-            result[prop.key] = transform(v, prop.typ, getProps);
-        });
-        Object.getOwnPropertyNames(val).forEach(key => {
-            if (!Object.prototype.hasOwnProperty.call(props, key)) {
-                result[key] = transform(val[key], additional, getProps);
-            }
-        });
-        return result;
-    }
-
-    if (typ === "any") return val;
-    if (typ === null) {
-        if (val === null) return val;
-        return invalidValue(typ, val);
-    }
-    if (typ === false) return invalidValue(typ, val);
-    while (typeof typ === "object" && typ.ref !== undefined) {
-        typ = typeMap[typ.ref];
-    }
-    if (Array.isArray(typ)) return transformEnum(typ, val);
-    if (typeof typ === "object") {
-        return typ.hasOwnProperty("unionMembers") ? transformUnion(typ.unionMembers, val)
-            : typ.hasOwnProperty("arrayItems")    ? transformArray(typ.arrayItems, val)
-            : typ.hasOwnProperty("props")         ? transformObject(getProps(typ), typ.additional, val)
-            : invalidValue(typ, val);
-    }
-    // Numbers can be parsed by Date but shouldn't be.
-    if (typ === Date && typeof val !== "number") return transformDate(typ, val);
-    return transformPrimitive(typ, val);
-}
-
-function cast<T>(val: any, typ: any): T {
-    return transform(val, typ, jsonToJSProps);
-}
-
-function uncast<T>(val: T, typ: any): any {
-    return transform(val, typ, jsToJSONProps);
-}
-
-function a(typ: any) {
-    return { arrayItems: typ };
-}
-
-function u(...typs: any[]) {
-    return { unionMembers: typs };
-}
-
-function o(props: any[], additional: any) {
-    return { props, additional };
-}
-
-function m(additional: any) {
-    return { props: [], additional };
-}
-
-function r(name: string) {
-    return { ref: name };
-}
-
-const typeMap: any = {
-    "GetNationalGoverningBodiesSchema": o([
-        { json: "data", js: "data", typ: a(r("Datum")) },
-    ], false),
-    "Datum": o([
-        { json: "id", js: "id", typ: "" },
-        { json: "type", js: "type", typ: r("Type") },
-        { json: "attributes", js: "attributes", typ: r("Attributes") },
-    ], false),
-    "Attributes": o([
-        { json: "name", js: "name", typ: "" },
-        { json: "website", js: "website", typ: "" },
-    ], false),
-    "Type": [
-        "nationalGoverningBody",
-    ],
-};

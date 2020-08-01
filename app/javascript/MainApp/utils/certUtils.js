@@ -40,6 +40,7 @@ export function canTakeSnitchTest(levelsThatNeedRenewal, testAttempts, refCertif
   if (levelsThatNeedRenewal.find(refCert => refCert.level === 'snitch')) return true
 
   return !hasSnitchCert(refCertifications, levelsThatNeedRenewal)
+    && hasAssistantCert(refCertifications, levelsThatNeedRenewal)
     && !hasHeadCert(refCertifications, levelsThatNeedRenewal)
 }
 

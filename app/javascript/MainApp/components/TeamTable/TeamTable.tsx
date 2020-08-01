@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 
-import { GetTeamsFilter } from '../../apis/team'
-import { deleteTeam } from '../../modules/team/team'
-import { getTeams, TeamsState, updateFilters } from '../../modules/team/teams'
-import { RootState } from '../../rootReducer'
-import { Datum } from '../../schemas/getTeamsSchema'
+import { GetTeamsFilter } from 'MainApp/apis/team'
+import { deleteTeam } from 'MainApp/modules/team/team'
+import { getTeams, TeamsState, updateFilters } from 'MainApp/modules/team/teams'
+import { RootState } from 'MainApp/rootReducer'
+import { Datum } from 'MainApp/schemas/getTeamsSchema'
+import { toDateTime } from 'MainApp/utils/dateUtils'
 
 import FilterToolbar from '../FilterToolbar'
 import Table, { CellConfig } from '../Table/Table'
@@ -37,7 +38,7 @@ const TeamTable = (props: TeamTableProps) => {
     }
     dispatch(updateFilters(filter))
     dispatch(getTeams(filter))
-  }, [])
+  }, [ngbId])
 
   const handleCloseModal = () => setOpenModal(null)
   const handleEditClick = (teamId: string) => {
@@ -96,7 +97,7 @@ const TeamTable = (props: TeamTableProps) => {
 
   const renderEmpty = () => <h2>No teams found</h2>
 
-  const HEADER_CELLS = ['name', 'city', 'type', 'status', 'actions']
+  const HEADER_CELLS = ['name', 'city', 'joined date', 'type', 'status', 'actions']
   const rowConfig: CellConfig<Datum>[] = [
     {
       cellRenderer: (item: Datum) => {
@@ -109,6 +110,12 @@ const TeamTable = (props: TeamTableProps) => {
         return `${item.attributes.city}, ${item.attributes.state}`
       },
       dataKey: 'city'
+    },
+    {
+      cellRenderer: (item: Datum) => {
+        return toDateTime(item.attributes.joinedAt).toFormat('DDD')
+      },
+      dataKey: 'joinedAt'
     },
     {
       cellRenderer: (item: Datum) => {

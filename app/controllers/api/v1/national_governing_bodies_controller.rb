@@ -4,16 +4,22 @@ module Api
       before_action :authenticate_user!, only: %i[show update update_logo]
       before_action :find_ngb, only: %i[show update update_logo]
       before_action :verify_update_admin, only: %i[update update_logo]
+      before_action :verify_valid_update_params, only: %i[update]
+      before_action :verify_admin, only: %i[import]
       skip_before_action :verify_authenticity_token
 
       layout false
 
       def index
-        @national_governing_bodies = NationalGoverningBody.all
+        page = params[:page] || 1
+        @national_governing_bodies = NationalGoverningBody.all.order(:name)
+        ngbs_total = @national_governing_bodies.count
+        @national_governing_bodies = @national_governing_bodies.page(page)
 
         json_string = NationalGoverningBodySerializer.new(
           @national_governing_bodies,
-          fields: { national_governing_body: [:name]}
+          meta: { page: page, total: ngbs_total },
+          fields: { national_governing_body: [:name] }
         ).serialized_json
 
         render json: json_string, status: :ok
@@ -50,6 +56,28 @@ module Api
         render json: { error: @ngb.errors.full_messages }, status: :unprocessable_entity
       end
 
+      def import
+        imported_ids = Services::NgbCsvImport.new(
+          params['file'].tempfile.path,
+          params['mapped_headers']
+        ).perform
+
+        new_ngbs = NationalGoverningBody.where(id: imported_ids)
+        page = params[:page] || 1
+        ngbs_total = new_ngbs.count
+        new_ngbs = new_ngbs.page(page)
+
+        json_string = NationalGoverningBodySerializer.new(
+          new_ngbs,
+          meta: { page: page, total: ngbs_total }
+        ).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: exception.full_message }, status: :unprocessable_entity
+      end
+
       private
 
       def find_ngb
@@ -57,13 +85,22 @@ module Api
       end
 
       def verify_update_admin
-        return true if @ngb.admins.pluck(:user_id).include?(current_user.id) || current_user.iqa_admin?
+        return true if @ngb.is_admin?(current_user.id) || current_user.iqa_admin?
+
+        render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
+      end
+
+      def verify_valid_update_params
+        has_membership_status = permitted_params[:membership_status].present?
+        has_region = permitted_params[:region].present?
+        return true if (!has_membership_status && !has_region) && @ngb.is_admin?(current_user.id)
+        return true if (has_membership_status || has_region) && current_user.iqa_admin?
 
         render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
       end
 
       def permitted_params
-        params.permit(:name, :acronym, :country, :player_count, :website, :region, urls: [])
+        params.permit(:name, :acronym, :country, :player_count, :website, :region, :membership_status, urls: [])
       end
     end
   end

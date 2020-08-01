@@ -17,7 +17,11 @@ module Api
       end
 
       def create
-        certification = find_certification(permitted_params['level'])
+        certification = find_certification(permitted_params['level']) if permitted_params['level'].present?
+        if permitted_params['certification_id'].present?
+          certification = find_certification_by_id(permitted_params['certification_id'])
+        end
+
         referee_certification = RefereeCertification.new(
           referee_id: permitted_params['referee_id'],
           certification: certification,
@@ -47,20 +51,28 @@ module Api
 
       private
 
+      def user_scope
+        @user_scope ||= current_user.id == params[:referee_id] ? current_user : User.find(params[:referee_id])
+      end
+
       def find_referee_certification
-        @referee_certification = current_user.referee_certifications.find_by(id: params[:id])
+        @referee_certification = user_scope.referee_certifications.find_by(id: params[:id])
       end
 
       def find_certification(level)
         Certification.find_by(level: level)
       end
 
+      def find_certification_by_id(id)
+        Certification.find_by(id: id)
+      end
+
       def permitted_params
-        params.permit(:referee_id, :level, :received_at)
+        params.permit(:referee_id, :level, :received_at, :certification_id)
       end
 
       def permitted_update_params
-        params.permit(:needs_renewal_at)
+        params.permit(:needs_renewal_at, :revoked_at)
       end
     end
   end

@@ -17,11 +17,11 @@ const sortByTimestamp = (stats: IncludedAttributes[]): IncludedAttributes[] => {
     const aInterval = Interval.fromDateTimes(aStartTime, aEndTime)
 
     if (aInterval.isBefore(bEndTime)) {
-      return -1
+      return 1
     }
 
     if (aInterval.isAfter(bEndTime)) {
-      return 1
+      return -1
     }
 
     return 0
@@ -42,7 +42,7 @@ const StatsViewer = (props: StatsViewerProps) => {
   const [selectedStat, setSelectedStat] = useState<SelectedStat>()
   const orderedStats = sortByTimestamp(props.stats)
   const currentStat = orderedStats[0]
-  
+
   const handleStatClick = (type: SelectedStat) => () => {
     if (selectedStat !== type) {
       setSelectedStat(type)
