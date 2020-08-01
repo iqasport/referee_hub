@@ -147,4 +147,44 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
       it_behaves_like 'it reports to bugsnag on failure', :logo, NationalGoverningBody
     end
   end
+
+   describe 'POST #import' do
+    include ActionDispatch::TestProcess
+
+    let!(:user) { create :user, :iqa_admin }
+    let(:service_double) { double(return_value: :perform) }
+    let(:mapped_headers) do
+      {
+        'name': 'name',
+        'acronym': 'acronym',
+        'country': 'country',
+        'player_count': 'player_count',
+        'region': 'region',
+        'membership_status': 'membership_status',
+        'website': 'website',
+        'url_1': 'url_1',
+      }.to_json
+    end
+
+    before do
+      sign_in user
+      allow(Services::NgbCsvImport).to receive(:new).and_return(service_double)
+      allow(service_double).to receive(:perform).and_return(true)
+      @file = fixture_file_upload('import_test.csv', 'text/csv')
+    end
+
+    subject do
+      post :import, params: { file: @file, mapped_headers: mapped_headers }
+    end
+
+    it_behaves_like 'it is a successful request'
+
+    it 'calls the team csv import service' do
+      expect(Services::NgbCsvImport).to receive(:new).with(instance_of(String), mapped_headers)
+
+      subject
+    end
+
+    it_behaves_like 'it fails when a referee is not an admin'
+  end
 end

@@ -5,6 +5,7 @@ module Api
       before_action :find_ngb, only: %i[show update update_logo]
       before_action :verify_update_admin, only: %i[update update_logo]
       before_action :verify_valid_update_params, only: %i[update]
+      before_action :verify_admin, only: %i[import]
       skip_before_action :verify_authenticity_token
 
       layout false

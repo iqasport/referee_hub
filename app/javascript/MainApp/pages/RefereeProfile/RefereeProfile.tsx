@@ -143,7 +143,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
                   className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
                   onClick={handleTestsClick}
                 >
-                  {isIqaAdmin ? 'Manage Certifications' : 'Take Tests'}
+                  {isIqaAdmin && !referee.isEditable ? 'Manage Certifications' : 'Take Tests'}
                 </button>
               </div>
               <TestResultCards testResults={testResults} />
