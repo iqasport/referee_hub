@@ -10,11 +10,13 @@ import { RootState } from 'MainApp/rootReducer';
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
 import MultiInput from '../MultiInput';
 
-const REQUIRED_FIELDS = ['name', 'region']
+const REQUIRED_FIELDS = ['name', 'region', 'membershipStatus']
 const REGION_OPTIONS = ['north_america', 'south_america', 'europe', 'africa', 'asia']
+const MEMBERSHIP_OPTIONS = ['area_of_interest', 'emerging', 'developing', 'full']
 const initialNewNgb: UpdateNgbRequest = {
   acronym: '',
   country: '',
+  membershipStatus: null,
   name: '',
   playerCount: 0,
   region: null,
@@ -52,13 +54,13 @@ const NgbEditModal = (props: NgbEditModalProps) => {
   const isIqaAdmin = roles.includes('iqa_admin')
 
   useEffect(() => {
-    if (ngbId) {
+    if (ngbId && !ngb) {
       dispatch(getNationalGoverningBody(ngbId))
     }
   }, [ngbId, dispatch])
 
   useEffect(() => {
-    if (ngb) {
+    if (ngb && ngbId) {
       const existingUrls = socialAccounts.length ? socialAccounts.map((account) => account.url) : []
       setNewNgb({ ...ngb, urls: existingUrls })
     }
@@ -130,7 +132,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
         </label>
         <div className="flex w-full my-8">
           <label className="w-1/2 mr-4">
-            <span className="text-gray-700">Type</span>
+            <span className="text-gray-700">Region</span>
             <select
               disabled={!isIqaAdmin}
               className={
@@ -148,7 +150,28 @@ const NgbEditModal = (props: NgbEditModalProps) => {
             </select>
             {hasError('region') && <span className="text-red-500">Region cannot be blank</span>}
           </label>
-          <label className="w-1/3 mr-4">
+          <label className="w-1/2">
+            <span className="text-gray-700">Membership Status</span>
+            <select
+              disabled={!isIqaAdmin}
+              className={
+                classnames(
+                  "form-select mt-1 block w-full",
+                  { 'border border-red-500': hasError('membershipStatsus') }
+                )
+              }
+              name="membershipStatus"
+              onChange={handleInputChange}
+              value={newNgb.membershipStatus || ''}
+            >
+              <option value="" />
+              {MEMBERSHIP_OPTIONS.map(renderOption)}
+            </select>
+            {hasError('membershipStatus') && <span className="text-red-500">Membership status cannot be blank</span>}
+          </label>
+        </div>
+        <div className="flex w-full my-8 justify-between">
+          <label className="w-1/2 mr-4">
             <span className="text-gray-700">Acronym</span>
             <input
               className="form-input mt-1 block w-full"
@@ -158,7 +181,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
               value={newNgb.acronym}
             />
           </label>
-          <label className="w-1/3 mr-4">
+          <label className="w-1/2">
             <span className="text-gray-700">Player Count</span>
             <input
               type="number"
@@ -190,7 +213,12 @@ const NgbEditModal = (props: NgbEditModalProps) => {
         <div className="w-full text-center">
           <button
             type="button"
-            className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {'opacity-50 cursor-default': !hasChangedNgb})}
+            className={
+              classnames(
+                "uppercase text-xl py-4 px-8 rounded-lg bg-green text-white",
+                {'opacity-50 cursor-default': !hasChangedNgb}
+              )
+            }
             onClick={handleSubmit}
             disabled={!hasChangedNgb}
           >

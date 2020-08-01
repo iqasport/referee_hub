@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_25_153820) do
+ActiveRecord::Schema.define(version: 2020_07_29_232341) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -102,6 +102,7 @@ ActiveRecord::Schema.define(version: 2020_07_25_153820) do
     t.string "country"
     t.string "acronym"
     t.integer "region"
+    t.integer "membership_status", default: 0, null: false
     t.index ["region"], name: "index_national_governing_bodies_on_region"
   end
 
@@ -260,6 +261,7 @@ ActiveRecord::Schema.define(version: 2020_07_25_153820) do
     t.bigint "national_governing_body_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "joined_at", default: -> { "CURRENT_TIMESTAMP" }
     t.index ["national_governing_body_id"], name: "index_teams_on_national_governing_body_id"
   end
 

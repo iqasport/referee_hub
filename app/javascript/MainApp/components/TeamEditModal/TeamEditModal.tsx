@@ -58,7 +58,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }, [teamId, dispatch])
   
   useEffect(() => {
-    if (team) {
+    if (team && teamId) {
       const existingUrls = socialAccounts.length ? socialAccounts.map((account) => account.url) : []
       setNewTeam({ ...team, urls: existingUrls, nationalGoverningBodyId: ngbId })
     }

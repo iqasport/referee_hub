@@ -4,11 +4,13 @@ import React, { useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 
+import { importNgbs } from 'MainApp/modules/nationalGoverningBody/nationalGoverningBodies';
 import { importTestQuestions } from 'MainApp/modules/question/questions';
 import { importTeams } from 'MainApp/modules/team/teams';
 import { RootState } from 'MainApp/rootReducer';
+
 import FinishStep from './FinishStep';
-import MapStep, { getRequiredHeaders, HeadersMap } from './MapStep';
+import MapStep, { HeadersMap, requiredHeaders } from './MapStep';
 import StepDescriptions from './StepDescriptions';
 import UploadStep from './UploadStep';
 
@@ -33,7 +35,7 @@ const stepTextMap: { [stepCount: number]: StepConfig } = {
 }
 
 const defaultHeadersMap = (scope: string): HeadersMap => (
-  getRequiredHeaders(scope).reduce((acc, value) => {
+  requiredHeaders[scope].reduce((acc, value) => {
     acc[value] = value
     return acc
   }, {})
@@ -51,6 +53,9 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
 
   const { meta, error } = useSelector((state: RootState) => state.teams, shallowEqual);
   const { meta: questionMeta, error: questionError } = useSelector((state: RootState) => state.questions, shallowEqual);
+  const { meta: ngbMeta, error: ngbError } = useSelector(
+    (state: RootState) => state.nationalGoverningBodies, shallowEqual
+  );
   const history = useHistory();
   const dispatch = useDispatch();
 
@@ -70,6 +75,8 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
         dispatch(importTeams(uploadedFile, mappedData, scopeId))
       } else if (parsedScope === 'test') {
         dispatch(importTestQuestions(uploadedFile, mappedData, scopeId))
+      } else if (parsedScope === 'ngb') {
+        dispatch(importNgbs(uploadedFile, mappedData))
       }
       goForward()
     } else {
@@ -79,7 +86,8 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
   const handleFileUpload = (selectedFile: File) => setUploadedFile(selectedFile)
 
   const renderStepContent = (): JSX.Element | null => {
-    const finishedMeta = meta || questionMeta
+    const finishedMeta = meta || questionMeta || ngbMeta
+    const finishedError = error || questionError || ngbError
     switch(stepCount) {
       case 1:
         return <UploadStep onFileUpload={handleFileUpload} uploadedFile={uploadedFile} />
@@ -93,7 +101,7 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
           />
         )
       case 3:
-        return <FinishStep meta={finishedMeta} error={error || questionError} />
+        return <FinishStep meta={finishedMeta} error={finishedError} />
       default:
         return null
     }

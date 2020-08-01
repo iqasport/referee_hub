@@ -57,8 +57,12 @@ module Services
         community: team_scope.community.count,
         youth: team_scope.youth.count,
         total: team_scope.count,
-        status_change: team_scope.joins(:team_status_changesets).group('teams.id').count,
+        status_change: total_changesets,
       }
+    end
+
+    def total_changesets
+      @total_changesets ||= team_scope.joins(:team_status_changesets).group('teams.id').count.values.reduce(:+) || 0
     end
 
     def referee_scope
@@ -66,7 +70,7 @@ module Services
     end
 
     def team_scope
-      @team_scope ||= national_governing_body.teams.where('teams.created_at < ?', end_time)
+      @team_scope ||= national_governing_body.teams.where('teams.joined_at < ?', end_time)
     end
   end
 end

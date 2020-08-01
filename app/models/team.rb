@@ -6,6 +6,7 @@
 #  city                       :string           not null
 #  country                    :string           not null
 #  group_affiliation          :integer          default("university")
+#  joined_at                  :datetime
 #  name                       :string           not null
 #  state                      :string
 #  status                     :integer          default("competitive")
@@ -27,8 +28,6 @@ class Team < ApplicationRecord
   require 'activerecord-import/active_record/adapters/postgresql_adapter'
 
   around_update :generate_changeset, if: :status_changed?
-
-  MAXIMUM_RETRIES = 6
 
   self.per_page = 25
 

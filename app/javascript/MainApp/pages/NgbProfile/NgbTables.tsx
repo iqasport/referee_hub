@@ -42,7 +42,7 @@ const NgbTables = (props: NgbTablesProps) => {
           Teams
         </button>
       </div>
-      {isRefereesActive && <NewRefereeTable ngbId={ngbId} />}
+      {isRefereesActive && <NewRefereeTable ngbId={ngbId} isHeightRestricted={true} />}
       {isTeamsActive && <TeamTable ngbId={ngbId.toString()} />}
     </div>
   )

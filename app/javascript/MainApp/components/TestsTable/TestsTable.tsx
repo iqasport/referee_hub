@@ -159,7 +159,6 @@ const TestsTable = () => {
 
   return (
     <>
-      <h2 className="text-navy-blue text-2xl font-semibold my-4">{`All Tests(${tests.length})`}</h2>
       <Table
         items={tests}
         isLoading={isLoading}

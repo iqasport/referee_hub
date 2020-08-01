@@ -11,6 +11,7 @@ import FilterToolbar from '../FilterToolbar'
 import Table, { CellConfig } from '../Table/Table'
 
 const HEADER_CELLS = ['name', 'highest certification', 'associated teams', 'secondary NGB']
+const ADMIN_HEADER_CELLS = ['name', 'highest certification', 'associated teams', 'associated NGBs']
 
 const findHighestCert = (referee: Referee) => {
   return referee?.certifications.find((cert) => {
@@ -26,47 +27,23 @@ const findHighestCert = (referee: Referee) => {
   })
 }
 
-const rowConfig: CellConfig<Referee>[] = [
-  {
-    cellRenderer: (item: Referee) => {
-      return `${item?.referee.firstName} ${item?.referee.lastName}`
-    },
-    dataKey: 'name',
-  },
-  {
-    cellRenderer: (item: Referee) => {
-      const highestCert = findHighestCert(item)
-      return highestCert ? capitalize(highestCert?.level) : 'Uncertified'
-    },
-    dataKey: 'certifications'
-  },
-  {
-    cellRenderer: (item: Referee) => {
-      return item?.teams.map((team) => team.name).join(', ')
-    },
-    dataKey: 'teams'
-  },
-  {
-    cellRenderer: (item: Referee) => {
-      const secondary = item?.locations.filter((location) => location.associationType === AssociationType.Secondary)
-      const secondaryName = secondary.length && item?.ngbs.find(ngb => ngb.id === secondary[0].nationalGoverningBodyId.toString())?.name
-      return secondaryName || 'N/A'
-    },
-    dataKey: 'locations'
-  }
-]
-
 type NewRefereeTableProps = {
-  ngbId: number;
+  ngbId?: number;
+  isHeightRestricted?: boolean;
 }
 
 const NewRefereeTable = (props: NewRefereeTableProps) => {
+  const { ngbId, isHeightRestricted } = props
   const history = useHistory()
   const dispatch = useDispatch()
   const { referees, isLoading, meta, filters } = useSelector((state: RootState) => state.referees, shallowEqual)
 
+  const headerCells = ngbId ? HEADER_CELLS : ADMIN_HEADER_CELLS
+
   useEffect(() => {
-    const filter: GetRefereesFilter = { nationalGoverningBodies: [props.ngbId] }
+    const filter: GetRefereesFilter = {}
+    if (props.ngbId) filter.nationalGoverningBodies = [props.ngbId]
+
     dispatch(updateFilters(filter))
     dispatch(getReferees(filter))
   }, [])
@@ -95,25 +72,66 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
     )
   }
 
+  const rowConfig: CellConfig<Referee>[] = [
+    {
+      cellRenderer: (item: Referee) => {
+        if (!item?.referee.firstName) return 'Anonymous Referee'
+        return `${item?.referee.firstName} ${item?.referee.lastName}`
+      },
+      dataKey: 'name',
+    },
+    {
+      cellRenderer: (item: Referee) => {
+        const highestCert = findHighestCert(item)
+        return highestCert ? capitalize(highestCert?.level) : 'Uncertified'
+      },
+      dataKey: 'certifications'
+    },
+    {
+      cellRenderer: (item: Referee) => {
+        return item?.teams.map((team) => team.name).join(', ')
+      },
+      dataKey: 'teams'
+    },
+  ]
+
+  if (ngbId) {
+    rowConfig.push({
+      cellRenderer: (item: Referee) => {
+        const secondary = item?.locations.filter((location) => location.associationType === AssociationType.Secondary)
+        const secondaryName = secondary.length && item?.ngbs.find((ngb) => {
+          return ngb.id === secondary[0].nationalGoverningBodyId.toString()
+        })?.name
+        return secondaryName || 'N/A'
+      },
+      dataKey: 'locations'
+    })
+  } else {
+    rowConfig.push({
+      cellRenderer: (item: Referee) => {
+        return item?.ngbs.map((location) => location.name).join(', ')
+      },
+      dataKey: 'locations'
+    })
+  }
+
   return (
     <div className="w-full">
-      {referees.length > 0 && (
-        <FilterToolbar
-          currentPage={parseInt(meta?.page, 10)}
-          onClearSearch={handleClearSearch}
-          total={meta?.total}
-          onSearchInput={handleSearch}
-          onPageSelect={handlePageSelect}
-        />
-      )}
+      <FilterToolbar
+        currentPage={parseInt(meta?.page, 10)}
+        onClearSearch={handleClearSearch}
+        total={meta?.total}
+        onSearchInput={handleSearch}
+        onPageSelect={handlePageSelect}
+      />
       <Table
         items={referees}
         isLoading={isLoading}
-        headerCells={HEADER_CELLS}
+        headerCells={headerCells}
         rowConfig={rowConfig}
         onRowClick={handleRowClick}
         emptyRenderer={renderEmpty}
-        isHeightRestricted={true}
+        isHeightRestricted={props.isHeightRestricted}
       />
     </div>
   )
