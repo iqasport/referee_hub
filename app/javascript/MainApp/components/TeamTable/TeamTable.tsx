@@ -38,7 +38,7 @@ const TeamTable = (props: TeamTableProps) => {
     }
     dispatch(updateFilters(filter))
     dispatch(getTeams(filter))
-  }, [])
+  }, [ngbId])
 
   const handleCloseModal = () => setOpenModal(null)
   const handleEditClick = (teamId: string) => {

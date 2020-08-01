@@ -150,7 +150,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
             </select>
             {hasError('region') && <span className="text-red-500">Region cannot be blank</span>}
           </label>
-          <label className="w-1/2 mr-4">
+          <label className="w-1/2">
             <span className="text-gray-700">Membership Status</span>
             <select
               disabled={!isIqaAdmin}
@@ -171,7 +171,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
           </label>
         </div>
         <div className="flex w-full my-8 justify-between">
-          <label className="w-1/3">
+          <label className="w-1/2 mr-4">
             <span className="text-gray-700">Acronym</span>
             <input
               className="form-input mt-1 block w-full"
@@ -181,7 +181,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
               value={newNgb.acronym}
             />
           </label>
-          <label className="w-1/3">
+          <label className="w-1/2">
             <span className="text-gray-700">Player Count</span>
             <input
               type="number"
