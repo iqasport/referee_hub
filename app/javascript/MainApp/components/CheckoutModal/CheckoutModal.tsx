@@ -106,7 +106,7 @@ const CheckoutModal = (props: CheckoutModalProps) => {
   return (
     <Modal open={props.open} showClose={true} size={ModalSize.Large} onClose={props.onClose}>
       <h1 className="font-bold text-xl text-navy-blue text-center">Head Ref Certifications</h1>
-      {!showLoader && products.map(renderProduct)}
+      {!showLoader && products?.map(renderProduct)}
       {hasPaidForCerts && (
         <h2
           className="text-center text-lg text-navy-blue my-8"
