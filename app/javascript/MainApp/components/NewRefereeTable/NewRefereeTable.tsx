@@ -13,18 +13,17 @@ import Table, { CellConfig } from '../Table/Table'
 const HEADER_CELLS = ['name', 'highest certification', 'associated teams', 'secondary NGB']
 const ADMIN_HEADER_CELLS = ['name', 'highest certification', 'associated teams', 'associated NGBs']
 
-const findHighestCert = (referee: Referee) => {
-  return referee?.certifications.find((cert) => {
-    if (cert.level === 'head') {
-      return true
-    } else if (cert.level === 'assistant') {
-      return true
-    } else if (cert.level === 'snitch') {
-      return true
-    }
-
-    return false
-  })
+const findHighestCert = (referee: Referee): string => {
+  const certLevels = referee?.certifications.map((cert) => cert.level)
+  if (certLevels.includes('head')) {
+    return 'Head'
+  } else if (certLevels.includes('snitch')) {
+    return 'Snitch'
+  } else if (certLevels.includes('assistant')) {
+    return 'Assistant'
+  } else {
+    return 'Uncertified'
+  }
 }
 
 type NewRefereeTableProps = {
@@ -82,8 +81,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
     },
     {
       cellRenderer: (item: Referee) => {
-        const highestCert = findHighestCert(item)
-        return highestCert ? capitalize(highestCert?.level) : 'Uncertified'
+        return findHighestCert(item)
       },
       dataKey: 'certifications'
     },
@@ -131,7 +129,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
         rowConfig={rowConfig}
         onRowClick={handleRowClick}
         emptyRenderer={renderEmpty}
-        isHeightRestricted={props.isHeightRestricted}
+        isHeightRestricted={isHeightRestricted}
       />
     </div>
   )

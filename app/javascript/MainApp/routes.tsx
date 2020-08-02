@@ -1,3 +1,4 @@
+import Bugsnag from '@bugsnag/js'
 import loadable from '@loadable/component'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
@@ -47,6 +48,8 @@ const App = () => {
   const tests = newDesignEnabled ? 'NewTests' : 'Tests';
   const test = newDesignEnabled ? 'NewTest' : 'Test';
   const admin = newDesignEnabled ? 'NewAdmin' : 'Admin';
+
+  if (currentUser) Bugsnag.setUser(id)
 
   return (
     <Router>

@@ -1,6 +1,6 @@
 /* eslint-disable */
-import bugsnag from '@bugsnag/js'
-import bugsnagReact from '@bugsnag/plugin-react'
+import Bugsnag from '@bugsnag/js'
+import BugsnagPluginReact from '@bugsnag/plugin-react'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
@@ -10,19 +10,28 @@ import store from './store';
 
 document.addEventListener('DOMContentLoaded', () => {
   const apiKey = process.env.RAILS_ENV !== 'production' ? 'iamAFak3apiKey' : process.env.BUGSNAG_API_KEY
-  const bugsnagClient = bugsnag({
+  Bugsnag.start({
     apiKey,
-    autoCaptureSessions: false,
+    autoDetectErrors: true,
+    autoTrackSessions: true,
+    enabledErrorTypes: {
+      unhandledExceptions: true,
+      unhandledRejections: true
+    },
+    plugins: [
+      new BugsnagPluginReact()
+    ]
   });
-  bugsnagClient.use(bugsnagReact, React);
-  const ErrorBoundary = bugsnagClient.getPlugin('react');
+
+  const ErrorBoundary = Bugsnag.getPlugin('react').createErrorBoundary(React)
   const domElement = document.getElementById('main-app')
-  if(!domElement) return
+  if (!domElement) return
+  Bugsnag.leaveBreadcrumb('Starting application...')
 
   ReactDOM.render(
     <Provider store={store}>
       <ErrorBoundary>
-          <Routes />
+        <Routes />
       </ErrorBoundary>
     </Provider>,
     domElement
