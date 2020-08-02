@@ -53,7 +53,7 @@ const TestResultCard = (props: CardProps) => {
             </tr>
           </tbody>
         </table>
-        <div className="flex items-center h-full justify-between">
+        <div className="flex items-center h-full justify-between w-1/2">
           <ResultChart minimum={minimumPassPercentage} actual={percentage} />
           <div className="clickable-icon-label" onClick={handleClick}>
             {expandText} 

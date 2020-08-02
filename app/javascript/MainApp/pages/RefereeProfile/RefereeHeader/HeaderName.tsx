@@ -15,7 +15,12 @@ const HeaderName = (props: HeaderNameProps) => {
   const hasName = props.name !== "Anonymous Referee";
   
   const renderNameInput = (nameType: string): JSX.Element => (
-    <input className="form-input" type="text" value={props.updatedValues[nameType] || ""} onChange={props.onChange(nameType)} />
+    <input
+      className="form-input mr-4"
+      type="text"
+      value={props.updatedValues[nameType] || ""}
+      onChange={props.onChange(nameType)}
+    />
   )
     
   const nameHeader = <h1 className="text-4xl">{props.name}</h1>;
