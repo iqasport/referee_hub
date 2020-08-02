@@ -32,7 +32,7 @@ const App = () => {
       dispatch(fetchCurrentUser())
     }
   }, [currentUser]);
-  
+
   useEffect(() => {
     if (error && !isViewingRefs) {
       window.location.href = `${window.location.origin}/sign_in`
@@ -99,17 +99,33 @@ const App = () => {
           path='/referees/:refereeId/tests/:testId'
           render={(props) => <AsyncPage {...props} page="StartTest" />}
         />
-        <Route
-          exact={true}
-          path='/national_governing_bodies/:id'
-          render={(props) => <AsyncPage {...props} page="NgbProfile" /> }
-        />
-        <Route exact={true} path='/import/:scope' render={(props) => <AsyncPage {...props} page="ImportWizard" />} />
-        <Route
-          exact={true}
-          path='/referees/:refereeId/tests'
-          render={(props) => <AsyncPage {...props} page="RefereeTests" />}
-        />
+        {
+          newDesignEnabled && (
+            <Route
+              exact={true}
+              path='/national_governing_bodies/:id'
+              render={(props) => <AsyncPage {...props} page="NgbProfile" /> }
+            />
+          )
+        }
+        {
+          newDesignEnabled && (
+            <Route
+              exact={true}
+              path='/import/:scope'
+              render={(props) => <AsyncPage {...props} page="ImportWizard" />}
+            />
+          )
+        }
+        {
+          newDesignEnabled && (
+            <Route
+              exact={true}
+              path='/referees/:refereeId/tests'
+              render={(props) => <AsyncPage {...props} page="RefereeTests" />}
+            />
+          )
+        }
       </div>
     </Router>
   )
