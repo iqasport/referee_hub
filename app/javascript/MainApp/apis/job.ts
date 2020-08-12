@@ -1,8 +1,20 @@
+import { DateTime } from "luxon"
 import { GetJobSchema } from "../schemas/getJobSchema"
 import { baseAxios } from "./utils"
 
 export interface JobResponse {
   jobId: string;
+}
+
+export type RefereeAnswer = {
+  question_id: string;
+  answer_id: string;
+}
+
+export interface FinishTestRequest {
+  startedAt: DateTime;
+  finishedAt: DateTime;
+  refereeAnswers: RefereeAnswer[]
 }
 
 export async function exportNgbTeams(ngbId: string) {
@@ -35,6 +47,20 @@ export async function exportNgbReferees(ngbId: string) {
 
     return {
       jobId: jobResponse.data.data.job_id,
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function finishTest(testId: string, request: FinishTestRequest): Promise<JobResponse> {
+  const url = `tests/${testId}/finish`
+
+  try {
+    const jobResponse = await baseAxios.post<GetJobSchema>(url, request)
+
+    return {
+      jobId: jobResponse.data.data.job_id
     }
   } catch (err) {
     throw err

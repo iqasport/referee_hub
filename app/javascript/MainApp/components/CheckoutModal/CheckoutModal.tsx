@@ -21,7 +21,7 @@ interface CheckoutModalProps {
 const CheckoutModal = (props: CheckoutModalProps) => {
   const [isRedirect, setIsRedirect] = useState(false)
   const dispatch = useDispatch()
-  const { products } = useSelector((state: RootState) => state.products, shallowEqual)
+  const { products, error: productsError } = useSelector((state: RootState) => state.products, shallowEqual)
   const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual)
   const { sessionId, isLoading } = useSelector((state: RootState) => state.checkout, shallowEqual)
   const { certificationPayments, currentUser } = useSelector((state: RootState) => state.currentUser, shallowEqual)
@@ -30,7 +30,7 @@ const CheckoutModal = (props: CheckoutModalProps) => {
   const hasPaidForCerts = certificationPayments.length === products.length
 
   useEffect(() => {
-    if (!products?.length) {
+    if (!products?.length && !productsError) {
       dispatch(getProducts())
     }
   }, [products])
@@ -115,6 +115,7 @@ const CheckoutModal = (props: CheckoutModalProps) => {
         </h2>
       )}
       {showLoader && <Loader />}
+      {productsError && <h2 className="text-center text-lg text-navy-blue my-8">{productsError}</h2>}
     </Modal>
   )
 }

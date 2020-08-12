@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { getQuestions as getQuestionsApi, QuestionsResponse } from 'MainApp/apis/question'
 import { HeadersMap } from 'MainApp/pages/ImportWizard/MapStep'
 import { GetQuestionsSchemaDatum, Included, Meta } from 'MainApp/schemas/getQuestionsSchema'
-import { importTests as importTestsApi } from '../../apis/test'
+import { importTests as importTestsApi, startTest as startTestApi } from '../../apis/test'
 import { AppThunk } from '../../store'
 
 export interface QuestionsState {
@@ -50,6 +50,11 @@ const questions = createSlice({
       state.isLoading = true
     },
     importTestQuestionsSuccess: questionsSuccess,
+    startTestFailure: questionsFailure,
+    startTestStart(state: QuestionsState) {
+      state.isLoading = true
+    },
+    startTestSuccess: questionsSuccess,
   }
 })
 
@@ -59,7 +64,10 @@ export const {
   getQuestionsSuccess,
   importTestQuestionsFailure,
   importTestQuestionsStart,
-  importTestQuestionsSuccess
+  importTestQuestionsSuccess,
+  startTestFailure,
+  startTestStart,
+  startTestSuccess
 } = questions.actions
 
 export const importTestQuestions = (file: File, mappedData: HeadersMap, testId: string): AppThunk => async dispatch => {
@@ -79,6 +87,16 @@ export const getQuestions = (testId: string): AppThunk => async dispatch => {
     dispatch(getQuestionsSuccess(questionsResponse))
   } catch (err) {
     dispatch(getQuestionsFailure(err.toString()))
+  }
+}
+
+export const startTest = (testId: string): AppThunk => async dispatch => {
+  try {
+    dispatch(startTestStart())
+    const questionsResponse = await startTestApi(testId)
+    dispatch(startTestSuccess(questionsResponse))
+  } catch (err) {
+    dispatch(startTestFailure(err.toString()))
   }
 }
 
