@@ -291,7 +291,6 @@ class StartTest extends Component {
     const { status, statusText, testStarted } = this.state
     const isError = status >= 400
 
-    console.log(this.state.testQuestions)
     return (
       <Segment
         textAlign="center"

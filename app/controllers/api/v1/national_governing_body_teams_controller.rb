@@ -133,6 +133,7 @@ module Api
           :country,
           :state,
           :national_governing_body_id,
+          :joined_at,
           urls: []
         )
       end

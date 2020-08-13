@@ -28,6 +28,7 @@ export interface DataAttributes {
     name:             string;
     state:            string;
     status:           Status;
+    joinedAt:         string;
 }
 
 export interface Relationships {
