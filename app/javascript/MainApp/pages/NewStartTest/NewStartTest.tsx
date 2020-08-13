@@ -62,6 +62,7 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [startedAt, setStartedAt] = useState<DateTime>(null)
   const [finishedAt, setFinishedAt] = useState<DateTime>(null)
+  const [currentQuestion, setCurrentQuestion] = useState<FormattedQuestion>()
   const history = useHistory()
   const dispatch = useDispatch()
   const { test, error: testError } = useSelector((state: RootState) => state.test, shallowEqual)
@@ -75,8 +76,10 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
 
   useEffect(() => {
     if (questions.length && answers.length) {
-      setTestQuestions(formatQuestions(questions, answers))
+      const formattedQuestions = formatQuestions(questions, answers)
+      setTestQuestions(formattedQuestions)
       setStartedAt(DateTime.local())
+      setCurrentQuestion(formattedQuestions[0])
     }
   }, [questions, answers])
 
@@ -87,9 +90,17 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
 
   const handleStartTest = () => dispatch(startTest(testId))
 
-  const handleNext = () => setCurrentQuestionIndex(currentQuestionIndex + 1)
+  const handleNext = () => {
+    const newIndex = currentQuestionIndex + 1
+    setCurrentQuestionIndex(newIndex)
+    setCurrentQuestion(testQuestions[newIndex])
+  }
 
-  const handlePrev = () => setCurrentQuestionIndex(currentQuestionIndex - 1)
+  const handlePrev = () => {
+    const newIndex = currentQuestionIndex - 1
+    setCurrentQuestionIndex(newIndex)
+    setCurrentQuestion(testQuestions[newIndex])
+  }
 
   const handleFinish = () => {
     const finishedTime = DateTime.local()
@@ -125,16 +136,18 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
   const handleAnswerSelect = (answerId: string) => {
     const updatedQuestion = { ...testQuestions[currentQuestionIndex], selectedAnswer: answerId }
     testQuestions.splice(currentQuestionIndex, 1, updatedQuestion)
+    setTestQuestions(testQuestions)
+    setCurrentQuestion(updatedQuestion)
   }
 
   const renderButtons = () => {
     const nextContent = isLastQuestion ? 'Finish' : 'Next'
-    const isNextDisabled = !testQuestions[currentQuestionIndex]?.selectedAnswer
+    const isNextDisabled = !currentQuestion?.selectedAnswer
     const nextAction = isLastQuestion ? TestAction.Finish : TestAction.Next
 
     return (
-      <div className="flex w-1/2 justify-between mx-auto">
-        {!startedAt && <button className="button-tab" onClick={handleGoBack}>Go Back To Profile</button>}
+      <div className="flex w-1/2 justify-center mx-auto mt-12">
+        {!startedAt && <button className="button-tab uppercase" onClick={handleGoBack}>Go Back To Profile</button>}
         {(!startedAt && !finishedAt) && (
           <button
             className="green-button-outline"
@@ -144,10 +157,16 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
           </button>
         )}
         {(startedAt && !isFirstQuestion) && (
-          <button className="button-tab" onClick={handleTestAction(TestAction.Prev)}>Previous</button>
+          <button className="button-tab uppercase" onClick={handleTestAction(TestAction.Prev)}>Previous</button>
         )}
         {startedAt && (
-          <button className="" disabled={isNextDisabled} onClick={handleTestAction(nextAction)}>{nextContent}</button>
+          <button
+            className="green-button-outline"
+            disabled={isNextDisabled}
+            onClick={handleTestAction(nextAction)}
+          >
+            {nextContent}
+          </button>
         )}
       </div>
     )
@@ -157,7 +176,7 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
     return (
       <NewTestTaker
         timeLimit={test?.attributes.timeLimit}
-        currentQuestion={testQuestions[currentQuestionIndex]}
+        currentQuestion={currentQuestion}
         onAnswerSelect={handleAnswerSelect}
         totalQuestionCount={testQuestions.length}
         currentIndex={currentQuestionIndex + 1}
@@ -173,12 +192,12 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
         <h1 className="text-3xl font-bold my-4">{test?.attributes.name}</h1>
         <span className="italic text-gray-600">{test?.attributes.description}</span>
       </div>
-      <div className="w-full h-px border border-navy-blue" />
+      <div className="w-full h-px border-navy-blue border-t" />
       <h4 className="font-bold my-4">We have received your answers for this test.</h4>
       <h4 className="font-bold my-4">Results will be emailed to you through the email you registered your account with.</h4>
       <h4 className="font-bold my-4">
         If you do not see the results for this test attempt after an hour please reach out to
-        <a href="mailto:tech@iqasport.org"> tech@iqasport.org</a>
+        <a className="text-blue-darker hover:text-blue" href="mailto:tech@iqasport.org"> tech@iqasport.org</a>
       </h4>
     </div>
   )
@@ -190,13 +209,13 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
         <h1 className="text-3xl font-bold my-4">{test?.attributes.name}</h1>
         <span className="italic text-gray-600">{test?.attributes.description}</span>
       </div>
-      <div className="w-full h-px border border-navy-blue" />
+      <div className="w-full h-px border-t border-navy-blue" />
       <h4 className="font-bold my-4">{`You will have ${test?.attributes.timeLimit} minutes to complete this test.`}</h4>
       <h4 className="font-bold my-4">Once you begin you may not exit the test.</h4>
       <h4 className="font-bold my-4">If you go over the time limit you will not pass the test.</h4>
       <h4 className="font-bold my-4">
         If you need more time to complete this test due to documented test taking challenges please contact
-        <a href="mailto:referees@iqasport.org"> referees@iqasport.org</a>
+        <a className="text-blue-darker hover:text-blue" href="mailto:referees@iqasport.org"> referees@iqasport.org</a>
       </h4>
     </div>
   )

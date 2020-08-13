@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { FormattedQuestion } from 'MainApp/pages/NewStartTest/NewStartTest'
 import { Included } from 'MainApp/schemas/getQuestionsSchema'
@@ -17,25 +17,36 @@ interface TestTakerProps {
 }
 
 const NewTestTaker = (props: TestTakerProps) => {
-  const { currentQuestion, onAnswerSelect, timeLimit, totalQuestionCount, currentIndex, onTimeLimitMet } = props
-  if (!currentQuestion) return null
+  const {
+    currentQuestion, onAnswerSelect, timeLimit, totalQuestionCount, currentIndex, onTimeLimitMet
+  } = props
 
-  const handleAnswerChange = (answerId) => onAnswerSelect(answerId)
+  const [selectedAnswer, setSelectedAnswer] = useState<string>()
+
+  useEffect(() => {
+    if (currentQuestion.selectedAnswer !== selectedAnswer) {
+      setSelectedAnswer(currentQuestion.selectedAnswer)
+    }
+  }, [currentQuestion])
+
+  const handleAnswerChange = (answerId: string) => () => onAnswerSelect(answerId)
 
   const renderAnswer = (answer: Included) => {
-    const isSelected = currentQuestion.selectedAnswer === answer.id
+    const isSelected = selectedAnswer === answer.id
 
     return (
-      <Answer
-        key={answer.id}
-        isCorrect={isSelected}
-        onCorrectChange={handleAnswerChange}
-        isEditable={false}
-        values={{
-          description: answer.attributes.description,
-          id: answer.id,
-        }}
-      />
+      <div className="flex my-4 items-center" key={answer.id}>
+        <input
+          type="checkbox"
+          className="form-checkbox mx-4"
+          onChange={handleAnswerChange(answer.id)}
+          checked={isSelected}
+        />
+        <div
+          className="text-left"
+          dangerouslySetInnerHTML={{ __html: answer.attributes.description }}
+        />
+      </div>
     )
   }
 
@@ -43,8 +54,8 @@ const NewTestTaker = (props: TestTakerProps) => {
     <div>
       <ProgressBar currentIndex={currentIndex} total={totalQuestionCount} />
       <Counter timeLimit={timeLimit} onTimeLimitMet={onTimeLimitMet} />
-      <div dangerouslySetInnerHTML={{ __html: currentQuestion.description }} />
-      <div className="w-full h-px border border-navy-blue" />
+      <div className="my-8" dangerouslySetInnerHTML={{ __html: currentQuestion.description }} />
+      <div className="w-full h-px border-t border-navy-blue my-8" />
       <div className="w-1/2 my-0 mx-auto">
         {currentQuestion.answers.map(renderAnswer)}
       </div>

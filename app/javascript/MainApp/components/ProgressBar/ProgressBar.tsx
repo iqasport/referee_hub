@@ -11,9 +11,9 @@ const ProgressBar = (props: ProgressBarProps) => {
   const percentage = (currentIndex / total) * 100
 
   return (
-    <div className="shadow w-full bg-grey-light rounded-lg">
+    <div className="shadow w-full bg-gray-200 rounded-lg my-8">
       <div
-        className="bg-green text-xs leading-none py-1 text-center text-white"
+        className="bg-green text-xs leading-none py-1 text-center text-white rounded-lg"
         style={{ width: `${percentage}%`}}
       >
         {`${currentIndex}/${total}`}
