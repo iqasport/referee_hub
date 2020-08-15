@@ -78,8 +78,11 @@ const Sidebar = (props: SidebarProps) => {
   }
 
   return (
-    <div className="flex flex-col w-1/4 border-r-2 border-gray-700 pr-8">
-      <div className="px-24">
+    <div
+      className=
+      "flex flex-row flex-wrap mb-4 md:m-0 md:flex-col w-full md:w-1/4 md:border-r-2 md:border-gray-700 md:pr-8"
+    >
+      <div className="flex justify-center">
         <UploadedImage
           imageAlt="national governing body logo"
           imageUrl={ngb.logoUrl}

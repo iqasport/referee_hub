@@ -80,7 +80,7 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
           onTeamClick={handleOpenModal(ModalType.Team)}
         />
       </div>
-      <div className="flex w-full flex-row">
+      <div className="flex w-full flex-col md:flex-row">
         <Sidebar 
           ngb={ngb} 
           socialAccounts={socialAccounts} 
@@ -89,7 +89,7 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
           isEditing={false} 
           ngbId={id} 
         />
-        <div className="flex flex-col w-4/5 pl-8">
+        <div className="flex flex-col w-full md:w-4/5 md:pl-8">
           <StatsViewer stats={stats} />
           <NgbTables ngbId={parseInt(id, 10)} />
         </div>

@@ -45,13 +45,17 @@ const TeamStatusStats = (props: TeamStatusProps) => {
     { name: "Inactive", dataKey: "inactiveTeamsCount", stroke: "#FFE6B8" },
   ]
 
+  const timeText = showFull ? '12 months' : 'month'
+
   return (
-    <div className={classnames({ ["w-full"]: showFull, ["w-1/3"]: !showFull })}>
-      <h3 className="text-yellow-darker text-xl font-bold mb-4">Team Status</h3>
+    <div className={classnames({ ["w-full"]: showFull, ["w-full lg:w-1/3"]: !showFull })}>
+      <h3 className="text-yellow-darker text-md lg:text-lg font-bold mb-4">{`Team Status (last ${timeText})`}</h3>
       <div className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer" onClick={onClick}>
-        <div className="w-full h-64 flex-1">
-          <StatBarChart maxData={total} barConfig={barConfig} chartData={chartData} />
-        </div>
+        {!showFull && (
+          <div className="w-full h-64 flex-1">
+            <StatBarChart maxData={total} barConfig={barConfig} chartData={chartData} />
+          </div>
+        )}
         {showFull && <HistoricChart chartData={historicChartData} maxData={total} lineConfig={lineConfig} />}
       </div>
     </div>
