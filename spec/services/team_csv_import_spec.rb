@@ -72,11 +72,15 @@ describe Services::TeamCsvImport do
     end
   end
 
-  context 'when the team information is invalid' do
-    let(:row1) { 'DCQC,Washington,USA,DC,nothing,nonsense,www.usquidditch.com/dcqc' }
+  context 'when the team information is unknown' do
+    let(:row1) { 'DCQC,Washington,USA,DC,nothing,nonsense,01-01-2018,www.usquidditch.com/dcqc' }
+    let(:team) { ngb.teams.find_by(name: 'DCQC') }
 
-    it 'does not create that team' do
-      expect { subject }.to change { ngb.teams.count }.by 2
+    it 'creates the team with default enums' do
+      subject
+
+      expect(team.status).to eq 'other'
+      expect(team.group_affiliation).to eq 'not_applicable'
     end
   end
 end
