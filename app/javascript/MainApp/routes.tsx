@@ -48,6 +48,7 @@ const App = () => {
   const tests = newDesignEnabled ? 'NewTests' : 'Tests';
   const test = newDesignEnabled ? 'NewTest' : 'Test';
   const admin = newDesignEnabled ? 'NewAdmin' : 'Admin';
+  const startTest = newDesignEnabled ? 'NewStartTest' : 'StartTest';
 
   if (currentUser) Bugsnag.setUser(id)
 
@@ -94,11 +95,15 @@ const App = () => {
         {currentUser && (
           <Route exact={true} path='/admin/tests/:id' render={(props) => <AsyncPage {...props} page={test} />} />
         )}
-        <Route
-          exact={true}
-          path='/referees/:refereeId/tests/:testId'
-          render={(props) => <AsyncPage {...props} page="StartTest" />}
-        />
+        {
+          currentUser && (
+            <Route
+              exact={true}
+              path='/referees/:refereeId/tests/:testId'
+              render={(props) => <AsyncPage {...props} page={startTest} />}
+            />
+          )
+        }
         {
           newDesignEnabled && (
             <Route

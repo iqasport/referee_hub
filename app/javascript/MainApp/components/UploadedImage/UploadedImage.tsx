@@ -41,7 +41,7 @@ const UploadedImage = (props: UploadedImageProps) => {
 
   return (
     <>
-      <div className="w-40 h-40 bg-gray-400 mr-10 block relative border-gray-600 border">
+      <div className="w-40 h-40 bg-gray-400 block relative border-gray-600 border">
         {renderAvatar()}
         {isEditable &&
           <div

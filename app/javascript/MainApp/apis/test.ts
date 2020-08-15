@@ -143,3 +143,19 @@ export async function getRefereeTests(refId: string): Promise<TestsResponse> {
     throw err
   }
 }
+
+export async function startTest(testId: string): Promise<QuestionsResponse> {
+  const url = `tests/${testId}/start`
+
+  try {
+    const questionsResponse = await baseAxios.get<GetQuestionsSchema>(url)
+
+    return {
+      answers: questionsResponse.data.included,
+      meta: questionsResponse.data.meta,
+      questions: questionsResponse.data.data,
+    }
+  } catch (err) {
+    throw err
+  }
+}

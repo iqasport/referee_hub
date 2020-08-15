@@ -1,11 +1,13 @@
 import classnames from 'classnames'
 import { capitalize } from 'lodash';
+import { DateTime } from 'luxon';
 import React, { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { UpdateTeamRequest } from '../../apis/team';
-import { createTeam, getTeam, updateTeam } from '../../modules/team/team';
-import { RootState } from '../../rootReducer';
+import { UpdateTeamRequest } from 'MainApp/apis/team';
+import { createTeam, getTeam, updateTeam } from 'MainApp/modules/team/team';
+import { RootState } from 'MainApp/rootReducer';
+import { toDateTime } from 'MainApp/utils/dateUtils';
 
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
 import MultiInput from '../MultiInput';
@@ -13,10 +15,12 @@ import MultiInput from '../MultiInput';
 const STATUS_OPTIONS = ['competitive', 'developing', 'inactive']
 const TYPE_OPTIONS = ['community', 'university', 'youth']
 const REQUIRED_FIELDS = ['name', 'city', 'country', 'groupAffiliation', 'status']
+const DATE_FORMAT = 'yyyy-LL-dd'
 const initialNewTeam: UpdateTeamRequest = {
   city: '',
   country: '',
   groupAffiliation: null,
+  joinedAt: '',
   name: '',
   nationalGoverningBodyId: '',
   state: '',
@@ -50,6 +54,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
 
   const formType = teamId ? 'Edit' : 'New'
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey)
+  const currentDay = DateTime.local().toFormat(DATE_FORMAT)
 
   useEffect(() => {
     if (teamId) {
@@ -87,7 +92,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = event.target
+    let { value } = event.target
+    const { name } = event.target
+
+    if (name === 'joinedAt') {
+      value = DateTime.fromFormat(value, DATE_FORMAT).toSQL().toString()
+    }
 
     setHasChangedTeam(true)
     handleDataChange(name, value)
@@ -156,7 +166,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           </label>
         </div>
         <div className="flex w-full">
-          <label className="w-1/2 mr-4">
+          <label className="w-1/3 mr-4">
             <span className="text-gray-700">Type</span>
             <select 
               className={
@@ -175,7 +185,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
             </select>
             {hasError('groupAffiliation') && <span className="text-red-500">Type cannot be blank</span>}
           </label>
-          <label className="w-1/2">
+          <label className="w-1/3 mr-4">
             <span className="text-gray-700">Status</span>
             <select
               className={classnames("form-select mt-1 block w-full", { 'border border-red-500': hasError('status') })}
@@ -189,6 +199,19 @@ const TeamEditModal = (props: TeamEditModalProps) => {
             </select>
             {hasError('status') && <span className="text-red-500">Status cannot be blank</span>}
           </label>
+          <label className="w-1/3">
+            <span className="text-gray-700">Joined Date</span>
+            <input
+              type="date"
+              min="2007-01-01"
+              max={currentDay}
+              className="form-input mt-1 block w-full"
+              placeholder="YYYY-MM-DD"
+              name="joinedAt"
+              onChange={handleInputChange}
+              value={toDateTime(newTeam.joinedAt).toFormat(DATE_FORMAT)}
+            />
+          </label>
         </div>
         <div className="w-full my-8">
           <label>
@@ -199,7 +222,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         <div className="w-full text-center">
           <button
             type="button"
-            className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {'opacity-50 cursor-default': !hasChangedTeam})} 
+            className={
+              classnames(
+                "uppercase text-xl py-4 px-8 rounded-lg bg-green text-white",
+                { 'opacity-50 cursor-default': !hasChangedTeam }
+              )
+            }
             onClick={handleSubmit}
             disabled={!hasChangedTeam}
           >

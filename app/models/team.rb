@@ -34,13 +34,15 @@ class Team < ApplicationRecord
   enum status: {
     competitive: 0,
     developing: 1,
-    inactive: 2
+    inactive: 2,
+    other: 3
   }
 
   enum group_affiliation: {
     university: 0,
     community: 1,
-    youth: 2
+    youth: 2,
+    not_applicable: 3
   }
 
   belongs_to :national_governing_body
