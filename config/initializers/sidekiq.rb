@@ -1,7 +1,7 @@
 require 'sidekiq'
 require 'sidekiq-status'
 
-redis_url = ENV['REDIS_PROVIDER'] || ENV['REDISTOGO_URL'] || 'redis://127.0.0.1:6379/1'
+redis_url = ENV['OPENREDIS_URL'] || ENV['REDIS_PROVIDER'] || ENV['REDISTOGO_URL'] || 'redis://127.0.0.1:6379/1'
 
 Sidekiq.configure_client do |config|
   config.redis = { url: redis_url }
