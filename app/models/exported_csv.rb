@@ -41,14 +41,15 @@ class ExportedCsv < ApplicationRecord
     current_time = Time.now.utc
     iso_time = format('%10.5f', current_time.to_f).to_i
     type_folder = ExportedCsv.format_type(type).parameterize(separator: '_')
-    key = "exports/#{type_folder}/#{iso_time}.csv"
+    key = "#{type_folder}/#{iso_time}.csv"
 
     url = Services::S3::Uploader.new(
       key: key,
       data: csv_data,
       content_type: 'text/csv',
       extension: 'csv',
-      public_access: false
+      public_access: false,
+      bucket_name: "#{user.id}-exports"
     ).perform
 
     self.url = url

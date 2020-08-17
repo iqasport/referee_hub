@@ -7,15 +7,16 @@ module Services
 
       DEFAULT_ENCRYPTION = 'AES256'.freeze
 
-      attr_accessor :data, :content_type, :extension, :public_access, :encryption, :key
+      attr_accessor :data, :content_type, :extension, :public_access, :encryption, :key, :bucket_name
 
-      def initialize(data:, content_type:, extension:, public_access:, key:)
+      def initialize(data:, content_type:, extension:, public_access:, key:, bucket_name:)
         @data = data
         @content_type = content_type
         @extension = extension
         @public = public_access
         @encryption = DEFAULT_ENCRYPTION
         @key = key
+        @bucket_name = bucket_name
       end
 
       def perform
@@ -43,7 +44,6 @@ module Services
           provider: 'AWS',
           aws_access_key_id: aws_access_key_id,
           aws_secret_access_key: aws_secret_access_key,
-          region: 'eu-central-1'
         )
       end
 
@@ -68,12 +68,6 @@ module Services
         return 'nonsense' if Rails.env.test? || Rails.env.development?
 
         ENV['AWS_SECRET_ACCESS_KEY']
-      end
-
-      def bucket_name
-        return 'nonsense' if Rails.env.test? || Rails.env.development?
-
-        ENV['AWS_BUCKET']
       end
     end
   end
