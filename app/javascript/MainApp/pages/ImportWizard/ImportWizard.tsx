@@ -108,7 +108,7 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
   }
 
   return (
-    <div className="w-full px-10 py-4 flex flex-col h-screen items-center">
+    <div className="w-full px-10 py-4 flex flex-col items-center">
       <div className="justify-start w-full">
         <button className="py-4 px-8 flex items-center text-xl" onClick={handleHomeClick}>
           <FontAwesomeIcon icon={faCaretLeft} className="mr-2" />
@@ -128,9 +128,15 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
       </div>
       <div className="rounded border border-gray-400 w-3/4">
         {renderStepContent()}
-      </div>
-      <div className="justify-end w-full flex mt-8">
-        <button className="green-button-outline" onClick={handleButtonClick} disabled={isDisabled}>{buttonText}</button>
+        <div className="justify-center mb-8 w-full flex">
+          <button
+            className="green-button-outline"
+            onClick={handleButtonClick}
+            disabled={isDisabled}
+          >
+            {buttonText}
+          </button>
+        </div>
       </div>
     </div>
   )

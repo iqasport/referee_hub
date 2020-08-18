@@ -227,7 +227,7 @@
     @apply border-gray-400;
     @apply absolute;
     top: 36px;
-    left: 145px;
+    left: 150px;
     width: 70%;
     z-index: -1;
 }
@@ -239,6 +239,14 @@
     @apply text-gray-400;
     @apply mx-12;
     width: 33.33%
+}
+
+.step-active {
+    color: #2F3F57 !important;
+}
+
+.circle-active {
+    border-color: #2F3F57 !important;
 }
 
 .step-number {
