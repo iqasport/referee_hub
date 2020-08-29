@@ -7,14 +7,12 @@ module Services
 
       DEFAULT_ENCRYPTION = 'AES256'.freeze
 
-      attr_accessor :data, :content_type, :extension, :public_access, :encryption, :key, :bucket_name
+      attr_accessor :data, :content_type, :extension, :key, :bucket_name
 
-      def initialize(data:, content_type:, extension:, public_access:, key:, bucket_name:)
+      def initialize(data:, content_type:, extension:, key:, bucket_name:)
         @data = data
         @content_type = content_type
         @extension = extension
-        @public = public_access
-        @encryption = DEFAULT_ENCRYPTION
         @key = key
         @bucket_name = bucket_name
       end
@@ -28,8 +26,8 @@ module Services
           key: key,
           body: data,
           content_type: content_type,
-          encryption: encryption,
-          public: public_access
+          encryption: DEFAULT_ENCRYPTION,
+          public: true
         )
 
         "https://#{bucket_name}.s3.amazonaws.com/#{key}"

@@ -17,7 +17,6 @@ describe Services::S3::Uploader do
       data: data,
       content_type: 'text/csv',
       extension: extension,
-      public_access: false,
       key: key,
       bucket_name: bucket_name,
     ).perform

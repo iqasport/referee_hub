@@ -73,6 +73,7 @@ Rails.application.routes.draw do
           get :start
           post :finish
           post :import
+          get :export
         end
       end
       resources :certifications, only: :index

@@ -8,10 +8,11 @@ interface ActionsButtonProps {
   onEditClick: () => void;
   onImportClick: () => void;
   onDeleteClick: () => void;
+  onExportClick: () => void;
 }
 
 const ActionsButton = (props: ActionsButtonProps) => {
-  const { onEditClick, onImportClick, onDeleteClick } = props;
+  const { onEditClick, onImportClick, onDeleteClick, onExportClick } = props;
 
   const renderTrigger = (onClick: () => void) => {
     return (
@@ -26,6 +27,10 @@ const ActionsButton = (props: ActionsButtonProps) => {
     {
       content: 'Import Questions',
       onClick: onImportClick,
+    },
+    {
+      content: 'Export Questions',
+      onClick: onExportClick,
     },
     {
       content: 'Edit',

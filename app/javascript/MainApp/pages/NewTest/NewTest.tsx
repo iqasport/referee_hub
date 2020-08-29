@@ -10,12 +10,14 @@ import QuestionsManager from 'MainApp/components/QuestionsManager'
 import TestEditModal from 'MainApp/components/TestEditModal'
 import Toggle from 'MainApp/components/Toggle'
 import WarningModal from 'MainApp/components/WarningModal'
+import { exportTest } from 'MainApp/modules/job/job'
 import { deleteTest, getTest, updateTest } from 'MainApp/modules/test/test'
 import { RootState } from 'MainApp/rootReducer'
 import { IdParams } from '../RefereeProfile/types'
 
 import ActionsButton from './ActionsButton'
 import Details from './Details'
+import ExportTestModal from './ExportTestModal'
 
 enum SelectedTab {
   Details = 'details',
@@ -24,7 +26,8 @@ enum SelectedTab {
 
 enum ActiveModal {
   Edit = 'edit',
-  Delete = 'delete'
+  Delete = 'delete',
+  Export = 'export',
 }
 
 const NewTest = (props: RouteComponentProps<IdParams>) => {
@@ -60,6 +63,10 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
     dispatch(deleteTest(id))
     handleBackClick()
   }
+  const handleExport = () => {
+    handleModalClose()
+    dispatch(exportTest(test.id))
+  }
 
   const renderContent = () => {
     switch(selectedTab) {
@@ -94,6 +101,15 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
             onConfirm={handleDelete}
           />
         )
+      case ActiveModal.Export:
+        return (
+          <ExportTestModal
+            open={true}
+            testName={test.attributes.name}
+            onClose={handleModalClose}
+            onExport={handleExport}
+          />
+        )
     }
   }
 
@@ -113,6 +129,7 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
             onImportClick={handleImportClick}
             onEditClick={handleModalClick(ActiveModal.Edit)}
             onDeleteClick={handleModalClick(ActiveModal.Delete)}
+            onExportClick={handleModalClick(ActiveModal.Export)}
           />
         </div>
         <div className="w-5/6 h-screen my-8 mx-auto">

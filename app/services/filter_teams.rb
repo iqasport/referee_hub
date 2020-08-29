@@ -3,10 +3,11 @@ module Services
     attr_accessor :search_query, :national_governing_bodies, :status, :group_affiliation, :relation, :query_hash
 
     def initialize(params = {})
-      @search_query = params.delete(:q)
-      @national_governing_bodies = params.delete(:national_governing_bodies)
-      @status = params.delete(:status)
-      @group_affiliation = params.delete(:group_affiliation)
+      sanitized_params = params.to_h.with_indifferent_access
+      @search_query = sanitized_params.delete(:q)
+      @national_governing_bodies = sanitized_params.delete(:national_governing_bodies)
+      @status = sanitized_params.delete(:status)
+      @group_affiliation = sanitized_params.delete(:group_affiliation)
       @relation = Team.all
       @query_hash = {
         search: search_query,

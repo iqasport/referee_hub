@@ -352,4 +352,23 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
     it_behaves_like 'it fails when a referee is not an admin'
   end
+
+  describe 'GET #export' do
+    let!(:user) { create :user, :iqa_admin }
+    let!(:test) { create :test, certification_id: snitch.id }
+
+    before do
+      sign_in user
+    end
+
+    subject { get :export, params: { id: test.id } }
+
+    it 'should enqueue an export csv job' do
+      subject
+
+      response_data = JSON.parse(response.body)['data']
+
+      expect(response_data['job_id']).to_not be_nil
+    end
+  end
 end

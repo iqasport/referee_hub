@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import {
   exportNgbReferees as exportNgbRefereesApi,
   exportNgbTeams as exportNgbTeamsApi,
+  exportTest as exportTestApi,
   finishTest as finishTestApi,
   FinishTestRequest,
   JobResponse,
@@ -37,6 +38,8 @@ const job = createSlice({
     exportNgbRefereesSuccess: jobSuccess,
     exportNgbTeamsFailure: jobFailure,
     exportNgbTeamsSuccess: jobSuccess,
+    exportTestFailure: jobFailure,
+    exportTestSuccess: jobSuccess,
     finishTestFailure: jobFailure,
     finishTestSuccess: jobSuccess,
   }
@@ -47,6 +50,8 @@ export const {
   exportNgbTeamsSuccess,
   exportNgbRefereesFailure,
   exportNgbRefereesSuccess,
+  exportTestFailure,
+  exportTestSuccess,
   finishTestFailure,
   finishTestSuccess
 } = job.actions
@@ -75,6 +80,15 @@ export const finishTest = (testId: string, request: FinishTestRequest): AppThunk
     dispatch(finishTestSuccess(jobResponse))
   } catch (err) {
     dispatch(finishTestFailure(err.toString()))
+  }
+}
+
+export const exportTest = (testId: string): AppThunk => async dispatch => {
+  try {
+    const jobResponse = await exportTestApi(testId)
+    dispatch(exportTestSuccess(jobResponse))
+  } catch (err) {
+    dispatch(exportTestFailure(err.toString()))
   }
 }
 
