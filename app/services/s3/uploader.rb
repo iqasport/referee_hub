@@ -39,7 +39,7 @@ module Services
 
       def storage
         Fog.mock! if Rails.env.test? || Rails.env.development?
-        
+
         @storage ||= Fog::Storage.new(
           provider: 'AWS',
           aws_access_key_id: aws_access_key_id,
@@ -48,14 +48,10 @@ module Services
       end
 
       def bucket
-        @bucket ||= begin
-          if storage.directories.blank?
-            # ensure the bucket is available to upload the file into
-            storage.put_bucket(bucket_name)
-          end
+        fetched_bucket = storage.directories.get(bucket_name)
+        return fetched_bucket unless fetched_bucket.blank?
 
-          storage.directories.get(bucket_name)
-        end
+        storage.directories.create(key: bucket_name, public: true)
       end
 
       def aws_access_key_id
