@@ -66,3 +66,17 @@ export async function finishTest(testId: string, request: FinishTestRequest): Pr
     throw err
   }
 }
+
+export async function exportTest(testId: string): Promise<JobResponse> {
+  const url = `tests/${testId}/export`
+
+  try {
+    const jobResponse = await baseAxios.get<GetJobSchema>(url)
+
+    return {
+      jobId: jobResponse.data.data.job_id
+    }
+  } catch (err) {
+    throw err
+  }
+}

@@ -2,7 +2,7 @@ module Api
   module V1
     class TestsController < ApplicationController
       before_action :authenticate_user!
-      before_action :verify_admin, only: %i[create update destroy import]
+      before_action :verify_admin, only: %i[create update destroy import export]
       before_action :find_test, only: %i[update show destroy start finish import]
       before_action :verify_valid_cool_down, only: :start
       before_action :verify_valid_tries, only: :start
@@ -96,6 +96,20 @@ module Api
       rescue => exception
         Bugsnag.notify(exception)
         render json: { error: exception.full_message }, status: :unprocessable_entity
+      end
+
+      def export
+        export_options = { test_id: params[:id] }
+        enqueued_job = ExportCsvJob.perform_later(
+          current_user,
+          'ExportedCsv::TestExport',
+          export_options.to_json
+        )
+
+        render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: "Error exporting test: #{exception}" }, status: :unprocessable_entity
       end
 
       private

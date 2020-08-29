@@ -29,7 +29,7 @@ module Services
           body: data,
           content_type: content_type,
           encryption: encryption,
-          public: public_access
+          public: true
         )
 
         "https://#{bucket_name}.s3.amazonaws.com/#{key}"

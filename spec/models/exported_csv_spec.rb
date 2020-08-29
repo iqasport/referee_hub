@@ -24,10 +24,11 @@ RSpec.describe ExportedCsv, type: :model do
 
   let(:user) { create :user }
   let(:csv) { user.exported_csvs.last }
+  let(:export_options) { {}.to_json }
 
   before { Fog.mock! }
 
-  subject { ExportedCsv::TeamExport.create!(user: user) }
+  subject { ExportedCsv::TeamExport.create!(user: user, export_options: export_options) }
 
   it 'processes the csv' do
     subject

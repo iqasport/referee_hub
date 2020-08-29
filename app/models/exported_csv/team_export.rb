@@ -57,11 +57,6 @@ class ExportedCsv::TeamExport < ExportedCsv
   private
 
   def filter_options
-    case export_options.class
-    when Hash
-      export_options
-    when String
-      JSON.parse(export_options)
-    end
+    JSON.parse(export_options)
   end
 end

@@ -3,9 +3,10 @@ module Services
     attr_accessor :search_query, :certifications, :national_governing_bodies, :relation, :query_hash
 
     def initialize(params)
-      @search_query = params.delete(:q)
-      @certifications = params.delete(:certifications)
-      @national_governing_bodies = params.delete(:national_governing_bodies)
+      sanitized_params = params.to_h.with_indifferent_access
+      @search_query = sanitized_params.delete(:q)
+      @certifications = sanitized_params.delete(:certifications)
+      @national_governing_bodies = sanitized_params.delete(:national_governing_bodies)
       @relation = User.includes(:certifications, :roles, :referee_locations, :national_governing_bodies).referee.all
       @query_hash = {
         search: search_query,
