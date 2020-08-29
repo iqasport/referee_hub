@@ -11,7 +11,6 @@ describe Services::S3::Uploader do
   let(:bucket_name) { "#{user.id}-exports" }
 
   before { Fog.mock! }
-  after { Fog::Mock.reset }
 
   subject do
     described_class.new(
