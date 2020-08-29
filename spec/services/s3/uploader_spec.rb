@@ -9,9 +9,9 @@ describe Services::S3::Uploader do
   let(:key) { 'team_export.csv' }
   let(:extension) { 'csv' }
   let(:bucket_name) { "#{user.id}-exports" }
-  before do
-    Fog.mock!
-  end
+
+  before { Fog.mock! }
+  after { Fog::Mock.reset }
 
   subject do
     described_class.new(

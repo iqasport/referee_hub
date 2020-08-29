@@ -26,6 +26,7 @@ RSpec.describe ExportedCsv, type: :model do
   let(:csv) { user.exported_csvs.last }
 
   before { Fog.mock! }
+  after { Fog::Mock.reset }
 
   subject { ExportedCsv::TeamExport.create!(user: user) }
 
