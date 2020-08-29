@@ -48,7 +48,6 @@ class ExportedCsv < ApplicationRecord
       data: csv_data,
       content_type: 'text/csv',
       extension: 'csv',
-      public_access: false,
       bucket_name: "#{user.id}-exports"
     ).perform
 
