@@ -42,4 +42,22 @@ RSpec.describe Team, type: :model do
       expect { subject }.to_not change { team.reload.team_status_changesets.count }
     end
   end
+
+  context 'when joined_at changes' do
+    let(:prev_date) { Date.new }
+    let(:new_date) { 10.days.ago }
+    let!(:team) { create :team, joined_at: prev_date }
+    let(:service_double) { double(:perform => :return_value) }
+
+    before { allow(Services::ManageTeamJoinedChange).to receive(:new).and_return(service_double) }
+
+    subject { team.update!(joined_at: new_date) }
+
+    it 'calls the manage service' do
+      expect(Services::ManageTeamJoinedChange).to receive(:new)
+        .with(prev_date: prev_date, new_date: new_date, team: team)
+
+      subject
+    end
+  end
 end
