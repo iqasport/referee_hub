@@ -8,10 +8,10 @@ describe Services::S3::Uploader do
   let(:data) { ExportedCsv::TeamExport.new(user: user, export_options: export_options.to_json).generate_csv_data }
   let(:key) { 'team_export.csv' }
   let(:extension) { 'csv' }
+  let(:bucket_name) { "#{user.id}-exports" }
 
-  before do
-    Fog.mock!
-  end
+  before { Fog.mock! }
+  after { Fog::Mock.reset }
 
   subject do
     described_class.new(
@@ -19,12 +19,13 @@ describe Services::S3::Uploader do
       content_type: 'text/csv',
       extension: extension,
       public_access: false,
-      key: key
+      key: key,
+      bucket_name: bucket_name,
     ).perform
   end
 
   it 'returns the created url' do
-    expect(subject).to eq "https://nonsense.s3.amazonaws.com/#{key}"
+    expect(subject).to eq "https://#{bucket_name}.s3.amazonaws.com/#{key}"
   end
 
   context 'with invalid data' do

@@ -28,6 +28,7 @@ class Team < ApplicationRecord
   require 'activerecord-import/active_record/adapters/postgresql_adapter'
 
   around_update :generate_changeset, if: :status_changed?
+  around_update :clean_up_stats, if: :joined_at_changed?
 
   self.per_page = 25
 
@@ -57,5 +58,14 @@ class Team < ApplicationRecord
   def generate_changeset
     TeamStatusChangeset.create!(new_status: status_change[1], previous_status: status_change[0], team_id: id)
     yield # in around_update the rest of the callback needs to be run via yield
+  end
+
+  def clean_up_stats
+    Services::ManageTeamJoinedChange.new(
+      prev_date: joined_at_change[0],
+      new_date: joined_at_change[1],
+      team: self
+    ).perform
+    yield
   end
 end
