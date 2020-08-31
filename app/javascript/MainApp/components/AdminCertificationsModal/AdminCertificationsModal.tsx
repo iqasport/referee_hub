@@ -9,7 +9,7 @@ import { createCertification, revokeCertification } from 'MainApp/modules/certif
 import { fetchReferee } from 'MainApp/modules/referee/referee'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getCertificationsSchema'
-import { getVersion } from 'MainApp/utils/certUtils'
+import { getVersion } from 'MainApp/utils/newCertUtils'
 
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal'
 

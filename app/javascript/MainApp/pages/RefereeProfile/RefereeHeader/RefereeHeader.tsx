@@ -7,8 +7,8 @@ import React from 'react'
 import { UpdateRefereeRequest } from 'MainApp/apis/referee';
 import Toggle from 'MainApp/components/Toggle';
 import { DataAttributes, IncludedAttributes } from 'MainApp/schemas/getRefereeSchema';
-import { getRefereeCertVersion } from 'MainApp/utils/certUtils';
 import { toDateTime } from 'MainApp/utils/dateUtils';
+import { getRefereeCertVersion } from 'MainApp/utils/newCertUtils';
 import HeaderButtons from './HeaderButtons';
 import HeaderImage from './HeaderImage';
 import HeaderName from './HeaderName';

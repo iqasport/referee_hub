@@ -6,7 +6,7 @@ import { useHistory } from 'react-router-dom'
 import { getRefereeTests } from 'MainApp/modules/test/tests'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getTestsSchema'
-import { getTestCertVersion } from 'MainApp/utils/certUtils'
+import { getTestCertVersion } from 'MainApp/utils/newCertUtils'
 import Table, { CellConfig } from '../Table/Table'
 
 const HEADER_CELLS = ['title', 'level', 'rulebook', 'language']

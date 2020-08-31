@@ -7,7 +7,7 @@ import { GetRefereesFilter } from 'MainApp/apis/referee'
 import { getReferees, Referee, updateFilters } from 'MainApp/modules/referee/referees'
 import { RootState } from 'MainApp/rootReducer'
 import { AssociationType } from 'MainApp/schemas/getRefereesSchema'
-import { getVersion } from 'MainApp/utils/certUtils'
+import { getVersion } from 'MainApp/utils/newCertUtils'
 import FilterToolbar from '../FilterToolbar'
 import Table, { CellConfig } from '../Table/Table'
 
