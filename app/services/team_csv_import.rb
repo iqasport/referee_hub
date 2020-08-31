@@ -46,7 +46,7 @@ module Services
       group_affiliation = 'not_applicable' unless Team.group_affiliations.key?(group_affiliation)
       # convert mapped_headers['joined_at'] to a datetime. Can only be day-month-year
       joined_at = row_data.dig(mapped_headers['joined_at'])
-      joined_at = Date.strptime(row_data.dig(mapped_headers['joined_at']), '%d-%m-%Y').to_datetime if joined_at.present?
+      joined_at = Date.strptime(joined_at, '%d-%m-%Y').to_datetime if joined_at.present?
 
       team.assign_attributes(
         city: row_data.dig(mapped_headers['city']),
