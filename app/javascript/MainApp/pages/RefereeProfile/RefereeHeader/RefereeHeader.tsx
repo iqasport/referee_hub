@@ -4,10 +4,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { capitalize } from 'lodash'
 import React from 'react'
 
-import { UpdateRefereeRequest } from '../../../apis/referee';
-import Toggle from '../../../components/Toggle';
-import { DataAttributes, IncludedAttributes } from '../../../schemas/getRefereeSchema';
-import { toDateTime } from '../../../utils/dateUtils';
+import { UpdateRefereeRequest } from 'MainApp/apis/referee';
+import Toggle from 'MainApp/components/Toggle';
+import { DataAttributes, IncludedAttributes } from 'MainApp/schemas/getRefereeSchema';
+import { getRefereeCertVersion } from 'MainApp/utils/certUtils';
+import { toDateTime } from 'MainApp/utils/dateUtils';
 import HeaderButtons from './HeaderButtons';
 import HeaderImage from './HeaderImage';
 import HeaderName from './HeaderName';
@@ -56,11 +57,11 @@ const RefereeHeader = (props: HeaderProps) => {
   }
 
   const renderCertifications = () => {
-    if(isEditing) return null
+    if (isEditing) return null
 
     return certifications.map(certification => (
       <div key={certification.level} className="bg-green py-2 px-6 rounded mr-5">
-        {`${capitalize(certification.level)}`}
+        {`${capitalize(certification.level)} (${getRefereeCertVersion(certification)})`}
       </div>
     ))
   }
@@ -139,7 +140,7 @@ const RefereeHeader = (props: HeaderProps) => {
               />
             }
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center w-full">
             {renderCertifications()}
           </div>
           <div className="justify-end w-1/2 hidden md:flex lg:flex xl:flex">

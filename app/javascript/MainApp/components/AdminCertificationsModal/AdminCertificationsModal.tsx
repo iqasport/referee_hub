@@ -9,6 +9,7 @@ import { createCertification, revokeCertification } from 'MainApp/modules/certif
 import { fetchReferee } from 'MainApp/modules/referee/referee'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getCertificationsSchema'
+import { getVersion } from 'MainApp/utils/certUtils'
 
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal'
 
@@ -26,16 +27,6 @@ const AdminCertificationsModal = (props: AdminCertificationsModalProps) => {
   const { certifications: allCerts } = useSelector((state: RootState) => state.certifications, shallowEqual)
 
   const refCertIds = certifications.map((cert) => cert.id)
-  const getVersion = (certVersion: string) => {
-    switch (certVersion) {
-      case 'eighteen':
-        return '2018-2020'
-      case 'twenty':
-        return '2020-2022'
-      default:
-        return 'Unknown'
-    }
-  }
 
   useEffect(() => {
     if (id !== refereeId) {

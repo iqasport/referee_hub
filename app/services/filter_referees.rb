@@ -2,7 +2,7 @@ module Services
   class FilterReferees
     attr_accessor :search_query, :certifications, :national_governing_bodies, :relation, :query_hash
 
-    def initialize(params)
+    def initialize(params = {})
       sanitized_params = params.to_h.with_indifferent_access
       @search_query = sanitized_params.delete(:q)
       @certifications = sanitized_params.delete(:certifications)

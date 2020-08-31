@@ -3,27 +3,49 @@ import React, { useEffect } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
-import { GetRefereesFilter } from '../../apis/referee'
-import { getReferees, Referee, updateFilters } from '../../modules/referee/referees'
-import { RootState } from '../../rootReducer'
-import { AssociationType } from '../../schemas/getRefereesSchema'
+import { GetRefereesFilter } from 'MainApp/apis/referee'
+import { getReferees, Referee, updateFilters } from 'MainApp/modules/referee/referees'
+import { RootState } from 'MainApp/rootReducer'
+import { AssociationType } from 'MainApp/schemas/getRefereesSchema'
+import { getVersion } from 'MainApp/utils/certUtils'
 import FilterToolbar from '../FilterToolbar'
 import Table, { CellConfig } from '../Table/Table'
 
 const HEADER_CELLS = ['name', 'highest certification', 'associated teams', 'secondary NGB']
 const ADMIN_HEADER_CELLS = ['name', 'highest certification', 'associated teams', 'associated NGBs']
 
+// sorts the levels by string length resulting in: ['head', 'snitch', 'assistant']
+// this also happens to be the hierarchy order of the levels.
+const sortByLength = (a: string, b: string): number => {
+  return a.length - b.length
+}
+
 const findHighestCert = (referee: Referee): string => {
-  const certLevels = referee?.certifications.map((cert) => cert.level)
-  if (certLevels.includes('head')) {
-    return 'Head'
-  } else if (certLevels.includes('snitch')) {
-    return 'Snitch'
-  } else if (certLevels.includes('assistant')) {
-    return 'Assistant'
-  } else {
-    return 'Uncertified'
+  const certHashMap: {[version: string]: string[]} = {}
+  referee?.certifications.forEach((cert) => {
+    if (certHashMap[cert.version]) {
+      certHashMap[cert.version].push(cert.level)
+    } else {
+      certHashMap[cert.version] = [cert.level]
+    }
+  })
+
+  const hasTwentyCerts = certHashMap.twenty?.length > 0
+  const hasEighteenCerts = certHashMap.eighteen?.length > 0
+  if (!hasEighteenCerts && !hasTwentyCerts) return 'Uncertified'
+
+  let highestTwenty: string
+  let highestEighteen: string
+  if (hasTwentyCerts) {
+    highestTwenty = certHashMap.twenty.sort(sortByLength)[0]
   }
+  if (hasEighteenCerts) {
+    highestEighteen = certHashMap.eighteen.sort(sortByLength)[0]
+  }
+
+  if (highestEighteen.length < highestTwenty.length) return `${capitalize(highestEighteen)} ${getVersion('eighteen')}`
+
+  return `${capitalize(highestTwenty)} ${getVersion('twenty')}`
 }
 
 type NewRefereeTableProps = {

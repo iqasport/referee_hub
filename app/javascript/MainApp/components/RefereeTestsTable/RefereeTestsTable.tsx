@@ -6,6 +6,7 @@ import { useHistory } from 'react-router-dom'
 import { getRefereeTests } from 'MainApp/modules/test/tests'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getTestsSchema'
+import { getTestCertVersion } from 'MainApp/utils/certUtils'
 import Table, { CellConfig } from '../Table/Table'
 
 const HEADER_CELLS = ['title', 'level', 'rulebook', 'language']
@@ -23,19 +24,6 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   useEffect(() => {
     dispatch(getRefereeTests(refId))
   }, [])
-
-  const getVersion = (certId: number): string => {
-    const certVersion = certifications.find((cert) => cert.id === certId.toString()).version
-
-    switch (certVersion) {
-      case 'eighteen':
-        return '2018-2020'
-      case 'twenty':
-        return '2020-2022'
-      default:
-        return 'Unknown'
-    }
-  }
 
   const handleRowClick = (id: string) => {
     history.push(`/referees/${refId}/tests/${id}`)
@@ -60,7 +48,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     },
     {
       cellRenderer: (item: Datum) => {
-        return getVersion(item.attributes.certificationId)
+        return getTestCertVersion(item.attributes.certificationId, certifications)
       },
       dataKey: 'certificationId'
     },
