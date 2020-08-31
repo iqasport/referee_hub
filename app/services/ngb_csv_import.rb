@@ -37,11 +37,12 @@ module Services
       membership = row_data.dig(mapped_headers['membership_status'])
       return unless NationalGoverningBody.regions.key?(region)
       return unless NationalGoverningBody.membership_statuses.key?(membership)
+      player_count = row_data.dig(mapped_headers['player_count']).presence || 0
 
       ngb.assign_attributes(
         acronym: row_data.dig(mapped_headers['acronym']),
         country: row_data.dig(mapped_headers['country']),
-        player_count: row_data.dig(mapped_headers['player_count']),
+        player_count: player_count,
         region: region,
         website: row_data.dig(mapped_headers['website']),
         membership_status: membership,

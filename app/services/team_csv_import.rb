@@ -38,13 +38,16 @@ module Services
     private
 
     def find_or_initialize_team(row_data)
-      team = Team.where(national_governing_body_id: ngb.id).find_or_initialize_by(name: row_data.dig(mapped_headers['name']))
+      team = Team.where(national_governing_body_id: ngb.id)
+        .find_or_initialize_by(name: row_data.dig(mapped_headers['name']))
       status = row_data.dig(mapped_headers['status'])
       group_affiliation = row_data.dig(mapped_headers['age_group'])
       status = 'other' unless Team.statuses.key?(status)
       group_affiliation = 'not_applicable' unless Team.group_affiliations.key?(group_affiliation)
       # convert mapped_headers['joined_at'] to a datetime. Can only be day-month-year
-      joined_at = Date.strptime(row_data.dig(mapped_headers['joined_at']), '%d-%m-%Y').to_datetime
+      joined_at = row_data.dig(mapped_headers['joined_at'])
+      joined_at = Date.strptime(row_data.dig(mapped_headers['joined_at']), '%d-%m-%Y').to_datetime if joined_at.present?
+
       team.assign_attributes(
         city: row_data.dig(mapped_headers['city']),
         country: row_data.dig(mapped_headers['country']),
@@ -64,6 +67,8 @@ module Services
 
       url_keys.each do |url_key|
         url = row_data.dig(url_key)
+        next if url.blank?
+
         new_social = SocialAccount.find_or_initialize_by(url: url)
         next if new_social.persisted? # we don't need to update an exisiting record with the same information
 

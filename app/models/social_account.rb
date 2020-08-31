@@ -29,7 +29,10 @@ class SocialAccount < ApplicationRecord
   belongs_to :ownable, polymorphic: true
 
   def self.match_account_type(url)
-    matched_account_type = url.match(/\.\w+\./)[0].delete '.'
+    url_match = url&.match(/\.\w+\./)
+    return 'other' if url_match.blank?
+
+    matched_account_type = url_match[0].delete '.'
     return matched_account_type if NAMED_ACCOUNT_TYPES.include?(matched_account_type)
 
     'other'

@@ -10,6 +10,7 @@ import { deleteTest, updateTest } from 'MainApp/modules/test/test'
 import { getTests } from 'MainApp/modules/test/tests'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getTestsSchema'
+import { getTestCertVersion } from 'MainApp/utils/certUtils'
 import { toDateTime } from 'MainApp/utils/dateUtils'
 import Table, { CellConfig } from '../Table/Table'
 import TestEditModal from '../TestEditModal'
@@ -34,19 +35,6 @@ const TestsTable = () => {
   useEffect(() => {
     dispatch(getTests())
   }, [])
-
-  const getVersion = (certId: number): string => {
-    const certVersion = certifications.find((cert) => cert.id === certId.toString()).version
-
-    switch(certVersion) {
-      case 'eighteen':
-        return '2018-2020'
-      case 'twenty':
-        return '2020-2022'
-      default:
-        return 'Unknown'
-    }
-  }
 
   const handleRowClick = (id: string) => {
     history.push(`/admin/tests/${id}`)
@@ -87,7 +75,7 @@ const TestsTable = () => {
     },
     {
       cellRenderer: (item: Datum) => {
-        return getVersion(item.attributes.certificationId)
+        return getTestCertVersion(item.attributes.certificationId, certifications)
       },
       dataKey: 'certificationId'
     },

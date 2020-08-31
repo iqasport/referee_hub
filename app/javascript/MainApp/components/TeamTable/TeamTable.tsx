@@ -107,7 +107,8 @@ const TeamTable = (props: TeamTableProps) => {
     },
     {
       cellRenderer: (item: Datum) => {
-        return `${item.attributes.city}, ${item.attributes.state}`
+        const stateField = item.attributes.state ? `, ${item.attributes.state}` : ''
+        return `${item.attributes.city}${stateField}`
       },
       dataKey: 'city'
     },
