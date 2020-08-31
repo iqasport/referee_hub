@@ -43,7 +43,7 @@ const findHighestCert = (referee: Referee): string => {
     highestEighteen = certHashMap.eighteen.sort(sortByLength)[0]
   }
 
-  if (highestEighteen.length < highestTwenty.length) return `${capitalize(highestEighteen)} ${getVersion('eighteen')}`
+  if (highestEighteen?.length < highestTwenty?.length) return `${capitalize(highestEighteen)} ${getVersion('eighteen')}`
 
   return `${capitalize(highestTwenty)} ${getVersion('twenty')}`
 }
