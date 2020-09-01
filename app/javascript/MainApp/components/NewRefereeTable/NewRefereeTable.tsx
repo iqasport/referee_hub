@@ -34,9 +34,11 @@ const findHighestCert = (referee: Referee): string => {
   const highestTwenty = certHashMap.twenty?.sort(sortByLength)[0]
   const highestEighteen = certHashMap.eighteen?.sort(sortByLength)[0]
 
-  if (highestEighteen?.length < highestTwenty?.length) return `${capitalize(highestEighteen)} ${getVersion('eighteen')}`
+  if (highestTwenty.length > 0 && (highestTwenty?.length < highestEighteen?.length)) {
+    return `${capitalize(highestTwenty)} ${getVersion('twenty')}`
+  }
 
-  return `${capitalize(highestTwenty)} ${getVersion('twenty')}`
+  return `${capitalize(highestEighteen)} ${getVersion('eighteen')}`
 }
 
 type NewRefereeTableProps = {
