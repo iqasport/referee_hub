@@ -37,4 +37,8 @@ class NationalGoverningBodyStat < ApplicationRecord
   def self.by_month(month)
     where('EXTRACT(month FROM end_time::date)::integer = ?', month)
   end
+
+  def update_team_counts
+    Services::UpdateTeamCounts.new(self).perform
+  end
 end

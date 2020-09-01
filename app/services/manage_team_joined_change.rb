@@ -70,6 +70,7 @@ module Services
         stat.assign_attributes(count_attrs[:team_group] => current_group_count + num_to_add)
       end
 
+      stat.assign_attributes(total_teams_count: stat.total_teams_count + num_to_add)
       stat.save!
     end
 

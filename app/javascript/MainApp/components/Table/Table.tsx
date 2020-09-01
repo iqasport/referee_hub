@@ -92,7 +92,7 @@ const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
       )}
       <div className={classnames("table-container", { 'full-height-table': !isHeightRestricted })}>
         <table className="rounded-table">
-          {items.length ? renderBody() : renderEmpty()}
+          {items.length > 0 ? renderBody() : renderEmpty()}
         </table>
       </div>
     </>
