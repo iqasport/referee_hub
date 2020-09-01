@@ -29,19 +29,10 @@ const findHighestCert = (referee: Referee): string => {
       certHashMap[cert.version] = [cert.level]
     }
   })
+  if (!Object.keys(certHashMap).length) return 'Uncertified'
 
-  const hasTwentyCerts = certHashMap.twenty?.length > 0
-  const hasEighteenCerts = certHashMap.eighteen?.length > 0
-  if (!hasEighteenCerts && !hasTwentyCerts) return 'Uncertified'
-
-  let highestTwenty: string
-  let highestEighteen: string
-  if (hasTwentyCerts) {
-    highestTwenty = certHashMap.twenty.sort(sortByLength)[0]
-  }
-  if (hasEighteenCerts) {
-    highestEighteen = certHashMap.eighteen.sort(sortByLength)[0]
-  }
+  const highestTwenty = certHashMap.twenty?.sort(sortByLength)[0]
+  const highestEighteen = certHashMap.eighteen?.sort(sortByLength)[0]
 
   if (highestEighteen?.length < highestTwenty?.length) return `${capitalize(highestEighteen)} ${getVersion('eighteen')}`
 
