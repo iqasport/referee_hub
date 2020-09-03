@@ -91,10 +91,17 @@ module Api
       end
 
       def verify_valid_update_params
-        has_membership_status = permitted_params[:membership_status].present?
-        has_region = permitted_params[:region].present?
-        return true if (!has_membership_status && !has_region) && @ngb.is_admin?(current_user.id)
-        return true if (has_membership_status || has_region) && current_user.iqa_admin?
+        new_membership_status = permitted_params[:membership_status]
+        new_region = permitted_params[:region]
+        prev_membership_status = @ngb.membership_status
+        prev_region = @ngb.region
+        is_ngb_admin = @ngb.is_admin?(current_user.id)
+
+        if ((new_membership_status == prev_membership_status) && (new_region == prev_region)) && is_ngb_admin
+          return true
+        end
+        return true if (new_membership_status.blank? && new_region.blank?) && is_ngb_admin
+        return true if (new_membership_status.present? || new_region.present?) && current_user.iqa_admin?
 
         render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
       end
