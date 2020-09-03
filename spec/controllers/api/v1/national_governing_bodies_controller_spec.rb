@@ -43,7 +43,7 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
   end
 
   describe 'PUT #update' do
-    let!(:ngb) { create :national_governing_body }
+    let!(:ngb) { create :national_governing_body, region: 'europe' }
     let!(:user) { create :user, :ngb_admin }
     let(:body_data) do
       {
@@ -114,6 +114,57 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
       let(:message_double) { double(full_messages: error_message) }
 
       it_behaves_like 'it reports to bugsnag on failure', :save!, NationalGoverningBody
+    end
+
+    context 'when region and membership values are present' do
+      let(:body_data) do
+        {
+          id: ngb.id,
+          name: 'Arendell',
+          region: 'europe',
+          membership_status: 'area_of_interest'
+        }
+      end
+
+      it 'updates the name when region and status are unchanged' do
+        subject
+
+        expect(ngb.reload.name).to eq 'Arendell'
+      end
+
+      context 'when the values change' do
+        let(:body_data) do
+          {
+            id: ngb.id,
+            name: 'Arendell',
+            region: 'europe',
+            membership_status: 'emerging'
+          }
+        end
+
+        it_behaves_like 'it fails when a referee is not an admin'
+      end
+
+      context 'when user is an iqa_admin' do
+        let(:other_user) { create :user, :iqa_admin }
+        let(:body_data) do
+          {
+            id: ngb.id,
+            name: 'Arendell',
+            region: 'europe',
+            membership_status: 'emerging'
+          }
+        end
+
+        before { sign_in other_user }
+
+        it 'changes name and membership_status' do
+          subject
+
+          expect(ngb.reload.name).to eq 'Arendell'
+          expect(ngb.reload.membership_status).to eq 'emerging'
+        end
+      end
     end
   end
 
