@@ -50,8 +50,10 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
     switch(type) {
       case ExportType.Team:
         dispatch(exportNgbTeams(id));
+        break;
       case ExportType.Referee:
         dispatch(exportNgbReferees(id));
+        break;
     }
   }
   const handleImportClick = () => history.push(`/import/team_${id}`)

@@ -15,7 +15,7 @@ interface ExportModalProps {
 
 const ExportModal = (props: ExportModalProps) => {
   const { open, onClose, onExport } = props
-  const [selectedExport, setSelectedExport] = useState<string>() 
+  const [selectedExport, setSelectedExport] = useState<string>(ExportType.Team)
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const exportValue = event.target.value
     setSelectedExport(exportValue);

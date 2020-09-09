@@ -23,7 +23,8 @@ export async function exportNgbTeams(ngbId: string) {
   try {
     const jobResponse = await baseAxios.get<GetJobSchema>(url, {
       params: {
-        'national_governing_bodies': [parseInt(ngbId, 10)]
+        'national_governing_bodies': [parseInt(ngbId, 10)],
+        'national_governing_body_id': ngbId
       }
     })
 
