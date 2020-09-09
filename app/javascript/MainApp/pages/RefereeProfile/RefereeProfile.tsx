@@ -84,7 +84,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
         <p>
           {'We have updated our '}
           <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
-          , please review and accept no later than June 1st, 2020.
+          , please review and accept.
         </p>
         <div className="flex justify-end">
           <button className="bg-red-300 rounded p-2 mx-2 cursor-pointer" onClick={handleRejectPolicy}>Reject</button>
