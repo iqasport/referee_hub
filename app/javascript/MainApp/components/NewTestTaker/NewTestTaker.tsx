@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
-import { FormattedQuestion } from 'MainApp/pages/NewStartTest/NewStartTest'
+import { FormattedQuestion } from 'MainApp/pages/StartTest/StartTest'
 import { Included } from 'MainApp/schemas/getQuestionsSchema'
 
-import Answer from '../Answer'
 import Counter from '../Counter'
 import ProgressBar from '../ProgressBar'
 

@@ -60,7 +60,7 @@ const RefereeHeader = (props: HeaderProps) => {
     if (isEditing) return null
 
     return certifications.map(certification => (
-      <div key={certification.level} className="bg-green py-2 px-6 rounded mr-5">
+      <div key={`${certification.level}-${certification.version}`} className="bg-green py-2 px-6 rounded mr-5 mt-4">
         {`${capitalize(certification.level)} (${getRefereeCertVersion(certification)})`}
       </div>
     ))
@@ -115,7 +115,7 @@ const RefereeHeader = (props: HeaderProps) => {
       return (
         <textarea 
           aria-multiline="true" 
-          className="bg-gray-200 rounded p-4 text-lg block w-full"
+          className="bg-gray-200 rounded p-4 text-lg block w-full mb-4"
           style={{resize: 'none'}} 
           onChange={handleChange('bio')} 
           value={updatedValues.bio} 
@@ -140,7 +140,7 @@ const RefereeHeader = (props: HeaderProps) => {
               />
             }
           </div>
-          <div className="flex items-center w-full">
+          <div className="flex items-center w-full flex-wrap">
             {renderCertifications()}
           </div>
           <div className="justify-end w-1/2 hidden md:flex lg:flex xl:flex">
