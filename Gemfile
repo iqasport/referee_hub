@@ -4,13 +4,13 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby '2.7.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 6.0.3'
+gem 'rails', '~> 6.0.3', '>= 6.0.3.3'
 # Use postgresql as the database for Active Record
 gem 'pg', '>= 0.18', '< 2.0'
 # Use Puma as the app server
 gem 'puma', '~> 3.12'
 # Use SCSS for stylesheets
-gem 'sass-rails', '~> 5.0'
+gem 'sass-rails', '~> 5.1', '>= 5.1.0'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'
 gem 'json', '~> 2.3'
@@ -19,7 +19,7 @@ gem 'json', '~> 2.3'
 gem 'bootsnap', '>= 1.1.0', require: false
 
 # authentication
-gem 'devise'
+gem 'devise', '>= 4.7.2'
 gem 'devise_invitable', '~> 2.0.2'
 
 # frontend
@@ -31,7 +31,7 @@ gem 'will_paginate', '~> 3.3.0'
 
 # styles
 gem 'semantic-ui-sass'
-gem 'tailwindcss', '~> 1.0.0'
+gem 'tailwindcss', '~> 1.0.3'
 gem 'inline_svg'
 
 # metrics and tracking
@@ -49,8 +49,8 @@ gem 'sidekiq-cron', '~> 1.1'
 gem 'activerecord-import'
 gem 'time_difference', git: 'https://github.com/iqasport/time_difference.git'
 gem 'gdpr_rails', git: 'https://github.com/HipSpec/gdpr_rails.git', branch: 'rails-6-minor-travis-fix'
-gem 'data_migrate'
-gem 'stripe-rails'
+gem 'data_migrate', '>= 6.3.0'
+gem 'stripe-rails', '>= 1.10.1'
 
 # file storage and aws
 gem 'aws-sdk-s3', '~> 1'
@@ -67,7 +67,7 @@ group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
   gem 'annotate'
-  gem 'factory_bot_rails', '~> 4.0'
+  gem 'factory_bot_rails', '~> 4.10', '>= 4.10.0'
   gem 'rspec-rails', '4.0.1'
   gem 'ffaker'
   gem 'colored'
