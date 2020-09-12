@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
-import TestEditModal from 'MainApp/components/TestEditModal'
-import TestsTable from 'MainApp/components/TestsTable'
+import TestEditModal from 'MainApp/components/modals/TestEditModal'
+import TestsTable from 'MainApp/components/tables/TestsTable'
 
 const NewTests = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false)

@@ -7,7 +7,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
 import { FinishTestRequest, RefereeAnswer } from 'MainApp/apis/job'
-import NewTestTaker from 'MainApp/components/NewTestTaker'
+import NewTestTaker from 'MainApp/components/TestTaker'
 import { finishTest } from 'MainApp/modules/job/job'
 import { startTest } from 'MainApp/modules/question/questions'
 import { getTest } from 'MainApp/modules/test/test'

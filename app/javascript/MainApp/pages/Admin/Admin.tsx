@@ -2,11 +2,11 @@ import classnames from 'classnames'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
-import NewRefereeTable from 'MainApp/components/NewRefereeTable'
-import NgbEditModal from 'MainApp/components/NgbEditModal'
-import NgbTable from 'MainApp/components/NgbTable'
-import TestEditModal from 'MainApp/components/TestEditModal'
-import TestsTable from 'MainApp/components/TestsTable'
+import NgbEditModal from 'MainApp/components/modals/NgbEditModal'
+import TestEditModal from 'MainApp/components/modals/TestEditModal'
+import NgbTable from 'MainApp/components/tables/NgbTable'
+import NewRefereeTable from 'MainApp/components/tables/RefereeTable'
+import TestsTable from 'MainApp/components/tables/TestsTable'
 
 import ActionsButton from './ActionsButton'
 

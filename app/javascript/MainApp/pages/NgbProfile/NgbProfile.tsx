@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
-import ExportModal, { ExportType } from '../../components/ExportModal/ExportModal'
-import NgbEditModal from '../../components/NgbEditModal'
+import ExportModal, { ExportType } from '../../components/modals/ExportModal/ExportModal'
+import NgbEditModal from '../../components/modals/NgbEditModal'
+import TeamEditModal from '../../components/modals/TeamEditModal'
 import StatsViewer from '../../components/StatsViewer'
-import TeamEditModal from '../../components/TeamEditModal'
 import { exportNgbReferees, exportNgbTeams } from '../../modules/job/job'
 import {
   getNationalGoverningBody,
