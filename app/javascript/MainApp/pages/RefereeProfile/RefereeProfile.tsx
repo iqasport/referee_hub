@@ -3,7 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
 import { AssociationData, UpdateRefereeRequest } from 'MainApp/apis/referee';
-import AdminCertificationsModal from 'MainApp/components/AdminCertificationsModal';
+import AdminCertificationsModal from 'MainApp/components/modals/AdminCertificationsModal';
 import TestResultCards from 'MainApp/components/TestResultCards'
 import { updateUserPolicy } from 'MainApp/modules/currentUser/currentUser'
 import { fetchReferee, updateReferee } from 'MainApp/modules/referee/referee';
