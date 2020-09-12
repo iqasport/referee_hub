@@ -158,7 +158,7 @@ const RefereeHeader = (props: HeaderProps) => {
           {renderJoined()}
           {renderPronouns()}
         </div>
-        <div className="text-2xl mb-4 h-24">{renderBio()}</div>
+        <div className="text-2xl mb-4">{renderBio()}</div>
       </div>
     </div>
   );

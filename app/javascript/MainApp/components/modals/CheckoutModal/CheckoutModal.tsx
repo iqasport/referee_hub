@@ -81,6 +81,8 @@ const CheckoutModal = (props: CheckoutModalProps) => {
   }
 
   const renderProduct = (product: GetProductsSchema) => {
+    if (!product.active) return null
+
     const certificationId = findCertification(product)?.id
     if (certificationPayments.includes(parseInt(certificationId, 10))) return null
 
