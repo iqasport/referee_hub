@@ -15,11 +15,9 @@ Rails.application.routes.draw do
   end
 
   get 'home/index'
-  get 'referees', to: 'home#index'
   get 'referees/:id', to: 'home#index'
   get 'privacy', to: 'home#index'
   get 'admin', to: 'home#index'
-  get 'admin/referee-diagnostic', to: 'home#index'
   get 'admin/tests', to: 'home#index'
   get 'admin/tests/:id', to: 'home#index'
   get 'referees/:referee_id/tests/:test_id', to: 'home#index'
