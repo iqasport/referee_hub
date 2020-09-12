@@ -10,7 +10,6 @@ class Users::InvitationsController < Devise::InvitationsController
         resource.reject_all_policies!
       end
       resource.confirm # set confirmed_at
-      Flipper[:new_design].enable resource # allow the new user to have the new app
     end
   end
 end

@@ -2,16 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
-import ExportModal, { ExportType } from '../../components/modals/ExportModal/ExportModal'
-import NgbEditModal from '../../components/modals/NgbEditModal'
-import TeamEditModal from '../../components/modals/TeamEditModal'
-import StatsViewer from '../../components/StatsViewer'
-import { exportNgbReferees, exportNgbTeams } from '../../modules/job/job'
+import ExportModal, { ExportType } from 'MainApp/components/modals/ExportModal/ExportModal'
+import NgbEditModal from 'MainApp/components/modals/NgbEditModal'
+import TeamEditModal from 'MainApp/components/modals/TeamEditModal'
+import StatsViewer from 'MainApp/components/StatsViewer'
+import { CurrentUserState } from 'MainApp/modules/currentUser/currentUser'
+import { exportNgbReferees, exportNgbTeams } from 'MainApp/modules/job/job'
 import {
   getNationalGoverningBody,
   SingleNationalGoverningBodyState
-} from '../../modules/nationalGoverningBody/nationalGoverningBody'
-import { RootState } from '../../rootReducer'
+} from 'MainApp/modules/nationalGoverningBody/nationalGoverningBody'
+import { RootState } from 'MainApp/rootReducer'
 
 import ActionsButton from './ActionsButton'
 import NgbTables from './NgbTables'
@@ -33,6 +34,7 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
   const { ngb, socialAccounts, refereeCount, teamCount, stats } = useSelector(
     (state: RootState): SingleNationalGoverningBodyState => state.nationalGoverningBody, shallowEqual
   )
+  const { currentUser, roles } = useSelector((state: RootState): CurrentUserState => state.currentUser, shallowEqual)
 
   useEffect(() => {
     if (id) {
@@ -41,6 +43,14 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
   }, [id, dispatch])
 
   if (!ngb) return null
+  const isUserReferee = roles.length === 1 && roles.includes('referee')
+  const isUserNgbAdmin = roles.includes('ngb_admin') && Number(id) === currentUser.ownedNgbId
+
+  if (isUserReferee) {
+    history.goBack()
+  } else if (!roles.includes('iqa_admin') && !isUserNgbAdmin) {
+    history.goBack()
+  }
 
   const handleOpenModal = (type: ModalType) => () => setOpenModal(type)
   const handleCloseModal = () => setOpenModal(null)

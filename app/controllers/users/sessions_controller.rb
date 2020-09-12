@@ -26,11 +26,7 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   def after_sign_in_path_for(_resource_or_scope)
-    if current_user.enabled_features.include?('new_design')
-      determine_redirect
-    else
-      return "/referees/#{current_user.id}"
-    end
+    determine_redirect
   end
 
   def after_sign_out_path_for(resource_or_scope)
@@ -44,7 +40,5 @@ class Users::SessionsController < Devise::SessionsController
     return '/admin' if roles.include?('iqa_admin')
     return "/national_governing_bodies/#{current_user.owned_ngb&.first&.id}" if roles.include?('ngb_admin')
     return "/referees/#{current_user.id}" if roles.include?('referee')
-
-    return '/referees'
   end
 end

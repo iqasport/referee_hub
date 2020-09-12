@@ -1,123 +1,74 @@
-<% if Flipper.enabled?(:new_design) %>
-  <div class="main-background static h-screen w-full overflow-hidden">
-    <%= image_tag 'background1.png', class: '-z-1 object-cover' %>
-    <div class="z-1 absolute inset-0 h-full w-full p-12" style="background-color: rgba(114, 186, 108, 0.8);">
-      <div class="flex h-full">
-        <div class="flex-1 w-1/2">
-          <%= image_tag 'IQA_long_white.png' %>
-          <h1 class="text-5xl font-bold text-white text-center w-full">
-            Management Hub
-          <h1>
-        </div>
-        <div class="bg-white rounded-lg w-1/2 h-900 p-8 flex-1">
-          <%= devise_error_messages! %>
-          <h1 class="text-4xl font-bold text-navy-blue">Welcome to the hub!</h1>
-          <h2 class="text-2xl font-thin text-navy-blue">Create your account below.</h2>
-          <div class="mt-10">
-            <%= form_for(resource, as: resource_name, url: create_user_registration_path) do |f| %>
-              <div class="flex mb-10">
-                <div class="bottom-border-input mr-1 md:mb-0">
-                  <%= inline_svg_tag 'user.svg', aria: true, title: 'First Name', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
-                  <%= 
-                    f.text_field :first_name, 
-                    class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none', 
-                    placeholder: 'First Name' %>
-                </div>
-                <div class="bottom-border-input ml-1 md:mb-0">
-                  <%= inline_svg_tag 'user.svg', aria: true, title: 'Last Name', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
-                  <%= 
-                    f.text_field :last_name, 
-                    class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none', 
-                    placeholder: 'Last Name' %>
-                </div>
-              </div>
-              <div class="<%= email_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
-                <%= inline_svg_tag 'email.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
-                <%= 
-                  f.email_field :email, 
-                  autocomplete: 'email', 
+<div class="main-background static h-screen w-full overflow-hidden">
+  <%= image_tag 'background1.png', class: '-z-1 object-cover' %>
+  <div class="z-1 absolute inset-0 h-full w-full p-12" style="background-color: rgba(114, 186, 108, 0.8);">
+    <div class="flex h-full">
+      <div class="flex-1 w-1/2">
+        <%= image_tag 'IQA_long_white.png' %>
+        <h1 class="text-5xl font-bold text-white text-center w-full">
+          Management Hub
+        <h1>
+      </div>
+      <div class="bg-white rounded-lg w-1/2 h-900 p-8 flex-1">
+        <%= devise_error_messages! %>
+        <h1 class="text-4xl font-bold text-navy-blue">Welcome to the hub!</h1>
+        <h2 class="text-2xl font-thin text-navy-blue">Create your account below.</h2>
+        <div class="mt-10">
+          <%= form_for(resource, as: resource_name, url: create_user_registration_path) do |f| %>
+            <div class="flex mb-10">
+              <div class="bottom-border-input mr-1 md:mb-0">
+                <%= inline_svg_tag 'user.svg', aria: true, title: 'First Name', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+                <%=
+                  f.text_field :first_name,
                   class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
-                  placeholder: 'youremail@example.com' %>
+                  placeholder: 'First Name' %>
               </div>
-
-              <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
-                <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
-                <%= 
-                  f.password_field :password,
-                  autocomplete: 'off', 
+              <div class="bottom-border-input ml-1 md:mb-0">
+                <%= inline_svg_tag 'user.svg', aria: true, title: 'Last Name', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+                <%=
+                  f.text_field :last_name,
                   class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
-                  placeholder: 'Password (8 characters minimum)' %>
+                  placeholder: 'Last Name' %>
               </div>
+            </div>
+            <div class="<%= email_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
+              <%= inline_svg_tag 'email.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%=
+                f.email_field :email,
+                autocomplete: 'email',
+                class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
+                placeholder: 'youremail@example.com' %>
+            </div>
 
-              <div class="<%= password_confirmation_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-8">
-                <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
-                <%= 
-                  f.password_field :password_confirmation, 
-                  autocomplete: "off", 
-                  class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
-                  placeholder: 'Confirm Password' %>
-              </div>
+            <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
+              <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%=
+                f.password_field :password,
+                autocomplete: 'off',
+                class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
+                placeholder: 'Password (8 characters minimum)' %>
+            </div>
 
-              <div class="flex items-center text-navy-blue">
-                <%= f.check_box :policy_rule_privacy_terms, {class: 'form-checkbox text-green mr-2', required: true}, true, false %>
-                You have read and agree to the terms outlined in our
-                <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy" class="text-blue-darker ml-1">Privacy Policy</a>
-              </div>
+            <div class="<%= password_confirmation_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-8">
+              <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%=
+                f.password_field :password_confirmation,
+                autocomplete: "off",
+                class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
+                placeholder: 'Confirm Password' %>
+            </div>
 
-              <div class="m-10 text-center">
-                <%= f.submit "Create Account", class: 'bg-navy-blue text-white font-bold py-2 px-8 rounded' %>
-              </div>
-            <% end %>
-          </div>
+            <div class="flex items-center text-navy-blue">
+              <%= f.check_box :policy_rule_privacy_terms, {class: 'form-checkbox text-green mr-2', required: true}, true, false %>
+              You have read and agree to the terms outlined in our
+              <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy" class="text-blue-darker ml-1">Privacy Policy</a>
+            </div>
+
+            <div class="m-10 text-center">
+              <%= f.submit "Create Account", class: 'bg-navy-blue text-white font-bold py-2 px-8 rounded cursor-pointer' %>
+            </div>
+          <% end %>
         </div>
       </div>
     </div>
   </div>
-<% else %>
-  <div class='ui main container center grid' style='flex:1;margin-top: 50px;width: 80%;'>
-    <div class='column'>
-      <h2 class='ui header'>
-        <div>Become a Referee</div>
-      </h2>
-
-      <%= form_for(
-        resource,
-        as: resource_name,
-        url: create_user_registration_path,
-        html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
-        ) do |f| %>
-        <%= devise_error_messages! %>
-
-        <div class='ui stacked segment'>
-          <div class="<%= email_error? ? 'field error' : 'field' %>">
-            <%= f.label :email %><br />
-            <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-          </div>
-
-          <div class="<%= password_error? ? 'field error' : 'field' %>">
-            <%= f.label :password %>
-            <% if @minimum_password_length %>
-            <em>(<%= @minimum_password_length %> characters minimum)</em>
-            <% end %><br />
-            <%= f.password_field :password, autocomplete: "off" %>
-          </div>
-
-          <div class="<%= password_confirmation_error? ? 'field error' : 'field' %>">
-            <%= f.label :password_confirmation %><br />
-            <%= f.password_field :password_confirmation, autocomplete: "off" %>
-          </div>
-
-          <div class='field'>
-            <p>
-              <%= f.check_box :policy_rule_privacy_terms, {required: true}, true, false %>
-              You have read and agree to the terms outlined in our
-              <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
-            </p>
-          </div>
-
-          <%= f.submit "Sign up", class: 'ui fluid large submit button' %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-<% end %>
+</div>

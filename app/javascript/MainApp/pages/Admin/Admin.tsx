@@ -1,5 +1,6 @@
 import classnames from 'classnames'
 import React, { useState } from 'react'
+import { shallowEqual, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
 import NgbEditModal from 'MainApp/components/modals/NgbEditModal'
@@ -7,6 +8,8 @@ import TestEditModal from 'MainApp/components/modals/TestEditModal'
 import NgbTable from 'MainApp/components/tables/NgbTable'
 import NewRefereeTable from 'MainApp/components/tables/RefereeTable'
 import TestsTable from 'MainApp/components/tables/TestsTable'
+import { CurrentUserState } from 'MainApp/modules/currentUser/currentUser'
+import { RootState } from 'MainApp/rootReducer'
 
 import ActionsButton from './ActionsButton'
 
@@ -25,6 +28,10 @@ const NewAdmin = () => {
   const [selectedModal, setSelectedModal] = useState<SelectedModal>()
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Ngbs)
   const history = useHistory()
+  const { roles } = useSelector((state: RootState): CurrentUserState => state.currentUser, shallowEqual)
+
+  if (!roles.includes('iqa_admin')) history.goBack()
+
   const isSelected = (tab: SelectedTab) => selectedTab === tab
 
   const handleImportClick = () => history.push('/import/ngb')
