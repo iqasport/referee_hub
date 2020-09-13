@@ -50,10 +50,20 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
 
   const getTeamName = (type: AssociationType): string => {
-    return teams.find((team) => team.associationType === type)?.name;
+    let teamId: number
+    if (Object.values(value).includes(type)) {
+      teamId = Number(Object.entries(value).find((association) => association[1] === type)[0])
+    } else {
+      teamId = teams.find((team) => team.associationType === type).teamId
+    }
+
+    return allTeams.find((team) => Number(team.id) === teamId)?.attributes.name
   };
 
   const getSelectedTeam = (type: AssociationType) => {
+    if (Object.values(value).includes(type)) {
+      return Object.entries(value).find((association) => association[1] === type)[0]
+    }
     return teams.filter((team) => team.associationType === type)[0]
       ?.teamId;
   };
