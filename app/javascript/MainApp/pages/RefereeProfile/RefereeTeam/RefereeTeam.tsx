@@ -57,7 +57,11 @@ const RefereeTeam = (props: RefereeTeamProps) => {
       teamId = teams.find((team) => team.associationType === type).teamId
     }
 
-    return allTeams.find((team) => Number(team.id) === teamId)?.attributes.name
+    if (isEditing) {
+      return allTeams.find((team) => Number(team.id) === teamId)?.attributes.name
+    } else {
+      return teams.find((team) => team.associationType === type)?.name
+    }
   };
 
   const getSelectedTeam = (type: AssociationType) => {
