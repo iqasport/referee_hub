@@ -7,7 +7,7 @@ class UserMailer < ApplicationMailer
     @referee = params[:referee]
     @test = @test_attempt.test
     @next_attempt_at = @test_attempt.next_attempt_at.to_time
-    @url = "https://iqareferees.org/referees/#{@referee.id}"
+    @url = "https://manage.iqasport.com/referees/#{@referee.id}"
 
     mail(to: @referee.email, subject: "#{@test.name} Results")
   end

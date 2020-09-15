@@ -18,7 +18,7 @@ module Api
       end
 
       def create
-        url = Rails.env.production? ? 'https://www.iqareferees.org' : 'http://localhost:3000'
+        url = Rails.env.production? ? 'https://manage.iqasport.com' : 'http://localhost:3000'
         session_data = {
           success_url: url + "/referees/#{current_user.id}/tests?status=success",
           cancel_url: url + "/referees/#{current_user.id}/tests?status=cancelled",

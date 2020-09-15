@@ -40,7 +40,7 @@
             </div>
 
             <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
-              <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%= inline_svg_tag 'password.svg', aria: true, title: 'Password', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
               <%=
                 f.password_field :password,
                 autocomplete: 'off',
@@ -49,7 +49,7 @@
             </div>
 
             <div class="<%= password_confirmation_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-8">
-              <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%= inline_svg_tag 'password.svg', aria: true, title: 'Password', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
               <%=
                 f.password_field :password_confirmation,
                 autocomplete: "off",
@@ -60,7 +60,7 @@
             <div class="flex items-center text-navy-blue">
               <%= f.check_box :policy_rule_privacy_terms, {class: 'form-checkbox text-green mr-2', required: true}, true, false %>
               You have read and agree to the terms outlined in our
-              <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy" class="text-blue-darker ml-1">Privacy Policy</a>
+              <a target="_blank" rel="noopener noreferrer" href="https://manage.iqasport.com/privacy" class="text-blue-darker ml-1">Privacy Policy</a>
             </div>
 
             <div class="m-10 text-center">
