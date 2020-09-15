@@ -1,6 +1,8 @@
 import { DateTime, Info } from 'luxon'
 
 export function toDateTime(timestamp: string): DateTime {
+  if (!timestamp) return DateTime.local()
+
   return DateTime.fromSQL(timestamp.slice(0, -3).trim())
 }
 

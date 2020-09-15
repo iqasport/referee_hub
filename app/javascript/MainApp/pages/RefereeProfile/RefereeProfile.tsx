@@ -83,7 +83,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
       <div className="w-full bg-yellow-lighter py-4 px-10 flex items-center justify-between">
         <p>
           {'We have updated our '}
-          <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
+          <a target="_blank" rel="noopener noreferrer" href="https://manage.iqasport.com/privacy">Privacy Policy</a>
           , please review and accept.
         </p>
         <div className="flex justify-end">
