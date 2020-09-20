@@ -12,7 +12,10 @@ module Api
 
       def index
         page = params[:page] || 1
-        @national_governing_bodies = NationalGoverningBody.all.order(:name)
+        @national_governing_bodies = NationalGoverningBody
+          .includes(:social_accounts, :teams, :referees, :stats)
+          .all
+          .order(:name)
         ngbs_total = @national_governing_bodies.count
         @national_governing_bodies = @national_governing_bodies.page(page)
 
