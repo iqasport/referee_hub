@@ -1,4 +1,4 @@
-import { kebabCase } from 'lodash'
+import { isBoolean, kebabCase } from 'lodash'
 import React from 'react'
 
 import { Data } from 'MainApp/schemas/getTestSchema';
@@ -12,15 +12,16 @@ const Details = (props: DetailsProps) => {
   const { test } = props
   const dataToRender = test ? test.attributes : [];
 
-  const renderData = (entry: [string, string]) => {
+  const renderData = (entry: [string, string | boolean]) => {
     if (EXCLUDED_ATTRIBUTES.includes(entry[0])) return null
 
     const labelText = kebabCase(entry[0]).split('-').join(' ')
+    const dataText = isBoolean(entry[1]) ? String(entry[1]) : entry[1]
 
     return (
       <div key={entry[0]} className="my-4">
         <label className="uppercase text-md font-hairline text-gray-400">{labelText}</label>
-        <p>{entry[1]}</p>
+        <p>{dataText}</p>
       </div>
     )
   }

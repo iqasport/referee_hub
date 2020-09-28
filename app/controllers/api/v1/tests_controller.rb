@@ -126,7 +126,8 @@ module Api
           :time_limit,
           :active,
           :testable_question_count,
-          :certification_id
+          :certification_id,
+          :recertification
         )
       end
 

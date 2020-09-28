@@ -33,6 +33,7 @@ export interface Attributes {
   testableQuestionCount: number;
   updatedAt: string;
   certificationId: number;
+  recertification: boolean;
 }
 
 export interface Included {

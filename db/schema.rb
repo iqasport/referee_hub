@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_29_232341) do
+ActiveRecord::Schema.define(version: 2020_09_20_181132) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -306,6 +306,7 @@ ActiveRecord::Schema.define(version: 2020_07_29_232341) do
     t.string "language"
     t.boolean "active", default: false, null: false
     t.integer "testable_question_count", default: 0, null: false
+    t.boolean "recertification", default: false
   end
 
   create_table "users", force: :cascade do |t|
