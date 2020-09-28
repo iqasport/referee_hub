@@ -1,6 +1,8 @@
 import { DateTime, Info } from 'luxon'
 
 export function toDateTime(timestamp: string): DateTime {
+  if (!timestamp) return DateTime.local()
+
   return DateTime.fromSQL(timestamp.slice(0, -3).trim())
 }
 
@@ -10,7 +12,7 @@ export function getMonths(): string[] {
   const currentMonth = DateTime.local().month
   // get the previous month because the current month will never have a stat
   const prevMonthIndex = currentMonth === 1 ? 12 : currentMonth - 1
-  const splicedMonths = monthsCopy.splice(prevMonthIndex )
+  const splicedMonths = monthsCopy.splice(prevMonthIndex)
 
   return splicedMonths.concat(monthsCopy)
 }

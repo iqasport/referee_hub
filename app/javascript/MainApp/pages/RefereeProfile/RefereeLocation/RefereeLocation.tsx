@@ -36,14 +36,23 @@ const RefereeLocation = (props: LocationProps) => {
   };
 
   const getNgbName = (type: string): string => {
-    const ngbId = locations.find(
-      (location) => location.associationType === type
-    )?.nationalGoverningBodyId;
+    let ngbId: number
+    if (Object.values(value).includes('type')) {
+      ngbId = Number(Object.entries(value).find((association) => association[1] === type)[0])
+    } else {
+      ngbId = locations.find(
+        (location) => location.associationType === type
+      )?.nationalGoverningBodyId;
+    }
     
     return ngbs.find((ngb) => ngb.nationalGoverningBodyId === ngbId)?.name;
   };
 
   const getSelectedNgb = (type: string) => {
+    if (Object.values(value).includes(type)) {
+      return Object.entries(value).find((association) => association[1] === type)[0]
+    }
+
     return locations.filter(location => location.associationType === type)[0]?.nationalGoverningBodyId
   }
 
@@ -52,7 +61,7 @@ const RefereeLocation = (props: LocationProps) => {
     const newNGB = event.target.value
     const isBlank = newNGB === '-1'
     const hasTypeInValue = Object.values(value).includes(type)
-    
+
     if (hasTypeInValue && !isBlank) {
       const filtered = omitBy(value, (existingType: string) => existingType === type)
       updatedValue = Object.assign(filtered, { [event.target.value]: type })

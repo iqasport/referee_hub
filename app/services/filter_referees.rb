@@ -40,11 +40,12 @@ module Services
     def filter_by_national_governing_body
       return relation if national_governing_bodies.blank?
 
-      query_hash = if Flipper.enabled?(:new_design)
-                     { referee_locations: { national_governing_body_id: national_governing_bodies, association_type: 'primary' } }
-                   else
-                     { national_governing_bodies: { id: national_governing_bodies } }
-                   end
+      query_hash = {
+        referee_locations: {
+          national_governing_body_id: national_governing_bodies,
+          association_type: 'primary'
+        }
+      }
 
       relation.where(query_hash)
     end

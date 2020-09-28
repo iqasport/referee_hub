@@ -7,8 +7,8 @@ import React from 'react'
 import { UpdateRefereeRequest } from 'MainApp/apis/referee';
 import Toggle from 'MainApp/components/Toggle';
 import { DataAttributes, IncludedAttributes } from 'MainApp/schemas/getRefereeSchema';
+import { getRefereeCertVersion } from 'MainApp/utils/certUtils';
 import { toDateTime } from 'MainApp/utils/dateUtils';
-import { getRefereeCertVersion } from 'MainApp/utils/newCertUtils';
 import HeaderButtons from './HeaderButtons';
 import HeaderImage from './HeaderImage';
 import HeaderName from './HeaderName';
@@ -60,7 +60,7 @@ const RefereeHeader = (props: HeaderProps) => {
     if (isEditing) return null
 
     return certifications.map(certification => (
-      <div key={certification.level} className="bg-green py-2 px-6 rounded mr-5">
+      <div key={`${certification.level}-${certification.version}`} className="bg-white text-green border border-green py-2 px-6 rounded mr-5 mt-4">
         {`${capitalize(certification.level)} (${getRefereeCertVersion(certification)})`}
       </div>
     ))
@@ -115,7 +115,7 @@ const RefereeHeader = (props: HeaderProps) => {
       return (
         <textarea 
           aria-multiline="true" 
-          className="bg-gray-200 rounded p-4 text-lg block w-full"
+          className="bg-gray-200 rounded p-4 text-lg block w-full mb-4"
           style={{resize: 'none'}} 
           onChange={handleChange('bio')} 
           value={updatedValues.bio} 
@@ -140,10 +140,10 @@ const RefereeHeader = (props: HeaderProps) => {
               />
             }
           </div>
-          <div className="flex items-center w-full">
+          <div className="flex items-center flex-wrap">
             {renderCertifications()}
           </div>
-          <div className="justify-end w-1/2 hidden md:flex lg:flex xl:flex">
+          <div className="justify-end hidden md:flex lg:flex xl:flex">
             {referee.isEditable && (
               <HeaderButtons
                 isEditing={isEditing}
@@ -158,7 +158,7 @@ const RefereeHeader = (props: HeaderProps) => {
           {renderJoined()}
           {renderPronouns()}
         </div>
-        <div className="text-2xl mb-4 h-24">{renderBio()}</div>
+        <div className="text-2xl mb-4">{renderBio()}</div>
       </div>
     </div>
   );

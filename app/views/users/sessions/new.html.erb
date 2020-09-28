@@ -1,112 +1,63 @@
-<% if Flipper.enabled?(:new_design) %>
-  <div class="main-background static h-screen w-full overflow-hidden">
-    <%= image_tag 'background1.png', class: '-z-1 object-cover' %>
-    <div class="z-1 absolute inset-0 h-full w-full p-12" style="background-color: rgba(114, 186, 108, 0.8);">
-      <div class="flex h-full">
-        <div class="flex-1 w-1/2">
-          <%= image_tag 'IQA_long_white.png' %>
-          <h1 class="text-5xl font-bold text-white text-center w-full">
-            Management Hub
-          <h1>
-        </div>
-        <div class="bg-white rounded-lg w-1/2 h-900 p-8 flex-1">
-          <%= devise_error_messages! %>
-          <h1 class="text-4xl font-bold text-navy-blue">Welcome back!</h1>
-          <h2 class="text-2xl font-thin text-navy-blue">Please sign in below.</h2>
-          <div class="mt-10">
-            <%= form_for(
-              resource,
-              as: resource_name,
-              url: new_user_session_path,
-              html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
-              ) do |f| %>
+<div class="main-background static h-screen w-full overflow-hidden">
+  <%= image_tag 'background1.png', class: '-z-1 object-cover' %>
+  <div class="z-1 absolute inset-0 h-full w-full p-12" style="background-color: rgba(114, 186, 108, 0.8);">
+    <div class="flex h-full">
+      <div class="flex-1 w-1/2">
+        <%= image_tag 'IQA_long_white.png' %>
+        <h1 class="text-5xl font-bold text-white text-center w-full">
+          Management Hub
+        <h1>
+      </div>
+      <div class="bg-white rounded-lg w-1/2 h-900 p-8 flex-1">
+        <%= devise_error_messages! %>
+        <h1 class="text-4xl font-bold text-navy-blue">Welcome back!</h1>
+        <h2 class="text-2xl font-thin text-navy-blue">Please sign in below.</h2>
+        <div class="mt-10">
+          <%= form_for(resource, as: resource_name, url: new_user_session_path) do |f| %>
+            <div class="bottom-border-input mb-10">
+              <%= inline_svg_tag 'email.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%=
+                f.email_field :email,
+                autocomplete: 'email',
+                class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
+                placeholder: 'youremail@example.com' %>
+            </div>
 
-              <div class="bottom-border-input mb-10">
-                <%= inline_svg_tag 'email.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
-                <%= 
-                  f.email_field :email, 
-                  autocomplete: 'email', 
-                  class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
-                  placeholder: 'youremail@example.com' %>
-              </div>
+            <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-5">
+              <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%=
+                f.password_field :password,
+                autocomplete: 'off',
+                class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
+                placeholder: 'Password' %>
+            </div>
 
-              <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-5">
-                <%= inline_svg_tag 'password.svg', aria: true, title: 'Email', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
-                <%= 
-                  f.password_field :password, 
-                  autocomplete: 'off', 
-                  class: 'appearance-none block w-full text-gray-700 leading-tight focus:outline-none',
-                  placeholder: 'Password' %>
-              </div>
-
-              <div class="flex justify-between mb-10 items-center">
-                <% if devise_mapping.rememberable? -%>
-                  <div class="flex-shrink flex text-navy-blue items-center">
-                    <%= f.check_box :remember_me, class: 'mr-2 form-checkbox text-green' %>
-                    <%= f.label :remember_me, 'Keep me signed in' %>
-                  </div>
-                <% end -%>
-                <div class="flex-shrink">
-                  <%= link_to 'Resend confirmation instructions?', new_user_confirmation_path, class: 'text-navy-blue' %>
+            <div class="flex justify-between mb-10 items-center">
+              <% if devise_mapping.rememberable? -%>
+                <div class="flex-shrink flex text-navy-blue items-center">
+                  <%= f.check_box :remember_me, class: 'mr-2 form-checkbox text-green' %>
+                  <%= f.label :remember_me, 'Keep me signed in' %>
                 </div>
-                <div class="flex-shrink">
-                  <%= link_to 'Forgot password?', new_user_password_path, class: 'text-navy-blue' %>
-                </div>
+              <% end -%>
+              <div class="flex-shrink">
+                <%= link_to 'Resend confirmation instructions?', new_user_confirmation_path, class: 'text-navy-blue' %>
               </div>
+              <div class="flex-shrink">
+                <%= link_to 'Forgot password?', new_user_password_path, class: 'text-navy-blue' %>
+              </div>
+            </div>
 
-              <div class="flex flex-col w-1/2 items-center m-auto">
-                <%= f.submit "Log in", class: 'w-1/2 bg-navy-blue text-white font-bold py-2 px-8 rounded m-4' %>
-                <span class="text-navy-blue">Don't have an account?</span>
-                <%=
-                  link_to 'Create Account', 
-                  user_registration_path, 
-                  class: 'appearance-none text-center w-1/2 bg-white border-2 border-navy-blue text-navy-blue font-bold py-2 px-4 rounded m-0'%>
-              </div>
-            <% end %>
-          </div>
+            <div class="flex flex-col w-1/2 items-center m-auto">
+              <%= f.submit "Log in", class: 'w-1/2 bg-navy-blue text-white font-bold py-2 px-8 rounded m-4 cursor-pointer' %>
+              <span class="text-navy-blue">Don't have an account?</span>
+              <%=
+                link_to 'Create Account',
+                user_registration_path,
+                class: 'appearance-none text-center w-1/2 bg-white border-2 border-navy-blue text-navy-blue font-bold py-2 px-4 rounded m-0 cursor-pointer'%>
+            </div>
+          <% end %>
         </div>
       </div>
     </div>
   </div>
-<% else %>
-  <div class='ui container center grid' style='flex:1;margin-top: 50px;width: 80%;'>
-    <div class='column'>
-      <h2 class='ui header'>
-        <div>Log in</div>
-      </h2>
-
-      <%= form_for(
-        resource,
-        as: resource_name,
-        url: new_user_session_path,
-        html: { class: (devise_error_messages? ? 'ui large form error' : 'ui large form')}
-        ) do |f| %>
-        <%= devise_error_messages! %>
-
-        <div class='ui stacked segment'>
-          <div class="<%= email_error? ? 'field error' : 'field' %>">
-            <%= f.label :email %><br />
-            <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-          </div>
-
-          <div class="<%= password_error? ? 'field error' : 'field' %>">
-            <%= f.label :password %><br />
-            <%= f.password_field :password, autocomplete: "off" %>
-            <%= link_to 'Forgot Password?', new_user_password_path %>
-          </div>
-
-          <% if devise_mapping.rememberable? -%>
-            <div class="field">
-              <div class="ui checkbox">
-                <%= f.check_box :remember_me %>
-                <%= f.label :remember_me %>
-              </div>
-            </div>
-          <% end -%>
-
-          <%= f.submit "Log in", class: 'ui fluid large submit button' %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-<% end -%>
+</div>

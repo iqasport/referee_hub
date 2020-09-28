@@ -2,6 +2,10 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+body {
+    font-family: "Lato", Helvetica, Arial, sans-serif;
+}
+
 .error-message {
     @apply bg-red-100;
     @apply border;

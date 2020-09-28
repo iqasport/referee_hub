@@ -1,8 +1,8 @@
 import classnames from 'classnames'
 import React, { useState } from 'react'
 
-import NewRefereeTable from '../../components/NewRefereeTable'
-import TeamTable from '../../components/TeamTable'
+import NewRefereeTable from '../../components/tables/RefereeTable'
+import TeamTable from '../../components/tables/TeamTable'
 
 enum SelectedTable {
   Referees = 'referees',

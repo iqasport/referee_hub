@@ -13,7 +13,7 @@ module DeviseHelper
   end
 
   def devise_error_messages?
-    !resource.errors.empty? || flash_errors?
+    !resource.errors.blank? || flash_errors?
   end
 
   def flash_errors?

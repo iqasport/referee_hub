@@ -39,6 +39,7 @@ gem 'loofah', '>= 2.2.3'
 gem 'rack', '2.1.4'
 gem 'barnes', '0.0.8'
 gem 'bugsnag', '~> 6.11'
+gem 'scout_apm'
 
 # job queuing
 gem 'sidekiq'
@@ -91,7 +92,7 @@ group :test do
   gem 'selenium-webdriver'
   # Easy installation and use of chromedriver to run system tests with Chrome
   gem 'chromedriver-helper'
-  gem 'codecov', require: false
+  gem 'codecov', '~> 0.2.11', require: false
   gem 'timecop'
   gem 'stripe-ruby-mock'
 end

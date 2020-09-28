@@ -3,7 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
 import { AssociationData, UpdateRefereeRequest } from 'MainApp/apis/referee';
-import AdminCertificationsModal from 'MainApp/components/AdminCertificationsModal';
+import AdminCertificationsModal from 'MainApp/components/modals/AdminCertificationsModal';
 import TestResultCards from 'MainApp/components/TestResultCards'
 import { updateUserPolicy } from 'MainApp/modules/currentUser/currentUser'
 import { fetchReferee, updateReferee } from 'MainApp/modules/referee/referee';
@@ -83,7 +83,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
       <div className="w-full bg-yellow-lighter py-4 px-10 flex items-center justify-between">
         <p>
           {'We have updated our '}
-          <a target="_blank" rel="noopener noreferrer" href="https://www.iqareferees.org/privacy">Privacy Policy</a>
+          <a target="_blank" rel="noopener noreferrer" href="https://manage.iqasport.com/privacy">Privacy Policy</a>
           , please review and accept.
         </p>
         <div className="flex justify-end">

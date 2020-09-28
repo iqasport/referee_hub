@@ -70,6 +70,7 @@ const Sidebar = (props: SidebarProps) => {
         key={`${account.accountType}-${index}`}
         href={account.url}
         target="_blank"
+        rel="noopener noreferrer"
         className={classnames("mr-4", iconConfig.color)}
       >
         <FontAwesomeIcon icon={iconConfig.icon} className="text-3xl" />
@@ -116,7 +117,7 @@ const Sidebar = (props: SidebarProps) => {
       </div>
       <DataLabel label="website" customClass="w-full">
         <h3 className="text-navy-blue font-bold pt-2 truncate">
-          <a href={ngb.website} target="_blank">{ngb.website}</a>
+          <a href={ngb.website} rel="noopener noreferrer" target="_blank">{ngb.website}</a>
         </h3>
       </DataLabel>
       <DataLabel label="social media" customClass="w-full">
