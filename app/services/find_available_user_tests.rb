@@ -1,6 +1,7 @@
 module Services
   class FindAvailableUserTests
     attr_reader :user, :potential_versions
+    attr_accessor :potential_tests
 
     def initialize(user)
       @user = user
@@ -8,7 +9,7 @@ module Services
     end
 
     def perform
-      return Test.active.where(level: 'assistant') if certifications.blank?
+      return Test.active.where(level: 'assistant') if certifications.blank? && test_attempts.blank?
 
       grouped_certs = certifications.group_by { |cert| cert.version }
       levels_to_return = {}.tap do |certs_to_return|
@@ -18,16 +19,14 @@ module Services
         end
 
         potential_versions.each do |version|
-          if !certs_to_return[version]
+          if !certs_to_return[version] && !certifications.where(version: version, level: 'head').exists?
             certs_to_return[version] = 'assistant'
           end
         end
       end
 
-      potential_tests = Test.active.where(certification_id: find_certification_ids(levels_to_return))
-      if test_attempts.present?
-        return potential_tests.where(id: find_valid_test_ids(potential_tests))
-      end
+      @potential_tests = Test.active.where(certification_id: find_certification_ids(levels_to_return))
+      return get_tests if test_attempts.present?
 
       potential_tests
     end
@@ -72,16 +71,43 @@ module Services
       cert_ids.flatten
     end
 
-    def find_valid_test_ids(potential_tests)
-      valid_test_attempts = test_attempts.where(test_id: potential_tests.pluck(:id)).filter do |test_attempt|
-        test_attempt.next_attempt_at < DateTime.now
-      end
+    def find_valid_test_ids
+      [].tap do |valid_test_ids|
+        potential_tests.each do |t|
+          if test_attempts.blank?
+            valid_test_ids.push(t.id)
+            next
+          end
 
-      valid_test_attempts.map(&:test_id)
+          next if test_attempts.where(test_id: t.id).first&.in_cool_down_period?
+
+          valid_test_ids.push(t.id)
+        end
+      end
     end
 
     def has_paid(cert_ids)
       user.certification_payments.where(certification_id: cert_ids).exists?
+    end
+
+    def get_tests
+      valid_test_ids = find_valid_test_ids
+      potential_levels = potential_tests.pluck(:level).uniq
+      test_ids = valid_test_ids
+
+      potential_levels.each do |level|
+        level_tests = potential_tests.where(level: level, id: valid_test_ids)
+        recert_ids = level_tests.where(recertification: true).pluck(:id)
+
+        if certifications.where(level: level).exists?
+          ids_to_remove = level_tests.pluck(:id).difference(recert_ids)
+          test_ids.reject! { |id| ids_to_remove.include?(id) }
+        else
+          test_ids.reject! { |id| recert_ids.include?(id) }
+        end
+      end
+
+      potential_tests.where(id: test_ids.flatten.uniq)
     end
   end
 end
