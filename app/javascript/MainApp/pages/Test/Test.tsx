@@ -10,6 +10,7 @@ import TestEditModal from 'MainApp/components/modals/TestEditModal'
 import WarningModal from 'MainApp/components/modals/WarningModal'
 import QuestionsManager from 'MainApp/components/QuestionsManager'
 import Toggle from 'MainApp/components/Toggle'
+import { CurrentUserState } from 'MainApp/modules/currentUser/currentUser'
 import { exportTest } from 'MainApp/modules/job/job'
 import { deleteTest, getTest, updateTest } from 'MainApp/modules/test/test'
 import { RootState } from 'MainApp/rootReducer'
@@ -38,6 +39,9 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
   const dispatch = useDispatch()
   const history = useHistory()
   const { test, isLoading } = useSelector((state: RootState) => state.test, shallowEqual)
+  const { roles } = useSelector((state: RootState): CurrentUserState => state.currentUser, shallowEqual)
+  if (!roles.includes('iqa_admin')) history.goBack()
+
   const isSelected = (tab: SelectedTab) => selectedTab === tab
 
   useEffect(() => {

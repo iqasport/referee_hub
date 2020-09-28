@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { UpdateTestRequest } from 'MainApp/apis/test';
+import Toggle from 'MainApp/components/Toggle';
 import { getCertifications } from 'MainApp/modules/certification/certifications';
 import { createTest, getTest, updateTest } from 'MainApp/modules/test/test';
 import { RootState } from 'MainApp/rootReducer';
 import { TestLevel } from 'MainApp/schemas/getTestSchema';
+
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
 
 type UpdateCertification = {
@@ -38,6 +40,7 @@ const initialNewTest: UpdateTestRequest = {
   name: '',
   negativeFeedback: '',
   positiveFeedback: '',
+  recertification: false,
   testableQuestionCount: 0,
   timeLimit: 0,
 }
@@ -83,14 +86,14 @@ const TestEditModal = (props: TestEditModalProps) => {
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey)
 
   useEffect(() => {
-    if (testId && !test) {
+    if (testId && testId !== test?.id) {
       dispatch(getTest(testId))
     }
-  }, [testId, dispatch])
+  }, [testId, test, dispatch])
 
   useEffect(() => {
-    if (test) {
-      setNewTest({ ...test.attributes })
+    if (test && testId) {
+      setNewTest({ ...test?.attributes })
       setNewCert({ level: certification.level, version: certification.version })
     }
   }, [test, certification])
@@ -130,6 +133,14 @@ const TestEditModal = (props: TestEditModalProps) => {
     } else {
       setNewTest({ ...newTest, [name]: value })
     }
+  }
+
+  const handleToggleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.checked
+
+    if (!hasChangedTest) setHasChangedTest(true)
+
+    setNewTest({ ...newTest, recertification: value })
   }
 
   const handleClose = () => {
@@ -321,6 +332,14 @@ const TestEditModal = (props: TestEditModalProps) => {
             />
             {renderError('timeLimit')}
           </label>
+        </div>
+        <div className="w-full text-left">
+          <Toggle
+            onChange={handleToggleChange}
+            name="recertification"
+            label="Recertification Test?"
+            checked={newTest.recertification}
+          />
         </div>
         <div className="w-full text-center">
           <button
