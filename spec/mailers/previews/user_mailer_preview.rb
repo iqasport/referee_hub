@@ -65,4 +65,41 @@ class UserMailerPreview < ActionMailer::Preview
 
     UserMailer.with(user: user, csv: csv).export_csv_email
   end
+
+  def recertification_failure_email
+    started_at = Time.now.utc.to_s
+    finished_at = (Time.now.utc + 15.minutes).to_s
+
+    referee = User.create(
+      first_name: 'Test',
+      last_name: 'Testerton',
+      email: "#{FFaker::Name.first_name}.tester@example.com",
+      password: 'password'
+    )
+    referee.confirm_all_policies!
+
+    test = Test.create!(
+      level: 'snitch',
+      name: 'Snitch Referee Test',
+      negative_feedback: 'You did bad',
+      positive_feedback: 'You did good',
+      description: 'A snitch test',
+      certification: Certification.find_by(level: 'snitch')
+    )
+
+    test_result = TestResult.create!(
+      test: test,
+      duration: '00:15:00',
+      passed: false,
+      minimum_pass_percentage: 50,
+      percentage: 10,
+      points_available: 100,
+      points_scored: 10,
+      time_finished: finished_at,
+      time_started: started_at,
+      referee: referee
+    )
+
+    UserMailer.with(referee: referee, test_result: test_result).recertification_failure_email
+  end
 end

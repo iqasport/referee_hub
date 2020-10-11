@@ -17,7 +17,12 @@ module Services
       find_or_create_test_attempt
       create_referee_answers
       test_result = grade_answers
-      send_result_email(test_result) unless skip_email || test_result.blank?
+
+      if test_result.present? && !skip_email
+        send_result_email(test_result)
+        send_failure_email(test_result) unless test_result&.passed?
+      end
+
       test_result
     end
 
@@ -109,6 +114,15 @@ module Services
       UserMailer
         .with(referee: referee, test_attempt: test_attempt, test_result: test_result)
         .referee_answer_feedback_email
+        .deliver_later
+    end
+
+    def send_failure_email(test_result)
+      return unless test_result.test.recertification?
+
+      UserMailer
+        .with(referee: referee, test_result: test_result)
+        .recertification_failure_email
         .deliver_later
     end
   end
