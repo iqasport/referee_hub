@@ -140,4 +140,42 @@ describe Services::GradeFinishedTest do
       expect(subject).to have_attributes(expected_test_result)
     end
   end
+
+  context 'when the test is a recertification and the referee fails' do
+    let(:test) { create :test, recertification: true }
+    let(:referee_answers) do
+      questions.map do |question|
+        answer = question.answers.where(correct: false).first
+        { question_id: question.id, answer_id: answer.id }
+      end
+    end
+    let(:skip_email) { false }
+
+    it 'enqueues a result email' do
+      ActiveJob::Base.queue_adapter = :test
+      expect { subject }.to have_enqueued_job.on_queue('mailers').exactly(:twice)
+    end
+
+    it 'delivers the email' do
+      expect { perform_enqueued_jobs { subject } }.to change { ActionMailer::Base.deliveries.size }.by(2)
+    end
+
+    it 'sends to the correct referee' do
+      perform_enqueued_jobs do
+        subject
+      end
+
+      sent_mail = ActionMailer::Base.deliveries.first
+      expect(sent_mail.to[0]).to eq referee.email
+    end
+
+    it 'sends the failure email to gameplay' do
+      perform_enqueued_jobs do
+        subject
+      end
+
+      sent_mail = ActionMailer::Base.deliveries.last
+      expect(sent_mail.to[0]).to eq 'gameplay@iqasport.org'
+    end
+  end
 end
