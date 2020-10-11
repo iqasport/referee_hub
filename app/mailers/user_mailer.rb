@@ -19,4 +19,11 @@ class UserMailer < ApplicationMailer
 
     mail(to: @user.email, subject: "Your #{export_type} is ready")
   end
+
+  def recertification_failure_email
+    @test_result = params[:test_result]
+    @referee = params[:referee]
+
+    mail(to: 'gameplay@iqasport.org', subject: "#{@test_result.test.name} Recertification Failure")
+  end
 end
