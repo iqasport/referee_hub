@@ -28,7 +28,7 @@ class Test < ApplicationRecord
   MAXIMUM_RETRIES = 6
 
   belongs_to :certification
-  belongs_to :language, foreign_key: 'new_language_id', optional: true
+  belongs_to :new_language, foreign_key: 'new_language_id', optional: true
 
   has_many :questions, dependent: :destroy
   has_many :referee_answers, dependent: :nullify
