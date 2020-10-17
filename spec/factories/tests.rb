@@ -17,18 +17,17 @@
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  certification_id        :integer
-#  language_id             :integer
+#  new_language_id         :integer
 #
 
 require 'ffaker'
 
 FactoryBot.define do
   factory :test do
-    level 1
+    level { 1 }
     name { "#{FFaker::Job.title} Test" }
     description { FFaker::Lorem.paragraph }
-    language { FFaker::Locale.language }
-    testable_question_count 5
+    testable_question_count { 5 }
     certification { create :certification }
   end
 end

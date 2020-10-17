@@ -95,7 +95,7 @@ class User < ApplicationRecord
 
   has_one_attached :avatar
 
-  belongs_to :language
+  belongs_to :language, optional: true
 
   scope :certified, -> { joins(:certifications).group('users.id') }
   scope :referee, -> { where(roles: { access_type: 'referee' }) }

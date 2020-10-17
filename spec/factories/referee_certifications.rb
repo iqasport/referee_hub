@@ -22,8 +22,8 @@ FactoryBot.define do
     referee { create :user }
     certification { create :certification }
     received_at { DateTime.now.utc }
-    revoked_at nil
-    renewed_at nil
+    revoked_at { nil }
+    renewed_at { nil }
 
     trait :snitch do
       certification { create :certification, :snitch }

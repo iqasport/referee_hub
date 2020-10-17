@@ -1,6 +1,5 @@
 class CreateLanguages < ActiveRecord::Migration[6.0]
   def up
-    # create hash of language key to hash of regions, short_name value
     language_hash = {
       'English' => {
         short_name: 'en',

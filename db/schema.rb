@@ -316,7 +316,7 @@ ActiveRecord::Schema.define(version: 2020_10_16_200557) do
     t.boolean "active", default: false, null: false
     t.integer "testable_question_count", default: 0, null: false
     t.boolean "recertification", default: false
-    t.integer "language_id"
+    t.integer "new_language_id"
   end
 
   create_table "users", force: :cascade do |t|
