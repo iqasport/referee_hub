@@ -17,6 +17,7 @@
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  certification_id        :integer
+#  language_id             :integer
 #
 
 class Test < ApplicationRecord
@@ -27,6 +28,7 @@ class Test < ApplicationRecord
   MAXIMUM_RETRIES = 6
 
   belongs_to :certification
+  belongs_to :language
 
   has_many :questions, dependent: :destroy
   has_many :referee_answers, dependent: :nullify

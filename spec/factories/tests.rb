@@ -17,6 +17,7 @@
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  certification_id        :integer
+#  language_id             :integer
 #
 
 require 'ffaker'

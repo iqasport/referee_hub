@@ -37,6 +37,7 @@
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #  invited_by_id          :bigint
+#  language_id            :integer
 #  stripe_customer_id     :string
 #
 # Indexes
