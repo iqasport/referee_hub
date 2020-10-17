@@ -14,6 +14,6 @@
 FactoryBot.define do
   factory :test_attempt do
     referee { create :user }
-    test_level 0
+    test_level { 0 }
   end
 end

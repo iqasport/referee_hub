@@ -17,6 +17,7 @@
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  certification_id        :integer
+#  new_language_id         :integer
 #
 
 class TestSerializer < BaseSerializer

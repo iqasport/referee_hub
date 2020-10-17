@@ -21,7 +21,7 @@
 
 FactoryBot.define do
   factory :national_governing_body_admin do
-    user nil
-    national_governing_body nil
+    user { nil }
+    national_governing_body { nil }
   end
 end

@@ -29,8 +29,8 @@ FactoryBot.define do
     city { FFaker::AddressUS.city }
     state { FFaker::AddressUS.state }
     country { FFaker::AddressUS.country }
-    status 0
-    group_affiliation 0
+    status { 0 }
+    group_affiliation { 0 }
     national_governing_body { create :national_governing_body }
   end
 end

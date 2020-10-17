@@ -19,7 +19,7 @@
 
 FactoryBot.define do
   factory :exported_csv do
-    type 'ExportedCsv::TeamExport'
+    type { 'ExportedCsv::TeamExport' }
     user
   end
 end

@@ -95,6 +95,7 @@ group :test do
   gem 'codecov', '~> 0.2.11', require: false
   gem 'timecop'
   gem 'stripe-ruby-mock'
+  gem 'rubocop-rspec'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

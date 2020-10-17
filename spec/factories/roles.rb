@@ -21,6 +21,6 @@
 FactoryBot.define do
   factory :role do
     user { create :user }
-    access_type 0
+    access_type { 0 }
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_20_181132) do
+ActiveRecord::Schema.define(version: 2020_10_16_200557) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,6 +90,15 @@ ActiveRecord::Schema.define(version: 2020_09_20_181132) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["feature_key", "key", "value"], name: "index_flipper_gates_on_feature_key_and_key_and_value", unique: true
+  end
+
+  create_table "languages", force: :cascade do |t|
+    t.string "long_name", default: "english", null: false
+    t.string "short_name", default: "en", null: false
+    t.string "long_region"
+    t.string "short_region"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "national_governing_bodies", force: :cascade do |t|
@@ -307,6 +316,7 @@ ActiveRecord::Schema.define(version: 2020_09_20_181132) do
     t.boolean "active", default: false, null: false
     t.integer "testable_question_count", default: 0, null: false
     t.boolean "recertification", default: false
+    t.integer "new_language_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -345,6 +355,7 @@ ActiveRecord::Schema.define(version: 2020_09_20_181132) do
     t.integer "invitations_count", default: 0
     t.boolean "export_name", default: true
     t.string "stripe_customer_id"
+    t.integer "language_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true

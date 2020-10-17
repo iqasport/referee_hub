@@ -13,7 +13,7 @@
 FactoryBot.define do
   factory :answer do
     question { create :question }
-    description 'MyText'
-    correct false
+    description { 'MyText' }
+    correct { false }
   end
 end

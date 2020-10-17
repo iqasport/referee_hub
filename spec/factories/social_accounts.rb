@@ -17,9 +17,9 @@
 
 FactoryBot.define do
   factory :social_account do
-    ownable_type 'Team'
-    ownable_id 1
-    url 'www.facebook.com'
-    account_type 1
+    ownable_type { 'Team' }
+    ownable_id { 1 }
+    url { 'www.facebook.com' }
+    account_type { 1 }
   end
 end

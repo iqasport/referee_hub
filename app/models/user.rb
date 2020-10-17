@@ -37,6 +37,7 @@
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #  invited_by_id          :bigint
+#  language_id            :integer
 #  stripe_customer_id     :string
 #
 # Indexes
@@ -93,6 +94,8 @@ class User < ApplicationRecord
   has_many :certification_payments, dependent: :destroy
 
   has_one_attached :avatar
+
+  belongs_to :language, optional: true
 
   scope :certified, -> { joins(:certifications).group('users.id') }
   scope :referee, -> { where(roles: { access_type: 'referee' }) }

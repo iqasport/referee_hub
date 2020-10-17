@@ -58,7 +58,6 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     let(:body_data) do
       {
         description: 'I am a test',
-        language: 'English',
         level: 'snitch',
         minimum_pass_percentage: 85,
         name: 'Test Name',

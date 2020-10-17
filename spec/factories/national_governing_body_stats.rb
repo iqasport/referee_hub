@@ -34,9 +34,9 @@
 FactoryBot.define do
   factory :national_governing_body_stat do
     national_governing_body { create :national_governing_body }
-    total_referees_count 1
-    head_referees_count 1
-    assistant_referees_count 1
-    snitch_referees_count 1
+    total_referees_count { 1 }
+    head_referees_count { 1 }
+    assistant_referees_count { 1 }
+    snitch_referees_count { 1 }
   end
 end

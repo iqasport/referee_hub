@@ -21,7 +21,7 @@
 FactoryBot.define do
   factory :team_status_changeset do
     team { create :team }
-    previous_status 'inactive'
-    new_status 'developing'
+    previous_status { 'inactive' }
+    new_status { 'developing' }
   end
 end
