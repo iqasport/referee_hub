@@ -1,8 +1,8 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      before_action :authenticate_user!, only: %w[accept_policies reject_policies update_avatar]
-      before_action :find_user, only: %w[accept_policies reject_policies update_avatar]
+      before_action :authenticate_user!, only: %w[accept_policies reject_policies update_avatar update]
+      before_action :find_user, only: %w[accept_policies reject_policies update_avatar update]
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -11,7 +11,7 @@ module Api
         raise StandardError, 'Not logged in' unless current_user.present?
 
         json_string = UserSerializer.new(current_user, serializer_options).serialized_json
-        
+
         render json: json_string, status: :ok
       rescue => exception
         render json: { error: exception }, status: :unprocessable_entity
@@ -41,7 +41,18 @@ module Api
         render json: json_string, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
-        render json: { error: "Error updating avatar: #{exception}" }, status: :unprocessable_entity
+        render json: { error: @user.errors.full_messages }, status: :unprocessable_entity
+      end
+
+      def update
+        @user.update!(permitted_params)
+
+        json_string = UserSerializer.new(@user, serializer_options).serialized_json
+
+        render json: json_string, status: :ok
+      rescue => exception
+        Bugsnag.notify(exception)
+        render json: { error: @user.errors.full_messages }, status: :unprocessable_entity
       end
 
       private
@@ -52,9 +63,13 @@ module Api
 
       def serializer_options
         @serializer_options ||= {
-          include: %i[roles certification_payments],
+          include: %i[roles certification_payments language],
           params: { current_user: current_user }
         }
+      end
+
+      def permitted_params
+        params.permit(:language_id)
       end
     end
   end
