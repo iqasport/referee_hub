@@ -25,7 +25,8 @@ class Certification < ApplicationRecord
     snitch: 0,
     assistant: 1,
     head: 2,
-    field: 3
+    field: 3,
+    scorekeeper: 4
   }
 
   # refers to the year the rulebook version was released

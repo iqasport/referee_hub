@@ -3,11 +3,12 @@ require 'rails_helper'
 RSpec.describe Services::FindAvailableUserTests do
   let!(:user) { create :user }
   let!(:assistant_cert_eighteen) { create :certification }
-  let!(:assistant_cert_twenty) { create :certification, version: "twenty" }
+  let!(:assistant_cert_twenty) { create :certification, version: 'twenty' }
   let!(:snitch_cert_eighteen) { create :certification, :snitch }
-  let!(:snitch_cert_twenty) { create :certification, :snitch, version: "twenty" }
+  let!(:snitch_cert_twenty) { create :certification, :snitch, version: 'twenty' }
   let!(:head_cert_eighteen) { create :certification, :head }
-  let!(:head_cert_twenty) { create :certification, :head, version: "twenty" }
+  let!(:head_cert_twenty) { create :certification, :head, version: 'twenty' }
+  let!(:score_cert_eighteen) { create :certification, :scorekeeper }
   let!(:assistant_test_eighteen) do
     create :test, level: 'assistant', active: true, certification: assistant_cert_eighteen
   end
@@ -25,6 +26,9 @@ RSpec.describe Services::FindAvailableUserTests do
   end
   let!(:head_test_twenty) do
     create :test, level: 'head', active: true, certification: head_cert_twenty
+  end
+  let!(:score_test_eighteen) do
+    create :test, level: 'scorekeeper', active: true, certification: score_cert_eighteen
   end
 
   subject { described_class.new(user).perform }
@@ -85,6 +89,7 @@ RSpec.describe Services::FindAvailableUserTests do
   context 'with all certs in one version' do
     let!(:assistant_eighteen) { create :referee_certification, referee: user, certification: assistant_cert_eighteen }
     let!(:snitch_eighteen) { create :referee_certification, referee: user, certification: snitch_cert_eighteen }
+    let!(:scorekeeper_eighteen) { create :referee_certification, referee: user, certification: score_cert_eighteen }
     let!(:head_eighteen) { create :referee_certification, referee: user, certification: head_cert_eighteen }
 
     it 'only returns the assistant twenty test' do
@@ -110,7 +115,7 @@ RSpec.describe Services::FindAvailableUserTests do
     before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
 
     it 'returns the snitch eighteen and recert twenty' do
-      expect(subject.pluck(:id).length).to eq 2
+      expect(subject.pluck(:id).length).to eq 3
       expect(subject.pluck(:id)).to include(recert_assistant.id, snitch_test_eighteen.id)
     end
   end
@@ -146,7 +151,7 @@ RSpec.describe Services::FindAvailableUserTests do
       let!(:user) { create :user, language: other_language }
 
       it 'returns all languages' do
-        expect(subject.pluck(:id).length).to eq 4
+        expect(subject.pluck(:id).length).to eq 5
         expect(subject.pluck(:id)).to include(
           assistant_test_eighteen.id,
           assistant_test_twenty.id,
