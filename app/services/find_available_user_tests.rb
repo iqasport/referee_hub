@@ -6,10 +6,12 @@ module Services
     def initialize(user)
       @user = user
       @potential_versions = Certification.versions.keys
+      @potential_tests = Test.active.all
     end
 
     def perform
-      return Test.active.where(level: 'assistant') if certifications.blank? && test_attempts.blank?
+      @potential_tests = potential_tests.where(new_language_id: user.language_id) if filter_by_language?
+      return potential_tests.where(level: 'assistant') if certifications.blank? && test_attempts.blank?
 
       grouped_certs = certifications.group_by { |cert| cert.version }
       levels_to_return = {}.tap do |certs_to_return|
@@ -25,7 +27,7 @@ module Services
         end
       end
 
-      @potential_tests = Test.active.where(certification_id: find_certification_ids(levels_to_return))
+      @potential_tests = potential_tests.where(certification_id: find_certification_ids(levels_to_return))
       return get_tests if test_attempts.present?
 
       potential_tests
@@ -88,6 +90,11 @@ module Services
 
     def has_paid(cert_ids)
       user.certification_payments.where(certification_id: cert_ids).exists?
+    end
+
+    def filter_by_language?
+      test_languages = Test.all.pluck(:new_language_id).uniq
+      test_languages.include?(user.language_id)
     end
 
     def get_tests
