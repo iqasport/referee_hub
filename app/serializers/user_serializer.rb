@@ -53,7 +53,7 @@
 #
 
 class UserSerializer < BaseSerializer
-  attributes :first_name, :last_name, :avatar_url, :enabled_features, :owned_ngb_id
+  attributes :first_name, :last_name, :avatar_url, :enabled_features, :owned_ngb_id, :language_id
 
   attribute :has_pending_policies do |user, params|
     current_user = params.present? && params[:current_user]
@@ -63,4 +63,5 @@ class UserSerializer < BaseSerializer
 
   has_many :roles
   has_many :certification_payments
+  belongs_to :language
 end

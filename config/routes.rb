@@ -100,6 +100,7 @@ Rails.application.routes.draw do
       post 'users/:id/accept_policies' => 'users#accept_policies'
       post 'users/:id/reject_policies' => 'users#reject_policies'
       post 'users/:id/update_avatar' => 'users#update_avatar'
+      patch 'users/:id' => 'users#update'
       get 'checkouts/products' => 'checkouts#products'
       post 'checkouts' => 'checkouts#create'
       get 'checkouts/:id' => 'checkouts#show'
