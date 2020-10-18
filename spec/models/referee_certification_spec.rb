@@ -43,9 +43,10 @@ RSpec.describe RefereeCertification, type: :model do
     let(:snitch) { create :certification, :snitch }
     let(:assistant) { create :certification }
     let(:head) { create :certification, :head }
+    let(:score) { create :certification, :scorekeeper }
     let(:field) { create :certification, :field }
 
-    before { referee.certifications << [assistant, snitch] }
+    before { referee.certifications << [assistant, snitch, score] }
 
     context 'with the required certifications' do
       let(:ref_cert) { build :referee_certification, referee: referee, certification: head }

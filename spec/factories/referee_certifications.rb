@@ -32,5 +32,9 @@ FactoryBot.define do
     trait :head do
       certification { create :certification, :head }
     end
+
+    trait :scorekeeper do
+      certification { create :certification, :scorekeeper }
+    end
   end
 end

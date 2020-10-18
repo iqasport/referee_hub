@@ -6,6 +6,7 @@ RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
     let!(:referee) { create :user }
     let!(:assistant) { create :referee_certification, referee: referee }
     let!(:snitch) { create :referee_certification, :snitch, referee: referee }
+    let!(:score) { create :referee_certification, :scorekeeper, referee: referee }
     let!(:head) { create :referee_certification, :head, referee: referee }
 
     before { sign_in referee }
@@ -19,7 +20,7 @@ RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
 
       response_data = JSON.parse(response.body)['data']
 
-      expect(response_data.length).to eq 3
+      expect(response_data.length).to eq referee.certifications.count
     end
 
     context 'when there is not a signed in ref' do

@@ -10,6 +10,7 @@
 #  end_time                   :datetime
 #  head_referees_count        :integer          default(0)
 #  inactive_teams_count       :integer          default(0)
+#  scorekeeper_referees_count :integer          default(0)
 #  snitch_referees_count      :integer          default(0)
 #  start                      :datetime
 #  team_status_change_count   :integer          default(0)
