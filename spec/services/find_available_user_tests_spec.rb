@@ -114,4 +114,46 @@ RSpec.describe Services::FindAvailableUserTests do
       expect(subject.pluck(:id)).to include(recert_assistant.id, snitch_test_eighteen.id)
     end
   end
+
+  context 'when a user has selected a language' do
+    let!(:language) { create :language }
+    let!(:user) { create :user, language: language }
+    let!(:lang_assistant_eighteen) do
+      create(
+        :test,
+        level: 'assistant',
+        active: true,
+        certification: assistant_cert_eighteen,
+        new_language_id: language.id
+      )
+    end
+    let!(:lang_assistant_twenty) do
+      create(
+        :test,
+        level: 'assistant',
+        active: true,
+        certification: assistant_cert_twenty,
+        new_language_id: language.id
+      )
+    end
+
+    it "returns only the user's language tests" do
+      expect(subject.pluck(:id)).to include(lang_assistant_eighteen.id, lang_assistant_twenty.id)
+    end
+
+    context 'when user language is not associated with any test' do
+      let!(:other_language) { create :language }
+      let!(:user) { create :user, language: other_language }
+
+      it 'returns all languages' do
+        expect(subject.pluck(:id).length).to eq 4
+        expect(subject.pluck(:id)).to include(
+          assistant_test_eighteen.id,
+          assistant_test_twenty.id,
+          lang_assistant_eighteen.id,
+          lang_assistant_twenty.id
+        )
+      end
+    end
+  end
 end
