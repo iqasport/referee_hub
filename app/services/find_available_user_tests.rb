@@ -11,18 +11,18 @@ module Services
 
     def perform
       @potential_tests = potential_tests.where(new_language_id: user.language_id) if filter_by_language?
-      return potential_tests.where(level: 'assistant') if certifications.blank? && test_attempts.blank?
+      return potential_tests.where(level: ['assistant', 'scorekeeper']) if certifications.blank? && test_attempts.blank?
 
       grouped_certs = certifications.group_by { |cert| cert.version }
       levels_to_return = {}.tap do |certs_to_return|
         grouped_certs.each do |version, certs|
           cert = determine_cert_to_return(certs, version)
-          certs_to_return[version] = cert if cert
+          certs_to_return[version] = [cert, 'scorekeeper'] if cert
         end
 
         potential_versions.each do |version|
           if !certs_to_return[version] && !certifications.where(version: version, level: 'head').exists?
-            certs_to_return[version] = 'assistant'
+            certs_to_return[version] = ['assistant', 'scorekeeper']
           end
         end
       end

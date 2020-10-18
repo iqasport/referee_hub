@@ -28,7 +28,8 @@ module Services
         uncertified_count: referee_counts[:uncertified],      
         university_teams_count: team_counts[:university],
         youth_teams_count: team_counts[:team_counts],
-        national_governing_body_id: ngb_id     
+        national_governing_body_id: ngb_id,
+        scorekeeper_referees_count: referee_counts[:scorekeeper]
       )
     end
 
@@ -44,7 +45,8 @@ module Services
         snitch: referee_scope.snitch.count,
         head: referee_scope.head.count,
         uncertified: referee_scope.uncertified.count,
-        total: referee_scope.count
+        total: referee_scope.count,
+        scorekeeper: referee_scope.scorekeeper.count
       }
     end
 

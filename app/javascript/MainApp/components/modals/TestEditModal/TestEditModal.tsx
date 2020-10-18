@@ -28,7 +28,7 @@ const REQUIRED_TEST_FIELDS = [
   'negativeFeedback',
 ]
 const REQUIRED_CERT_FIELDS = ['version', 'level']
-const LEVEL_OPTIONS = ['snitch', 'assistant', 'head', 'field']
+const LEVEL_OPTIONS = ['snitch', 'assistant', 'head', 'field', 'scorekeeper']
 const VERSION_OPTIONS = ['eighteen', 'twenty']
 
 const initialNewTest: UpdateTestRequest = {

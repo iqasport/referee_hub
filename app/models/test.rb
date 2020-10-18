@@ -38,7 +38,8 @@ class Test < ApplicationRecord
   enum level: {
     snitch: 0,
     assistant: 1,
-    head: 2
+    head: 2,
+    scorekeeper: 3,
   }
 
   scope :active, -> { where(active: true) }

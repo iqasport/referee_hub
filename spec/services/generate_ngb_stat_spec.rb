@@ -20,6 +20,7 @@ RSpec.describe Services::GenerateNgbStat do
   let(:assist_cert) { create :certification }
   let(:snitch_cert) { create :certification, :snitch }
   let(:head_cert) { create :certification, :head }
+  let(:score_cert) { create :certification, :scorekeeper }
 
   before do
     assist_refs.each do |ref| 
@@ -34,6 +35,7 @@ RSpec.describe Services::GenerateNgbStat do
     head_refs.each do |ref|
       ref.certifications << assist_cert
       ref.certifications << snitch_cert
+      ref.certifications << score_cert
       ref.certifications << head_cert
       RefereeLocation.create(national_governing_body_id: ngb.id, referee_id: ref.id, association_type: 'primary')
     end

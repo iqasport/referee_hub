@@ -33,5 +33,10 @@ FactoryBot.define do
       level { :field }
       display_name { 'Field Test Certification' }
     end
+
+    trait :scorekeeper do
+      level { :scorekeeper }
+      display_name { 'Scorekeeper Test Certification' }
+    end
   end
 end

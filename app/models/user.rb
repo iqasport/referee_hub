@@ -103,6 +103,7 @@ class User < ApplicationRecord
   scope :assistant, -> { joins(:certifications).where(certifications: { level: 'assistant' }) }
   scope :snitch, -> { joins(:certifications).where(certifications: { level: 'snitch' }) }
   scope :head, -> { joins(:certifications).where(certifications: { level: 'head' }) }
+  scope :scorekeeper, -> { joins(:certifications).where(certifications: { level: 'scorekeeper' }) }
 
   self.per_page = 25
 

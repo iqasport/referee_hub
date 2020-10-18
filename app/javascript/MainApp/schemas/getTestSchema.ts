@@ -21,7 +21,8 @@ export interface Data {
 export enum TestLevel {
   Snitch = 'snitch',
   Assistant = 'assistant',
-  Head = 'head'
+  Head = 'head',
+  Scorekeeper = 'scorekeeper'
 }
 
 export interface Attributes {
