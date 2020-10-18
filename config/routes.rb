@@ -75,6 +75,7 @@ Rails.application.routes.draw do
         end
       end
       resources :certifications, only: :index
+      resources :languages, only: :index
 
       scope '/admin' do
         post '/search' => 'diagnostic#search'

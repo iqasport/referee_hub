@@ -114,5 +114,13 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     it 'updates the user language' do
       expect { subject }.to change { current_user.reload.language }.from(nil).to(language)
     end
+
+    context 'when the update fails' do
+      let(:body_data) { { id: current_user.id, name: 'new name' } }
+      let(:error_message) { ['I am an error'] }
+      let(:message_double) { double(full_messages: error_message) }
+
+      it_behaves_like 'it reports to bugsnag on failure', :update!, User
+    end
   end
 end

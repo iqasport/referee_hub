@@ -10,11 +10,6 @@
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #
-FactoryBot.define do
-  factory :language do
-    long_name { FFaker::Locale.language }
-    short_name { FFaker::Locale.code }
-    long_region { '' }
-    short_region { '' }
-  end
+class LanguageSerializer < BaseSerializer
+  attributes :long_name, :short_name, :short_region
 end
