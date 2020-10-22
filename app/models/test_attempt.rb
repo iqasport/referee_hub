@@ -19,7 +19,8 @@ class TestAttempt < ApplicationRecord
   enum test_level: {
     snitch: 0,
     assistant: 1,
-    head: 2
+    head: 2,
+    scorekeeper: 3
   }
 
   before_save :add_next_attempt, if: :test_level_changed?
@@ -27,9 +28,12 @@ class TestAttempt < ApplicationRecord
   scope :snitch, -> { where(test_level: 'snitch') }
   scope :assistant, -> { where(test_level: 'assistant') }
   scope :head, -> { where(test_level: 'head') }
+  scope :scorekeeper, -> { where(test_level: 'scorekeeper') }
+
+  ONE_DAY_WINDOW = %w[snitch assistant scorekeeper].freeze
 
   def add_next_attempt
-    if test_level == 'snitch' || test_level == 'assistant'
+    if ONE_DAY_WINDOW.include?(test_level)
       self.next_attempt_at = Time.now.utc + 24.hours
     elsif test_level == 'head'
       self.next_attempt_at = Time.now.utc + 72.hours
