@@ -84,7 +84,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
         <p>
           {'We have updated our '}
           <a target="_blank" rel="noopener noreferrer" href="https://manage.iqasport.com/privacy">Privacy Policy</a>
-          , please review and accept.
+          , please review and accept. You won't be able to update your profile or take tests otherwise.
         </p>
         <div className="flex justify-end">
           <button className="bg-red-300 rounded p-2 mx-2 cursor-pointer" onClick={handleRejectPolicy}>Reject</button>
