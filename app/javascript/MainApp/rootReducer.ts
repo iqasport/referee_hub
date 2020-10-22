@@ -8,6 +8,7 @@ import currentUserReducer from './modules/currentUser/currentUser'
 import jobsReducer from './modules/job/job'
 import nationalGoverningBodiesReducer from './modules/nationalGoverningBody/nationalGoverningBodies'
 import nationalGoverningBodyReducer from './modules/nationalGoverningBody/nationalGoverningBody'
+import questionReducer from './modules/question/question'
 import questionsReducer from './modules/question/questions'
 import getRefereeReducer from './modules/referee/referee'
 import refereesReducer from './modules/referee/referees'
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
   nationalGoverningBodies: nationalGoverningBodiesReducer,
   nationalGoverningBody: nationalGoverningBodyReducer,
   products: productsReducer,
+  question: questionReducer,
   questions: questionsReducer,
   refCertification: refCertificationReducer,
   referee: getRefereeReducer,

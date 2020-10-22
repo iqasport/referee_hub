@@ -1,4 +1,7 @@
-import { GetQuestionsSchema, GetQuestionsSchemaDatum, Included, Meta } from "MainApp/schemas/getQuestionsSchema";
+import { Data, GetQuestionSchema } from "MainApp/schemas/getQuestionSchema";
+import {
+  DatumAttributes, GetQuestionsSchema, GetQuestionsSchemaDatum, Included, Meta
+} from "MainApp/schemas/getQuestionsSchema";
 import { baseAxios } from "./utils";
 
 export interface QuestionsResponse {
@@ -6,6 +9,12 @@ export interface QuestionsResponse {
   meta: Meta;
   answers: Included[];
 }
+
+export interface QuestionResponse {
+  question: Data
+}
+
+export interface UpdateQuestionRequest extends Omit<DatumAttributes, 'testId'> {}
 
 export async function getQuestions(testId: string): Promise<QuestionsResponse> {
   const url = `tests/${testId}/questions`
@@ -17,6 +26,23 @@ export async function getQuestions(testId: string): Promise<QuestionsResponse> {
       answers: questionsResponse.data.included,
       meta: questionsResponse.data.meta,
       questions: questionsResponse.data.data,
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function updateQuestion(
+  questionId: string,
+  newQuestion: UpdateQuestionRequest
+): Promise<QuestionResponse> {
+  const url = `questions/${questionId}`
+
+  try {
+    const questionResponse = await baseAxios.patch<GetQuestionSchema>(url, newQuestion)
+
+    return {
+      question: questionResponse.data.data
     }
   } catch (err) {
     throw err
