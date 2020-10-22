@@ -183,11 +183,17 @@ CERT_CONFIG = [
     display_name: 'Field Test Certification',
     level: :field
   },
+  {
+    display_name: 'Scorekeeper Test Certification',
+    level: :scorekeeper
+  }
 ].freeze
 
 puts "Creating certifications..."
 CERT_CONFIG.each do |config|
-  Certification.find_or_create_by(display_name: config[:display_name], level: config[:level])
+  Certification.version.keys.each do |version|
+    Certification.find_or_create_by(display_name: config[:display_name], level: config[:level], version: version)
+  end
 end
 
 
