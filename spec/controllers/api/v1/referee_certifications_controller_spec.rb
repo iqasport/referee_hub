@@ -43,7 +43,7 @@ RSpec.describe Api::V1::RefereeCertificationsController, type: :controller do
     subject { put :update, params: body_data }
 
     context 'with valid params' do
-      let(:body_data) { { id: assistant.id, needs_renewal_at: Time.zone.now, referee_id: referee.id } }
+      let(:body_data) { { id: assistant.certification.id, needs_renewal_at: Time.zone.now, referee_id: referee.id } }
 
       it_behaves_like 'it is a successful request'
 
