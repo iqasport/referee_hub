@@ -56,7 +56,7 @@ module Api
       end
 
       def find_referee_certification
-        @referee_certification = user_scope.referee_certifications.find_by(id: params[:id])
+        @referee_certification = user_scope.referee_certifications.find_by(certification_id: params[:id])
       end
 
       def find_certification(level)
