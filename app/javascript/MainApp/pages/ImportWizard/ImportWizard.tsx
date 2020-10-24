@@ -63,7 +63,7 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
   const buttonText = isFinalStep ? 'Done' : 'Next';
   const isDisabled = stepCount === 1 && !uploadedFile
   const currentStepConfig = stepTextMap[stepCount]
-
+  const dataType = parsedScope === 'test' ? 'questions' : `${parsedScope}s`
   const goForward = () => setStepCount(stepCount + 1)
 
   const handleHomeClick = () => history.goBack()
@@ -101,7 +101,7 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
           />
         )
       case 3:
-        return <FinishStep meta={finishedMeta} error={finishedError} />
+        return <FinishStep meta={finishedMeta} error={finishedError} dataType={dataType} />
       default:
         return null
     }

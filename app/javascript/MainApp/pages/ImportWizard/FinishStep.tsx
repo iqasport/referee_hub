@@ -7,10 +7,11 @@ import { Datum, Meta } from '../../schemas/getTeamsSchema'
 interface FinishStepProps {
   meta: Meta;
   error?: string;
+  dataType: string;
 }
 
 const FinishStep = (props: FinishStepProps) => {
-  const { meta, error } = props
+  const { meta, error, dataType } = props
 
   const renderError = () => {
     return (
@@ -30,7 +31,7 @@ const FinishStep = (props: FinishStepProps) => {
       <>
         <FontAwesomeIcon icon={faCheckCircle} size="6x" className="text-green" />
         <h3 className="text-2xl font-bold my-8">Success!</h3>
-        <p className="text-xl font-semibold mb-4">{`${meta.total} teams were imported`}</p>
+        <p className="text-xl font-semibold mb-4">{`${meta.total} ${dataType} were imported`}</p>
         <p>Click the Done button to go back to your home screen.</p>
       </>
     )

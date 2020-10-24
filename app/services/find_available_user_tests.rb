@@ -61,9 +61,9 @@ module Services
     end
 
     def find_certification_ids(levels_to_return)
-      cert_ids = levels_to_return.map do |version, level|
-        ids = Certification.all.where(version: version, level: level).pluck(:id)
-        if level == 'head'
+      cert_ids = levels_to_return.map do |version, levels|
+        ids = Certification.all.where(version: version, level: levels).pluck(:id)
+        if levels.include?('head')
           next if !has_paid(ids)
         end
 
@@ -93,7 +93,7 @@ module Services
     end
 
     def filter_by_language?
-      test_languages = Test.all.pluck(:new_language_id).uniq
+      test_languages = Test.all.pluck(:new_language_id).uniq.compact
       test_languages.include?(user.language_id)
     end
 
