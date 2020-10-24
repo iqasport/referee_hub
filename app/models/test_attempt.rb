@@ -33,6 +33,7 @@ class TestAttempt < ApplicationRecord
   ONE_DAY_WINDOW = %w[snitch assistant scorekeeper].freeze
 
   def add_next_attempt
+    return if next_attempt_at.present?
     if ONE_DAY_WINDOW.include?(test_level)
       self.next_attempt_at = Time.now.utc + 24.hours
     elsif test_level == 'head'

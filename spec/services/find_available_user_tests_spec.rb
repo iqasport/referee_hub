@@ -10,7 +10,7 @@ RSpec.describe Services::FindAvailableUserTests do
   let!(:head_cert_twenty) { create :certification, :head, version: 'twenty' }
   let!(:score_cert_eighteen) { create :certification, :scorekeeper }
   let!(:assistant_test_eighteen) do
-    create :test, level: 'assistant', active: true, certification: assistant_cert_eighteen
+    create :test, level: 'assistant', active: true, certification: assistant_cert_eighteen, new_language_id: 1
   end
   let!(:assistant_test_twenty) do
     create :test, level: 'assistant', active: true, certification: assistant_cert_twenty
@@ -70,7 +70,7 @@ RSpec.describe Services::FindAvailableUserTests do
   end
 
   context 'with a test attempt within the cool down period' do
-    let(:test_attempt) { create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user }
+    let!(:test_attempt) { create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user }
 
     it 'does not return the test with a recent cool down period' do
       expect(subject.pluck(:id)).to include(assistant_test_twenty.id)
@@ -95,6 +95,23 @@ RSpec.describe Services::FindAvailableUserTests do
     it 'only returns the assistant twenty test' do
       expect(subject.pluck(:id)).to include(assistant_test_twenty.id)
       expect(subject.pluck(:id).length).to eq 1
+    end
+  end
+
+  context 'with test_attempts but no certifications' do
+    let!(:test_attempts) do
+      create(
+        :test_attempt,
+        test_level: 'assistant',
+        test: assistant_test_eighteen,
+        referee: user,
+        created_at: 2.weeks.ago,
+        next_attempt_at: 1.week.ago,
+      )
+    end
+
+    it 'returns the assistant eighteen test' do
+      expect(subject.pluck(:id)).to include(assistant_test_eighteen.id)
     end
   end
 
@@ -149,6 +166,20 @@ RSpec.describe Services::FindAvailableUserTests do
     context 'when user language is not associated with any test' do
       let!(:other_language) { create :language }
       let!(:user) { create :user, language: other_language }
+
+      it 'returns all languages' do
+        expect(subject.pluck(:id).length).to eq 5
+        expect(subject.pluck(:id)).to include(
+          assistant_test_eighteen.id,
+          assistant_test_twenty.id,
+          lang_assistant_eighteen.id,
+          lang_assistant_twenty.id
+        )
+      end
+    end
+
+    context 'when user language is nil' do
+      let!(:user) { create :user, language_id: nil }
 
       it 'returns all languages' do
         expect(subject.pluck(:id).length).to eq 5

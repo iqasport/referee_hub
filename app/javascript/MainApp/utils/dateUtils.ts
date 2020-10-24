@@ -4,7 +4,7 @@ export function toDateTime(timestamp: string): DateTime {
   if (!timestamp) return DateTime.local()
   const parseTime = timestamp.match(/ UTC$/) ? timestamp.slice(0, -3).trim() : timestamp
 
-  return DateTime.fromSQL(parseTime)
+  return DateTime.fromISO(parseTime)
 }
 
 export function getMonths(): string[] {

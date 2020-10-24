@@ -2,10 +2,11 @@ import { faCaretDown, faCaretUp, faCheckCircle, faTimesCircle } from '@fortaweso
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classnames from 'classnames'
 import { capitalize } from 'lodash'
-import { DateTime } from 'luxon'
 import React from 'react'
 
-import { IdAttributes } from '../../apis/referee'
+import { IdAttributes } from 'MainApp/apis/referee'
+import { toDateTime } from 'MainApp/utils/dateUtils'
+
 import ResultChart from './ResultChart'
 
 type CardProps = {
@@ -24,7 +25,7 @@ const TestResultCard = (props: CardProps) => {
     isExpanded,
     isDisabled,
   } = props
-  const formattedDate = DateTime.fromSQL(createdAt.slice(0, -3).trim()).toLocaleString()
+  const formattedDate = toDateTime(createdAt).toLocaleString()
   const expandText = isExpanded ? 'less' : 'more'
   const expandIcon = isExpanded ? faCaretUp : faCaretDown;
   const resultText = passed ? 'Passed' : 'Failed';
