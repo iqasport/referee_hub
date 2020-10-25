@@ -47,7 +47,7 @@ module Services
         next if answer_id.blank?
 
         referee_answer_attrs = base_attrs.merge(question_id: question_id, answer_id: answer_id)
-        RefereeAnswer.create!(referee_answer_attrs)
+        RefereeAnswer.find_or_create_by!(referee_answer_attrs)
       end
     end
 
@@ -96,6 +96,7 @@ module Services
 
     def calculate_percentage(points_scored, points_available)
       return 0 if points_scored.zero?
+      return 100 if points_scored >= points_available
 
       ((points_scored.to_f / points_available) * 100).round
     end

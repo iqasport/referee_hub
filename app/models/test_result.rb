@@ -39,15 +39,13 @@ class TestResult < ApplicationRecord
   private
 
   def update_referee_certification_status
-    certification = Certification.find_by(level: test_level)
-
     if passed
-      ref_certification = RefereeCertification.find_or_create_by!(certification: certification, referee: referee)
+      ref_certification = RefereeCertification.find_or_create_by!(certification: test.certification, referee: referee)
       datetime_key = ref_certification.received_at.blank? ? 'received_at' : 'renewed_at'
 
       update_certification(ref_certification, datetime_key)
     else
-      ref_certification = RefereeCertification.find_by(certification: certification, referee: referee)
+      ref_certification = RefereeCertification.find_by(certification: test.certification, referee: referee)
       datetime_key = 'revoked_at'
 
       update_certification(ref_certification, datetime_key) if ref_certification.present?

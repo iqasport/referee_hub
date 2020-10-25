@@ -15,7 +15,7 @@ interface TestTakerProps {
   onTimeLimitMet: () => void;
 }
 
-const NewTestTaker = (props: TestTakerProps) => {
+const TestTaker = (props: TestTakerProps) => {
   const {
     currentQuestion, onAnswerSelect, timeLimit, totalQuestionCount, currentIndex, onTimeLimitMet
   } = props
@@ -62,4 +62,4 @@ const NewTestTaker = (props: TestTakerProps) => {
   )
 }
 
-export default NewTestTaker
+export default TestTaker
