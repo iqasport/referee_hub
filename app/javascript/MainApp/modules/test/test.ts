@@ -50,6 +50,9 @@ const test = createSlice({
       state.isLoading = true
     },
     createTestSuccess: testSuccess,
+    clearTest(state: TestState) {
+      state = initialState
+    },
     deleteTestFailure: testFailure,
     deleteTestStart(state: TestState) {
       state.isLoading = true
@@ -64,11 +67,12 @@ const test = createSlice({
     updateTestStart(state: TestState) {
       state.isLoading = true
     },
-    updateTestSuccess: testSuccess
+    updateTestSuccess: testSuccess,
   }
 })
 
 export const {
+  clearTest,
   createTestFailure,
   createTestStart,
   createTestSuccess,

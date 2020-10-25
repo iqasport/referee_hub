@@ -10,7 +10,7 @@ import { FinishTestRequest, RefereeAnswer } from 'MainApp/apis/job'
 import NewTestTaker from 'MainApp/components/TestTaker'
 import { finishTest } from 'MainApp/modules/job/job'
 import { startTest } from 'MainApp/modules/question/questions'
-import { getTest } from 'MainApp/modules/test/test'
+import { clearTest, getTest } from 'MainApp/modules/test/test'
 import { RootState } from 'MainApp/rootReducer'
 import { GetQuestionsSchemaDatum, Included } from 'MainApp/schemas/getQuestionsSchema'
 
@@ -69,7 +69,7 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
   const { questions, answers, error: questionsError } = useSelector((state: RootState) => state.questions, shallowEqual)
 
   useEffect(() => {
-    if (!test) {
+    if (!test || test.id !== testId) {
       dispatch(getTest(testId))
     }
   }, [testId, test])
@@ -86,7 +86,10 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
   const isLastQuestion = currentQuestionIndex === testQuestions.length - 1
   const isFirstQuestion = currentQuestionIndex === 0
 
-  const handleGoBack = () => history.push(`/referees/${refereeId}`)
+  const handleGoBack = () => {
+    dispatch(clearTest)
+    history.push(`/referees/${refereeId}`)
+  }
 
   const handleStartTest = () => dispatch(startTest(testId))
 
