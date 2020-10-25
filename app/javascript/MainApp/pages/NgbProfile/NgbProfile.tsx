@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
 
+import Loader from 'MainApp/components/Loader'
 import ExportModal, { ExportType } from 'MainApp/components/modals/ExportModal/ExportModal'
 import NgbEditModal from 'MainApp/components/modals/NgbEditModal'
 import TeamEditModal from 'MainApp/components/modals/TeamEditModal'
@@ -31,7 +32,7 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
   const [openModal, setOpenModal] = useState<ModalType>()
   const dispatch = useDispatch()
   const history = useHistory()
-  const { ngb, socialAccounts, refereeCount, teamCount, stats } = useSelector(
+  const { ngb, socialAccounts, refereeCount, teamCount, stats, isLoading } = useSelector(
     (state: RootState): SingleNationalGoverningBodyState => state.nationalGoverningBody, shallowEqual
   )
   const { currentUser, roles } = useSelector((state: RootState): CurrentUserState => state.currentUser, shallowEqual)
@@ -81,31 +82,38 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
     }
   }
 
+  const renderProfile = () => {
+    return (
+      <>
+        <div className="flex justify-between w-full mb-8">
+          <h1 className="w-full text-4xl text-navy-blue font-extrabold">{ngb.name}</h1>
+          <ActionsButton
+            onEditClick={handleOpenModal(ModalType.Edit)}
+            onImportClick={handleImportClick}
+            onExportClick={handleOpenModal(ModalType.Export)}
+            onTeamClick={handleOpenModal(ModalType.Team)}
+          />
+        </div>
+        <div className="flex w-full flex-col md:flex-row">
+          <Sidebar
+            ngb={ngb}
+            socialAccounts={socialAccounts}
+            refereeCount={refereeCount}
+            teamCount={teamCount}
+            isEditing={false}
+            ngbId={id}
+          />
+          <div className="flex flex-col w-full md:w-4/5 md:pl-8">
+            <StatsViewer stats={stats} />
+            <NgbTables ngbId={parseInt(id, 10)} />
+          </div>
+        </div>
+      </>
+    )
+  }
   return (
     <div className="w-5/6 mx-auto my-8">
-      <div className="flex justify-between w-full mb-8">
-        <h1 className="w-full text-4xl text-navy-blue font-extrabold">{ngb.name}</h1>
-        <ActionsButton 
-          onEditClick={handleOpenModal(ModalType.Edit)}
-          onImportClick={handleImportClick}
-          onExportClick={handleOpenModal(ModalType.Export)}
-          onTeamClick={handleOpenModal(ModalType.Team)}
-        />
-      </div>
-      <div className="flex w-full flex-col md:flex-row">
-        <Sidebar 
-          ngb={ngb} 
-          socialAccounts={socialAccounts} 
-          refereeCount={refereeCount} 
-          teamCount={teamCount} 
-          isEditing={false} 
-          ngbId={id} 
-        />
-        <div className="flex flex-col w-full md:w-4/5 md:pl-8">
-          <StatsViewer stats={stats} />
-          <NgbTables ngbId={parseInt(id, 10)} />
-        </div>
-      </div>
+      {isLoading ? <Loader /> : renderProfile()}
       {renderModals()}
     </div>
   )

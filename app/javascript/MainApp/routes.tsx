@@ -13,6 +13,8 @@ const AsyncPage = loadable(props => import(`./pages/${props.page}`), {
   fallback: <Loader />
 })
 
+const PUBLIC_ROUTES = ['/privacy', /\/referees\/\d/]
+
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>()
   const dispatch = useDispatch()
@@ -33,7 +35,9 @@ const App = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    if (error) {
+    const isPublic = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route))
+
+    if (error && !isPublic) {
       window.location.href = `${window.location.origin}/sign_in`
     }
   }, [error])
