@@ -21,6 +21,10 @@ module RefereeHub
     config.active_job.queue_adapter = :sidekiq
     config.stripe.publishable_key = ENV['STRIPE_PUBLISHABLE_KEY']
     config.stripe.secret_key = ENV['STRIPE_SECRET_KEY']
-    config.stripe.signing_secrets = ['whsec_VODTQ2agBWcqUSskoPQzLT4iX8eLXMKJ']
+    config.stripe.signing_secrets = [
+      'whsec_VODTQ2agBWcqUSskoPQzLT4iX8eLXMKJ',
+      'whsec_Bmcly0ALTF7LVpFgAj1amZ9PeNEufI4I',
+      'whsec_0PbJGjOAStIwKyFFE7dOu6iCyfCA1hSH'
+    ]
   end
 end
