@@ -13,7 +13,7 @@ const AsyncPage = loadable(props => import(`./pages/${props.page}`), {
   fallback: <Loader />
 })
 
-const PUBLIC_ROUTES = ['/privacy', /\/referees\/\d/]
+const PUBLIC_ROUTES = ['/privacy', /\/referees\/\d$/]
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>()
@@ -71,7 +71,6 @@ const App = () => {
           render={(props) => <AsyncPage {...props} page="RefereeProfile" />}
         />
         <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page="Admin" />} />
-        <Route exact={true} path='/admin/tests' render={(props) => <AsyncPage {...props} page="Tests" />} />
         <Route exact={true} path='/admin/tests/:id' render={(props) => <AsyncPage {...props} page="Test" />} />
         <Route
           exact={true}

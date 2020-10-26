@@ -1,7 +1,7 @@
 import { faCheckSquare, faEdit } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { shuffle } from 'lodash'
-import { DateTime } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { RouteComponentProps, useHistory } from 'react-router-dom'
@@ -55,7 +55,7 @@ type TestParams = {
   refereeId: string;
 }
 
-const NewStartTest = (props: RouteComponentProps<TestParams>) => {
+const StartTest = (props: RouteComponentProps<TestParams>) => {
   const { match: { params: { refereeId, testId } } } = props
 
   const [testQuestions, setTestQuestions] = useState<FormattedQuestion[]>([])
@@ -63,9 +63,11 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
   const [startedAt, setStartedAt] = useState<DateTime>(null)
   const [finishedAt, setFinishedAt] = useState<DateTime>(null)
   const [currentQuestion, setCurrentQuestion] = useState<FormattedQuestion>()
+  const [currentTime, setCurrentTime] = useState<{minutes: number; seconds: number;}>({ minutes: 0, seconds: 0 });
+
   const history = useHistory()
   const dispatch = useDispatch()
-  const { test, error: testError } = useSelector((state: RootState) => state.test, shallowEqual)
+  const { test, error: testError, isLoading: testLoading } = useSelector((state: RootState) => state.test, shallowEqual)
   const { questions, answers, error: questionsError } = useSelector((state: RootState) => state.questions, shallowEqual)
 
   useEffect(() => {
@@ -75,7 +77,7 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
   }, [testId, test])
 
   useEffect(() => {
-    if (questions.length && answers.length) {
+    if (questions.length && answers.length && !testLoading) {
       const formattedQuestions = formatQuestions(questions, answers)
       setTestQuestions(formattedQuestions)
       setStartedAt(DateTime.local())
@@ -105,8 +107,13 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
     setCurrentQuestion(testQuestions[newIndex])
   }
 
-  const handleFinish = () => {
-    const finishedTime = DateTime.local()
+  const handleFinish = (minutes?: number, seconds?: number) => {
+    let duration = Duration.fromObject({ minutes: currentTime.minutes, seconds: currentTime.seconds })
+    if (minutes || seconds) {
+      duration = Duration.fromObject({ minutes, seconds })
+    }
+    const finishedTime = startedAt.plus(duration)
+
     const request: FinishTestRequest = {
       finishedAt: finishedTime,
       refereeAnswers: buildRefereeAnswers(testQuestions),
@@ -184,6 +191,7 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
         totalQuestionCount={testQuestions.length}
         currentIndex={currentQuestionIndex + 1}
         onTimeLimitMet={handleFinish}
+        setCurrentTime={setCurrentTime}
       />
     )
   }
@@ -238,4 +246,4 @@ const NewStartTest = (props: RouteComponentProps<TestParams>) => {
   )
 }
 
-export default NewStartTest
+export default StartTest

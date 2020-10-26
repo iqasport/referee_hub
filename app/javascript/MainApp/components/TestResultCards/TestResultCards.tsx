@@ -1,3 +1,4 @@
+import { orderBy } from 'lodash'
 import React, { useState } from 'react'
 
 import { IdAttributes } from '../../apis/referee'
@@ -22,9 +23,11 @@ const TestResultCards = (props: TestResultsProps) => {
     )
   }
 
+  const sortedResults = orderBy(props.testResults, (testResult) => parseInt(testResult.id, 10), ['desc'])
+
   return (
     <div>
-      {props.testResults.map(renderTestResult)}
+      {sortedResults.map(renderTestResult)}
     </div>
   )
 }

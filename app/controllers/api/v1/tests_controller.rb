@@ -10,10 +10,14 @@ module Api
 
       layout false
 
+      InvalidAnswerError = Class.new(StandardError)
+
       INVALID_TEST_ATTEMPT =
         'This test is unavailable for you to take currently, please try again in'.freeze
 
       INVALID_TRY_COUNT = 'This test is no longer available to you due to hitting the maximum amount of tries'.freeze
+
+      INVALID_ANSWERS = 'The answers provided do not match the test, please refresh the page and try again'.freeze
 
       def index
         @tests = params[:active_only] ? Test.active : Test.all
@@ -65,6 +69,8 @@ module Api
 
       def finish
         hashed_params = permitted_finish_params.to_h
+        raise InvalidAnswerError, INVALID_ANSWERS unless valid_answers?(hashed_params[:referee_answers])
+
         test_timestamps = { started_at: hashed_params[:started_at], finished_at: hashed_params[:finished_at] }
         enqueued_job = GradeJob.perform_later(
           @test,
@@ -76,7 +82,7 @@ module Api
         render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
       rescue => exception
         Bugsnag.notify(exception)
-        render json: { error: 'Error grading test' }, status: :unprocessable_entity
+        render json: { error: "Error grading test: #{exception}" }, status: :unprocessable_entity
       end
 
       def import
@@ -162,6 +168,13 @@ module Api
         return true unless try_count >= Test::MAXIMUM_RETRIES
 
         render json: { error: INVALID_TRY_COUNT }, status: :unauthorized
+      end
+
+      def valid_answers?(referee_answers)
+        return false if referee_answers.blank?
+        question_id = referee_answers[0]["question_id"]
+
+        @test.questions.where(id: question_id).exists?
       end
     end
   end
