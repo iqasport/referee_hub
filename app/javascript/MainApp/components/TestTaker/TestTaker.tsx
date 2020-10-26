@@ -12,12 +12,13 @@ interface TestTakerProps {
   timeLimit: number;
   totalQuestionCount: number;
   currentIndex: number;
-  onTimeLimitMet: () => void;
+  onTimeLimitMet: (minutes: number, seconds: number) => void;
+  setCurrentTime: (currentTime: { minutes: number; seconds: number }) => void;
 }
 
 const TestTaker = (props: TestTakerProps) => {
   const {
-    currentQuestion, onAnswerSelect, timeLimit, totalQuestionCount, currentIndex, onTimeLimitMet
+    currentQuestion, onAnswerSelect, timeLimit, totalQuestionCount, currentIndex, onTimeLimitMet, setCurrentTime
   } = props
 
   const [selectedAnswer, setSelectedAnswer] = useState<string>()
@@ -52,7 +53,7 @@ const TestTaker = (props: TestTakerProps) => {
   return (
     <div>
       <ProgressBar currentIndex={currentIndex} total={totalQuestionCount} />
-      <Counter timeLimit={timeLimit} onTimeLimitMet={onTimeLimitMet} />
+      <Counter timeLimit={timeLimit} onTimeLimitMet={onTimeLimitMet} setCurrentTime={setCurrentTime} />
       <div className="my-8" dangerouslySetInnerHTML={{ __html: currentQuestion.description }} />
       <div className="w-full h-px border-t border-navy-blue my-8" />
       <div className="w-1/2 my-0 mx-auto">

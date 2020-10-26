@@ -18,7 +18,6 @@ Rails.application.routes.draw do
   get 'referees/:id', to: 'home#index'
   get 'privacy', to: 'home#index'
   get 'admin', to: 'home#index'
-  get 'admin/tests', to: 'home#index'
   get 'admin/tests/:id', to: 'home#index'
   get 'referees/:referee_id/tests/:test_id', to: 'home#index'
   get 'national_governing_bodies/:id', to: 'home#index'

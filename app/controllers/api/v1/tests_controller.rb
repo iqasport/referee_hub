@@ -10,7 +10,7 @@ module Api
 
       layout false
 
-      InvalidAnswerError = Class.new(StandardError).freeze
+      InvalidAnswerError = Class.new(StandardError)
 
       INVALID_TEST_ATTEMPT =
         'This test is unavailable for you to take currently, please try again in'.freeze

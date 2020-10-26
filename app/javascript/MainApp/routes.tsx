@@ -71,7 +71,6 @@ const App = () => {
           render={(props) => <AsyncPage {...props} page="RefereeProfile" />}
         />
         <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page="Admin" />} />
-        <Route exact={true} path='/admin/tests' render={(props) => <AsyncPage {...props} page="Tests" />} />
         <Route exact={true} path='/admin/tests/:id' render={(props) => <AsyncPage {...props} page="Test" />} />
         <Route
           exact={true}

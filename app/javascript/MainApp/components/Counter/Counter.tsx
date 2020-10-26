@@ -16,19 +16,20 @@ export const getDisplayColor = (limit: number, minutes: number): string => {
 
 interface CounterProps {
   timeLimit: number;
-  onTimeLimitMet: () => void;
+  onTimeLimitMet: (minutes: number, seconds: number) => void;
+  setCurrentTime: (currentTime: {minutes: number; seconds: number}) => void;
 }
 
 const Counter = (props: CounterProps) => {
   const [minutes, setMinutes] = useState(0)
   const [seconds, setSeconds] = useState(0)
-  const { timeLimit, onTimeLimitMet } = props
+  const { timeLimit, onTimeLimitMet, setCurrentTime } = props
   const displayMinute = formatTime(minutes)
   const displaySecond = formatTime(seconds)
 
   const handleTick = () => {
     if (minutes === timeLimit - 1 && seconds === 59) {
-      onTimeLimitMet()
+      onTimeLimitMet(minutes, seconds)
     }
 
     if (seconds < 59) {
@@ -37,6 +38,8 @@ const Counter = (props: CounterProps) => {
       setMinutes(prevMinutes => prevMinutes + 1)
       setSeconds(0)
     }
+
+    setCurrentTime({ minutes, seconds })
   }
 
   useInterval(handleTick, 1000)
