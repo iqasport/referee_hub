@@ -13,7 +13,7 @@ const AsyncPage = loadable(props => import(`./pages/${props.page}`), {
   fallback: <Loader />
 })
 
-const PUBLIC_ROUTES = ['/privacy', /\/referees\/\d/]
+const PUBLIC_ROUTES = ['/privacy', /\/referees\/\d$/]
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>()

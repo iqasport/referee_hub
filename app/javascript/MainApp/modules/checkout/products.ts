@@ -34,7 +34,6 @@ const {
   getProductsSuccess,
 } = products.actions
 
-
 export const getProducts = (): AppThunk => async dispatch => {
   try {
     const productsResponse = await getProductsApi()
