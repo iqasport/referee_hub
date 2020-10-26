@@ -287,6 +287,25 @@ RSpec.describe Api::V1::TestsController, type: :controller do
       expect(response_data['job_id']).to_not be_nil
     end
 
+    context 'when the answers given do not match the test' do
+      let(:referee_answers) { [{question_id: 9870987654456}] }
+      let(:expected_error) { "Error grading test: #{described_class::INVALID_ANSWERS}"}
+
+      it 'returns an error' do
+        subject
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns an error message' do
+        subject
+
+        response_data = JSON.parse(response.body)['error']
+
+        expect(response_data).to eq expected_error
+      end
+    end
+
     context 'when the test grading fails' do
       let(:body_data) { { id: test.id } }
       let(:error_message) { 'Error grading test' }
@@ -307,7 +326,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
         response_data = JSON.parse(response.body)['error']
 
-        expect(response_data).to eq error_message
+        expect(response_data).to include error_message
       end
 
       it 'calls bugsnag notify' do
