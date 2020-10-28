@@ -68,7 +68,9 @@ const StartTest = (props: RouteComponentProps<TestParams>) => {
   const history = useHistory()
   const dispatch = useDispatch()
   const { test, error: testError, isLoading: testLoading } = useSelector((state: RootState) => state.test, shallowEqual)
-  const { questions, answers, error: questionsError } = useSelector((state: RootState) => state.questions, shallowEqual)
+  const { questions, answers, isLoading: questionsLoading, error: questionsError } = useSelector(
+    (state: RootState) => state.questions, shallowEqual
+  )
 
   useEffect(() => {
     if (!test || test.id !== testId) {
@@ -77,13 +79,14 @@ const StartTest = (props: RouteComponentProps<TestParams>) => {
   }, [testId, test])
 
   useEffect(() => {
-    if (questions.length && answers.length && !testLoading) {
+    const questionsMatchTest = questions[0]?.attributes.testId === parseInt(testId, 10)
+    if (!questionsLoading && questionsMatchTest) {
       const formattedQuestions = formatQuestions(questions, answers)
       setTestQuestions(formattedQuestions)
-      setStartedAt(DateTime.local())
       setCurrentQuestion(formattedQuestions[0])
+      setStartedAt(DateTime.local())
     }
-  }, [questions, answers])
+  }, [questions, answers, questionsLoading, testId])
 
   const isLastQuestion = currentQuestionIndex === testQuestions.length - 1
   const isFirstQuestion = currentQuestionIndex === 0
@@ -93,7 +96,9 @@ const StartTest = (props: RouteComponentProps<TestParams>) => {
     history.push(`/referees/${refereeId}`)
   }
 
-  const handleStartTest = () => dispatch(startTest(testId))
+  const handleStartTest = () => {
+    dispatch(startTest(testId))
+  }
 
   const handleNext = () => {
     const newIndex = currentQuestionIndex + 1
