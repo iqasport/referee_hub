@@ -11,7 +11,9 @@ module Services
 
     def perform
       @potential_tests = potential_tests.where(new_language_id: user.language_id) if filter_by_language?
-      return potential_tests.where(level: ['assistant', 'scorekeeper']) if certifications.blank? && test_attempts.blank?
+      if certifications.blank? && test_attempts.blank?
+        return potential_tests.where(level: ['assistant', 'scorekeeper'], recertification: false)
+      end
 
       grouped_certs = certifications.group_by { |cert| cert.version }
       levels_to_return = {}.tap do |certs_to_return|
@@ -30,7 +32,7 @@ module Services
       @potential_tests = potential_tests.where(certification_id: find_certification_ids(levels_to_return))
       return get_tests if test_attempts.present?
 
-      potential_tests
+      potential_tests.where(recertification: false)
     end
 
     private
@@ -81,7 +83,7 @@ module Services
             next
           end
 
-          next if test_attempts.where(test_id: t.id).first&.in_cool_down_period?
+          next if test_attempts.where(test_id: t.id).order('created_at DESC').first&.in_cool_down_period?
 
           valid_test_ids.push(t.id)
         end
