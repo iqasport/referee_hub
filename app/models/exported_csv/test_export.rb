@@ -48,11 +48,12 @@ class ExportedCsv::TestExport < ExportedCsv
     answers = question.answers.to_a
     correct_answer_index = answers.index { |answer| answer.correct }
     answer_descs = answers.map { |answer| answer.description }
+    correct_answer_text = correct_answer_index.present? ? "Answer #{correct_answer_index + 1}" : ''
 
     [
       question.description,
       question.points_available,
-      "Answer #{correct_answer_index + 1}",
+      correct_answer_text,
     ].push(answer_descs).flatten
   end
 
