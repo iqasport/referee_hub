@@ -10,7 +10,7 @@ import { FinishTestRequest, RefereeAnswer } from 'MainApp/apis/job'
 import NewTestTaker from 'MainApp/components/TestTaker'
 import { finishTest } from 'MainApp/modules/job/job'
 import { startTest } from 'MainApp/modules/question/questions'
-import { clearTest, getTest } from 'MainApp/modules/test/test'
+import { clearTest, getTest } from 'MainApp/modules/test/single_test'
 import { RootState } from 'MainApp/rootReducer'
 import { GetQuestionsSchemaDatum, Included } from 'MainApp/schemas/getQuestionsSchema'
 

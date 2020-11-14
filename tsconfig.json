@@ -4,32 +4,32 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "allowJs": true,
     "lib": ["esnext", "dom"],
-    "module": "CommonJS",
+    "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "ESNext",
-    "jsx": "react",
+    "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
       "*": [
-        "node_modules/*",
         "app/javascript/*"
-      ]
+      ],
+      "test-utils": [
+        "app/javascript/MainApp/utils/test-utils"
+      ],
     },
   },
-  "includes": [
+  "include": [
     "./app/javascript/MainApp/**/*"
   ],
   "exclude": [
-    "node_modules",
-    "vendor",
-    "public",
-    "**/*.test.tsx",
+    "./node_modules",
+    "./vendor",
+    "./public/assets/**/*",
+    "./public/packs/**/*",
     "./app/assets/**/*"
   ],
   "compileOnSave": true

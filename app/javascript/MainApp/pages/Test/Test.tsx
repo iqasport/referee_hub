@@ -12,7 +12,7 @@ import QuestionsManager from 'MainApp/components/QuestionsManager'
 import Toggle from 'MainApp/components/Toggle'
 import { CurrentUserState } from 'MainApp/modules/currentUser/currentUser'
 import { exportTest } from 'MainApp/modules/job/job'
-import { deleteTest, getTest, updateTest } from 'MainApp/modules/test/test'
+import { deleteTest, getTest, updateTest } from 'MainApp/modules/test/single_test'
 import { RootState } from 'MainApp/rootReducer'
 import { IdParams } from '../RefereeProfile/types'
 

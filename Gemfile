@@ -23,7 +23,7 @@ gem 'devise', '>= 4.7.2'
 gem 'devise_invitable', '~> 2.0.2'
 
 # frontend
-gem 'webpacker', '~> 5.1.1'
+gem 'webpacker', '~> 5.2.1'
 
 # api 
 gem 'fast_jsonapi'

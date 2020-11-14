@@ -1,14 +1,25 @@
 module.exports = {
+  roots: ['<rootDir>'],
   testPathIgnorePatterns: ['<rootDir>/config'],
-  moduleDirectories: ['node_modules', './', './utils'],
+  moduleDirectories: [
+    'node_modules',
+    './',
+    './utils',
+    './app/javascript/MainApp'
+  ],
   moduleFileExtensions: ['js', 'jsx', 'json', 'node', 'ts', 'tsx'],
   testRegex: '(/__tests__/.*|(\\.|/)(test))\\.[jt]sx?$',
-  testEnvironment: 'jest-environment-jsdom-fourteen',
+  testEnvironment: 'jsdom',
   collectCoverage: true,
   coverageReporters: ['json'],
   reporters: ['default', 'jest-junit'],
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': 'ts-jest'
+    '^.+\\.(ts|tsx)$': 'babel-jest',
   },
-  preset: 'ts-jest/presets/js-with-babel',
+  // coverageThreshold: {
+  //   global: {
+  //     lines: 90,
+  //     statements: 90
+  //   }
+  // }
 }

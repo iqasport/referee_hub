@@ -61,45 +61,45 @@ jobs:
           path: /tmp/test-results
           destination: test-results
 
-  # test_js:
-  #   working_directory: ~/referee_hub
-  #   docker:
-  #     - image: circleci/node:latest
+  test_js:
+    working_directory: ~/referee_hub
+    docker:
+      - image: circleci/node:latest
 
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         name: Restore Yarn Package Cache
-  #         keys:
-  #           - yarn-packages-{{ checksum "yarn.lock" }}
-  #     - run:
-  #         name: Install Yarn and dependencies
-  #         command: yarn install --frozen-lockfile
-  #     - save_cache:
-  #         key: yarn-cache-{{ checksum "yarn.lock" }}
-  #         paths:
-  #           - ~/.cache/yarn
-  #     - run:
-  #         name: Install JUnit coverage reporter
-  #         command: yarn add --dev jest-junit
-  #     - run:
-  #         name: Run tests with JUnit as reporter
-  #         command: yarn test:ci
-  #         environment:
-  #           JEST_JUNIT_OUTPUT_DIR: "reports/junit/js-test-results.xml"
-  #         test:
-  #           post:
-  #             - bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Yarn and dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          key: yarn-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Install JUnit coverage reporter
+          command: yarn add --dev jest-junit
+      - run:
+          name: Run tests with JUnit as reporter
+          command: yarn test:ci
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "reports/junit/js-test-results.xml"
+          test:
+            post:
+              - bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
 
-  #     - store_test_results:
-  #         path: /tmp/js-test-results
-  #     - store_artifacts:
-  #         path: coverage
-  #         prefix: coverage
+      - store_test_results:
+          path: /tmp/js-test-results
+      - store_artifacts:
+          path: coverage
+          prefix: coverage
 
 workflows:
   version: 2
   build_and_test:
     jobs:
       - test_ruby
-      # - test_js
+      - test_js

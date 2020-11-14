@@ -7,6 +7,7 @@ import { formatTime, getDisplayColor } from './Counter'
 describe('Counter', () => {
   const defaultProps = {
     onTimeLimitMet: jest.fn(),
+    setCurrentTime: jest.fn(),
     timeLimit: 10,
   }
 

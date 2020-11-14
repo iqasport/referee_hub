@@ -3,10 +3,10 @@ import { capitalize } from 'lodash';
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { UpdateTestRequest } from 'MainApp/apis/test';
+import { UpdateTestRequest } from 'MainApp/apis/single_test';
 import Toggle from 'MainApp/components/Toggle';
 import { getCertifications } from 'MainApp/modules/certification/certifications';
-import { createTest, getTest, updateTest } from 'MainApp/modules/test/test';
+import { createTest, getTest, updateTest } from 'MainApp/modules/test/single_test';
 import { RootState } from 'MainApp/rootReducer';
 import { TestLevel } from 'MainApp/schemas/getTestSchema';
 
