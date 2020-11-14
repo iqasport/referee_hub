@@ -1,9 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { QuestionResponse, updateQuestion as updateQuestionApi, UpdateQuestionRequest } from 'MainApp/apis/question'
+import { deleteQuestion as deleteQuestionApi, QuestionResponse, updateQuestion as updateQuestionApi, UpdateQuestionRequest } from 'MainApp/apis/question'
 import { Data } from 'MainApp/schemas/getQuestionSchema'
 
 import { AppThunk } from '../../store'
+import { getQuestions } from './questions'
 
 export interface QuestionState {
   question: Data;
@@ -33,6 +34,11 @@ const question = createSlice({
   initialState,
   name: 'question',
   reducers: {
+    deleteQuestionFailure: questionFailure,
+    deleteQuestionStart(state: QuestionState) {
+      state.isLoading = true
+    },
+    deleteQuestionSuccess: questionSuccess,
     updateQuestionFailure: questionFailure,
     updateQuestionStart(state: QuestionState) {
       state.isLoading = true
@@ -42,6 +48,9 @@ const question = createSlice({
 })
 
 export const {
+  deleteQuestionFailure,
+  deleteQuestionStart,
+  deleteQuestionSuccess,
   updateQuestionFailure,
   updateQuestionStart,
   updateQuestionSuccess
@@ -54,6 +63,17 @@ export const updateQuestion = (questionId: string, newQuestion: UpdateQuestionRe
     dispatch(updateQuestionSuccess(questionResponse))
   } catch (err) {
     dispatch(updateQuestionFailure(err.toString()))
+  }
+}
+
+export const deleteQuestion = (questionId: string): AppThunk => async dispatch => {
+  try {
+    dispatch(deleteQuestionStart())
+    const questionResponse = await deleteQuestionApi(questionId)
+    dispatch(deleteQuestionSuccess(questionResponse))
+    dispatch(getQuestions(questionResponse.question.attributes.testId.toString(10)))
+  } catch (err) {
+    dispatch(deleteQuestionFailure(err.toString()))
   }
 }
 

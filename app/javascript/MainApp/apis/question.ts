@@ -48,3 +48,17 @@ export async function updateQuestion(
     throw err
   }
 }
+
+export async function deleteQuestion(questionId): Promise<QuestionResponse> {
+  const url = `questions/${questionId}`
+
+  try {
+    const questionResponse = await baseAxios.delete<GetQuestionSchema>(url)
+
+    return {
+      question: questionResponse.data.data
+    }
+  } catch (err) {
+    throw err
+  }
+}
