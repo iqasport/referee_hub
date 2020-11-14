@@ -84,15 +84,17 @@ jobs:
           command: yarn add --dev jest-junit
       - run:
           name: Run tests with JUnit as reporter
-          command: yarn test:ci
+          command: |
+            mkdir -p ./tmp/js-test-results
+            yarn test:ci
           environment:
-            JEST_JUNIT_OUTPUT_DIR: "reports/junit/js-test-results.xml"
+            JEST_JUNIT_OUTPUT_DIR: "./tmp/js-test-results"
           test:
             post:
               - bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
 
       - store_test_results:
-          path: /tmp/js-test-results
+          path: ./tmp/js-test-results
       - store_artifacts:
           path: coverage
           prefix: coverage
