@@ -20,7 +20,9 @@ const QuestionsManager = (props: QuestionsManagerProps) => {
   }, [testId])
 
   const findAnswers = (answerIds: string[]) => {
-    return answers.filter((answer) => answerIds.includes(answer.id))
+    if (!answerIds) return []
+
+    return answers?.filter((answer) => answerIds.includes(answer.id))
   }
 
   return (
