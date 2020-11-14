@@ -35,7 +35,6 @@
     "@tailwindcss/custom-forms": "^0.2.1",
     "@testing-library/react": "^9.4.0",
     "@types/classnames": "^2.2.10",
-    "@types/draft-js": "^0.10.44",
     "@types/jest": "^25.2.1",
     "@types/lodash": "^4.14.150",
     "@types/luxon": "^1.24.0",
