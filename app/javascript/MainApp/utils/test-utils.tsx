@@ -1,17 +1,39 @@
-/* eslint-disable react/prop-types */
-import { render } from '@testing-library/react'
-import React from 'react'
+import React, { ReactElement } from "react";
+// tslint:disable-next-line: ordered-imports
+import { render as rtlRender, RenderResult } from "@testing-library/react";
 import { Provider } from 'react-redux'
+import { MemoryRouter } from "react-router-dom";
 import store from '../store'
 
-const Wrapped = ({ children }) => (
-  <Provider store={store}>
-    {children}
-  </Provider>
-)
+type WrappedProps = {
+  children?: ReactElement;
+};
 
-const customRender = (ui, options = {}) => render(ui, { wrapper: Wrapped, ...options })
+const Wrapped: React.ComponentType<WrappedProps> = ({
+  children,
+}) => {
+  return (
+    <Provider store={store}>
+      <MemoryRouter>
+        {children}
+      </MemoryRouter>
+    </Provider>
+  );
+};
 
-export * from '@testing-library/react'
+const customRender = (
+  ui: ReactElement
+): RenderResult => {
+  const wrappedUI = (
+    <Wrapped>
+      {ui}
+    </Wrapped>
+  )
+  return rtlRender(wrappedUI)
+}
 
-export { customRender as render }
+// re-export everything
+export * from "@testing-library/react";
+
+// override render method
+export { customRender as render };

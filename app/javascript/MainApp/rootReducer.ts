@@ -14,7 +14,7 @@ import getRefereeReducer from './modules/referee/referee'
 import refereesReducer from './modules/referee/referees'
 import teamReducer from './modules/team/team'
 import teamsReducer from './modules/team/teams'
-import testReducer from './modules/test/test'
+import testReducer from './modules/test/single_test'
 import testsReducer from './modules/test/tests'
 
 const rootReducer = combineReducers({

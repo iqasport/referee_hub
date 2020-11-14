@@ -5,7 +5,7 @@ import {
   getTests as getTestsApi,
   IdAttributes,
   TestsResponse
-} from '../../apis/test'
+} from '../../apis/single_test'
 import { Datum } from '../../schemas/getTestsSchema'
 import { AppThunk } from '../../store'
 

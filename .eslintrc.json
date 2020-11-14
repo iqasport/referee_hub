@@ -15,13 +15,17 @@
     },
     "plugins": [
         "react",
-        "jest"
+        "jest",
+        "testing-library",
+        "jest-dom"
     ],
     "extends": [
         "airbnb",
         "plugin:react/recommended",
         "plugin:jest/recommended",
-        "plugin:jest/style"
+        "plugin:jest/style",
+        "plugin:jest-dom/recommended",
+        "plugin:testing-library/react"
     ],
     "rules": {
         "semi": 0,

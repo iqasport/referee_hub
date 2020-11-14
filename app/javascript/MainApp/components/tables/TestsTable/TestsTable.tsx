@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
-import { deleteTest, updateTest } from 'MainApp/modules/test/test'
+import { deleteTest, updateTest } from 'MainApp/modules/test/single_test'
 import { getTests } from 'MainApp/modules/test/tests'
 import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getTestsSchema'

@@ -8,7 +8,7 @@ import {
   TestResponse,
   updateTest as updateTestApi,
   UpdateTestRequest,
-} from '../../apis/test'
+} from '../../apis/single_test'
 import { Data } from '../../schemas/getTestSchema'
 import { AppThunk } from '../../store'
 import { getTests } from './tests'

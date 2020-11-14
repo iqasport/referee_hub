@@ -1,4 +1,4 @@
-import { IdAttributes } from "MainApp/apis/test"
+import { IdAttributes } from "MainApp/apis/single_test"
 import { IncludedAttributes } from "MainApp/schemas/getRefereeSchema"
 
 export const getVersion = (version: string): string => {

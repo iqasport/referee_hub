@@ -1,13 +1,9 @@
 import React from 'react'
-import { fireEvent, render } from '../../../utils/test-utils'
+import { fireEvent, render, screen } from '../../../utils/test-utils'
 
 import { UpdateRefereeRequest } from '../../../apis/referee';
 import { DataAttributes, IncludedAttributes } from '../../../schemas/getRefereeSchema';
 import RefereeHeader from './RefereeHeader'
-// import { Provider } from 'react-redux';
-// import store from '../../../store'
-
-// const Wrapper = ({ children }) => <Provider store={store}>{children}</Provider>
 
 describe('RefereeHeader', () => {
   const referee: DataAttributes = {
@@ -55,9 +51,9 @@ describe('RefereeHeader', () => {
   }
 
   test('it renders the referee name', () => {
-    const { getByText } = render(<RefereeHeader {...defaultProps} />)
+    render(<RefereeHeader {...defaultProps} />)
     const fullName = `${referee.firstName} ${referee.lastName}`
-    expect(getByText(fullName)).toBeDefined()
+    screen.getByText(fullName)
   })
 
   test('it renders a default name if names not present', () => {
@@ -70,15 +66,15 @@ describe('RefereeHeader', () => {
       ...defaultProps,
       referee: noName,
     }
-    const { getByText } = render(<RefereeHeader {...noNameProps} />)
+    render(<RefereeHeader {...noNameProps} />)
 
-    expect(getByText('Anonymous Referee')).toBeDefined()
+    screen.getByText('Anonymous Referee')
   })
 
   test('it renders pronouns', () => {
-    const { getByText } = render(<RefereeHeader {...defaultProps} />)
+    render(<RefereeHeader {...defaultProps} />)
 
-    expect(getByText(referee.bio)).toBeDefined()
+    screen.getByText(referee.bio)
   })
 
   test("it doesn't render pronouns when show pronouns is false", () => {
@@ -89,28 +85,28 @@ describe('RefereeHeader', () => {
         showPronouns: false,
       }
     }
-    const { queryByText } = render(<RefereeHeader {...noPronounsProps} />)
+    render(<RefereeHeader {...noPronounsProps} />)
 
-    expect(queryByText(referee.pronouns)).toBeNull()
+    expect(screen.queryByText(referee.pronouns)).toBeNull()
   })
 
   test('it renders certifications', () => {
-    const { getByText } = render(<RefereeHeader {...defaultProps} />)
+    render(<RefereeHeader {...defaultProps} />)
 
-    expect(getByText('Snitch')).toBeDefined()
-    expect(getByText('Assistant')).toBeDefined()
+    screen.getByText('Snitch (Unknown)')
+    screen.getByText('Assistant (Unknown)')
   })
 
   test('it renders the bio', () => {
-    const { getByText } = render(<RefereeHeader {...defaultProps} />)
+    render(<RefereeHeader {...defaultProps} />)
 
-    expect(getByText(referee.bio)).toBeDefined()
+    screen.getByText(referee.bio)
   })
 
   test('it calls the edit function on edit button click', () => {
-    const { getByText } = render(<RefereeHeader {...defaultProps} />)
+    render(<RefereeHeader {...defaultProps} />)
 
-    const editButton = getByText('Edit')
+    const editButton = screen.getByText('Edit')
     fireEvent.click(editButton)
 
     expect(defaultProps.onEditClick).toHaveBeenCalled()
@@ -123,43 +119,43 @@ describe('RefereeHeader', () => {
     }
 
     test('it renders a save button', () => {
-      const { getByText } = render(<RefereeHeader {...editProps} />)
+      render(<RefereeHeader {...editProps} />)
 
-      expect(getByText('Save Changes')).toBeDefined()
+      screen.getByText('Save Changes')
     })
 
     test('it does not render certifications', () => {
-      const { queryByText } = render(<RefereeHeader {...editProps} />)
+      render(<RefereeHeader {...editProps} />)
 
-      expect(queryByText('Snitch')).toBeNull()
-      expect(queryByText('Assistant')).toBeNull()
+      expect(screen.queryByText('Snitch')).toBeNull()
+      expect(screen.queryByText('Assistant')).toBeNull()
     })
 
     test('it renders an export name toggle', () => {
-      const { getByLabelText } = render(<RefereeHeader {...editProps} />)
+      render(<RefereeHeader {...editProps} />)
 
-      expect(getByLabelText('Export Name?')).toBeDefined()
+      expect(screen.getByLabelText('Export Name?')).toBeDefined()
     })
 
     test('it renders pronoun editing', () => {
-      const { getByLabelText, getAllByRole } = render(<RefereeHeader {...editProps} />)
+      render(<RefereeHeader {...editProps} />)
 
-      expect(getByLabelText('Show Pronouns?')).toBeDefined()
-      expect(getAllByRole('textbox')[0].getAttribute('value')).toEqual(referee.pronouns)
+      expect(screen.getByLabelText('Show Pronouns?')).toBeDefined()
+      expect(screen.getAllByRole('textbox')[0].getAttribute('value')).toEqual(referee.pronouns)
     })
 
     test('it renders bio editing', () => {
-      const { getAllByRole } = render(<RefereeHeader {...editProps} />)
+      render(<RefereeHeader {...editProps} />)
 
-      const bio = getAllByRole('textbox')[1]
+      const bio = screen.getAllByRole('textbox')[1]
 
       expect(bio.innerHTML).toEqual(referee.bio)
     })
 
     test('it fires the change event when a value has changed', () => {
-      const { getByLabelText } = render(<RefereeHeader {...editProps} />)
+      render(<RefereeHeader {...editProps} />)
 
-      fireEvent.click(getByLabelText('Show Pronouns?'))
+      fireEvent.click(screen.getByLabelText('Show Pronouns?'))
 
       expect(defaultProps.onChange).toHaveBeenCalledWith(false, "showPronouns")
     })
@@ -180,9 +176,9 @@ describe('RefereeHeader', () => {
       }
 
       test('it renders name inputs', () => {
-        const { getAllByRole } = render(<RefereeHeader {...noNameProps} />)
+        render(<RefereeHeader {...noNameProps} />)
 
-        const allInputs = getAllByRole('textbox')
+        const allInputs = screen.getAllByRole('textbox')
         const firstName = allInputs[0]
         const lastName = allInputs[1]
 
