@@ -3,17 +3,24 @@ import React, { ReactElement } from "react";
 import { render as rtlRender, RenderResult } from "@testing-library/react";
 import { Provider } from 'react-redux'
 import { MemoryRouter } from "react-router-dom";
+import configureMockStore from 'redux-mock-store'
+import thunk from 'redux-thunk'
+
 import store from '../store'
+
+export const mockedStore = configureMockStore([thunk]);
 
 type WrappedProps = {
   children?: ReactElement;
+  mockStore?: typeof store;
 };
 
 const Wrapped: React.ComponentType<WrappedProps> = ({
   children,
+  mockStore = store
 }) => {
   return (
-    <Provider store={store}>
+    <Provider store={mockStore}>
       <MemoryRouter>
         {children}
       </MemoryRouter>
@@ -22,10 +29,11 @@ const Wrapped: React.ComponentType<WrappedProps> = ({
 };
 
 const customRender = (
-  ui: ReactElement
+  ui: ReactElement,
+  mockStore?: typeof store
 ): RenderResult => {
   const wrappedUI = (
-    <Wrapped>
+    <Wrapped mockStore={mockStore} >
       {ui}
     </Wrapped>
   )

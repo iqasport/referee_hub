@@ -260,7 +260,7 @@ const TestEditModal = (props: TestEditModalProps) => {
               value={newTest.newLanguageId || ''}
             >
               <option value="">Select the language</option>
-              {languages.map(renderLanguageOption)}
+              {languages?.map(renderLanguageOption)}
             </select>
             {renderError('newLanguageId')}
           </label>
