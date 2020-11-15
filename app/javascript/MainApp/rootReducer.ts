@@ -6,6 +6,7 @@ import checkoutReducer from './modules/checkout/checkout'
 import productsReducer from './modules/checkout/products'
 import currentUserReducer from './modules/currentUser/currentUser'
 import jobsReducer from './modules/job/job'
+import languagesReducer from './modules/language/languages'
 import nationalGoverningBodiesReducer from './modules/nationalGoverningBody/nationalGoverningBodies'
 import nationalGoverningBodyReducer from './modules/nationalGoverningBody/nationalGoverningBody'
 import questionReducer from './modules/question/question'
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   checkout: checkoutReducer,
   currentUser: currentUserReducer,
   jobs: jobsReducer,
+  languages: languagesReducer,
   nationalGoverningBodies: nationalGoverningBodiesReducer,
   nationalGoverningBody: nationalGoverningBodyReducer,
   products: productsReducer,

@@ -33,7 +33,8 @@ class TestSerializer < BaseSerializer
              :testable_question_count,
              :updated_at,
              :certification_id,
-             :recertification
+             :recertification,
+             :new_language_id
 
   belongs_to :certification
 end

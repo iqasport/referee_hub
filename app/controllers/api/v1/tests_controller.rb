@@ -133,7 +133,8 @@ module Api
           :active,
           :testable_question_count,
           :certification_id,
-          :recertification
+          :recertification,
+          :new_language_id
         )
       end
 
