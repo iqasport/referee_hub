@@ -159,7 +159,7 @@ const TestEditModal = (props: TestEditModalProps) => {
   }
 
   const renderError = (attr: string) => {
-    return hasError(attr) && <span className="text-red-500 text-sm">Cannot be blank</span>
+    return hasError(attr) && <span className="text-red-500 text-sm">{`${capitalize(attr)} Cannot be blank`}</span>
   }
 
   const renderOption = (value: string) => {
@@ -188,6 +188,7 @@ const TestEditModal = (props: TestEditModalProps) => {
         <label className="block">
           <span className="text-gray-700">Name</span>
           <input
+            type="text"
             aria-label="name"
             className={classnames("form-input mt-1 block w-full", {'border border-red-500': hasError('name')})}
             placeholder="Snitch Referee Test"
@@ -297,6 +298,7 @@ const TestEditModal = (props: TestEditModalProps) => {
               name="version"
               onChange={handleChange}
               value={newCert.version}
+              placeholder="Select rulebook version"
             >
               <option value="">Select rulebook version</option>
               {VERSION_OPTIONS.map(renderOption)}

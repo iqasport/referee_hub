@@ -28,8 +28,9 @@ describe('TestEditModal', () => {
   }
   const mockStore = mockedStore(defaultStore)
   const defaultProps = {
+    onClose: jest.fn(),
     open: true,
-    showClose: true
+    showClose: true,
   }
 
   it('renders an empty form', async () => {
@@ -45,6 +46,30 @@ describe('TestEditModal', () => {
     fireEvent.click(selectElement)
     languages.forEach((lang) => {
       screen.getAllByText(`${lang.attributes.longName} - ${lang.attributes.shortRegion}`)
+    })
+  })
+
+  describe('with empty store', () => {
+    it('dispatches getCertifications call', () => {
+      const emptyCerts = { ...defaultStore, certifications: { certifications: [] } }
+      const emptyCertStore = mockedStore(emptyCerts)
+
+      render(<TestEditModal {...defaultProps} />, emptyCertStore)
+
+      expect(emptyCertStore.getActions()).toEqual([
+        { payload: undefined, type: "certifications/getCertificationsStart" },
+      ]);
+    })
+
+    it('dispatches getLanguages call', () => {
+      const emptyLangs = { ...defaultStore, languages: { languages: [] } }
+      const emptyLangStore = mockedStore(emptyLangs)
+
+      render(<TestEditModal {...defaultProps} />, emptyLangStore)
+
+      expect(emptyLangStore.getActions()).toEqual([{
+        "payload": undefined, "type": "languages/getLanguagesStart"
+      }])
     })
   })
 
@@ -98,6 +123,48 @@ describe('TestEditModal', () => {
       userEvent.type(descInput, 'a change');
 
       expect(submitButton).toBeEnabled()
+    })
+
+    it('shows an error when a required field is empty', () => {
+      render(<TestEditModal {...editProps} />, editMockStore)
+
+      const descInput = screen.getByText(singleTest.attributes.description)
+      userEvent.clear(descInput)
+
+      userEvent.click(screen.getByText('Done'))
+
+      screen.getByText('Description Cannot be blank')
+    })
+
+    it('dispatches an update on submit', () => {
+      render(<TestEditModal {...editProps} />, editMockStore)
+
+      const levelElement = screen.getByPlaceholderText('Select the level')
+      const versionElement = screen.getByPlaceholderText('Select rulebook version')
+      userEvent.selectOptions(levelElement, [certifications[0].attributes.level])
+      userEvent.selectOptions(versionElement, [certifications[0].attributes.version])
+      userEvent.click(screen.getByText('Done'))
+
+      expect(editMockStore.getActions()).toEqual([{
+        "payload": undefined,
+        "type": "test/updateTestStart"
+      }]);
+    })
+
+    describe('with an empty test', () => {
+      const emptyProps = {
+        ...defaultProps,
+        testId: '1'
+      }
+
+      it('dispatches to get the test', () => {
+        render(<TestEditModal { ...emptyProps } />, mockStore)
+
+        expect(mockStore.getActions()).toEqual([{
+          payload: undefined,
+          type: "test/getTestStart",
+        }]);
+      })
     })
   })
 })

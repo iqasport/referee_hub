@@ -12,7 +12,8 @@ export const mockedStore = configureMockStore([thunk]);
 
 type WrappedProps = {
   children?: ReactElement;
-  mockStore?: typeof store;
+  // tslint:disable-next-line: no-any
+  mockStore?: any;
 };
 
 const Wrapped: React.ComponentType<WrappedProps> = ({
@@ -30,7 +31,8 @@ const Wrapped: React.ComponentType<WrappedProps> = ({
 
 const customRender = (
   ui: ReactElement,
-  mockStore?: typeof store
+  // tslint:disable-next-line: no-any
+  mockStore?: any
 ): RenderResult => {
   const wrappedUI = (
     <Wrapped mockStore={mockStore} >

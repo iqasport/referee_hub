@@ -7,11 +7,13 @@ import { AppThunk } from 'MainApp/store';
 interface CertificationsState {
   certifications: Datum[];
   error: string;
+  isLoading: boolean;
 }
 
 const initialState: CertificationsState = {
   certifications: null,
-  error: null
+  error: null,
+  isLoading: false
 }
 
 const certifications = createSlice({
@@ -21,21 +23,28 @@ const certifications = createSlice({
     getCertificationsSuccess(state: CertificationsState, action: PayloadAction<CertificationsResponse>) {
       state.certifications = action.payload.certifications
       state.error = null
+      state.isLoading = false
     },
     getCertificationsFailure(state: CertificationsState, action: PayloadAction<string>) {
       state.certifications = null
       state.error = action.payload
+      state.isLoading = false;
+    },
+    getCertificationsStart(state: CertificationsState) {
+      state.isLoading = true
     }
   }
 })
 
 export const {
   getCertificationsFailure,
-  getCertificationsSuccess
+  getCertificationsStart,
+  getCertificationsSuccess,
 } = certifications.actions
 
 export const getCertifications = (): AppThunk => async dispatch => {
   try {
+    dispatch(getCertificationsStart())
     const certResponse = await getCertsApi()
     dispatch(getCertificationsSuccess(certResponse))
   } catch (err) {
