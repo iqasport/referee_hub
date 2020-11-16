@@ -12,7 +12,7 @@ module.exports = {
   testEnvironment: 'jsdom',
   collectCoverage: true,
   coverageReporters: ['json'],
-  reporters: ['default', 'jest-junit'],
+  reporters: ['default'],
   transform: {
     '^.+\\.(ts|tsx)$': 'babel-jest',
   },

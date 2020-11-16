@@ -1,8 +1,6 @@
-# Ruby CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-ruby/ for more details
-#
-version: 2
+version: 2.1
+orbs:
+  codecov: codecov/codecov@1.1.1
 jobs:
   test_ruby:
     working_directory: ~/referee_hub
@@ -51,15 +49,8 @@ jobs:
             TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
 
             bundle exec rspec $TEST_FILES
-          test:
-            post:
-              - bash <(curl -s https://codecov.io/bash) -cF ruby
-      # collect reports
-      - store_test_results:
-          path: /tmp/test-results
-      - store_artifacts:
-          path: /tmp/test-results
-          destination: test-results
+      - codecov/upload:
+          file: coverage/.resultset.json
 
   test_js:
     working_directory: ~/referee_hub
@@ -80,27 +71,15 @@ jobs:
           paths:
             - ~/.cache/yarn
       - run:
-          name: Install JUnit coverage reporter
-          command: yarn add --dev jest-junit
-      - run:
-          name: Run tests with JUnit as reporter
+          name: Run tests
           command: |
             mkdir -p ./tmp/js-test-results
             yarn test:ci
-          environment:
-            JEST_JUNIT_OUTPUT_DIR: "./tmp/js-test-results"
-          test:
-            post:
-              - bash <(curl -s https://codecov.io/bash) -f coverage/coverage.json
-
-      - store_test_results:
-          path: ./tmp/js-test-results
-      - store_artifacts:
-          path: coverage
-          prefix: coverage
+      - codecov/upload:
+          file: coverage/coverage-final.json
 
 workflows:
-  version: 2
+  version: 2.1
   build_and_test:
     jobs:
       - test_ruby
