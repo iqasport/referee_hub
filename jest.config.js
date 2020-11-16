@@ -16,6 +16,7 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'babel-jest',
   },
+  setupFilesAfterEnv: ['./jest.setup.ts'],
   // coverageThreshold: {
   //   global: {
   //     lines: 90,

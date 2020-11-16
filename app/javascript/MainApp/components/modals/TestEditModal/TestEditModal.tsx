@@ -164,7 +164,7 @@ const TestEditModal = (props: TestEditModalProps) => {
 
   const renderOption = (value: string) => {
     return (
-      <option key={value} value={value}>
+      <option data-testid={value} key={value} value={value}>
         {capitalize(value)}
       </option>
     )
@@ -188,6 +188,7 @@ const TestEditModal = (props: TestEditModalProps) => {
         <label className="block">
           <span className="text-gray-700">Name</span>
           <input
+            aria-label="name"
             className={classnames("form-input mt-1 block w-full", {'border border-red-500': hasError('name')})}
             placeholder="Snitch Referee Test"
             name="name"
@@ -199,6 +200,7 @@ const TestEditModal = (props: TestEditModalProps) => {
         <label className="block mt-8">
           <span className="text-gray-700">Description</span>
           <textarea
+            aria-label="description"
             className={
               classnames(
                 "form-textarea mt-1 block w-full",
