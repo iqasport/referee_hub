@@ -35,6 +35,7 @@
     "@tailwindcss/custom-forms": "^0.2.1",
     "@testing-library/react": "^11.1.2",
     "@types/classnames": "^2.2.10",
+    "@types/faker": "^5.1.4",
     "@types/jest": "^25.2.1",
     "@types/lodash": "^4.14.150",
     "@types/luxon": "^1.24.0",
@@ -52,6 +53,8 @@
     "classnames": "^2.2.6",
     "core-js": "3",
     "dotenv": "^6.0.0",
+    "faker": "^5.1.0",
+    "fishery": "^1.0.1",
     "lodash": "^4.17.19",
     "luxon": "^1.4.1",
     "papaparse": "^5.2.0",
@@ -78,8 +81,12 @@
     "webpack-cli": "^3.1.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/dom": "^7.26.6",
+    "@testing-library/jest-dom": "^5.11.6",
+    "@testing-library/user-event": "^12.2.2",
+    "@types/redux-mock-store": "^1.0.2",
     "ansi-colors": "^4.1.1",
+    "axios-mock-adapter": "^1.19.0",
     "babel-eslint": "^9.0.0",
     "babel-jest": "26.6.1",
     "eslint": "^5.3.0",
@@ -93,14 +100,14 @@
     "fork-ts-checker-webpack-plugin": "^5.0.4",
     "jest": "26.6.1",
     "jest-environment-jsdom-sixteen": "^1.0.3",
-    "jest-junit": "^10.0.0",
     "react-test-renderer": "^16.12.0",
+    "redux-mock-store": "^1.5.4",
     "webpack-bundle-analyzer": "^3.8.0",
     "webpack-dev-server": "^3.11.0"
   },
   "scripts": {
     "test": "jest -c jest.config.js --coverage",
-    "test:ci": "jest --ci --runInBand --coverage --config jest.config.js --reporters=default --reporters=jest-junit",
+    "test:ci": "jest --ci --runInBand --coverage --config jest.config.js",
     "webpack:analyze": "node_modules/.bin/webpack --config config/webpack/production.js --profile --json > public/packs/stats.json && node_modules/.bin/webpack-bundle-analyzer public/packs/stats.json"
   }
 }

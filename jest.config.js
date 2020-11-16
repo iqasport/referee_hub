@@ -11,11 +11,19 @@ module.exports = {
   testRegex: '(/__tests__/.*|(\\.|/)(test))\\.[jt]sx?$',
   testEnvironment: 'jsdom',
   collectCoverage: true,
-  coverageReporters: ['json'],
-  reporters: ['default', 'jest-junit'],
+  coverageReporters: ['json', 'text'],
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/app/javascript/MainApp/schemas/',
+    '/app/javascript/MainApp/factories/',
+    '/app/javascript/MainApp/rootReducer',
+    '/app/javascript/MainApp/store'
+  ],
+  reporters: ['default'],
   transform: {
     '^.+\\.(ts|tsx)$': 'babel-jest',
   },
+  setupFilesAfterEnv: ['./jest.setup.ts'],
   // coverageThreshold: {
   //   global: {
   //     lines: 90,

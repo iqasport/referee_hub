@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
+import { getLanguages } from 'MainApp/modules/language/languages'
 import { deleteTest, updateTest } from 'MainApp/modules/test/single_test'
 import { getTests } from 'MainApp/modules/test/tests'
 import { RootState } from 'MainApp/rootReducer'
@@ -31,9 +32,13 @@ const TestsTable = () => {
   const history = useHistory()
   const dispatch = useDispatch()
   const { tests, isLoading, certifications } = useSelector((state: RootState) => state.tests, shallowEqual)
+  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual)
 
   useEffect(() => {
     dispatch(getTests())
+    if (!languages?.length) {
+      dispatch(getLanguages())
+    }
   }, [])
 
   const handleRowClick = (id: string) => {
@@ -81,9 +86,12 @@ const TestsTable = () => {
     },
     {
       cellRenderer: (item: Datum) => {
-        return item.attributes.language
+        const language = languages.find((lang) => lang.id === item.attributes.newLanguageId.toString())
+        const regionText = language.attributes.shortRegion ? ` - ${language.attributes.shortRegion}` : "";
+
+        return `${language.attributes.longName}${regionText}`
       },
-      dataKey: 'language'
+      dataKey: 'newLanguageId'
     },
     {
       cellRenderer: (item: Datum) => {

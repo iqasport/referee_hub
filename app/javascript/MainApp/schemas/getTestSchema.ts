@@ -39,6 +39,7 @@ export interface Attributes {
   updatedAt?: string;
   certificationId?: number;
   recertification?: boolean;
+  newLanguageId?: number;
 }
 
 export interface Included {

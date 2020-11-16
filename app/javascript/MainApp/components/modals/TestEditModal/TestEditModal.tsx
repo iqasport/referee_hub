@@ -6,8 +6,10 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { UpdateTestRequest } from 'MainApp/apis/single_test';
 import Toggle from 'MainApp/components/Toggle';
 import { getCertifications } from 'MainApp/modules/certification/certifications';
+import { getLanguages } from 'MainApp/modules/language/languages';
 import { createTest, getTest, updateTest } from 'MainApp/modules/test/single_test';
 import { RootState } from 'MainApp/rootReducer';
+import { Datum } from 'MainApp/schemas/getLanguagesSchema';
 import { TestLevel } from 'MainApp/schemas/getTestSchema';
 
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
@@ -26,6 +28,7 @@ const REQUIRED_TEST_FIELDS = [
   'timeLimit',
   'positiveFeedback',
   'negativeFeedback',
+  'newLanguageId'
 ]
 const REQUIRED_CERT_FIELDS = ['version', 'level']
 const LEVEL_OPTIONS = ['snitch', 'assistant', 'head', 'field', 'scorekeeper']
@@ -80,6 +83,7 @@ const TestEditModal = (props: TestEditModalProps) => {
   const [newCert, setNewCert] = useState<UpdateCertification>(initialCertification)
   const { test, certification } = useSelector((state: RootState) => state.test, shallowEqual)
   const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual)
+  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual)
   const dispatch = useDispatch()
 
   const formType = testId ? 'Edit' : 'New'
@@ -94,12 +98,17 @@ const TestEditModal = (props: TestEditModalProps) => {
   useEffect(() => {
     if (test && testId) {
       setNewTest({ ...test?.attributes })
-      setNewCert({ level: certification.level, version: certification.version })
+      setNewCert({ level: certification?.level, version: certification?.version })
     }
   }, [test, certification])
 
   useEffect(() => {
-    dispatch(getCertifications())
+    if (!certifications?.length) {
+      dispatch(getCertifications())
+    }
+    if (!languages?.length) {
+      dispatch(getLanguages())
+    }
   }, [])
 
   const handleSubmit = () => {
@@ -150,13 +159,24 @@ const TestEditModal = (props: TestEditModalProps) => {
   }
 
   const renderError = (attr: string) => {
-    return hasError(attr) && <span className="text-red-500 text-sm">Cannot be blank</span>
+    return hasError(attr) && <span className="text-red-500 text-sm">{`${capitalize(attr)} Cannot be blank`}</span>
   }
 
   const renderOption = (value: string) => {
     return (
-      <option key={value} value={value}>
+      <option data-testid={value} key={value} value={value}>
         {capitalize(value)}
+      </option>
+    )
+  }
+
+  const renderLanguageOption = (language: Datum) => {
+    const { attributes: { longName, shortRegion }, id } = language
+    const regionText = shortRegion ? ` - ${shortRegion}` : ''
+
+    return (
+      <option key={id} value={id}>
+        {`${longName}${regionText}`}
       </option>
     )
   }
@@ -168,6 +188,8 @@ const TestEditModal = (props: TestEditModalProps) => {
         <label className="block">
           <span className="text-gray-700">Name</span>
           <input
+            type="text"
+            aria-label="name"
             className={classnames("form-input mt-1 block w-full", {'border border-red-500': hasError('name')})}
             placeholder="Snitch Referee Test"
             name="name"
@@ -179,6 +201,7 @@ const TestEditModal = (props: TestEditModalProps) => {
         <label className="block mt-8">
           <span className="text-gray-700">Description</span>
           <textarea
+            aria-label="description"
             className={
               classnames(
                 "form-textarea mt-1 block w-full",
@@ -227,18 +250,22 @@ const TestEditModal = (props: TestEditModalProps) => {
         <div className="flex w-full my-8">
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Language</span>
-            <input
+            <select
               className={
                 classnames(
-                  "form-input mt-1 block w-full",
-                  { 'border border-red-500': hasError('language') }
+                  "form-select mt-1 block w-full",
+                  { 'border border-red-500': hasError('newLanguageId') }
                 )
               }
-              name="language"
-              value={newTest.language}
+              name="newLanguageId"
+              placeholder="Select the language"
               onChange={handleChange}
-            />
-            {renderError('language')}
+              value={newTest.newLanguageId || ''}
+            >
+              <option value="">Select the language</option>
+              {languages?.map(renderLanguageOption)}
+            </select>
+            {renderError('newLanguageId')}
           </label>
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Level</span>
@@ -271,6 +298,7 @@ const TestEditModal = (props: TestEditModalProps) => {
               name="version"
               onChange={handleChange}
               value={newCert.version}
+              placeholder="Select rulebook version"
             >
               <option value="">Select rulebook version</option>
               {VERSION_OPTIONS.map(renderOption)}

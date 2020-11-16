@@ -30,7 +30,7 @@ const NewAdmin = () => {
   const history = useHistory()
   const { roles } = useSelector((state: RootState): CurrentUserState => state.currentUser, shallowEqual)
 
-  if (!roles.includes('iqa_admin')) history.goBack()
+  if (roles.length && !roles.includes('iqa_admin')) history.goBack()
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab
 

@@ -12,6 +12,7 @@ import QuestionsManager from 'MainApp/components/QuestionsManager'
 import Toggle from 'MainApp/components/Toggle'
 import { CurrentUserState } from 'MainApp/modules/currentUser/currentUser'
 import { exportTest } from 'MainApp/modules/job/job'
+import { getLanguages } from 'MainApp/modules/language/languages'
 import { deleteTest, getTest, updateTest } from 'MainApp/modules/test/single_test'
 import { RootState } from 'MainApp/rootReducer'
 import { IdParams } from '../RefereeProfile/types'
@@ -31,7 +32,7 @@ enum ActiveModal {
   Export = 'export',
 }
 
-const NewTest = (props: RouteComponentProps<IdParams>) => {
+const Test = (props: RouteComponentProps<IdParams>) => {
   const { match: { params: { id } } } = props
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Details)
@@ -40,13 +41,18 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
   const history = useHistory()
   const { test, isLoading } = useSelector((state: RootState) => state.test, shallowEqual)
   const { roles } = useSelector((state: RootState): CurrentUserState => state.currentUser, shallowEqual)
-  if (!roles.includes('iqa_admin')) history.goBack()
+  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual)
+  if (roles.length && !roles.includes('iqa_admin')) history.goBack()
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab
 
   useEffect(() => {
     dispatch(getTest(id))
   }, [id])
+
+  useEffect(() => {
+    dispatch(getLanguages())
+  }, [])
 
   const handleBackClick = () => history.goBack()
 
@@ -75,7 +81,7 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
   const renderContent = () => {
     switch(selectedTab) {
       case SelectedTab.Details:
-        return <Details test={test} />
+        return <Details test={test} languages={languages} />
       case SelectedTab.Questions:
         return <QuestionsManager testId={id} />
       default:
@@ -161,4 +167,4 @@ const NewTest = (props: RouteComponentProps<IdParams>) => {
   )
 }
 
-export default NewTest
+export default Test
