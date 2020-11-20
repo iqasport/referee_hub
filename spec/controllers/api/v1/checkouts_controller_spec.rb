@@ -75,6 +75,7 @@ RSpec.describe Api::V1::CheckoutsController, type: :controller do
     let(:cert_id) { '3' }
     let(:session_data) do
       {
+        allow_promotion_codes: true,
         success_url: "http://localhost:3000/referees/#{user.id}/tests?status=success",
         cancel_url: "http://localhost:3000/referees/#{user.id}/tests?status=cancelled",
         payment_method_types: ['card'],

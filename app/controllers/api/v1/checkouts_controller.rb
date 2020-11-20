@@ -28,7 +28,8 @@ module Api
           customer_email: current_user.email,
           metadata: {
             certification_id: params[:certification_id],
-          }
+          },
+          allow_promotion_codes: true
         }
 
         session = Stripe::Checkout::Session.create(session_data)

@@ -37,6 +37,12 @@
                 placeholder: 'Confirm Password' %>
             </div>
 
+            <div class="flex items-center text-navy-blue mb-8">
+              <%= f.check_box :policy_rule_privacy_terms, {class: 'form-checkbox text-green mr-2', required: true}, true, false %>
+              You have read and agree to the terms outlined in our
+              <a target="_blank" rel="noopener noreferrer" href="https://manage.iqasport.com/privacy" class="text-blue-darker ml-1">Privacy Policy</a>
+            </div>
+
             <div class="text-center">
               <%= f.submit "Change my password", class: 'bg-navy-blue text-white font-bold py-2 px-8 rounded cursor-pointer' %>
             </div>
