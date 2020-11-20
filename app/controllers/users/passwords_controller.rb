@@ -18,10 +18,20 @@ class Users::PasswordsController < Devise::PasswordsController
 
   # PUT /resource/password
   def update
-    super
+    super do |resource|
+      if resource_params.fetch(:policy_rule_privacy_terms)
+        resource.confirm_all_policies!
+      else
+        resource.reject_all_policies!
+      end
+    end
   end
 
   # protected
+
+  def configure_password_params
+    devise_parameter_sanitizer.permit(:account_update, keys: [:policy_rule_privacy_terms])
+  end
 
   def after_resetting_password_path_for(resource)
     super(resource)
