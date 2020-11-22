@@ -24,7 +24,7 @@ enum SelectedTab {
   Tests = 'tests'
 }
 
-const NewAdmin = () => {
+const Admin = () => {
   const [selectedModal, setSelectedModal] = useState<SelectedModal>()
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Ngbs)
   const history = useHistory()
@@ -99,4 +99,4 @@ const NewAdmin = () => {
   )
 }
 
-export default NewAdmin
+export default Admin

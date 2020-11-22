@@ -92,6 +92,7 @@ const App = () => {
           path='/referees/:refereeId/tests'
           render={(props) => <AsyncPage {...props} page="RefereeTests" />}
         />
+        <Route exact={true} path='/settings' render={(props) => <AsyncPage {...props} page="Settings" />} />
       </div>
     </Router>
   )

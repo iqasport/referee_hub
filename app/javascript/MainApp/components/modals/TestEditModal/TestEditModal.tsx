@@ -13,6 +13,7 @@ import { Datum } from 'MainApp/schemas/getLanguagesSchema';
 import { TestLevel } from 'MainApp/schemas/getTestSchema';
 
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
+import LanguageDropdown from 'MainApp/components/LanguageDropdown';
 
 type UpdateCertification = {
   level: TestLevel;
@@ -170,17 +171,6 @@ const TestEditModal = (props: TestEditModalProps) => {
     )
   }
 
-  const renderLanguageOption = (language: Datum) => {
-    const { attributes: { longName, shortRegion }, id } = language
-    const regionText = shortRegion ? ` - ${shortRegion}` : ''
-
-    return (
-      <option key={id} value={id}>
-        {`${longName}${regionText}`}
-      </option>
-    )
-  }
-
   return (
     <Modal {...props} onClose={handleClose} size={ModalSize.Large}>
       <h2 className="text-center text-xl font-semibold my-8">{`${formType} Test`}</h2>
@@ -250,21 +240,13 @@ const TestEditModal = (props: TestEditModalProps) => {
         <div className="flex w-full my-8">
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Language</span>
-            <select
-              className={
-                classnames(
-                  "form-select mt-1 block w-full",
-                  { 'border border-red-500': hasError('newLanguageId') }
-                )
-              }
+            <LanguageDropdown
               name="newLanguageId"
-              placeholder="Select the language"
+              languages={languages}
+              hasError={hasError('newLanguageId')}
               onChange={handleChange}
-              value={newTest.newLanguageId || ''}
-            >
-              <option value="">Select the language</option>
-              {languages?.map(renderLanguageOption)}
-            </select>
+              value={newTest.newLanguageId.toString() || ''}
+            />
             {renderError('newLanguageId')}
           </label>
           <label className="w-1/3 mr-4">
