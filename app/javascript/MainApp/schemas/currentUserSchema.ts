@@ -26,11 +26,13 @@ export interface DataAttributes {
     avatarUrl:          string | null;
     enabledFeatures:    string[];
     ownedNgbId:         number | null;
+    languageId?:        number;
 }
 
 export interface Relationships {
     roles: Relationship;
     certificationPayments: Relationship;
+    language: Relationship
 }
 
 export interface Relationship {
@@ -53,6 +55,9 @@ export interface IncludedAttributes {
     userId:     number;
     certificationId?: number;
     stripeSessionId?: string;
+    longName?: string;
+    shortName?: string;
+    shortRegion?: string;
 }
 
 // Converts JSON strings to/from your types

@@ -10,7 +10,12 @@ export interface UserResponse {
   user: DataAttributes;
   roles: string[];
   certificationPayments: number[];
+  language: Included;
   id: string;
+}
+
+export interface UpdatedUserRequest {
+  languageId: number;
 }
 
 const formatUserResponse = (response: AxiosResponse<CurrentUserSchema>): UserResponse => {
@@ -26,10 +31,15 @@ const formatUserResponse = (response: AxiosResponse<CurrentUserSchema>): UserRes
     }
     return null
   })
+  const language = response.data.included.find((lang: Included): boolean => {
+    if (lang.type === 'language') return true
+    return false
+  })
 
   return {
     certificationPayments: paidCerts,
     id: response.data.data.id,
+    language,
     roles,
     user: {
       ...response.data.data.attributes,
@@ -67,6 +77,17 @@ export async function updateAvatar(userId: string, avatar: File): Promise<UserRe
     data.append('avatar', avatar)
 
     const userResponse = await axios.post(url, data)
+    return formatUserResponse(userResponse)
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function updateUser(userId: string, user: UpdatedUserRequest): Promise<UserResponse> {
+  const url = `/api/v1/users/${userId}`
+
+  try {
+    const userResponse = await baseAxios.patch(url, {...user})
     return formatUserResponse(userResponse)
   } catch (err) {
     throw err
