@@ -6,6 +6,7 @@ import Avatar from './'
 
 describe('Avatar', () => {
   const defaultProps = {
+    enabledFeatures: [],
     firstName: 'Quidditch',
     lastName: 'Rocks',
     ownedNgbId: 1234,

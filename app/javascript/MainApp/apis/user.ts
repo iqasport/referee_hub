@@ -84,7 +84,7 @@ export async function updateAvatar(userId: string, avatar: File): Promise<UserRe
 }
 
 export async function updateUser(userId: string, user: UpdatedUserRequest): Promise<UserResponse> {
-  const url = `/api/v1/users/${userId}`
+  const url = `users/${userId}`
 
   try {
     const userResponse = await baseAxios.patch(url, {...user})

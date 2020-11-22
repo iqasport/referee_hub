@@ -4,16 +4,15 @@ import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import { UpdateTestRequest } from 'MainApp/apis/single_test';
+import LanguageDropdown from 'MainApp/components/LanguageDropdown';
 import Toggle from 'MainApp/components/Toggle';
 import { getCertifications } from 'MainApp/modules/certification/certifications';
 import { getLanguages } from 'MainApp/modules/language/languages';
 import { createTest, getTest, updateTest } from 'MainApp/modules/test/single_test';
 import { RootState } from 'MainApp/rootReducer';
-import { Datum } from 'MainApp/schemas/getLanguagesSchema';
 import { TestLevel } from 'MainApp/schemas/getTestSchema';
 
 import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
-import LanguageDropdown from 'MainApp/components/LanguageDropdown';
 
 type UpdateCertification = {
   level: TestLevel;

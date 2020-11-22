@@ -10,10 +10,11 @@ interface AvatarProps {
   roles: string[];
   userId: string;
   ownedNgbId: number;
+  enabledFeatures: string[];
 }
 
 const Avatar = (props: AvatarProps) => {
-  const { firstName, lastName, roles, userId, ownedNgbId } = props
+  const { firstName, lastName, roles, userId, ownedNgbId, enabledFeatures } = props
 
   const history = useHistory()
 
@@ -40,6 +41,10 @@ const Avatar = (props: AvatarProps) => {
 
   const handleNgbProfileClick = () => {
     history.push(`/national_governing_bodies/${ownedNgbId}`)
+  }
+
+  const handleSettingsClick = () => {
+    history.push('/settings')
   }
 
   const renderTrigger = onClick => {
@@ -73,8 +78,14 @@ const Avatar = (props: AvatarProps) => {
     content: 'Logout',
     onClick: handleLogoutClick
   }
+  const settings: ItemConfig = {
+    content: 'Settings',
+    onClick: handleSettingsClick
+  }
 
   const items: ItemConfig[] = [home]
+
+  if (enabledFeatures?.includes('i18n')) items.push(settings)
 
   if (roles.length > 1) {
     const isNgbAndIqa = roles.includes('ngb_admin') && roles.includes('iqa_admin')

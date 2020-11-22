@@ -59,6 +59,7 @@ const App = () => {
             roles={roles}
             userId={id}
             ownedNgbId={currentUser?.ownedNgbId}
+            enabledFeatures={currentUser?.enabledFeatures}
           />
         </div>
         <Route exact={true} path='/'>
@@ -92,7 +93,12 @@ const App = () => {
           path='/referees/:refereeId/tests'
           render={(props) => <AsyncPage {...props} page="RefereeTests" />}
         />
-        <Route exact={true} path='/settings' render={(props) => <AsyncPage {...props} page="Settings" />} />
+        {
+          currentUser?.enabledFeatures.includes('i18n')
+          ? (
+            <Route exact={true} path='/settings' render={(props) => <AsyncPage {...props} page="Settings" />} />
+          ) : null
+        }
       </div>
     </Router>
   )
