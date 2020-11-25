@@ -86,6 +86,8 @@ const TestsTable = () => {
     },
     {
       cellRenderer: (item: Datum) => {
+        if (!item.attributes.newLanguageId) return '---'
+
         const language = languages.find((lang) => lang.id === item.attributes.newLanguageId.toString())
         const regionText = language.attributes.shortRegion ? ` - ${language.attributes.shortRegion}` : "";
 
