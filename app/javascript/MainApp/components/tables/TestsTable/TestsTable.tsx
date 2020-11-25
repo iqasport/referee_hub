@@ -13,6 +13,7 @@ import { RootState } from 'MainApp/rootReducer'
 import { Datum } from 'MainApp/schemas/getTestsSchema'
 import { getTestCertVersion } from 'MainApp/utils/certUtils'
 import { toDateTime } from 'MainApp/utils/dateUtils'
+import { formatLanguage } from 'MainApp/utils/langUtils'
 import TestEditModal from '../../modals/TestEditModal'
 import WarningModal from '../../modals/WarningModal'
 import Table, { CellConfig } from '../Table/Table'
@@ -35,7 +36,9 @@ const TestsTable = () => {
   const { languages } = useSelector((state: RootState) => state.languages, shallowEqual)
 
   useEffect(() => {
-    dispatch(getTests())
+    if (!tests?.length) {
+      dispatch(getTests())
+    }
     if (!languages?.length) {
       dispatch(getLanguages())
     }
@@ -45,15 +48,12 @@ const TestsTable = () => {
     history.push(`/admin/tests/${id}`)
   }
 
-  const handleToggle = (value: boolean, id: string) => {
-    const newTest = { active: value }
-    dispatch(updateTest(id, newTest))
-  }
-
   const handleActiveToggle = (item: Datum) => (testId: string) => {
     const newValue = !item.attributes.active
-    handleToggle(newValue, testId)
+    const newTest = { active: newValue };
+    dispatch(updateTest(testId, newTest));
   }
+
   const handleModalClick = (newModal: ActiveModal) => (testId: string) => {
     setActiveTest(testId)
     setActiveModal(newModal)
@@ -89,9 +89,7 @@ const TestsTable = () => {
         if (!item.attributes.newLanguageId) return '---'
 
         const language = languages.find((lang) => lang.id === item.attributes.newLanguageId.toString())
-        const regionText = language.attributes.shortRegion ? ` - ${language.attributes.shortRegion}` : "";
-
-        return `${language.attributes.longName}${regionText}`
+        return formatLanguage(language)
       },
       dataKey: 'newLanguageId'
     },

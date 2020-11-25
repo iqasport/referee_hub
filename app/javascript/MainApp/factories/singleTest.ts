@@ -1,5 +1,6 @@
 import Faker from 'faker'
 import { Factory } from 'fishery'
+import { DateTime } from 'luxon'
 
 import { Data, TestLevel } from 'MainApp/schemas/getTestSchema'
 
@@ -17,7 +18,7 @@ export default Factory.define<Data>(({ sequence }): Data => ({
     recertification: false,
     testableQuestionCount: 10,
     timeLimit: 18,
-    updatedAt: Faker.date.recent().toString(),
+    updatedAt: DateTime.local().toString(),
   },
   id: sequence.toString(),
   type: 'test',
