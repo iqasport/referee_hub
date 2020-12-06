@@ -12,7 +12,10 @@ describe('Settings', () => {
   const currentUser = factories.currentUser.build()
   const defaultStore = {
     currentUser: {
-      currentUser
+      currentUser: {
+        ...currentUser,
+        enabledFeatures: ['i18n']
+      }
     },
     languages: {
       languages
@@ -84,7 +87,10 @@ describe('Settings', () => {
     const langStore = {
       ...defaultStore,
       currentUser: {
-        currentUser,
+        currentUser: {
+          ...currentUser,
+          enabledFeatures: ['i18n']
+        },
         language: languages[3]
       }
     }
@@ -112,6 +118,22 @@ describe('Settings', () => {
       expect(emptyLangMock.getActions()).toEqual([{
         "payload": undefined, "type": "languages/getLanguagesStart"
       }])
+    })
+  })
+
+  describe("when user doesn't have the feature flag", () => {
+    const disabledFeatureStore = {
+      ...defaultStore,
+      currentUser: {
+        currentUser
+      }
+    }
+    const disabledFeatureMock = mockedStore(disabledFeatureStore)
+
+    it('does not render the settings page', () => {
+      render(<Settings />, disabledFeatureMock)
+
+      expect(screen.queryByText('Settings')).toBeNull()
     })
   })
 })

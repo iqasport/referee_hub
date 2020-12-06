@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 
 import { UpdatedUserRequest } from 'MainApp/apis/user';
 import LanguageDropdown from 'MainApp/components/LanguageDropdown';
@@ -16,6 +17,7 @@ const Settings = () => {
   )
   const { languages } = useSelector((state: RootState): LanguagesState => state.languages, shallowEqual)
   const dispatch = useDispatch()
+  if(!currentUser?.enabledFeatures?.includes('i18n')) return <Redirect to="/" />
 
   useEffect(() => {
     if (!languages.length) {
