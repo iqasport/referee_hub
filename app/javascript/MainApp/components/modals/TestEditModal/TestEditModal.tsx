@@ -244,7 +244,7 @@ const TestEditModal = (props: TestEditModalProps) => {
               languages={languages}
               hasError={hasError('newLanguageId')}
               onChange={handleChange}
-              value={newTest.newLanguageId.toString() || ''}
+              value={newTest?.newLanguageId?.toString() || ''}
             />
             {renderError('newLanguageId')}
           </label>

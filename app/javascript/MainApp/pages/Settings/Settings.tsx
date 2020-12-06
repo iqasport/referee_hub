@@ -6,6 +6,7 @@ import LanguageDropdown from 'MainApp/components/LanguageDropdown';
 import { CurrentUserState, updateUser } from 'MainApp/modules/currentUser/currentUser';
 import { getLanguages, LanguagesState } from 'MainApp/modules/language/languages';
 import { RootState } from 'MainApp/rootReducer';
+import { formatLanguage } from 'MainApp/utils/langUtils';
 
 const Settings = () => {
   const [updatedUser, setUpdatedUser] = useState<UpdatedUserRequest>()
@@ -37,13 +38,22 @@ const Settings = () => {
   }
 
   const renderDropdown = () => (
-    <LanguageDropdown
-      name="languageId"
-      value={updatedUser?.languageId?.toString() || ''}
-      languages={languages}
-      hasError={false}
-      onChange={handleChange}
-    />
+    <div>
+      <LanguageDropdown
+        name="languageId"
+        value={updatedUser?.languageId?.toString() ?? ''}
+        languages={languages}
+        hasError={false}
+        onChange={handleChange}
+      />
+      <div>
+        <p className="my-2">
+          Don't see your desired language? Email {' '}
+          <a className="text-blue-darker" href="mailto:translation@iqasport.org">translation@iqasport.org</a>
+          {' '} to add your language to the IQA.
+        </p>
+      </div>
+    </div>
   )
 
   const renderLanguage = () => {
@@ -51,12 +61,7 @@ const Settings = () => {
       return <div>Set your application language by editing your settings</div>
     }
 
-    const {
-      attributes: { longName, shortRegion },
-    } = language;
-    const regionText = shortRegion ? ` - ${shortRegion}` : ''
-
-    return <div>{`${longName}${regionText}`}</div>
+    return <div>{formatLanguage(language)}</div>
   }
 
   const renderEditButtons = () => {
@@ -100,7 +105,7 @@ const Settings = () => {
       </div>
       <div className="border p-4">
         <div className="w-1/2">
-          <label>Application Language</label>
+          <label className="font-semibold text-lg">Application Language</label>
           {isEditing ? renderDropdown() : renderLanguage()}
         </div>
       </div>
