@@ -10,18 +10,14 @@ export interface GetLanguagesSchema {
 
 export interface Datum {
   id: string;
-  type: Type;
+  type: string;
   attributes: Attributes;
 }
 
 export interface Attributes {
-  longName: string;
-  shortName: string;
-  shortRegion: null | string;
-}
-
-export enum Type {
-  Language = "language",
+  longName?: string;
+  shortName?: string;
+  shortRegion?: null | string;
 }
 
 // Converts JSON strings to/from your types

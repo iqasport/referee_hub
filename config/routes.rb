@@ -23,6 +23,7 @@ Rails.application.routes.draw do
   get 'national_governing_bodies/:id', to: 'home#index'
   get 'import/:scope', to: 'home#index'
   get 'referees/:referee_id/tests', to: 'home#index'
+  get 'settings', to: 'home#index'
 
   devise_scope :user do
     get '/sign_up' => 'users/registrations#new', as: :user_registration
