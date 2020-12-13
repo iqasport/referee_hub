@@ -1,98 +1,113 @@
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux'
-import { RouteComponentProps, useHistory } from 'react-router-dom'
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { RouteComponentProps, useHistory } from "react-router-dom";
 
-import { AssociationData, UpdateRefereeRequest } from 'MainApp/apis/referee';
-import AdminCertificationsModal from 'MainApp/components/modals/AdminCertificationsModal';
-import TestResultCards from 'MainApp/components/TestResultCards'
-import { updateUserPolicy } from 'MainApp/modules/currentUser/currentUser'
-import { fetchReferee, updateReferee } from 'MainApp/modules/referee/referee';
-import { RootState } from 'MainApp/rootReducer';
+import { AssociationData, UpdateRefereeRequest } from "MainApp/apis/referee";
+import AdminCertificationsModal from "MainApp/components/modals/AdminCertificationsModal";
+import TestResultCards from "MainApp/components/TestResultCards";
+import { updateUserPolicy } from "MainApp/modules/currentUser/currentUser";
+import { fetchReferee, updateReferee } from "MainApp/modules/referee/referee";
+import { RootState } from "MainApp/rootReducer";
 
-import RefereeHeader from './RefereeHeader'
-import RefereeLocation from './RefereeLocation'
-import RefereeTeam from './RefereeTeam'
-import { IdParams } from './types'
-import { initialUpdateState, selectRefereeState } from './utils'
+import RefereeHeader from "./RefereeHeader";
+import RefereeLocation from "./RefereeLocation";
+import RefereeTeam from "./RefereeTeam";
+import { IdParams } from "./types";
+import { initialUpdateState, selectRefereeState } from "./utils";
 
 const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
-  const { match: { params: { id }}} = props
-  const [isEditing, setIsEditing] = useState(false)
-  const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false)
-  const dispatch = useDispatch()
+  const {
+    match: {
+      params: { id },
+    },
+  } = props;
+  const [isEditing, setIsEditing] = useState(false);
+  const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false);
+  const dispatch = useDispatch();
   const history = useHistory();
   const { referee, certifications, ngbs, locations, teams, id: stateId, testResults } = useSelector(
-    selectRefereeState, shallowEqual
-  )
+    selectRefereeState,
+    shallowEqual
+  );
   const [updatedReferee, setUpdatedReferee] = useState<UpdateRefereeRequest>(
     initialUpdateState(referee, locations, teams)
-  )
-  const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual)
+  );
+  const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual);
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchReferee(id))
+      dispatch(fetchReferee(id));
     }
-  }, [id, dispatch])
+  }, [id, dispatch]);
 
   useEffect(() => {
     if (referee) {
       setUpdatedReferee(initialUpdateState(referee, locations, teams));
     }
-  }, [referee])
+  }, [referee]);
 
-  if (!referee) return null
+  if (!referee) return null;
 
-  const isIqaAdmin = roles.includes('iqa_admin')
-  const isCertificationsVisible = (referee.isEditable && !isEditing) || isIqaAdmin
+  const isIqaAdmin = roles.includes("iqa_admin");
+  const isCertificationsVisible = (referee.isEditable && !isEditing) || isIqaAdmin;
 
   const handleSubmit = () => {
-    setIsEditing(false)
-    dispatch(updateReferee(updatedReferee, id))
+    setIsEditing(false);
+    dispatch(updateReferee(updatedReferee, id));
   };
-  const handleEditClick = () => setIsEditing(true)
+  const handleEditClick = () => setIsEditing(true);
   const handleTestsClick = () => {
     if (referee.isEditable) {
-      history.push(`/referees/${id}/tests`)
+      history.push(`/referees/${id}/tests`);
     } else {
-      setIsCertificationModalOpen(true)
+      setIsCertificationModalOpen(true);
     }
-  }
-  const handleCertificationModalClose = () => setIsCertificationModalOpen(false)
+  };
+  const handleCertificationModalClose = () => setIsCertificationModalOpen(false);
 
   const handleInputChange = (value: string | boolean, stateKey: string) => {
-    setUpdatedReferee({ ...updatedReferee, [stateKey]: value })
-  }
+    setUpdatedReferee({ ...updatedReferee, [stateKey]: value });
+  };
   const handleAssociationChange = (value: AssociationData, stateKey: string) => {
-    setUpdatedReferee({ ...updatedReferee, [stateKey]: value})
-  }
+    setUpdatedReferee({ ...updatedReferee, [stateKey]: value });
+  };
   const handleCancel = () => {
-    setIsEditing(false)
-    setUpdatedReferee(initialUpdateState(referee, locations, teams))
-  }
+    setIsEditing(false);
+    setUpdatedReferee(initialUpdateState(referee, locations, teams));
+  };
 
-  const handleAcceptPolicy = () => dispatch(updateUserPolicy(id, 'accept'))
-  const handleRejectPolicy = () => dispatch(updateUserPolicy(id, 'reject'))
+  const handleAcceptPolicy = () => dispatch(updateUserPolicy(id, "accept"));
+  const handleRejectPolicy = () => dispatch(updateUserPolicy(id, "reject"));
 
   const renderAcceptPolicy = () => {
-    const { isEditable, hasPendingPolicies } = referee
-    if (!isEditable) return null
-    if (!hasPendingPolicies) return null
+    const { isEditable, hasPendingPolicies } = referee;
+    if (!isEditable) return null;
+    if (!hasPendingPolicies) return null;
 
     return (
       <div className="w-full bg-yellow-lighter py-4 px-10 flex items-center justify-between">
         <p>
-          {'We have updated our '}
-          <a target="_blank" rel="noopener noreferrer" href="https://manage.iqasport.com/privacy">Privacy Policy</a>
-          , please review and accept. You won't be able to update your profile or take tests otherwise.
+          {"We have updated our "}
+          <a target="_blank" rel="noopener noreferrer" href="https://manage.iqasport.com/privacy">
+            Privacy Policy
+          </a>
+          , please review and accept. You won't be able to update your profile or take tests
+          otherwise.
         </p>
         <div className="flex justify-end">
-          <button className="bg-red-300 rounded p-2 mx-2 cursor-pointer" onClick={handleRejectPolicy}>Reject</button>
-          <button className="rounded bg-blue p-2 mx-2 cursor-pointer" onClick={handleAcceptPolicy}>Accept</button>
+          <button
+            className="bg-red-300 rounded p-2 mx-2 cursor-pointer"
+            onClick={handleRejectPolicy}
+          >
+            Reject
+          </button>
+          <button className="rounded bg-blue p-2 mx-2 cursor-pointer" onClick={handleAcceptPolicy}>
+            Accept
+          </button>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <>
@@ -112,9 +127,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
         <div className="flex flex-col lg:flex-row xl:flex-row w-full">
           <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 mb-8">
             <div className="flex">
-              <h3 className="border-b-2 border-green text-xl text-center">
-                Details
-              </h3>
+              <h3 className="border-b-2 border-green text-xl text-center">Details</h3>
             </div>
             <RefereeLocation
               ngbs={ngbs}
@@ -128,22 +141,20 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
               locations={locations}
               isEditing={isEditing}
               onChange={handleAssociationChange}
-              value={updatedReferee.teamsData}
+              associationValue={updatedReferee.teamsData}
               isDisabled={locations.length < 1}
             />
           </div>
           {isCertificationsVisible && (
             <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 lg:ml-8 xl:ml-8">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="border-b-2 border-green text-xl text-center">
-                  Certifications
-                </h3>
+                <h3 className="border-b-2 border-green text-xl text-center">Certifications</h3>
                 <button
                   type="button"
                   className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
                   onClick={handleTestsClick}
                 >
-                  {isIqaAdmin && !referee.isEditable ? 'Manage Certifications' : 'Take Tests'}
+                  {isIqaAdmin && !referee.isEditable ? "Manage Certifications" : "Take Tests"}
                 </button>
               </div>
               <TestResultCards testResults={testResults} />
@@ -158,6 +169,6 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
       />
     </>
   );
-}
+};
 
-export default RefereeProfile
+export default RefereeProfile;
