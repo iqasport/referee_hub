@@ -2,12 +2,12 @@ import { omitBy } from "lodash";
 import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { AssociationData } from "../../../apis/referee";
-import { GetTeamsFilter } from '../../../apis/team';
-import { getTeams, updateFilters } from "../../../modules/team/teams";
-import { RootState } from "../../../rootReducer";
-import { AssociationType, IncludedAttributes } from "../../../schemas/getRefereeSchema";
-import { Datum } from '../../../schemas/getTeamsSchema';
+import { AssociationData } from "MainApp/apis/referee";
+import { GetTeamsFilter } from 'MainApp/apis/team';
+import { getTeams, updateFilters } from "MainApp/modules/team/teams";
+import { RootState } from "MainApp/rootReducer";
+import { AssociationType, IncludedAttributes } from "MainApp/schemas/getRefereeSchema";
+import { Datum } from 'MainApp/schemas/getTeamsSchema';
 
 interface RefereeTeamProps {
   teams: IncludedAttributes[];
@@ -21,15 +21,7 @@ interface RefereeTeamProps {
 const RefereeTeam = (props: RefereeTeamProps) => {
   const { isEditing, value, onChange, teams, locations, isDisabled } = props;
   const dispatch = useDispatch();
-  const { allTeams, filters } = useSelector((state: RootState) => {
-    return {
-      allTeams: state.teams.teams,
-      error: state.teams.error,
-      filters: state.teams.filters,
-      isLoading: state.teams.isLoading,
-      meta: state.teams.meta,
-    };
-  }, shallowEqual);
+  const { teams: allTeams, filters } = useSelector((state: RootState) => state.teams, shallowEqual);
 
   useEffect(() => {
     if (isEditing) {
@@ -115,7 +107,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
           disabled={isDisabled}
         >
           {type === AssociationType.Coach && <option value="-1">None</option>}
-          {allTeams.map(renderOption)}
+          {allTeams?.map(renderOption)}
         </select>
       </label>
     );

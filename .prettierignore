@@ -1,0 +1,48 @@
+/.bundle
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+.DS_Store
+*/.DS_Store
+**/.DS_Store
+
+# Ignore uploaded files in development
+/storage/*
+
+/node_modules
+/yarn-error.log
+
+/public/assets
+.byebug_history
+
+/coverage/**/*
+
+.vscode
+.vscode/**
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+/public/packs
+/public/packs-test
+/node_modules
+yarn-debug.log*
+.yarn-integrity
+
+.env
+/public/packs
+/public/packs-test
+/node_modules
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# data dump file to convert api responses to typescript. It should never be checked in.
+/app/javascript/MainApp/schema.json
+junit.xml
+dump.rdb
+stats.json
+
+/config/credentials/development.key
