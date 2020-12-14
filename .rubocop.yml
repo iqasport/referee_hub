@@ -1,18 +1,16 @@
 AllCops:
-  TargetRubyVersion: 2.5.1
+  TargetRubyVersion: 2.7.1
   DisplayCopNames: true
+  NewCops: enable
   Exclude:
-    - 'db/**/*'
-    - 'script/**/*'
-    - 'tmp/**/*'
-    - 'vendor/**/*'
-    - 'node_modules/**/*'
-    - '.gems/**/*'
-    - 'config/**/*'
-    - 'coverage/**/*'
-
-Rails:
-  Enabled: true
+    - "db/**/*"
+    - "script/**/*"
+    - "tmp/**/*"
+    - "vendor/**/*"
+    - "node_modules/**/*"
+    - ".gems/**/*"
+    - "config/**/*"
+    - "coverage/**/*"
 
 Metrics/BlockLength:
   Enabled: false
@@ -22,7 +20,7 @@ Metrics/MethodLength:
   Max: 15
   Enabled: true
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
 
 Style/ClassAndModuleChildren:

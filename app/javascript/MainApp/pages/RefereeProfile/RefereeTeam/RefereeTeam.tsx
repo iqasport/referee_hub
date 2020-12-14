@@ -22,7 +22,10 @@ interface RefereeTeamProps {
 const RefereeTeam = (props: RefereeTeamProps) => {
   const { isEditing, associationValue, onChange, teams, locations, isDisabled } = props;
   const dispatch = useDispatch();
-  const { teams: allTeams, filters } = useSelector((state: RootState) => state.teams, shallowEqual);
+  const { teams: allTeams, filters, meta } = useSelector(
+    (state: RootState) => state.teams,
+    shallowEqual
+  );
 
   const updateTeams = (updatedFilters: GetTeamsFilter) => {
     dispatch(updateFilters(updatedFilters));
@@ -69,6 +72,8 @@ const RefereeTeam = (props: RefereeTeamProps) => {
       foundTeam = allTeams
         .filter((team) => team.id === foundTeamId)
         .map((t) => ({ teamId: Number(t.id), name: t.attributes.name }))[0];
+      console.log({ allTeams });
+      console.log({ foundTeam });
     } else {
       foundTeam = teams.find((team) => team.associationType === type)[0];
     }
@@ -124,6 +129,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
       <label>
         {isDisabled && "Please select a Primary NGB to select a team"}
         <Select
+          isClearable
           isMulti={false}
           isDisabled={isDisabled}
           onInputChange={handleInputChange}
