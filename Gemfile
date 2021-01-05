@@ -19,7 +19,7 @@ gem 'json', '~> 2.3'
 gem 'bootsnap', '>= 1.1.0', require: false
 
 # authentication
-gem 'devise', '>= 4.7.2'
+gem 'devise', '>= 4.7.3'
 gem 'devise_invitable', '~> 2.0.2'
 
 # frontend
@@ -32,10 +32,10 @@ gem 'will_paginate', '~> 3.3.0'
 # styles
 gem 'semantic-ui-sass'
 gem 'tailwindcss', '~> 1.0.3'
-gem 'inline_svg'
+gem 'inline_svg', '>= 1.7.1'
 
 # metrics and tracking
-gem 'loofah', '>= 2.2.3'
+gem 'loofah', '>= 2.7.0'
 gem 'rack', '2.1.4'
 gem 'barnes', '0.0.8'
 gem 'bugsnag', '~> 6.11'
@@ -50,13 +50,13 @@ gem 'sidekiq-cron', '~> 1.1'
 gem 'activerecord-import'
 gem 'time_difference', git: 'https://github.com/iqasport/time_difference.git'
 gem 'gdpr_rails', git: 'https://github.com/HipSpec/gdpr_rails.git', branch: 'rails-6-minor-travis-fix'
-gem 'data_migrate', '>= 6.3.0'
-gem 'stripe-rails', '>= 1.10.1'
+gem 'data_migrate', '>= 6.5.0'
+gem 'stripe-rails', '>= 2.0.0'
 
 # file storage and aws
 gem 'aws-sdk-s3', '~> 1'
 gem 'paperclip', '~> 6.0.0'
-gem 'fog-aws'
+gem 'fog-aws', '>= 3.6.7'
 
 # feature flippers
 gem 'flipper'
@@ -68,7 +68,7 @@ group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
   gem 'annotate'
-  gem 'factory_bot_rails', '~> 4.10', '>= 4.10.0'
+  gem 'factory_bot_rails', '~> 4.11', '>= 4.11.1'
   gem 'rspec-rails', '4.0.1'
   gem 'ffaker'
   gem 'colored'
@@ -76,14 +76,14 @@ end
 
 group :development do
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  gem 'web-console', '>= 4.0.3'
+  gem 'web-console', '>= 4.0.4'
   gem 'listen', '>= 3.0.5', '< 3.2'
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
   gem 'pre-commit', require: false
   gem 'rubocop', require: false
-  gem 'solargraph', require: false
+  gem 'solargraph', '>= 0.39.17', require: false
 end
 
 group :test do
@@ -91,7 +91,7 @@ group :test do
   gem 'capybara', '3.33.0'
   gem 'selenium-webdriver'
   # Easy installation and use of chromedriver to run system tests with Chrome
-  gem 'chromedriver-helper'
+  gem 'chromedriver-helper', '>= 2.1.1'
   gem 'codecov', '~> 0.2.11', require: false
   gem 'timecop'
   gem 'stripe-ruby-mock'
