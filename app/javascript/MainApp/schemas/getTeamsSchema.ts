@@ -16,7 +16,7 @@ export interface Datum {
     id:            string;
     type:          DatumType;
     attributes:    Attributes;
-    relationships: Relationships;
+    relationships?: Relationships;
 }
 
 export interface Attributes {

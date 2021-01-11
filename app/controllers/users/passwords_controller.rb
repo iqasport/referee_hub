@@ -18,13 +18,7 @@ class Users::PasswordsController < Devise::PasswordsController
 
   # PUT /resource/password
   def update
-    super do |resource|
-      if resource_params.fetch(:policy_rule_privacy_terms)
-        resource.confirm_all_policies!
-      else
-        resource.reject_all_policies!
-      end
-    end
+    super
   end
 
   # protected
