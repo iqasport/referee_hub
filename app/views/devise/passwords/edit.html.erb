@@ -20,7 +20,11 @@
           <%= f.hidden_field :reset_password_token %>
           <div class="mt-10">
             <div class="<%= password_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-10">
-              <%= inline_svg_tag 'password.svg', aria: true, title: 'Password', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%=
+                inline_svg_tag 'password.svg',
+                aria: true,
+                title: 'Password',
+                class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
               <%=
                 f.password_field :password,
                 autocomplete: 'off',
@@ -29,7 +33,11 @@
             </div>
 
             <div class="<%= password_confirmation_error? ? 'bottom-border-error' : 'bottom-border-input' %> mb-8">
-              <%= inline_svg_tag 'password.svg', aria: true, title: 'Password', class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
+              <%=
+                inline_svg_tag 'password.svg',
+                aria: true,
+                title: 'Password',
+                class: 'flex-shrink-0 text-navy-blue h-6 w-6 mr-2' %>
               <%=
                 f.password_field :password_confirmation,
                 autocomplete: "off",
@@ -38,7 +46,9 @@
             </div>
 
             <div class="text-center">
-              <%= f.submit "Change my password", class: 'bg-navy-blue text-white font-bold py-2 px-8 rounded cursor-pointer' %>
+              <%=
+                f.submit "Change my password",
+                class: 'bg-navy-blue text-white font-bold py-2 px-8 rounded cursor-pointer' %>
             </div>
           </div>
         <% end %>

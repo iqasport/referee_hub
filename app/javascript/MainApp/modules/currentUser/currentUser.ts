@@ -1,7 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { getCurrentUser, updateAvatar, updatePolicyAcceptance, UserResponse } from '../../apis/user';
-import { DataAttributes } from '../../schemas/currentUserSchema';
+import {
+  getCurrentUser,
+  updateAvatar,
+  UpdatedUserRequest,
+  updatePolicyAcceptance,
+  updateUser as updateUserApi,
+  UserResponse
+} from '../../apis/user';
+import { DataAttributes, Included } from '../../schemas/currentUserSchema';
 import { AppThunk } from '../../store';
 import { fetchReferee } from '../referee/referee';
 
@@ -11,6 +18,8 @@ export interface CurrentUserState {
   certificationPayments: number[];
   id: string | null;
   error: string | null;
+  isLoading: boolean;
+  language: Included | null;
 }
 
 const initialState: CurrentUserState = {
@@ -18,6 +27,8 @@ const initialState: CurrentUserState = {
   currentUser: null,
   error: null,
   id: null,
+  isLoading: false,
+  language: null,
   roles: [],
 }
 
@@ -27,6 +38,7 @@ function userSuccess(state: CurrentUserState, action: PayloadAction<UserResponse
   state.error = null;
   state.id = action.payload.id;
   state.certificationPayments = action.payload.certificationPayments
+  state.language = action.payload.language
 }
 
 function userFailure(state: CurrentUserState, action: PayloadAction<string>) {
@@ -35,6 +47,7 @@ function userFailure(state: CurrentUserState, action: PayloadAction<string>) {
   state.error = action.payload;
   state.id = null;
   state.certificationPayments = []
+  state.language = null
 }
 
 const currentUser = createSlice({
@@ -47,6 +60,11 @@ const currentUser = createSlice({
     updateAvatarSuccess: userSuccess,
     updatePolicyFailure: userFailure,
     updatePolicySuccess: userSuccess,
+    updateUserStart(state: CurrentUserState) {
+      state.isLoading = true
+    },
+    updateUserFailure: userFailure,
+    updateUserSuccess: userSuccess
   },
 });
 
@@ -57,6 +75,9 @@ export const {
   updatePolicyFailure,
   updateAvatarFailure,
   updateAvatarSuccess,
+  updateUserStart,
+  updateUserFailure,
+  updateUserSuccess,
 } = currentUser.actions
 
 export const fetchCurrentUser = (): AppThunk => async dispatch => {
@@ -84,6 +105,16 @@ export const updateUserAvatar = (userId: string, avatar: File): AppThunk => asyn
     dispatch(updateAvatarSuccess(userResponse))
   } catch (err) {
     dispatch(updateAvatarFailure(err.toString()))
+  }
+}
+
+export const updateUser = (userId: string, user: UpdatedUserRequest): AppThunk => async dispatch => {
+  try {
+    dispatch(updateUserStart())
+    const userResponse = await updateUserApi(userId, user)
+    dispatch(updateUserSuccess(userResponse))
+  } catch (err) {
+    dispatch(updateUserFailure(err.toString()))
   }
 }
 
