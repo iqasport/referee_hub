@@ -12,7 +12,7 @@ module Services
     def perform
       @potential_tests = potential_tests.where(new_language_id: user.language_id) if filter_by_language?
       if certifications.blank? && test_attempts.blank?
-        return potential_tests.where(level: ['assistant', 'scorekeeper'], recertification: false)
+        return potential_tests.where(level: %w[assistant scorekeeper], recertification: false)
       end
 
       grouped_certs = certifications.group_by { |cert| cert.version }
@@ -24,7 +24,7 @@ module Services
 
         potential_versions.each do |version|
           if !certs_to_return[version] && !certifications.where(version: version, level: 'head').exists?
-            certs_to_return[version] = ['assistant', 'scorekeeper']
+            certs_to_return[version] = %w[assistant scorekeeper]
           end
         end
       end
@@ -65,9 +65,7 @@ module Services
     def find_certification_ids(levels_to_return)
       cert_ids = levels_to_return.map do |version, levels|
         ids = Certification.all.where(version: version, level: levels).pluck(:id)
-        if levels.include?('head')
-          next if !has_paid(ids)
-        end
+        next if levels.include?('head') && !has_paid(ids)
 
         ids
       end

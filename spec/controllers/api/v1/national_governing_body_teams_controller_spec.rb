@@ -314,7 +314,7 @@ RSpec.describe Api::V1::NationalGoverningBodyTeamsController, type: :controller 
         'state': 'state',
         'age_group': 'age_group',
         'status': 'status',
-        'url_1': 'url_1',
+        'url_1': 'url_1'
       }.to_json
     end
 

@@ -21,12 +21,12 @@ RSpec.describe CertificationPayment, type: :model do
   before { StripeMock.start }
 
   subject do
-    Stripe::Rails::Testing.send_event("checkout.session.completed", {
-      metadata: {
-        certification_id: cert.id,
-      },
-      customer_email: user_email,
-    })
+    Stripe::Rails::Testing.send_event('checkout.session.completed', {
+                                        metadata: {
+                                          certification_id: cert.id
+                                        },
+                                        customer_email: user_email
+                                      })
   end
 
   it 'should create a new certification payment' do

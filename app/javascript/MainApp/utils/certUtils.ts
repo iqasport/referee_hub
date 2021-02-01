@@ -1,23 +1,23 @@
-import { IdAttributes } from "MainApp/apis/single_test"
-import { IncludedAttributes } from "MainApp/schemas/getRefereeSchema"
+import { IdAttributes } from "MainApp/apis/single_test";
+import { IncludedAttributes } from "MainApp/schemas/getRefereeSchema";
 
 export const getVersion = (version: string): string => {
   switch (version) {
-    case 'eighteen':
-      return '2018-2020'
-    case 'twenty':
-      return '2020-2021'
+    case "eighteen":
+      return "2018-2020";
+    case "twenty":
+      return "2020-2021";
     default:
-      return 'Unknown'
+      return "Unknown";
   }
-}
+};
 
 export const getTestCertVersion = (certId: number, certifications: IdAttributes[]): string => {
-  const certVersion = certifications.find((cert) => cert.id === certId.toString()).version
+  const certVersion = certifications.find((cert) => cert.id === certId.toString()).version;
 
-  return getVersion(certVersion)
-}
+  return getVersion(certVersion);
+};
 
 export const getRefereeCertVersion = (certification: IncludedAttributes): string => {
-  return getVersion(certification.version)
-}
+  return getVersion(certification.version);
+};

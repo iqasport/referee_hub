@@ -42,7 +42,7 @@ function invalidValue(typ: any, val: any): never {
 function jsonToJSProps(typ: any): any {
   if (typ.jsonToJS === undefined) {
     const map: any = {};
-    typ.props.forEach((p: any) => map[p.json] = { key: p.js, typ: p.typ });
+    typ.props.forEach((p: any) => (map[p.json] = { key: p.js, typ: p.typ }));
     typ.jsonToJS = map;
   }
   return typ.jsonToJS;
@@ -51,7 +51,7 @@ function jsonToJSProps(typ: any): any {
 function jsToJSONProps(typ: any): any {
   if (typ.jsToJSON === undefined) {
     const map: any = {};
-    typ.props.forEach((p: any) => map[p.js] = { key: p.json, typ: p.typ });
+    typ.props.forEach((p: any) => (map[p.js] = { key: p.json, typ: p.typ }));
     typ.jsToJSON = map;
   }
   return typ.jsToJSON;
@@ -70,7 +70,7 @@ function transform(val: any, typ: any, getProps: any): any {
       const typ = typs[i];
       try {
         return transform(val, typ, getProps);
-      } catch (_) { }
+      } catch (_) {}
     }
     return invalidValue(typs, val);
   }
@@ -83,7 +83,7 @@ function transform(val: any, typ: any, getProps: any): any {
   function transformArray(typ: any, val: any): any {
     // val must be an array with no invalid elements
     if (!Array.isArray(val)) return invalidValue("array", val);
-    return val.map(el => transform(el, typ, getProps));
+    return val.map((el) => transform(el, typ, getProps));
   }
 
   function transformDate(val: any): any {
@@ -102,12 +102,12 @@ function transform(val: any, typ: any, getProps: any): any {
       return invalidValue("object", val);
     }
     const result: any = {};
-    Object.getOwnPropertyNames(props).forEach(key => {
+    Object.getOwnPropertyNames(props).forEach((key) => {
       const prop = props[key];
       const v = Object.prototype.hasOwnProperty.call(val, key) ? val[key] : undefined;
       result[prop.key] = transform(v, prop.typ, getProps);
     });
-    Object.getOwnPropertyNames(val).forEach(key => {
+    Object.getOwnPropertyNames(val).forEach((key) => {
       if (!Object.prototype.hasOwnProperty.call(props, key)) {
         result[key] = transform(val[key], additional, getProps);
       }
@@ -126,10 +126,13 @@ function transform(val: any, typ: any, getProps: any): any {
   }
   if (Array.isArray(typ)) return transformEnum(typ, val);
   if (typeof typ === "object") {
-    return typ.hasOwnProperty("unionMembers") ? transformUnion(typ.unionMembers, val)
-      : typ.hasOwnProperty("arrayItems") ? transformArray(typ.arrayItems, val)
-        : typ.hasOwnProperty("props") ? transformObject(getProps(typ), typ.additional, val)
-          : invalidValue(typ, val);
+    return typ.hasOwnProperty("unionMembers")
+      ? transformUnion(typ.unionMembers, val)
+      : typ.hasOwnProperty("arrayItems")
+      ? transformArray(typ.arrayItems, val)
+      : typ.hasOwnProperty("props")
+      ? transformObject(getProps(typ), typ.additional, val)
+      : invalidValue(typ, val);
   }
   // Numbers can be parsed by Date but shouldn't be.
   if (typ === Date && typeof val !== "number") return transformDate(val);
@@ -165,17 +168,21 @@ function r(name: string) {
 }
 
 const typeMap: any = {
-  "GetAnswersSchema": o([
-    { json: "data", js: "data", typ: a(r("Datum")) },
-  ], false),
-  "Datum": o([
-    { json: "id", js: "id", typ: "" },
-    { json: "type", js: "type", typ: "" },
-    { json: "attributes", js: "attributes", typ: r("Attributes") },
-  ], false),
-  "Attributes": o([
-    { json: "description", js: "description", typ: "" },
-    { json: "questionId", js: "questionId", typ: 0 },
-    { json: "correct", js: "correct", typ: true },
-  ], false),
+  GetAnswersSchema: o([{ json: "data", js: "data", typ: a(r("Datum")) }], false),
+  Datum: o(
+    [
+      { json: "id", js: "id", typ: "" },
+      { json: "type", js: "type", typ: "" },
+      { json: "attributes", js: "attributes", typ: r("Attributes") },
+    ],
+    false
+  ),
+  Attributes: o(
+    [
+      { json: "description", js: "description", typ: "" },
+      { json: "questionId", js: "questionId", typ: 0 },
+      { json: "correct", js: "correct", typ: true },
+    ],
+    false
+  ),
 };

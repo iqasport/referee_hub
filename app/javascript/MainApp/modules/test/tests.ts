@@ -1,19 +1,19 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import {
   getRefereeTests as getRefereeTestsApi,
   getTests as getTestsApi,
   IdAttributes,
-  TestsResponse
-} from '../../apis/single_test'
-import { Datum } from '../../schemas/getTestsSchema'
-import { AppThunk } from '../../store'
+  TestsResponse,
+} from "../../apis/single_test";
+import { Datum } from "../../schemas/getTestsSchema";
+import { AppThunk } from "../../store";
 
 export interface TestsState {
   tests: Datum[];
   error: string | null;
   isLoading: boolean;
-  certifications: IdAttributes[]
+  certifications: IdAttributes[];
 }
 
 const initialState: TestsState = {
@@ -21,29 +21,29 @@ const initialState: TestsState = {
   error: null,
   isLoading: false,
   tests: [],
-}
+};
 
 function testsSuccess(state: TestsState, action: PayloadAction<TestsResponse>) {
-  state.isLoading = false
-  state.error = null
-  state.tests = action.payload.tests
-  state.certifications = action.payload.certifications
+  state.isLoading = false;
+  state.error = null;
+  state.tests = action.payload.tests;
+  state.certifications = action.payload.certifications;
 }
 
 function testsFailure(state: TestsState, action: PayloadAction<string>) {
-  state.isLoading = false
-  state.tests = []
-  state.error = action.payload
-  state.certifications = []
+  state.isLoading = false;
+  state.tests = [];
+  state.error = action.payload;
+  state.certifications = [];
 }
 
 const tests = createSlice({
   initialState,
-  name: 'tests',
+  name: "tests",
   reducers: {
     getRefereeTestsFailure: testsFailure,
     getRefereeTestsStart(state: TestsState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     getRefereeTestsSuccess: testsSuccess,
     getTestsFailure: testsFailure,
@@ -51,8 +51,8 @@ const tests = createSlice({
       state.isLoading = true;
     },
     getTestsSuccess: testsSuccess,
-  }
-})
+  },
+});
 
 export const {
   getRefereeTestsFailure,
@@ -61,26 +61,26 @@ export const {
   getTestsFailure,
   getTestsStart,
   getTestsSuccess,
-} = tests.actions
+} = tests.actions;
 
-export const getTests = (): AppThunk => async dispatch => {
+export const getTests = (): AppThunk => async (dispatch) => {
   try {
-    dispatch(getTestsStart())
-    const testsResponse = await getTestsApi()
-    dispatch(getTestsSuccess(testsResponse))
+    dispatch(getTestsStart());
+    const testsResponse = await getTestsApi();
+    dispatch(getTestsSuccess(testsResponse));
   } catch (err) {
-    dispatch(getTestsFailure(err.toString()))
+    dispatch(getTestsFailure(err.toString()));
   }
-}
+};
 
-export const getRefereeTests = (refId: string): AppThunk => async dispatch => {
+export const getRefereeTests = (refId: string): AppThunk => async (dispatch) => {
   try {
-    dispatch(getRefereeTestsStart())
-    const testsResponse = await getRefereeTestsApi(refId)
-    dispatch(getRefereeTestsSuccess(testsResponse))
+    dispatch(getRefereeTestsStart());
+    const testsResponse = await getRefereeTestsApi(refId);
+    dispatch(getRefereeTestsSuccess(testsResponse));
   } catch (err) {
-    dispatch(getRefereeTestsFailure(err.toString()))
+    dispatch(getRefereeTestsFailure(err.toString()));
   }
-}
+};
 
-export default tests.reducer
+export default tests.reducer;

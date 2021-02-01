@@ -47,7 +47,7 @@ RSpec.describe Team, type: :model do
     let(:prev_date) { Date.new }
     let(:new_date) { 10.days.ago }
     let!(:team) { create :team, joined_at: prev_date }
-    let(:service_double) { double(:perform => :return_value) }
+    let(:service_double) { double(perform: :return_value) }
 
     before { allow(Services::ManageTeamJoinedChange).to receive(:new).and_return(service_double) }
 

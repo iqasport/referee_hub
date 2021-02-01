@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
+import React, { useState } from "react";
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 
-import { IncludedAttributes } from '../../schemas/getNationalGoverningBodySchema'
+import { IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
 
 interface ChartData extends IncludedAttributes {
   month: string;
@@ -20,53 +20,54 @@ interface HistoricChartProps {
 }
 
 const HistoricChart = (props: HistoricChartProps) => {
-  const { maxData, chartData, lineConfig } = props
-  const [activeCert, setActiveCert] = useState<string>()
+  const { maxData, chartData, lineConfig } = props;
+  const [activeCert, setActiveCert] = useState<string>();
 
   const getOpacity = (dataKey: string): number => {
-    if (!activeCert) return 1
-    if (activeCert !== dataKey) return 0.2
+    if (!activeCert) return 1;
+    if (activeCert !== dataKey) return 0.2;
 
-    return 1
-  }
+    return 1;
+  };
 
   const handleMouseEnter = (o) => {
     const { dataKey } = o;
 
-    setActiveCert(dataKey)
-  }
+    setActiveCert(dataKey);
+  };
 
-  const handleMouseLeave = () => setActiveCert(null)
-  
+  const handleMouseLeave = () => setActiveCert(null);
+
   const renderLine = (line: LineConfig) => {
     return (
-      <Line 
+      <Line
         {...line}
         key={line.dataKey}
-        type="linear" 
-        dot={{ strokeWidth: 3 }} 
-        strokeOpacity={getOpacity(line.dataKey)} 
+        type="linear"
+        dot={{ strokeWidth: 3 }}
+        strokeOpacity={getOpacity(line.dataKey)}
       />
-    )
-  }
+    );
+  };
 
   return (
     <div className="w-2/3">
-      <LineChart 
-        width={500}
-        height={250} 
-        data={chartData}
-        margin={{top: 20}}
-      >
+      <LineChart width={500} height={250} data={chartData} margin={{ top: 20 }}>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="month" padding={{ left: 15, right: 15 }}/>
+        <XAxis dataKey="month" padding={{ left: 15, right: 15 }} />
         <YAxis type="number" domain={[0, maxData]} />
         <Tooltip />
-        <Legend layout="vertical" verticalAlign="middle" wrapperStyle={{ top: 20, right: -120 }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} />
+        <Legend
+          layout="vertical"
+          verticalAlign="middle"
+          wrapperStyle={{ top: 20, right: -120 }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        />
         {lineConfig.map(renderLine)}
       </LineChart>
     </div>
-  )
-}
+  );
+};
 
-export default HistoricChart
+export default HistoricChart;

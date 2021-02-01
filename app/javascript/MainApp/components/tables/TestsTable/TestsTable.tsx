@@ -1,97 +1,102 @@
-import { faCircle } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import classnames from 'classnames'
-import { capitalize } from 'lodash'
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux'
-import { useHistory } from 'react-router-dom'
+import { faCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classnames from "classnames";
+import { capitalize } from "lodash";
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
 
-import { getLanguages } from 'MainApp/modules/language/languages'
-import { deleteTest, updateTest } from 'MainApp/modules/test/single_test'
-import { getTests } from 'MainApp/modules/test/tests'
-import { RootState } from 'MainApp/rootReducer'
-import { Datum } from 'MainApp/schemas/getTestsSchema'
-import { getTestCertVersion } from 'MainApp/utils/certUtils'
-import { toDateTime } from 'MainApp/utils/dateUtils'
-import { formatLanguage } from 'MainApp/utils/langUtils'
-import TestEditModal from '../../modals/TestEditModal'
-import WarningModal from '../../modals/WarningModal'
-import Table, { CellConfig } from '../Table/Table'
+import { getLanguages } from "MainApp/modules/language/languages";
+import { deleteTest, updateTest } from "MainApp/modules/test/single_test";
+import { getTests } from "MainApp/modules/test/tests";
+import { RootState } from "MainApp/rootReducer";
+import { Datum } from "MainApp/schemas/getTestsSchema";
+import { getTestCertVersion } from "MainApp/utils/certUtils";
+import { toDateTime } from "MainApp/utils/dateUtils";
+import { formatLanguage } from "MainApp/utils/langUtils";
+import TestEditModal from "../../modals/TestEditModal";
+import WarningModal from "../../modals/WarningModal";
+import Table, { CellConfig } from "../Table/Table";
 
-import ActionDropdown from './ActionDropdown'
+import ActionDropdown from "./ActionDropdown";
 
-const HEADER_CELLS = ['title', 'level', 'version', 'language', 'active', 'last updated', 'actions']
+const HEADER_CELLS = ["title", "level", "version", "language", "active", "last updated", "actions"];
 
 enum ActiveModal {
-  Edit = 'edit',
-  Delete = 'delete'
+  Edit = "edit",
+  Delete = "delete",
 }
 
 const TestsTable = () => {
-  const [activeModal, setActiveModal] = useState<ActiveModal>(null)
-  const [activeTest, setActiveTest] = useState<string>(null)
-  const history = useHistory()
-  const dispatch = useDispatch()
-  const { tests, isLoading, certifications } = useSelector((state: RootState) => state.tests, shallowEqual)
-  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual)
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [activeTest, setActiveTest] = useState<string>(null);
+  const history = useHistory();
+  const dispatch = useDispatch();
+  const { tests, isLoading, certifications } = useSelector(
+    (state: RootState) => state.tests,
+    shallowEqual
+  );
+  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual);
 
   useEffect(() => {
     if (!tests?.length) {
-      dispatch(getTests())
+      dispatch(getTests());
     }
     if (!languages?.length) {
-      dispatch(getLanguages())
+      dispatch(getLanguages());
     }
-  }, [])
+  }, []);
 
   const handleRowClick = (id: string) => {
-    history.push(`/admin/tests/${id}`)
-  }
+    history.push(`/admin/tests/${id}`);
+  };
 
   const handleActiveToggle = (item: Datum) => (testId: string) => {
-    const newValue = !item.attributes.active
+    const newValue = !item.attributes.active;
     const newTest = { active: newValue };
     dispatch(updateTest(testId, newTest));
-  }
+  };
 
   const handleModalClick = (newModal: ActiveModal) => (testId: string) => {
-    setActiveTest(testId)
-    setActiveModal(newModal)
-  }
-  const handleModalClose = () => setActiveModal(null)
-  const handleDelete = () => dispatch(deleteTest(activeTest))
+    setActiveTest(testId);
+    setActiveModal(newModal);
+  };
+  const handleModalClose = () => setActiveModal(null);
+  const handleDelete = () => dispatch(deleteTest(activeTest));
 
   const renderEmpty = () => {
-    return <h2>No tests found</h2>
-  }
+    return <h2>No tests found</h2>;
+  };
 
   const rowConfig: CellConfig<Datum>[] = [
     {
       cellRenderer: (item: Datum) => {
-        return item.attributes.name
+        return item.attributes.name;
       },
-      dataKey: 'name',
+      dataKey: "name",
     },
     {
       cellRenderer: (item: Datum) => {
-        return capitalize(item.attributes.level)
+        return capitalize(item.attributes.level);
       },
-      dataKey: 'level'
+      dataKey: "level",
     },
     {
       cellRenderer: (item: Datum) => {
-        return getTestCertVersion(item.attributes.certificationId, certifications)
+        return getTestCertVersion(item.attributes.certificationId, certifications);
       },
-      dataKey: 'certificationId'
+      dataKey: "certificationId",
     },
     {
       cellRenderer: (item: Datum) => {
-        if (!item.attributes.newLanguageId) return '---'
+        if (!item.attributes.newLanguageId) return "---";
 
-        const language = languages.find((lang) => lang.id === item.attributes.newLanguageId.toString())
-        return formatLanguage(language)
+        const language = languages.find(
+          (lang) => lang.id === item.attributes.newLanguageId.toString()
+        );
+        return formatLanguage(language);
       },
-      dataKey: 'newLanguageId'
+      dataKey: "newLanguageId",
     },
     {
       cellRenderer: (item: Datum) => {
@@ -100,15 +105,15 @@ const TestsTable = () => {
             icon={faCircle}
             className={classnames("text-gray-500", { "text-green": item.attributes.active })}
           />
-        )
+        );
       },
-      dataKey: 'active'
+      dataKey: "active",
     },
     {
       cellRenderer: (item: Datum) => {
-        return toDateTime(item.attributes.updatedAt).toFormat('D')
+        return toDateTime(item.attributes.updatedAt).toFormat("D");
       },
-      dataKey: 'updatedAt'
+      dataKey: "updatedAt",
     },
     {
       cellRenderer: (item: Datum) => {
@@ -119,12 +124,12 @@ const TestsTable = () => {
             onEditClick={handleModalClick(ActiveModal.Edit)}
             onDeleteClick={handleModalClick(ActiveModal.Delete)}
           />
-        )
+        );
       },
-      customStyle: 'text-right',
-      dataKey: 'actions'
-    }
-  ]
+      customStyle: "text-right",
+      dataKey: "actions",
+    },
+  ];
 
   const renderModals = () => {
     switch (activeModal) {
@@ -137,7 +142,7 @@ const TestsTable = () => {
             onClose={handleModalClose}
             shouldUpdateTests={false}
           />
-        )
+        );
       case ActiveModal.Delete:
         return (
           <WarningModal
@@ -147,11 +152,11 @@ const TestsTable = () => {
             onCancel={handleModalClose}
             onConfirm={handleDelete}
           />
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <>
@@ -166,7 +171,7 @@ const TestsTable = () => {
       />
       {renderModals()}
     </>
-  )
-}
+  );
+};
 
-export default TestsTable
+export default TestsTable;

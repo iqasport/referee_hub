@@ -1,1 +1,1 @@
-export {default} from './RefereeHeader'
+export { default } from "./RefereeHeader";

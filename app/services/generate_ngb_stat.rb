@@ -14,18 +14,18 @@ module Services
 
       NationalGoverningBodyStat.create!(
         assistant_referees_count: referee_counts[:assistant],
-        community_teams_count: team_counts[:community],   
-        competitive_teams_count: team_counts[:competitive], 
-        developing_teams_count: team_counts[:developing],  
+        community_teams_count: team_counts[:community],
+        competitive_teams_count: team_counts[:competitive],
+        developing_teams_count: team_counts[:developing],
         end_time: end_time,
-        head_referees_count: referee_counts[:head],     
+        head_referees_count: referee_counts[:head],
         inactive_teams_count: team_counts[:inactive],
-        snitch_referees_count: referee_counts[:snitch],   
+        snitch_referees_count: referee_counts[:snitch],
         start: start_time,
         team_status_change_count: team_counts[:status_change],
-        total_referees_count: referee_counts[:total], 
-        total_teams_count: team_counts[:total],       
-        uncertified_count: referee_counts[:uncertified],      
+        total_referees_count: referee_counts[:total],
+        total_teams_count: team_counts[:total],
+        uncertified_count: referee_counts[:uncertified],
         university_teams_count: team_counts[:university],
         youth_teams_count: team_counts[:team_counts],
         national_governing_body_id: ngb_id,
@@ -59,7 +59,7 @@ module Services
         community: team_scope.community.count,
         youth: team_scope.youth.count,
         total: team_scope.count,
-        status_change: total_changesets,
+        status_change: total_changesets
       }
     end
 

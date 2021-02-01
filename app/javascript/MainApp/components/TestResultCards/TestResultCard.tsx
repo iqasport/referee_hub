@@ -1,44 +1,52 @@
-import { faCaretDown, faCaretUp, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import classnames from 'classnames'
-import { capitalize } from 'lodash'
-import React from 'react'
+import {
+  faCaretDown,
+  faCaretUp,
+  faCheckCircle,
+  faTimesCircle,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classnames from "classnames";
+import { capitalize } from "lodash";
+import React from "react";
 
-import { IdAttributes } from 'MainApp/apis/referee'
-import { toDateTime } from 'MainApp/utils/dateUtils'
+import { IdAttributes } from "MainApp/apis/referee";
+import { toDateTime } from "MainApp/utils/dateUtils";
 
-import ResultChart from './ResultChart'
+import ResultChart from "./ResultChart";
 
 type CardProps = {
   testResult: IdAttributes;
   isExpanded: boolean;
   onExpandClick: (id: string) => void;
   isDisabled: boolean;
-}
+};
 
 const TestResultCard = (props: CardProps) => {
-  const { 
-    testResult: { 
-      testLevel, createdAt, minimumPassPercentage, percentage, id, duration, passed
-    }, 
+  const {
+    testResult: { testLevel, createdAt, minimumPassPercentage, percentage, id, duration, passed },
     onExpandClick,
     isExpanded,
     isDisabled,
-  } = props
-  const formattedDate = toDateTime(createdAt).toLocaleString()
-  const expandText = isExpanded ? 'less' : 'more'
+  } = props;
+  const formattedDate = toDateTime(createdAt).toLocaleString();
+  const expandText = isExpanded ? "less" : "more";
   const expandIcon = isExpanded ? faCaretUp : faCaretDown;
-  const resultText = passed ? 'Passed' : 'Failed';
+  const resultText = passed ? "Passed" : "Failed";
   const resultIcon = passed ? faCheckCircle : faTimesCircle;
 
   const handleClick = () => {
-    const idToChange = isExpanded ? '' : id
+    const idToChange = isExpanded ? "" : id;
 
-    onExpandClick(idToChange)
-  }
+    onExpandClick(idToChange);
+  };
 
   return (
-    <div className={classnames("w-full p-4 bg-white my-4", { 'opacity-50 pointer-events-none': isDisabled, 'z-1 shadow': isExpanded })}>
+    <div
+      className={classnames("w-full p-4 bg-white my-4", {
+        "opacity-50 pointer-events-none": isDisabled,
+        "z-1 shadow": isExpanded,
+      })}
+    >
       <div className="flex h-20 items-center">
         <table className="table-fixed w-1/2">
           <thead>
@@ -57,7 +65,7 @@ const TestResultCard = (props: CardProps) => {
         <div className="flex items-center h-full justify-between w-1/2">
           <ResultChart minimum={minimumPassPercentage} actual={percentage} />
           <div className="clickable-icon-label" onClick={handleClick}>
-            {expandText} 
+            {expandText}
             <FontAwesomeIcon icon={expandIcon} />
           </div>
         </div>
@@ -73,15 +81,21 @@ const TestResultCard = (props: CardProps) => {
           </thead>
           <tbody>
             <tr>
-              <td>{duration || 'N/A'}</td>
-              <td>{resultText} <FontAwesomeIcon icon={resultIcon} className={classnames('text-red-500', { 'text-green-darker': passed })} /></td>
+              <td>{duration || "N/A"}</td>
+              <td>
+                {resultText}{" "}
+                <FontAwesomeIcon
+                  icon={resultIcon}
+                  className={classnames("text-red-500", { "text-green-darker": passed })}
+                />
+              </td>
               <td>{`${minimumPassPercentage}%`}</td>
             </tr>
           </tbody>
         </table>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default TestResultCard
+export default TestResultCard;

@@ -1,174 +1,184 @@
-import classnames from 'classnames'
-import { capitalize } from 'lodash';
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import classnames from "classnames";
+import { capitalize } from "lodash";
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { UpdateTestRequest } from 'MainApp/apis/single_test';
-import LanguageDropdown from 'MainApp/components/LanguageDropdown';
-import Toggle from 'MainApp/components/Toggle';
-import { getCertifications } from 'MainApp/modules/certification/certifications';
-import { getLanguages } from 'MainApp/modules/language/languages';
-import { createTest, getTest, updateTest } from 'MainApp/modules/test/single_test';
-import { RootState } from 'MainApp/rootReducer';
-import { TestLevel } from 'MainApp/schemas/getTestSchema';
+import { UpdateTestRequest } from "MainApp/apis/single_test";
+import LanguageDropdown from "MainApp/components/LanguageDropdown";
+import Toggle from "MainApp/components/Toggle";
+import { getCertifications } from "MainApp/modules/certification/certifications";
+import { getLanguages } from "MainApp/modules/language/languages";
+import { createTest, getTest, updateTest } from "MainApp/modules/test/single_test";
+import { RootState } from "MainApp/rootReducer";
+import { TestLevel } from "MainApp/schemas/getTestSchema";
 
-import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
+import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
 
 type UpdateCertification = {
   level: TestLevel;
   version: string;
-}
+};
 
 const REQUIRED_TEST_FIELDS = [
-  'name',
-  'description',
-  'language',
-  'minimumPassPercentage',
-  'testableQuestionCount',
-  'timeLimit',
-  'positiveFeedback',
-  'negativeFeedback',
-  'newLanguageId'
-]
-const REQUIRED_CERT_FIELDS = ['version', 'level']
-const LEVEL_OPTIONS = ['snitch', 'assistant', 'head', 'field', 'scorekeeper']
-const VERSION_OPTIONS = ['eighteen', 'twenty']
+  "name",
+  "description",
+  "language",
+  "minimumPassPercentage",
+  "testableQuestionCount",
+  "timeLimit",
+  "positiveFeedback",
+  "negativeFeedback",
+  "newLanguageId",
+];
+const REQUIRED_CERT_FIELDS = ["version", "level"];
+const LEVEL_OPTIONS = ["snitch", "assistant", "head", "field", "scorekeeper"];
+const VERSION_OPTIONS = ["eighteen", "twenty"];
 
 const initialNewTest: UpdateTestRequest = {
   certificationId: null,
-  description: '',
-  language: '',
+  description: "",
+  language: "",
   level: null,
   minimumPassPercentage: 0,
-  name: '',
-  negativeFeedback: '',
-  positiveFeedback: '',
+  name: "",
+  negativeFeedback: "",
+  positiveFeedback: "",
   recertification: false,
   testableQuestionCount: 0,
   timeLimit: 0,
-}
+};
 const initialCertification: UpdateCertification = {
   level: null,
-  version: '',
-}
+  version: "",
+};
 
 const validateInput = (test: UpdateTestRequest, cert: UpdateCertification): string[] => {
   const testErrors = Object.keys(test).filter((dataKey: string) => {
     if (REQUIRED_TEST_FIELDS.includes(dataKey) && !test[dataKey]) {
-      return true
+      return true;
     }
-    return false
-  })
+    return false;
+  });
   const certErrors = Object.keys(cert).filter((dataKey: string) => {
     if (REQUIRED_CERT_FIELDS.includes(dataKey) && !cert[dataKey]) {
-      return true
+      return true;
     }
-    return false
-  })
+    return false;
+  });
 
-  return testErrors.concat(certErrors)
-}
+  return testErrors.concat(certErrors);
+};
 
-interface TestEditModalProps extends Omit<ModalProps, 'size'> {
+interface TestEditModalProps extends Omit<ModalProps, "size"> {
   testId?: string;
   shouldUpdateTests?: boolean;
 }
 
 const TestEditModal = (props: TestEditModalProps) => {
-  const { testId, onClose, shouldUpdateTests } = props
+  const { testId, onClose, shouldUpdateTests } = props;
 
-  const [errors, setErrors] = useState<string[]>()
-  const [hasChangedTest, setHasChangedTest] = useState(false)
-  const [newTest, setNewTest] = useState<UpdateTestRequest>(initialNewTest)
-  const [newCert, setNewCert] = useState<UpdateCertification>(initialCertification)
-  const { test, certification } = useSelector((state: RootState) => state.test, shallowEqual)
-  const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual)
-  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual)
-  const dispatch = useDispatch()
+  const [errors, setErrors] = useState<string[]>();
+  const [hasChangedTest, setHasChangedTest] = useState(false);
+  const [newTest, setNewTest] = useState<UpdateTestRequest>(initialNewTest);
+  const [newCert, setNewCert] = useState<UpdateCertification>(initialCertification);
+  const { test, certification } = useSelector((state: RootState) => state.test, shallowEqual);
+  const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual);
+  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual);
+  const dispatch = useDispatch();
 
-  const formType = testId ? 'Edit' : 'New'
-  const hasError = (dataKey: string): boolean => errors?.includes(dataKey)
+  const formType = testId ? "Edit" : "New";
+  const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
 
   useEffect(() => {
     if (testId && testId !== test?.id) {
-      dispatch(getTest(testId))
+      dispatch(getTest(testId));
     }
-  }, [testId, test, dispatch])
+  }, [testId, test, dispatch]);
 
   useEffect(() => {
     if (test && testId) {
-      setNewTest({ ...test?.attributes })
-      setNewCert({ level: certification?.level, version: certification?.version })
+      setNewTest({ ...test?.attributes });
+      setNewCert({ level: certification?.level, version: certification?.version });
     }
-  }, [test, certification])
+  }, [test, certification]);
 
   useEffect(() => {
     if (!certifications?.length) {
-      dispatch(getCertifications())
+      dispatch(getCertifications());
     }
     if (!languages?.length) {
-      dispatch(getLanguages())
+      dispatch(getLanguages());
     }
-  }, [])
+  }, []);
 
   const handleSubmit = () => {
-    const validationErrors = validateInput(newTest, newCert)
+    const validationErrors = validateInput(newTest, newCert);
     if (validationErrors.length) {
-      setErrors(validationErrors)
-      return null
+      setErrors(validationErrors);
+      return null;
     }
 
-    const matchedCert = certifications.find(({ attributes: { level, version }}) => (
-      level === newCert.level && version === newCert.version
-    ))
-    const testToSend: UpdateTestRequest = { ...newTest, ...newCert, certificationId: parseInt(matchedCert?.id, 10) }
+    const matchedCert = certifications.find(
+      ({ attributes: { level, version } }) => level === newCert.level && version === newCert.version
+    );
+    const testToSend: UpdateTestRequest = {
+      ...newTest,
+      ...newCert,
+      certificationId: parseInt(matchedCert?.id, 10),
+    };
 
     if (testId) {
-      dispatch(updateTest(testId, testToSend, shouldUpdateTests))
+      dispatch(updateTest(testId, testToSend, shouldUpdateTests));
     } else {
-      dispatch(createTest(testToSend))
+      dispatch(createTest(testToSend));
     }
 
-    setHasChangedTest(false)
-    onClose()
-  }
+    setHasChangedTest(false);
+    onClose();
+  };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = event.target
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = event.target;
 
-    if (!hasChangedTest) setHasChangedTest(true)
+    if (!hasChangedTest) setHasChangedTest(true);
     if (Object.keys(newCert).includes(name)) {
-      setNewCert({ ...newCert, [name]: value })
+      setNewCert({ ...newCert, [name]: value });
     } else {
-      setNewTest({ ...newTest, [name]: value })
+      setNewTest({ ...newTest, [name]: value });
     }
-  }
+  };
 
   const handleToggleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.checked
+    const value = event.currentTarget.checked;
 
-    if (!hasChangedTest) setHasChangedTest(true)
+    if (!hasChangedTest) setHasChangedTest(true);
 
-    setNewTest({ ...newTest, recertification: value })
-  }
+    setNewTest({ ...newTest, recertification: value });
+  };
 
   const handleClose = () => {
-    setErrors(null)
-    setNewTest(initialNewTest)
-    onClose()
-  }
+    setErrors(null);
+    setNewTest(initialNewTest);
+    onClose();
+  };
 
   const renderError = (attr: string) => {
-    return hasError(attr) && <span className="text-red-500 text-sm">{`${capitalize(attr)} Cannot be blank`}</span>
-  }
+    return (
+      hasError(attr) && (
+        <span className="text-red-500 text-sm">{`${capitalize(attr)} Cannot be blank`}</span>
+      )
+    );
+  };
 
   const renderOption = (value: string) => {
     return (
       <option data-testid={value} key={value} value={value}>
         {capitalize(value)}
       </option>
-    )
-  }
+    );
+  };
 
   return (
     <Modal {...props} onClose={handleClose} size={ModalSize.Large}>
@@ -179,62 +189,55 @@ const TestEditModal = (props: TestEditModalProps) => {
           <input
             type="text"
             aria-label="name"
-            className={classnames("form-input mt-1 block w-full", {'border border-red-500': hasError('name')})}
+            className={classnames("form-input mt-1 block w-full", {
+              "border border-red-500": hasError("name"),
+            })}
             placeholder="Snitch Referee Test"
             name="name"
             onChange={handleChange}
             value={newTest.name}
           />
-          {renderError('name')}
+          {renderError("name")}
         </label>
         <label className="block mt-8">
           <span className="text-gray-700">Description</span>
           <textarea
             aria-label="description"
-            className={
-              classnames(
-                "form-textarea mt-1 block w-full",
-                { 'border border-red-500': hasError('description') }
-              )
-            }
+            className={classnames("form-textarea mt-1 block w-full", {
+              "border border-red-500": hasError("description"),
+            })}
             placeholder="What should referees know about this test before taking it?"
             name="description"
             onChange={handleChange}
-            value={newTest.description || ''}
+            value={newTest.description || ""}
           />
-          {renderError('description')}
+          {renderError("description")}
         </label>
         <label className="block my-8">
           <span className="text-gray-700">Positive Feedback</span>
           <textarea
-            className={
-              classnames(
-                "form-textarea mt-1 block w-full",
-                { 'border border-red-500': hasError('positiveFeedback') }
-              )
-            }
+            className={classnames("form-textarea mt-1 block w-full", {
+              "border border-red-500": hasError("positiveFeedback"),
+            })}
             placeholder="Provide feedback after a passed test"
             name="positiveFeedback"
             onChange={handleChange}
-            value={newTest.positiveFeedback || ''}
+            value={newTest.positiveFeedback || ""}
           />
-          {renderError('positiveFeedback')}
+          {renderError("positiveFeedback")}
         </label>
         <label className="block">
           <span className="text-gray-700">Negative Feedback</span>
           <textarea
-            className={
-              classnames(
-                "form-textarea mt-1 block w-full",
-                { 'border border-red-500': hasError('negativeFeedback') }
-              )
-            }
+            className={classnames("form-textarea mt-1 block w-full", {
+              "border border-red-500": hasError("negativeFeedback"),
+            })}
             placeholder="Provide feedback after a failed test"
             name="negativeFeedback"
             onChange={handleChange}
-            value={newTest.negativeFeedback || ''}
+            value={newTest.negativeFeedback || ""}
           />
-          {renderError('negativeFeedback')}
+          {renderError("negativeFeedback")}
         </label>
         <div className="flex w-full my-8">
           <label className="w-1/3 mr-4">
@@ -242,40 +245,34 @@ const TestEditModal = (props: TestEditModalProps) => {
             <LanguageDropdown
               name="newLanguageId"
               languages={languages}
-              hasError={hasError('newLanguageId')}
+              hasError={hasError("newLanguageId")}
               onChange={handleChange}
-              value={newTest?.newLanguageId?.toString() || ''}
+              value={newTest?.newLanguageId?.toString() || ""}
             />
-            {renderError('newLanguageId')}
+            {renderError("newLanguageId")}
           </label>
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Level</span>
             <select
-              className={
-                classnames(
-                  "form-select mt-1 block w-full",
-                  { 'border border-red-500': hasError('level') }
-                )
-              }
+              className={classnames("form-select mt-1 block w-full", {
+                "border border-red-500": hasError("level"),
+              })}
               placeholder="Select the level"
               name="level"
               onChange={handleChange}
-              value={newCert.level || ''}
+              value={newCert.level || ""}
             >
               <option value="">Select the level</option>
               {LEVEL_OPTIONS.map(renderOption)}
             </select>
-            {renderError('level')}
+            {renderError("level")}
           </label>
           <label className="w-1/3">
             <span className="text-gray-700">Version</span>
             <select
-              className={
-                classnames(
-                  "form-select mt-1 block w-full",
-                  { 'border border-red-500': hasError('version') }
-                )
-              }
+              className={classnames("form-select mt-1 block w-full", {
+                "border border-red-500": hasError("version"),
+              })}
               name="version"
               onChange={handleChange}
               value={newCert.version}
@@ -284,7 +281,7 @@ const TestEditModal = (props: TestEditModalProps) => {
               <option value="">Select rulebook version</option>
               {VERSION_OPTIONS.map(renderOption)}
             </select>
-            {renderError('version')}
+            {renderError("version")}
           </label>
         </div>
         <div className="flex w-full my-8">
@@ -294,34 +291,28 @@ const TestEditModal = (props: TestEditModalProps) => {
               type="number"
               min="0"
               max="100"
-              className={
-                classnames(
-                  "form-input mt-1 block w-full",
-                  {'border border-red-500': hasError('minimumPassPercentage')}
-                )
-              }
+              className={classnames("form-input mt-1 block w-full", {
+                "border border-red-500": hasError("minimumPassPercentage"),
+              })}
               name="minimumPassPercentage"
               onChange={handleChange}
               value={newTest.minimumPassPercentage}
             />
-            {renderError('minimumPassPercentage')}
+            {renderError("minimumPassPercentage")}
           </label>
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Question Count</span>
             <input
               type="number"
               min="1"
-              className={
-                classnames(
-                  "form-input mt-1 block w-full",
-                  { 'border border-red-500': hasError('testableQuestionCount') }
-                )
-              }
+              className={classnames("form-input mt-1 block w-full", {
+                "border border-red-500": hasError("testableQuestionCount"),
+              })}
               name="testableQuestionCount"
               onChange={handleChange}
               value={newTest.testableQuestionCount}
             />
-            {renderError('testableQuestionCount')}
+            {renderError("testableQuestionCount")}
           </label>
           <label className="w-1/3">
             <span className="text-gray-700">Time Limit</span>
@@ -329,17 +320,14 @@ const TestEditModal = (props: TestEditModalProps) => {
               type="number"
               min="1"
               max="120"
-              className={
-                classnames(
-                  "form-input mt-1 block w-full",
-                  { 'border border-red-500': hasError('timeLimit') }
-                )
-              }
+              className={classnames("form-input mt-1 block w-full", {
+                "border border-red-500": hasError("timeLimit"),
+              })}
               name="timeLimit"
               onChange={handleChange}
               value={newTest.timeLimit}
             />
-            {renderError('timeLimit')}
+            {renderError("timeLimit")}
           </label>
         </div>
         <div className="w-full text-left">
@@ -353,12 +341,9 @@ const TestEditModal = (props: TestEditModalProps) => {
         <div className="w-full text-center">
           <button
             type="button"
-            className={
-              classnames(
-                "uppercase text-xl py-4 px-8 rounded-lg bg-green text-white",
-                {'opacity-50 cursor-default': !hasChangedTest}
-              )
-            }
+            className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
+              "opacity-50 cursor-default": !hasChangedTest,
+            })}
             onClick={handleSubmit}
             disabled={!hasChangedTest}
           >
@@ -367,7 +352,7 @@ const TestEditModal = (props: TestEditModalProps) => {
         </div>
       </form>
     </Modal>
-  )
-}
+  );
+};
 
-export default TestEditModal
+export default TestEditModal;

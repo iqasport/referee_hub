@@ -41,7 +41,7 @@ describe Services::TestCsvImport do
     subject
 
     expect(test_to_import.questions.first.answers.count).to eq 4
-    expect(test_to_import.questions.first.answers.pluck(:description)).to eq ['be','maybe','not be','never']
+    expect(test_to_import.questions.first.answers.pluck(:description)).to eq ['be', 'maybe', 'not be', 'never']
     expect(test_to_import.questions.first.answers.first.correct).to eq true
     expect(test_to_import.questions.first.answers.last.correct).to eq false
   end

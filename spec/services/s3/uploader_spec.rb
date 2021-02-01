@@ -18,7 +18,7 @@ describe Services::S3::Uploader do
       content_type: 'text/csv',
       extension: extension,
       key: key,
-      bucket_name: bucket_name,
+      bucket_name: bucket_name
     ).perform
   end
 

@@ -13,8 +13,8 @@ module Api
         json_string = UserSerializer.new(current_user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        render json: { error: exception }, status: :unprocessable_entity
+      rescue => e
+        render json: { error: e }, status: :unprocessable_entity
       end
 
       def accept_policies
@@ -39,8 +39,8 @@ module Api
         json_string = UserSerializer.new(@user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @user.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -50,8 +50,8 @@ module Api
         json_string = UserSerializer.new(@user, serializer_options).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @user.errors.full_messages }, status: :unprocessable_entity
       end
 

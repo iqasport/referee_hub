@@ -1,7 +1,7 @@
-import { capitalize } from 'lodash'
-import React from 'react'
+import { capitalize } from "lodash";
+import React from "react";
 
-import Modal, { ModalSize } from '../Modal/Modal'
+import Modal, { ModalSize } from "../Modal/Modal";
 
 interface WarningModalProps {
   action: string;
@@ -12,7 +12,7 @@ interface WarningModalProps {
 }
 
 const WarningModal = (props: WarningModalProps) => {
-  const { action, dataType, onCancel, onConfirm, open } = props
+  const { action, dataType, onCancel, onConfirm, open } = props;
 
   return (
     <Modal size={ModalSize.Small} showClose={false} open={open}>
@@ -27,10 +27,12 @@ const WarningModal = (props: WarningModalProps) => {
         >
           Cancel
         </button>
-        <button className="bg-red-500 text-white uppercase py-2 px-4 rounded" onClick={onConfirm}>Confirm</button>
+        <button className="bg-red-500 text-white uppercase py-2 px-4 rounded" onClick={onConfirm}>
+          Confirm
+        </button>
       </div>
     </Modal>
-  )
-}
+  );
+};
 
-export default WarningModal
+export default WarningModal;

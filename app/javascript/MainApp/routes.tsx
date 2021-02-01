@@ -1,52 +1,55 @@
-import Bugsnag from '@bugsnag/js'
-import loadable from '@loadable/component'
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux'
-import { BrowserRouter as Router, Redirect, Route } from 'react-router-dom'
+import Bugsnag from "@bugsnag/js";
+import loadable from "@loadable/component";
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { BrowserRouter as Router, Redirect, Route } from "react-router-dom";
 
-import Avatar from './components/Avatar'
-import Loader from './components/Loader'
-import { fetchCurrentUser } from './modules/currentUser/currentUser'
-import { RootState } from './rootReducer'
+import Avatar from "./components/Avatar";
+import Loader from "./components/Loader";
+import { fetchCurrentUser } from "./modules/currentUser/currentUser";
+import { RootState } from "./rootReducer";
 
-const AsyncPage = loadable(props => import(`./pages/${props.page}`), {
-  fallback: <Loader />
-})
+const AsyncPage = loadable((props) => import(`./pages/${props.page}`), {
+  fallback: <Loader />,
+});
 
-const PUBLIC_ROUTES = ['/privacy', /\/referees\/\d$/]
+const PUBLIC_ROUTES = ["/privacy", /\/referees\/\d$/];
 
 const App = () => {
-  const [redirectTo, setRedirectTo] = useState<string>()
-  const dispatch = useDispatch()
-  const { currentUser, roles, id, error } = useSelector((state: RootState) => state.currentUser, shallowEqual)
+  const [redirectTo, setRedirectTo] = useState<string>();
+  const dispatch = useDispatch();
+  const { currentUser, roles, id, error } = useSelector(
+    (state: RootState) => state.currentUser,
+    shallowEqual
+  );
 
   const getRedirect = () => {
-    if (roles.includes("iqa_admin")) return "/admin"
-    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`
-    if (roles.includes("referee")) return `/referees/${id}`
+    if (roles.includes("iqa_admin")) return "/admin";
+    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`;
+    if (roles.includes("referee")) return `/referees/${id}`;
 
-    return null
-  }
+    return null;
+  };
 
   useEffect(() => {
     if (!currentUser) {
-      dispatch(fetchCurrentUser())
+      dispatch(fetchCurrentUser());
     }
   }, [currentUser]);
 
   useEffect(() => {
-    const isPublic = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route))
+    const isPublic = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route));
 
     if (error && !isPublic) {
-      window.location.href = `${window.location.origin}/sign_in`
+      window.location.href = `${window.location.origin}/sign_in`;
     }
-  }, [error])
+  }, [error]);
 
   useEffect(() => {
-    setRedirectTo(getRedirect())
-  }, [currentUser, roles])
+    setRedirectTo(getRedirect());
+  }, [currentUser, roles]);
 
-  if (currentUser) Bugsnag.setUser(id)
+  if (currentUser) Bugsnag.setUser(id);
 
   return (
     <Router>
@@ -62,46 +65,59 @@ const App = () => {
             enabledFeatures={currentUser?.enabledFeatures}
           />
         </div>
-        <Route exact={true} path='/'>
+        <Route exact={true} path="/">
           {redirectTo && <Redirect to={redirectTo} />}
         </Route>
-        <Route exact={true} path='/privacy' render={(props) => <AsyncPage {...props} page="PrivacyPolicy" />} />
         <Route
           exact={true}
-          path='/referees/:id'
+          path="/privacy"
+          render={(props) => <AsyncPage {...props} page="PrivacyPolicy" />}
+        />
+        <Route
+          exact={true}
+          path="/referees/:id"
           render={(props) => <AsyncPage {...props} page="RefereeProfile" />}
         />
-        <Route exact={true} path='/admin' render={(props) => <AsyncPage {...props} page="Admin" />} />
-        <Route exact={true} path='/admin/tests/:id' render={(props) => <AsyncPage {...props} page="Test" />} />
         <Route
           exact={true}
-          path='/referees/:refereeId/tests/:testId'
+          path="/admin"
+          render={(props) => <AsyncPage {...props} page="Admin" />}
+        />
+        <Route
+          exact={true}
+          path="/admin/tests/:id"
+          render={(props) => <AsyncPage {...props} page="Test" />}
+        />
+        <Route
+          exact={true}
+          path="/referees/:refereeId/tests/:testId"
           render={(props) => <AsyncPage {...props} page="StartTest" />}
         />
         <Route
           exact={true}
-          path='/national_governing_bodies/:id'
-          render={(props) => <AsyncPage {...props} page="NgbProfile" /> }
+          path="/national_governing_bodies/:id"
+          render={(props) => <AsyncPage {...props} page="NgbProfile" />}
         />
         <Route
           exact={true}
-          path='/import/:scope'
+          path="/import/:scope"
           render={(props) => <AsyncPage {...props} page="ImportWizard" />}
         />
         <Route
           exact={true}
-          path='/referees/:refereeId/tests'
+          path="/referees/:refereeId/tests"
           render={(props) => <AsyncPage {...props} page="RefereeTests" />}
         />
-        {
-          currentUser?.enabledFeatures.includes('i18n')
-          ? (
-            <Route exact={true} path='/settings' render={(props) => <AsyncPage {...props} page="Settings" />} />
-          ) : null
-        }
+        {currentUser?.enabledFeatures.includes("i18n") ? (
+          <Route
+            exact={true}
+            path="/settings"
+            render={(props) => <AsyncPage {...props} page="Settings" />}
+          />
+        ) : null}
       </div>
     </Router>
-  )
-}
+  );
+};
 
-export default App
+export default App;

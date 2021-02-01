@@ -43,6 +43,7 @@ module Services
       referee_answers.each do |referee_answer|
         question_id = referee_answer[:question_id]
         next if question_id.blank?
+
         answer_id = referee_answer[:answer_id]
         next if answer_id.blank?
 
@@ -63,6 +64,7 @@ module Services
 
     def create_test_result(points_scored, points_available)
       return nil if already_has_test_result?
+
       percentage = calculate_percentage(points_scored, points_available)
       is_over_limit = TimeDifference.between(started_at, finished_at).in_minutes > test.time_limit
       test_results_hash = {

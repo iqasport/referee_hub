@@ -1,1 +1,1 @@
-export { default } from './MultiInput'
+export { default } from "./MultiInput";

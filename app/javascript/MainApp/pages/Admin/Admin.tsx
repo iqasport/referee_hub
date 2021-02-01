@@ -1,63 +1,66 @@
-import classnames from 'classnames'
-import React, { useState } from 'react'
-import { shallowEqual, useSelector } from 'react-redux'
-import { useHistory } from 'react-router-dom'
+import classnames from "classnames";
+import React, { useState } from "react";
+import { shallowEqual, useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
 
-import NgbEditModal from 'MainApp/components/modals/NgbEditModal'
-import TestEditModal from 'MainApp/components/modals/TestEditModal'
-import NgbTable from 'MainApp/components/tables/NgbTable'
-import NewRefereeTable from 'MainApp/components/tables/RefereeTable'
-import TestsTable from 'MainApp/components/tables/TestsTable'
-import { CurrentUserState } from 'MainApp/modules/currentUser/currentUser'
-import { RootState } from 'MainApp/rootReducer'
+import NgbEditModal from "MainApp/components/modals/NgbEditModal";
+import TestEditModal from "MainApp/components/modals/TestEditModal";
+import NgbTable from "MainApp/components/tables/NgbTable";
+import NewRefereeTable from "MainApp/components/tables/RefereeTable";
+import TestsTable from "MainApp/components/tables/TestsTable";
+import { CurrentUserState } from "MainApp/modules/currentUser/currentUser";
+import { RootState } from "MainApp/rootReducer";
 
-import ActionsButton from './ActionsButton'
+import ActionsButton from "./ActionsButton";
 
 enum SelectedModal {
-  Test = 'test',
-  Ngb = 'ngb',
+  Test = "test",
+  Ngb = "ngb",
 }
 
 enum SelectedTab {
-  Ngbs = 'ngbs',
-  Referees = 'referees',
-  Tests = 'tests'
+  Ngbs = "ngbs",
+  Referees = "referees",
+  Tests = "tests",
 }
 
 const Admin = () => {
-  const [selectedModal, setSelectedModal] = useState<SelectedModal>()
-  const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Ngbs)
-  const history = useHistory()
-  const { roles } = useSelector((state: RootState): CurrentUserState => state.currentUser, shallowEqual)
+  const [selectedModal, setSelectedModal] = useState<SelectedModal>();
+  const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Ngbs);
+  const history = useHistory();
+  const { roles } = useSelector(
+    (state: RootState): CurrentUserState => state.currentUser,
+    shallowEqual
+  );
 
-  if (roles.length && !roles.includes('iqa_admin')) history.goBack()
+  if (roles.length && !roles.includes("iqa_admin")) history.goBack();
 
-  const isSelected = (tab: SelectedTab) => selectedTab === tab
+  const isSelected = (tab: SelectedTab) => selectedTab === tab;
 
-  const handleImportClick = () => history.push('/import/ngb')
-  const handleOpenModal = (modal: SelectedModal) => () => setSelectedModal(modal)
-  const handleCloseModal = () => setSelectedModal(null)
-  const handleTabClick = (tab: SelectedTab) => () => setSelectedTab(tab)
+  const handleImportClick = () => history.push("/import/ngb");
+  const handleOpenModal = (modal: SelectedModal) => () => setSelectedModal(modal);
+  const handleCloseModal = () => setSelectedModal(null);
+  const handleTabClick = (tab: SelectedTab) => () => setSelectedTab(tab);
 
   const renderModals = () => {
-    switch(selectedModal) {
+    switch (selectedModal) {
       case SelectedModal.Test:
-        return <TestEditModal open={true} showClose={true} onClose={handleCloseModal} />
+        return <TestEditModal open={true} showClose={true} onClose={handleCloseModal} />;
       case SelectedModal.Ngb:
-        return <NgbEditModal open={true} showClose={true} onClose={handleCloseModal} />
+        return <NgbEditModal open={true} showClose={true} onClose={handleCloseModal} />;
     }
-  }
+  };
 
   const renderContent = () => {
-    switch(selectedTab) {
+    switch (selectedTab) {
       case SelectedTab.Ngbs:
-        return <NgbTable />
+        return <NgbTable />;
       case SelectedTab.Referees:
-        return <NewRefereeTable isHeightRestricted={false} />
+        return <NewRefereeTable isHeightRestricted={false} />;
       case SelectedTab.Tests:
-        return <TestsTable />
+        return <TestsTable />;
     }
-  }
+  };
 
   return (
     <>
@@ -72,31 +75,29 @@ const Admin = () => {
         </div>
         <div className="tab-row">
           <button
-            className={classnames({ 'tab-selected': isSelected(SelectedTab.Ngbs) })}
+            className={classnames({ "tab-selected": isSelected(SelectedTab.Ngbs) })}
             onClick={handleTabClick(SelectedTab.Ngbs)}
           >
             National Governing Bodies
           </button>
           <button
-            className={classnames({ 'tab-selected': isSelected(SelectedTab.Referees) })}
+            className={classnames({ "tab-selected": isSelected(SelectedTab.Referees) })}
             onClick={handleTabClick(SelectedTab.Referees)}
           >
             Referees
           </button>
           <button
-            className={classnames({ 'tab-selected': isSelected(SelectedTab.Tests) })}
+            className={classnames({ "tab-selected": isSelected(SelectedTab.Tests) })}
             onClick={handleTabClick(SelectedTab.Tests)}
           >
             Tests
           </button>
         </div>
-        <div className="border border-t-0 p-4">
-          {renderContent()}
-        </div>
+        <div className="border border-t-0 p-4">{renderContent()}</div>
       </div>
       {renderModals()}
     </>
-  )
-}
+  );
+};
 
-export default Admin
+export default Admin;

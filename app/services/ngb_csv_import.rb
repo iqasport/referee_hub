@@ -37,6 +37,7 @@ module Services
       membership = row_data.dig(mapped_headers['membership_status'])
       return unless NationalGoverningBody.regions.key?(region)
       return unless NationalGoverningBody.membership_statuses.key?(membership)
+
       player_count = row_data.dig(mapped_headers['player_count']).presence || 0
 
       ngb.assign_attributes(
@@ -45,7 +46,7 @@ module Services
         player_count: player_count,
         region: region,
         website: row_data.dig(mapped_headers['website']),
-        membership_status: membership,
+        membership_status: membership
       )
 
       ngb
@@ -59,6 +60,7 @@ module Services
       url_keys.each do |url_key|
         url = row_data.dig(url_key)
         next if url.blank?
+
         new_social = SocialAccount.find_or_initialize_by(url: url)
         next if new_social.persisted? # we don't need to update an existing record with the same information
 

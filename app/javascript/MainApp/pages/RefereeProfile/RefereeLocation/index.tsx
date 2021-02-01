@@ -1,1 +1,1 @@
-export {default} from './RefereeLocation'
+export { default } from "./RefereeLocation";

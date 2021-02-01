@@ -57,11 +57,9 @@ class User < ApplicationRecord
   include Rails.application.routes.url_helpers # needed to generate avatar image route
   include Stripe::Callbacks
 
-  after_customer_created! do |customer, event|
+  after_customer_created! do |customer, _event|
     user = User.find_by(email: customer.email)
-    if user.present? && user.stripe_customer_id.blank?
-      user.update!(stripe_customer_id: customer.id)
-    end
+    user.update!(stripe_customer_id: customer.id) if user.present? && user.stripe_customer_id.blank?
   end
 
   devise :invitable, :database_authenticatable, :registerable,
@@ -141,10 +139,9 @@ class User < ApplicationRecord
   end
 
   def enabled_features
-    Flipper.features.inject({}) { |hash, feature|
+    Flipper.features.each_with_object({}) { |feature, hash|
       hash[feature.key] = feature_enabled?(feature)
-      hash
-    }.select { |k, v| v }.keys
+    }.select { |_k, v| v }.keys
   end
 
   def feature_enabled?(feature)

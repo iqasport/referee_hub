@@ -41,8 +41,8 @@ module Api
         json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         error_message = @referee.errors.present? ? @referee.errors.messages : UNAUTHORIZED_UPDATE
         render json: { error: error_message }, status: :unprocessable_entity
       end
@@ -56,9 +56,9 @@ module Api
         )
 
         render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
-        render json: { error: "Error exporting referees: #{exception}" }, status: :unprocessable_entity
+      rescue => e
+        Bugsnag.notify(e)
+        render json: { error: "Error exporting referees: #{e}" }, status: :unprocessable_entity
       end
 
       def tests
@@ -66,9 +66,9 @@ module Api
 
         json_string = TestSerializer.new(tests, include: [:certification]).serialized_json
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
-        render json: { error: exception.message }, status: :unprocessable_entity
+      rescue => e
+        Bugsnag.notify(e)
+        render json: { error: e.message }, status: :unprocessable_entity
       end
 
       private

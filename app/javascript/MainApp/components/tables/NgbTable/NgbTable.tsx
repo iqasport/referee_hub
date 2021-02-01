@@ -1,83 +1,98 @@
-import { capitalize } from 'lodash'
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux'
-import { useHistory } from 'react-router-dom'
+import { capitalize } from "lodash";
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
 
-import { AnnotatedNgb } from 'MainApp/apis/nationalGoverningBody'
-import { getNationalGoverningBodies } from 'MainApp/modules/nationalGoverningBody/nationalGoverningBodies'
-import { RootState } from 'MainApp/rootReducer'
+import { AnnotatedNgb } from "MainApp/apis/nationalGoverningBody";
+import { getNationalGoverningBodies } from "MainApp/modules/nationalGoverningBody/nationalGoverningBodies";
+import { RootState } from "MainApp/rootReducer";
 
-import NgbEditModal from '../../modals/NgbEditModal'
-import Table, { CellConfig } from '../Table/Table'
-import ActionDropdown from './ActionDropdown'
+import NgbEditModal from "../../modals/NgbEditModal";
+import Table, { CellConfig } from "../Table/Table";
+import ActionDropdown from "./ActionDropdown";
 
-const HEADER_CELLS = ['name', 'region', 'membership status', 'player count', 'team count', 'referee count', 'actions']
+const HEADER_CELLS = [
+  "name",
+  "region",
+  "membership status",
+  "player count",
+  "team count",
+  "referee count",
+  "actions",
+];
 
 const NgbTable = () => {
-  const [activeEdit, setActiveEdit] = useState<string>(null)
-  const dispatch = useDispatch()
-  const history = useHistory()
+  const [activeEdit, setActiveEdit] = useState<string>(null);
+  const dispatch = useDispatch();
+  const history = useHistory();
   const { isLoading, nationalGoverningBodies } = useSelector(
-    (state: RootState) => state.nationalGoverningBodies, shallowEqual
-  )
+    (state: RootState) => state.nationalGoverningBodies,
+    shallowEqual
+  );
 
   useEffect(() => {
     if (!nationalGoverningBodies.length) {
-      dispatch(getNationalGoverningBodies())
+      dispatch(getNationalGoverningBodies());
     }
-  }, [nationalGoverningBodies])
+  }, [nationalGoverningBodies]);
 
-  const handleRowClick = (id: string) => history.push(`/national_governing_bodies/${id}`)
-  const handleEditClick = (id: string) => setActiveEdit(id)
-  const handleEditClose = () => setActiveEdit(null)
+  const handleRowClick = (id: string) => history.push(`/national_governing_bodies/${id}`);
+  const handleEditClick = (id: string) => setActiveEdit(id);
+  const handleEditClose = () => setActiveEdit(null);
 
-  const renderEmpty = () => <h2>No National Governing Bodies found</h2>
+  const renderEmpty = () => <h2>No National Governing Bodies found</h2>;
 
   const rowConfig: CellConfig<AnnotatedNgb>[] = [
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes.name
+        return item?.attributes.name;
       },
-      dataKey: 'name'
+      dataKey: "name",
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes?.region?.split('_').map((word) => capitalize(word)).join(' ')
+        return item?.attributes?.region
+          ?.split("_")
+          .map((word) => capitalize(word))
+          .join(" ");
       },
-      dataKey: 'region'
+      dataKey: "region",
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes?.membershipStatus?.split('_').map((word) => capitalize(word)).join(' ')
+        return item?.attributes?.membershipStatus
+          ?.split("_")
+          .map((word) => capitalize(word))
+          .join(" ");
       },
-      dataKey: 'membershipStatus'
+      dataKey: "membershipStatus",
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes.playerCount.toString()
+        return item?.attributes.playerCount.toString();
       },
-      dataKey: 'playerCount'
+      dataKey: "playerCount",
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return item?.teamCount.toString()
+        return item?.teamCount.toString();
       },
-      dataKey: 'teamCount'
+      dataKey: "teamCount",
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return item?.refereeCount.toString()
+        return item?.refereeCount.toString();
       },
-      dataKey: 'refereeCount'
+      dataKey: "refereeCount",
     },
     {
       cellRenderer: (item: AnnotatedNgb) => {
-        return <ActionDropdown ngbId={item.id} onEditClick={handleEditClick} />
+        return <ActionDropdown ngbId={item.id} onEditClick={handleEditClick} />;
       },
-      customStyle: 'text-right',
-      dataKey: 'actions',
-    }
-  ]
+      customStyle: "text-right",
+      dataKey: "actions",
+    },
+  ];
 
   return (
     <>
@@ -90,19 +105,16 @@ const NgbTable = () => {
         emptyRenderer={renderEmpty}
         onRowClick={handleRowClick}
       />
-      {
-        activeEdit
-          ? (
-            <NgbEditModal
-              open={!!activeEdit}
-              showClose={true}
-              ngbId={parseInt(activeEdit, 10)}
-              onClose={handleEditClose}
-            />
-          ) : null
-      }
+      {activeEdit ? (
+        <NgbEditModal
+          open={!!activeEdit}
+          showClose={true}
+          ngbId={parseInt(activeEdit, 10)}
+          onClose={handleEditClose}
+        />
+      ) : null}
     </>
-  )
-}
+  );
+};
 
-export default NgbTable
+export default NgbTable;

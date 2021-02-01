@@ -1,1 +1,1 @@
-export { default } from './QuestionsManager'
+export { default } from "./QuestionsManager";

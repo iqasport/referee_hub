@@ -12,7 +12,7 @@
 class CertificationPayment < ApplicationRecord
   include Stripe::Callbacks
 
-  after_checkout_session_completed! do |checkout, event|
+  after_checkout_session_completed! do |checkout, _event|
     user = User.find_by(email: checkout.customer_email)
     user = User.find_by(stripe_customer_id: checkout.customer) if user.blank?
     if user.present?

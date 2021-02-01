@@ -29,8 +29,8 @@ module Api
         json_string = TeamSerializer.new(team, include: [:social_accounts]).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: team.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -49,8 +49,8 @@ module Api
         json_string = TeamSerializer.new(@team, include: [:social_accounts]).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @team.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -59,8 +59,8 @@ module Api
 
         @team.destroy!
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @team.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -78,9 +78,9 @@ module Api
 
         json_string = TeamSerializer.new(new_teams, meta: { page: page, total: teams_total }).serialized_json
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
-        render json: { error: exception.full_message }, status: :unprocessable_entity
+      rescue => e
+        Bugsnag.notify(e)
+        render json: { error: e.full_message }, status: :unprocessable_entity
       end
 
       def export
@@ -92,9 +92,9 @@ module Api
         )
 
         render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
-        render json: { error: "Error exporting teams: #{exception}" }, status: :unprocessable_entity
+      rescue => e
+        Bugsnag.notify(e)
+        render json: { error: "Error exporting teams: #{e}" }, status: :unprocessable_entity
       end
 
       private

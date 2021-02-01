@@ -110,7 +110,7 @@ RSpec.describe Services::FindAvailableUserTests do
         test: assistant_test_eighteen,
         referee: user,
         created_at: 2.weeks.ago,
-        next_attempt_at: 1.week.ago,
+        next_attempt_at: 1.week.ago
       )
     end
 
@@ -146,11 +146,10 @@ RSpec.describe Services::FindAvailableUserTests do
     context 'with an assistant certification' do
       let!(:test_attempt) do
         create(:test_attempt,
-          test_level: 'assistant',
-          test: assistant_test_eighteen,
-          referee: user,
-          created_at: 10.days.ago
-        )
+               test_level: 'assistant',
+               test: assistant_test_eighteen,
+               referee: user,
+               created_at: 10.days.ago)
       end
       let!(:assistant_eighteen) { create :referee_certification, referee: user, certification: assistant_cert_eighteen }
 

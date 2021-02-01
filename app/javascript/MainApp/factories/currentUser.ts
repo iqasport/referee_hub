@@ -1,7 +1,7 @@
-import Faker from 'faker'
-import { Factory } from 'fishery'
+import Faker from "faker";
+import { Factory } from "fishery";
 
-import { Data } from 'MainApp/schemas/currentUserSchema'
+import { Data } from "MainApp/schemas/currentUserSchema";
 
 export default Factory.define<Data>(({ sequence }) => ({
   attributes: {
@@ -15,14 +15,14 @@ export default Factory.define<Data>(({ sequence }) => ({
   id: sequence.toString(),
   relationships: {
     certificationPayments: {
-      data: []
+      data: [],
     },
     language: {
-      data: []
+      data: [],
     },
     roles: {
-      data: []
+      data: [],
     },
   },
-  type: 'currentUser',
-}))
+  type: "currentUser",
+}));

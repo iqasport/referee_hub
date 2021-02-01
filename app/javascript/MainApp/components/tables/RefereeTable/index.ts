@@ -1,2 +1,1 @@
-export { default } from './RefereeTable'
- 
+export { default } from "./RefereeTable";

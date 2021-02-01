@@ -199,7 +199,7 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
     end
   end
 
-   describe 'POST #import' do
+  describe 'POST #import' do
     include ActionDispatch::TestProcess
 
     let!(:user) { create :user, :iqa_admin }
@@ -213,7 +213,7 @@ RSpec.describe Api::V1::NationalGoverningBodiesController, type: :controller do
         'region': 'region',
         'membership_status': 'membership_status',
         'website': 'website',
-        'url_1': 'url_1',
+        'url_1': 'url_1'
       }.to_json
     end
 

@@ -18,7 +18,7 @@ describe Services::TeamCsvImport do
       'age_group': 'age_group',
       'status': 'status',
       'joined_at': 'joined_at',
-      'url_1': 'url_1',
+      'url_1': 'url_1'
     }
   end
   let!(:csv) do

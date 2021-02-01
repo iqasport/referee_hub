@@ -22,14 +22,15 @@ module Services
 
         team = find_or_initialize_team(row_data)
         next unless team&.valid?
+
         team.social_accounts = find_or_initialize_social_accounts(row_data)
         teams << team
       end
 
       import_results = Team.import(
-        teams, 
-        recursive: true, 
-        on_duplicate_key_update: %i[city country state group_affiliation status], 
+        teams,
+        recursive: true,
+        on_duplicate_key_update: %i[city country state group_affiliation status],
         returning: :name
       )
       import_results.ids
@@ -62,7 +63,7 @@ module Services
 
     def find_or_initialize_social_accounts(row_data)
       social_accounts = []
-      mapped_keys = mapped_headers.keys.select { |key| key =~ /url_\d+$/ }      
+      mapped_keys = mapped_headers.keys.select { |key| key =~ /url_\d+$/ }
       url_keys = mapped_keys.map { |key| mapped_headers[key] }
 
       url_keys.each do |url_key|

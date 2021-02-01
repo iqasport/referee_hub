@@ -1,1 +1,1 @@
-export { default } from './NgbProfile'
+export { default } from "./NgbProfile";

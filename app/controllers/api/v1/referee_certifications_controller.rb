@@ -33,8 +33,8 @@ module Api
         json_string = RefereeCertificationSerializer.new(referee_certification).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: referee_certification.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -44,8 +44,8 @@ module Api
         json_string = RefereeCertificationSerializer.new(@referee_certification)
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @referee_certification.errors.full_messages }, status: :unprocessable_entity
       end
 
