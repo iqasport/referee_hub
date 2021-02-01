@@ -1,7 +1,7 @@
-import classnames from 'classnames'
-import React from 'react'
+import classnames from "classnames";
+import React from "react";
 
-import { Datum } from 'MainApp/schemas/getLanguagesSchema';
+import { Datum } from "MainApp/schemas/getLanguagesSchema";
 
 interface LanguageDropdownProps {
   name: string;
@@ -12,7 +12,7 @@ interface LanguageDropdownProps {
 }
 
 const LanguageDropdown = (props: LanguageDropdownProps) => {
-  const { name, onChange, value, languages, hasError } = props
+  const { name, onChange, value, languages, hasError } = props;
 
   const renderOption = (language: Datum) => {
     const {
@@ -42,6 +42,6 @@ const LanguageDropdown = (props: LanguageDropdownProps) => {
       {languages.map(renderOption)}
     </select>
   );
-}
+};
 
-export default LanguageDropdown
+export default LanguageDropdown;

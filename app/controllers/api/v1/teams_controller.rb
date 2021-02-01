@@ -6,10 +6,12 @@ module Api
       layout false
 
       def index
-        page = params[:page] || 1
+        page = params[:page]
+        limit = params[:limit]
         @teams = find_teams_from_filter
         teams_total = @teams.count
-        @teams = @teams.page(page)
+        @teams = @teams.order(name: :asc)
+        @teams = @teams.paginate(page: page.to_i, per_page: limit.to_i) if page.present? || limit.present?
 
         json_string = TeamSerializer.new(@teams, meta: { page: page, total: teams_total }).serialized_json
 

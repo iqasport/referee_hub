@@ -1,11 +1,11 @@
-import React from 'react'
+import React from "react";
 
 type ToggleProps = {
   name: string;
   label?: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   checked: boolean;
-}
+};
 
 const Toggle = (props: ToggleProps) => {
   return (
@@ -21,9 +21,13 @@ const Toggle = (props: ToggleProps) => {
         />
         <label htmlFor={props.name} className="toggle-label" />
       </div>
-      {props.label && <label htmlFor={props.name} className="text-s text-gray-600">{props.label}</label>}
+      {props.label && (
+        <label htmlFor={props.name} className="text-s text-gray-600">
+          {props.label}
+        </label>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default Toggle
+export default Toggle;

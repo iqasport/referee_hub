@@ -1,10 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { deleteQuestion as deleteQuestionApi, QuestionResponse, updateQuestion as updateQuestionApi, UpdateQuestionRequest } from 'MainApp/apis/question'
-import { Data } from 'MainApp/schemas/getQuestionSchema'
+import {
+  deleteQuestion as deleteQuestionApi,
+  QuestionResponse,
+  updateQuestion as updateQuestionApi,
+  UpdateQuestionRequest,
+} from "MainApp/apis/question";
+import { Data } from "MainApp/schemas/getQuestionSchema";
 
-import { AppThunk } from '../../store'
-import { getQuestions } from './questions'
+import { AppThunk } from "../../store";
+import { getQuestions } from "./questions";
 
 export interface QuestionState {
   question: Data;
@@ -15,37 +20,37 @@ export interface QuestionState {
 const initialState: QuestionState = {
   error: null,
   isLoading: false,
-  question: null
-}
+  question: null,
+};
 
 function questionSuccess(state: QuestionState, action: PayloadAction<QuestionResponse>) {
-  state.question = action.payload.question
-  state.isLoading = false
-  state.error = null
+  state.question = action.payload.question;
+  state.isLoading = false;
+  state.error = null;
 }
 
 function questionFailure(state: QuestionState, action: PayloadAction<string>) {
-  state.question = null
-  state.isLoading = false
-  state.error = action.payload
+  state.question = null;
+  state.isLoading = false;
+  state.error = action.payload;
 }
 
 const question = createSlice({
   initialState,
-  name: 'question',
+  name: "question",
   reducers: {
     deleteQuestionFailure: questionFailure,
     deleteQuestionStart(state: QuestionState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     deleteQuestionSuccess: questionSuccess,
     updateQuestionFailure: questionFailure,
     updateQuestionStart(state: QuestionState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
-    updateQuestionSuccess: questionSuccess
-  }
-})
+    updateQuestionSuccess: questionSuccess,
+  },
+});
 
 export const {
   deleteQuestionFailure,
@@ -53,28 +58,31 @@ export const {
   deleteQuestionSuccess,
   updateQuestionFailure,
   updateQuestionStart,
-  updateQuestionSuccess
-} = question.actions
+  updateQuestionSuccess,
+} = question.actions;
 
-export const updateQuestion = (questionId: string, newQuestion: UpdateQuestionRequest): AppThunk => async dispatch => {
+export const updateQuestion = (
+  questionId: string,
+  newQuestion: UpdateQuestionRequest
+): AppThunk => async (dispatch) => {
   try {
-    dispatch(updateQuestionStart())
-    const questionResponse = await updateQuestionApi(questionId, newQuestion)
-    dispatch(updateQuestionSuccess(questionResponse))
+    dispatch(updateQuestionStart());
+    const questionResponse = await updateQuestionApi(questionId, newQuestion);
+    dispatch(updateQuestionSuccess(questionResponse));
   } catch (err) {
-    dispatch(updateQuestionFailure(err.toString()))
+    dispatch(updateQuestionFailure(err.toString()));
   }
-}
+};
 
-export const deleteQuestion = (questionId: string): AppThunk => async dispatch => {
+export const deleteQuestion = (questionId: string): AppThunk => async (dispatch) => {
   try {
-    dispatch(deleteQuestionStart())
-    const questionResponse = await deleteQuestionApi(questionId)
-    dispatch(deleteQuestionSuccess(questionResponse))
-    dispatch(getQuestions(questionResponse.question.attributes.testId.toString(10)))
+    dispatch(deleteQuestionStart());
+    const questionResponse = await deleteQuestionApi(questionId);
+    dispatch(deleteQuestionSuccess(questionResponse));
+    dispatch(getQuestions(questionResponse.question.attributes.testId.toString(10)));
   } catch (err) {
-    dispatch(deleteQuestionFailure(err.toString()))
+    dispatch(deleteQuestionFailure(err.toString()));
   }
-}
+};
 
-export default question.reducer
+export default question.reducer;

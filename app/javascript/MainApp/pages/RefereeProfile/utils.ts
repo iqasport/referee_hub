@@ -17,23 +17,27 @@ export const selectRefereeState = (state: RootState): RefereeState => {
     testAttempts: state.referee.testAttempts,
     testResults: state.referee.testResults,
   };
-}
+};
 
 export const initialPaymentState: PaymentState = {
   cancel: false,
   failure: false,
   success: false,
-}
+};
 
-export const initialUpdateState = (referee: DataAttributes, locations: IdAttributes[], teams: IdAttributes[]): UpdateRefereeRequest => {
+export const initialUpdateState = (
+  referee: DataAttributes,
+  locations: IdAttributes[],
+  teams: IdAttributes[]
+): UpdateRefereeRequest => {
   const ngbData = locations.reduce((data, location): AssociationData => {
-    data[location.nationalGoverningBodyId.toString()] = location.associationType
-    return data
-  }, {} as AssociationData)
+    data[location.nationalGoverningBodyId.toString()] = location.associationType;
+    return data;
+  }, {} as AssociationData);
   const teamsData = teams.reduce((data, team): AssociationData => {
-    data[team.teamId.toString()] = team.associationType
-    return data
-  }, {} as AssociationData)
+    data[team.teamId.toString()] = team.associationType;
+    return data;
+  }, {} as AssociationData);
 
   return {
     bio: referee?.bio,
@@ -45,5 +49,5 @@ export const initialUpdateState = (referee: DataAttributes, locations: IdAttribu
     showPronouns: referee?.showPronouns,
     submittedPaymentAt: referee?.submittedPaymentAt,
     teamsData,
-  }
-}
+  };
+};

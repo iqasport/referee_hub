@@ -1,64 +1,67 @@
-import { capitalize } from 'lodash'
-import React, { useEffect } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux'
-import { useHistory } from 'react-router-dom'
+import { capitalize } from "lodash";
+import React, { useEffect } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
 
-import { getRefereeTests } from 'MainApp/modules/test/tests'
-import { RootState } from 'MainApp/rootReducer'
-import { Datum } from 'MainApp/schemas/getTestsSchema'
-import { getTestCertVersion } from 'MainApp/utils/certUtils'
-import Table, { CellConfig } from '../Table/Table'
+import { getRefereeTests } from "MainApp/modules/test/tests";
+import { RootState } from "MainApp/rootReducer";
+import { Datum } from "MainApp/schemas/getTestsSchema";
+import { getTestCertVersion } from "MainApp/utils/certUtils";
+import Table, { CellConfig } from "../Table/Table";
 
-const HEADER_CELLS = ['title', 'level', 'rulebook', 'language']
+const HEADER_CELLS = ["title", "level", "rulebook", "language"];
 
 interface RefereeTestsTableProps {
   refId: string;
 }
 
 const RefereeTestsTable = (props: RefereeTestsTableProps) => {
-  const { refId } = props
-  const history = useHistory()
-  const dispatch = useDispatch()
-  const { tests, isLoading, certifications } = useSelector((state: RootState) => state.tests, shallowEqual)
+  const { refId } = props;
+  const history = useHistory();
+  const dispatch = useDispatch();
+  const { tests, isLoading, certifications } = useSelector(
+    (state: RootState) => state.tests,
+    shallowEqual
+  );
 
   useEffect(() => {
-    dispatch(getRefereeTests(refId))
-  }, [])
+    dispatch(getRefereeTests(refId));
+  }, []);
 
   const handleRowClick = (id: string) => {
-    history.push(`/referees/${refId}/tests/${id}`)
-  }
+    history.push(`/referees/${refId}/tests/${id}`);
+  };
 
   const renderEmpty = () => {
-    return <h2>No available tests for this referee</h2>
-  }
+    return <h2>No available tests for this referee</h2>;
+  };
 
   const rowConfig: CellConfig<Datum>[] = [
     {
       cellRenderer: (item: Datum) => {
-        return item.attributes.name
+        return item.attributes.name;
       },
-      dataKey: 'name',
+      dataKey: "name",
     },
     {
       cellRenderer: (item: Datum) => {
-        return capitalize(item.attributes.level)
+        return capitalize(item.attributes.level);
       },
-      dataKey: 'level'
+      dataKey: "level",
     },
     {
       cellRenderer: (item: Datum) => {
-        return getTestCertVersion(item.attributes.certificationId, certifications)
+        return getTestCertVersion(item.attributes.certificationId, certifications);
       },
-      dataKey: 'certificationId'
+      dataKey: "certificationId",
     },
     {
       cellRenderer: (item: Datum) => {
-        return item.attributes.language
+        return item.attributes.language;
       },
-      dataKey: 'language'
+      dataKey: "language",
     },
-  ]
+  ];
 
   return (
     <>
@@ -73,7 +76,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
         isHeightRestricted={false}
       />
     </>
-  )
-}
+  );
+};
 
-export default RefereeTestsTable
+export default RefereeTestsTable;

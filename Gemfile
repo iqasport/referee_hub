@@ -83,6 +83,7 @@ group :development do
   gem 'spring-watcher-listen', '~> 2.0.0'
   gem 'pre-commit', require: false
   gem 'rubocop', require: false
+  gem 'rubocop-rails', require: false
   gem 'solargraph', require: false
 end
 

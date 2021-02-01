@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import {
   createTest as createTestApi,
@@ -8,10 +8,10 @@ import {
   TestResponse,
   updateTest as updateTestApi,
   UpdateTestRequest,
-} from '../../apis/single_test'
-import { Data } from '../../schemas/getTestSchema'
-import { AppThunk } from '../../store'
-import { getTests } from './tests'
+} from "../../apis/single_test";
+import { Data } from "../../schemas/getTestSchema";
+import { AppThunk } from "../../store";
+import { getTests } from "./tests";
 
 export interface TestState {
   test: Data | null;
@@ -25,51 +25,51 @@ const initialState: TestState = {
   error: null,
   isLoading: false,
   test: null,
-}
+};
 
 function testSuccess(state: TestState, action: PayloadAction<TestResponse>) {
-  state.isLoading = false
-  state.error = null
-  state.test = action.payload.test
-  state.certification = action.payload.certification
+  state.isLoading = false;
+  state.error = null;
+  state.test = action.payload.test;
+  state.certification = action.payload.certification;
 }
 
 function testFailure(state: TestState, action: PayloadAction<string>) {
-  state.isLoading = false
-  state.test = null
-  state.error = action.payload
-  state.certification = null
+  state.isLoading = false;
+  state.test = null;
+  state.error = action.payload;
+  state.certification = null;
 }
 
 const test = createSlice({
   initialState,
-  name: 'test',
+  name: "test",
   reducers: {
     createTestFailure: testFailure,
     createTestStart(state: TestState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     createTestSuccess: testSuccess,
     clearTest(state: TestState) {
-      state = initialState
+      state = initialState;
     },
     deleteTestFailure: testFailure,
     deleteTestStart(state: TestState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     deleteTestSuccess: testSuccess,
     getTestFailure: testFailure,
     getTestStart(state: TestState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     getTestSuccess: testSuccess,
     updateTestFailure: testFailure,
     updateTestStart(state: TestState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     updateTestSuccess: testSuccess,
-  }
-})
+  },
+});
 
 export const {
   clearTest,
@@ -85,53 +85,53 @@ export const {
   updateTestFailure,
   updateTestStart,
   updateTestSuccess,
-} = test.actions
+} = test.actions;
 
-export const getTest = (id: string): AppThunk => async dispatch => {
+export const getTest = (id: string): AppThunk => async (dispatch) => {
   try {
-    dispatch(getTestStart())
-    const testResponse = await getTestApi(id)
-    dispatch(getTestSuccess(testResponse))
+    dispatch(getTestStart());
+    const testResponse = await getTestApi(id);
+    dispatch(getTestSuccess(testResponse));
   } catch (err) {
-    dispatch(getTestFailure(err.toString()))
+    dispatch(getTestFailure(err.toString()));
   }
-}
+};
 
 export const updateTest = (
   id: string,
   updatedTest: UpdateTestRequest,
   shouldUpdateTests: boolean = true
-): AppThunk => async dispatch => {
+): AppThunk => async (dispatch) => {
   try {
-    dispatch(updateTestStart())
-    const testResponse = await updateTestApi(id, updatedTest)
-    dispatch(updateTestSuccess(testResponse))
-    if (shouldUpdateTests) dispatch(getTests())
+    dispatch(updateTestStart());
+    const testResponse = await updateTestApi(id, updatedTest);
+    dispatch(updateTestSuccess(testResponse));
+    if (shouldUpdateTests) dispatch(getTests());
   } catch (err) {
-    dispatch(updateTestFailure(err.toString()))
+    dispatch(updateTestFailure(err.toString()));
   }
-}
+};
 
-export const createTest = (newTest: UpdateTestRequest): AppThunk => async dispatch => {
+export const createTest = (newTest: UpdateTestRequest): AppThunk => async (dispatch) => {
   try {
-    dispatch(createTestStart())
-    const testResponse = await createTestApi(newTest)
-    dispatch(createTestSuccess(testResponse))
-    dispatch(getTests())
+    dispatch(createTestStart());
+    const testResponse = await createTestApi(newTest);
+    dispatch(createTestSuccess(testResponse));
+    dispatch(getTests());
   } catch (err) {
-    dispatch(createTestFailure(err.toString()))
+    dispatch(createTestFailure(err.toString()));
   }
-}
+};
 
-export const deleteTest = (id: string): AppThunk => async dispatch => {
+export const deleteTest = (id: string): AppThunk => async (dispatch) => {
   try {
-    dispatch(deleteTestStart())
-    const testResponse = await deleteTestApi(id)
-    dispatch(deleteTestSuccess(testResponse))
-    dispatch(getTests())
-  } catch(err) {
-    dispatch(deleteTestFailure(err.toString()))
+    dispatch(deleteTestStart());
+    const testResponse = await deleteTestApi(id);
+    dispatch(deleteTestSuccess(testResponse));
+    dispatch(getTests());
+  } catch (err) {
+    dispatch(deleteTestFailure(err.toString()));
   }
-}
+};
 
-export default test.reducer
+export default test.reducer;

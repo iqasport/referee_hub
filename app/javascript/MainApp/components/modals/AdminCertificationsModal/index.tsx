@@ -1,1 +1,1 @@
-export { default } from './AdminCertificationsModal'
+export { default } from "./AdminCertificationsModal";

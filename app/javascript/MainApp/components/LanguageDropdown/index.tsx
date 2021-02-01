@@ -1,1 +1,1 @@
-export { default } from './LanguageDropdown'
+export { default } from "./LanguageDropdown";

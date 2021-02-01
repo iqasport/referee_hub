@@ -1,1 +1,1 @@
-export { default } from './TeamTable';
+export { default } from "./TeamTable";

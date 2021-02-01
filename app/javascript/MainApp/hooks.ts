@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 function useInterval(callback: () => void, delay?: number) {
   const savedCallback = useRef(callback);
@@ -18,8 +18,8 @@ function useInterval(callback: () => void, delay?: number) {
       const id = setInterval(tick, delay);
       return () => clearInterval(id);
     }
-    return null
+    return null;
   }, [delay]);
 }
 
-export default useInterval
+export default useInterval;

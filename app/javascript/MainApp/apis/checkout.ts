@@ -1,5 +1,5 @@
-import { GetProductsSchema } from '../schemas/getProductsSchema'
-import { baseAxios } from './utils'
+import { GetProductsSchema } from "../schemas/getProductsSchema";
+import { baseAxios } from "./utils";
 
 export interface ProductsResponse {
   products: GetProductsSchema[];
@@ -15,29 +15,29 @@ export interface CreateSessionRequest {
 }
 
 export async function getProducts(): Promise<ProductsResponse> {
-  const url = 'checkouts/products'
+  const url = "checkouts/products";
 
   try {
-    const productsResponse = await baseAxios.get(url)
+    const productsResponse = await baseAxios.get(url);
 
     return {
       products: productsResponse.data,
-    }
+    };
   } catch (err) {
-    throw err
+    throw err;
   }
 }
 
 export async function createSession(session: CreateSessionRequest): Promise<SessionResponse> {
-  const url = 'checkouts'
+  const url = "checkouts";
 
   try {
-    const sessionResponse = await baseAxios.post<SessionResponse>(url, { ...session })
+    const sessionResponse = await baseAxios.post<SessionResponse>(url, { ...session });
 
     return {
-      sessionId: sessionResponse.data.sessionId
-    }
+      sessionId: sessionResponse.data.sessionId,
+    };
   } catch (err) {
-    throw err
+    throw err;
   }
 }

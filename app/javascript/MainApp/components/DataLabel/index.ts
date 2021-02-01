@@ -1,1 +1,1 @@
-export { default } from './DataLabel'
+export { default } from "./DataLabel";

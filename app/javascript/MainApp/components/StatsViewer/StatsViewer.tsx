@@ -1,64 +1,64 @@
-import { Interval } from 'luxon'
-import React, { useState } from 'react'
+import { Interval } from "luxon";
+import React, { useState } from "react";
 
-import { IncludedAttributes } from '../../schemas/getNationalGoverningBodySchema'
-import { toDateTime } from '../../utils/dateUtils'
-import RefereeStats from '../RefereeStats'
-import TeamStatusStats from '../TeamStatusStats'
-import TeamTypeStats from '../TeamTypeStats'
+import { IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
+import { toDateTime } from "../../utils/dateUtils";
+import RefereeStats from "../RefereeStats";
+import TeamStatusStats from "../TeamStatusStats";
+import TeamTypeStats from "../TeamTypeStats";
 
 const sortByTimestamp = (stats: IncludedAttributes[]): IncludedAttributes[] => {
-  if (!stats.length) return []
+  if (!stats.length) return [];
 
   return stats.slice().sort((a, b) => {
-    const aEndTime = toDateTime(a.endTime)
-    const aStartTime = toDateTime(a.start)
-    const bEndTime = toDateTime(b.endTime)
-    const aInterval = Interval.fromDateTimes(aStartTime, aEndTime)
+    const aEndTime = toDateTime(a.endTime);
+    const aStartTime = toDateTime(a.start);
+    const bEndTime = toDateTime(b.endTime);
+    const aInterval = Interval.fromDateTimes(aStartTime, aEndTime);
 
     if (aInterval.isBefore(bEndTime)) {
-      return 1
+      return 1;
     }
 
     if (aInterval.isAfter(bEndTime)) {
-      return -1
+      return -1;
     }
 
-    return 0
-  })
-}
+    return 0;
+  });
+};
 
 interface StatsViewerProps {
-  stats: IncludedAttributes[]
+  stats: IncludedAttributes[];
 }
 
 enum SelectedStat {
-  Referee = 'referee',
-  TeamStatus = 'team_status',
-  TeamType = 'team_type',
+  Referee = "referee",
+  TeamStatus = "team_status",
+  TeamType = "team_type",
 }
 
 const StatsViewer = (props: StatsViewerProps) => {
-  const [selectedStat, setSelectedStat] = useState<SelectedStat>()
-  const orderedStats = sortByTimestamp(props.stats)
-  const currentStat = orderedStats[0]
+  const [selectedStat, setSelectedStat] = useState<SelectedStat>();
+  const orderedStats = sortByTimestamp(props.stats);
+  const currentStat = orderedStats[0];
 
   const handleStatClick = (type: SelectedStat) => () => {
     if (selectedStat !== type) {
-      setSelectedStat(type)
+      setSelectedStat(type);
     } else {
-      setSelectedStat(null)
+      setSelectedStat(null);
     }
-  }
-  
+  };
+
   const renderCurrentStats = () => {
-    const refereeSelected = selectedStat && selectedStat === SelectedStat.Referee
-    const teamStatusSelected = selectedStat && selectedStat === SelectedStat.TeamStatus
-    const teamTypeSelected = selectedStat && selectedStat === SelectedStat.TeamType
+    const refereeSelected = selectedStat && selectedStat === SelectedStat.Referee;
+    const teamStatusSelected = selectedStat && selectedStat === SelectedStat.TeamStatus;
+    const teamTypeSelected = selectedStat && selectedStat === SelectedStat.TeamType;
 
     return (
       <>
-        { (!selectedStat || refereeSelected) && 
+        {(!selectedStat || refereeSelected) && (
           <RefereeStats
             headCount={currentStat?.headRefereesCount}
             assistantCount={currentStat?.assistantRefereesCount}
@@ -69,10 +69,9 @@ const StatsViewer = (props: StatsViewerProps) => {
             showFull={refereeSelected}
             stats={orderedStats}
           />
-        }
-        {
-          (!selectedStat || teamTypeSelected) && 
-          <TeamTypeStats 
+        )}
+        {(!selectedStat || teamTypeSelected) && (
+          <TeamTypeStats
             communityCount={currentStat?.communityTeamsCount}
             universityCount={currentStat?.universityTeamsCount}
             youthCount={currentStat?.youthTeamsCount}
@@ -81,10 +80,9 @@ const StatsViewer = (props: StatsViewerProps) => {
             showFull={teamTypeSelected}
             stats={orderedStats}
           />
-        }
-        {
-          (!selectedStat || teamStatusSelected) &&
-          <TeamStatusStats 
+        )}
+        {(!selectedStat || teamStatusSelected) && (
+          <TeamStatusStats
             competitiveCount={currentStat?.competitiveTeamsCount}
             developingCount={currentStat?.developingTeamsCount}
             inactiveCount={currentStat?.inactiveTeamsCount}
@@ -93,16 +91,16 @@ const StatsViewer = (props: StatsViewerProps) => {
             showFull={teamStatusSelected}
             stats={orderedStats}
           />
-        }
+        )}
       </>
-    )
-  }
+    );
+  };
 
   return (
     <div className="w-full rounded-lg bg-gray-300 flex flex-col lg:flex-row justify-between py-8 px-4">
       {renderCurrentStats()}
     </div>
-  )
-}
+  );
+};
 
-export default StatsViewer
+export default StatsViewer;

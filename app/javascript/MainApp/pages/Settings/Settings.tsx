@@ -1,70 +1,76 @@
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { Redirect } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { Redirect } from "react-router-dom";
 
-import { UpdatedUserRequest } from 'MainApp/apis/user';
-import LanguageDropdown from 'MainApp/components/LanguageDropdown';
-import { CurrentUserState, updateUser } from 'MainApp/modules/currentUser/currentUser';
-import { getLanguages, LanguagesState } from 'MainApp/modules/language/languages';
-import { RootState } from 'MainApp/rootReducer';
-import { formatLanguage } from 'MainApp/utils/langUtils';
+import { UpdatedUserRequest } from "MainApp/apis/user";
+import LanguageDropdown from "MainApp/components/LanguageDropdown";
+import { CurrentUserState, updateUser } from "MainApp/modules/currentUser/currentUser";
+import { getLanguages, LanguagesState } from "MainApp/modules/language/languages";
+import { RootState } from "MainApp/rootReducer";
+import { formatLanguage } from "MainApp/utils/langUtils";
 
 const Settings = () => {
-  const [updatedUser, setUpdatedUser] = useState<UpdatedUserRequest>()
-  const [isEditing, setIsEditing] = useState(false)
+  const [updatedUser, setUpdatedUser] = useState<UpdatedUserRequest>();
+  const [isEditing, setIsEditing] = useState(false);
   const { currentUser, language, id } = useSelector(
-    (state: RootState): CurrentUserState => state.currentUser, shallowEqual
-  )
-  const { languages } = useSelector((state: RootState): LanguagesState => state.languages, shallowEqual)
-  const dispatch = useDispatch()
-  if(!currentUser?.enabledFeatures?.includes('i18n')) return <Redirect to="/" />
+    (state: RootState): CurrentUserState => state.currentUser,
+    shallowEqual
+  );
+  const { languages } = useSelector(
+    (state: RootState): LanguagesState => state.languages,
+    shallowEqual
+  );
+  const dispatch = useDispatch();
+  if (!currentUser?.enabledFeatures?.includes("i18n")) return <Redirect to="/" />;
 
   useEffect(() => {
     if (!languages.length) {
       dispatch(getLanguages());
     }
-    setUpdatedUser({ languageId: currentUser?.languageId })
-  }, [])
+    setUpdatedUser({ languageId: currentUser?.languageId });
+  }, []);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value, name } = event.target
+    const { value, name } = event.target;
 
-    setUpdatedUser({ ...updatedUser, [name]: value })
-  }
+    setUpdatedUser({ ...updatedUser, [name]: value });
+  };
 
-  const handleEditClick = () => setIsEditing(true)
-  const handleEditCancel = () => setIsEditing(false)
+  const handleEditClick = () => setIsEditing(true);
+  const handleEditCancel = () => setIsEditing(false);
   const handleSave = () => {
-    dispatch(updateUser(id, updatedUser))
-    handleEditCancel()
-  }
+    dispatch(updateUser(id, updatedUser));
+    handleEditCancel();
+  };
 
   const renderDropdown = () => (
     <div>
       <LanguageDropdown
         name="languageId"
-        value={updatedUser?.languageId?.toString() ?? ''}
+        value={updatedUser?.languageId?.toString() ?? ""}
         languages={languages}
         hasError={false}
         onChange={handleChange}
       />
       <div>
         <p className="my-2">
-          Don't see your desired language? Email {' '}
-          <a className="text-blue-darker" href="mailto:translation@iqasport.org">translation@iqasport.org</a>
-          {' '} to add your language to the IQA.
+          Don't see your desired language? Email{" "}
+          <a className="text-blue-darker" href="mailto:translation@iqasport.org">
+            translation@iqasport.org
+          </a>{" "}
+          to add your language to the IQA.
         </p>
       </div>
     </div>
-  )
+  );
 
   const renderLanguage = () => {
     if (!language) {
-      return <div>Set your application language by editing your settings</div>
+      return <div>Set your application language by editing your settings</div>;
     }
 
-    return <div>{formatLanguage(language)}</div>
-  }
+    return <div>{formatLanguage(language)}</div>;
+  };
 
   const renderEditButtons = () => {
     return (
@@ -85,7 +91,7 @@ const Settings = () => {
         </button>
       </>
     );
-  }
+  };
 
   return (
     <div className="w-5/6 mx-auto my-8">
@@ -95,11 +101,7 @@ const Settings = () => {
           {isEditing ? (
             renderEditButtons()
           ) : (
-            <button
-              type="button"
-              className="rounded bg-green py-2 px-6"
-              onClick={handleEditClick}
-            >
+            <button type="button" className="rounded bg-green py-2 px-6" onClick={handleEditClick}>
               Edit
             </button>
           )}
@@ -113,6 +115,6 @@ const Settings = () => {
       </div>
     </div>
   );
-}
+};
 
-export default Settings
+export default Settings;

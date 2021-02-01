@@ -1,11 +1,11 @@
-import classnames from 'classnames'
-import React from 'react'
+import classnames from "classnames";
+import React from "react";
 
-import Loader from 'MainApp/components/Loader'
-import { Datum as Ngb } from 'MainApp/schemas/getNationalGoverningBodiesSchema'
-import { Datum as Team } from 'MainApp/schemas/getTeamsSchema'
-import { Datum as Test } from 'MainApp/schemas/getTestsSchema'
-import { Referee } from '../../../modules/referee/referees'
+import Loader from "MainApp/components/Loader";
+import { Datum as Ngb } from "MainApp/schemas/getNationalGoverningBodiesSchema";
+import { Datum as Team } from "MainApp/schemas/getTeamsSchema";
+import { Datum as Test } from "MainApp/schemas/getTestsSchema";
+import { Referee } from "../../../modules/referee/referees";
 
 export interface CellConfig<T> {
   dataKey: string;
@@ -24,17 +24,25 @@ interface TableProps<T> {
 }
 
 const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
-  const { items, isLoading, headerCells, rowConfig, emptyRenderer, onRowClick, isHeightRestricted } = props
+  const {
+    items,
+    isLoading,
+    headerCells,
+    rowConfig,
+    emptyRenderer,
+    onRowClick,
+    isHeightRestricted,
+  } = props;
 
   const handleRowClick = (id: string) => () => {
-    if(onRowClick) onRowClick(id)
-  }
+    if (onRowClick) onRowClick(id);
+  };
 
   const renderRow = (item: T) => {
     return (
       <tr key={item.id} className="border border-gray-300 hover:bg-gray-300">
         {rowConfig.map((cell) => {
-          const handleClick = cell.dataKey === 'actions' ? null : handleRowClick(item.id)
+          const handleClick = cell.dataKey === "actions" ? null : handleRowClick(item.id);
 
           return (
             <td
@@ -44,33 +52,27 @@ const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
             >
               {cell.cellRenderer(item)}
             </td>
-          )
+          );
         })}
       </tr>
-    )
-  }
+    );
+  };
 
   const renderBody = () => {
-    return (
-      <tbody>
-        {items.map(renderRow)}
-      </tbody>
-    )
-  }
+    return <tbody>{items.map(renderRow)}</tbody>;
+  };
 
-  const renderLoading = () => <Loader />
+  const renderLoading = () => <Loader />;
 
   const renderEmpty = () => {
     return (
       <tbody>
         <tr>
-          <td>
-            {isLoading ? renderLoading() : emptyRenderer()}
-          </td>
+          <td>{isLoading ? renderLoading() : emptyRenderer()}</td>
         </tr>
       </tbody>
-    )
-  }
+    );
+  };
 
   return (
     <>
@@ -81,7 +83,7 @@ const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
               {headerCells.map((header) => (
                 <td
                   key={header}
-                  className={classnames("w-1/4 py-4 px-8", {'text-right': header === 'actions'})}
+                  className={classnames("w-1/4 py-4 px-8", { "text-right": header === "actions" })}
                 >
                   {header}
                 </td>
@@ -90,13 +92,11 @@ const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
           </tbody>
         </table>
       )}
-      <div className={classnames("table-container", { 'full-height-table': !isHeightRestricted })}>
-        <table className="rounded-table">
-          {items?.length ? renderBody() : renderEmpty()}
-        </table>
+      <div className={classnames("table-container", { "full-height-table": !isHeightRestricted })}>
+        <table className="rounded-table">{items?.length ? renderBody() : renderEmpty()}</table>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Table
+export default Table;

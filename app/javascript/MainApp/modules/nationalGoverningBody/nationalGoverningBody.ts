@@ -1,8 +1,14 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { getNationalGoverningBody as getNgbApi, NgbResponse, updateLogo, updateNationalGoverningBody, UpdateNgbRequest } from '../../apis/nationalGoverningBody';
-import { DataAttributes, IncludedAttributes } from '../../schemas/getNationalGoverningBodySchema';
-import { AppThunk } from '../../store';
+import {
+  getNationalGoverningBody as getNgbApi,
+  NgbResponse,
+  updateLogo,
+  updateNationalGoverningBody,
+  UpdateNgbRequest,
+} from "../../apis/nationalGoverningBody";
+import { DataAttributes, IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
+import { AppThunk } from "../../store";
 
 export interface SingleNationalGoverningBodyState {
   ngb: DataAttributes | null;
@@ -24,16 +30,16 @@ const initialState: SingleNationalGoverningBodyState = {
   socialAccounts: [],
   stats: [],
   teamCount: 0,
-}
+};
 
 function ngbSuccess(state: SingleNationalGoverningBodyState, action: PayloadAction<NgbResponse>) {
   state.isLoading = false;
-  state.ngb = action.payload.nationalGoverningBody
-  state.id = action.payload.id
-  state.socialAccounts = action.payload.socialAccounts
-  state.teamCount = action.payload.teamCount
-  state.refereeCount = action.payload.refereeCount
-  state.stats = action.payload.stats
+  state.ngb = action.payload.nationalGoverningBody;
+  state.id = action.payload.id;
+  state.socialAccounts = action.payload.socialAccounts;
+  state.teamCount = action.payload.teamCount;
+  state.refereeCount = action.payload.refereeCount;
+  state.stats = action.payload.stats;
 }
 
 function ngbFailure(state: SingleNationalGoverningBodyState, action: PayloadAction<string>) {
@@ -42,14 +48,14 @@ function ngbFailure(state: SingleNationalGoverningBodyState, action: PayloadActi
   state.error = action.payload;
   state.id = null;
   state.socialAccounts = [];
-  state.teamCount = 0
-  state.refereeCount = 0
-  state.stats = []
+  state.teamCount = 0;
+  state.refereeCount = 0;
+  state.stats = [];
 }
 
 const nationalGoverningBody = createSlice({
   initialState,
-  name: 'nationalGoverningBody',
+  name: "nationalGoverningBody",
   reducers: {
     getNationalGoverningBodyFailure: ngbFailure,
     getNationalGoverningBodyStart(state: SingleNationalGoverningBodyState) {
@@ -63,8 +69,8 @@ const nationalGoverningBody = createSlice({
       state.isLoading = true;
     },
     updateNgbSuccess: ngbSuccess,
-  }
-})
+  },
+});
 
 export const {
   getNationalGoverningBodyFailure,
@@ -75,35 +81,35 @@ export const {
   updateNgbFailure,
   updateNgbStart,
   updateNgbSuccess,
-} = nationalGoverningBody.actions
+} = nationalGoverningBody.actions;
 
-export const getNationalGoverningBody = (id: number): AppThunk => async dispatch => {
+export const getNationalGoverningBody = (id: number): AppThunk => async (dispatch) => {
   try {
-    dispatch(getNationalGoverningBodyStart())
-    const ngbResponse = await getNgbApi(id)
-    dispatch(getNationalGoverningBodySuccess(ngbResponse))
+    dispatch(getNationalGoverningBodyStart());
+    const ngbResponse = await getNgbApi(id);
+    dispatch(getNationalGoverningBodySuccess(ngbResponse));
   } catch (err) {
-    dispatch(getNationalGoverningBodyFailure(err.toString()))
+    dispatch(getNationalGoverningBodyFailure(err.toString()));
   }
-}
+};
 
-export const updateNgbLogo = (ngbId: string, logo: File): AppThunk => async dispatch => {
+export const updateNgbLogo = (ngbId: string, logo: File): AppThunk => async (dispatch) => {
   try {
-    const ngbResponse = await updateLogo(ngbId, logo)
-    dispatch(updateLogoSuccess(ngbResponse))
+    const ngbResponse = await updateLogo(ngbId, logo);
+    dispatch(updateLogoSuccess(ngbResponse));
   } catch (err) {
-    dispatch(updateLogoFailure(err.toString()))
+    dispatch(updateLogoFailure(err.toString()));
   }
-}
+};
 
-export const updateNgb = (id: number, ngb: UpdateNgbRequest): AppThunk => async dispatch => {
+export const updateNgb = (id: number, ngb: UpdateNgbRequest): AppThunk => async (dispatch) => {
   try {
-    dispatch(updateNgbStart())
-    const ngbResponse = await updateNationalGoverningBody(id, ngb)
-    dispatch(updateNgbSuccess(ngbResponse))
+    dispatch(updateNgbStart());
+    const ngbResponse = await updateNationalGoverningBody(id, ngb);
+    dispatch(updateNgbSuccess(ngbResponse));
   } catch (err) {
-    dispatch(updateNgbFailure(err.toString()))
+    dispatch(updateNgbFailure(err.toString()));
   }
-}
+};
 
-export default nationalGoverningBody.reducer
+export default nationalGoverningBody.reducer;

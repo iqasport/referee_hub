@@ -1,5 +1,13 @@
-import React from 'react'
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import React from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 type ChartData = {
   type: string;
@@ -11,7 +19,7 @@ type ChartData = {
 type BarConfig = {
   dataKey: string;
   fill: string;
-}
+};
 
 interface StatBarChartProps {
   chartData: ChartData[];
@@ -20,13 +28,13 @@ interface StatBarChartProps {
 }
 
 const StatBarChart = (props: StatBarChartProps) => {
-  const { chartData, barConfig, maxData } = props
+  const { chartData, barConfig, maxData } = props;
 
   const renderBar = (bar: BarConfig) => (
     <Bar key={bar.dataKey} {...bar} minPointSize={5}>
       <LabelList dataKey="type" position="center" angle={270} />
     </Bar>
-  )
+  );
 
   return (
     <ResponsiveContainer height="100%" width="80%">
@@ -44,7 +52,7 @@ const StatBarChart = (props: StatBarChartProps) => {
         {barConfig.map(renderBar)}
       </BarChart>
     </ResponsiveContainer>
-  )
-}
+  );
+};
 
-export default StatBarChart
+export default StatBarChart;
