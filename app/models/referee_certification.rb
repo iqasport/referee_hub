@@ -58,7 +58,8 @@ class RefereeCertification < ApplicationRecord
   def new_certification_valid?(existing_certs)
     new_cert_version = certification.version
     return existing_certs.assistant.where(version: new_cert_version).count == 1 if certification.level == 'snitch'
-    has_snitch_and_score = existing_certs.where(version: new_cert_version, level: ['snitch', 'scorekeeper']).count == 2
+
+    has_snitch_and_score = existing_certs.where(version: new_cert_version, level: %w[snitch scorekeeper]).count == 2
     return has_snitch_and_score if certification.level == 'head'
     return existing_certs.head.where(version: new_cert_version).count == 1 if certification.level == 'field'
   end

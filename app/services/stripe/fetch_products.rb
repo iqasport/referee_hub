@@ -13,7 +13,7 @@ module Services
 
       def perform
         products, _resp = client.request do
-          ::Stripe::Product.list()
+          ::Stripe::Product.list
         end
 
         products.data.each do |product|

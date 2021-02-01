@@ -7,7 +7,7 @@ RSpec.describe Api::V1::CheckoutsController, type: :controller do
   before { sign_in user }
 
   context 'GET #products' do
-    let(:service_double) { double(:perform => :return_value) }
+    let(:service_double) { double(perform: :return_value) }
     let(:products) do
       [
         {
@@ -83,7 +83,7 @@ RSpec.describe Api::V1::CheckoutsController, type: :controller do
         line_items: [{ quantity: '1', price: price }],
         customer_email: user.email,
         metadata: {
-          certification_id: cert_id,
+          certification_id: cert_id
         }
       }
     end

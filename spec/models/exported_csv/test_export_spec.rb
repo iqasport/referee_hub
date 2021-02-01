@@ -5,7 +5,7 @@ RSpec.describe ExportedCsv::TestExport, type: :model do
   let(:csv) { user.exported_csvs.last }
   let!(:test) { create :test }
   let!(:questions) { create_list :question, 5, test_id: test.id }
-  let(:export_options) { {test_id: test.id}.to_json }
+  let(:export_options) { { test_id: test.id }.to_json }
   let(:question) { questions.first }
   let(:correct_index) { 0 }
 
@@ -23,7 +23,7 @@ RSpec.describe ExportedCsv::TestExport, type: :model do
       [
         question.description,
         question.points_available,
-        "Answer #{correct_index + 1}",
+        "Answer #{correct_index + 1}"
       ].push(question.answers.map {|a| a.description }).flatten
     )
   end
@@ -40,7 +40,7 @@ RSpec.describe ExportedCsv::TestExport, type: :model do
         [
           question.description,
           question.points_available,
-          '',
+          ''
         ].push(question.answers.map {|a| a.description }).flatten
       )
     end

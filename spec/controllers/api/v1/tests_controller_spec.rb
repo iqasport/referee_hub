@@ -288,7 +288,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     end
 
     context 'when the answers given do not match the test' do
-      let(:referee_answers) { [{question_id: 9870987654456}] }
+      let(:referee_answers) { [{ question_id: 9_870_987_654_456 }] }
       let(:expected_error) { "Error grading test: #{described_class::INVALID_ANSWERS}"}
 
       it 'returns an error' do

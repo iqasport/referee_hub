@@ -17,7 +17,7 @@ describe Services::NgbCsvImport do
       'region': 'region',
       'membership_status': 'membership_status',
       'website': 'website',
-      'url_1': 'url_1',
+      'url_1': 'url_1'
     }
   end
   let!(:csv) do

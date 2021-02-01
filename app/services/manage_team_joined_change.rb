@@ -23,9 +23,7 @@ module Services
 
       if new_stat_index >= 0
         stats_to_add = most_recent_ordered_stats[prev_stat_index..new_stat_index] if new_stat_index > prev_stat_index
-        if prev_stat_index > new_stat_index
-          stats_to_remove = most_recent_ordered_stats[new_stat_index..prev_stat_index]
-        end
+        stats_to_remove = most_recent_ordered_stats[new_stat_index..prev_stat_index] if prev_stat_index > new_stat_index
       elsif prev_stat_index > 0
         # remove one from the previous stats, as they are now invalid
         last_stat_date = most_recent_ordered_stats.first.end_time
@@ -54,7 +52,7 @@ module Services
     def count_attrs
       @count_attrs ||= {
         team_status: "#{team.status}_teams_count",
-        team_group: "#{team.group_affiliation}_teams_count",
+        team_group: "#{team.group_affiliation}_teams_count"
       }
     end
 
@@ -63,12 +61,8 @@ module Services
       current_group_count = stat.send(count_attrs[:team_group])
       num_to_add = change_type == 'add' ? 1 : -1
 
-      if !team.other?
-        stat.assign_attributes(count_attrs[:team_status] => current_status_count + num_to_add)
-      end
-      if !team.not_applicable?
-        stat.assign_attributes(count_attrs[:team_group] => current_group_count + num_to_add)
-      end
+      stat.assign_attributes(count_attrs[:team_status] => current_status_count + num_to_add) unless team.other?
+      stat.assign_attributes(count_attrs[:team_group] => current_group_count + num_to_add) unless team.not_applicable?
 
       stat.assign_attributes(total_teams_count: stat.total_teams_count + num_to_add)
       stat.save!
@@ -83,7 +77,7 @@ module Services
         new_stat_index = index if includes_date?(stat, new_date)
       end
 
-      return new_stat_index, prev_stat_index
+      [new_stat_index, prev_stat_index]
     end
   end
 end

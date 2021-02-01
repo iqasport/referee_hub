@@ -53,7 +53,7 @@ class ExportedCsv::TestExport < ExportedCsv
     [
       question.description,
       question.points_available,
-      correct_answer_text,
+      correct_answer_text
     ].push(answer_descs).flatten
   end
 

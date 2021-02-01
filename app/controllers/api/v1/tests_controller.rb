@@ -30,8 +30,8 @@ module Api
         @test.save!
         json_string = TestSerializer.new(@test).serialized_json
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -39,8 +39,8 @@ module Api
         @test.update!(permitted_params)
         json_string = TestSerializer.new(@test).serialized_json
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -53,8 +53,8 @@ module Api
         json_string = TestSerializer.new(@test).serialized_json
         @test.destroy!
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -62,8 +62,8 @@ module Api
         questions = @test.fetch_random_questions
         json_string = QuestionSerializer.new(questions, include: %i[answers]).serialized_json
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @test.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -80,9 +80,9 @@ module Api
         )
 
         render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
-        render json: { error: "Error grading test: #{exception}" }, status: :unprocessable_entity
+      rescue => e
+        Bugsnag.notify(e)
+        render json: { error: "Error grading test: #{e}" }, status: :unprocessable_entity
       end
 
       def import
@@ -97,11 +97,11 @@ module Api
         questions_total = new_questions.count
         new_questions = new_questions.page(1)
 
-        json_string = QuestionSerializer.new(new_questions, meta: { page: page, total: questions_total}).serialized_json
+        json_string = QuestionSerializer.new(new_questions, meta: { page: page, total: questions_total }).serialized_json
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
-        render json: { error: exception.full_message }, status: :unprocessable_entity
+      rescue => e
+        Bugsnag.notify(e)
+        render json: { error: e.full_message }, status: :unprocessable_entity
       end
 
       def export
@@ -113,9 +113,9 @@ module Api
         )
 
         render json: { data: { job_id: enqueued_job.provider_job_id } }, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
-        render json: { error: "Error exporting test: #{exception}" }, status: :unprocessable_entity
+      rescue => e
+        Bugsnag.notify(e)
+        render json: { error: "Error exporting test: #{e}" }, status: :unprocessable_entity
       end
 
       private
@@ -173,7 +173,8 @@ module Api
 
       def valid_answers?(referee_answers)
         return false if referee_answers.blank?
-        question_id = referee_answers[0]["question_id"]
+
+        question_id = referee_answers[0]['question_id']
 
         @test.questions.where(id: question_id).exists?
       end

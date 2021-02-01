@@ -5,7 +5,7 @@ module Api
       skip_before_action :verify_authenticity_token
 
       def products
-        product_objects = Services::Stripe::FetchProducts.new().perform()
+        product_objects = Services::Stripe::FetchProducts.new.perform
 
         json_string = product_objects.to_json
         render json: json_string, status: :ok
@@ -27,7 +27,7 @@ module Api
           line_items: [{ quantity: '1', price: params[:price] }],
           customer_email: current_user.email,
           metadata: {
-            certification_id: params[:certification_id],
+            certification_id: params[:certification_id]
           },
           allow_promotion_codes: true
         }

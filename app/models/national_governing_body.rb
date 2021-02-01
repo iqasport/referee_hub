@@ -38,7 +38,7 @@ class NationalGoverningBody < ApplicationRecord
     area_of_interest: 0,
     emerging: 1,
     developing: 2,
-    full: 3,
+    full: 3
   }
 
   has_many :referee_locations, dependent: :destroy

@@ -30,7 +30,7 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   def after_sign_out_path_for(resource_or_scope)
-    return "/sign_in"
+    '/sign_in'
   end
 
   private

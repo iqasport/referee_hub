@@ -25,8 +25,8 @@ module Api
         json_string = AdminAnswerSerializer.new(answer).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: answer.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -43,8 +43,8 @@ module Api
         json_string = AdminAnswerSerializer.new(@answer).serialized_json
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @answer.errors.full_messages }, status: :unprocessable_entity
       end
 
@@ -54,8 +54,8 @@ module Api
         @answer.destroy!
 
         render json: json_string, status: :ok
-      rescue => exception
-        Bugsnag.notify(exception)
+      rescue => e
+        Bugsnag.notify(e)
         render json: { error: @answer.errors.full_messages }, status: :unprocessable_entity
       end
 

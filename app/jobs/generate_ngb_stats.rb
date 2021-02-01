@@ -7,7 +7,7 @@ class GenerateNgbStats < ApplicationJob
     NationalGoverningBody.pluck(:id).each do |ngb_id|
       SingleNgbStat.perform_later(
         ngb_id,
-        end_time,
+        end_time
       )
     end
   end

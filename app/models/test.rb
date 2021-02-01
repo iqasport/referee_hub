@@ -39,7 +39,7 @@ class Test < ApplicationRecord
     snitch: 0,
     assistant: 1,
     head: 2,
-    scorekeeper: 3,
+    scorekeeper: 3
   }
 
   scope :active, -> { where(active: true) }
