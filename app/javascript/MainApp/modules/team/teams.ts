@@ -1,19 +1,19 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { 
-  getNgbTeams as getNgbTeamsApi, 
+import {
+  getNgbTeams as getNgbTeamsApi,
   getTeams as getTeamsApi,
-  GetTeamsFilter, 
-  importNgbTeams, 
-  TeamsResponse 
-} from '../../apis/team';
-import { HeadersMap } from '../../pages/ImportWizard/MapStep';
-import { Datum, Meta } from '../../schemas/getTeamsSchema';
-import { AppThunk } from '../../store';
+  GetTeamsFilter,
+  importNgbTeams,
+  TeamsResponse,
+} from "../../apis/team";
+import { HeadersMap } from "../../pages/ImportWizard/MapStep";
+import { Datum, Meta } from "../../schemas/getTeamsSchema";
+import { AppThunk } from "../../store";
 
 export interface TeamsState {
   teams: Datum[];
-  filters?: GetTeamsFilter; 
+  filters?: GetTeamsFilter;
   error: string | null;
   isLoading: boolean;
   meta?: Meta;
@@ -23,45 +23,45 @@ const initialState: TeamsState = {
   error: null,
   isLoading: false,
   teams: [],
-}
+};
 
 function teamsSuccess(state: TeamsState, action: PayloadAction<TeamsResponse>) {
-  state.teams = action.payload.teams
-  state.meta = action.payload.meta
-  state.error = null
-  state.isLoading = false
+  state.teams = action.payload.teams;
+  state.meta = action.payload.meta;
+  state.error = null;
+  state.isLoading = false;
 }
 
 function teamsFailure(state: TeamsState, action: PayloadAction<string>) {
-  state.teams = initialState.teams
-  state.error = action.payload
-  state.isLoading = false
+  state.teams = initialState.teams;
+  state.error = action.payload;
+  state.isLoading = false;
 }
 
 const teams = createSlice({
   initialState,
-  name: 'teams',
+  name: "teams",
   reducers: {
     getNgbTeamsFailure: teamsFailure,
     getNgbTeamsStart(state: TeamsState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     getNgbTeamsSuccess: teamsSuccess,
     getTeamsFailure: teamsFailure,
     getTeamsStart(state: TeamsState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     getTeamsSuccess: teamsSuccess,
     updateFilters(state: TeamsState, action: PayloadAction<GetTeamsFilter>) {
-      state.filters = action.payload
+      state.filters = action.payload;
     },
     clearFilters(state: TeamsState) {
-      state.filters = null
+      state.filters = null;
     },
     importTeamsFailure: teamsFailure,
     importTeamsSuccess: teamsSuccess,
-  }
-})
+  },
+});
 
 export const {
   clearFilters,
@@ -74,35 +74,37 @@ export const {
   importTeamsFailure,
   importTeamsSuccess,
   updateFilters,
-} = teams.actions
+} = teams.actions;
 
-export const getTeams = (filters: GetTeamsFilter): AppThunk => async dispatch => {
+export const getTeams = (filters: GetTeamsFilter): AppThunk => async (dispatch) => {
   try {
-    dispatch(getTeamsStart())
-    const teamsResponse = await getTeamsApi(filters)
-    dispatch(getTeamsSuccess(teamsResponse))
+    dispatch(getTeamsStart());
+    const teamsResponse = await getTeamsApi(filters);
+    dispatch(getTeamsSuccess(teamsResponse));
   } catch (err) {
-    dispatch(getTeamsFailure(err.toString()))
+    dispatch(getTeamsFailure(err.toString()));
   }
-}
+};
 
-export const importTeams = (file: File, mappedData: HeadersMap, ngbId: string): AppThunk => async dispatch => {
+export const importTeams = (file: File, mappedData: HeadersMap, ngbId: string): AppThunk => async (
+  dispatch
+) => {
   try {
-    const teamsResponse = await importNgbTeams(file, mappedData, ngbId)
-    dispatch(importTeamsSuccess(teamsResponse))
+    const teamsResponse = await importNgbTeams(file, mappedData, ngbId);
+    dispatch(importTeamsSuccess(teamsResponse));
   } catch (err) {
-    dispatch(importTeamsFailure(err.toString()))
+    dispatch(importTeamsFailure(err.toString()));
   }
-}
+};
 
-export const getNgbTeams = (filter?: GetTeamsFilter): AppThunk => async dispatch => {
+export const getNgbTeams = (filter?: GetTeamsFilter): AppThunk => async (dispatch) => {
   try {
-    dispatch(getNgbTeamsStart())
-    const teamsResponse = await getNgbTeamsApi(filter)
-    dispatch(getNgbTeamsSuccess(teamsResponse))
+    dispatch(getNgbTeamsStart());
+    const teamsResponse = await getNgbTeamsApi(filter);
+    dispatch(getNgbTeamsSuccess(teamsResponse));
   } catch (err) {
-    dispatch(getNgbTeamsFailure(err.toString()))
+    dispatch(getNgbTeamsFailure(err.toString()));
   }
-}
+};
 
-export default teams.reducer
+export default teams.reducer;

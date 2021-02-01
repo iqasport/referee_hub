@@ -1,9 +1,14 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { getReferees as getRefereesApi, GetRefereesFilter, IdAttributes, RefereesResponse } from '../../apis/referee'
-import { DataAttributes } from '../../schemas/getRefereeSchema'
-import { Meta } from '../../schemas/getRefereesSchema'
-import { AppThunk } from '../../store'
+import {
+  getReferees as getRefereesApi,
+  GetRefereesFilter,
+  IdAttributes,
+  RefereesResponse,
+} from "../../apis/referee";
+import { DataAttributes } from "../../schemas/getRefereeSchema";
+import { Meta } from "../../schemas/getRefereesSchema";
+import { AppThunk } from "../../store";
 
 export interface Referee {
   referee: DataAttributes | null;
@@ -25,39 +30,39 @@ export interface RefereesState {
 }
 
 const initialState: RefereesState = {
-  error: null, 
+  error: null,
   isLoading: false,
   meta: null,
   referees: [],
-}
+};
 
 const referees = createSlice({
   initialState,
-  name: 'referees',
+  name: "referees",
   reducers: {
     getRefereesStart(state: RefereesState) {
       state.isLoading = true;
     },
     getRefereesSuccess(state: RefereesState, action: PayloadAction<RefereesResponse>) {
-      state.referees = action.payload.referees
-      state.meta = action.payload.meta
-      state.error = null
-      state.isLoading = false
+      state.referees = action.payload.referees;
+      state.meta = action.payload.meta;
+      state.error = null;
+      state.isLoading = false;
     },
     getRefereesFailure(state: RefereesState, action: PayloadAction<string>) {
-      state.referees = []
-      state.meta = null
-      state.isLoading = false
-      state.error = action.payload
+      state.referees = [];
+      state.meta = null;
+      state.isLoading = false;
+      state.error = action.payload;
     },
     updateFilters(state: RefereesState, action: PayloadAction<GetRefereesFilter>) {
-      state.filters = action.payload
+      state.filters = action.payload;
     },
     clearFilters(state: RefereesState) {
-      state.filters = null
-    }
-  }
-})
+      state.filters = null;
+    },
+  },
+});
 
 export const {
   clearFilters,
@@ -65,16 +70,16 @@ export const {
   getRefereesStart,
   getRefereesSuccess,
   updateFilters,
-} = referees.actions
+} = referees.actions;
 
-export const getReferees = (filter: GetRefereesFilter): AppThunk => async dispatch => {
+export const getReferees = (filter: GetRefereesFilter): AppThunk => async (dispatch) => {
   try {
-    dispatch(getRefereesStart())
-    const refereeResponse = await getRefereesApi(filter)
-    dispatch(getRefereesSuccess(refereeResponse))
+    dispatch(getRefereesStart());
+    const refereeResponse = await getRefereesApi(filter);
+    dispatch(getRefereesSuccess(refereeResponse));
   } catch (err) {
-    dispatch(getRefereesFailure(err))
+    dispatch(getRefereesFailure(err));
   }
-}
+};
 
-export default referees.reducer
+export default referees.reducer;

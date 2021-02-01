@@ -1,8 +1,8 @@
-import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react'
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React from "react";
 
-import DropdownMenu from '../../components/DropdownMenu';
+import DropdownMenu from "../../components/DropdownMenu";
 
 interface ActionsButtonProps {
   onTestClick: () => void;
@@ -19,25 +19,25 @@ const ActionsButton = (props: ActionsButtonProps) => {
         Actions
         <FontAwesomeIcon icon={faCaretDown} className="ml-4" />
       </button>
-    )
-  }
+    );
+  };
 
   const items = [
     {
-      content: 'Create NGB',
+      content: "Create NGB",
       onClick: onNgbClick,
     },
     {
-      content: 'Create Test',
+      content: "Create Test",
       onClick: onTestClick,
     },
     {
-      content: 'Import NGBs',
+      content: "Import NGBs",
       onClick: onImportClick,
     },
-  ]
+  ];
 
-  return <DropdownMenu renderTrigger={renderTrigger} items={items} />
-}
+  return <DropdownMenu renderTrigger={renderTrigger} items={items} />;
+};
 
-export default ActionsButton
+export default ActionsButton;

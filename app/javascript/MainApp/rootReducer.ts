@@ -1,22 +1,22 @@
-import { combineReducers }from '@reduxjs/toolkit'
+import { combineReducers } from "@reduxjs/toolkit";
 
-import certificationsReducer from './modules/certification/certifications'
-import refCertificationReducer from './modules/certification/refCertification'
-import checkoutReducer from './modules/checkout/checkout'
-import productsReducer from './modules/checkout/products'
-import currentUserReducer from './modules/currentUser/currentUser'
-import jobsReducer from './modules/job/job'
-import languagesReducer from './modules/language/languages'
-import nationalGoverningBodiesReducer from './modules/nationalGoverningBody/nationalGoverningBodies'
-import nationalGoverningBodyReducer from './modules/nationalGoverningBody/nationalGoverningBody'
-import questionReducer from './modules/question/question'
-import questionsReducer from './modules/question/questions'
-import getRefereeReducer from './modules/referee/referee'
-import refereesReducer from './modules/referee/referees'
-import teamReducer from './modules/team/team'
-import teamsReducer from './modules/team/teams'
-import testReducer from './modules/test/single_test'
-import testsReducer from './modules/test/tests'
+import certificationsReducer from "./modules/certification/certifications";
+import refCertificationReducer from "./modules/certification/refCertification";
+import checkoutReducer from "./modules/checkout/checkout";
+import productsReducer from "./modules/checkout/products";
+import currentUserReducer from "./modules/currentUser/currentUser";
+import jobsReducer from "./modules/job/job";
+import languagesReducer from "./modules/language/languages";
+import nationalGoverningBodiesReducer from "./modules/nationalGoverningBody/nationalGoverningBodies";
+import nationalGoverningBodyReducer from "./modules/nationalGoverningBody/nationalGoverningBody";
+import questionReducer from "./modules/question/question";
+import questionsReducer from "./modules/question/questions";
+import getRefereeReducer from "./modules/referee/referee";
+import refereesReducer from "./modules/referee/referees";
+import teamReducer from "./modules/team/team";
+import teamsReducer from "./modules/team/teams";
+import testReducer from "./modules/test/single_test";
+import testsReducer from "./modules/test/tests";
 
 const rootReducer = combineReducers({
   certifications: certificationsReducer,
@@ -36,8 +36,8 @@ const rootReducer = combineReducers({
   teams: teamsReducer,
   test: testReducer,
   tests: testsReducer,
-})
+});
 
-export type RootState = ReturnType<typeof rootReducer>
+export type RootState = ReturnType<typeof rootReducer>;
 
-export default rootReducer
+export default rootReducer;

@@ -1,8 +1,11 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { CertificationsResponse, getCertifications as getCertsApi } from 'MainApp/apis/certification';
-import { Datum } from 'MainApp/schemas/getCertificationsSchema';
-import { AppThunk } from 'MainApp/store';
+import {
+  CertificationsResponse,
+  getCertifications as getCertsApi,
+} from "MainApp/apis/certification";
+import { Datum } from "MainApp/schemas/getCertificationsSchema";
+import { AppThunk } from "MainApp/store";
 
 interface CertificationsState {
   certifications: Datum[];
@@ -13,43 +16,46 @@ interface CertificationsState {
 const initialState: CertificationsState = {
   certifications: null,
   error: null,
-  isLoading: false
-}
+  isLoading: false,
+};
 
 const certifications = createSlice({
   initialState,
-  name: 'certifications',
+  name: "certifications",
   reducers: {
-    getCertificationsSuccess(state: CertificationsState, action: PayloadAction<CertificationsResponse>) {
-      state.certifications = action.payload.certifications
-      state.error = null
-      state.isLoading = false
+    getCertificationsSuccess(
+      state: CertificationsState,
+      action: PayloadAction<CertificationsResponse>
+    ) {
+      state.certifications = action.payload.certifications;
+      state.error = null;
+      state.isLoading = false;
     },
     getCertificationsFailure(state: CertificationsState, action: PayloadAction<string>) {
-      state.certifications = null
-      state.error = action.payload
+      state.certifications = null;
+      state.error = action.payload;
       state.isLoading = false;
     },
     getCertificationsStart(state: CertificationsState) {
-      state.isLoading = true
-    }
-  }
-})
+      state.isLoading = true;
+    },
+  },
+});
 
 export const {
   getCertificationsFailure,
   getCertificationsStart,
   getCertificationsSuccess,
-} = certifications.actions
+} = certifications.actions;
 
-export const getCertifications = (): AppThunk => async dispatch => {
+export const getCertifications = (): AppThunk => async (dispatch) => {
   try {
-    dispatch(getCertificationsStart())
-    const certResponse = await getCertsApi()
-    dispatch(getCertificationsSuccess(certResponse))
+    dispatch(getCertificationsStart());
+    const certResponse = await getCertsApi();
+    dispatch(getCertificationsSuccess(certResponse));
   } catch (err) {
-    dispatch(getCertificationsFailure(err.toString()))
+    dispatch(getCertificationsFailure(err.toString()));
   }
-}
+};
 
-export default certifications.reducer
+export default certifications.reducer;

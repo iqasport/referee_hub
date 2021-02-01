@@ -1,17 +1,17 @@
-import { loadStripe } from '@stripe/stripe-js';
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { loadStripe } from "@stripe/stripe-js";
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { getCertifications } from 'MainApp/modules/certification/certifications';
-import { createSession } from 'MainApp/modules/checkout/checkout';
-import { getProducts } from 'MainApp/modules/checkout/products';
-import { fetchCurrentUser } from 'MainApp/modules/currentUser/currentUser';
-import { RootState } from 'MainApp/rootReducer';
-import { Datum } from 'MainApp/schemas/getCertificationsSchema';
-import { GetProductsSchema } from 'MainApp/schemas/getProductsSchema';
+import { getCertifications } from "MainApp/modules/certification/certifications";
+import { createSession } from "MainApp/modules/checkout/checkout";
+import { getProducts } from "MainApp/modules/checkout/products";
+import { fetchCurrentUser } from "MainApp/modules/currentUser/currentUser";
+import { RootState } from "MainApp/rootReducer";
+import { Datum } from "MainApp/schemas/getCertificationsSchema";
+import { GetProductsSchema } from "MainApp/schemas/getProductsSchema";
 
-import Loader from '../../Loader';
-import Modal, { ModalSize } from '../Modal/Modal';
+import Loader from "../../Loader";
+import Modal, { ModalSize } from "../Modal/Modal";
 
 interface CheckoutModalProps {
   refId: string;
@@ -20,82 +20,91 @@ interface CheckoutModalProps {
 }
 
 const CheckoutModal = (props: CheckoutModalProps) => {
-  const [isRedirect, setIsRedirect] = useState(false)
-  const dispatch = useDispatch()
-  const { products, error: productsError } = useSelector((state: RootState) => state.products, shallowEqual)
-  const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual)
-  const { sessionId, isLoading } = useSelector((state: RootState) => state.checkout, shallowEqual)
-  const { certificationPayments, currentUser } = useSelector((state: RootState) => state.currentUser, shallowEqual)
+  const [isRedirect, setIsRedirect] = useState(false);
+  const dispatch = useDispatch();
+  const { products, error: productsError } = useSelector(
+    (state: RootState) => state.products,
+    shallowEqual
+  );
+  const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual);
+  const { sessionId, isLoading } = useSelector((state: RootState) => state.checkout, shallowEqual);
+  const { certificationPayments, currentUser } = useSelector(
+    (state: RootState) => state.currentUser,
+    shallowEqual
+  );
 
-  const showLoader = isLoading || isRedirect
+  const showLoader = isLoading || isRedirect;
   const hasPaidForAllCerts = (): boolean => {
     const unpaidProducts = products.filter((product) => {
-      const certificationId = findCertification(product)?.id
-      return !certificationPayments.includes(parseInt(certificationId, 10))
-    })
+      const certificationId = findCertification(product)?.id;
+      return !certificationPayments.includes(parseInt(certificationId, 10));
+    });
 
-    return !unpaidProducts.length
-  }
+    return !unpaidProducts.length;
+  };
 
   useEffect(() => {
     if (!products?.length && !productsError) {
-      dispatch(getProducts())
+      dispatch(getProducts());
     }
-  }, [products])
+  }, [products]);
 
   useEffect(() => {
     if (!certifications?.length) {
-      dispatch(getCertifications())
+      dispatch(getCertifications());
     }
-  }, [certifications])
+  }, [certifications]);
 
   useEffect(() => {
     if (!currentUser) {
-      dispatch(fetchCurrentUser())
+      dispatch(fetchCurrentUser());
     }
-  }, [currentUser])
+  }, [currentUser]);
 
   useEffect(() => {
     if (sessionId) {
-      setIsRedirect(true)
-      loadStripe(
-        process.env.STRIPE_PUBLISHABLE_KEY
-      ).then((stripe) => {
-        stripe.redirectToCheckout({
-          sessionId
+      setIsRedirect(true);
+      loadStripe(process.env.STRIPE_PUBLISHABLE_KEY)
+        .then((stripe) => {
+          stripe.redirectToCheckout({
+            sessionId,
+          });
         })
-      }).catch((error) => {
-        // tslint:disable-next-line
-        console.error(error)
-        setIsRedirect(false)
-      }).finally(() => {
-        setIsRedirect(false)
-      })
+        .catch((error) => {
+          // tslint:disable-next-line
+          console.error(error);
+          setIsRedirect(false);
+        })
+        .finally(() => {
+          setIsRedirect(false);
+        });
     }
-  }, [sessionId])
+  }, [sessionId]);
 
   const findCertification = (product: GetProductsSchema): Datum => {
-    let version = 'twenty'
-    if (product.name.match(/2018/)) version = 'eighteen'
+    let version = "twenty";
+    if (product.name.match(/2018/)) version = "eighteen";
 
-    return certifications?.find(({ attributes }) => attributes.level === 'head' && attributes.version === version)
-  }
+    return certifications?.find(
+      ({ attributes }) => attributes.level === "head" && attributes.version === version
+    );
+  };
 
   const handleCheckout = (product: GetProductsSchema) => () => {
-    const certificationId = findCertification(product)?.id
-    const price = product.prices[0].id
+    const certificationId = findCertification(product)?.id;
+    const price = product.prices[0].id;
 
-    dispatch(createSession({ certificationId, price }))
-  }
+    dispatch(createSession({ certificationId, price }));
+  };
 
   const renderProduct = (product: GetProductsSchema) => {
-    if (!product.active) return null
+    if (!product.active) return null;
 
-    const certificationId = findCertification(product)?.id
-    if (certificationPayments.includes(parseInt(certificationId, 10))) return null
+    const certificationId = findCertification(product)?.id;
+    if (certificationPayments.includes(parseInt(certificationId, 10))) return null;
 
-    const price = product.prices[0]
-    const formattedPrice = `$${price.unit_amount / 100} ${price.currency}`
+    const price = product.prices[0];
+    const formattedPrice = `$${price.unit_amount / 100} ${price.currency}`;
 
     return (
       <div key={product.id} className="my-8 p-4 flex justify-between bg-white rounded">
@@ -110,19 +119,12 @@ const CheckoutModal = (props: CheckoutModalProps) => {
           Checkout
         </button>
       </div>
-    )
-  }
+    );
+  };
 
   return (
-    <Modal
-      open={props.open}
-      showClose={true}
-      size={ModalSize.Large}
-      onClose={props.onClose}
-    >
-      <h1 className="font-bold text-xl text-navy-blue text-center">
-        Head Ref Certifications
-      </h1>
+    <Modal open={props.open} showClose={true} size={ModalSize.Large} onClose={props.onClose}>
+      <h1 className="font-bold text-xl text-navy-blue text-center">Head Ref Certifications</h1>
       {!showLoader && products?.map(renderProduct)}
       {hasPaidForAllCerts() && (
         <h2 className="text-center text-lg text-navy-blue my-8">
@@ -131,12 +133,10 @@ const CheckoutModal = (props: CheckoutModalProps) => {
       )}
       {showLoader && <Loader />}
       {productsError && (
-        <h2 className="text-center text-lg text-navy-blue my-8">
-          {productsError}
-        </h2>
+        <h2 className="text-center text-lg text-navy-blue my-8">{productsError}</h2>
       )}
     </Modal>
   );
-}
+};
 
-export default CheckoutModal
+export default CheckoutModal;

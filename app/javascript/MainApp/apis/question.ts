@@ -1,6 +1,10 @@
 import { Data, GetQuestionSchema } from "MainApp/schemas/getQuestionSchema";
 import {
-  DatumAttributes, GetQuestionsSchema, GetQuestionsSchemaDatum, Included, Meta
+  DatumAttributes,
+  GetQuestionsSchema,
+  GetQuestionsSchemaDatum,
+  Included,
+  Meta,
 } from "MainApp/schemas/getQuestionsSchema";
 import { baseAxios } from "./utils";
 
@@ -11,24 +15,24 @@ export interface QuestionsResponse {
 }
 
 export interface QuestionResponse {
-  question: Data
+  question: Data;
 }
 
-export interface UpdateQuestionRequest extends Omit<DatumAttributes, 'testId'> {}
+export interface UpdateQuestionRequest extends Omit<DatumAttributes, "testId"> {}
 
 export async function getQuestions(testId: string): Promise<QuestionsResponse> {
-  const url = `tests/${testId}/questions`
+  const url = `tests/${testId}/questions`;
 
   try {
-    const questionsResponse = await baseAxios.get<GetQuestionsSchema>(url)
+    const questionsResponse = await baseAxios.get<GetQuestionsSchema>(url);
 
     return {
       answers: questionsResponse.data.included,
       meta: questionsResponse.data.meta,
       questions: questionsResponse.data.data,
-    }
+    };
   } catch (err) {
-    throw err
+    throw err;
   }
 }
 
@@ -36,29 +40,29 @@ export async function updateQuestion(
   questionId: string,
   newQuestion: UpdateQuestionRequest
 ): Promise<QuestionResponse> {
-  const url = `questions/${questionId}`
+  const url = `questions/${questionId}`;
 
   try {
-    const questionResponse = await baseAxios.patch<GetQuestionSchema>(url, newQuestion)
+    const questionResponse = await baseAxios.patch<GetQuestionSchema>(url, newQuestion);
 
     return {
-      question: questionResponse.data.data
-    }
+      question: questionResponse.data.data,
+    };
   } catch (err) {
-    throw err
+    throw err;
   }
 }
 
 export async function deleteQuestion(questionId): Promise<QuestionResponse> {
-  const url = `questions/${questionId}`
+  const url = `questions/${questionId}`;
 
   try {
-    const questionResponse = await baseAxios.delete<GetQuestionSchema>(url)
+    const questionResponse = await baseAxios.delete<GetQuestionSchema>(url);
 
     return {
-      question: questionResponse.data.data
-    }
+      question: questionResponse.data.data,
+    };
   } catch (err) {
-    throw err
+    throw err;
   }
 }

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 
-import { FormattedQuestion } from 'MainApp/pages/StartTest/StartTest'
-import { Included } from 'MainApp/schemas/getQuestionsSchema'
+import { FormattedQuestion } from "MainApp/pages/StartTest/StartTest";
+import { Included } from "MainApp/schemas/getQuestionsSchema";
 
-import Counter from '../Counter'
-import ProgressBar from '../ProgressBar'
+import Counter from "../Counter";
+import ProgressBar from "../ProgressBar";
 
 interface TestTakerProps {
   currentQuestion: FormattedQuestion;
@@ -18,21 +18,27 @@ interface TestTakerProps {
 
 const TestTaker = (props: TestTakerProps) => {
   const {
-    currentQuestion, onAnswerSelect, timeLimit, totalQuestionCount, currentIndex, onTimeLimitMet, setCurrentTime
-  } = props
+    currentQuestion,
+    onAnswerSelect,
+    timeLimit,
+    totalQuestionCount,
+    currentIndex,
+    onTimeLimitMet,
+    setCurrentTime,
+  } = props;
 
-  const [selectedAnswer, setSelectedAnswer] = useState<string>()
+  const [selectedAnswer, setSelectedAnswer] = useState<string>();
 
   useEffect(() => {
     if (currentQuestion.selectedAnswer !== selectedAnswer) {
-      setSelectedAnswer(currentQuestion.selectedAnswer)
+      setSelectedAnswer(currentQuestion.selectedAnswer);
     }
-  }, [currentQuestion])
+  }, [currentQuestion]);
 
-  const handleAnswerChange = (answerId: string) => () => onAnswerSelect(answerId)
+  const handleAnswerChange = (answerId: string) => () => onAnswerSelect(answerId);
 
   const renderAnswer = (answer: Included) => {
-    const isSelected = selectedAnswer === answer.id
+    const isSelected = selectedAnswer === answer.id;
 
     return (
       <div className="flex my-4 items-center" key={answer.id}>
@@ -47,20 +53,22 @@ const TestTaker = (props: TestTakerProps) => {
           dangerouslySetInnerHTML={{ __html: answer.attributes.description }}
         />
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div>
       <ProgressBar currentIndex={currentIndex} total={totalQuestionCount} />
-      <Counter timeLimit={timeLimit} onTimeLimitMet={onTimeLimitMet} setCurrentTime={setCurrentTime} />
+      <Counter
+        timeLimit={timeLimit}
+        onTimeLimitMet={onTimeLimitMet}
+        setCurrentTime={setCurrentTime}
+      />
       <div className="my-8" dangerouslySetInnerHTML={{ __html: currentQuestion.description }} />
       <div className="w-full h-px border-t border-navy-blue my-8" />
-      <div className="w-1/2 my-0 mx-auto">
-        {currentQuestion.answers.map(renderAnswer)}
-      </div>
+      <div className="w-1/2 my-0 mx-auto">{currentQuestion.answers.map(renderAnswer)}</div>
     </div>
-  )
-}
+  );
+};
 
-export default TestTaker
+export default TestTaker;

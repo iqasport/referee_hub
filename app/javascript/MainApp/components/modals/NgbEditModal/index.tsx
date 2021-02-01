@@ -1,1 +1,1 @@
-export { default } from './NgbEditModal'
+export { default } from "./NgbEditModal";

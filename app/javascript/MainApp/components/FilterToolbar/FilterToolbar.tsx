@@ -1,7 +1,7 @@
-import { faArrowLeft, faArrowRight, faEllipsisH } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import Pagination from 'rc-pagination'
-import React, { useState } from 'react'
+import { faArrowLeft, faArrowRight, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Pagination from "rc-pagination";
+import React, { useState } from "react";
 
 interface FilterToolbarProps {
   onPageSelect: (page: number) => void;
@@ -12,20 +12,20 @@ interface FilterToolbarProps {
 }
 
 const FilterToolbar = (props: FilterToolbarProps) => {
-  const { onSearchInput, onClearSearch, onPageSelect, currentPage, total } = props
-  const [searchInput, setSearchInput] = useState('')
+  const { onSearchInput, onClearSearch, onPageSelect, currentPage, total } = props;
+  const [searchInput, setSearchInput] = useState("");
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value
+    const newValue = event.target.value;
 
-    setSearchInput(newValue)
-    onSearchInput(newValue)
-  }
+    setSearchInput(newValue);
+    onSearchInput(newValue);
+  };
 
   const handleClearSearch = () => {
-    setSearchInput('')
-    onClearSearch()
-  }
+    setSearchInput("");
+    onClearSearch();
+  };
 
   return (
     <div className="w-full flex my-4 justify-between">
@@ -37,7 +37,11 @@ const FilterToolbar = (props: FilterToolbarProps) => {
           placeholder="Search by name"
           value={searchInput}
         />
-        {searchInput.length > 0 && <button className="text-blue-darker" onClick={handleClearSearch}>clear search</button>}
+        {searchInput.length > 0 && (
+          <button className="text-blue-darker" onClick={handleClearSearch}>
+            clear search
+          </button>
+        )}
       </div>
       <div className="w-1/3">
         <Pagination
@@ -54,7 +58,7 @@ const FilterToolbar = (props: FilterToolbarProps) => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default FilterToolbar
+export default FilterToolbar;

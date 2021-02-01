@@ -1,109 +1,119 @@
-import classnames from 'classnames'
-import { capitalize, words } from 'lodash';
-import React, { useEffect, useState } from 'react'
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import classnames from "classnames";
+import { capitalize, words } from "lodash";
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { UpdateNgbRequest } from 'MainApp/apis/nationalGoverningBody';
-import { getNationalGoverningBody, updateNgb } from 'MainApp/modules/nationalGoverningBody/nationalGoverningBody';
-import { RootState } from 'MainApp/rootReducer';
+import { UpdateNgbRequest } from "MainApp/apis/nationalGoverningBody";
+import {
+  getNationalGoverningBody,
+  updateNgb,
+} from "MainApp/modules/nationalGoverningBody/nationalGoverningBody";
+import { RootState } from "MainApp/rootReducer";
 
-import MultiInput from '../../MultiInput';
-import Modal, { ModalProps, ModalSize } from '../Modal/Modal';
+import MultiInput from "../../MultiInput";
+import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
 
-const REQUIRED_FIELDS = ['name', 'region', 'membershipStatus']
-const REGION_OPTIONS = ['north_america', 'south_america', 'europe', 'africa', 'asia']
-const MEMBERSHIP_OPTIONS = ['area_of_interest', 'emerging', 'developing', 'full']
+const REQUIRED_FIELDS = ["name", "region", "membershipStatus"];
+const REGION_OPTIONS = ["north_america", "south_america", "europe", "africa", "asia"];
+const MEMBERSHIP_OPTIONS = ["area_of_interest", "emerging", "developing", "full"];
 const initialNewNgb: UpdateNgbRequest = {
-  acronym: '',
-  country: '',
+  acronym: "",
+  country: "",
   membershipStatus: null,
-  name: '',
+  name: "",
   playerCount: 0,
   region: null,
   urls: [],
-  website: '',
-}
+  website: "",
+};
 
 const validateInput = (ngb: UpdateNgbRequest): string[] => {
   return Object.keys(ngb).filter((dataKey: string) => {
     if (REQUIRED_FIELDS.includes(dataKey) && !ngb[dataKey]) {
-      return true
+      return true;
     }
 
-    return false
-  })
-}
+    return false;
+  });
+};
 
-interface NgbEditModalProps extends Omit<ModalProps, 'size'> {
+interface NgbEditModalProps extends Omit<ModalProps, "size"> {
   ngbId?: number;
 }
 
 const NgbEditModal = (props: NgbEditModalProps) => {
-  const { ngbId, onClose } = props
+  const { ngbId, onClose } = props;
 
-  const [errors, setErrors] = useState<string[]>()
-  const [hasChangedNgb, setHasChangedNgb] = useState(false)
-  const [newNgb, setNewNgb] = useState<UpdateNgbRequest>(initialNewNgb)
-  const [urls, setUrls] = useState<string[]>()
-  const { ngb, socialAccounts } = useSelector((state: RootState) => state.nationalGoverningBody, shallowEqual)
-  const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual)
-  const dispatch = useDispatch()
+  const [errors, setErrors] = useState<string[]>();
+  const [hasChangedNgb, setHasChangedNgb] = useState(false);
+  const [newNgb, setNewNgb] = useState<UpdateNgbRequest>(initialNewNgb);
+  const [urls, setUrls] = useState<string[]>();
+  const { ngb, socialAccounts } = useSelector(
+    (state: RootState) => state.nationalGoverningBody,
+    shallowEqual
+  );
+  const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual);
+  const dispatch = useDispatch();
 
-  const formType = ngbId ? 'Edit' : 'New'
-  const hasError = (dataKey: string): boolean => errors?.includes(dataKey)
-  const isIqaAdmin = roles.includes('iqa_admin')
+  const formType = ngbId ? "Edit" : "New";
+  const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
+  const isIqaAdmin = roles.includes("iqa_admin");
 
   useEffect(() => {
     if (ngbId && !ngb) {
-      dispatch(getNationalGoverningBody(ngbId))
+      dispatch(getNationalGoverningBody(ngbId));
     }
-  }, [ngbId, dispatch])
+  }, [ngbId, dispatch]);
 
   useEffect(() => {
     if (ngb && ngbId) {
-      const existingUrls = socialAccounts.length ? socialAccounts.map((account) => account.url) : []
-      setNewNgb({ ...ngb, urls: existingUrls })
+      const existingUrls = socialAccounts.length
+        ? socialAccounts.map((account) => account.url)
+        : [];
+      setNewNgb({ ...ngb, urls: existingUrls });
     }
-  }, [ngb, socialAccounts])
+  }, [ngb, socialAccounts]);
 
   const handleSubmit = () => {
-    const validationErrors = validateInput(newNgb)
+    const validationErrors = validateInput(newNgb);
     if (validationErrors.length) {
-      setErrors(validationErrors)
-      return null
+      setErrors(validationErrors);
+      return null;
     }
 
-    const ngbToSend = { ...newNgb, urls }
+    const ngbToSend = { ...newNgb, urls };
     if (ngbId) {
-      dispatch(updateNgb(ngbId, ngbToSend))
+      dispatch(updateNgb(ngbId, ngbToSend));
     }
 
-    setHasChangedNgb(false)
-    onClose()
-  }
+    setHasChangedNgb(false);
+    onClose();
+  };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = event.target
-    let newValue: string | number = value
+    const { name, value } = event.target;
+    let newValue: string | number = value;
 
-    if (!hasChangedNgb) setHasChangedNgb(true)
-    if (name === 'playerCount') newValue = parseInt(value, 10)
+    if (!hasChangedNgb) setHasChangedNgb(true);
+    if (name === "playerCount") newValue = parseInt(value, 10);
 
-    setNewNgb({ ...newNgb, [name]: value })
-  }
+    setNewNgb({ ...newNgb, [name]: value });
+  };
 
   const handleUrlChange = (newUrls: string[]) => {
-    if (!hasChangedNgb) setHasChangedNgb(true)
+    if (!hasChangedNgb) setHasChangedNgb(true);
     setUrls(newUrls);
-  }
+  };
 
   const renderOption = (value: string) => {
     return (
       <option key={value} value={value}>
-        {words(value).map(word => capitalize(word)).join(' ')}
+        {words(value)
+          .map((word) => capitalize(word))
+          .join(" ")}
       </option>
-    )
-  }
+    );
+  };
 
   return (
     <Modal {...props} size={ModalSize.Large}>
@@ -112,13 +122,15 @@ const NgbEditModal = (props: NgbEditModalProps) => {
         <label className="block">
           <span className="text-gray-700">Name</span>
           <input
-            className={classnames("form-input mt-1 block w-full", {'border border-red-500': hasError('name')})}
+            className={classnames("form-input mt-1 block w-full", {
+              "border border-red-500": hasError("name"),
+            })}
             placeholder="US Quidditch"
             name="name"
             onChange={handleInputChange}
             value={newNgb.name}
           />
-          {hasError('name') && <span className="text-red-500">Name cannot be blank</span>}
+          {hasError("name") && <span className="text-red-500">Name cannot be blank</span>}
         </label>
         <label className="block my-8">
           <span className="text-gray-700">Country</span>
@@ -135,39 +147,35 @@ const NgbEditModal = (props: NgbEditModalProps) => {
             <span className="text-gray-700">Region</span>
             <select
               disabled={!isIqaAdmin}
-              className={
-                classnames(
-                  "form-select mt-1 block w-full",
-                  { 'border border-red-500': hasError('region') }
-                )
-              }
+              className={classnames("form-select mt-1 block w-full", {
+                "border border-red-500": hasError("region"),
+              })}
               name="region"
               onChange={handleInputChange}
-              value={newNgb.region || ''}
+              value={newNgb.region || ""}
             >
               <option value="" />
               {REGION_OPTIONS.map(renderOption)}
             </select>
-            {hasError('region') && <span className="text-red-500">Region cannot be blank</span>}
+            {hasError("region") && <span className="text-red-500">Region cannot be blank</span>}
           </label>
           <label className="w-1/2">
             <span className="text-gray-700">Membership Status</span>
             <select
               disabled={!isIqaAdmin}
-              className={
-                classnames(
-                  "form-select mt-1 block w-full",
-                  { 'border border-red-500': hasError('membershipStatsus') }
-                )
-              }
+              className={classnames("form-select mt-1 block w-full", {
+                "border border-red-500": hasError("membershipStatsus"),
+              })}
               name="membershipStatus"
               onChange={handleInputChange}
-              value={newNgb.membershipStatus || ''}
+              value={newNgb.membershipStatus || ""}
             >
               <option value="" />
               {MEMBERSHIP_OPTIONS.map(renderOption)}
             </select>
-            {hasError('membershipStatus') && <span className="text-red-500">Membership status cannot be blank</span>}
+            {hasError("membershipStatus") && (
+              <span className="text-red-500">Membership status cannot be blank</span>
+            )}
           </label>
         </div>
         <div className="flex w-full my-8 justify-between">
@@ -213,12 +221,9 @@ const NgbEditModal = (props: NgbEditModalProps) => {
         <div className="w-full text-center">
           <button
             type="button"
-            className={
-              classnames(
-                "uppercase text-xl py-4 px-8 rounded-lg bg-green text-white",
-                {'opacity-50 cursor-default': !hasChangedNgb}
-              )
-            }
+            className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
+              "opacity-50 cursor-default": !hasChangedNgb,
+            })}
             onClick={handleSubmit}
             disabled={!hasChangedNgb}
           >
@@ -227,7 +232,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
         </div>
       </form>
     </Modal>
-  )
-}
+  );
+};
 
 export default NgbEditModal;

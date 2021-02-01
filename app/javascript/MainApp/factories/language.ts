@@ -1,7 +1,7 @@
-import Faker from 'faker'
-import { Factory } from 'fishery'
+import Faker from "faker";
+import { Factory } from "fishery";
 
-import { Datum } from 'MainApp/schemas/getLanguagesSchema'
+import { Datum } from "MainApp/schemas/getLanguagesSchema";
 
 export default Factory.define<Datum>(({ sequence }) => ({
   attributes: {
@@ -10,5 +10,5 @@ export default Factory.define<Datum>(({ sequence }) => ({
     shortRegion: Faker.address.state(),
   },
   id: sequence.toString(),
-  type: 'language',
-}))
+  type: "language",
+}));

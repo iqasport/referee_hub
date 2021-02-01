@@ -1,1 +1,1 @@
-export { default } from './NgbTable'
+export { default } from "./NgbTable";

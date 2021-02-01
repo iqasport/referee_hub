@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import {
   getCurrentUser,
@@ -6,11 +6,11 @@ import {
   UpdatedUserRequest,
   updatePolicyAcceptance,
   updateUser as updateUserApi,
-  UserResponse
-} from '../../apis/user';
-import { DataAttributes, Included } from '../../schemas/currentUserSchema';
-import { AppThunk } from '../../store';
-import { fetchReferee } from '../referee/referee';
+  UserResponse,
+} from "../../apis/user";
+import { DataAttributes, Included } from "../../schemas/currentUserSchema";
+import { AppThunk } from "../../store";
+import { fetchReferee } from "../referee/referee";
 
 export interface CurrentUserState {
   currentUser: DataAttributes | null;
@@ -30,15 +30,15 @@ const initialState: CurrentUserState = {
   isLoading: false,
   language: null,
   roles: [],
-}
+};
 
 function userSuccess(state: CurrentUserState, action: PayloadAction<UserResponse>) {
   state.currentUser = action.payload.user;
   state.roles = action.payload.roles;
   state.error = null;
   state.id = action.payload.id;
-  state.certificationPayments = action.payload.certificationPayments
-  state.language = action.payload.language
+  state.certificationPayments = action.payload.certificationPayments;
+  state.language = action.payload.language;
 }
 
 function userFailure(state: CurrentUserState, action: PayloadAction<string>) {
@@ -46,8 +46,8 @@ function userFailure(state: CurrentUserState, action: PayloadAction<string>) {
   state.roles = [];
   state.error = action.payload;
   state.id = null;
-  state.certificationPayments = []
-  state.language = null
+  state.certificationPayments = [];
+  state.language = null;
 }
 
 const currentUser = createSlice({
@@ -61,10 +61,10 @@ const currentUser = createSlice({
     updatePolicyFailure: userFailure,
     updatePolicySuccess: userSuccess,
     updateUserStart(state: CurrentUserState) {
-      state.isLoading = true
+      state.isLoading = true;
     },
     updateUserFailure: userFailure,
-    updateUserSuccess: userSuccess
+    updateUserSuccess: userSuccess,
   },
 });
 
@@ -78,44 +78,46 @@ export const {
   updateUserStart,
   updateUserFailure,
   updateUserSuccess,
-} = currentUser.actions
+} = currentUser.actions;
 
-export const fetchCurrentUser = (): AppThunk => async dispatch => {
+export const fetchCurrentUser = (): AppThunk => async (dispatch) => {
   try {
-    const userResponse = await getCurrentUser()
-    dispatch(getCurrentUserSuccess(userResponse))
+    const userResponse = await getCurrentUser();
+    dispatch(getCurrentUserSuccess(userResponse));
   } catch (err) {
-    dispatch(getCurrentUserFailure(err.toString()))
+    dispatch(getCurrentUserFailure(err.toString()));
   }
-}
+};
 
-export const updateUserPolicy = (userId: string, type: string): AppThunk => async dispatch => {
+export const updateUserPolicy = (userId: string, type: string): AppThunk => async (dispatch) => {
   try {
-    const userResponse = await updatePolicyAcceptance(userId, type)
-    dispatch(updatePolicySuccess(userResponse))
-    dispatch(fetchReferee(userId))
+    const userResponse = await updatePolicyAcceptance(userId, type);
+    dispatch(updatePolicySuccess(userResponse));
+    dispatch(fetchReferee(userId));
   } catch (err) {
-    dispatch(updatePolicyFailure(err.toString()))
+    dispatch(updatePolicyFailure(err.toString()));
   }
-}
+};
 
-export const updateUserAvatar = (userId: string, avatar: File): AppThunk => async dispatch => {
+export const updateUserAvatar = (userId: string, avatar: File): AppThunk => async (dispatch) => {
   try {
-    const userResponse = await updateAvatar(userId, avatar)
-    dispatch(updateAvatarSuccess(userResponse))
+    const userResponse = await updateAvatar(userId, avatar);
+    dispatch(updateAvatarSuccess(userResponse));
   } catch (err) {
-    dispatch(updateAvatarFailure(err.toString()))
+    dispatch(updateAvatarFailure(err.toString()));
   }
-}
+};
 
-export const updateUser = (userId: string, user: UpdatedUserRequest): AppThunk => async dispatch => {
+export const updateUser = (userId: string, user: UpdatedUserRequest): AppThunk => async (
+  dispatch
+) => {
   try {
-    dispatch(updateUserStart())
-    const userResponse = await updateUserApi(userId, user)
-    dispatch(updateUserSuccess(userResponse))
+    dispatch(updateUserStart());
+    const userResponse = await updateUserApi(userId, user);
+    dispatch(updateUserSuccess(userResponse));
   } catch (err) {
-    dispatch(updateUserFailure(err.toString()))
+    dispatch(updateUserFailure(err.toString()));
   }
-}
+};
 
-export default currentUser.reducer
+export default currentUser.reducer;

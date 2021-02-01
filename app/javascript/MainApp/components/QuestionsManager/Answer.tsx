@@ -1,8 +1,8 @@
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react'
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React from "react";
 
-import { Included } from 'MainApp/schemas/getQuestionsSchema'
+import { Included } from "MainApp/schemas/getQuestionsSchema";
 
 interface AnswerProps {
   answer: Included;
@@ -18,11 +18,9 @@ const Answer = (props: AnswerProps) => {
           <FontAwesomeIcon icon={faCheckCircle} />
         </div>
       )}
-      <div
-        dangerouslySetInnerHTML={{ __html: answer.attributes.description }}
-      />
+      <div dangerouslySetInnerHTML={{ __html: answer.attributes.description }} />
     </li>
   );
-}
+};
 
-export default Answer
+export default Answer;
