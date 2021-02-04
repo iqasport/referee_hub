@@ -14,23 +14,19 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "*": [
-        "app/javascript/*"
-      ],
-      "test-utils": [
-        "app/javascript/MainApp/utils/test-utils"
-      ],
-    },
+      "*": ["app/javascript/*"],
+      "test-utils": ["app/javascript/MainApp/utils/test-utils"]
+    }
   },
-  "include": [
-    "./app/javascript/MainApp/**/*"
-  ],
+  "include": ["./app/javascript/MainApp/**/*"],
   "exclude": [
     "./node_modules",
     "./vendor",
     "./public/assets/**/*",
     "./public/packs/**/*",
-    "./app/assets/**/*"
+    "./app/assets/**/*",
+    "*.test.ts",
+    "*.test.tsx"
   ],
   "compileOnSave": true
 }
