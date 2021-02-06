@@ -3,7 +3,7 @@
   "private": true,
   "engines": {
     "node": "14.15.0",
-    "yarn": ">=1.22.10"
+    "yarn": ">=1.22.5"
   },
   "dependencies": {
     "@babel/core": "7.12.3",
