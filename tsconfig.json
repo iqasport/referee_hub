@@ -24,9 +24,7 @@
     "./vendor",
     "./public/assets/**/*",
     "./public/packs/**/*",
-    "./app/assets/**/*",
-    "*.test.ts",
-    "*.test.tsx"
+    "./app/assets/**/*"
   ],
   "compileOnSave": true
 }

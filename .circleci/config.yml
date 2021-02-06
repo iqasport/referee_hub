@@ -23,9 +23,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "Gemfile.lock" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "Gemfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run:
           name: install ruby dependencies
@@ -55,7 +55,7 @@ jobs:
   test_js:
     working_directory: ~/referee_hub
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:14.15.0
 
     steps:
       - checkout
