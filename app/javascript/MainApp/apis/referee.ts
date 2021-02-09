@@ -1,5 +1,3 @@
-import { AxiosResponse } from "axios";
-
 import {
   DataAttributes,
   GetRefereeSchema,
