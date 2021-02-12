@@ -4,7 +4,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby '2.7.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 6.0.3', '>= 6.0.3.4'
+gem 'rails', '~> 6.0.3', '>= 6.0.3.5'
 # Use postgresql as the database for Active Record
 gem 'pg', '>= 0.18', '< 2.0'
 # Use Puma as the app server
@@ -50,8 +50,8 @@ gem 'sidekiq-cron', '~> 1.1'
 gem 'activerecord-import'
 gem 'time_difference', git: 'https://github.com/iqasport/time_difference.git'
 gem 'gdpr_rails', git: 'https://github.com/HipSpec/gdpr_rails.git', branch: 'rails-6-minor-travis-fix'
-gem 'data_migrate', '>= 6.3.0'
-gem 'stripe-rails', '>= 1.10.1'
+gem 'data_migrate', '>= 6.5.0'
+gem 'stripe-rails', '>= 2.0.0'
 
 # file storage and aws
 gem 'aws-sdk-s3', '~> 1'
