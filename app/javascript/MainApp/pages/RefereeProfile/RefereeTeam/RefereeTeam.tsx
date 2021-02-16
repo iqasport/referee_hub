@@ -68,12 +68,14 @@ const RefereeTeam = (props: RefereeTeamProps) => {
       )[0];
       foundTeam = allTeams
         ?.filter((team) => team.id === foundTeamId)
-        ?.map((t) => ({ teamId: Number(t.id), name: t.attributes.name }));
+        ?.map((t) => ({ teamId: Number(t.id), name: t.attributes.name }))[0];
     } else {
       foundTeam = teams?.find((team) => team.associationType === type);
     }
 
-    return foundTeam ? { value: foundTeam[0].teamId.toString(), label: foundTeam[0].name } : null;
+    return foundTeam
+      ? { value: foundTeam[0]?.teamId?.toString(), label: foundTeam[0]?.name }
+      : null;
   };
 
   const handleSelect = (type: AssociationType, option: { value: string; label: string }) => {
