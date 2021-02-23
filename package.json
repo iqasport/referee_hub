@@ -57,7 +57,7 @@
     "dotenv": "6.0.0",
     "faker": "5.1.0",
     "fishery": "1.0.1",
-    "lodash": "4.17.19",
+    "lodash": "4.17.21",
     "luxon": "1.4.1",
     "papaparse": "5.2.0",
     "pnp-webpack-plugin": "1.6.4",
