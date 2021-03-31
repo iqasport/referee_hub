@@ -22,7 +22,6 @@ type UpdateCertification = {
 const REQUIRED_TEST_FIELDS = [
   "name",
   "description",
-  "language",
   "minimumPassPercentage",
   "testableQuestionCount",
   "timeLimit",
@@ -37,7 +36,6 @@ const VERSION_OPTIONS = ["eighteen", "twenty"];
 const initialNewTest: UpdateTestRequest = {
   certificationId: null,
   description: "",
-  language: "",
   level: null,
   minimumPassPercentage: 0,
   name: "",
@@ -46,6 +44,7 @@ const initialNewTest: UpdateTestRequest = {
   recertification: false,
   testableQuestionCount: 0,
   timeLimit: 0,
+  newLanguageId: 0,
 };
 const initialCertification: UpdateCertification = {
   level: null,
