@@ -14,7 +14,9 @@ export interface DetailsProps {
 const Details = (props: DetailsProps) => {
   const { test, languages } = props;
   const dataToRender = test ? test.attributes : [];
-  const language = languages.find((lang) => lang.id === test.attributes.newLanguageId.toString());
+  const language = languages.find(
+    (lang) => lang.id === test?.attributes?.newLanguageId?.toString()
+  );
 
   const renderData = (entry: [string, string | boolean]) => {
     if (EXCLUDED_ATTRIBUTES.includes(entry[0])) return null;
