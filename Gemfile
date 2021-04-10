@@ -82,9 +82,9 @@ group :development do
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
   gem 'pre-commit', require: false
-  gem 'rubocop', require: false
-  gem 'rubocop-rails', require: false
-  gem 'solargraph', require: false
+  gem 'rubocop', '>= 0.93.1', require: false
+  gem 'rubocop-rails', '>= 2.9.0', require: false
+  gem 'solargraph', '>= 0.39.17', require: false
 end
 
 group :test do
@@ -96,7 +96,7 @@ group :test do
   gem 'codecov', '~> 0.2.11', require: false
   gem 'timecop'
   gem 'stripe-ruby-mock'
-  gem 'rubocop-rspec'
+  gem 'rubocop-rspec', '>= 1.43.2'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
