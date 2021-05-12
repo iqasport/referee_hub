@@ -1,9 +1,8 @@
 module Api
   module V1
     class RefereesController < ApplicationController # rubocop:disable Metrics/ClassLength
-      before_action :authenticate_user!, only: :update
+      before_action :authenticate_user!, only: %i[show update]
       before_action :verify_ngb_or_iqa_admin, only: :export
-      before_action :verify_ngb_or_iqa_admin_or_user
       before_action :find_referee, only: %i[show update tests]
       skip_before_action :verify_authenticity_token
 
@@ -28,8 +27,12 @@ module Api
       end
 
       def show
-        json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
-        render json: json_string, status: :ok
+        if current_user&.id == @referee.id || current_user&.ngb_admin? || current_user&.iqa_admin?
+          json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
+          render json: json_string, status: :ok
+        else
+          render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
+        end
       end
 
       def update

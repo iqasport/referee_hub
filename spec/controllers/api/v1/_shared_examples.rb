@@ -19,6 +19,27 @@ shared_examples 'it fails when a referee is not an admin' do
   end
 end
 
+shared_examples 'it fails when a referee is not an admin or the current ref' do
+  let(:other_ref) { create :user }
+  let(:expected_error) { ApplicationController::USER_UNAUTHORIZED }
+
+  before { sign_in other_ref }
+
+  it 'returns an error' do
+    subject
+
+    expect(response).to have_http_status(:unauthorized)
+  end
+
+  it 'returns an error message' do
+    subject
+
+    response_data = JSON.parse(response.body)['error']
+
+    expect(response_data).to eq expected_error
+  end
+end
+
 shared_examples 'it reports to bugsnag on failure' do |method, resource|
   before do
     allow_any_instance_of(resource).to receive(method).and_raise(StandardError)
