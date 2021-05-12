@@ -45,11 +45,7 @@ class ApplicationController < ActionController::Base
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end
 
-  def verify_ngb_or_iqa_admin_or_user
-    return true if current_user&.ngb_admin? || current_user&.iqa_admin? || current_user&.id == params[:id]
-
-    render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
-  end
+  
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:accept_invitation, keys: %i[first_name last_name policy_rule_privacy_terms])
