@@ -27,7 +27,6 @@ module Api
       end
 
       def show
-        
         if current_user&.id == @referee.id || current_user&.ngb_admin? || current_user&.iqa_admin?
           json_string = RefereeSerializer.new(@referee, serializer_options).serialized_json
           render json: json_string, status: :ok

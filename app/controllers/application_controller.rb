@@ -45,8 +45,6 @@ class ApplicationController < ActionController::Base
     render json: { error: USER_UNAUTHORIZED }, status: :unauthorized
   end
 
-  
-
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:accept_invitation, keys: %i[first_name last_name policy_rule_privacy_terms])
     devise_parameter_sanitizer.permit(:invite, keys: [:ngb_to_admin])
