@@ -114,11 +114,11 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
   describe 'GET #show' do
     let!(:referee) { create :user }
 
-    before { allow_any_instance_of(User).to receive(:pending_policies).and_return([]) }
+    before { sign_in referee }
 
     subject { get :show, params: { id: referee.id } }
 
-    it_behaves_like 'it is a successful request'
+    it_behaves_like 'it fails when a referee is not an admin or the current ref'
 
     it 'returns the passed id ref data' do
       subject
@@ -150,13 +150,7 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
 
       before { sign_in other_ref }
 
-      it 'returns is_editable as false' do
-        subject
-
-        response_data = Array.wrap(JSON.parse(response.body)['data'])
-
-        expect(response_data[0]['attributes']['isEditable']).to eq false
-      end
+      it_behaves_like 'it fails when a referee is not an admin or the current ref'
     end
   end
 
