@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Services::FilterTeams do
+RSpec.describe Services::Filter::Teams do
   let!(:ngb) { create :national_governing_body }
   let!(:teams) { create_list :team, 4, national_governing_body: ngb }
   let!(:other_teams) { create_list :team, 5 }
