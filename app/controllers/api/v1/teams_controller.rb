@@ -21,7 +21,7 @@ module Api
       private
 
       def find_teams_from_filter
-        filter_results = Services::FilterTeams.new(permitted_params).filter
+        filter_results = Services::Filter::Teams.new(permitted_params).filter
 
         if filter_results.respond_to?(:where)
           filter_results
