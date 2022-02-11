@@ -259,7 +259,8 @@ GEM
     pre-commit (0.39.0)
       pluginator (~> 1.5)
     public_suffix (4.0.6)
-    puma (3.12.6)
+    puma (4.3.11)
+      nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.5.2)
     rack (2.1.4)
@@ -482,7 +483,7 @@ DEPENDENCIES
   paperclip (~> 6.0.0)
   pg (>= 0.18, < 2.0)
   pre-commit
-  puma (~> 3.12)
+  puma (~> 4.3)
   rack (= 2.1.4)
   rails (~> 6.0.3, >= 6.0.3.5)
   rspec-rails (= 4.0.1)
