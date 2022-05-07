@@ -3,7 +3,7 @@ services:
         image: dev/refereehub
         build:
             context: ..
-            dockerfile: docker/Dockerfile
+            dockerfile: docker/Dockerfile.dev
         volumes:
             #- ..:/code #use when updating lock files
             - dependencies_ruby:/usr/local/bundle
