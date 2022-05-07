@@ -26,7 +26,7 @@ RUN mkdir /code
 COPY .. /code
 WORKDIR /code
 
-ENV HOST=0.0.0.0
+ENV BINDING=0.0.0.0
 ENV WEB_CONSOLE_WHITELIST=172.18.0.1/24
 ENV REDIS_PROVIDER=redis://redis:6379/1
 ENV DATABASE_URL="postgres://docker:docker@database:5432/referee_hub_development"
