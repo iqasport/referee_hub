@@ -44,4 +44,8 @@ EXPOSE 3000
 # then you can just run the application
 #CMD bundle install && yarn install
 #CMD bundle exec rails db:setup
+
 CMD ./bin/start
+
+# to run tests (requires db:setup to be run first)
+#CMD bundle exec rspec

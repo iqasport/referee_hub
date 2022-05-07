@@ -13,7 +13,9 @@ module RefereeHub
     config.load_defaults 5.2
 
     # Allow console for whitelisted IPs (for local development)
-    config.web_console.whitelisted_ips = ENV['WEB_CONSOLE_WHITELIST']
+    if Rails.env.development? then
+      config.web_console.whitelisted_ips = ENV['WEB_CONSOLE_WHITELIST']
+    end
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers

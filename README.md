@@ -7,7 +7,9 @@
 
 ## Getting Started
 
-If you want to use docker for development purposes, see `docker/README.md`.
+If you want to use docker for development purposes instead of installing tools and services manually, see `docker/README.md`.
+
+---
 
 It's highly recommended you use a ruby version manager during development of this app. The locked ruby version is '2.7.1'
 and is required to develop on the application.
