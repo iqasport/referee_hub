@@ -29,15 +29,10 @@ WORKDIR /code
 ENV HOST=0.0.0.0
 ENV WEB_CONSOLE_WHITELIST=172.18.0.1/24
 ENV REDIS_PROVIDER=redis://redis:6379/1
-# ENV RAILS_ENV=development
-# ENV NODE_ENV=development
-# ENV PORT=3000
 ENV DATABASE_URL="postgres://docker:docker@database:5432/referee_hub_development"
 ENV DATABASE_URL_TEST="postgres://docker:docker@database:5432/referee_hub_test"
-#ENV REFEREE_HUB_DATABASE_PORT=5433
-#ENV REFEREE_HUB_DATABASE_USER=docker
-#ENV REFEREE_HUB_DATABASE_PASSWORD=docker
 
+# ENV PORT=3000
 EXPOSE 3000
 
 # use each of those entry points in order to configure the dependencies and database
