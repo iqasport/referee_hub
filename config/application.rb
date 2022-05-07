@@ -12,6 +12,9 @@ module RefereeHub
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 5.2
 
+    # Allow console for whitelisted IPs (for local development)
+    config.web_console.whitelisted_ips = ENV['WEB_CONSOLE_WHITELIST']
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded after loading

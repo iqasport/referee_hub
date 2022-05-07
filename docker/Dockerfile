@@ -22,17 +22,26 @@ ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 # copy dependency files
 RUN mkdir /code
+# comment the copy when updating lock files
 COPY .. /code
 WORKDIR /code
 
-# ENV REDIS_PROVIDER=https://custom-redis:6379/1
+ENV HOST=0.0.0.0
+ENV WEB_CONSOLE_WHITELIST=172.18.0.1/24
+ENV REDIS_PROVIDER=redis://redis:6379/1
 # ENV RAILS_ENV=development
 # ENV NODE_ENV=development
 # ENV PORT=3000
-ENV DATABASE_URL="postgres://docker:docker@localhost:5433/referee_hub_development"
-ENV DATABASE_URL_TEST="postgres://docker:docker@localhost:5433/referee_hub_test"
+ENV DATABASE_URL="postgres://docker:docker@database:5432/referee_hub_development"
+ENV DATABASE_URL_TEST="postgres://docker:docker@database:5432/referee_hub_test"
 #ENV REFEREE_HUB_DATABASE_PORT=5433
 #ENV REFEREE_HUB_DATABASE_USER=docker
 #ENV REFEREE_HUB_DATABASE_PASSWORD=docker
 
-CMD bundle install && yarn install --check-files && bundle exec rails db:setup && ./bin/start
+EXPOSE 3000
+
+# use each of those entry points in order to configure the dependencies and database
+# then you can just run the application
+#CMD bundle install && yarn install
+#CMD bundle exec rails db:setup
+CMD ./bin/start

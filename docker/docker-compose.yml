@@ -8,14 +8,18 @@ services:
             #- ..:/code #use when updating lock files
             - dependencies_ruby:/usr/local/bundle
             - dependencies_node:/code/node_modules
-        network_mode: "host"
+        ports:
+            - "3000:3000"
         depends_on:
             - postgres
             - redis
+        links:
+            - postgres:database
+            - redis:redis
     postgres:
         image: postgres:13
         ports:
-            - "5433:5432"
+            - "3050:5432"
         environment:
             POSTGRES_USER: docker
             POSTGRES_PASSWORD: docker
@@ -23,7 +27,7 @@ services:
     redis:
         image: redis:6.2
         ports:
-            - "6379:6379"
+            - "3051:6379"
 volumes:
     dependencies_ruby:
     dependencies_node:
