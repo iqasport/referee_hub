@@ -58,6 +58,7 @@ class RefereeCertification < ApplicationRecord
   def new_certification_valid?(existing_certs)
     new_cert_version = certification.version
     return existing_certs.assistant.where(version: new_cert_version).count == 1 if certification.level == 'snitch'
+
     has_snitch_and_score = existing_certs.where(version: new_cert_version, level: %w[snitch scorekeeper]).count == 2
     # return has_snitch_and_score_or_recert if certification.level == 'head'
     # temp allow head certs to be issued if they've been allowed to take it
