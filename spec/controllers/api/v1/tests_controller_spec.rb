@@ -195,10 +195,12 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     end
 
     context 'when the test level is in the cool down period' do
-      let!(:test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant' }
-      let(:expected_error) { "#{described_class::INVALID_TEST_ATTEMPT} 24 hours" }
-
-      before { allow(test_attempt).to receive(:in_cool_down_period?).and_return(true) }
+      let(:old_time) { Time.now.utc - 72.hours }
+      let(:last_time) { Time.now.utc - 15.hours }
+      
+      let!(:old_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: old_time + 24.hours, created_at: old_time }
+      let!(:last_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: last_time + 24.hours, created_at: last_time }
+      let(:expected_error) { "#{described_class::INVALID_TEST_ATTEMPT} 9 hours" }
 
       it 'returns an error' do
         subject
@@ -213,6 +215,16 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
         expect(response_data).to eq expected_error
       end
+    end
+
+    context 'when the test level is NOT in the cool down period' do
+      let(:old_time) { Time.now.utc - 72.hours }
+      let(:last_time) { Time.now.utc - 26.hours }
+      
+      let!(:old_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: old_time + 24.hours, created_at: old_time }
+      let!(:last_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: last_time + 24.hours, created_at: last_time }
+      
+      it_behaves_like 'it is a successful request'
     end
 
     context 'when the referee has too many test attempts' do
