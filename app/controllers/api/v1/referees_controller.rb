@@ -116,7 +116,7 @@ module Api
       end
 
       def find_referees_from_filter
-        filter_results = Services::FilterReferees.new(search_params).filter
+        filter_results = Services::Filter::Referees.new(search_params).filter
 
         if filter_results.respond_to?(:where)
           filter_results

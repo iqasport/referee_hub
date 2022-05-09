@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'json'
 
-RSpec.describe Services::FilterReferees do
+RSpec.describe Services::Filter::Referees do
   let(:ngb) { create :national_governing_body }
   let(:cert) { create :certification }
   let(:referees) { create_list :user, 3 }
