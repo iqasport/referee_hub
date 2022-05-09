@@ -155,7 +155,7 @@ module Api
       end
 
       def verify_valid_cool_down
-        last_test_attempt = referee_test_attempts.last
+        last_test_attempt = referee_test_attempts.first
 
         return true unless last_test_attempt&.in_cool_down_period?
 

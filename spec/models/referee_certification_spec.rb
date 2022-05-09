@@ -57,14 +57,15 @@ RSpec.describe RefereeCertification, type: :model do
       end
     end
 
-    context 'without the required certifications' do
-      let(:ref_cert) { build :referee_certification, referee: referee, certification: field }
+    # Temp remove test as HRs aren't able to sit their tests
+    # context 'without the required certifications' do
+    #   let(:ref_cert) { build :referee_certification, referee: referee, certification: field }
 
-      it 'is not a valid certification' do
-        subject
-        expect(ref_cert.errors.messages[:certification][0]).to eq described_class::FIELD_CERTIFICATION_ERROR
-      end
-    end
+    #   it 'is not a valid certification' do
+    #     subject
+    #     expect(ref_cert.errors.messages[:certification][0]).to eq described_class::FIELD_CERTIFICATION_ERROR
+    #   end
+    # end
   end
 
   context 'when the certification is revoked' do
