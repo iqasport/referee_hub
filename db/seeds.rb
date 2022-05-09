@@ -191,7 +191,7 @@ CERT_CONFIG = [
 
 puts "Creating certifications..."
 CERT_CONFIG.each do |config|
-  Certification.version.keys.each do |version|
+  Certification.versions.keys.each do |version|
     Certification.find_or_create_by(display_name: config[:display_name], level: config[:level], version: version)
   end
 end

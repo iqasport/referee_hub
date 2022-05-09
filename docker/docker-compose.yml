@@ -1,0 +1,29 @@
+services:
+    dev:
+        image: dev/refereehub
+        build:
+            context: ..
+            dockerfile: docker/Dockerfile
+        volumes:
+            #- ..:/code #use when updating lock files
+            - dependencies_ruby:/usr/local/bundle
+            - dependencies_node:/code/node_modules
+        network_mode: "host"
+        depends_on:
+            - postgres
+            - redis
+    postgres:
+        image: postgres:13
+        ports:
+            - "5433:5432"
+        environment:
+            POSTGRES_USER: docker
+            POSTGRES_PASSWORD: docker
+            POSTGRES_DB: referee_hub_development
+    redis:
+        image: redis:6.2
+        ports:
+            - "6379:6379"
+volumes:
+    dependencies_ruby:
+    dependencies_node:

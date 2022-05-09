@@ -1,0 +1,38 @@
+FROM ruby:2.7.1
+
+RUN apt-get install curl
+
+# install global gems
+RUN gem install foreman
+RUN gem install bundler
+
+ENV NVM_DIR /usr/local/nvm
+ENV NODE_VERSION 14.15.0
+
+# Install nvm with node, npm and yarn
+RUN mkdir -p $NVM_DIR \
+    && curl https://raw.githubusercontent.com/creationix/nvm/v0.39.1/install.sh | bash \
+    && . $NVM_DIR/nvm.sh \
+    && nvm install $NODE_VERSION \
+    && nvm use $NODE_VERSION \
+    && npm install -g yarn@1.22.5
+
+ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
+ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+
+# copy dependency files
+RUN mkdir /code
+COPY .. /code
+WORKDIR /code
+
+# ENV REDIS_PROVIDER=https://custom-redis:6379/1
+# ENV RAILS_ENV=development
+# ENV NODE_ENV=development
+# ENV PORT=3000
+ENV DATABASE_URL="postgres://docker:docker@localhost:5433/referee_hub_development"
+ENV DATABASE_URL_TEST="postgres://docker:docker@localhost:5433/referee_hub_test"
+#ENV REFEREE_HUB_DATABASE_PORT=5433
+#ENV REFEREE_HUB_DATABASE_USER=docker
+#ENV REFEREE_HUB_DATABASE_PASSWORD=docker
+
+CMD bundle install && yarn install --check-files && bundle exec rails db:setup && ./bin/start
