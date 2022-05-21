@@ -1,0 +1,46 @@
+FROM ruby:2.7.1
+
+RUN apt-get install curl
+
+# install global gems
+RUN gem install foreman
+RUN gem install bundler
+
+ENV NVM_DIR /usr/local/nvm
+ENV NODE_VERSION 14.15.0
+
+# Install nvm with node, npm and yarn
+RUN mkdir -p $NVM_DIR \
+    && curl https://raw.githubusercontent.com/creationix/nvm/v0.39.1/install.sh | bash \
+    && . $NVM_DIR/nvm.sh \
+    && nvm install $NODE_VERSION \
+    && nvm use $NODE_VERSION \
+    && npm install -g yarn@1.22.5
+
+ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
+ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+
+# copy dependency files
+RUN mkdir /code
+# comment the copy when updating lock files
+COPY .. /code
+WORKDIR /code
+
+ENV BINDING=0.0.0.0
+ENV WEB_CONSOLE_WHITELIST=172.18.0.1/24
+ENV REDIS_PROVIDER=redis://redis:6379/1
+ENV DATABASE_URL="postgres://docker:docker@database:5432/referee_hub_development"
+ENV DATABASE_URL_TEST="postgres://docker:docker@database:5432/referee_hub_test"
+
+# ENV PORT=3000
+EXPOSE 3000
+
+# use each of those entry points in order to configure the dependencies and database
+# then you can just run the application
+#CMD bundle install && yarn install
+#CMD bundle exec rails db:setup
+
+CMD ./bin/start
+
+# to run tests (requires db:setup to be run first)
+#CMD bundle exec rspec

@@ -197,7 +197,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     context 'when the test level is in the cool down period' do
       let(:old_time) { Time.now.utc - 72.hours }
       let(:last_time) { Time.now.utc - 15.hours }
-      
+
       let!(:old_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: old_time + 24.hours, created_at: old_time }
       let!(:last_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: last_time + 24.hours, created_at: last_time }
       let(:expected_error) { "#{described_class::INVALID_TEST_ATTEMPT} 9 hours" }
@@ -220,10 +220,10 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     context 'when the test level is NOT in the cool down period' do
       let(:old_time) { Time.now.utc - 72.hours }
       let(:last_time) { Time.now.utc - 26.hours }
-      
+
       let!(:old_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: old_time + 24.hours, created_at: old_time }
       let!(:last_test_attempt) { create :test_attempt, test: test, referee: tester_ref, test_level: 'assistant', next_attempt_at: last_time + 24.hours, created_at: last_time }
-      
+
       it_behaves_like 'it is a successful request'
     end
 
@@ -355,11 +355,11 @@ RSpec.describe Api::V1::TestsController, type: :controller do
     let(:service_double) { double(return_value: :perform) }
     let(:mapped_headers) do
       {
-        'description': 'description',
-        'feedback': 'feedback',
-        'points_available': 'points_available',
-        'answer_1': 'answer_1',
-        'correct_answer': 'correct_answer'
+        description: 'description',
+        feedback: 'feedback',
+        points_available: 'points_available',
+        answer_1: 'answer_1',
+        correct_answer: 'correct_answer'
       }.to_json
     end
 

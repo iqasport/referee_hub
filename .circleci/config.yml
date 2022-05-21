@@ -11,6 +11,7 @@ jobs:
           PGHOST: 127.0.0.1
           PGUSER: referee_hub
           RAILS_ENV: test
+          DATABASE_URL_TEST: postgres://referee_hub:@localhost:5432/referee_hub_test
       - image: circleci/postgres:9.5-alpine
         environment:
           POSTGRES_USER: referee_hub
