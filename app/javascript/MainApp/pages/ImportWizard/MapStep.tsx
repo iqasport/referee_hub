@@ -8,8 +8,8 @@ export type HeadersMap = {
   [original: string]: string;
 };
 
-const URL_REGEX = /url/;
-const ANSWER_REGEX = /answer/;
+const URL_REGEX = /^url/;
+const ANSWER_REGEX = /^answer/;
 const TEAM_REQUIRED_HEADERS = [
   "name",
   "city",
