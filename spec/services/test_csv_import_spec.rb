@@ -18,14 +18,14 @@ describe Services::TestCsvImport do
   end
   let(:mapped_headers) do
     {
-      'description': 'description',
-      'feedback': 'feedback',
-      'points_available': 'points_available',
-      'correct_answer': 'correct_answer',
-      'answer_1': 'answer_1',
-      'answer_2': 'answer_2',
-      'answer_3': 'answer_3',
-      'answer_4': 'answer_4'
+      description: 'description',
+      feedback: 'feedback',
+      points_available: 'points_available',
+      correct_answer: 'correct_answer',
+      answer_1: 'answer_1',
+      answer_2: 'answer_2',
+      answer_3: 'answer_3',
+      answer_4: 'answer_4'
     }
   end
 
@@ -69,14 +69,14 @@ describe Services::TestCsvImport do
     end
     let(:mapped_headers) do
       {
-        'description': 'q description',
-        'feedback': 'feedback',
-        'points_available': 'points available',
-        'correct_answer': 'correct answer',
-        'answer_1': 'answer 1',
-        'answer_2': 'answer 2',
-        'answer_3': 'answer 3',
-        'answer_4': 'answer 4'
+        description: 'q description',
+        feedback: 'feedback',
+        points_available: 'points available',
+        correct_answer: 'correct answer',
+        answer_1: 'answer 1',
+        answer_2: 'answer 2',
+        answer_3: 'answer 3',
+        answer_4: 'answer 4'
       }
     end
 
@@ -85,10 +85,10 @@ describe Services::TestCsvImport do
     it 'creates 3 questions with answers' do
       expect { subject }.to change { test_to_import.questions.count }.by 3
     end
-  
+
     it 'creates the answers for the provided questions' do
       subject
-  
+
       expect(test_to_import.questions.first.answers.count).to eq 4
       expect(test_to_import.questions.first.answers.pluck(:description)).to eq ['be', 'maybe', 'not be', 'never']
       expect(test_to_import.questions.first.answers.first.correct).to eq true
