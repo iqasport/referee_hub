@@ -52,7 +52,7 @@ module Services
       new_question = build_new_question(row_data)
 
       mapped_keys = mapped_headers.keys.select { |key| key =~ /answer_\d+/ }
-      answer_keys = mapped_keys.select { |key| mapped_headers[key] }
+      answer_keys = mapped_keys.map { |key| mapped_headers[key] }
 
       answers = []
       answer_keys.each { |answer_key| answers << build_new_answer(row_data, answer_key) }
