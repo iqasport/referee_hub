@@ -82,8 +82,9 @@ const CheckoutModal = (props: CheckoutModalProps) => {
   }, [sessionId]);
 
   const findCertification = (product: GetProductsSchema): Datum => {
-    let version = "twenty";
-    if (product.name.match(/2018/)) version = "eighteen";
+    let version = "twentytwo";
+    if (product.name.match(/2018-/)) version = "eighteen";
+    else if (product.name.match(/2020-/)) version = "twenty";
 
     return certifications?.find(
       ({ attributes }) => attributes.level === "head" && attributes.version === version

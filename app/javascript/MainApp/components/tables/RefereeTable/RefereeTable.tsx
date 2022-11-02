@@ -32,7 +32,12 @@ const findHighestCert = (referee: Referee): string => {
   if (!Object.keys(certHashMap).length) return "Uncertified";
 
   const highestTwenty = certHashMap.twenty?.sort(sortByLength)[0];
+  const highestTwentyTwo = certHashMap.twentytwo?.sort(sortByLength)[0];
   const highestEighteen = certHashMap.eighteen?.sort(sortByLength)[0];
+
+  if (highestTwentyTwo?.length > 0 && highestTwentyTwo?.length < highestTwenty?.length) {
+    return `${capitalize(highestTwentyTwo)} ${getVersion("twentytwo")}`;
+  }
 
   if (highestTwenty?.length > 0 && highestTwenty?.length < highestEighteen?.length) {
     return `${capitalize(highestTwenty)} ${getVersion("twenty")}`;

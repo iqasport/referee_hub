@@ -29,3 +29,9 @@ Stripe.product :head_twenty do |product|
 
   product.type = 'service'
 end
+
+Stripe.product :head_twentytwo do |product|
+  product.name = 'Head Referee Exam Fee (Rulebook 2022-2024)'
+
+  product.type = 'service'
+end
