@@ -32,6 +32,7 @@ class Certification < ApplicationRecord
   # refers to the year the rulebook version was released
   enum version: {
     eighteen: 0,
-    twenty: 1
+    twenty: 1,
+    twentytwo: 2
   }
 end

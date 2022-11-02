@@ -7,6 +7,8 @@ export const getVersion = (version: string): string => {
       return "2018-2020";
     case "twenty":
       return "2020-2021";
+    case "twentytwo":
+      return "2022-2023";
     default:
       return "Unknown";
   }
