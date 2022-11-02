@@ -36,7 +36,7 @@ gem 'inline_svg'
 
 # metrics and tracking
 gem 'loofah', '>= 2.2.3'
-gem 'rack', '2.1.4'
+gem 'rack', '2.1.4.1'
 gem 'barnes', '0.0.8'
 gem 'bugsnag', '~> 6.11'
 gem 'scout_apm'
