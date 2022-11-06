@@ -1,5 +1,6 @@
 ﻿using System;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models
 {
@@ -10,7 +11,7 @@ namespace ManagementHub.Models
 		public long NationalGoverningBodyId { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }
-		public int? AssociationType { get; set; }
+		public RefereeNgbAssociationType? AssociationType { get; set; }
 
 		public virtual NationalGoverningBody NationalGoverningBody { get; set; } = null!;
 		public virtual User Referee { get; set; } = null!;

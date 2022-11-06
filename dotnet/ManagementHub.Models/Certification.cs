@@ -15,7 +15,7 @@ namespace ManagementHub.Models
 		}
 
 		public long Id { get; set; }
-		public TestLevel Level { get; set; }
+		public CertificationLevel Level { get; set; }
 		public string DisplayName { get; set; } = null!;
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }

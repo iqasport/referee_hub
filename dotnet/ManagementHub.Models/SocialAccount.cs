@@ -1,5 +1,6 @@
 ﻿using System;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models
 {
@@ -9,7 +10,7 @@ namespace ManagementHub.Models
 		public string? OwnableType { get; set; }
 		public long? OwnableId { get; set; }
 		public string Url { get; set; } = null!;
-		public int AccountType { get; set; }
+		public SocialAccountType AccountType { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }
 	}

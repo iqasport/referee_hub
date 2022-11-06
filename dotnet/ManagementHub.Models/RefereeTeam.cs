@@ -1,5 +1,6 @@
 ﻿using System;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models
 {
@@ -8,7 +9,7 @@ namespace ManagementHub.Models
 		public long Id { get; set; }
 		public long? TeamId { get; set; }
 		public long? RefereeId { get; set; }
-		public int? AssociationType { get; set; }
+		public RefereeTeamAssociationType? AssociationType { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }
 

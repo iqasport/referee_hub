@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models
 {
@@ -17,8 +18,8 @@ namespace ManagementHub.Models
 		public string City { get; set; } = null!;
 		public string? State { get; set; }
 		public string Country { get; set; } = null!;
-		public int? Status { get; set; }
-		public int? GroupAffiliation { get; set; }
+		public TeamStatus? Status { get; set; }
+		public TeamGroupAffiliation? GroupAffiliation { get; set; }
 		public long? NationalGoverningBodyId { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }
