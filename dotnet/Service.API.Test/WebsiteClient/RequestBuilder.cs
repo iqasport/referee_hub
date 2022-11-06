@@ -6,7 +6,8 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using ManagementHub.Models;
+using ManagementHub.Models.Enums;
 using Microsoft.Extensions.Logging;
 
 using Service.API.Test.WebsiteClient.HttpMessageMiddleware;
@@ -16,17 +17,9 @@ namespace Service.API.Test.WebsiteClient;
 public class RequestBuilder
 {
 	public static readonly string HttpClientName = $"{nameof(RequestBuilder)}_HttpClient";
-	public enum User
-	{
-		Anonymous,
-		Referee,
-		NgbAdmin,
-		IqaAdmin
-	}
 
-	private User user = User.Anonymous;
+	private User? user;
 	private bool signed_in = false;
-	private string path = "";
 	private readonly HttpClient httpClient;
 	private readonly ILogger logger;
 	private readonly Guid CookieContainerId = Guid.NewGuid();
@@ -39,112 +32,146 @@ public class RequestBuilder
 
 	public RequestBuilder Anonymous()
 	{
-		this.user = User.Anonymous;
+		this.user = null;
 		return this;
 	}
 
-	public RequestBuilder AsIqaAdmin()
+	public RequestBuilder AsIqaAdmin() => AsUser("iqa_admin@example.com");
+
+	public RequestBuilder AsNgbAdmin() => AsUser("ngb_admin@example.com");
+
+	public RequestBuilder AsReferee() => AsUser("referee@example.com");
+
+	public RequestBuilder AsUser(string email)
 	{
-		this.user = User.IqaAdmin;
-		return this;
-	}
+        this.user = new User { Email = email };
+        return this;
+    }
 
-	public RequestBuilder AsNgbAdmin()
-	{
-		this.user = User.NgbAdmin;
-		return this;
-	}
-
-	public RequestBuilder AsReferee()
-	{
-		this.user = User.Referee;
-		return this;
-	}
-
-	public RequestBuilder WithEndpoint(string path)
-	{
-		this.path = path;
-		return this;
-	}
-
-	public async Task<TResult?> GetModelAsync<TResult>() where TResult : class
+	public async Task<TResult?> GetModelAsync<TResult>(string path) where TResult : class
 	{
 		try
 		{
 			await this.SignIn();
-			var content = await this.GetAsync(this.path);
+			var content = await this.GetAsync(path);
 			return await content.ReadModelAsync<TResult>();
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0xd0ff404, ex, "Error occurred in GET {path}", this.path);
+			this.logger.LogError(0xd0ff404, ex, "Error occurred in GET {path}", path);
 			throw;
 		}
 	}
 
-	public async Task<List<TResult>?> GetModelListAsync<TResult>() where TResult : class
+	public async Task<List<TResult>?> GetModelListAsync<TResult>(string path) where TResult : class
 	{
 		try
 		{
 			await this.SignIn();
-			var content = await this.GetAsync(this.path);
+			var content = await this.GetAsync(path);
 			return await content.ReadModelListAsync<TResult>();
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0xd0ff405, ex, "Error occurred in GET {path}", this.path);
+			this.logger.LogError(0xd0ff405, ex, "Error occurred in GET {path}", path);
 			throw;
 		}
 	}
 
-	public async Task<string> GetStringAsync()
+	public async Task<string> GetStringAsync(string path)
 	{
 		try
 		{
 			await this.SignIn();
-			return await this.GetStringAsync(this.path);
+			return await this.GetStringInternalAsync(path);
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0xd0ff401, ex, "Error occurred in GET {path}", this.path);
+			this.logger.LogError(0xd0ff401, ex, "Error occurred in GET {path}", path);
 			throw;
 		}
 	}
 
-	private async Task SignIn()
-	{
-		if (signed_in) return;
+    public async Task<TResult?> PatchModelAsync<TResult>(string path, Dictionary<string, object?> properties) where TResult : class
+    {
+        try
+        {
+            await this.SignIn();
+            var content = await this.PatchAsync(path, JsonContent.Create(properties));
+            return await content.ReadModelAsync<TResult>();
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError(0xd0ff408, ex, "Error occurred in GET {path}", path);
+            throw;
+        }
+    }
 
-		string email;
+    public async Task RegisterUserAsync(string firstName, string lastName, string email)
+	{
 		string password = "password";
-		switch (this.user)
+
+        var signUpPage = await this.GetStringInternalAsync("/sign_up");
+        var authenticityTokenMatch = new Regex("<input type=\"hidden\" name=\"authenticity_token\" value=\"(?<token>.*)\"").Match(signUpPage);
+        if (!authenticityTokenMatch.Success)
+        {
+            this.logger.LogError(0xd0ff406, "Unable to parse CSRF token from /sign_in page.");
+            throw new Exception("Unable to parse CSRF token");
+        }
+
+        var authenticityToken = authenticityTokenMatch.Groups["token"].Captures[0].Value;
+
+        var signUpRequestData = new Dictionary<string, string> {
+            {"utf8", "%E2%9C%93"},
+            {"authenticity_token", authenticityToken},
+            {"user[first_name]", firstName},
+            {"user[last_name]", lastName},
+            {"user[email]", email},
+            {"user[password]", password},
+            {"user[password_confirmation]", password},
+            {"user[policy_rule_privacy_terms]", "true"},
+            {"commit", "Create Account"},
+        };
+        var signUpRequest = new FormUrlEncodedContent(signUpRequestData);
+        logger.LogInformation(
+			0xd0ff407,
+            "Starting /register with content: {content}",
+            string.Join("&", signUpRequestData.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+        var postContent = await this.PostAsync("/register", signUpRequest);
+		var postString = await postContent.ReadAsStringAsync();
+        if (postString.Contains("error-message"))
 		{
-			case User.Anonymous: return;
-			case User.Referee:
-				email = "referee@example.com";
-				break;
-			case User.NgbAdmin:
-				email = "ngb_admin@example.com";
-				break;
-			case User.IqaAdmin:
-				email = "iqa_admin@example.com";
-				break;
-			default: throw new NotSupportedException($"Invalid value of {this.user}");
+			var errorMatch = new Regex("<div id='error_explanation' class='error-message'>(?<error>.*?)</div>", RegexOptions.Singleline).Match(postString);
+            var error = errorMatch.Groups["error"].Captures[0].Value;
+
+            throw new Exception($"There was an error during register: {error}");
 		}
 
-		var signInPage = await this.GetStringAsync("/sign_in");
-		var csrfTokenMatch = new Regex("<input type=\"hidden\" name=\"authenticity_token\" value=\"(?<token>.*)\"").Match(signInPage);
-		if (!csrfTokenMatch.Success)
+        var user = await this.GetStringInternalAsync("api/v1/users/current_user");
+        this.signed_in = true;
+    }
+
+    private async Task SignIn()
+	{
+		if (this.user == null) return;
+		if (signed_in) return;
+
+		string email = this.user.Email;
+		string password = "password";
+
+		var signInPage = await this.GetStringInternalAsync("/sign_in");
+		var authenticityTokenMatch = new Regex("<input type=\"hidden\" name=\"authenticity_token\" value=\"(?<token>.*)\"").Match(signInPage);
+		if (!authenticityTokenMatch.Success)
 		{
 			this.logger.LogError(0xd0ff402, "Unable to parse CSRF token from /sign_in page.");
 			throw new Exception("Unable to parse CSRF token");
 		}
 
-		var csrfToken = csrfTokenMatch.Groups["token"].Captures[0].Value;
+		var authenticityToken = authenticityTokenMatch.Groups["token"].Captures[0].Value;
 
 		var signInRequestData = new Dictionary<string, string> {
 			{"utf8", "%E2%9C%93"},
-			{"authenticity_token", csrfToken},
+			{"authenticity_token", authenticityToken},
 			{"user[email]", email},
 			{"user[password]", password},
 			{"user[remember_me]", "0"},
@@ -157,12 +184,18 @@ public class RequestBuilder
 			string.Join("&", signInRequestData.Select(kvp => $"{kvp.Key}={kvp.Value}")));
 		await this.PostAsync("/sign_in", signInRequest);
 
-		var user = await this.GetStringAsync("api/v1/users/current_user");
+		var user = await this.GetStringInternalAsync("api/v1/users/current_user");
 		this.signed_in = true;
 	}
 
-	private Task PostAsync(string path, HttpContent content) => SendAsync(HttpMethod.Post, path, content);
-	private async Task<string> GetStringAsync(string path)
+	private async Task<HttpContent> PostAsync(string path, HttpContent content)
+	{
+		var response = await SendAsync(HttpMethod.Post, path, content);
+        if (!response.IsSuccessStatusCode) throw new Exception($"Error when posting data: status {response.StatusCode}");
+        return response.Content;
+    }
+
+	private async Task<string> GetStringInternalAsync(string path)
 	{
 		var response = await SendAsync(HttpMethod.Get, path);
 		if (!response.IsSuccessStatusCode) throw new Exception($"Error when getting data: status {response.StatusCode}");
@@ -176,7 +209,14 @@ public class RequestBuilder
 		return response.Content;
 	}
 
-	private Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null)
+    private async Task<HttpContent> PatchAsync(string path, HttpContent content)
+    {
+        var response = await SendAsync(HttpMethod.Patch, path, content);
+        if (!response.IsSuccessStatusCode) throw new Exception($"Error when patching data: status {response.StatusCode}");
+        return response.Content;
+    }
+
+    private Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null)
 	{
 		var request = new HttpRequestMessage(method, path);
 		if (content != null)

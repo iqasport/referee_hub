@@ -170,6 +170,9 @@ public static class ResponseSerializerExtensions
 				throw new Exception($"Type field was empty.");
 			}
 
+			// HACK: for legacy reasons users used to be called refrees
+			if (type == "referee") type = "user";
+
 			var typeName = CapitalizeFirstLetter(type);
 			var fullTypeName = $"ManagementHub.Models.{typeName}";
 			return modelsAssembly.GetType(fullTypeName) ?? throw new Exception($"Could not find type: {fullTypeName}");

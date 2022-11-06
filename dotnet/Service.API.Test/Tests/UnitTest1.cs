@@ -24,10 +24,8 @@ public class UnitTest1
 	[Fact]
 	public async void Test1()
 	{
-		var requestBuilder = new RequestBuilder(httpClientFactory, logger)
-			.Anonymous()
-			.WithEndpoint("/api/v1/national_governing_bodies");
-		var result = await requestBuilder.GetModelListAsync<NationalGoverningBody>();
+		var requestBuilder = new RequestBuilder(httpClientFactory, logger);
+		var result = await requestBuilder.GetModelListAsync<NationalGoverningBody>("/api/v1/national_governing_bodies");
 		Assert.NotNull(result);
 		Assert.Contains("Argentina", result[0].Name);
 	}
@@ -35,20 +33,16 @@ public class UnitTest1
 	[Fact]
 	public async void Test2()
 	{
-		var requestBuilder = new RequestBuilder(httpClientFactory, logger)
-			.AsReferee()
-			.WithEndpoint("/api/v1/tests");
-		var result = await requestBuilder.GetModelListAsync<ManagementHub.Models.Test>();
+		var requestBuilder = new RequestBuilder(httpClientFactory, logger).AsReferee();
+		var result = await requestBuilder.GetModelListAsync<ManagementHub.Models.Test>("/api/v1/tests");
 		Assert.NotNull(result);
 	}
 
 	[Fact]
 	public async void Test3()
 	{
-		var requestBuilder = new RequestBuilder(httpClientFactory, logger)
-			.AsReferee()
-			.WithEndpoint("/api/v1/users/current_user");
-		var result = await requestBuilder.GetModelAsync<User>();
+		var requestBuilder = new RequestBuilder(httpClientFactory, logger).AsReferee();
+		var result = await requestBuilder.GetModelAsync<User>("/api/v1/users/current_user");
 		Assert.NotNull(result);
 		Assert.Equal("Orval", result.FirstName);
 		Assert.Equal("Kris", result.LastName);

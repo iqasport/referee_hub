@@ -1,13 +1,12 @@
-
-using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Options;
+using Service.API.Test.DatabaseClient;
 using Service.API.Test.Settings;
 using Service.API.Test.WebsiteClient;
 using Service.API.Test.WebsiteClient.HttpMessageMiddleware;
@@ -28,12 +27,18 @@ public class Startup
 	/// </summary>
 	public void ConfigureServices(IServiceCollection services, HostBuilderContext context)
 	{
+		services.AddOptions();
+		services.Configure<WebsiteClientSettings>(context.Configuration.GetRequiredSection("WebsiteClient"));
+		services.Configure<DatabaseSettings>(context.Configuration.GetRequiredSection("Database"));
+
+		services.AddScoped<DatabaseProvider>();
+
 		services.AddTransient<FollowRedirectsMessageHandler>();
 		services.AddSingleton<CookieSessionMessageHandler>();
 
-		services.AddHttpClient(RequestBuilder.HttpClientName, client =>
+		services.AddHttpClient(RequestBuilder.HttpClientName, (serviceProvider, client) =>
 		{
-			var settings = context.Configuration.GetRequiredSection("WebsiteClient").Get<WebsiteClientSettings>();
+			var settings = serviceProvider.GetRequiredService<IOptions<WebsiteClientSettings>>().Value;
 			client.BaseAddress = settings.BaseUrl;
 			client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(settings.UserAgent, "1.0"));
 		})
@@ -45,7 +50,7 @@ public class Startup
 		// Ordering of the handlers is important, from top (outermost) to bottom (innermost)
 		.AddHttpMessageHandler<FollowRedirectsMessageHandler>()
 		.AddHttpMessageHandler<CookieSessionMessageHandler>();
-	}
+    }
 
 	/// <summary>
 	/// Configures the configuration source and sets up logging configuration.
