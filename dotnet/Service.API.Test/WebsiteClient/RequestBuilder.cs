@@ -44,9 +44,9 @@ public class RequestBuilder
 
 	public RequestBuilder AsUser(string email)
 	{
-        this.user = new User { Email = email };
-        return this;
-    }
+		this.user = new User { Email = email };
+		return this;
+	}
 
 	public async Task<TResult?> GetModelAsync<TResult>(string path) where TResult : class
 	{
@@ -92,66 +92,65 @@ public class RequestBuilder
 		}
 	}
 
-    public async Task<TResult?> PatchModelAsync<TResult>(string path, Dictionary<string, object?> properties) where TResult : class
-    {
-        try
-        {
-            await this.SignIn();
-            var content = await this.PatchAsync(path, JsonContent.Create(properties));
-            return await content.ReadModelAsync<TResult>();
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError(0xd0ff408, ex, "Error occurred in GET {path}", path);
-            throw;
-        }
-    }
+	public async Task<TResult?> PatchModelAsync<TResult>(string path, Dictionary<string, object?> properties) where TResult : class
+	{
+		try
+		{
+			await this.SignIn();
+			var content = await this.PatchAsync(path, JsonContent.Create(properties));
+			return await content.ReadModelAsync<TResult>();
+		}
+		catch (Exception ex)
+		{
+			this.logger.LogError(0xd0ff408, ex, "Error occurred in GET {path}", path);
+			throw;
+		}
+	}
 
-    public async Task RegisterUserAsync(string firstName, string lastName, string email)
+	public async Task RegisterUserAsync(string firstName, string lastName, string email)
 	{
 		string password = "password";
 
-        var signUpPage = await this.GetStringInternalAsync("/sign_up");
-        var authenticityTokenMatch = new Regex("<input type=\"hidden\" name=\"authenticity_token\" value=\"(?<token>.*)\"").Match(signUpPage);
-        if (!authenticityTokenMatch.Success)
-        {
-            this.logger.LogError(0xd0ff406, "Unable to parse CSRF token from /sign_in page.");
-            throw new Exception("Unable to parse CSRF token");
-        }
-
-        var authenticityToken = authenticityTokenMatch.Groups["token"].Captures[0].Value;
-
-        var signUpRequestData = new Dictionary<string, string> {
-            {"utf8", "%E2%9C%93"},
-            {"authenticity_token", authenticityToken},
-            {"user[first_name]", firstName},
-            {"user[last_name]", lastName},
-            {"user[email]", email},
-            {"user[password]", password},
-            {"user[password_confirmation]", password},
-            {"user[policy_rule_privacy_terms]", "true"},
-            {"commit", "Create Account"},
-        };
-        var signUpRequest = new FormUrlEncodedContent(signUpRequestData);
-        logger.LogInformation(
-			0xd0ff407,
-            "Starting /register with content: {content}",
-            string.Join("&", signUpRequestData.Select(kvp => $"{kvp.Key}={kvp.Value}")));
-        var postContent = await this.PostAsync("/register", signUpRequest);
-		var postString = await postContent.ReadAsStringAsync();
-        if (postString.Contains("error-message"))
+		var signUpPage = await this.GetStringInternalAsync("/sign_up");
+		var authenticityTokenMatch = new Regex("<input type=\"hidden\" name=\"authenticity_token\" value=\"(?<token>.*)\"").Match(signUpPage);
+		if (!authenticityTokenMatch.Success)
 		{
-			var errorMatch = new Regex("<div id='error_explanation' class='error-message'>(?<error>.*?)</div>", RegexOptions.Singleline).Match(postString);
-            var error = errorMatch.Groups["error"].Captures[0].Value;
-
-            throw new Exception($"There was an error during register: {error}");
+			this.logger.LogError(0xd0ff406, "Unable to parse CSRF token from /sign_in page.");
+			throw new Exception("Unable to parse CSRF token");
 		}
 
-        var user = await this.GetStringInternalAsync("api/v1/users/current_user");
-        this.signed_in = true;
-    }
+		var authenticityToken = authenticityTokenMatch.Groups["token"].Captures[0].Value;
 
-    private async Task SignIn()
+		var signUpRequestData = new Dictionary<string, string> {
+			{"utf8", "%E2%9C%93"},
+			{"authenticity_token", authenticityToken},
+			{"user[first_name]", firstName},
+			{"user[last_name]", lastName},
+			{"user[email]", email},
+			{"user[password]", password},
+			{"user[password_confirmation]", password},
+			{"user[policy_rule_privacy_terms]", "true"},
+			{"commit", "Create Account"},
+		};
+		var signUpRequest = new FormUrlEncodedContent(signUpRequestData);
+		logger.LogInformation(
+			0xd0ff407,
+			"Starting /register with content: {content}",
+			string.Join("&", signUpRequestData.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+		var postContent = await this.PostAsync("/register", signUpRequest);
+		var postString = await postContent.ReadAsStringAsync();
+		if (postString.Contains("error-message"))
+		{
+			var errorMatch = new Regex("<div id='error_explanation' class='error-message'>(?<error>.*?)</div>", RegexOptions.Singleline).Match(postString);
+			var error = errorMatch.Groups["error"].Captures[0].Value;
+
+			throw new Exception($"There was an error during register: {error}");
+		}
+
+		this.signed_in = true;
+	}
+
+	private async Task SignIn()
 	{
 		if (this.user == null) return;
 		if (signed_in) return;
@@ -191,9 +190,9 @@ public class RequestBuilder
 	private async Task<HttpContent> PostAsync(string path, HttpContent content)
 	{
 		var response = await SendAsync(HttpMethod.Post, path, content);
-        if (!response.IsSuccessStatusCode) throw new Exception($"Error when posting data: status {response.StatusCode}");
-        return response.Content;
-    }
+		if (!response.IsSuccessStatusCode) throw new Exception($"Error when posting data: status {response.StatusCode}");
+		return response.Content;
+	}
 
 	private async Task<string> GetStringInternalAsync(string path)
 	{
@@ -209,14 +208,14 @@ public class RequestBuilder
 		return response.Content;
 	}
 
-    private async Task<HttpContent> PatchAsync(string path, HttpContent content)
-    {
-        var response = await SendAsync(HttpMethod.Patch, path, content);
-        if (!response.IsSuccessStatusCode) throw new Exception($"Error when patching data: status {response.StatusCode}");
-        return response.Content;
-    }
+	private async Task<HttpContent> PatchAsync(string path, HttpContent content)
+	{
+		var response = await SendAsync(HttpMethod.Patch, path, content);
+		if (!response.IsSuccessStatusCode) throw new Exception($"Error when patching data: status {response.StatusCode}");
+		return response.Content;
+	}
 
-    private Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null)
+	private Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null)
 	{
 		var request = new HttpRequestMessage(method, path);
 		if (content != null)
