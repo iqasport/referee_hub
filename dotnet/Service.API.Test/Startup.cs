@@ -50,7 +50,7 @@ public class Startup
 		// Ordering of the handlers is important, from top (outermost) to bottom (innermost)
 		.AddHttpMessageHandler<FollowRedirectsMessageHandler>()
 		.AddHttpMessageHandler<CookieSessionMessageHandler>();
-    }
+	}
 
 	/// <summary>
 	/// Configures the configuration source and sets up logging configuration.

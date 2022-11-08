@@ -11,7 +11,7 @@ namespace ManagementHub.Models.Enums
 
 		[EnumMember(Value = "assistant")]
 		Assistant = 1,
-		
+
 		[EnumMember(Value = "head")]
 		Head = 2,
 

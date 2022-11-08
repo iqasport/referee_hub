@@ -11,7 +11,7 @@ namespace ManagementHub.Models.Enums
 
 		[EnumMember(Value = "south_america")]
 		SouthAmerica = 1,
-		
+
 		[EnumMember(Value = "europe")]
 		Europe = 2,
 

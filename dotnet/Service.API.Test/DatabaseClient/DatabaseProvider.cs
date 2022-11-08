@@ -59,7 +59,7 @@ namespace Service.API.Test.DatabaseClient
 			}
 
 			public ManagementHubDbContext Context => context.Value;
-			
+
 			public void Dispose()
 			{
 				connection.Dispose();

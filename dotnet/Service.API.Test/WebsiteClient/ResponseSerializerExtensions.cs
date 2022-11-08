@@ -148,7 +148,7 @@ public static class ResponseSerializerExtensions
 	{
 		return new StringBuilder().Append(char.ToUpper(word[0])).Append(word.Substring(1)).ToString();
 	}
-	
+
 	private class ObjectDescriptor
 	{
 		private static readonly Assembly modelsAssembly = Assembly.GetAssembly(typeof(ManagementHub.Models.User))!;
