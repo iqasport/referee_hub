@@ -9,7 +9,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using ManagementHub.Models;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Web;
 
 namespace Service.API.Test.WebsiteClient;
 
@@ -149,10 +151,31 @@ public static class ResponseSerializerExtensions
 		return new StringBuilder().Append(char.ToUpper(word[0])).Append(word.Substring(1)).ToString();
 	}
 
+	private static readonly Dictionary<string, Type> DeserializationTypes = new(StringComparer.InvariantCultureIgnoreCase)
+	{
+		["user"] = typeof(WebUser),
+		["referee"] = typeof(WebUser),
+		["answer"] = typeof(Answer),
+		["certification"] = typeof(Certification),
+		["certificationPayment"] = typeof(CertificationPayment),
+		["language"] = typeof(Language),
+		["nationalGoverningBody"] = typeof(NationalGoverningBody),
+		["nationalGoverningBodyStat"] = typeof(NationalGoverningBodyStat),
+		["question"] = typeof(Question),
+		["refereeAnswer"] = typeof(RefereeAnswer),
+		["refereeCertification"] = typeof(RefereeCertification),
+		["refereeLocation"] = typeof(RefereeLocation),
+		["refereeTeam"] = typeof(RefereeTeam),
+		["role"] = typeof(Role),
+		["socialAccount"] = typeof(SocialAccount),
+		["team"] = typeof(Team),
+		["test"] = typeof(ManagementHub.Models.Test),
+		["testAttempt"] = typeof(TestAttempt),
+		["testResult"] = typeof(TestResult),
+	};
+
 	private class ObjectDescriptor
 	{
-		private static readonly Assembly modelsAssembly = Assembly.GetAssembly(typeof(ManagementHub.Models.User))!;
-
 		public long id;
 		public string type = string.Empty;
 		public Dictionary<string, object> attributes = new();
@@ -160,22 +183,12 @@ public static class ResponseSerializerExtensions
 
 		public Type GetDataType()
 		{
-			if (type.Any(c => !char.IsLetter(c)))
+			if (!DeserializationTypes.TryGetValue(type, out var t))
 			{
-				throw new InvalidOperationException("Type contains illegal characters");
+				throw new Exception($"Could not find type {type} for deserialization.");
 			}
 
-			if (string.IsNullOrWhiteSpace(type))
-			{
-				throw new Exception($"Type field was empty.");
-			}
-
-			// HACK: for legacy reasons users used to be called refrees
-			if (type == "referee") type = "user";
-
-			var typeName = CapitalizeFirstLetter(type);
-			var fullTypeName = $"ManagementHub.Models.{typeName}";
-			return modelsAssembly.GetType(fullTypeName) ?? throw new Exception($"Could not find type: {fullTypeName}");
+			return t;
 		}
 	}
 

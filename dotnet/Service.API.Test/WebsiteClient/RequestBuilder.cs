@@ -92,17 +92,32 @@ public class RequestBuilder
 		}
 	}
 
-	public async Task<TResult?> PatchModelAsync<TResult>(string path, Dictionary<string, object?> properties) where TResult : class
+	public async Task<TResult?> PostModelAsync<TResult>(string path, Dictionary<string, object?> properties, ContentType contentType = ContentType.Json) where TResult : class
 	{
 		try
 		{
 			await this.SignIn();
-			var content = await this.PatchAsync(path, JsonContent.Create(properties));
+			var content = await this.PostAsync(path, CreateContent(properties, contentType));
 			return await content.ReadModelAsync<TResult>();
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0xd0ff408, ex, "Error occurred in GET {path}", path);
+			this.logger.LogError(0xd0ff409, ex, "Error occurred in POST {path}", path);
+			throw;
+		}
+	}
+
+	public async Task<TResult?> PatchModelAsync<TResult>(string path, Dictionary<string, object?> properties, ContentType contentType = ContentType.Json) where TResult : class
+	{
+		try
+		{
+			await this.SignIn();
+			var content = await this.PatchAsync(path, CreateContent(properties, contentType));
+			return await content.ReadModelAsync<TResult>();
+		}
+		catch (Exception ex)
+		{
+			this.logger.LogError(0xd0ff408, ex, "Error occurred in PATCH {path}", path);
 			throw;
 		}
 	}
@@ -132,11 +147,13 @@ public class RequestBuilder
 			{"user[policy_rule_privacy_terms]", "true"},
 			{"commit", "Create Account"},
 		};
-		var signUpRequest = new FormUrlEncodedContent(signUpRequestData);
+
 		logger.LogInformation(
 			0xd0ff407,
 			"Starting /register with content: {content}",
 			string.Join("&", signUpRequestData.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+
+		var signUpRequest = new FormUrlEncodedContent(signUpRequestData);
 		var postContent = await this.PostAsync("/register", signUpRequest);
 		var postString = await postContent.ReadAsStringAsync();
 		if (postString.Contains("error-message"))
@@ -176,11 +193,13 @@ public class RequestBuilder
 			{"user[remember_me]", "0"},
 			{"commit", "Log in"},
 		};
-		var signInRequest = new FormUrlEncodedContent(signInRequestData);
+
 		logger.LogInformation(
 			0xd0ff403,
 			"Starting /sign_in with content: {content}",
 			string.Join("&", signInRequestData.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+
+		var signInRequest = new FormUrlEncodedContent(signInRequestData);
 		await this.PostAsync("/sign_in", signInRequest);
 
 		var user = await this.GetStringInternalAsync("api/v1/users/current_user");
@@ -226,5 +245,32 @@ public class RequestBuilder
 		request.Options.Set(CookieSessionMessageHandler.CookieContainerIdOption, this.CookieContainerId);
 
 		return this.httpClient.SendAsync(request);
+	}
+
+	private HttpContent CreateContent(Dictionary<string, object?> data, ContentType contentType)
+	{
+		switch (contentType)
+		{
+			case ContentType.Json:
+				return JsonContent.Create(data);
+			case ContentType.FormEncoded:
+				return new FormUrlEncodedContent(data.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value?.ToString())));
+			case ContentType.Multipart:
+				var content = new MultipartFormDataContent($"----WebKitFormBoundary");
+				content.Add(
+					new ByteArrayContent(data.TryGetValue("bytes", out var byteData) ? byteData as byte[] ?? Array.Empty<byte>() : Array.Empty<byte>()),
+					data.TryGetValue("name", out var name) ? name?.ToString() ?? "" : "",
+					data.TryGetValue("file", out var file) ? file?.ToString() ?? "" : "");
+				return content;
+			default:
+				throw new NotSupportedException();
+		}
+	}
+
+	public enum ContentType
+	{
+		Json,
+		FormEncoded,
+		Multipart,
 	}
 }

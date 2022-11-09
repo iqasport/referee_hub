@@ -10,7 +10,7 @@ namespace Service.API.Test.Helpers
 {
 	public class UserContext : IAsyncDisposable
 	{
-		private static readonly FastHashes.FarmHash128 HashAlgorithm = new();
+		private static readonly FastHashes.FarmHash64 HashAlgorithm = new();
 
 		private UserContext(DatabaseProvider databaseProvider, RequestBuilder requestBuilder, string email)
 		{
@@ -27,21 +27,21 @@ namespace Service.API.Test.Helpers
 
 		public async ValueTask DisposeAsync() => await Database.DeleteUserAsync(Email);
 
-		public static Task<UserContext> NewRefereeAsync(DatabaseProvider databaseProvider, RequestBuilder requestBuilder, [CallerMemberName] string memberName = "")
+		public static Task<UserContext> NewRefereeAsync(DatabaseProvider databaseProvider, RequestBuilder requestBuilder, int seed = 0, [CallerMemberName] string memberName = "")
 		{
-			var context = new UserContext(databaseProvider, requestBuilder, GenerateEmailFromString(memberName));
+			var context = new UserContext(databaseProvider, requestBuilder, GenerateEmailFromString(memberName, seed));
 			return NewUserAsync(context, UserAccessType.Referee);
 		}
 
-		public static Task<UserContext> NewNgbAdminAsync(DatabaseProvider databaseProvider, RequestBuilder requestBuilder, [CallerMemberName] string memberName = "")
+		public static Task<UserContext> NewNgbAdminAsync(DatabaseProvider databaseProvider, RequestBuilder requestBuilder, string country, int seed = 0, [CallerMemberName] string memberName = "")
 		{
-			var context = new UserContext(databaseProvider, requestBuilder, GenerateEmailFromString(memberName));
-			return NewUserAsync(context, UserAccessType.NgbAdmin);
+			var context = new UserContext(databaseProvider, requestBuilder, GenerateEmailFromString(memberName, seed));
+			return NewNgbAdminInternalAsync(context, country);
 		}
 
-		public static Task<UserContext> NewIqaAdminAsync(DatabaseProvider databaseProvider, RequestBuilder requestBuilder, [CallerMemberName] string memberName = "")
+		public static Task<UserContext> NewIqaAdminAsync(DatabaseProvider databaseProvider, RequestBuilder requestBuilder, int seed = 0, [CallerMemberName] string memberName = "")
 		{
-			var context = new UserContext(databaseProvider, requestBuilder, GenerateEmailFromString(memberName));
+			var context = new UserContext(databaseProvider, requestBuilder, GenerateEmailFromString(memberName, seed));
 			return NewUserAsync(context, UserAccessType.IqaAdmin);
 		}
 
@@ -49,18 +49,26 @@ namespace Service.API.Test.Helpers
 		{
 			await context.Database.DeleteUserAsync(context.Email, requireUserToExist: false);
 			await context.WebClient.RegisterUserAsync("John", "Smith", context.Email);
-			await context.Database.SetUserAccessType(context.Email, accessType);
+			await context.Database.SetUserAccessTypeAsync(context.Email, accessType);
 
 			return context;
 		}
 
-		private static string GenerateEmailFromString(string input)
+		private static async Task<UserContext> NewNgbAdminInternalAsync(UserContext context, string country)
+		{
+			context = await NewUserAsync(context, UserAccessType.NgbAdmin);
+			await context.Database.SetNgbAdminCountryAsync(context.Email, country);
+
+			return context;
+		}
+
+		private static string GenerateEmailFromString(string input, int seed = 0)
 		{
 			var inputAsByteSpan = MemoryMarshal.Cast<char, byte>(input.AsSpan());
 			// We're using a stable hashing algorithm here to ensure the same email is use for a given test between runs
 			string hash = Convert.ToBase64String(HashAlgorithm.ComputeHash(inputAsByteSpan));
 			// Need to call ToLower, because Devise is doing that before saving the email to the database anyways
-			return $"user_{hash.ToLowerInvariant()}@example.com";
+			return $"user_{hash.ToLowerInvariant()}{(seed != 0 ? seed.ToString() : string.Empty)}@example.com";
 		}
 	}
 }

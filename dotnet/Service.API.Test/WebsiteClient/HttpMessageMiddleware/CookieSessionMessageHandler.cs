@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -18,7 +19,7 @@ namespace Service.API.Test.WebsiteClient.HttpMessageMiddleware;
 public class CookieSessionMessageHandler : DelegatingHandler
 {
 	public static readonly HttpRequestOptionsKey<Guid> CookieContainerIdOption = new HttpRequestOptionsKey<Guid>("CookieContainerId");
-	private readonly Dictionary<Guid, CookieContainer> cookies = new Dictionary<Guid, CookieContainer>();
+	private readonly ConcurrentDictionary<Guid, CookieContainer> cookies = new();
 	private readonly ILogger<CookieSessionMessageHandler> logger;
 
 	public CookieSessionMessageHandler(ILogger<CookieSessionMessageHandler> logger)
@@ -31,11 +32,7 @@ public class CookieSessionMessageHandler : DelegatingHandler
 		if (request.Options.TryGetValue<Guid>(CookieContainerIdOption, out var id))
 		{
 			this.logger.LogDebug(0x6eb44400, "Processing cookies for cookie container id: {id}", id);
-			if (!cookies.TryGetValue(id, out var cookieContainer))
-			{
-				cookieContainer = new CookieContainer();
-				cookies.Add(id, cookieContainer);
-			}
+			var cookieContainer = cookies.GetOrAdd(id, _ => new CookieContainer());
 
 			if (cookieContainer.Count > 0)
 			{
