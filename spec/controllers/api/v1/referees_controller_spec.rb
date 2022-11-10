@@ -5,6 +5,8 @@ RSpec.describe Api::V1::RefereesController, type: :controller do
   describe 'GET #index' do
     let!(:referees) { create_list :user, 3 }
 
+    before { sign_in referees[0] }
+
     subject { get :index }
 
     it_behaves_like 'it is a successful request'
