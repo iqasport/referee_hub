@@ -1,7 +1,7 @@
 module Api
   module V1
     class RefereesController < ApplicationController # rubocop:disable Metrics/ClassLength
-      before_action :authenticate_user!, only: %i[show update]
+      before_action :authenticate_user!
       before_action :verify_ngb_or_iqa_admin, only: :export
       before_action :find_referee, only: %i[show update tests]
       skip_before_action :verify_authenticity_token
