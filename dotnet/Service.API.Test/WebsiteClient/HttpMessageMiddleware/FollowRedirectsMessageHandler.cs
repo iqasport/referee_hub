@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -29,14 +30,23 @@ public class FollowRedirectsMessageHandler : DelegatingHandler
 			this.logger.LogInformation(0x54980000, "Location header present in reposnse. Redirecting to {url}", target);
 
 			var redirectRequest = new HttpRequestMessage(HttpMethod.Get, target);
-			if (request.Options.TryGetValue(CookieSessionMessageHandler.CookieContainerIdOption, out var cookieSession))
-			{
-				redirectRequest.Options.Set(CookieSessionMessageHandler.CookieContainerIdOption, cookieSession);
-			}
+			CopyRequestOptions(request, redirectRequest);
 
 			return await this.SendAsync(redirectRequest, cancellationToken);
 		}
 
 		return response;
+	}
+
+	private static void CopyRequestOptions(HttpRequestMessage request, HttpRequestMessage redirectRequest)
+	{
+		if (request.Options is IDictionary<string, object?> requestOptions &&
+			redirectRequest.Options is IDictionary<string, object?> newOptions)
+		{
+			foreach (var kvp in requestOptions)
+			{
+				newOptions.Add(kvp.Key, kvp.Value);
+			}
+		}
 	}
 }

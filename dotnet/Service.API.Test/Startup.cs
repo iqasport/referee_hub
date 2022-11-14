@@ -34,7 +34,7 @@ public class Startup
 		services.AddScoped<DatabaseProvider>();
 
 		services.AddTransient<FollowRedirectsMessageHandler>();
-		services.AddSingleton<CookieSessionMessageHandler>();
+		services.AddTransient<CookieSessionMessageHandler>();
 
 		services.AddHttpClient(RequestBuilder.HttpClientName, (serviceProvider, client) =>
 		{

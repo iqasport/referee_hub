@@ -22,7 +22,7 @@ public class RequestBuilder
 	private bool signed_in = false;
 	private readonly HttpClient httpClient;
 	private readonly ILogger logger;
-	private readonly Guid CookieContainerId = Guid.NewGuid();
+	private readonly CookieContainer CookieContainer = new();
 
 	public RequestBuilder(IHttpClientFactory httpClientFactory, ILogger logger)
 	{
@@ -242,7 +242,7 @@ public class RequestBuilder
 			request.Content = content;
 		}
 
-		request.Options.Set(CookieSessionMessageHandler.CookieContainerIdOption, this.CookieContainerId);
+		request.Options.Set(CookieSessionMessageHandler.CookieContainerOption, this.CookieContainer);
 
 		return this.httpClient.SendAsync(request);
 	}

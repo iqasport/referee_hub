@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -18,8 +17,7 @@ namespace Service.API.Test.WebsiteClient.HttpMessageMiddleware;
 /// </summary>
 public class CookieSessionMessageHandler : DelegatingHandler
 {
-	public static readonly HttpRequestOptionsKey<Guid> CookieContainerIdOption = new HttpRequestOptionsKey<Guid>("CookieContainerId");
-	private readonly ConcurrentDictionary<Guid, CookieContainer> cookies = new();
+	public static readonly HttpRequestOptionsKey<CookieContainer> CookieContainerOption = new("CookieContainer");
 	private readonly ILogger<CookieSessionMessageHandler> logger;
 
 	public CookieSessionMessageHandler(ILogger<CookieSessionMessageHandler> logger)
@@ -29,11 +27,8 @@ public class CookieSessionMessageHandler : DelegatingHandler
 
 	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
-		if (request.Options.TryGetValue<Guid>(CookieContainerIdOption, out var id))
+		if (request.Options.TryGetValue(CookieContainerOption, out var cookieContainer))
 		{
-			this.logger.LogDebug(0x6eb44400, "Processing cookies for cookie container id: {id}", id);
-			var cookieContainer = cookies.GetOrAdd(id, _ => new CookieContainer());
-
 			if (cookieContainer.Count > 0)
 			{
 				var cookieString = cookieContainer.GetCookieHeader(request.RequestUri!);
@@ -45,7 +40,11 @@ public class CookieSessionMessageHandler : DelegatingHandler
 
 			if (response.Headers.TryGetValues("Set-Cookie", out var cookieValues))
 			{
-				SetCookies(request, cookieContainer, cookieValues);
+				foreach (var cookieValue in cookieValues)
+				{
+					this.logger.LogDebug(0x6eb44403, "Received cookie: {cookie}", cookieValue);
+					cookieContainer.SetCookies(request.RequestUri!, cookieValue);
+				}
 			}
 
 			return response;
@@ -53,26 +52,5 @@ public class CookieSessionMessageHandler : DelegatingHandler
 
 		this.logger.LogDebug(0x6eb44402, "Skipping cookies");
 		return await base.SendAsync(request, cancellationToken);
-	}
-
-	private void SetCookies(HttpRequestMessage request, CookieContainer cookieContainer, IEnumerable<string> cookieValues)
-	{
-		foreach (var item in SetCookieHeaderValue.ParseList(cookieValues.ToList()))
-		{
-			var uri = new Uri(request.RequestUri!, item.Path.Value);
-			var cookie = new Cookie(item.Name.Value, item.Value.Value, item.Path.Value);
-
-			if (item.MaxAge.HasValue)
-			{
-				cookie.Expires = DateTime.UtcNow + item.MaxAge.Value;
-			}
-			else if (item.Expires.HasValue)
-			{
-				cookie.Expires = item.Expires.Value.DateTime;
-			}
-
-			this.logger.LogDebug(0x6eb44403, "Received cookie: {cookie}", cookie);
-			cookieContainer.Add(uri, cookie);
-		}
 	}
 }
