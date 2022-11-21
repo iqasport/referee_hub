@@ -78,12 +78,15 @@ public class RequestBuilder
 		}
 	}
 
-	public async Task<string> GetStringAsync(string path)
+	public async Task<string> GetStringAsync(string path, Dictionary<string, object?> properties = null, ContentType contentType = ContentType.Json)
 	{
 		try
 		{
 			await this.SignIn();
-			return await this.GetStringInternalAsync(path);
+			if (properties == null)
+				return await this.GetStringInternalAsync(path);
+			else
+				return await this.GetStringInternalAsync(path, this.CreateContent(properties, contentType));
 		}
 		catch (Exception ex)
 		{
@@ -209,29 +212,34 @@ public class RequestBuilder
 	private async Task<HttpContent> PostAsync(string path, HttpContent content)
 	{
 		var response = await SendAsync(HttpMethod.Post, path, content);
-		if (!response.IsSuccessStatusCode) throw new Exception($"Error when posting data: status {response.StatusCode}");
+		await AssertSuccessfulResponseAsync(response);
 		return response.Content;
 	}
 
-	private async Task<string> GetStringInternalAsync(string path)
+	private async Task<string> GetStringInternalAsync(string path, HttpContent? content = null)
 	{
-		var response = await SendAsync(HttpMethod.Get, path);
-		if (!response.IsSuccessStatusCode) throw new Exception($"Error when getting data: status {response.StatusCode}");
+		var response = await SendAsync(HttpMethod.Get, path, content);
+		await AssertSuccessfulResponseAsync(response);
 		return await response.Content.ReadAsStringAsync();
 	}
 
 	private async Task<HttpContent> GetAsync(string path)
 	{
 		var response = await SendAsync(HttpMethod.Get, path);
-		if (!response.IsSuccessStatusCode) throw new Exception($"Error when getting data: status {response.StatusCode}");
+		await AssertSuccessfulResponseAsync(response);
 		return response.Content;
 	}
 
 	private async Task<HttpContent> PatchAsync(string path, HttpContent content)
 	{
 		var response = await SendAsync(HttpMethod.Patch, path, content);
-		if (!response.IsSuccessStatusCode) throw new Exception($"Error when patching data: status {response.StatusCode}");
+		await AssertSuccessfulResponseAsync(response);
 		return response.Content;
+	}
+
+	private static async Task AssertSuccessfulResponseAsync(HttpResponseMessage response)
+	{
+		if (!response.IsSuccessStatusCode) throw new Exception($"Error when getting data: status {response.StatusCode}\n{await response.Content.ReadAsStringAsync()}");
 	}
 
 	private Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null)

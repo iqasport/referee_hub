@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Service.API.Test.DatabaseClient;
+using Service.API.Test.EmailClient;
 using Service.API.Test.Settings;
 using Service.API.Test.WebsiteClient;
 using Service.API.Test.WebsiteClient.HttpMessageMiddleware;
@@ -30,8 +31,11 @@ public class Startup
 		services.AddOptions();
 		services.Configure<WebsiteClientSettings>(context.Configuration.GetRequiredSection("WebsiteClient"));
 		services.Configure<DatabaseSettings>(context.Configuration.GetRequiredSection("Database"));
+		services.Configure<EmailClientSettings>(context.Configuration.GetSection("EmailClient"));
 
 		services.AddScoped<DatabaseProvider>();
+
+		services.AddSingleton<EmailProvider>();
 
 		services.AddTransient<FollowRedirectsMessageHandler>();
 		services.AddTransient<CookieSessionMessageHandler>();

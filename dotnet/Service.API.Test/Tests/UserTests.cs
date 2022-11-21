@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ManagementHub.Models;
@@ -40,47 +41,28 @@ namespace Service.API.Test.Tests
 		}
 
 		[Fact]
-		public async Task UserCanUpdateTheirProfile()
+		public async Task UserCanUpdateTheirLanguage()
 		{
-			const string firstName = "Alfred";
-			const string lastName = "Smith";
-			const string pronouns = "he, him";
-
 			var requestBuilder = new RequestBuilder(httpClientFactory, logger);
 
 			await using var userContext = await UserContext.NewRefereeAsync(databaseProvider, requestBuilder);
 
 			var user = await requestBuilder.GetModelAsync<WebUser>("/api/v1/users/current_user");
 			Assert.NotNull(user);
-			Assert.Null(user.FirstName);
-			Assert.Null(user.LastName);
-			var role = Assert.Single(user.Roles);
-			Assert.Equal(UserAccessType.Referee, role.AccessType);
+			Assert.Null(user.Language);
 
-			user = await requestBuilder.PatchModelAsync<WebUser>($"/api/v1/referees/{user.Id}", new()
+			var languages = await requestBuilder.GetModelListAsync<Language>("/api/v1/languages");
+			Assert.NotEmpty(languages!);
+
+			user = await requestBuilder.PatchModelAsync<WebUser>($"/api/v1/users/{user.Id}", new()
 			{
-				["bio"] = null,
-				["export_name"] = true,
-				["first_name"] = firstName,
-				["last_name"] = lastName,
-				["ngb_data"] = new Dictionary<int, string> { [3] = "primary" },
-				["pronouns"] = pronouns,
-				["show_pronouns"] = true,
-				["submitted_payment_at"] = null,
-				["teams_data"] = new { },
+				["language_id"] = languages!.First().Id,
 			});
-
 			Assert.NotNull(user);
-			Assert.Equal(firstName, user.FirstName);
-			Assert.Equal(lastName, user.LastName);
-			Assert.Equal(true, user.ExportName);
-			var location = Assert.Single(user.RefereeLocations);
-			Assert.Equal(3, location.NationalGoverningBodyId);
-			Assert.Equal(RefereeNgbAssociationType.Primary, location.AssociationType);
-			Assert.Equal(pronouns, user.Pronouns);
-			Assert.Equal(true, user.ShowPronouns);
-			Assert.Null(user.SubmittedPaymentAt);
-			Assert.Empty(user.RefereeTeams);
+
+			user = await requestBuilder.GetModelAsync<WebUser>("/api/v1/users/current_user");
+			Assert.NotNull(user);
+			Assert.NotNull(user.Language);
 		}
 
 		[Fact]
