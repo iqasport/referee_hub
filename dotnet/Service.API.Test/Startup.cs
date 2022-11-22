@@ -36,6 +36,7 @@ public class Startup
 		services.AddScoped<DatabaseProvider>();
 
 		services.AddSingleton<EmailProvider>();
+		services.AddSingleton<IHostedService, EmailProvider.EmailService>(); // auto-start email server
 
 		services.AddTransient<FollowRedirectsMessageHandler>();
 		services.AddTransient<CookieSessionMessageHandler>();

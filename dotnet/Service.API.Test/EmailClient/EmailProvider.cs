@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using netDumbster.smtp;
@@ -25,7 +26,8 @@ namespace Service.API.Test.EmailClient
 		{
 			netDumbster.smtp.Logging.LogManager.GetLogger = type => new LogWrapper(loggerFactory.CreateLogger(type));
 			this.smtpServer = SimpleSmtpServer.Start(settings.Value.SmtpServerPort);
-			this.smtpServer.MessageReceived += (_, messageArgs) => this.emailMessages.Add(messageArgs.Message);
+			this.smtpServer.MessageReceived += (_, messageArgs) =>
+				this.emailMessages.Add(messageArgs.Message);
 		}
 
 		public IReadOnlyCollection<SmtpMessage> Messages => new ReadOnlyCollection<SmtpMessage>(emailMessages);
@@ -46,6 +48,16 @@ namespace Service.API.Test.EmailClient
 
 				await Task.Delay(PollingInterval);
 			}
+		}
+
+		/// <summary>
+		/// Service stub for initializing EmailProvider before starting tests.
+		/// </summary>
+		public class EmailService : BackgroundService
+		{
+			public EmailService(EmailProvider provider) { }
+			protected override Task ExecuteAsync(CancellationToken stoppingToken)
+				=> Task.CompletedTask;
 		}
 
 		private class LogWrapper : netDumbster.smtp.Logging.ILog

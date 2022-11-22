@@ -138,7 +138,7 @@ namespace Service.API.Test.Tests
 			Assert.Equal(lastName, user.LastName);
 		}
 
-		[Fact] // TODO figure out why dev refhub isn't sending emails (broken sidekiq queue?)
+		[Fact]
 		public async Task IqaAdmin_ExportRefereeDetails_FromNgb_ReceivesEmail()
 		{
 			await using var adminContext = await UserContext.NewIqaAdminAsync(databaseProvider, new RequestBuilder(httpClientFactory, logger), seed: 1);
@@ -158,7 +158,11 @@ namespace Service.API.Test.Tests
 				["national_governing_bodies"] = new[] { 3 },
 			});
 
-			var message = await emailProvider.PollAsync(message => message.ToAddresses.Any(addr => addr.Address == adminContext.Email));
+			var message = await emailProvider.PollAsync(
+				message => message.ToAddresses.Any(addr => addr.Address == adminContext.Email) &&
+							message.Subject == "Your Referee Export is ready");
+			var body = Assert.Single(message.MessageParts).BodyData;
+			Assert.Contains("We just finished exporting your CSV.", body);
 		}
 	}
 }
