@@ -16,18 +16,17 @@ namespace Service.API.Test.EmailClient
 	/// <summary>
 	/// (singleton) Wrapper around an SMTP listener to allow for asserting tests asynchronously.
 	/// </summary>
-	public class EmailProvider : IDisposable
+	public class EmailProvider : IHostedService, IDisposable
 	{
 		private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
-		private readonly SimpleSmtpServer smtpServer;
 		private readonly List<SmtpMessage> emailMessages = new();
+		private readonly EmailClientSettings emailClientSettings;
+		private SimpleSmtpServer? smtpServer;
 
 		public EmailProvider(ILoggerFactory loggerFactory, IOptions<EmailClientSettings> settings)
 		{
 			netDumbster.smtp.Logging.LogManager.GetLogger = type => new LogWrapper(loggerFactory.CreateLogger(type));
-			this.smtpServer = SimpleSmtpServer.Start(settings.Value.SmtpServerPort);
-			this.smtpServer.MessageReceived += (_, messageArgs) =>
-				this.emailMessages.Add(messageArgs.Message);
+			this.emailClientSettings = settings.Value;
 		}
 
 		public IReadOnlyCollection<SmtpMessage> Messages => new ReadOnlyCollection<SmtpMessage>(emailMessages);
@@ -36,13 +35,18 @@ namespace Service.API.Test.EmailClient
 
 		public async Task<SmtpMessage> PollAsync(Func<SmtpMessage, bool> predicate, TimeSpan? timeout = null)
 		{
+			if (this.smtpServer is null)
+			{
+				await this.StartAsync(CancellationToken.None);
+			}
+
 			timeout ??= TimeSpan.FromSeconds(10);
 			using var cts = new CancellationTokenSource(timeout.Value);
 			while (true)
 			{
 				Assert.False(cts.Token.IsCancellationRequested, "Smtp polling timeout");
 
-				var message = emailMessages.SingleOrDefault(predicate);
+				var message = this.emailMessages.SingleOrDefault(predicate);
 				if (message != null)
 					return message;
 
@@ -50,14 +54,19 @@ namespace Service.API.Test.EmailClient
 			}
 		}
 
-		/// <summary>
-		/// Service stub for initializing EmailProvider before starting tests.
-		/// </summary>
-		public class EmailService : BackgroundService
+		public Task StartAsync(CancellationToken cancellationToken)
 		{
-			public EmailService(EmailProvider provider) { }
-			protected override Task ExecuteAsync(CancellationToken stoppingToken)
-				=> Task.CompletedTask;
+			this.smtpServer = SimpleSmtpServer.Start(this.emailClientSettings.SmtpServerPort, useMessageStore: false /* I'm storing messages myself */);
+			this.smtpServer.MessageReceived += (_, messageArgs) =>
+				this.emailMessages.Add(messageArgs.Message);
+
+			return Task.CompletedTask;
+		}
+
+		public Task StopAsync(CancellationToken cancellationToken)
+		{
+			this.smtpServer?.Stop();
+			return Task.CompletedTask;
 		}
 
 		private class LogWrapper : netDumbster.smtp.Logging.ILog

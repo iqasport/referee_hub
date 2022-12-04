@@ -174,6 +174,7 @@ public static class ResponseSerializerExtensions
 		["testResult"] = typeof(TestResult),
 	};
 
+#pragma warning disable CS0649 // field is never assigned to and will have default value (because it's used for deserialization)
 	private class ObjectDescriptor
 	{
 		public long id;
@@ -204,6 +205,7 @@ public static class ResponseSerializerExtensions
 		[JsonConverter(typeof(SingleOrArrayConverter<List<ObjectDescriptor>, ObjectDescriptor>))]
 		public List<ObjectDescriptor>? data;
 	}
+#pragma warning restore CS0649 // field is never assigned to and will have default value (because it's used for deserialization)
 
 	/// <summary>
 	/// Converter that transforms json type <c>T | [T]</c> into a list of objects.
