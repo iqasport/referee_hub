@@ -22,7 +22,7 @@ interface CheckoutModalProps {
 const CheckoutModal = (props: CheckoutModalProps) => {
   const [isRedirect, setIsRedirect] = useState(false);
   const dispatch = useDispatch();
-  const { products, error: productsError } = useSelector(
+  const { allProducts, error: productsError } = useSelector(
     (state: RootState) => state.products,
     shallowEqual
   );
@@ -32,6 +32,8 @@ const CheckoutModal = (props: CheckoutModalProps) => {
     (state: RootState) => state.currentUser,
     shallowEqual
   );
+
+  const products = allProducts.filter((product) => (product.name as string).includes("Referee Exam Fee"));
 
   const showLoader = isLoading || isRedirect;
   const hasPaidForAllCerts = (): boolean => {
