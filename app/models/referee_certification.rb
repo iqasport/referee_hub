@@ -22,9 +22,9 @@
 class RefereeCertification < ApplicationRecord
   FIELD_CERTIFICATION_ERROR = 'A Head Referee Certification is required before receiving a Field Certification'.freeze
   HEAD_CERTIFICATION_ERROR =
-    'Assistant, Snitch, and Scorekeeper Certifications are required before receiving a Head Referee Certification'.freeze
+    'Assistant, Flag, and Scorekeeper Certifications are required before receiving a Head Referee Certification'.freeze
   SNITCH_CERTIFICATION_ERROR =
-    'An Assistant Referee Certification is required before receiving a Snitch Certification'.freeze
+    'An Assistant Referee Certification is required before receiving a Flag Certification'.freeze
   CERTIFICATIONS_WITHOUT_PREREQS = %w[assistant scorekeeper].freeze
 
   belongs_to :certification

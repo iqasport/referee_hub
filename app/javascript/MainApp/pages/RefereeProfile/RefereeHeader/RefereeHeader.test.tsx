@@ -93,7 +93,7 @@ describe("RefereeHeader", () => {
   test("it renders certifications", () => {
     render(<RefereeHeader {...defaultProps} />);
 
-    screen.getByText("Snitch (Unknown)");
+    screen.getByText("Flag (Unknown)");
     screen.getByText("Assistant (Unknown)");
   });
 
@@ -127,7 +127,7 @@ describe("RefereeHeader", () => {
     test("it does not render certifications", () => {
       render(<RefereeHeader {...editProps} />);
 
-      expect(screen.queryByText("Snitch")).toBeNull();
+      expect(screen.queryByText("Flag")).toBeNull();
       expect(screen.queryByText("Assistant")).toBeNull();
     });
 

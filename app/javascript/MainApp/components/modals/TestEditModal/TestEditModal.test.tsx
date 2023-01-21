@@ -108,7 +108,7 @@ describe("TestEditModal", () => {
       const certElement = screen.getByPlaceholderText("Select the level");
       userEvent.selectOptions(certElement, ["snitch"]);
 
-      expect(certElement).toHaveDisplayValue("Snitch");
+      expect(certElement).toHaveDisplayValue("Flag");
     });
 
     it("enables the submit button after a change", () => {

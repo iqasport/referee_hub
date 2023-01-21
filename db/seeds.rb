@@ -168,7 +168,7 @@ end
 
 CERT_CONFIG = [
   {
-    display_name: 'Snitch Referee Certification',
+    display_name: 'Flag Referee Certification',
     level: :snitch
   },
   {

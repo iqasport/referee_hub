@@ -48,7 +48,7 @@ const RefereeStats = (props: RefereeStatsProps) => {
 
   const lineConfig = [
     { name: "Assistant", dataKey: "assistantRefereesCount", stroke: "#72BA6C" },
-    { name: "Snitch", dataKey: "snitchRefereesCount", stroke: "#C1EDBC" },
+    { name: "Flag", dataKey: "snitchRefereesCount", stroke: "#C1EDBC" },
     { name: "Head", dataKey: "headRefereesCount", stroke: "#286E20" },
   ];
 

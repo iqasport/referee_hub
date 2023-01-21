@@ -21,7 +21,7 @@ FactoryBot.define do
 
     trait :snitch do
       level { :snitch }
-      display_name { 'Snitch Referee Certification' }
+      display_name { 'Flag Referee Certification' }
     end
 
     trait :head do

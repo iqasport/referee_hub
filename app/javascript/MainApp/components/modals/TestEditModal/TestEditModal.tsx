@@ -174,7 +174,7 @@ const TestEditModal = (props: TestEditModalProps) => {
   const renderOption = (value: string) => {
     return (
       <option data-testid={value} key={value} value={value}>
-        {capitalize(value)}
+        {value === "snitch" ? "Flag" : capitalize(value)}
       </option>
     );
   };
@@ -191,7 +191,7 @@ const TestEditModal = (props: TestEditModalProps) => {
             className={classnames("form-input mt-1 block w-full", {
               "border border-red-500": hasError("name"),
             })}
-            placeholder="Snitch Referee Test"
+            placeholder="Flag Referee Test"
             name="name"
             onChange={handleChange}
             value={newTest.name}

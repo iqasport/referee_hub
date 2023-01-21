@@ -66,7 +66,7 @@ const RefereeHeader = (props: HeaderProps) => {
         key={`${certification.level}-${certification.version}`}
         className="bg-white text-green border border-green py-2 px-6 rounded mr-5 mt-4"
       >
-        {`${capitalize(certification.level)} (${getRefereeCertVersion(certification)})`}
+        {`${certification.level === "snitch" ? "Flag" : capitalize(certification.level)} (${getRefereeCertVersion(certification)})`}
       </div>
     ));
   };
