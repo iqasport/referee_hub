@@ -4,6 +4,7 @@ RSpec.describe Services::FindAvailableUserTests do
   let!(:user) { create :user }
   let!(:assistant_cert_eighteen) { create :certification }
   let!(:assistant_cert_twenty) { create :certification, version: 'twenty' }
+  let!(:assistant_cert_twentytwo) { create :certification, version: 'twentytwo' }
   let!(:snitch_cert_eighteen) { create :certification, :snitch }
   let!(:snitch_cert_twenty) { create :certification, :snitch, version: 'twenty' }
   let!(:head_cert_eighteen) { create :certification, :head }
@@ -130,8 +131,11 @@ RSpec.describe Services::FindAvailableUserTests do
   end
 
   context 'with recertification' do
-    let!(:recert_assistant) do
+    let!(:recert_assistant_twenty) do
       create :test, level: 'assistant', active: true, certification: assistant_cert_twenty, recertification: true
+    end
+    let!(:recert_assistant_twentytwo) do
+      create :test, level: 'assistant', active: true, certification: assistant_cert_twentytwo, recertification: true
     end
 
     it 'does not return the assistant recertification when ref has no certifications' do
@@ -140,10 +144,10 @@ RSpec.describe Services::FindAvailableUserTests do
         assistant_test_twenty.id,
         score_test_eighteen.id
       )
-      expect(subject.pluck(:id)).to_not include(recert_assistant.id)
+      expect(subject.pluck(:id)).to_not include(recert_assistant_twenty.id)
     end
 
-    context 'with an assistant certification' do
+    context 'with an assistant certification for eighteen' do
       let!(:test_attempt) do
         create(:test_attempt,
                test_level: 'assistant',
@@ -155,11 +159,31 @@ RSpec.describe Services::FindAvailableUserTests do
 
       before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
 
-      it 'returns the snitch eighteen and recert twenty' do
+      it 'returns the snitch eighteen and initial assistant twenty' do
         expect(subject.pluck(:id).length).to eq 3
-        expect(subject.pluck(:id)).to include(recert_assistant.id, snitch_test_eighteen.id)
+        expect(subject.pluck(:id)).to include(assistant_test_twenty.id, snitch_test_eighteen.id)
       end
     end
+
+    context 'with an assistant certification for twenty' do
+      let!(:test_attempt) do
+        create(:test_attempt,
+               test_level: 'assistant',
+               test: assistant_test_twenty,
+               referee: user,
+               created_at: 10.days.ago)
+      end
+      let!(:assistant_twenty) { create :referee_certification, referee: user, certification: assistant_cert_twenty }
+
+      before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
+
+      it 'returns the snitch eighteen and recert twentytwo' do
+        expect(subject.pluck(:id).length).to eq 3
+        expect(subject.pluck(:id)).to include(recert_assistant_twentytwo.id)
+        expect(subject.pluck(:id)).to include(snitch_test_twenty.id)
+      end
+    end
+
   end
 
   context 'when a user has selected a language' do

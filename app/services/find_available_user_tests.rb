@@ -106,7 +106,9 @@ module Services
         level_tests = potential_tests.where(level: level, id: valid_test_ids)
         recert_ids = level_tests.where(recertification: true).pluck(:id)
 
-        if certifications.where(level: level).exists?
+        # HACK: only check for certification of the previous rulebook
+        # TODO: make this generic in that you can recertify for N+1 version if you hold N
+        if certifications.where(level: level, version: 'twenty').exists?
           ids_to_remove = level_tests.pluck(:id).difference(recert_ids)
           test_ids.reject! { |id| ids_to_remove.include?(id) }
         else
