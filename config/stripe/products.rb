@@ -31,7 +31,7 @@ Stripe.product :head_twenty do |product|
 end
 
 Stripe.product :head_twentytwo do |product|
-  product.name = 'Head Referee Exam Fee (Rulebook 2022-2024)'
+  product.name = 'Head Referee Exam Fee (Rulebook 2022-2023)'
 
   product.type = 'service'
 end
