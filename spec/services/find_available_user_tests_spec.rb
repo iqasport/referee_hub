@@ -183,7 +183,6 @@ RSpec.describe Services::FindAvailableUserTests do
         expect(subject.pluck(:id)).to include(snitch_test_twenty.id)
       end
     end
-
   end
 
   context 'when a user has selected a language' do
