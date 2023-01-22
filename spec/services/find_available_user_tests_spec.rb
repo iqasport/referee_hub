@@ -132,6 +132,31 @@ RSpec.describe Services::FindAvailableUserTests do
     end
   end
 
+  context 'with too many test_attempts' do
+    let!(:test_attempts_1) do
+      create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user, created_at: 2.weeks.ago, next_attempt_at: 1.week.ago
+    end
+    let!(:test_attempts_2) do
+      create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user, created_at: 2.weeks.ago, next_attempt_at: 1.week.ago
+    end
+    let!(:test_attempts_3) do
+      create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user, created_at: 2.weeks.ago, next_attempt_at: 1.week.ago
+    end
+    let!(:test_attempts_4) do
+      create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user, created_at: 2.weeks.ago, next_attempt_at: 1.week.ago
+    end
+    let!(:test_attempts_5) do
+      create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user, created_at: 2.weeks.ago, next_attempt_at: 1.week.ago
+    end
+    let!(:test_attempts_6) do
+      create :test_attempt, test_level: 'assistant', test: assistant_test_eighteen, referee: user, created_at: 2.weeks.ago, next_attempt_at: 1.week.ago
+    end
+
+    it 'does not return the eighteen test' do
+      expect(subject.pluck(:id)).to_not include(assistant_test_eighteen.id)
+    end
+  end
+
   context 'with recertification' do
     let!(:recert_assistant_twenty) do
       create :test, level: 'assistant', active: true, certification: assistant_cert_twenty, recertification: true

@@ -107,6 +107,7 @@ module Services
           end
 
           next if test_attempts.where(test_id: t.id).order('created_at DESC').first&.in_cool_down_period?
+          next if test_attempts.where(test_id: t.id).length >= 6
 
           valid_test_ids.push(t.id)
         end
