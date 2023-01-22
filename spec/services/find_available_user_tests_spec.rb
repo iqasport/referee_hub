@@ -7,8 +7,10 @@ RSpec.describe Services::FindAvailableUserTests do
   let!(:assistant_cert_twentytwo) { create :certification, version: 'twentytwo' }
   let!(:snitch_cert_eighteen) { create :certification, :snitch }
   let!(:snitch_cert_twenty) { create :certification, :snitch, version: 'twenty' }
+  let!(:snitch_cert_twentytwo) { create :certification, :snitch, version: 'twentytwo' }
   let!(:head_cert_eighteen) { create :certification, :head }
   let!(:head_cert_twenty) { create :certification, :head, version: 'twenty' }
+  let!(:head_cert_twentytwo) { create :certification, :head, version: 'twentytwo' }
   let!(:score_cert_eighteen) { create :certification, :scorekeeper }
   let!(:assistant_test_eighteen) do
     create :test, level: 'assistant', active: true, certification: assistant_cert_eighteen, new_language_id: 1
@@ -164,6 +166,12 @@ RSpec.describe Services::FindAvailableUserTests do
     let!(:recert_assistant_twentytwo) do
       create :test, level: 'assistant', active: true, certification: assistant_cert_twentytwo, recertification: true
     end
+    let!(:recert_snitch_twentytwo) do
+      create :test, level: 'snitch', active: true, certification: snitch_cert_twentytwo, recertification: true
+    end
+    let!(:recert_head_twentytwo) do
+      create :test, level: 'head', active: true, certification: head_cert_twentytwo, recertification: true
+    end
 
     it 'does not return the assistant recertification when ref has no certifications' do
       expect(subject.pluck(:id)).to include(
@@ -224,6 +232,59 @@ RSpec.describe Services::FindAvailableUserTests do
         expect(subject.pluck(:id)).to include(snitch_test_twenty.id)
         expect(subject.pluck(:id)).to include(assistant_test_eighteen.id)
         expect(subject.pluck(:id)).to include(score_test_eighteen.id)
+      end
+    end
+
+    context 'with a snitch certification for twenty' do
+      let!(:test_attempt) do
+        create(:test_attempt,
+               test_level: 'snitch',
+               test: snitch_test_twenty,
+               referee: user,
+               created_at: 10.days.ago)
+      end
+      let!(:assistant_twenty) { create :referee_certification, referee: user, certification: assistant_cert_twenty }
+      let!(:snitch_twenty) { create :referee_certification, referee: user, certification: snitch_cert_twenty }
+      let!(:twenty_payment) { create :certification_payment, user: user, certification: head_cert_twenty }
+
+      before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
+
+      it 'returns the head twenty, initial certs for eighteen, and recert twentytwo' do
+        expect(subject.pluck(:id)).to include(recert_snitch_twentytwo.id)
+        expect(subject.pluck(:id)).to include(head_test_twenty.id)
+        expect(subject.pluck(:id)).to include(assistant_test_eighteen.id)
+        expect(subject.pluck(:id)).to include(score_test_eighteen.id)
+      end
+    end
+
+    context 'with a head certification for twenty' do
+      let!(:test_attempt) do
+        create(:test_attempt,
+               test_level: 'head',
+               test: head_test_twenty,
+               referee: user,
+               created_at: 10.days.ago)
+      end
+      let!(:head_twenty) { create :referee_certification, referee: user, certification: head_cert_twenty }
+
+      before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
+
+      context 'with payment' do
+        let!(:twentytwo_payment) { create :certification_payment, user: user, certification: head_cert_twentytwo }
+
+        it 'returns initial certs for eighteen, and recert twentytwo' do
+          expect(subject.pluck(:id)).to include(recert_head_twentytwo.id)
+          expect(subject.pluck(:id)).to include(assistant_test_eighteen.id)
+          expect(subject.pluck(:id)).to include(score_test_eighteen.id)
+        end
+      end
+
+      context 'without payment' do
+        it 'returns initial certs for eighteen, and no recert' do
+          expect(subject.pluck(:id)).to_not include(recert_head_twentytwo.id)
+          expect(subject.pluck(:id)).to include(assistant_test_eighteen.id)
+          expect(subject.pluck(:id)).to include(score_test_eighteen.id)
+        end
       end
     end
 

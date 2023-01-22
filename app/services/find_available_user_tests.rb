@@ -31,7 +31,8 @@ module Services
         end
       end
 
-      @potential_tests = potential_tests.where(certification_id: find_certification_ids(levels_to_return))
+      #HACK including recert tests
+      @potential_tests = potential_tests.where('certification_id IN (?) OR (certification_id IN (?) AND recertification = true)', find_certification_ids(levels_to_return), certification_ids_for_recertification)
       return get_tests if test_attempts.present?
 
       potential_tests.where(recertification: false)
@@ -85,12 +86,25 @@ module Services
       return nil
     end
 
+    def certification_ids_for_recertification
+      certs = Certification.all.where(version: 'twentytwo')
+      head_certs = certs.where(level: 'head')
+      if head_certs.exists? && !has_paid(head_certs.pluck(:id))
+        return certs.where.not(level: 'head').pluck(:id)
+      else
+        return certs.pluck(:id)
+      end
+    end
+    
     def find_certification_ids(levels_to_return)
       cert_ids = levels_to_return.map do |version, levels|
-        ids = Certification.all.where(version: version, level: levels).pluck(:id)
-        #TODO if condifition is not met, remove Head, not just skip, because it also skips scorekeeper potentially
-        next if levels.include?('head') && !has_paid(ids)
-
+        certs = Certification.all.where(version: version, level: levels)
+        head_certs = certs.where(level: 'head')
+        if head_certs.exists? && !has_paid(head_certs.pluck(:id))
+          ids = certs.where.not(level: 'head').pluck(:id)
+        else
+          ids = certs.pluck(:id)
+        end
         ids
       end
 
@@ -133,7 +147,8 @@ module Services
       # TODO: make this generic in that you can recertify for N+1 version if you hold N
 
       # get user certifications from last version (skipping SK)
-      user_certification_levels_from_last_version = user_certifications.where(version: 'twenty').where.not(level: 'scorekeeper').pluck(:level)
+      user_certifications_from_last_version = user_certifications.where(version: 'twenty').where.not(level: 'scorekeeper')
+      user_certification_levels_from_last_version = user_certifications_from_last_version.pluck(:level)
       # get list of attempts for latest recert tests
       latest_recert_tests = valid_tests.filter { |t| Certification.all.where(version: 'twentytwo').pluck(:id).include?(t.certification_id) && t.recertification == true }
       test_attempts_of_latest_recert_tests = test_attempts.where(test_id: latest_recert_tests.pluck(:id))
@@ -141,11 +156,11 @@ module Services
       if !user_certification_levels_from_last_version.blank? && test_attempts_of_latest_recert_tests.blank?
         highest_cert_from_last_version = determine_highest_eligible_cert(user_certification_levels_from_last_version)
         # only show the highest recert test
-        highest_recert_test = latest_recert_tests.filter { |t| t.level == highest_cert_from_last_version }.first
+        highest_recert_tests = latest_recert_tests.filter { |t| t.level == highest_cert_from_last_version }
         # older tests
         older_available_tests = valid_tests.filter { |t| !Certification.all.where(version: 'twentytwo').pluck(:id).include?(t.certification_id) && t.recertification == false }
         # return the highest recert test and any older tests
-        test_ids_to_return = [highest_recert_test.id] + older_available_tests.select { |t| t.id }
+        test_ids_to_return = (older_available_tests + highest_recert_tests).select { |t| t.id }
         return potential_tests.where(id: test_ids_to_return)
       end
 
