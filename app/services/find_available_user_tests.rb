@@ -59,15 +59,14 @@ module Services
       # map a function to get the highest certification obtained for each version
       highest_certifications = {}.tap do |highest_certifications_mut|
         certs_by_version.each do |version, certs|
-          highest_certifications_mut[version] = determine_highest_eligible_cert_to_return(certs)
+          highest_certifications_mut[version] = determine_highest_eligible_cert(certs.pluck(:level))
         end
       end
       highest_certifications
     end
 
-    def determine_highest_eligible_cert_to_return(certs)
+    def determine_highest_eligible_cert(cert_levels)
       cert_level_to_return = nil
-      cert_levels = certs.pluck(:level)
       if cert_levels.include?('head')
         cert = 'head'
       elsif cert_levels.include?('snitch')
@@ -98,11 +97,11 @@ module Services
       cert_ids.flatten
     end
 
-    def find_valid_test_ids
-      [].tap do |valid_test_ids|
+    def find_valid_tests
+      [].tap do |valid_tests|
         potential_tests.each do |t|
           if test_attempts.blank?
-            valid_test_ids.push(t.id)
+            valid_tests.push(t)
             next
           end
 
@@ -113,7 +112,7 @@ module Services
           # skip test if it's recertification and attempted already once
           next if t.recertification && test_attempts.where(test_id: t.id).length >= 1
 
-          valid_test_ids.push(t.id)
+          valid_tests.push(t)
         end
       end
     end
@@ -128,25 +127,29 @@ module Services
     end
 
     def get_tests
-      valid_test_ids = find_valid_test_ids
-      potential_levels = potential_tests.pluck(:level).uniq
-      test_ids = valid_test_ids
+      valid_tests = find_valid_tests
 
-      potential_levels.each do |level|
-        level_tests = potential_tests.where(level: level, id: valid_test_ids)
-        recert_ids = level_tests.where(recertification: true).pluck(:id)
+      # HACK: only check for certification of the previous rulebook
+      # TODO: make this generic in that you can recertify for N+1 version if you hold N
 
-        # HACK: only check for certification of the previous rulebook
-        # TODO: make this generic in that you can recertify for N+1 version if you hold N
-        if user_certifications.where(level: level, version: 'twenty').exists?
-          ids_to_remove = level_tests.pluck(:id).difference(recert_ids)
-          test_ids.reject! { |id| ids_to_remove.include?(id) }
-        else
-          test_ids.reject! { |id| recert_ids.include?(id) }
-        end
+      # get user certifications from last version (skipping SK)
+      user_certification_levels_from_last_version = user_certifications.where(version: 'twenty').where.not(level: 'scorekeeper').pluck(:level)
+      # get list of attempts for latest recert tests
+      latest_recert_tests = valid_tests.filter { |t| Certification.all.where(version: 'twentytwo').pluck(:id).include?(t.certification_id) && t.recertification == true }
+      test_attempts_of_latest_recert_tests = test_attempts.where(test_id: latest_recert_tests.pluck(:id))
+      # if user was certified previously and hasn't yet taken a recert test
+      if !user_certification_levels_from_last_version.blank? && test_attempts_of_latest_recert_tests.blank?
+        highest_cert_from_last_version = determine_highest_eligible_cert(user_certification_levels_from_last_version)
+        # only show the highest recert test
+        highest_recert_test = latest_recert_tests.filter { |t| t.level == highest_cert_from_last_version }.first
+        # older tests
+        older_available_tests = valid_tests.filter { |t| !Certification.all.where(version: 'twentytwo').pluck(:id).include?(t.certification_id) && t.recertification == false }
+        # return the highest recert test and any older tests
+        test_ids_to_return = [highest_recert_test.id] + older_available_tests.select { |t| t.id }
+        return potential_tests.where(id: test_ids_to_return)
       end
 
-      potential_tests.where(id: test_ids.flatten.uniq)
+      potential_tests.where(id: valid_tests.pluck(:id), recertification: false)
     end
   end
 end

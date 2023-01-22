@@ -219,10 +219,11 @@ RSpec.describe Services::FindAvailableUserTests do
 
       before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
 
-      it 'returns the snitch eighteen and recert twentytwo' do
-        expect(subject.pluck(:id).length).to eq 3
+      it 'returns the snitch twenty, initial certs for eighteen, and recert twentytwo' do
         expect(subject.pluck(:id)).to include(recert_assistant_twentytwo.id)
         expect(subject.pluck(:id)).to include(snitch_test_twenty.id)
+        expect(subject.pluck(:id)).to include(assistant_test_eighteen.id)
+        expect(subject.pluck(:id)).to include(score_test_eighteen.id)
       end
     end
 
