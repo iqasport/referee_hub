@@ -10,21 +10,23 @@ module Services
     end
 
     def perform
+      # filter active tests by the language
       @potential_tests = potential_tests.where(new_language_id: user.language_id) if filter_by_language?
-      if certifications.blank? && test_attempts.blank?
+      # fast path - if user has no record present them with any AR and SK tests
+      if user_certifications.blank? && test_attempts.blank?
         return potential_tests.where(level: %w[assistant scorekeeper], recertification: false)
       end
 
-      grouped_certs = certifications.group_by { |cert| cert.version }
       levels_to_return = {}.tap do |certs_to_return|
-        grouped_certs.each do |version, certs|
-          cert = determine_cert_to_return(certs, version)
-          certs_to_return[version] = [cert, 'scorekeeper'] if cert
-        end
-
-        potential_versions.each do |version|
-          if !certs_to_return[version] && !certifications.where(version: version, level: 'head').exists?
-            certs_to_return[version] = %w[assistant scorekeeper]
+        highest_certification_per_version.each do |version, highest_user_certification|
+          next_eligible_level = next_certification_level(highest_user_certification)
+          certs_to_return[version] = []
+          if next_eligible_level
+            certs_to_return[version].push(next_eligible_level)
+          end
+          # if user hasn't passed yet the SK test for this version, add it
+          if user_certifications.filter { |cert| cert.level == 'scorekeeper' && cert.version == version}.blank?
+            certs_to_return[version].push('scorekeeper')
           end
         end
       end
@@ -37,34 +39,57 @@ module Services
 
     private
 
-    def certifications
-      @certifications ||= user.certifications
+    def user_certifications
+      @user_certifications ||= user.certifications
     end
 
     def test_attempts
       @test_attempts ||= user.test_attempts
     end
 
-    def filter_by_level_and_version(certs, level, version)
-      certs.filter { |cert| cert.level == level && cert.version == version }
+    def highest_certification_per_version
+      # first get certifications of the user to pick the highest per version
+      user_certs_by_version = user_certifications.group_by { |cert| cert.version }
+      # then add missing versions with empty lists
+      certs_by_version = user_certs_by_version.tap do |certs_by_version|
+        certs_by_version["eighteen"] = [] if !certs_by_version.key?("eighteen")
+        certs_by_version["twenty"] = [] if !certs_by_version.key?("twenty")
+        certs_by_version["twentytwo"] = [] if !certs_by_version.key?("twentytwo")
+      end
+      # map a function to get the highest certification obtained for each version
+      highest_certifications = {}.tap do |highest_certifications_mut|
+        certs_by_version.each do |version, certs|
+          highest_certifications_mut[version] = determine_highest_eligible_cert_to_return(certs)
+        end
+      end
+      highest_certifications
     end
 
-    def determine_cert_to_return(certs, version)
-      cert = nil
-      if filter_by_level_and_version(certs, 'assistant', version).blank?
-        cert = 'assistant'
-      elsif filter_by_level_and_version(certs, 'snitch', version).blank?
-        cert = 'snitch'
-      elsif filter_by_level_and_version(certs, 'head', version).blank?
+    def determine_highest_eligible_cert_to_return(certs)
+      cert_level_to_return = nil
+      cert_levels = certs.pluck(:level)
+      if cert_levels.include?('head')
         cert = 'head'
+      elsif cert_levels.include?('snitch')
+        cert = 'snitch'
+      elsif cert_levels.include?('assistant')
+        cert = 'assistant'
       end
 
       cert
     end
 
+    def next_certification_level(level)
+      return 'assistant' if level.nil?
+      return 'snitch' if level == 'assistant'
+      return 'head' if level == 'snitch'
+      return nil
+    end
+
     def find_certification_ids(levels_to_return)
       cert_ids = levels_to_return.map do |version, levels|
         ids = Certification.all.where(version: version, level: levels).pluck(:id)
+        #TODO if condifition is not met, remove Head, not just skip, because it also skips scorekeeper potentially
         next if levels.include?('head') && !has_paid(ids)
 
         ids
@@ -108,7 +133,7 @@ module Services
 
         # HACK: only check for certification of the previous rulebook
         # TODO: make this generic in that you can recertify for N+1 version if you hold N
-        if certifications.where(level: level, version: 'twenty').exists?
+        if user_certifications.where(level: level, version: 'twenty').exists?
           ids_to_remove = level_tests.pluck(:id).difference(recert_ids)
           test_ids.reject! { |id| ids_to_remove.include?(id) }
         else

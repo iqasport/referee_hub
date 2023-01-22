@@ -70,7 +70,9 @@ RSpec.describe Services::FindAvailableUserTests do
     let!(:eighteen_payment) { create :certification_payment, user: user, certification: head_cert_eighteen }
 
     it 'returns the head test for one version and the assistant test for the other' do
-      expect(subject.pluck(:id)).to include(head_test_eighteen.id, assistant_test_twenty.id)
+      expect(subject.pluck(:id)).to include(head_test_eighteen.id)
+      expect(subject.pluck(:id)).to include(assistant_test_twenty.id)
+      expect(subject.pluck(:id).length).to eq 3 # with scorekeeper
     end
   end
 
