@@ -192,6 +192,21 @@ RSpec.describe Services::FindAvailableUserTests do
       end
     end
 
+    context 'with a recert assistant attempt for twenty' do
+      let!(:test_attempt) do
+        create(:test_attempt,
+               test_level: 'assistant',
+               test: recert_assistant_twenty,
+               referee: user,
+               created_at: 10.days.ago)
+      end
+      before { allow_any_instance_of(TestAttempt).to receive(:in_cool_down_period?).and_return(false) }
+
+      it 'does not return recert retry' do
+        expect(subject.pluck(:id)).to_not include(recert_assistant_twenty.id)
+      end
+    end
+
     context 'with an assistant certification for twenty' do
       let!(:test_attempt) do
         create(:test_attempt,

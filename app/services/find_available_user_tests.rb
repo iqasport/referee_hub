@@ -106,8 +106,12 @@ module Services
             next
           end
 
+          # skip test if in the cooldown period from an earlier attempt
           next if test_attempts.where(test_id: t.id).order('created_at DESC').first&.in_cool_down_period?
+          # skip test if attempted 6 times
           next if test_attempts.where(test_id: t.id).length >= 6
+          # skip test if it's recertification and attempted already once
+          next if t.recertification && test_attempts.where(test_id: t.id).length >= 1
 
           valid_test_ids.push(t.id)
         end
