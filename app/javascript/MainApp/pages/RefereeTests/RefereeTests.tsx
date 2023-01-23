@@ -60,6 +60,13 @@ const RefereeTests = (props: RouteComponentProps<IdParams>) => {
             </button>
           </div>
         </div>
+        <p>
+          Information: If you have previous certification for rulebook 2020-2022 you may see a recertification test.
+          There will be a single recertification test for the highest certification you received.
+          There's only 1 attempt at recertification. Passing will grant you all previously held certifications.
+          If you've previously held HR certification but feel you want to recertify for AR or SR only, please contact the IQA.
+          After a failed attempt at recertification, initial certification tests for rulebook 2022-2023 will be shown.
+        </p>
         <RefereeTestsTable refId={refereeId} />
       </div>
       <CheckoutModal open={checkoutOpen} refId={refereeId} onClose={handleCheckoutClose} />
