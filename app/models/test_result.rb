@@ -40,10 +40,37 @@ class TestResult < ApplicationRecord
 
   def update_referee_certification_status
     if passed
-      ref_certification = RefereeCertification.find_or_create_by!(certification: test.certification, referee: referee)
-      datetime_key = ref_certification.received_at.blank? ? 'received_at' : 'renewed_at'
+      if test.recertification
+        levels = []
+        if test.level == 'assistant' || test.level == 'snitch' || test.level == 'head'
+          certification = Certification.all.where(level: 'assistant', version: test.certification.version).first
+          ref_certification = RefereeCertification.find_or_create_by!(certification: certification, referee: referee)
+          datetime_key = ref_certification.received_at.blank? ? 'received_at' : 'renewed_at'
 
-      update_certification(ref_certification, datetime_key)
+          update_certification(ref_certification, datetime_key)
+        end
+        if test.level == 'snitch' || test.level == 'head'
+          certification = Certification.all.where(level: 'snitch', version: test.certification.version).first
+          ref_certification = RefereeCertification.find_or_create_by!(certification: certification, referee: referee)
+          datetime_key = ref_certification.received_at.blank? ? 'received_at' : 'renewed_at'
+
+          update_certification(ref_certification, datetime_key)
+
+        end
+        if test.level == 'head'
+          certification = Certification.all.where(level: 'head', version: test.certification.version).first
+          ref_certification = RefereeCertification.find_or_create_by!(certification: certification, referee: referee)
+          datetime_key = ref_certification.received_at.blank? ? 'received_at' : 'renewed_at'
+
+          update_certification(ref_certification, datetime_key)
+
+        end
+      else
+        ref_certification = RefereeCertification.find_or_create_by!(certification: test.certification, referee: referee)
+        datetime_key = ref_certification.received_at.blank? ? 'received_at' : 'renewed_at'
+
+        update_certification(ref_certification, datetime_key)
+      end
     else
       ref_certification = RefereeCertification.find_by(certification: test.certification, referee: referee)
       datetime_key = 'revoked_at'

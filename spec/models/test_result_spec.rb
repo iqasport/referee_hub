@@ -80,4 +80,48 @@ RSpec.describe TestResult, type: :model do
 
     it { expect(subject).to be_truthy }
   end
+
+  context 'when test is passed and a recertification' do
+    let!(:assistant_cert) { create :certification, version: :twentytwo, level: :assistant }
+    let!(:snitch_cert) { create :certification, version: :twentytwo, level: :snitch }
+    let!(:head_cert) { create :certification, version: :twentytwo, level: :head }
+
+    context 'when level is assistant' do
+      let!(:test) { create :test, certification_id: assistant_cert.id, recertification: true, level: 'assistant' }
+      it 'awards AR cert' do
+        subject
+        cert = referee.reload.certifications.last
+        expect(cert.level).to eq 'assistant'
+        expect(cert.version).to eq 'twentytwo'
+      end
+    end
+
+    context 'when level is snitch' do
+      let!(:test) { create :test, certification_id: snitch_cert.id, recertification: true, level: 'snitch' }
+      let(:test_result) { build :test_result, referee: referee, test_level: :snitch, test: test }
+      it 'awards AR,SR cert' do
+        subject
+        certs = referee.reload.certifications.last(2)
+        expect(certs[0].level).to eq 'snitch'
+        expect(certs[0].version).to eq 'twentytwo'
+        expect(certs[1].level).to eq 'assistant'
+        expect(certs[1].version).to eq 'twentytwo'
+      end
+    end
+
+    context 'when level is head' do
+      let!(:test) { create :test, certification_id: head_cert.id, recertification: true, level: 'head' }
+      let(:test_result) { build :test_result, referee: referee, test_level: :head, test: test }
+      it 'awards AR,SR,HR cert' do
+        subject
+        certs = referee.reload.certifications.last(3)
+        expect(certs[0].level).to eq 'head'
+        expect(certs[0].version).to eq 'twentytwo'
+        expect(certs[1].level).to eq 'assistant'
+        expect(certs[1].version).to eq 'twentytwo'
+        expect(certs[2].level).to eq 'snitch'
+        expect(certs[2].version).to eq 'twentytwo'
+      end
+    end
+  end
 end
