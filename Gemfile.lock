@@ -480,6 +480,7 @@ DEPENDENCIES
   json (~> 2.3)
   listen (>= 3.0.5, < 3.2)
   loofah (>= 2.2.3)
+  mini_portile2 (= 2.8.0)
   paperclip (~> 6.0.0)
   pg (>= 0.18, < 2.0)
   pre-commit

@@ -56,6 +56,7 @@ gem 'stripe-rails', '>= 1.10.1'
 # file storage and aws
 gem 'aws-sdk-s3', '~> 1'
 gem 'paperclip', '~> 6.0.0'
+gem 'mini_portile2', '2.8.0' # force inclusion of the dependency of paperclip
 gem 'fog-aws'
 
 # feature flippers
