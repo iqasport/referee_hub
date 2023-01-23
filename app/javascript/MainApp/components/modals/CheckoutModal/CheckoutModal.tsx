@@ -33,7 +33,7 @@ const CheckoutModal = (props: CheckoutModalProps) => {
     shallowEqual
   );
 
-  const products = allProducts.filter((product) => (product.name as string).includes("Referee Exam Fee"));
+  const products = (allProducts || []).filter((product) => (product.name as string).includes("Referee Exam Fee"));
 
   const showLoader = isLoading || isRedirect;
   const hasPaidForAllCerts = (): boolean => {
