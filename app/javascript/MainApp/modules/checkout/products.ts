@@ -20,7 +20,8 @@ const products = createSlice({
   reducers: {
     getProductsSuccess(state: ProductsState, action: PayloadAction<ProductsResponse>) {
       state.error = null;
-      state.products = action.payload.products;
+      // filter the products to only include Head Referee Exam Fee ones
+      state.products = action.payload.products.filter(p => p.name.startsWith("Head"));
     },
     getProductsFailure(state: ProductsState, action: PayloadAction<string>) {
       state.error = action.payload;
