@@ -6,6 +6,7 @@ module Api
       before_action :find_test, only: %i[update show destroy start finish import]
       before_action :verify_valid_cool_down, only: :start
       before_action :verify_valid_tries, only: :start
+      before_action :verify_eligibility, only: :start
       skip_before_action :verify_authenticity_token
 
       layout false
@@ -14,6 +15,8 @@ module Api
 
       INVALID_TEST_ATTEMPT =
         'This test is unavailable for you to take currently, please try again in'.freeze
+
+      USER_NOT_ELIGIBLE = 'You are currently not eligible to take this test'.freeze
 
       INVALID_TRY_COUNT = 'This test is no longer available to you due to hitting the maximum amount of tries'.freeze
 
@@ -148,6 +151,15 @@ module Api
 
       def find_test
         @test = Test.find_by(id: params[:id])
+      end
+
+      def verify_eligibility
+        eligible_tests = current_user.available_tests
+        
+        # check if user is eligible to take the current test
+        return true unless eligible_tests.pluck(:id).filter { |test_id| test_id == @test.id }.blank?
+        
+        render json: { error: USER_NOT_ELIGIBLE }, status: :unauthorized
       end
 
       def referee_test_attempts

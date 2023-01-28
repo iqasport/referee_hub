@@ -168,7 +168,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
   describe 'GET #start' do
     let(:tester_ref) { create :user }
     let(:question_count) { 2 }
-    let(:test) { create :test, testable_question_count: question_count, certification: assistant }
+    let(:test) { create :test, testable_question_count: question_count, certification: assistant, level: "assistant", active: true }
     let!(:questions) { create_list(:question, 5, test: test) }
     let(:body_data) { { id: test.id } }
 
@@ -264,7 +264,7 @@ RSpec.describe Api::V1::TestsController, type: :controller do
 
   describe 'POST #finish' do
     let(:tester_ref) { create :user }
-    let(:test) { create :test, certification_id: snitch.id }
+    let(:test) { create :test, certification_id: snitch.id, level: "snitch", active: true }
     let(:questions) { create_list(:question, 5, test: test) }
     let(:started_at) { Time.now.utc }
     let(:finished_at) { Time.now.utc + 15.minutes }
