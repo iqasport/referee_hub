@@ -155,10 +155,10 @@ module Api
 
       def verify_eligibility
         eligible_tests = current_user.available_tests
-        
+
         # check if user is eligible to take the current test
         return true unless eligible_tests.pluck(:id).filter { |test_id| test_id == @test.id }.blank?
-        
+
         render json: { error: USER_NOT_ELIGIBLE }, status: :unauthorized
       end
 

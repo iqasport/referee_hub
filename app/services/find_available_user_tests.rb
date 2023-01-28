@@ -21,9 +21,7 @@ module Services
         highest_certification_per_version.each do |version, highest_user_certification|
           next_eligible_level = next_certification_level(highest_user_certification)
           certs_to_return[version] = []
-          if next_eligible_level
-            certs_to_return[version].push(next_eligible_level)
-          end
+          certs_to_return[version].push(next_eligible_level) if next_eligible_level
           # if user hasn't passed yet the SK test for this version, add it
           if user_certifications.filter { |cert| cert.level == 'scorekeeper' && cert.version == version}.blank?
             certs_to_return[version].push('scorekeeper')
@@ -31,7 +29,7 @@ module Services
         end
       end
 
-      #HACK including recert tests
+      # HACK: including recert tests
       @potential_tests = potential_tests.where('certification_id IN (?) OR (certification_id IN (?) AND recertification = true)', find_certification_ids(levels_to_return), certification_ids_for_recertification)
       return get_tests if test_attempts.present?
 
@@ -53,17 +51,16 @@ module Services
       user_certs_by_version = user_certifications.group_by { |cert| cert.version }
       # then add missing versions with empty lists
       certs_by_version = user_certs_by_version.tap do |certs_by_version|
-        certs_by_version["eighteen"] = [] if !certs_by_version.key?("eighteen")
-        certs_by_version["twenty"] = [] if !certs_by_version.key?("twenty")
-        certs_by_version["twentytwo"] = [] if !certs_by_version.key?("twentytwo")
+        certs_by_version['eighteen'] = [] unless certs_by_version.key?('eighteen')
+        certs_by_version['twenty'] = [] unless certs_by_version.key?('twenty')
+        certs_by_version['twentytwo'] = [] unless certs_by_version.key?('twentytwo')
       end
       # map a function to get the highest certification obtained for each version
-      highest_certifications = {}.tap do |highest_certifications_mut|
+      {}.tap do |highest_certifications_mut|
         certs_by_version.each do |version, certs|
           highest_certifications_mut[version] = determine_highest_eligible_cert(certs.pluck(:level))
         end
       end
-      highest_certifications
     end
 
     def determine_highest_eligible_cert(cert_levels)
@@ -83,28 +80,27 @@ module Services
       return 'assistant' if level.nil?
       return 'snitch' if level == 'assistant'
       return 'head' if level == 'snitch'
-      return nil
+
+      nil
     end
 
     def certification_ids_for_recertification
       certs = Certification.all.where(version: 'twentytwo')
       head_certs = certs.where(level: 'head')
-      if head_certs.exists? && !has_paid(head_certs.pluck(:id))
-        return certs.where.not(level: 'head').pluck(:id)
-      else
-        return certs.pluck(:id)
-      end
+      return certs.where.not(level: 'head').pluck(:id) if head_certs.exists? && !has_paid(head_certs.pluck(:id))
+
+      certs.pluck(:id)
     end
-    
+
     def find_certification_ids(levels_to_return)
       cert_ids = levels_to_return.map do |version, levels|
         certs = Certification.all.where(version: version, level: levels)
         head_certs = certs.where(level: 'head')
-        if head_certs.exists? && !has_paid(head_certs.pluck(:id))
-          ids = certs.where.not(level: 'head').pluck(:id)
-        else
-          ids = certs.pluck(:id)
-        end
+        ids = if head_certs.exists? && !has_paid(head_certs.pluck(:id))
+                certs.where.not(level: 'head').pluck(:id)
+              else
+                certs.pluck(:id)
+              end
         ids
       end
 
@@ -122,7 +118,9 @@ module Services
           # skip test if in the cooldown period from an earlier attempt
           next if test_attempts.where(test_id: t.id).order('created_at DESC').first&.in_cool_down_period?
           # skip test if attempted 6 times
-          next if test_attempts.where(test_id: t.id).where('created_at > ?', 1.month.ago).length >= Test::MAXIMUM_RETRIES
+          if test_attempts.where(test_id: t.id).where('created_at > ?', 1.month.ago).length >= Test::MAXIMUM_RETRIES
+            next
+          end
           # skip test if it's recertification and attempted already once
           next if t.recertification && test_attempts.where(test_id: t.id).length >= 1
 
