@@ -1,7 +1,5 @@
 using System.Net.Http;
-
-using ManagementHub.Models;
-
+using ManagementHub.Models.Data;
 using Microsoft.Extensions.Logging;
 
 using Service.API.Test.WebsiteClient;
@@ -34,7 +32,7 @@ public class UnitTest1
 	public async void Test2()
 	{
 		var requestBuilder = new RequestBuilder(httpClientFactory, logger).AsReferee();
-		var result = await requestBuilder.GetModelListAsync<ManagementHub.Models.Test>("/api/v1/tests");
+		var result = await requestBuilder.GetModelListAsync<ManagementHub.Models.Data.Test>("/api/v1/tests");
 		Assert.NotNull(result);
 	}
 

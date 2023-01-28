@@ -9,8 +9,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using ManagementHub.Models;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Web;
 
 namespace Service.API.Test.WebsiteClient;
@@ -169,7 +169,7 @@ public static class ResponseSerializerExtensions
 		["role"] = typeof(Role),
 		["socialAccount"] = typeof(SocialAccount),
 		["team"] = typeof(Team),
-		["test"] = typeof(ManagementHub.Models.Test),
+		["test"] = typeof(ManagementHub.Models.Data.Test),
 		["testAttempt"] = typeof(TestAttempt),
 		["testResult"] = typeof(TestResult),
 	};

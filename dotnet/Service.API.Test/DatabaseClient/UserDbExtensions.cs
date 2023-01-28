@@ -4,6 +4,7 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using ManagementHub.Models.Data;
 
 namespace ManagementHub.Models.Web
 {

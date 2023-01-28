@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using ManagementHub.Models;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Enums;
 using ManagementHub.Models.Web;
 using Microsoft.Extensions.Logging;

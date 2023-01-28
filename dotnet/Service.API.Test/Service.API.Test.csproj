@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../ManagementHub.Models/ManagementHub.Models.csproj" />
+    <ProjectReference Include="..\ManagementHub.Storage\ManagementHub.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>
