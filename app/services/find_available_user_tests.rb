@@ -141,30 +141,30 @@ module Services
     end
 
     def get_tests
-      valid_tests = find_valid_tests
+      valid_tests = potential_tests.where(id: find_valid_tests.pluck(:id))
 
       # HACK: only check for certification of the previous rulebook
       # TODO: make this generic in that you can recertify for N+1 version if you hold N
 
+      latest_certifications = Certification.all.where(version: 'twentytwo')
       # get user certifications from last version (skipping SK)
       user_certifications_from_last_version = user_certifications.where(version: 'twenty').where.not(level: 'scorekeeper')
       user_certification_levels_from_last_version = user_certifications_from_last_version.pluck(:level)
       # get list of attempts for latest recert tests
-      latest_recert_tests = valid_tests.filter { |t| Certification.all.where(version: 'twentytwo').pluck(:id).include?(t.certification_id) && t.recertification == true }
+      latest_recert_tests = Test.active.where(certification_id: latest_certifications.pluck(:id), recertification: true)
       test_attempts_of_latest_recert_tests = test_attempts.where(test_id: latest_recert_tests.pluck(:id))
+      highest_cert_from_last_version = determine_highest_eligible_cert(user_certification_levels_from_last_version)
       # if user was certified previously and hasn't yet taken a recert test
-      if !user_certification_levels_from_last_version.blank? && test_attempts_of_latest_recert_tests.blank?
-        highest_cert_from_last_version = determine_highest_eligible_cert(user_certification_levels_from_last_version)
+      if !user_certification_levels_from_last_version.blank? && test_attempts_of_latest_recert_tests.blank? && (highest_cert_from_last_version != 'head' || has_paid(latest_certifications.where(level: 'head').pluck(:id)))
         # only show the highest recert test
-        highest_recert_tests = latest_recert_tests.filter { |t| t.level == highest_cert_from_last_version }
+        highest_recert_tests = latest_recert_tests.where(level: highest_cert_from_last_version)
         # older tests
-        older_available_tests = valid_tests.filter { |t| !Certification.all.where(version: 'twentytwo').pluck(:id).include?(t.certification_id) && t.recertification == false }
+        older_available_tests = valid_tests.where.not(certification_id: latest_certifications.pluck(:id)).where(recertification: false)
         # return the highest recert test and any older tests
-        test_ids_to_return = (older_available_tests + highest_recert_tests).map { |t| t.id }
-        return potential_tests.where(id: test_ids_to_return)
+        return highest_recert_tests + older_available_tests
       end
 
-      potential_tests.where(id: valid_tests.pluck(:id), recertification: false)
+      valid_tests.where(recertification: false)
     end
   end
 end
