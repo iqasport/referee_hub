@@ -160,7 +160,7 @@ module Services
         # older tests
         older_available_tests = valid_tests.filter { |t| !Certification.all.where(version: 'twentytwo').pluck(:id).include?(t.certification_id) && t.recertification == false }
         # return the highest recert test and any older tests
-        test_ids_to_return = (older_available_tests + highest_recert_tests).select { |t| t.id }
+        test_ids_to_return = (older_available_tests + highest_recert_tests).map { |t| t.id }
         return potential_tests.where(id: test_ids_to_return)
       end
 
