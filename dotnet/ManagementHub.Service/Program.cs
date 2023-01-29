@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ManagementHub.Service.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -8,21 +9,32 @@ public static class Program
     public static void Main(string[] args)
     {
 		var builder = new WebHostBuilder()
-			.ConfigureAppConfiguration(builder => builder.Add(KnownEnvironmentVariablesConfigurationProvider.Source))
+			.ConfigureAppConfiguration((context, builder) => 
+			{
+				// configuration order matters - the last provider overrides the previous ones
+
+				// add appsettings.json and appsettings.<env>.json
+				builder.AddJsonFile(ConfigurationConstants.AppSettingsFileName, optional: false, reloadOnChange: true);
+				builder.AddJsonFile(
+					string.Format(ConfigurationConstants.AppSettingsEnvFileNameFormat, context.HostingEnvironment.EnvironmentName),
+					optional: false, reloadOnChange: true);
+
+				// add configuration specified with custom environment variables (e.g. in production by Heroku)
+				builder.Add(KnownEnvironmentVariablesConfigurationProvider.Source);
+			})
 			.UseKestrel((context, options) =>
 			{
 				// load kestrel configuration from the "Hosting" section in appsettings.json
-				options.Configure(context.Configuration.GetSection("Hosting"));
+				options.Configure(context.Configuration.GetSection(ConfigurationConstants.HostingSection));
 			})
 			.ConfigureServices(ConfigureServices)
 			.ConfigureServices(ConfigureWebServices)
-			.Configure(ConfigureWebApp)
-			.UseStartup<Startup>();
+			.Configure(ConfigureWebApp);
 
         var app = builder.Build();
 
         app.Run();
-    }
+	}
 
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
 	{

@@ -16,7 +16,9 @@
 
 			if (string.IsNullOrWhiteSpace(HttpHostingPort))
 			{
-				this.Data.Add("Hosting:Endpoints:Http:Url", $"http://localhost:{HttpHostingPort}");
+				this.Data.Add(
+					$"{ConfigurationConstants.HostingSection}:Endpoints:Http:Url",
+					$"http://localhost:{HttpHostingPort}");
 			}
 		}
 
