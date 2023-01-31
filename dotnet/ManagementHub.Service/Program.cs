@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ManagementHub.Service.Configuration;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ManagementHub.Service;
@@ -8,25 +9,8 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-		var builder = new WebHostBuilder()
-			.ConfigureAppConfiguration((context, builder) => 
-			{
-				// configuration order matters - the last provider overrides the previous ones
-
-				// add appsettings.json and appsettings.<env>.json
-				builder.AddJsonFile(ConfigurationConstants.AppSettingsFileName, optional: false, reloadOnChange: true);
-				builder.AddJsonFile(
-					string.Format(ConfigurationConstants.AppSettingsEnvFileNameFormat, context.HostingEnvironment.EnvironmentName),
-					optional: false, reloadOnChange: true);
-
-				// add configuration specified with custom environment variables (e.g. in production by Heroku)
-				builder.Add(KnownEnvironmentVariablesConfigurationProvider.Source);
-			})
-			.UseKestrel((context, options) =>
-			{
-				// load kestrel configuration from the "Hosting" section in appsettings.json
-				options.Configure(context.Configuration.GetSection(ConfigurationConstants.HostingSection));
-			})
+		var builder = WebHost.CreateDefaultBuilder(args)
+			.ConfigureAppConfiguration(BuildConfiguration)
 			.ConfigureServices(ConfigureServices)
 			.ConfigureServices(ConfigureWebServices)
 			.Configure(ConfigureWebApp);
@@ -34,6 +18,16 @@ public static class Program
         var app = builder.Build();
 
         app.Run();
+	}
+
+	private static void BuildConfiguration(WebHostBuilderContext context, IConfigurationBuilder builder)
+	{
+		// configuration order matters - the last provider overrides the previous ones
+
+		// appsettings.json and appsettings.<env>.json are added via WebHost.CreateDefaultBuilder()
+
+		// add configuration specified with custom environment variables (e.g. in production by Heroku)
+		builder.Add(KnownEnvironmentVariablesConfigurationProvider.Source);
 	}
 
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)

@@ -14,7 +14,7 @@
 		{
 			// For each custom environment variable we check if it's set and apply it onto Data property
 
-			if (string.IsNullOrWhiteSpace(HttpHostingPort))
+			if (!string.IsNullOrWhiteSpace(HttpHostingPort))
 			{
 				this.Data.Add(
 					$"{ConfigurationConstants.HostingSection}:Endpoints:Http:Url",

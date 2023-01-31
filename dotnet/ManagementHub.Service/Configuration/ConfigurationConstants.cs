@@ -5,7 +5,7 @@ public static class ConfigurationConstants
     /// <summary>
     /// Name of the configuration section for Kestrel.
     /// </summary>
-    public const string HostingSection = "Hosting";
+    public const string HostingSection = "Kestrel";
 
     public const string AppSettingsFileName = "appsettings.json";
 
