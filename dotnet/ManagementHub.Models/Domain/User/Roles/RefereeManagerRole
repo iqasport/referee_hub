@@ -1,0 +1,14 @@
+using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Domain.Ngb;
+
+namespace ManagementHub.Models.Domain.User.Roles;
+
+/// <summary>
+/// Role that allows a person to manage referees that match the NgbConstraint.
+/// Allows disactivating referees, approve verification requests.
+/// </summary>
+public class RefereeManagerRole : IUserRole
+{
+    public RefereeManagerRole(NgbConstraint ngb) => this.Ngb = ngb;
+    public NgbConstraint Ngb { get; set; }
+}

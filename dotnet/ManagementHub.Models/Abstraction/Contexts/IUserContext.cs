@@ -5,25 +5,9 @@ namespace ManagementHub.Models.Abstraction.Contexts;
 
 public interface IUserContext
 {
-    /// <summary>
-    /// Identifier of the user.
-    /// </summary>
     UserIdentifier UserId { get; }
 
-    /// <summary>
-    /// Email of the user.
-    /// </summary>
-    string Email { get; }
-
-    string FirstName { get; }
-
-    string LastName { get; }
-
-    string Bio { get; }
-
-    string Pronouns { get; }
-
-    bool ShowPronouns { get; }
+    UserData UserData { get; }
 
     ModificationTimestamp ModificationTimestamp { get; }
 
