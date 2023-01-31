@@ -612,7 +612,7 @@ body{background-color:#2b343f}.logo a:hover,.logo a:focus{color:#7096b5 !importa
                       <td class="child-cell"><%= ref_answer.correct? ? "Correct" : "Incorrect" %></td>
                       <td class="child-cell">
                         <% unless ref_answer.correct? %>
-                          <%= ref_answer.question.feedback.html_safe %>
+                          <%= ref_answer.question.feedback&.html_safe %>
                         <% end %>
                       </td>
                     </tr>
