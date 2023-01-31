@@ -1,7 +1,6 @@
-﻿namespace ManagementHub.Models.Abstraction
+﻿namespace ManagementHub.Models.Abstraction;
+
+public interface IIdentifiable
 {
-	public interface IIdentifiable
-	{
-		public long Id { get; set; }
-	}
+	public long Id { get; }
 }
