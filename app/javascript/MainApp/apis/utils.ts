@@ -27,3 +27,5 @@ export const baseAxios = axios.create({
     },
   ],
 });
+
+baseAxios.interceptors.response.use(success => success, error => Promise.reject(`${error.response.statusText}: ${error.response.data.error}`))

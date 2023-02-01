@@ -1,4 +1,4 @@
-import { faCheckSquare, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { faCheckSquare, faEdit, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { shuffle } from "lodash";
 import { DateTime, Duration } from "luxon";
@@ -87,6 +87,8 @@ const StartTest = (props: RouteComponentProps<TestParams>) => {
     (state: RootState) => state.questions,
     shallowEqual
   );
+
+  const error = testError || questionsError;
 
   useEffect(() => {
     if (!test || test.id !== testId) {
@@ -279,6 +281,12 @@ const StartTest = (props: RouteComponentProps<TestParams>) => {
       className="text-center flex flex-col justify-between my-8 mx-auto w-2/3"
       style={{ minHeight: "450px" }}
     >
+      {error &&
+        <span className="border border-red-500">
+          <FontAwesomeIcon icon={faExclamationCircle} size="1x" className="text-red-500" />
+          &nbsp;
+          {error}
+        </span>}
       {renderMainContent()}
       {renderButtons()}
     </div>
