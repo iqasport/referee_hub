@@ -163,7 +163,7 @@ module Api
       end
 
       def referee_test_attempts
-        @referee_test_attempts ||= current_user.test_attempts.send(@test.level).order(created_at: :desc)
+        @referee_test_attempts ||= current_user.test_attempts.where(test_id: @test.id).order(created_at: :desc)
       end
 
       def verify_valid_cool_down
