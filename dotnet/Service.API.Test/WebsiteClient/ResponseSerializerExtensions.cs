@@ -85,7 +85,8 @@ public static class ResponseSerializerExtensions
 		var obj = JsonSerializer.Deserialize(serializedAttributes, data.GetDataType(), serializerOptions);
 		if (obj is IIdentifiable identifiable)
 		{
-			identifiable.Id = data.id;
+			// TODO: fix this
+			//identifiable.Id = data.id;
 		}
 
 		return obj;

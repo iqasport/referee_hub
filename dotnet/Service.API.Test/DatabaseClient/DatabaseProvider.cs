@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.Threading.Tasks;
-using ManagementHub.Models.Context;
+using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
