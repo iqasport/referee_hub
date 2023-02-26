@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using ManagementHub.Service.Configuration;
+using ManagementHub.Storage.DependencyInjection;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -32,7 +32,7 @@ public static class Program
 
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
 	{
-
+		services.AddManagementHubStorage();
 	}
 
 	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)

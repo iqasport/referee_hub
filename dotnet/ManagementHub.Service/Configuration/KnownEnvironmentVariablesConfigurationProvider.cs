@@ -17,7 +17,7 @@
 			if (!string.IsNullOrWhiteSpace(HttpHostingPort))
 			{
 				this.Data.Add(
-					$"{ConfigurationConstants.HostingSection}:Endpoints:Http:Url",
+					$"Kestrel:Endpoints:Http:Url",
 					$"http://localhost:{HttpHostingPort}");
 			}
 		}
