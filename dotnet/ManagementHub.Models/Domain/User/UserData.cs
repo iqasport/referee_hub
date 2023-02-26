@@ -1,3 +1,5 @@
+using ManagementHub.Models.Domain.General;
+
 namespace ManagementHub.Models.Domain.User;
 
 /// <summary>
@@ -5,14 +7,14 @@ namespace ManagementHub.Models.Domain.User;
 /// </summary>
 public class UserData
 {
-    public UserData(string email, string firstName, string lastName)
+    public UserData(Email email, string firstName, string lastName)
     {
         this.Email = email;
         this.FirstName = firstName;
         this.LastName = lastName;
     }
 
-    public string Email { get; }
+    public Email Email { get; }
 
     public string FirstName { get; }
 

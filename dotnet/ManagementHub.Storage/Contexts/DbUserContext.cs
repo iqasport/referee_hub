@@ -1,6 +1,7 @@
 using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
@@ -45,7 +46,7 @@ internal class DbUserContextFactory
 		this.logger.LogInformation(0, "Loading user context for user ({userId}).", userId);
 		// TODO: optimize it later into a database level view
 		var userData = await this.users.Where(user => user.Id == userId.Id)
-			.Select(user => new UserData(user.Email, user.FirstName ?? string.Empty, user.LastName ?? string.Empty)
+			.Select(user => new UserData(new Email(user.Email), user.FirstName ?? string.Empty, user.LastName ?? string.Empty)
 			{
 				Bio = user.Bio ?? string.Empty,
 				Pronouns = user.Pronouns ?? string.Empty,
@@ -59,6 +60,8 @@ internal class DbUserContextFactory
 		{
 			roles.AddRange(await this.ConvertFromDbRoleAsync(dbRole, cancellationToken));
 		}
+
+		this.logger.LogInformation(0, "Returning user context with roles: {roles}.", string.Join(", ", roles));
 
 		return new DbUserContext(userId, userData, roles);
 	}
