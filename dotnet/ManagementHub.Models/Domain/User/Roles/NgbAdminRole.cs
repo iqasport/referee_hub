@@ -6,8 +6,6 @@ namespace ManagementHub.Models.Domain.User.Roles;
 /// <summary>
 /// Role that allows a person to manage everything associated with that Ngb.
 /// </summary>
-public class NgbAdminRole : IUserRole
+public record NgbAdminRole(NgbConstraint Ngb) : IUserRole
 {
-    public NgbAdminRole(NgbConstraint ngb) => this.Ngb = ngb;
-    public NgbConstraint Ngb { get; set; }
 }
