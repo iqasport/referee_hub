@@ -12,11 +12,11 @@ using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts;
 
-internal record class DbUserContext(UserIdentifier UserId, UserData UserData, IEnumerable<IUserRole> Roles) : IUserContext
+public record class DbUserContext(UserIdentifier UserId, UserData UserData, IEnumerable<IUserRole> Roles) : IUserContext
 {
 }
 
-internal class DbUserContextFactory
+public class DbUserContextFactory
 {
 	private readonly IQueryable<User> users;
 	private readonly IQueryable<Role> roles;

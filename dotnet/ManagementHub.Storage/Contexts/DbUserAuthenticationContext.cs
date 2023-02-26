@@ -7,18 +7,18 @@ using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts;
 
-internal record DbUserAuthenticationContext(UserIdentifier UserId, UserPassword UserPassword) : IUserAuthenticationContext
+public record DbUserAuthenticationContext(UserIdentifier UserId, UserPassword UserPassword) : IUserAuthenticationContext
 {
 }
 
-internal class DbUserAuthenticationContextFactory
+public class DbUserAuthenticationContextFactory
 {
 	private readonly IQueryable<User> users;
 	private readonly ILogger<DbUserContextFactory> logger;
 
 	public DbUserAuthenticationContextFactory(
 		IQueryable<User> users,
-		ILogger<DbUserContextFactory> logger)
+		ILogger<DbUserAuthenticationContextFactory> logger)
 	{
 		this.users = users;
 		this.logger = logger;
