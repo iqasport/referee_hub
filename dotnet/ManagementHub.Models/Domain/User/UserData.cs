@@ -18,7 +18,7 @@ public class UserData
 
     public string LastName { get; }
 
-    public string Bio { get; } = string.Empty;
+    public string Bio { get; set; } = string.Empty;
 
     public string Pronouns { get; set; } = string.Empty;
 

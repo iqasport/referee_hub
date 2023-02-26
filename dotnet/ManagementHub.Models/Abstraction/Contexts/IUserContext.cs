@@ -11,14 +11,4 @@ public interface IUserContext
     UserData UserData { get; }
 
     IEnumerable<IUserRole> Roles { get; }
-
-    ModificationTimestamp ModificationTimestamp { get; }
-
-    UserPassword Password { get; }
-
-    SignInStatistics SignInStatistics { get; }
-
-    UserConfirmation Confirmation { get; }
-
-    Invitation Invitation { get; }
 }

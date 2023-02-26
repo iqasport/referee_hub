@@ -4,7 +4,7 @@ using ManagementHub.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace ManagementHub.Models.Context
+namespace ManagementHub.Storage
 {
 	public partial class ManagementHubDbContext : DbContext
 	{
