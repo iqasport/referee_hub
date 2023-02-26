@@ -22,6 +22,7 @@ namespace ManagementHub.Models.Data
 		}
 
 		public long Id { get; set; }
+		public string? UniqueId { get; set; } // new field for guid based id
 		public string Email { get; set; } = null!;
 		public string EncryptedPassword { get; set; } = null!;
 		public string? ResetPasswordToken { get; set; }

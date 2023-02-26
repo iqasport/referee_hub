@@ -10,17 +10,12 @@ namespace ManagementHub.Storage.Contexts;
 /// </summary>
 public class DbContextProvider : IContextProvider
 {
-	private readonly DbUserAuthenticationContextFactory userAuthenticationContextFactory;
 	private readonly DbUserContextFactory userContextFactory;
 
 	public DbContextProvider(
 		ManagementHubDbContext dbContext,
 		ILoggerFactory loggerFactory)
 	{
-		this.userAuthenticationContextFactory = new DbUserAuthenticationContextFactory(
-			dbContext.Users,
-			loggerFactory.CreateLogger<DbUserAuthenticationContextFactory>());
-
 		this.userContextFactory = new DbUserContextFactory(
 			dbContext.Users,
 			dbContext.Roles,
@@ -32,10 +27,5 @@ public class DbContextProvider : IContextProvider
 	public async Task<IUserContext> GetUserContextAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		return await this.userContextFactory.LoadAsync(userId, cancellationToken);
-	}
-
-	public async Task<IUserAuthenticationContext?> TryGetUserAuthenticationContextAsync(Email userEmail, CancellationToken cancellationToken)
-	{
-		return await this.userAuthenticationContextFactory.TryLoadAsync(userEmail, cancellationToken);
 	}
 }
