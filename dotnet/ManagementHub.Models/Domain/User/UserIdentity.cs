@@ -13,8 +13,8 @@ public class UserIdentity
         this.UserEmail = email;
     }
 
-    public UserIdentifier UserId { get; set; }
-    public Email UserEmail { get; set; }
-    public UserConfirmation? UserConfirmation { get; set; }
+    public UserIdentifier UserId { get; }
+    public Email UserEmail { get; }
+    public bool IsEmailConfirmed { get; set; }
     public UserPassword? UserPassword { get; set; }
 }

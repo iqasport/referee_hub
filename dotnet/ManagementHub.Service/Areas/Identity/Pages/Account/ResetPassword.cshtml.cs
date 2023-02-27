@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+using ManagementHub.Models.Domain.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -16,9 +14,9 @@ namespace ManagementHub.Service.Areas.Identity.Pages.Account;
 
 public class ResetPasswordModel : PageModel
 {
-	private readonly UserManager<IdentityUser> userManager;
+	private readonly UserManager<UserIdentity> userManager;
 
-	public ResetPasswordModel(UserManager<IdentityUser> userManager)
+	public ResetPasswordModel(UserManager<UserIdentity> userManager)
 	{
 		this.userManager = userManager;
 	}

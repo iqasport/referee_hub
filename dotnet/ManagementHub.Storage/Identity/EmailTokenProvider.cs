@@ -34,12 +34,12 @@ public class EmailTokenProvider : IUserTwoFactorTokenProvider<UserIdentity>
 			{
 				Token = Convert.ToHexString(RandomNumberGenerator.GetBytes(64)),
 				Email = user.UserEmail.Value,
-				Expires = DateTime.UtcNow.AddDays(14),
+				Expires = DateTime.UtcNow.AddDays(1),
             };
 			var base64encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(token)));
 
 			this.logger.LogInformation(0, "Saving token for email confirmation to the database.");
-			await this.userRepository.SetEmailConfirmationToken(user, base64encoded);
+			await this.userRepository.SetEmailConfirmationToken(user, base64encoded, default);
 
 			return base64encoded;
 		}

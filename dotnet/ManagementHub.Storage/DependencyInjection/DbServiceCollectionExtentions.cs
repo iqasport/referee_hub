@@ -1,5 +1,6 @@
 ﻿using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Storage.Contexts;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -58,6 +59,9 @@ namespace ManagementHub.Storage.DependencyInjection
 			services.AddTransient<IUserIdentityRepository, UserIdentityRepository>();
 			services.AddTransient<IUserStore<UserIdentity>, UserStore>();
 			services.AddTransient<EmailTokenProvider>();
+			
+			// custom overrides over user manager
+			services.AddScoped<UserManager<UserIdentity>, UserManager>();
 
 			return services;
 		}

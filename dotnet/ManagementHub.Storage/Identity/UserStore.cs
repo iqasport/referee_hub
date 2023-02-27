@@ -1,5 +1,4 @@
 ﻿using ManagementHub.Models.Data;
-using ManagementHub.Models.Data.Extensions;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 using Microsoft.AspNetCore.Identity;
@@ -10,9 +9,14 @@ namespace ManagementHub.Storage.Identity;
 
 /// <summary>
 /// An implementation of the ASP.NET Core Identity data storage layer.
+/// 
+/// This is a bridge between the the identity concepts and the database.
+/// The management hub database schema followed ruby's Devise and doesn't match the ASP.NET Core Identity assumptions 1-1, but it's ok.
+/// This file is split into a few parts to simplify reading it.
+/// It's breaking away from the some of the assumptions of the core library in order to minimize the need to load some of the data when not used.
 /// </summary>
 /// <remarks><seealso href="https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-custom-storage-providers"/>></remarks>
-public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdentity>, IUserEmailStore<UserIdentity>
+public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdentity>, IUserEmailStore<UserIdentity>
 {
 	private readonly IUserIdentityRepository userRepository;
 	private readonly ILogger<UserStore> logger;
@@ -24,7 +28,7 @@ public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdenti
 		this.userRepository = userRepository;
 		this.logger = logger;
 	}
-    #region Persisting methods - only CreateAsync, DeleteAsync, UpdateAsync write to the database
+    
     public async Task<IdentityResult> CreateAsync(UserIdentity user, CancellationToken cancellationToken)
 	{
 		if (user.UserId == default)
@@ -50,7 +54,7 @@ public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdenti
 			return IdentityResult.Failed(new IdentityError { Description = "User with specified email already exists!" });
 		}
 
-		await this.userRepository.CreateUserAsync(user);
+		await this.userRepository.CreateUserAsync(user, cancellationToken);
 
 		return IdentityResult.Success;
 	}
@@ -62,24 +66,22 @@ public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdenti
 
     public Task<IdentityResult> UpdateAsync(UserIdentity user, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+		// This method throws an exception because it's a generic Update
+		// Potentially anything could be changed and I'd have to write some logic to detect this.
+		// Instead it's simpler to just enforce setting values in the special set methods.
+        throw new NotSupportedException($"{nameof(UpdateAsync)} is not supported on this {nameof(UserStore)}. Use a specific Set* method below instead.");
     }
-    #endregion
+
     public void Dispose()
 	{
+		// not used
 	}
 
 	public async Task<UserIdentity?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
 	{
 		this.logger.LogInformation(0, "Looking up user by email address.");
 		var userEmail = new Email(normalizedEmail);
-		var dbUser = await this.userRepository.QueryUsers().Where(user => user.Email == userEmail.Value)
-			.Select(user => new User
-			{
-				Id = user.Id,
-				UniqueId = user.UniqueId,
-				EncryptedPassword = user.EncryptedPassword,
-			})
+		var dbUser = await SelectUserIdentityDataFromQueryable(this.userRepository.QueryUsers().Where(user => user.Email == userEmail.Value))
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (dbUser is null)
@@ -88,11 +90,11 @@ public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdenti
 			return null;
 		}
 
-		var userId = dbUser.GetIdentifier();
+		var user = ConvertDbUserViewToUserIdentity(dbUser);
 
-		this.logger.LogInformation(0, "Loaded user ({userId}).", userId);
+		this.logger.LogInformation(0, "Loaded user ({userId}).", user.UserId);
 
-		return new UserIdentity(userId, userEmail) { UserPassword = new UserPassword(dbUser.EncryptedPassword) };
+		return user;
 	}
 
 	public async Task<UserIdentity?> FindByIdAsync(string userIdentifier, CancellationToken cancellationToken)
@@ -103,12 +105,8 @@ public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdenti
 		}
 
 		this.logger.LogInformation(0, "Looking up user by id ({userId}).", userId);
-		var dbUser = await this.userRepository.QueryUsers().Where(user => user.UniqueId == userId.ToString() || (user.UniqueId == null && user.Id == userId.ToLegacyUserId()))
-			.Select(user => new User
-			{
-				Email = user.Email,
-                EncryptedPassword = user.EncryptedPassword,
-            })
+		var dbUser = await SelectUserIdentityDataFromQueryable(this.userRepository.QueryUsers().Where(
+				user => user.UniqueId == userId.ToString() || (user.UniqueId == null && user.Id == userId.ToLegacyUserId())))
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (dbUser is null)
@@ -117,80 +115,47 @@ public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdenti
 			return null;
 		}
 
-		var userEmail = new Email(dbUser.Email);
+		var user = ConvertDbUserViewToUserIdentity(dbUser);
 
-		this.logger.LogInformation(0, "Loaded user ({userId}).", userId);
+		this.logger.LogInformation(0, "Loaded user ({userId}).", user.UserId);
 
-		return new UserIdentity(userId, userEmail) { UserPassword = new UserPassword(dbUser.EncryptedPassword) };
+		return user;
 	}
 
-	public Task<UserIdentity?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
-	{
-		return this.FindByEmailAsync(normalizedUserName, cancellationToken);
-	}
+	public Task<bool> GetEmailConfirmedAsync(UserIdentity user, CancellationToken cancellationToken) =>
+		Task.FromResult(user.IsEmailConfirmed);
 
-	public Task<string?> GetEmailAsync(UserIdentity user, CancellationToken cancellationToken)
-	{
-		return this.GetNormalizedEmailAsync(user, cancellationToken);
-	}
+	public Task<string?> GetNormalizedEmailAsync(UserIdentity user, CancellationToken cancellationToken) =>
+		Task.FromResult<string?>(user.UserEmail.Value);
 
-	public Task<bool> GetEmailConfirmedAsync(UserIdentity user, CancellationToken cancellationToken)
-	{
-		return Task.FromResult(false);
-	}
+	public Task<string?> GetPasswordHashAsync(UserIdentity user, CancellationToken cancellationToken) =>
+		Task.FromResult(user.UserPassword?.PasswordHash);
 
-	public Task<string?> GetNormalizedEmailAsync(UserIdentity user, CancellationToken cancellationToken)
-	{
-		return Task.FromResult<string?>(user.UserEmail.Value);
-	}
-
-	public Task<string?> GetNormalizedUserNameAsync(UserIdentity user, CancellationToken cancellationToken)
-	{
-		return this.GetNormalizedEmailAsync(user, cancellationToken);
-	}
-
-	public Task<string?> GetPasswordHashAsync(UserIdentity user, CancellationToken cancellationToken)
-	{
-		return Task.FromResult(user.UserPassword?.PasswordHash);
-	}
-
-	public Task<string> GetUserIdAsync(UserIdentity user, CancellationToken cancellationToken)
-	{
-		return Task.FromResult(user.UserId.ToString());
-	}
-
-	public Task<string?> GetUserNameAsync(UserIdentity user, CancellationToken cancellationToken)
-	{
-		return this.GetNormalizedEmailAsync(user, cancellationToken);
-	}
+	public Task<string> GetUserIdAsync(UserIdentity user, CancellationToken cancellationToken) =>
+		Task.FromResult(user.UserId.ToString());
 
 	/// <summary>
 	/// Returns true is the user has a password - i.e. if they are registered directly with the service and not through an external provider.
 	/// </summary>
-	public Task<bool> HasPasswordAsync(UserIdentity user, CancellationToken cancellationToken)
+	public Task<bool> HasPasswordAsync(UserIdentity user, CancellationToken cancellationToken) =>
+		Task.FromResult(user.UserPassword != null);
+
+	public async Task SetEmailConfirmedAsync(UserIdentity user, bool confirmed, CancellationToken cancellationToken)
 	{
-		return Task.FromResult(user.UserPassword != null);
+		if (!confirmed)
+		{
+			throw new NotSupportedException($"{nameof(SetEmailConfirmedAsync)} should not be called with a false value.");
+		}
+
+		this.logger.LogInformation(0, "Setting email as confirmed.");
+		await this.userRepository.SetEmailConfirmedAsync(user, cancellationToken);
 	}
 
-	public Task SetEmailAsync(UserIdentity user, string? email, CancellationToken cancellationToken)
+	public async Task SetNormalizedEmailAsync(UserIdentity user, string? normalizedEmail, CancellationToken cancellationToken)
 	{
-		return this.SetNormalizedEmailAsync(user, email, cancellationToken);
-	}
-
-	public Task SetEmailConfirmedAsync(UserIdentity user, bool confirmed, CancellationToken cancellationToken)
-	{
-		return Task.CompletedTask;
-	}
-
-	public Task SetNormalizedEmailAsync(UserIdentity user, string? normalizedEmail, CancellationToken cancellationToken)
-	{
-		user.UserEmail = new Email(normalizedEmail ?? string.Empty);
-		return Task.CompletedTask;
-	}
-
-	public Task SetNormalizedUserNameAsync(UserIdentity user, string? normalizedName, CancellationToken cancellationToken)
-	{
-		return this.SetEmailAsync(user, normalizedName, cancellationToken);
+		this.logger.LogInformation(0, "Updating user email.");
+		var newEmail = new Email(normalizedEmail ?? string.Empty);
+		await this.userRepository.UpdateEmailAsync(user, newEmail, cancellationToken);
 	}
 
 	public Task SetPasswordHashAsync(UserIdentity user, string? passwordHash, CancellationToken cancellationToken)
@@ -200,12 +165,56 @@ public class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<UserIdenti
 			throw new ArgumentNullException(nameof(passwordHash));
 		}
 
-		user.UserPassword = new UserPassword(passwordHash);
-		return Task.CompletedTask;
+		if (user.UserPassword is null)
+		{
+			// this only happens when we call this method the first time before creating the new user
+			user.UserPassword = new UserPassword(passwordHash);
+			return Task.CompletedTask;
+		}
+
+		this.logger.LogInformation(0, "Updating user password.");
+
+		return this.userRepository.UpdatePasswordAsync(user, new UserPassword(passwordHash), cancellationToken);
 	}
 
-	public Task SetUserNameAsync(UserIdentity user, string? userName, CancellationToken cancellationToken)
+	private static UserIdentity ConvertDbUserViewToUserIdentity(DbUserView dbUser) =>
+		new(GetIdentifier(dbUser.UniqueId, dbUser.Id), new Email(dbUser.Email))
+		{
+			IsEmailConfirmed = dbUser.IsEmailConfirmed,
+			UserPassword = new UserPassword(dbUser.PasswordHash)
+		};
+
+	private static IQueryable<DbUserView> SelectUserIdentityDataFromQueryable(IQueryable<User> users) =>
+		users.Select(u => new DbUserView
+		{
+			Id = u.Id,
+			UniqueId = u.UniqueId,
+			Email = u.Email,
+			PasswordHash = u.EncryptedPassword,
+			IsEmailConfirmed = u.ConfirmedAt != null,
+		});
+
+	private static UserIdentifier GetIdentifier(string? uniqueId, long id)
 	{
-		return this.SetEmailAsync(user, userName, cancellationToken);
+		if (uniqueId is not null)
+		{
+			if (UserIdentifier.TryParse(uniqueId, out var userId))
+			{
+				return userId;
+			}
+
+			throw new Exception("User Id is in an incorrect format!");
+		}
+
+        return UserIdentifier.FromLegacyUserId(id);
+    }
+
+	private class DbUserView
+	{
+		public long Id { get; set; }
+		public string? UniqueId { get; set; }
+		public string Email { get; set; } = string.Empty;
+		public string PasswordHash { get; set; } = string.Empty;
+		public bool IsEmailConfirmed { get; set; }
 	}
 }

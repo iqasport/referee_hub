@@ -1,10 +1,8 @@
 using ManagementHub.Models.Domain.User;
-using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 
 namespace ManagementHub.Service;
@@ -67,16 +65,13 @@ public static class Program
         {
             // Cookie settings
             options.Cookie.HttpOnly = true;
-			options.ExpireTimeSpan = TimeSpan.FromDays(7);
+			options.ExpireTimeSpan = TimeSpan.FromDays(1);
 
             options.LoginPath = "/login";
 			options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/";
             options.SlidingExpiration = true;
         });
-
-		// custom overrides over user manager
-		services.AddScoped<UserManager<UserIdentity>, UserManager>();
     }
 
 	public static void ConfigureWebApp(WebHostBuilderContext context, IApplicationBuilder app)

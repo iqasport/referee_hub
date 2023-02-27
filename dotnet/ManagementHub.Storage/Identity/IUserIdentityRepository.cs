@@ -1,7 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using ManagementHub.Models.Data;
+﻿using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Storage.Identity;
@@ -14,7 +12,7 @@ public interface IUserIdentityRepository
 	/// <summary>
 	/// Persists <see cref="user"/> in the storage.
 	/// </summary>
-	Task CreateUserAsync(UserIdentity user);
+	Task CreateUserAsync(UserIdentity user, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Returns a queryable of the users from underlying storage.
@@ -25,11 +23,26 @@ public interface IUserIdentityRepository
 	/// <summary>
 	/// Updates the database with the email confirmation token.
 	/// </summary>
-	Task SetEmailConfirmationToken(UserIdentity user, string token);
+	Task SetEmailConfirmationToken(UserIdentity user, string token, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Retrieves the email confirmation token from the database.
 	/// </summary>
 	Task<string?> GetEmailConfirmationToken(UserIdentity user);
+
+	/// <summary>
+	/// Updates email of the user in the db.
+	/// </summary>
+	Task UpdateEmailAsync(UserIdentity user, Email email, CancellationToken cancellationToken);
+
+	/// <summary>
+	/// Updates password of the user in the db.
+	/// </summary>
+	Task UpdatePasswordAsync(UserIdentity user, UserPassword password, CancellationToken cancellationToken);
+
+	/// <summary>
+	/// Confirms user had a valid email address at one point.
+	/// </summary>
+	Task SetEmailConfirmedAsync(UserIdentity user, CancellationToken cancellationToken);
 }
 
