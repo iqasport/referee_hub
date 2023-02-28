@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
@@ -46,7 +47,9 @@ namespace ManagementHub.Storage.DependencyInjection
 				});
 			}
 
-			services.AddScoped<IContextProvider, DbContextProvider>();
+			services.AddScoped<IContextProvider>(sp => new CachedContextProvider(new DbContextProvider(
+				sp.GetRequiredService<ManagementHubDbContext>(),
+				sp.GetRequiredService<ILoggerFactory>())));
 
 			return services;
 		}

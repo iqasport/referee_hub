@@ -1,5 +1,4 @@
 ﻿using ManagementHub.Models.Abstraction.Contexts;
-using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 using Microsoft.Extensions.Logging;
 
