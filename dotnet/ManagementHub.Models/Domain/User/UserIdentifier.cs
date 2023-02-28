@@ -10,13 +10,13 @@ namespace ManagementHub.Models.Domain.User;
 /// </summary>
 public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 {
-	private const string IdPrefix = "u-";
+	private const string IdPrefix = "u$";
 	private const int GuidAsStringLength = 36;
 	public long Id => this.ToLegacyUserId();
 
 	public override string ToString()
 	{
-		return $"{IdPrefix}{UniqueId}";
+		return $"{IdPrefix}{this.UniqueId}";
 	}
 
 	/// <summary>
@@ -24,7 +24,7 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 	/// </summary>
 	public long ToLegacyUserId()
 	{
-		var uniqueId = UniqueId;
+		var uniqueId = this.UniqueId;
 		return GuidAsLongSpan(ref uniqueId)[0];
 	}
 

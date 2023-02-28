@@ -28,6 +28,8 @@ public partial struct Email
 
 	public string Value { get; }
 
+	public override string ToString() => this.Value;
+
 	public override bool Equals(object? obj)
 	{
 		return obj is Email other && this.Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
