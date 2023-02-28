@@ -1,6 +1,7 @@
 ﻿using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -105,8 +106,7 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 		}
 
 		this.logger.LogInformation(0, "Looking up user by id ({userId}).", userId);
-		var dbUser = await SelectUserIdentityDataFromQueryable(this.userRepository.QueryUsers().Where(
-				user => user.UniqueId == userId.ToString() || (user.UniqueId == null && user.Id == userId.ToLegacyUserId())))
+		var dbUser = await SelectUserIdentityDataFromQueryable(this.userRepository.QueryUsers().WithIdentifier(userId))
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (dbUser is null)

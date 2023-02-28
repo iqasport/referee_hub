@@ -7,6 +7,7 @@ using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
+using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -45,7 +46,7 @@ public class DbUserContextFactory
 	{
 		this.logger.LogInformation(0, "Loading user context for user ({userId}).", userId);
 		// TODO: optimize it later into a database level view
-		var userData = await this.users.Where(user => user.Id == userId.Id)
+		var userData = await this.users.WithIdentifier(userId)
 			.Select(user => new UserData(new Email(user.Email), user.FirstName ?? string.Empty, user.LastName ?? string.Empty)
 			{
 				Bio = user.Bio ?? string.Empty,
