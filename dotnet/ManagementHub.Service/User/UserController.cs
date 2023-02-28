@@ -1,4 +1,5 @@
 ﻿using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,17 @@ namespace ManagementHub.Service.User;
 [Authorize]
 public class UserController : ControllerBase
 {
-	[HttpGet("/")]
-	public string GetUser()
+	private readonly ICurrentContextAccessor contextAccessor;
+
+	public UserController(ICurrentContextAccessor contextAccessor)
 	{
+		this.contextAccessor = contextAccessor;
+	}
+
+	[HttpGet]
+	public async Task<string> GetUser()
+	{
+		var user = await this.contextAccessor.GetCurrentUserContextAsync();
 		return this.HttpContext.User.Identity?.Name ?? "empty";
 	}
 }

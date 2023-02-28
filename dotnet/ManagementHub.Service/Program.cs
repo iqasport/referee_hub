@@ -1,5 +1,6 @@
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Service.Configuration;
+using ManagementHub.Service.Contexts;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
@@ -36,13 +37,16 @@ public static class Program
 	{
 		services.AddManagementHubStorage(inMemoryStorage: true);
 		services.AddManagementHubIdentity();
+
+		services.AddHttpContextAccessor();
+		services.AddScoped<ICurrentContextAccessor, CurrentContextAccessor>();
     }
 
     public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
 	{
 		services.AddControllers();
 		services.AddRazorPages();
-		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = true);
+		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = false); // TODO: set it based on environment
         services.Configure<IdentityOptions>(options =>
         {
             // Password settings.
