@@ -21,6 +21,7 @@ public class DbContextProvider : IContextProvider
 			dbContext.NationalGoverningBodyAdmins,
 			dbContext.RefereeTeams,
 			dbContext.RefereeLocations,
+			dbContext.Languages,
 			loggerFactory.CreateLogger<DbUserContextFactory>());
 	}
 	public async Task<IUserContext> GetUserContextAsync(UserIdentifier userId, CancellationToken cancellationToken)

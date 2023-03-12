@@ -2,6 +2,7 @@ using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
+using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
@@ -24,6 +25,7 @@ public class DbUserContextFactory
 	private readonly IQueryable<NationalGoverningBodyAdmin> nationalGoverningBodyAdmins;
 	private readonly IQueryable<RefereeTeam> refereeTeams;
 	private readonly IQueryable<RefereeLocation> refereeLocations;
+	private readonly IQueryable<Language> languages;
 	private readonly ILogger<DbUserContextFactory> logger;
 
 	public DbUserContextFactory(
@@ -32,6 +34,7 @@ public class DbUserContextFactory
 		IQueryable<NationalGoverningBodyAdmin> nationalGoverningBodyAdmins,
 		IQueryable<RefereeTeam> refereeTeams,
 		IQueryable<RefereeLocation> refereeLocations,
+		IQueryable<Language> languages,
 		ILogger<DbUserContextFactory> logger)
 	{
 		this.users = users;
@@ -39,6 +42,7 @@ public class DbUserContextFactory
 		this.nationalGoverningBodyAdmins = nationalGoverningBodyAdmins;
 		this.refereeTeams = refereeTeams;
 		this.refereeLocations = refereeLocations;
+		this.languages = languages;
 		this.logger = logger;
 	}
 
@@ -47,11 +51,13 @@ public class DbUserContextFactory
 		this.logger.LogInformation(0, "Loading user context for user ({userId}).", userId);
 		// TODO: optimize it later into a database level view
 		var userData = await this.users.WithIdentifier(userId)
-			.Select(user => new UserData(new Email(user.Email), user.FirstName ?? string.Empty, user.LastName ?? string.Empty)
+			// THIS LEFT JOIN IN PURE LINQ
+			.GroupJoin(this.languages, u => u.LanguageId, l => l.Id, (u, l) => new { User = u, Languages = l })
+			.SelectMany(join => join.Languages.DefaultIfEmpty(), (join, l) => new { join.User, Language = l})
+			// UNTIL HERE
+			.Select(join => new UserData(new Email(join.User.Email), join.User.FirstName ?? string.Empty, join.User.LastName ?? string.Empty)
 			{
-				Bio = user.Bio ?? string.Empty,
-				Pronouns = user.Pronouns ?? string.Empty,
-				ShowPronouns = user.ShowPronouns ?? false,
+				UserLang = join.Language != null ? new LanguageIdentifier(join.Language.ShortName, join.Language.ShortRegion) : LanguageIdentifier.Default,
 			})
 			.SingleAsync(cancellationToken);
 		var dbRoles = await this.roles.Where(role => role.UserId == userId.Id).ToListAsync(cancellationToken);

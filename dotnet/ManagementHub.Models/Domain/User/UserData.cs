@@ -1,4 +1,5 @@
 using ManagementHub.Models.Domain.General;
+using ManagementHub.Models.Domain.Language;
 
 namespace ManagementHub.Models.Domain.User;
 
@@ -20,9 +21,5 @@ public class UserData
 
     public string LastName { get; }
 
-    public string Bio { get; set; } = string.Empty;
-
-    public string Pronouns { get; set; } = string.Empty;
-
-    public bool ShowPronouns { get; set; } = false;
+	public LanguageIdentifier UserLang { get; set; } = LanguageIdentifier.Default;
 }
