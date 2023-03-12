@@ -4,6 +4,7 @@ using ManagementHub.Service.Contexts;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 
 namespace ManagementHub.Service;
@@ -66,17 +67,51 @@ public static class Program
             options.Tokens.ProviderMap[emailConfirmationProvider] = new TokenProviderDescriptor(typeof(EmailTokenProvider));
         });
         services.ConfigureApplicationCookie(options =>
-        {
-            // Cookie settings
-            options.Cookie.HttpOnly = true;
+		{
+			// Cookie settings
+			options.Cookie.HttpOnly = true;
 			options.ExpireTimeSpan = TimeSpan.FromDays(1);
 
-            options.LoginPath = "/login";
+			options.LoginPath = "/login";
 			options.LogoutPath = "/logout";
-            options.AccessDeniedPath = "/";
-            options.SlidingExpiration = true;
-        });
+			options.AccessDeniedPath = "/";
+			options.SlidingExpiration = true;
+			OverrideRedirectsForApiEndpoints(options);
+		});
     }
+
+	private static void OverrideRedirectsForApiEndpoints(CookieAuthenticationOptions options)
+	{
+		var onRedirectToLogin = options.Events.OnRedirectToLogin;
+		options.Events.OnRedirectToLogin = async (context) =>
+		{
+			if (context.Request.Path.StartsWithSegments("/api"))
+			{
+				context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+				await context.Response.WriteAsync("Unauthorized");
+				return;
+			}
+			else
+			{
+				await onRedirectToLogin(context);
+			}
+		};
+
+		var onRedirectToAccessDenied = options.Events.OnRedirectToAccessDenied;
+		options.Events.OnRedirectToAccessDenied = async (context) =>
+		{
+			if (context.Request.Path.StartsWithSegments("/api"))
+			{
+				context.Response.StatusCode = StatusCodes.Status403Forbidden;
+				await context.Response.WriteAsync("Forbidden");
+				return;
+			}
+			else
+			{
+				await onRedirectToAccessDenied(context);
+			}
+		};
+	}
 
 	public static void ConfigureWebApp(WebHostBuilderContext context, IApplicationBuilder app)
 	{
