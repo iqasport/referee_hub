@@ -11,6 +11,7 @@ namespace ManagementHub.Models.Abstraction.Contexts;
 public class CachedContextProvider : IContextProvider
 {
 	private readonly ConcurrentDictionary<UserIdentifier, IUserContext> userContextCache = new();
+	private readonly ConcurrentDictionary<UserIdentifier, IUserDataContext> userDataContextCache = new();
 	private readonly IContextProvider innerProvider;
 
 	public CachedContextProvider(IContextProvider innerProvider)
@@ -27,5 +28,16 @@ public class CachedContextProvider : IContextProvider
 		}
 
 		return userContext;
+	}
+
+	public async Task<IUserDataContext> GetUserDataContextAsync(UserIdentifier userId, CancellationToken cancellationToken)
+	{
+		if (!this.userDataContextCache.TryGetValue(userId, out IUserDataContext? userDataContext))
+		{
+			userDataContext = await this.innerProvider.GetUserDataContextAsync(userId, cancellationToken);
+			this.userDataContextCache.TryAdd(userId, userDataContext);
+		}
+
+		return userDataContext;
 	}
 }
