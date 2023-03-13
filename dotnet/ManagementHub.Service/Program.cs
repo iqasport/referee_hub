@@ -1,4 +1,5 @@
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Serialization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Storage.DependencyInjection;
@@ -45,7 +46,8 @@ public static class Program
 
     public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
 	{
-		services.AddControllers();
+		services.AddControllers()
+			.AddJsonOptions(options => DefaultJsonSerialization.ConfigureOptions(options.JsonSerializerOptions));
 		services.AddRazorPages();
 		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = false); // TODO: set it based on environment
         services.Configure<IdentityOptions>(options =>
