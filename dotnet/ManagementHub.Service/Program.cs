@@ -80,7 +80,7 @@ public static class Program
 			options.SlidingExpiration = true;
 			OverrideRedirectsForApiEndpoints(options);
 		});
-		services.AddSwaggerGen();
+		services.AddSwaggerGen(options => DefaultJsonSerialization.MapSwaggerTypes(options));
     }
 
 	private static void OverrideRedirectsForApiEndpoints(CookieAuthenticationOptions options)

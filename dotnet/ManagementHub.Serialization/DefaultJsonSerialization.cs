@@ -1,6 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using ManagementHub.Models.Domain.Language;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Serialization.Identifiers;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace ManagementHub.Serialization;
 public static class DefaultJsonSerialization
@@ -20,4 +24,12 @@ public static class DefaultJsonSerialization
 	}
 
 	public static JsonSerializerOptions Options { get; } = ConfigureOptions(new JsonSerializerOptions());
+
+	public static SwaggerGenOptions MapSwaggerTypes(SwaggerGenOptions options)
+	{
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(UserIdentifier), () => new OpenApiSchema { Type = "string" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(LanguageIdentifier), () => new OpenApiSchema { Type = "string" });
+
+		return options;
+	}
 }
