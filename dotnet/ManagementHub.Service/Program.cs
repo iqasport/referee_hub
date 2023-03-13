@@ -78,6 +78,7 @@ public static class Program
 			options.SlidingExpiration = true;
 			OverrideRedirectsForApiEndpoints(options);
 		});
+		services.AddSwaggerGen();
     }
 
 	private static void OverrideRedirectsForApiEndpoints(CookieAuthenticationOptions options)
@@ -122,7 +123,8 @@ public static class Program
 		{
 			endpoints.MapControllers();
 			endpoints.MapRazorPages();
+			endpoints.MapSwagger();
 		});
-		
+		app.UseSwaggerUI();
 	}
 }
