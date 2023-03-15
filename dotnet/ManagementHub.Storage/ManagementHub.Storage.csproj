@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -17,6 +16,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\ManagementHub.Models\ManagementHub.Models.csproj" />
+    <ProjectReference Include="..\ManagementHub.Processing\ManagementHub.Processing.csproj" />
   </ItemGroup>
 
 </Project>

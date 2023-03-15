@@ -1,9 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.User;
 
-namespace ManagementHub.Models.Abstraction.Contexts;
+namespace ManagementHub.Processing.Contexts;
 
 /// <summary>
 /// Wrapper around another context provider that caches the result. Should be registered scoped to a request.

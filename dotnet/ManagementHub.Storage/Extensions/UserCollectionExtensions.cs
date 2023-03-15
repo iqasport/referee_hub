@@ -1,4 +1,5 @@
-﻿using ManagementHub.Models.Data;
+﻿using System.Linq;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Storage.Extensions;
