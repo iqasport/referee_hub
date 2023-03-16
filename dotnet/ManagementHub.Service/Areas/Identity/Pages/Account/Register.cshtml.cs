@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 using Microsoft.AspNetCore.Authentication;
@@ -31,13 +32,15 @@ public class RegisterModel : PageModel
 	private readonly IUserEmailStore<UserIdentity> emailStore;
 	private readonly ILogger<RegisterModel> logger;
 	private readonly IEmailSender emailSender;
+	private readonly IUpdateUserDataCommand updateUserDataCommand;
 
 	public RegisterModel(
 		UserManager<UserIdentity> userManager,
 		IUserStore<UserIdentity> userStore,
 		SignInManager<UserIdentity> signInManager,
 		ILogger<RegisterModel> logger,
-		IEmailSender emailSender)
+		IEmailSender emailSender,
+		IUpdateUserDataCommand updateUserDataCommand)
 	{
 		this.userManager = userManager;
 		this.userStore = userStore;
@@ -45,6 +48,7 @@ public class RegisterModel : PageModel
 		this.signInManager = signInManager;
 		this.logger = logger;
 		this.emailSender = emailSender;
+		this.updateUserDataCommand = updateUserDataCommand;
 	}
 
 	/// <summary>
@@ -121,6 +125,9 @@ public class RegisterModel : PageModel
 			if (result.Succeeded)
 			{
 				this.logger.LogInformation("User created a new account with password.");
+
+				// TODO: pass name and surname from registration form
+				await this.updateUserDataCommand.UpdateUserDataAsync(user.UserId, (data) => new ExtendedUserData(data.Email, "John", "Smith"), default);
 
 				var userId = await this.userManager.GetUserIdAsync(user);
 				var code = await this.userManager.GenerateEmailConfirmationTokenAsync(user);

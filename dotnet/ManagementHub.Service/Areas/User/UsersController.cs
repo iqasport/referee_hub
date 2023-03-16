@@ -1,4 +1,6 @@
-﻿using ManagementHub.Service.Contexts;
+﻿using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +16,12 @@ namespace ManagementHub.Service.Areas.User;
 public class UsersController : ControllerBase
 {
 	private readonly ICurrentContextAccessor contextAccessor;
+	private readonly IUpdateUserDataCommand updateUserDataCommand;
 
-	public UsersController(ICurrentContextAccessor contextAccessor)
+	public UsersController(ICurrentContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand)
 	{
 		this.contextAccessor = contextAccessor;
+		this.updateUserDataCommand = updateUserDataCommand;
 	}
 
 	/// <summary>
@@ -48,8 +52,25 @@ public class UsersController : ControllerBase
 	[HttpPatch("me/info")]
 	public async Task UpdateUserData(UserDataViewModel userData)
 	{
-		// TODO: invoke a command that will persist user data in db
-		throw new NotImplementedException();
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		// TODO: move it to a processor
+		await this.updateUserDataCommand.UpdateUserDataAsync(userContext.UserId, (data) =>
+		{
+			var firstName = userData.FirstName ?? data.FirstName;
+			var lastName = userData.LastName ?? data.LastName;
+			var bio = userData.Bio ?? data.Bio;
+			var pronouns = userData.Pronouns ?? data.Pronouns;
+			var showPronouns = userData.ShowPronouns ?? data.ShowPronouns;
+			var exportName = userData.ExportName ?? data.ExportName;
+			return new ExtendedUserData(data.Email, firstName, lastName)
+			{
+				Bio = bio,
+				ExportName = exportName,
+				Pronouns = pronouns,
+				ShowPronouns = showPronouns,
+				UserLang = data.UserLang,
+			};
+		}, this.HttpContext.RequestAborted);
 	}
 
 	/// <summary>

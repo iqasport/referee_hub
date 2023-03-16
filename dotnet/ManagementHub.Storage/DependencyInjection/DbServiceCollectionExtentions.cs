@@ -1,7 +1,11 @@
-﻿using ManagementHub.Models.Abstraction.Contexts;
+﻿using System.Linq;
+using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Processing.Contexts;
 using ManagementHub.Service.Areas.Identity;
+using ManagementHub.Storage.Commands;
 using ManagementHub.Storage.Contexts;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -29,7 +33,7 @@ public static class DbServiceCollectionExtentions
 		if (inMemoryStorage)
 		{
 			var storageRoot = new InMemoryDatabaseRoot(); // the storage root allows sharing of data between requests
-			services.AddDbContext<ManagementHubDbContext>((serviceProvider, options) =>
+			services.AddDbContext<ManagementHubDbContext>((options) =>
 			{
 				options.UseInMemoryDatabase("ManagementHubMemoryDatabase", storageRoot);
 			});
@@ -51,6 +55,11 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IContextProvider>(sp => new CachedContextProvider(new DbContextProvider(
 			sp.GetRequiredService<ManagementHubDbContext>(),
 			sp.GetRequiredService<ILoggerFactory>())));
+
+		services.AddTransient<IQueryable<User>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<User>());
+		services.AddTransient<IQueryable<Language>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<Language>());
+
+		services.AddScoped<IUpdateUserDataCommand, UpdateUserDataCommand>();
 
 		return services;
 	}

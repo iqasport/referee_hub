@@ -32,8 +32,14 @@ public partial struct Email
 
 	public override bool Equals(object? obj)
 	{
-		return obj is Email other && this.Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
+		return obj is Email other && this == other;
 	}
 
 	public override int GetHashCode() => this.Value.GetHashCode();
+
+	/// <summary>
+	/// Two emails are equal if the underlying string value is equal (ignoring case).
+	/// </summary>
+	public static bool operator ==(Email a, Email b) => string.Equals(a.Value, b.Value, StringComparison.OrdinalIgnoreCase);
+	public static bool operator !=(Email a, Email b) => !(a == b);
 }
