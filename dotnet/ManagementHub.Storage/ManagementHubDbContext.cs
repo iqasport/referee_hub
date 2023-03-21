@@ -166,11 +166,11 @@ namespace ManagementHub.Storage
 					.HasColumnName("key");
 
 				entity.Property(e => e.CreatedAt)
-					.HasColumnType("timestamp(6) without time zone")
+					.HasColumnType("timestamp without time zone")
 					.HasColumnName("created_at");
 
 				entity.Property(e => e.UpdatedAt)
-					.HasColumnType("timestamp(6) without time zone")
+					.HasColumnType("timestamp without time zone")
 					.HasColumnName("updated_at");
 
 				entity.Property(e => e.Value)
@@ -194,7 +194,7 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.DisplayName)
 					.HasColumnType("character varying")
 					.HasColumnName("display_name")
-					.HasDefaultValueSql("''::character varying");
+					.HasDefaultValueSql("''");
 
 				entity.Property(e => e.Level).HasColumnName("level");
 
@@ -216,7 +216,7 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.CertificationId).HasColumnName("certification_id");
 
 				entity.Property(e => e.CreatedAt)
-					.HasColumnType("timestamp(6) without time zone")
+					.HasColumnType("timestamp without time zone")
 					.HasColumnName("created_at");
 
 				entity.Property(e => e.StripeSessionId)
@@ -224,7 +224,7 @@ namespace ManagementHub.Storage
 					.HasColumnName("stripe_session_id");
 
 				entity.Property(e => e.UpdatedAt)
-					.HasColumnType("timestamp(6) without time zone")
+					.HasColumnType("timestamp without time zone")
 					.HasColumnName("updated_at");
 
 				entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -269,7 +269,7 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.ExportOptions)
 					.HasColumnType("json")
 					.HasColumnName("export_options")
-					.HasDefaultValueSql("'{}'::json");
+					.HasDefaultValueSql("'{}'");
 
 				entity.Property(e => e.ProcessedAt)
 					.HasColumnType("timestamp without time zone")
@@ -353,13 +353,13 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.Id).HasColumnName("id");
 
 				entity.Property(e => e.CreatedAt)
-					.HasColumnType("timestamp(6) without time zone")
+					.HasColumnType("timestamp without time zone")
 					.HasColumnName("created_at");
 
 				entity.Property(e => e.LongName)
 					.HasColumnType("character varying")
 					.HasColumnName("long_name")
-					.HasDefaultValueSql("'english'::character varying");
+					.HasDefaultValueSql("'english'");
 
 				entity.Property(e => e.LongRegion)
 					.HasColumnType("character varying")
@@ -368,14 +368,14 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.ShortName)
 					.HasColumnType("character varying")
 					.HasColumnName("short_name")
-					.HasDefaultValueSql("'en'::character varying");
+					.HasDefaultValueSql("'en'");
 
 				entity.Property(e => e.ShortRegion)
 					.HasColumnType("character varying")
 					.HasColumnName("short_region");
 
 				entity.Property(e => e.UpdatedAt)
-					.HasColumnType("timestamp(6) without time zone")
+					.HasColumnType("timestamp without time zone")
 					.HasColumnName("updated_at");
 			});
 
@@ -1244,12 +1244,12 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.Email)
 					.HasColumnType("character varying")
 					.HasColumnName("email")
-					.HasDefaultValueSql("''::character varying");
+					.HasDefaultValueSql("''");
 
 				entity.Property(e => e.EncryptedPassword)
 					.HasColumnType("character varying")
 					.HasColumnName("encrypted_password")
-					.HasDefaultValueSql("''::character varying");
+					.HasDefaultValueSql("''");
 
 				entity.Property(e => e.ExportName)
 					.HasColumnName("export_name")

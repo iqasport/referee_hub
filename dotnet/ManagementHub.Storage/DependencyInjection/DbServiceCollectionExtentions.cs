@@ -7,10 +7,11 @@ using ManagementHub.Processing.Contexts;
 using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Storage.Commands;
 using ManagementHub.Storage.Contexts;
+using ManagementHub.Storage.Database;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,6 +25,7 @@ public static class DbServiceCollectionExtentions
 	/// Name of the configuration section for Postgres connection.
 	/// </summary>
 	public const string DatabaseConnectionSection = "DatabaseConnection";
+	private const string SharedInMemorySqliteConnectionString = "DataSource=ManagementHub;mode=memory;cache=shared";
 
 	/// <summary>
 	/// Adds dependencies for services of the storage based implementations of abstract interfaces.
@@ -32,11 +34,17 @@ public static class DbServiceCollectionExtentions
 	{
 		if (inMemoryStorage)
 		{
-			var storageRoot = new InMemoryDatabaseRoot(); // the storage root allows sharing of data between requests
 			services.AddDbContext<ManagementHubDbContext>((options) =>
 			{
-				options.UseInMemoryDatabase("ManagementHubMemoryDatabase", storageRoot);
+				options.UseSqlite(SharedInMemorySqliteConnectionString);
+				options.EnableDetailedErrors();
 			});
+
+			// mandatory workaround for in memory shared Sqlite
+			services.AddHostedService<EnsureDatabaseConnectionKeptAliveService>();
+
+			// for in memory database we run creation script
+			services.AddHostedService<EnsureDatabaseCreatedService>();
 		}
 		else
 		{
@@ -50,6 +58,9 @@ public static class DbServiceCollectionExtentions
 				var connectionString = connectionStringBuilder.Value.ConnectionString;
 				options.UseNpgsql(connectionString);
 			});
+
+			// for hosted database we run migration script
+			services.AddHostedService<EnsureDatabaseMigratedService>();
 		}
 
 		services.AddScoped<IContextProvider>(sp => new CachedContextProvider(new DbContextProvider(

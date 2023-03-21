@@ -18,6 +18,7 @@ public class UserDataViewModel
 	{
 		this.FirstName = userDataContext.ExtendedUserData.FirstName;
 		this.LastName = userDataContext.ExtendedUserData.LastName;
+		this.Bio = userDataContext.ExtendedUserData.Bio;
 		this.ShowPronouns = userDataContext.ExtendedUserData.ShowPronouns;
 		if (isCurrentUser || this.ShowPronouns == true)
 		{
