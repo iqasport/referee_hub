@@ -8,6 +8,7 @@ using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Storage.Commands;
 using ManagementHub.Storage.Contexts;
 using ManagementHub.Storage.Database;
+using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
@@ -71,6 +72,8 @@ public static class DbServiceCollectionExtentions
 		services.AddTransient<IQueryable<Language>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<Language>());
 
 		services.AddScoped<IUpdateUserDataCommand, UpdateUserDataCommand>();
+
+		services.AddScoped<IDatabaseTransactionProvider, DatabaseTransactionProvider>();
 
 		return services;
 	}

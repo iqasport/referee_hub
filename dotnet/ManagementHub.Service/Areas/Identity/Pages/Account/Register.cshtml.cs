@@ -10,9 +10,11 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Storage.Database.Transactions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -33,6 +35,7 @@ public class RegisterModel : PageModel
 	private readonly ILogger<RegisterModel> logger;
 	private readonly IEmailSender emailSender;
 	private readonly IUpdateUserDataCommand updateUserDataCommand;
+	private readonly IDatabaseTransactionProvider databaseTransactionProvider;
 
 	public RegisterModel(
 		UserManager<UserIdentity> userManager,
@@ -40,7 +43,8 @@ public class RegisterModel : PageModel
 		SignInManager<UserIdentity> signInManager,
 		ILogger<RegisterModel> logger,
 		IEmailSender emailSender,
-		IUpdateUserDataCommand updateUserDataCommand)
+		IUpdateUserDataCommand updateUserDataCommand,
+		IDatabaseTransactionProvider databaseTransactionProvider)
 	{
 		this.userManager = userManager;
 		this.userStore = userStore;
@@ -49,6 +53,7 @@ public class RegisterModel : PageModel
 		this.logger = logger;
 		this.emailSender = emailSender;
 		this.updateUserDataCommand = updateUserDataCommand;
+		this.databaseTransactionProvider = databaseTransactionProvider;
 	}
 
 	/// <summary>
@@ -120,40 +125,48 @@ public class RegisterModel : PageModel
 		{
 			var user = new UserIdentity(UserIdentifier.NewUserId(), new Email(this.Input.Email));
 
+			await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+
 			var result = await this.userManager.CreateAsync(user, this.Input.Password);
 
-			if (result.Succeeded)
+			if (!result.Succeeded)
 			{
-				this.logger.LogInformation("User created a new account with password.");
-
-				// TODO: pass name and surname from registration form
-				await this.updateUserDataCommand.UpdateUserDataAsync(user.UserId, (data) => new ExtendedUserData(data.Email, "John", "Smith"), default);
-
-				var userId = await this.userManager.GetUserIdAsync(user);
-				var code = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
-				code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-				var callbackUrl = this.Url.Page(
-					"/Account/ConfirmEmail",
-					pageHandler: null,
-					values: new { area = "Identity", userId, code, returnUrl },
-					protocol: this.Request.Scheme);
-
-				await this.emailSender.SendEmailAsync(this.Input.Email, "Confirm your email",
-					$"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-				if (this.userManager.Options.SignIn.RequireConfirmedAccount)
+				foreach (var error in result.Errors)
 				{
-					return this.RedirectToPage("RegisterConfirmation", new { email = this.Input.Email, returnUrl });
+					this.ModelState.AddModelError(string.Empty, error.Description);
 				}
-				else
-				{
-					await this.signInManager.SignInAsync(user, isPersistent: false);
-					return this.LocalRedirect(returnUrl);
-				}
+
+				return this.Page();
 			}
-			foreach (var error in result.Errors)
+
+			this.logger.LogInformation("User created a new account with password.");
+
+			// TODO: pass name and surname from registration form
+			await this.updateUserDataCommand.UpdateUserDataAsync(user.UserId, (data) => new ExtendedUserData(data.Email, "John", "Smith"), default);
+
+			// TODO: refactor this code to make it readable
+			await transaction.CommitAsync();
+
+			var userId = await this.userManager.GetUserIdAsync(user);
+			var code = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+			code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+			var callbackUrl = this.Url.Page(
+				"/Account/ConfirmEmail",
+				pageHandler: null,
+				values: new { area = "Identity", userId, code, returnUrl },
+				protocol: this.Request.Scheme);
+
+			await this.emailSender.SendEmailAsync(this.Input.Email, "Confirm your email",
+				$"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+			if (this.userManager.Options.SignIn.RequireConfirmedAccount)
 			{
-				this.ModelState.AddModelError(string.Empty, error.Description);
+				return this.RedirectToPage("RegisterConfirmation", new { email = this.Input.Email, returnUrl });
+			}
+			else
+			{
+				await this.signInManager.SignInAsync(user, isPersistent: false);
+				return this.LocalRedirect(returnUrl);
 			}
 		}
 
