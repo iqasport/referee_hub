@@ -10,6 +10,7 @@ namespace ManagementHub.Serialization.Identifiers;
 /// </summary>
 public sealed class UserIdentifierJsonConverter : JsonConverter<UserIdentifier>
 {
+	public override bool HandleNull => false;
 	public override UserIdentifier Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
 		string? currentElement = reader.GetString();

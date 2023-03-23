@@ -7,6 +7,7 @@ namespace ManagementHub.Serialization.Identifiers;
 
 public class LanguageIdentifierJsonConverter : JsonConverter<LanguageIdentifier>
 {
+	public override bool HandleNull => false;
 	public override LanguageIdentifier Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
 		string? currentElement = reader.GetString();
