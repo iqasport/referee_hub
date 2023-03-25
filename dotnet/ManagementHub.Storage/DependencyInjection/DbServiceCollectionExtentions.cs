@@ -5,6 +5,8 @@ using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Processing.Contexts;
 using ManagementHub.Service.Areas.Identity;
+using ManagementHub.Storage.BlobStorage.AmazonS3;
+using ManagementHub.Storage.BlobStorage.LocalFilesystem;
 using ManagementHub.Storage.Commands;
 using ManagementHub.Storage.Contexts;
 using ManagementHub.Storage.Database;
@@ -74,6 +76,28 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IUpdateUserDataCommand, UpdateUserDataCommand>();
 
 		services.AddScoped<IDatabaseTransactionProvider, DatabaseTransactionProvider>();
+
+		return services;
+	}
+
+	public static IServiceCollection AddmanagementHubBlobStorage(this IServiceCollection services, bool localFileSystem)
+	{
+		if (localFileSystem)
+		{
+			services.AddSingleton<LocalFilesystemBlobStorageManager>();
+			services.AddSingleton<IUploadFileCommand>(sp => sp.GetRequiredService<LocalFilesystemBlobStorageManager>());
+			services.AddSingleton<IAccessFileCommand>(sp => sp.GetRequiredService<LocalFilesystemBlobStorageManager>());
+		}
+		else
+		{
+			services.AddOptions<AmazonS3Config>()
+				.ValidateOnStart()
+				.BindConfiguration("AWS");
+
+			services.AddSingleton<AmazonBlobStorageManager>();
+			services.AddSingleton<IUploadFileCommand>(sp => sp.GetRequiredService<AmazonBlobStorageManager>());
+			services.AddSingleton<IAccessFileCommand>(sp => sp.GetRequiredService<AmazonBlobStorageManager>());
+		}
 
 		return services;
 	}

@@ -38,6 +38,7 @@ public static class Program
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
 	{
 		services.AddManagementHubStorage(inMemoryStorage: true);
+		services.AddmanagementHubBlobStorage(localFileSystem: true);
 		services.AddManagementHubIdentity();
 
 		services.AddHttpContextAccessor();

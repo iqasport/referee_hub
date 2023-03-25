@@ -10,6 +10,10 @@
 		/// </summary>
 		public static string? HttpHostingPort = Environment.GetEnvironmentVariable("PORT");
 
+		public static string? AwsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+		public static string? AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+		public static string? AwsBucket = Environment.GetEnvironmentVariable("AWS_BUCKET");
+
 		public override void Load()
 		{
 			// For each custom environment variable we check if it's set and apply it onto Data property
@@ -17,8 +21,23 @@
 			if (!string.IsNullOrWhiteSpace(HttpHostingPort))
 			{
 				this.Data.Add(
-					$"Kestrel:Endpoints:Http:Url",
+					"Kestrel:Endpoints:Http:Url",
 					$"http://localhost:{HttpHostingPort}");
+			}
+
+			if (!string.IsNullOrWhiteSpace(AwsAccessKeyId))
+			{
+				this.Data.Add("AWS:AccessKeyId", AwsAccessKeyId);
+			}
+
+			if (!string.IsNullOrWhiteSpace(AwsSecretAccessKey))
+			{
+				this.Data.Add("AWS:SecretAccessKey", AwsSecretAccessKey);
+			}
+
+			if (!string.IsNullOrWhiteSpace(AwsBucket))
+			{
+				this.Data.Add("AWS:Bucket", AwsBucket);
 			}
 		}
 
