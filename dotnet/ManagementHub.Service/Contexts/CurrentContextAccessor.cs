@@ -43,5 +43,12 @@ public class CurrentContextAccessor : ICurrentContextAccessor
 		return this.contextProvider.GetUserDataContextAsync(userId, httpContext.RequestAborted);
 	}
 
+	public Task<IUserAvatarContext> GetUserAvatarContextAsync(UserIdentifier userId)
+	{
+		var httpContext = this.HttpContext;
+
+		return this.contextProvider.GetUserAvatarContextAsync(userId, httpContext.RequestAborted);
+	}
+
 	private HttpContext HttpContext => this.httpContextAccessor.HttpContext ?? throw new Exception("Could not retrieve current http context.");
 }

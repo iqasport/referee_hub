@@ -1,83 +1,79 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Mail;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Data;
-using ManagementHub.Models.Domain.General;
-using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Database.Transactions;
-using ManagementHub.Storage.Extensions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Commands;
 
 public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 {
-	private readonly IQueryable<User> users;
-	private readonly IQueryable<ActiveStorageAttachment> activeStorageAttachments;
-	private readonly IQueryable<ActiveStorageBlob> activeStorageBlobs;
 	private readonly ILogger<UpdateUserAvatarCommand> logger;
 	private readonly IUploadFileCommand uploadFile;
 	private readonly IAccessFileCommand accessFile;
 	private readonly IDatabaseTransactionProvider databaseTransactionProvider;
+	private readonly IAttachmentRepository attachmentRepository;
 
 	public UpdateUserAvatarCommand(
-		IQueryable<User> users,
-		IQueryable<ActiveStorageAttachment> activeStorageAttachments,
-		IQueryable<ActiveStorageBlob> activeStorageBlobs,
 		ILogger<UpdateUserAvatarCommand> logger,
 		IUploadFileCommand uploadFile,
 		IAccessFileCommand accessFile,
-		IDatabaseTransactionProvider databaseTransactionProvider)
+		IDatabaseTransactionProvider databaseTransactionProvider,
+		IAttachmentRepository attachmentRepository)
 	{
-		this.users = users;
-		this.activeStorageAttachments = activeStorageAttachments;
-		this.activeStorageBlobs = activeStorageBlobs;
 		this.logger = logger;
 		this.uploadFile = uploadFile;
 		this.accessFile = accessFile;
 		this.databaseTransactionProvider = databaseTransactionProvider;
+		this.attachmentRepository = attachmentRepository;
 	}
 
 	public async Task<Uri> UpdateUserAvatarAsync(UserIdentifier userId, string contentType, Stream avatarStream, CancellationToken cancellationToken)
 	{
-		await using var transaction = await this.databaseTransactionProvider.BeginAsync();
-
-		var record = await this.users.AsNoTracking().WithIdentifier(userId)
-			.Join(this.activeStorageAttachments.Where(a => a.RecordType == "User" && a.Name == "avatar"), u => u.Id, a => a.RecordId, (u, a) => new { User = u, Attachmet = a })
-			.Join(this.activeStorageBlobs, x => x.Attachmet.BlobId, b => b.Id, (x, b) => Tuple.Create(x.User.Id, x.Attachmet, b))
-			.SingleOrDefaultAsync(cancellationToken);
-
-		this.logger.LogInformation(0, "Uploading new avatar for user ({userId}) of content type '{contentType}'.", userId, contentType);
-
-		var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
-		// TODO remove file if transaction fails
-
-		var blob = new ActiveStorageBlob
+		bool fileUploaded = false;
+		try
 		{
-			Checksum = uploadResult.Checksum,
-			ContentType = contentType,
-			CreatedAt = DateTime.UtcNow,
-			Filename = "na",
-			Key = uploadResult.Key,
-		};
-		var attachment = new ActiveStorageAttachment
+			await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+
+			const string attachmentName = "avatar";
+			var attachment = this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
+
+			this.logger.LogInformation(0, "Uploading new avatar for user ({userId}) of content type '{contentType}'. User had previously an avatar: {hadAvatar}.", userId, contentType, attachment != null);
+
+			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
+			fileUploaded = true;
+			// TODO remove file if transaction fails
+
+			var blob = new ActiveStorageBlob
+			{
+				Checksum = uploadResult.Checksum,
+				ContentType = contentType,
+				CreatedAt = DateTime.UtcNow,
+				Filename = "na",
+				Key = uploadResult.Key,
+			};
+
+			this.logger.LogInformation(0, "Setting new avatar for user ({userId}) in the database.", userId);
+			await this.attachmentRepository.UpsertAttachmentAsync(userId, attachmentName, blob, cancellationToken);
+
+			await transaction.CommitAsync(cancellationToken);
+
+			// TODO: remove old file in blob storage and remove blob from database
+
+			// TODO: put expiration in settings
+			return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromSeconds(20), cancellationToken);
+		}
+		catch (Exception ex)
 		{
-			Blob = blob,
-			CreatedAt = DateTime.UtcNow,
-			Name = "avatar",
-			RecordType = "User",
-			RecordId = 0 // TODO
-		};
-		// TODO: insert?
+			this.logger.LogError(0, ex, "Error occurred during user avatar upload for user ({userId}). File uploaded = {fileUploaded}.", userId, fileUploaded);
 
-
+			// TODO: if uploaded and not committed, remove file.
+			throw;
+		}
 	}
 }

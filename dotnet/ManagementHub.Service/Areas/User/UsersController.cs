@@ -17,11 +17,13 @@ public class UsersController : ControllerBase
 {
 	private readonly ICurrentContextAccessor contextAccessor;
 	private readonly IUpdateUserDataCommand updateUserDataCommand;
+	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 
-	public UsersController(ICurrentContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand)
+	public UsersController(ICurrentContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand, IUpdateUserAvatarCommand updateUserAvatarCommand)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateUserDataCommand = updateUserDataCommand;
+		this.updateUserAvatarCommand = updateUserAvatarCommand;
 	}
 
 	/// <summary>
@@ -78,9 +80,12 @@ public class UsersController : ControllerBase
 	/// </summary>
 	/// <returns><c>null</c> if user has no avatar, a uri to the image otherwise</returns>
 	[HttpGet("me/avatar")]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	public async Task<Uri?> GetAvatar()
 	{
-		throw new NotImplementedException();
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var avatarContext = await this.contextAccessor.GetUserAvatarContextAsync(userContext.UserId);
+		return avatarContext.AvatarUri;
 	}
 
 	/// <summary>
@@ -91,6 +96,13 @@ public class UsersController : ControllerBase
 	[HttpPut("me/avatar")]
 	public async Task<Uri> UpdateAvatar(IFormFile avatarBlob)
 	{
-		throw new NotImplementedException();
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		// TODO: move it to a processor
+		var avatarUri = await this.updateUserAvatarCommand.UpdateUserAvatarAsync(
+			userContext.UserId,
+			avatarBlob.ContentType,
+			avatarBlob.OpenReadStream(),
+			this.HttpContext.RequestAborted);
+		return avatarUri;
 	}
 }
