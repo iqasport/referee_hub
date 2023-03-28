@@ -65,12 +65,14 @@ public class DbUserContextFactory
 				UserLang = join.Language != null ? new LanguageIdentifier(join.Language.ShortName, join.Language.ShortRegion) : LanguageIdentifier.Default,
 			})
 			.SingleAsync(cancellationToken);
-		var dbRoles = await this.roles.Where(role => role.UserId == userId.Id).ToListAsync(cancellationToken);
+		var dbRoles = await this.users.WithIdentifier(userId)
+			.Join(this.roles, u => u.Id, r => r.UserId, (_, r) => r)
+			.ToListAsync(cancellationToken);
 
 		var roles = new List<IUserRole>(16); // temporary constant - should be modified if the number of roles increases
 		foreach (var dbRole in dbRoles)
 		{
-			roles.AddRange(await this.ConvertFromDbRoleAsync(dbRole, cancellationToken));
+			roles.AddRange(await this.ConvertFromDbRoleAsync(userId, dbRole, cancellationToken));
 		}
 
 		this.logger.LogInformation(0, "Returning user context with roles: {roles}.", string.Join(", ", roles));
@@ -79,18 +81,18 @@ public class DbUserContextFactory
 	}
 
 	// TODO: (before db integration) move this out into separate role providers? so that it's more testable
-	private async Task<IEnumerable<IUserRole>> ConvertFromDbRoleAsync(Role role, CancellationToken cancellationToken)
+	private async Task<IEnumerable<IUserRole>> ConvertFromDbRoleAsync(UserIdentifier userId, Role role, CancellationToken cancellationToken)
 	{
 		switch (role.AccessType)
 		{
 			case UserAccessType.Referee:
 				{
-					var teams = await this.refereeTeams
-						.Where(team => team.RefereeId == role.UserId)
+					var teams = await this.users.WithIdentifier(userId)
+						.Join(this.refereeTeams, u => u.Id, r => r.RefereeId, (_, r) => r)
 						.Select(team => new RefereeTeam { AssociationType = team.AssociationType, TeamId = team.TeamId })
 						.ToListAsync(cancellationToken);
-					var ngbs = await this.refereeLocations
-						.Where(location => location.RefereeId == role.UserId)
+					var ngbs = await this.users.WithIdentifier(userId)
+						.Join(this.refereeLocations, u => u.Id, r => r.RefereeId, (_, r) => r)
 						.Select(location => new RefereeLocation { AssociationType = location.AssociationType, NationalGoverningBodyId = location.NationalGoverningBodyId })
 						.ToListAsync(cancellationToken);
 
@@ -112,8 +114,8 @@ public class DbUserContextFactory
 				}
 			case UserAccessType.NgbAdmin:
 				{
-					var ngbConstraint = new NgbConstraint(await this.nationalGoverningBodyAdmins
-						.Where(ngbAdmin => ngbAdmin.UserId == role.UserId)
+					var ngbConstraint = new NgbConstraint(await this.users.WithIdentifier(userId)
+						.Join(this.nationalGoverningBodyAdmins, u => u.Id, r => r.UserId, (_, r) => r)
 						.Select(ngbAdmin => new NgbIdentifier(ngbAdmin.NationalGoverningBodyId))
 						.ToListAsync(cancellationToken));
 

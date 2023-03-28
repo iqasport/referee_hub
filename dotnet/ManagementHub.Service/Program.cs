@@ -1,11 +1,13 @@
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Serialization;
+using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 namespace ManagementHub.Service;
@@ -43,6 +45,12 @@ public static class Program
 
 		services.AddHttpContextAccessor();
 		services.AddScoped<ICurrentContextAccessor, CurrentContextAccessor>();
+
+		services.AddScoped<IAuthorizationHandler, UserRoleAuthorizationHandler>();
+		services.AddAuthorization(options =>
+		{
+			options.AddRefereePolicy();
+		});
     }
 
     public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)

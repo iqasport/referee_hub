@@ -23,12 +23,20 @@ public class UserIdentityRepository : IUserIdentityRepository
 
 	public async Task CreateUserAsync(UserIdentity user, CancellationToken cancellationToken)
 	{
-		this.dbContext.Users.Add(new User
+		var dbUser = new User
 		{
 			UniqueId = user.UserId.ToString(),
 			Email = user.UserEmail.Value,
 			CreatedAt = DateTime.UtcNow,
 			EncryptedPassword = user.UserPassword?.PasswordHash ?? throw new ArgumentException(nameof(user.UserPassword)),
+		};
+		this.dbContext.Users.Add(dbUser);
+		this.dbContext.Roles.Add(new Role
+		{
+			AccessType = Models.Enums.UserAccessType.Referee,
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
+			User = dbUser,
 		});
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
