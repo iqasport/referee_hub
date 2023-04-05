@@ -12,7 +12,7 @@ public class RefereeRole : IUserRole
     /// <summary>
     /// Indicates whether the referee is active and should be included in NGB statistics.
     /// </summary>
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
     /// <summary>
     /// Primary NGB this referee is located in.
