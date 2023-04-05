@@ -63,6 +63,7 @@ public class AttachmentRepository : IAttachmentRepository
 		if (attachment != null)
 		{
 			attachment.Blob = blob;
+			attachment.CreatedAt = this.clock.UtcNow.UtcDateTime;
 		}
 		else
 		{

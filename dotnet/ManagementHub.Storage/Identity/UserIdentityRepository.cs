@@ -66,6 +66,7 @@ public class UserIdentityRepository : IUserIdentityRepository
 	{
 		var dbUser = await this.GetUser(user, cancellationToken);
 		updater(dbUser);
+		dbUser.UpdatedAt = DateTime.UtcNow;
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 	}
 

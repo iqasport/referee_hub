@@ -11,6 +11,7 @@ using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Expr = System.Linq.Expressions.Expression<System.Func<Microsoft.EntityFrameworkCore.Query.SetPropertyCalls<ManagementHub.Models.Data.User>, Microsoft.EntityFrameworkCore.Query.SetPropertyCalls<ManagementHub.Models.Data.User>>>;
 
@@ -20,15 +21,18 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 	private readonly IQueryable<User> users;
 	private readonly IQueryable<Language> languages;
 	private readonly ILogger<UpdateUserDataCommand> logger;
+	private readonly ISystemClock clock;
 
 	public UpdateUserDataCommand(
 		IQueryable<User> users,
 		IQueryable<Language> languages,
-		ILogger<UpdateUserDataCommand> logger)
+		ILogger<UpdateUserDataCommand> logger,
+		ISystemClock clock)
 	{
 		this.users = users;
 		this.languages = languages;
 		this.logger = logger;
+		this.clock = clock;
 	}
 
 	public async Task UpdateUserDataAsync(UserIdentifier userId, Func<ExtendedUserData, ExtendedUserData> updater, CancellationToken cancellationToken)
@@ -116,9 +120,23 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 			propertySetters.Add(s => s.SetProperty(u => u.LanguageId, newLangId));
 		}
 
-		this.logger.LogInformation(0, "Updating user data for ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
+		// if any property has been changed we also want to update the last update time
+		if (propertySetters.Count > 0)
+		{
+			var now = this.clock.UtcNow.UtcDateTime;
+			propertySetters.Add(s => s.SetProperty(u => u.UpdatedAt, now));
+		}
 
-		var result = await this.users.ExecuteUpdateAsync(propertySetters, cancellationToken);
-		Debug.Assert(result == 1); // only one row of the specific user should have been updated.
+		if (propertySetters.Count > 0)
+		{
+			this.logger.LogInformation(0, "Updating user data for ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
+
+			var result = await this.users.ExecuteUpdateAsync(propertySetters, cancellationToken);
+			Debug.Assert(result == 1); // only one row of the specific user should have been updated.
+		}
+		else
+		{
+			this.logger.LogInformation(0, "No changes have been made to the user.");
+		}
 	}
 }
