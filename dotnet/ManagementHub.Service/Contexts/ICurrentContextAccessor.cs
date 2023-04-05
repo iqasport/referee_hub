@@ -6,6 +6,8 @@ public interface ICurrentContextAccessor
 {
 	Task<IUserContext> GetCurrentUserContextAsync();
 
+	Task<IUserContext> GetUserContextAsync(UserIdentifier userId);
+
 	Task<IUserDataContext> GetUserDataContextAsync(UserIdentifier userId);
 
 	Task<IUserAvatarContext> GetUserAvatarContextAsync(UserIdentifier userId);

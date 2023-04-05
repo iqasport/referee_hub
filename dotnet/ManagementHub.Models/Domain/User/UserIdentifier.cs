@@ -14,6 +14,9 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 	private const int GuidAsStringLength = 36;
 	public long Id => this.ToLegacyUserId();
 
+	/// <summary>
+	/// Returns the serialized user identifier.
+	/// </summary>
 	public override string ToString()
 	{
 		return $"{IdPrefix}{this.UniqueId}";

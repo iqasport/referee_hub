@@ -15,4 +15,12 @@ public static class AuthotizationPolicies
 		{
 			policy.AddRequirements(new UserRoleAuthorizationRequirement<RefereeRole>());
 		});
+
+	public const string RefereeViewerPolicy = nameof(RefereeViewerPolicy);
+
+	public static void AddRefereeViewerPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(RefereeViewerPolicy, policy =>
+		{
+			policy.AddRequirements(new UserRoleAuthorizationRequirement<RefereeViewerRole>());
+		});
 }
