@@ -1,4 +1,5 @@
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Serialization;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
@@ -8,7 +9,9 @@ using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ManagementHub.Service;
 
@@ -127,6 +130,7 @@ public static class Program
 
 	public static void ConfigureWebApp(WebHostBuilderContext context, IApplicationBuilder app)
 	{
+		app.UseExceptionHandler(exceptionHandlerApp => exceptionHandlerApp.Run(HandleRequestError));
 		app.UseRouting();
 		app.UseAuthentication();
 		app.UseAuthorization();
@@ -137,5 +141,30 @@ public static class Program
 			endpoints.MapSwagger();
 		});
 		app.UseSwaggerUI();
+	}
+
+	private static async Task HandleRequestError(HttpContext context)
+	{
+		context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+		context.Response.ContentType = Text.Plain;
+
+		var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+
+		// TODO move this method to another file
+		switch (exceptionHandlerPathFeature?.Error)
+		{
+			case NotFoundException notFound:
+				context.Response.StatusCode = StatusCodes.Status404NotFound;
+				await context.Response.WriteAsync(notFound.Message);
+				break;
+			case AccessDeniedException accessDenied:
+				context.Response.StatusCode = StatusCodes.Status403Forbidden;
+				await context.Response.WriteAsync(accessDenied.Message);
+				break;
+			default:
+				await context.Response.WriteAsync("Unexpected error occured.");
+				break;
+		}
 	}
 }
