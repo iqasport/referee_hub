@@ -13,6 +13,7 @@ using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -64,7 +65,13 @@ public class DbUserContextFactory
 			{
 				UserLang = join.Language != null ? new LanguageIdentifier(join.Language.ShortName, join.Language.ShortRegion) : LanguageIdentifier.Default,
 			})
-			.SingleAsync(cancellationToken);
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (userData == null)
+		{
+			throw new NotFoundException(userId.ToString());
+		}
+
 		var dbRoles = await this.users.WithIdentifier(userId)
 			.Join(this.roles, u => u.Id, r => r.UserId, (_, r) => r)
 			.ToListAsync(cancellationToken);

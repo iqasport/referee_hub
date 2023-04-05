@@ -6,6 +6,7 @@ using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -48,7 +49,12 @@ public class DbUserDataContextFactory
 				ShowPronouns = join.User.ShowPronouns ?? false,
 				UserLang = join.Language != null ? new LanguageIdentifier(join.Language.ShortName, join.Language.ShortRegion) : LanguageIdentifier.Default,
 			})
-			.SingleAsync(cancellationToken);
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (userData == null)
+		{
+			throw new NotFoundException(userId.ToString());
+		}
 
 		this.logger.LogInformation(0, "Returning user data context.");
 
