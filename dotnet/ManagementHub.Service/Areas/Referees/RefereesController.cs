@@ -6,6 +6,7 @@ using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Paging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -86,7 +87,7 @@ public class RefereesController : ControllerBase
 
 	[HttpGet]
 	[Authorize(AuthotizationPolicies.RefereeViewerPolicy)]
-	public async Task<IQueryable<RefereeViewModel>> GetReferees()
+	public async Task<IQueryable<RefereeViewModel>> GetReferees(PagingParameters paging)
 	{
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync();
 		return collection.Select(context => new RefereeViewModel
@@ -98,6 +99,6 @@ public class RefereesController : ControllerBase
 			PrimaryNgb = context.PrimaryNgb,
 			SecondaryNgb = context.SecondaryNgb,
 			UserId = context.UserId,
-		});
+		}).Page(paging);
 	}
 }
