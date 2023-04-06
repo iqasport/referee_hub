@@ -9,9 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace ManagementHub.Storage.Contexts;
 
 /// <summary>
-/// Implementation of <see cref="IContextProvider"/> that loads data from the database using factory classes.
+/// Implementation of <see cref="IUserContextProvider"/> that loads data from the database using factory classes.
 /// </summary>
-public class DbContextProvider : IContextProvider
+public class DbContextProvider : IUserContextProvider
 {
 	private readonly DbUserContextFactory userContextFactory;
 	private readonly DbUserDataContextFactory userDataContextFactory;

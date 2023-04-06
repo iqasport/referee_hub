@@ -47,12 +47,13 @@ public static class Program
 		services.AddManagementHubIdentity();
 
 		services.AddHttpContextAccessor();
-		services.AddScoped<ICurrentContextAccessor, CurrentContextAccessor>();
+		services.AddScoped<IUserContextAccessor, UserContextAccessor>();
 
 		services.AddScoped<IAuthorizationHandler, UserRoleAuthorizationHandler>();
 		services.AddAuthorization(options =>
 		{
 			options.AddRefereePolicy();
+			options.AddRefereeViewerPolicy();
 		});
     }
 

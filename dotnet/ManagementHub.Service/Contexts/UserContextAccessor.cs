@@ -1,20 +1,21 @@
 ﻿using System.Security.Claims;
 using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Service.Contexts;
 
-public class CurrentContextAccessor : ICurrentContextAccessor
+public class UserContextAccessor : IUserContextAccessor
 {
 	private readonly IHttpContextAccessor httpContextAccessor;
-	private readonly IContextProvider contextProvider;
+	private readonly IUserContextProvider contextProvider;
 
 	// cached context so that we don't parse the user id multiple times
 	private IUserContext? user;
 
-	public CurrentContextAccessor(
+	public UserContextAccessor(
 		IHttpContextAccessor httpContextAccessor,
-		IContextProvider contextProvider)
+		IUserContextProvider contextProvider)
 	{
 		this.httpContextAccessor = httpContextAccessor;
 		this.contextProvider = contextProvider;

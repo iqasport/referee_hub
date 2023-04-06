@@ -1,4 +1,5 @@
 ﻿using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
@@ -18,13 +19,15 @@ namespace ManagementHub.Service.Areas.Referees;
 [Produces("application/json")]
 public class RefereesController : ControllerBase
 {
-	private readonly ICurrentContextAccessor contextAccessor;
+	private readonly IUserContextAccessor contextAccessor;
 	private readonly IUpdateRefereeRoleCommand updateRefereeRoleCommand;
+	private readonly IRefereeContextAccessor refereeContextAccessor;
 
-	public RefereesController(ICurrentContextAccessor contextAccessor, IUpdateRefereeRoleCommand updateRefereeRoleCommand)
+	public RefereesController(IUserContextAccessor contextAccessor, IUpdateRefereeRoleCommand updateRefereeRoleCommand, IRefereeContextAccessor refereeContextAccessor)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateRefereeRoleCommand = updateRefereeRoleCommand;
+		this.refereeContextAccessor = refereeContextAccessor;
 	}
 
 	[HttpPatch("me")]
@@ -42,6 +45,23 @@ public class RefereesController : ControllerBase
 		}, this.HttpContext.RequestAborted);
 	}
 
+	[HttpGet("me")]
+	[Authorize(AuthotizationPolicies.RefereePolicy)]
+	public async Task<RefereeViewModel> GetCurrentReferee()
+	{
+		var context = await this.refereeContextAccessor.GetRefereeViewContextForCurrentUserAsync();
+		return new RefereeViewModel
+		{
+			AcquiredCertifications = context.AcquiredCertifications,
+			CoachingTeam = context.CoachingTeam,
+			Name = context.DisplayName,
+			PlayingTeam = context.PlayingTeam,
+			PrimaryNgb = context.PrimaryNgb,
+			SecondaryNgb = context.SecondaryNgb,
+			UserId = context.UserId,
+		};
+	}
+
 	[HttpGet("{userId}")]
 	[Authorize(AuthotizationPolicies.RefereeViewerPolicy)]
 	public async Task<RefereeViewModel> GetReferee([FromRoute]UserIdentifier userId)
@@ -51,39 +71,33 @@ public class RefereesController : ControllerBase
 			throw new ArgumentException("User identifier has not been provided.", nameof(userId));
 		}
 
-		var currentUserContext = await this.contextAccessor.GetCurrentUserContextAsync();
-		var viewerRole = currentUserContext.Roles.OfType<RefereeViewerRole>().First();
-
-		var userContext = await this.contextAccessor.GetUserContextAsync(userId);
-		var refereeRole = userContext.Roles.OfType<RefereeRole>().FirstOrDefault();
-
-		if (refereeRole == null)
-		{
-			throw new NotFoundException(nameof(RefereeRole));
-		}
-
-		// TODO: make it a filter for the query for the user
-		// TODO: consolidate accessing data and referee role into a new context and allow batch queries
-		var userRelatedNgbs = new List<NgbIdentifier>(2);
-		if (refereeRole.PrimaryNgb != null) userRelatedNgbs.Add(refereeRole.PrimaryNgb.Value);
-		if (refereeRole.SecondaryNgb != null) userRelatedNgbs.Add(refereeRole.SecondaryNgb.Value);
-
-		if (!userRelatedNgbs.Any(viewerRole.Ngb.AppliesTo))
-		{
-			throw new AccessDeniedException(userId.ToString());
-		}
-
-		var userData = (await this.contextAccessor.GetUserDataContextAsync(userId)).ExtendedUserData;
-
+		var context = await this.refereeContextAccessor.GetRefereeViewContextAsync(userId);
 		return new RefereeViewModel
 		{
-			UserId = userId,
-			Name = userData.ExportName ? $"{userData.FirstName} {userData.LastName}" : "Anonymous referee",
-			CoachingTeam = refereeRole.CoachingTeam,
-			PlayingTeam = refereeRole.PlayingTeam,
-			PrimaryNgb = refereeRole.PrimaryNgb,
-			SecondaryNgb = refereeRole.SecondaryNgb,
-			//AcquiredCertifications = TODO
+			AcquiredCertifications = context.AcquiredCertifications,
+			CoachingTeam = context.CoachingTeam,
+			Name = context.DisplayName,
+			PlayingTeam = context.PlayingTeam,
+			PrimaryNgb = context.PrimaryNgb,
+			SecondaryNgb = context.SecondaryNgb,
+			UserId = context.UserId,
 		};
+	}
+
+	[HttpGet]
+	[Authorize(AuthotizationPolicies.RefereeViewerPolicy)]
+	public async Task<IQueryable<RefereeViewModel>> GetReferees()
+	{
+		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync();
+		return collection.Select(context => new RefereeViewModel
+		{
+			AcquiredCertifications = context.AcquiredCertifications,
+			CoachingTeam = context.CoachingTeam,
+			Name = context.DisplayName,
+			PlayingTeam = context.PlayingTeam,
+			PrimaryNgb = context.PrimaryNgb,
+			SecondaryNgb = context.SecondaryNgb,
+			UserId = context.UserId,
+		});
 	}
 }

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Processing.Contexts;
@@ -9,14 +10,14 @@ namespace ManagementHub.Processing.Contexts;
 /// <summary>
 /// Wrapper around another context provider that caches the result. Should be registered scoped to a request.
 /// </summary>
-public class CachedContextProvider : IContextProvider
+public class CachedUserContextProvider : IUserContextProvider
 {
 	private readonly ConcurrentDictionary<UserIdentifier, IUserContext> userContextCache = new();
 	private readonly ConcurrentDictionary<UserIdentifier, IUserDataContext> userDataContextCache = new();
 	private readonly ConcurrentDictionary<UserIdentifier, IUserAvatarContext> userAvatarContextCache = new();
-	private readonly IContextProvider innerProvider;
+	private readonly IUserContextProvider innerProvider;
 
-	public CachedContextProvider(IContextProvider innerProvider)
+	public CachedUserContextProvider(IUserContextProvider innerProvider)
 	{
 		this.innerProvider = innerProvider;
 	}

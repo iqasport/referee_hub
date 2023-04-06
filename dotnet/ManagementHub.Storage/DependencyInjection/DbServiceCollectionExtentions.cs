@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using ManagementHub.Models.Abstraction.Commands;
-using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Processing.Contexts;
@@ -70,7 +70,7 @@ public static class DbServiceCollectionExtentions
 			services.AddHostedService<EnsureDatabaseMigratedService>();
 		}
 
-		services.AddScoped<IContextProvider>(sp => new CachedContextProvider(new DbContextProvider(
+		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbContextProvider(
 			sp.GetRequiredService<ManagementHubDbContext>(),
 			sp.GetRequiredService<IAttachmentRepository>(),
 			sp.GetRequiredService<IAccessFileCommand>(),

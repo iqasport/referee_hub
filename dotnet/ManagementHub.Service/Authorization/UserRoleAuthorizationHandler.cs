@@ -8,10 +8,10 @@ namespace ManagementHub.Service.Authorization;
 /// </summary>
 public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthorizationRequirement>
 {
-	private readonly ICurrentContextAccessor currentContextAccessor;
+	private readonly IUserContextAccessor currentContextAccessor;
 	private readonly ILogger<UserRoleAuthorizationHandler> logger;
 
-	public UserRoleAuthorizationHandler(ICurrentContextAccessor currentContextAccessor, ILogger<UserRoleAuthorizationHandler> logger)
+	public UserRoleAuthorizationHandler(IUserContextAccessor currentContextAccessor, ILogger<UserRoleAuthorizationHandler> logger)
 	{
 		this.currentContextAccessor = currentContextAccessor;
 		this.logger = logger;

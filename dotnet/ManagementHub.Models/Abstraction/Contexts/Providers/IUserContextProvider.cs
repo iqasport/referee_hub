@@ -2,14 +2,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Domain.User;
 
-namespace ManagementHub.Models.Abstraction.Contexts;
+namespace ManagementHub.Models.Abstraction.Contexts.Providers;
 
-public interface IContextProvider
+public interface IUserContextProvider
 {
-    /// <summary>
-    /// Gets a user context instance for the specified <paramref name="userId"/>.
-    /// </summary>
-    Task<IUserContext> GetUserContextAsync(UserIdentifier userId, CancellationToken cancellationToken);
+	/// <summary>
+	/// Gets a user context instance for the specified <paramref name="userId"/>.
+	/// </summary>
+	Task<IUserContext> GetUserContextAsync(UserIdentifier userId, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Gets a user data context instance for the specified <paramref name="userId"/>.

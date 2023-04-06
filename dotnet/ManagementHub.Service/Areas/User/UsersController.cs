@@ -15,11 +15,11 @@ namespace ManagementHub.Service.Areas.User;
 [Produces("application/json")]
 public class UsersController : ControllerBase
 {
-	private readonly ICurrentContextAccessor contextAccessor;
+	private readonly IUserContextAccessor contextAccessor;
 	private readonly IUpdateUserDataCommand updateUserDataCommand;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 
-	public UsersController(ICurrentContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand, IUpdateUserAvatarCommand updateUserAvatarCommand)
+	public UsersController(IUserContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand, IUpdateUserAvatarCommand updateUserAvatarCommand)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateUserDataCommand = updateUserDataCommand;
