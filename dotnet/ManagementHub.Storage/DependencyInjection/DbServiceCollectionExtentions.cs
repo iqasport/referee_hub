@@ -70,7 +70,7 @@ public static class DbServiceCollectionExtentions
 			services.AddHostedService<EnsureDatabaseMigratedService>();
 		}
 
-		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbContextProvider(
+		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbUserContextProvider(
 			sp.GetRequiredService<ManagementHubDbContext>(),
 			sp.GetRequiredService<IAttachmentRepository>(),
 			sp.GetRequiredService<IAccessFileCommand>(),

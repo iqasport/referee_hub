@@ -2,22 +2,23 @@
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Attachments;
 using Microsoft.Extensions.Logging;
 
-namespace ManagementHub.Storage.Contexts;
+namespace ManagementHub.Storage.Contexts.User;
 
 /// <summary>
 /// Implementation of <see cref="IUserContextProvider"/> that loads data from the database using factory classes.
 /// </summary>
-public class DbContextProvider : IUserContextProvider
+public class DbUserContextProvider : IUserContextProvider
 {
 	private readonly DbUserContextFactory userContextFactory;
 	private readonly DbUserDataContextFactory userDataContextFactory;
 	private readonly DbUserAvatarContextFactory userAvatarContextFactory;
 
-	public DbContextProvider(
+	public DbUserContextProvider(
 		ManagementHubDbContext dbContext,
 		IAttachmentRepository attachmentRepository,
 		IAccessFileCommand accessFile,

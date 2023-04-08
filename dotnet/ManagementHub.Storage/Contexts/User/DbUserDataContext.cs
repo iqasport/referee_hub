@@ -11,7 +11,7 @@ using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace ManagementHub.Storage.Contexts;
+namespace ManagementHub.Storage.Contexts.User;
 
 public record class DbUserDataContext(UserIdentifier UserId, ExtendedUserData ExtendedUserData) : IUserDataContext
 {

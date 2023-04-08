@@ -7,7 +7,7 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Attachments;
 using Microsoft.Extensions.Logging;
 
-namespace ManagementHub.Storage.Contexts;
+namespace ManagementHub.Storage.Contexts.User;
 public record DbUserAvatarContext(Uri? AvatarUri) : IUserAvatarContext
 {
 }
@@ -32,18 +32,18 @@ public class DbUserAvatarContextFactory
 		try
 		{
 
-		const string attachmentName = "avatar";
-		var attachment = await this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
+			const string attachmentName = "avatar";
+			var attachment = await this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
 
-		if (attachment == null)
-		{
-			return new DbUserAvatarContext(null);
-		}
+			if (attachment == null)
+			{
+				return new DbUserAvatarContext(null);
+			}
 
-		// TODO: put expiration in settings
-		var avatarUri = await this.accessFile.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromSeconds(20), cancellationToken);
+			// TODO: put expiration in settings
+			var avatarUri = await this.accessFile.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromSeconds(20), cancellationToken);
 
-		return new DbUserAvatarContext(avatarUri);
+			return new DbUserAvatarContext(avatarUri);
 		}
 		catch (Exception ex)
 		{

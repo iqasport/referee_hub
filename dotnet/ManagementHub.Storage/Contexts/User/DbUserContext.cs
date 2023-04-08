@@ -18,7 +18,7 @@ using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace ManagementHub.Storage.Contexts;
+namespace ManagementHub.Storage.Contexts.User;
 
 public record class DbUserContext(UserIdentifier UserId, UserData UserData, IEnumerable<IUserRole> Roles) : IUserContext
 {
@@ -59,7 +59,7 @@ public class DbUserContextFactory
 		var userData = await this.users.WithIdentifier(userId)
 			// THIS LEFT JOIN IN PURE LINQ
 			.GroupJoin(this.languages, u => u.LanguageId, l => l.Id, (u, l) => new { User = u, Languages = l })
-			.SelectMany(join => join.Languages.DefaultIfEmpty(), (join, l) => new { join.User, Language = l})
+			.SelectMany(join => join.Languages.DefaultIfEmpty(), (join, l) => new { join.User, Language = l })
 			// UNTIL HERE
 			.Select(join => new UserData(new Email(join.User.Email), join.User.FirstName ?? string.Empty, join.User.LastName ?? string.Empty)
 			{
