@@ -9,35 +9,43 @@ using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Expr = System.Linq.Expressions.Expression<System.Func<Microsoft.EntityFrameworkCore.Query.SetPropertyCalls<ManagementHub.Models.Data.User>, Microsoft.EntityFrameworkCore.Query.SetPropertyCalls<ManagementHub.Models.Data.User>>>;
 
-namespace ManagementHub.Storage.Commands;
+namespace ManagementHub.Storage.Commands.User;
+using User = ManagementHub.Models.Data.User;
+
 public class UpdateUserDataCommand : IUpdateUserDataCommand
 {
 	private readonly IQueryable<User> users;
 	private readonly IQueryable<Language> languages;
 	private readonly ILogger<UpdateUserDataCommand> logger;
 	private readonly ISystemClock clock;
+	private readonly IDatabaseTransactionProvider transactionProvider;
 
 	public UpdateUserDataCommand(
 		IQueryable<User> users,
 		IQueryable<Language> languages,
 		ILogger<UpdateUserDataCommand> logger,
-		ISystemClock clock)
+		ISystemClock clock,
+		IDatabaseTransactionProvider transactionProvider)
 	{
 		this.users = users;
 		this.languages = languages;
 		this.logger = logger;
 		this.clock = clock;
+		this.transactionProvider = transactionProvider;
 	}
 
 	public async Task UpdateUserDataAsync(UserIdentifier userId, Func<ExtendedUserData, ExtendedUserData> updater, CancellationToken cancellationToken)
 	{
 		this.logger.LogInformation(0, "Performing update on user ({userId})", userId);
+
+		await using var transaction = await this.transactionProvider.BeginAsync();
 
 		//TODO: this was copied from DbUserDataContext and should be refactored into some single place
 		var userData = await this.users.AsNoTracking().WithIdentifier(userId)
@@ -133,6 +141,8 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 
 			var result = await this.users.ExecuteUpdateAsync(propertySetters, cancellationToken);
 			Debug.Assert(result == 1); // only one row of the specific user should have been updated.
+
+			await transaction.CommitAsync(cancellationToken);
 		}
 		else
 		{

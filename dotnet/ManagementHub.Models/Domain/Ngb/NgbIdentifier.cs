@@ -6,9 +6,6 @@ namespace ManagementHub.Models.Domain.Ngb;
 /// Identifier of a National Governing Body.
 /// In the future it will ensure that it is initialized with the id in the correct format.
 /// </summary>
-public struct NgbIdentifier : IIdentifiable
+public record struct NgbIdentifier(long Id) : IIdentifiable
 {
-    public NgbIdentifier(long id) => Id = id;
-
-	public long Id { get; }
 }

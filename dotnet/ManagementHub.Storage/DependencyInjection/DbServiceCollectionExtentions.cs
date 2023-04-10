@@ -8,7 +8,8 @@ using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.BlobStorage.AmazonS3;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
-using ManagementHub.Storage.Commands;
+using ManagementHub.Storage.Commands.Referee;
+using ManagementHub.Storage.Commands.User;
 using ManagementHub.Storage.Contexts.Referee;
 using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Database;
@@ -82,6 +83,7 @@ public static class DbServiceCollectionExtentions
 
 		services.AddScoped<IUpdateUserDataCommand, UpdateUserDataCommand>();
 		services.AddScoped<IUpdateUserAvatarCommand, UpdateUserAvatarCommand>();
+		services.AddScoped<IUpdateRefereeRoleCommand, UpdateRefereeRoleCommand>();
 
 		services.AddScoped<IAttachmentRepository, AttachmentRepository>();
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();

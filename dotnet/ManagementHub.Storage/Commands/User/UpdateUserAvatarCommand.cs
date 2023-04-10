@@ -9,7 +9,7 @@ using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Database.Transactions;
 using Microsoft.Extensions.Logging;
 
-namespace ManagementHub.Storage.Commands;
+namespace ManagementHub.Storage.Commands.User;
 
 public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 {

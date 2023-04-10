@@ -11,6 +11,7 @@ public class RefereeRole : IUserRole
 {
     /// <summary>
     /// Indicates whether the referee is active and should be included in NGB statistics.
+	/// Currently it's always TRUE and later we will implement a new field in the database for it.
     /// </summary>
     public bool IsActive { get; set; } = true;
 
