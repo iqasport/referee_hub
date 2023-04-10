@@ -1,9 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Domain.Tests;
-public record struct Certification(CertificationLevel Level, CertificationVersion Version);
+public record struct Certification(CertificationLevel Level, CertificationVersion Version)
+{
+	public Certification(CertificationLevel level, CertificationVersion? version)
+		: this(level, version ?? throw new ArgumentNullException(nameof(version)))
+	{
+	}
+}

@@ -10,7 +10,7 @@ public interface IRefereeViewContext
 	/// <summary>
 	/// User ID of the referee.
 	/// </summary>
-	public UserIdentifier UserId { get; }
+	UserIdentifier UserId { get; }
 
 	/// <summary>
 	/// Name of the referee (or "Anonymous" if they disallow exporting).
@@ -20,25 +20,25 @@ public interface IRefereeViewContext
 	/// <summary>
 	/// Primary NGB this referee is located in.
 	/// </summary>
-	public NgbIdentifier? PrimaryNgb { get; }
+	NgbIdentifier? PrimaryNgb { get; }
 
 	/// <summary>
 	/// Secondary NGB this referee is located in.
 	/// </summary>
-	public NgbIdentifier? SecondaryNgb { get; }
+	NgbIdentifier? SecondaryNgb { get; }
 
 	/// <summary>
 	/// Team the referee is playing for.
 	/// </summary>
-	public TeamIdentifier? PlayingTeam { get; }
+	TeamIdentifier? PlayingTeam { get; }
 
 	/// <summary>
 	/// Team the referee is coaching.
 	/// </summary>
-	public TeamIdentifier? CoachingTeam { get; }
+	TeamIdentifier? CoachingTeam { get; }
 
 	/// <summary>
 	/// Certifications acquired by this referee.
 	/// </summary>
-	public HashSet<Certification> AcquiredCertifications { get; }
+	HashSet<Certification> AcquiredCertifications { get; }
 }

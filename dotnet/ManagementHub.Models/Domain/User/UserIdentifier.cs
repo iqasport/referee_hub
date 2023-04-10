@@ -68,6 +68,8 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 		return true;
 	}
 
+	public static UserIdentifier Parse(string value) => TryParse(value, out UserIdentifier result) ? result : throw new FormatException($"The string is not a valid {nameof(UserIdentifier)}");
+
 	private static Span<long> GuidAsLongSpan(ref Guid guid) =>
 		MemoryMarshal.Cast<Guid, long>(MemoryMarshal.CreateSpan(ref guid, 1));
 }

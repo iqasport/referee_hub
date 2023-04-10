@@ -13,7 +13,7 @@ public interface IRefereeContextProvider
 	Task<IRefereeViewContext> GetRefereeViewContextAsync(UserIdentifier userId, NgbConstraint ngbConstraint, CancellationToken cancellationToken);
 
 	/// <summary>
-	/// Retrieves a list of referee view contexts that satisfy the <paramref name="ngbConstraint"/>.
+	/// Retrieves a queryable collection of referee view contexts that satisfy the <paramref name="ngbConstraint"/>.
 	/// </summary>
-	Task<IQueryable<IRefereeViewContext>> GetRefereeViewContextListAsync(NgbConstraint ngbConstraint, CancellationToken cancellationToken);
+	IQueryable<IRefereeViewContext> GetRefereeViewContextQueryable(NgbConstraint ngbConstraint);
 }

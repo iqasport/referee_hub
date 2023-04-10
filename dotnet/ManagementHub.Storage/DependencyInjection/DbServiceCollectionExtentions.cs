@@ -9,13 +9,13 @@ using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.BlobStorage.AmazonS3;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
 using ManagementHub.Storage.Commands;
-using ManagementHub.Storage.Contexts;
+using ManagementHub.Storage.Contexts.Referee;
+using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Database;
 using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.DbAccessors;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
@@ -75,6 +75,7 @@ public static class DbServiceCollectionExtentions
 			sp.GetRequiredService<IAttachmentRepository>(),
 			sp.GetRequiredService<IAccessFileCommand>(),
 			sp.GetRequiredService<ILoggerFactory>())));
+		services.AddScoped<IRefereeContextProvider, DbRefereeContextProvider>();
 
 		services.AddTransient<IQueryable<User>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<User>());
 		services.AddTransient<IQueryable<Language>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<Language>());
