@@ -7,69 +7,63 @@ namespace ManagementHub.Models.Domain.Ngb;
 /// <summary>
 /// An NGB constraint that represents one, multiple, or any NGBs.
 /// </summary>
-public class NgbConstraint : IEnumerable<NgbIdentifier>
+public abstract class NgbConstraint
 {
-    private readonly bool anyNgb;
-    private readonly HashSet<NgbIdentifier>? nationalGoverningBodies;
-    
-    private NgbConstraint() => this.anyNgb = true;
+	public abstract bool AppliesToAny { get; }
+	public abstract bool AppliesTo(NgbIdentifier ngbId);
 
-    public NgbConstraint(NgbIdentifier nationalGoverningBody)
-        => this.nationalGoverningBodies = new HashSet<NgbIdentifier>{nationalGoverningBody};
-    public NgbConstraint(IEnumerable<NgbIdentifier> nationalGoverningBodies)
-        => this.nationalGoverningBodies = new HashSet<NgbIdentifier>(nationalGoverningBodies);
+	public static NgbConstraint Any { get; } = new AnyNgbConstraint();
 
-    public static NgbConstraint Any = new NgbConstraint();
+	public static NgbConstraint Single(NgbIdentifier ngbId) => Set(new[] { ngbId });
 
-	public bool AppliesToAny() => this.anyNgb;
+	public static NgbConstraint Set(IEnumerable<NgbIdentifier> ngbIds) => new SetNgbConstraint(ngbIds);
 
-    public bool AppliesTo(NgbIdentifier ngbId)
-    {
-        if (this.anyNgb)
-        {
-            return true;
-        }
-
-        return this.nationalGoverningBodies!.Contains(ngbId);
-    }
-
-	public override bool Equals(object? obj)
+	private sealed class AnyNgbConstraint : NgbConstraint
 	{
-		return obj is NgbConstraint other &&
-			this.anyNgb == other.anyNgb &&
-			(
-				(
-					this.nationalGoverningBodies != null && other.nationalGoverningBodies != null &&
-					this.nationalGoverningBodies.SetEquals(other.nationalGoverningBodies)
-				) ||
-				this.nationalGoverningBodies == other.nationalGoverningBodies // when one of them is null or they're not set equal - this checks that they're both null
-			);
+		public override bool AppliesToAny => true;
+		public override bool AppliesTo(NgbIdentifier ngbId) => true;
+
+		public override bool Equals(object? obj) => obj is AnyNgbConstraint;
+		public override int GetHashCode() => 1;
+		public override string ToString() => "ANY";
 	}
 
-	public override int GetHashCode()
+	private sealed class SetNgbConstraint : NgbConstraint, IEnumerable<NgbIdentifier>
 	{
-		int hashCode = this.anyNgb.GetHashCode();
-		if (this.nationalGoverningBodies != null)
-			foreach(var ngb in this.nationalGoverningBodies)
-				hashCode = HashCode.Combine(hashCode, ngb.GetHashCode());
-		return hashCode;
-	}
 
-	public IEnumerator<NgbIdentifier> GetEnumerator()
-	{
-		if (this.anyNgb)
+		private readonly HashSet<NgbIdentifier>? nationalGoverningBodies;
+
+		public SetNgbConstraint(IEnumerable<NgbIdentifier> nationalGoverningBodies)
+			=> this.nationalGoverningBodies = new HashSet<NgbIdentifier>(nationalGoverningBodies);
+
+		public override bool AppliesToAny => false;
+		public override bool AppliesTo(NgbIdentifier ngbId) => this.nationalGoverningBodies!.Contains(ngbId);
+
+		public override bool Equals(object? obj)
 		{
-			throw new InvalidOperationException("Can't enumerate ANY constraint.");
+			return obj is SetNgbConstraint other &&
+				(
+					(
+						this.nationalGoverningBodies != null && other.nationalGoverningBodies != null &&
+						this.nationalGoverningBodies.SetEquals(other.nationalGoverningBodies)
+					) ||
+					this.nationalGoverningBodies == other.nationalGoverningBodies // when one of them is null or they're not set equal - this checks that they're both null
+				);
 		}
 
-		return this.nationalGoverningBodies!.GetEnumerator();
-	}
+		public override int GetHashCode()
+		{
+			int hashCode = 1;
+			if (this.nationalGoverningBodies != null)
+				foreach (var ngb in this.nationalGoverningBodies)
+					hashCode = HashCode.Combine(hashCode, ngb.GetHashCode());
+			return hashCode;
+		}
 
-	IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+		public IEnumerator<NgbIdentifier> GetEnumerator() => this.nationalGoverningBodies!.GetEnumerator();
 
-	public override string ToString()
-	{
-		if (this.anyNgb) return "ANY";
-		return string.Join(", ", this.nationalGoverningBodies!);
+		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+		public override string ToString() => string.Join(", ", this.nationalGoverningBodies!);
 	}
 }

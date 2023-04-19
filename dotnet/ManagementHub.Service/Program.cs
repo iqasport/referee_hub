@@ -48,6 +48,7 @@ public static class Program
 
 		services.AddHttpContextAccessor();
 		services.AddScoped<IUserContextAccessor, UserContextAccessor>();
+		services.AddScoped<IRefereeContextAccessor, RefereeContextAccessor>();
 
 		services.AddScoped<IAuthorizationHandler, UserRoleAuthorizationHandler>();
 		services.AddAuthorization(options =>

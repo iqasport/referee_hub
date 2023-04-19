@@ -122,7 +122,7 @@ public class DbUserContextFactory
 				}
 			case UserAccessType.NgbAdmin:
 				{
-					var ngbConstraint = new NgbConstraint(await this.users.WithIdentifier(userId)
+					var ngbConstraint = NgbConstraint.Set(await this.users.WithIdentifier(userId)
 						.Join(this.nationalGoverningBodyAdmins, u => u.Id, r => r.UserId, (_, r) => r)
 						.Select(ngbAdmin => new NgbIdentifier(ngbAdmin.NationalGoverningBodyId))
 						.ToListAsync(cancellationToken));

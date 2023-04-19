@@ -9,6 +9,7 @@ using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
@@ -87,31 +88,45 @@ public class DbRefereeViewContextFactory
 	{
 		// select users who are referees
 		var referees = users.Join(this.roles.Where(r => r.AccessType == UserAccessType.Referee), u => u.Id, r => r.UserId, (u, _) => u)
-			.GroupJoin(this.locations, u => u.Id, l => l.RefereeId, (u, l) => new
-			{
-				User = u,
-				PrimaryLocationId = l.Where(l => l.AssociationType == RefereeNgbAssociationType.Primary).Select(l => l.NationalGoverningBodyId).SingleOrDefault(),
-				SecondaryLocationId = l.Where(l => l.AssociationType == RefereeNgbAssociationType.Secondary).Select(l => l.NationalGoverningBodyId).SingleOrDefault(),
-			})
+			.GroupJoin(this.locations, u => u.Id, l => l.RefereeId, (u, l) => new { User = u, Locations = l })
+			.SelectMany(g => g.Locations.DefaultIfEmpty(), (g, location) => new { g.User, Location = location })
 			.GroupJoin(this.teams, g => g.User.Id, t => t.RefereeId, (g, t) => new
 			{
 				g.User,
-				g.PrimaryLocationId,
-				g.SecondaryLocationId,
-				CoachingTeamId = t.Where(t => t.AssociationType == RefereeTeamAssociationType.Coach).Select(t => t.TeamId).SingleOrDefault(),
-				PlayingTeamId = t.Where(t => t.AssociationType == RefereeTeamAssociationType.Player).Select(t => t.TeamId).SingleOrDefault(),
+				g.Location,
+				Teams = t,
+			})
+			.SelectMany(g => g.Teams.DefaultIfEmpty(), (g, team) => new
+			{
+				g.User,
+				g.Location,
+				Team = team,
 			})
 			.GroupJoin(this.certifications.Include(c => c.Certification), g => g.User.Id, c => c.RefereeId, (g, c) => new
 			{
 				g.User,
-				g.PrimaryLocationId,
-				g.SecondaryLocationId,
-				g.CoachingTeamId,
-				g.PlayingTeamId,
-				Certifications = c.Select(cc => cc.Certification)
+				g.Location,
+				g.Team,
+				Certifications = c,
+			})
+			.SelectMany(g => g.Certifications.DefaultIfEmpty(), (g, certification) => new
+			{
+				g.User,
+				g.Location,
+				g.Team,
+				Certification = certification
+			})
+			.GroupBy(g => new { g.User.Id, g.User.UniqueId, g.User.ExportName, g.User.FirstName, g.User.LastName }, (u, g) => new
+			{
+				User = u,
+				PrimaryLocationId = g.Where(gx => gx.Location != null && gx.Location.AssociationType == RefereeNgbAssociationType.Primary).Select(gx => gx.Location.NationalGoverningBodyId).SingleOrDefault(),
+				SecondaryLocationId = g.Where(gx => gx.Location != null && gx.Location.AssociationType == RefereeNgbAssociationType.Secondary).Select(gx => gx.Location.NationalGoverningBodyId).SingleOrDefault(),
+				CoachingTeamId = g.Where(gx => gx.Team != null && gx.Team.AssociationType == RefereeTeamAssociationType.Coach).Select(gx => gx.Team.TeamId).SingleOrDefault(),
+				PlayingTeamId = g.Where(gx => gx.Team != null && gx.Team.AssociationType == RefereeTeamAssociationType.Player).Select(gx => gx.Team.TeamId).SingleOrDefault(),
+				Certifications = g.Where(gx => gx.Certification != null).Select(gx => new DomainCertification(gx.Certification.Certification.Level, gx.Certification.Certification.Version))
 			});
 
-		if (!ngbs.AppliesToAny())
+		if (!ngbs.AppliesToAny)
 		{
 			// if there's an NgbConstraint, select these referees who's set of locations intersects with the set of NGBs in the constraint
 			referees = referees
@@ -122,7 +137,7 @@ public class DbRefereeViewContextFactory
 		{
 			UserId = g.User.UniqueId != null ? UserIdentifier.Parse(g.User.UniqueId) : UserIdentifier.FromLegacyUserId(g.User.Id),
 			DisplayName = g.User.ExportName != false ? $"{g.User.FirstName} {g.User.LastName}" : "Anonymous referee",
-			AcquiredCertifications = g.Certifications.Select(c => new DomainCertification(c.Level, c.Version)).ToHashSet(),
+			AcquiredCertifications = g.Certifications.ToHashSet(),
 			CoachingTeam = g.CoachingTeamId != null ? new TeamIdentifier(g.CoachingTeamId.Value) : null,
 			PlayingTeam = g.PlayingTeamId != null ? new TeamIdentifier(g.PlayingTeamId.Value) : null,
 			PrimaryNgb = g.PrimaryLocationId != default ? new NgbIdentifier(g.PrimaryLocationId) : null,
