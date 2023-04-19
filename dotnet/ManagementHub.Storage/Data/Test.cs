@@ -16,6 +16,7 @@ namespace ManagementHub.Models.Data
 		}
 
 		public long Id { get; set; }
+		public string? UniqueId { get; set; } // new field for guid based id
 		public TestLevel? Level { get; set; }
 		public string? Name { get; set; }
 		public long? CertificationId { get; set; }
