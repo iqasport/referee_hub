@@ -41,19 +41,26 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 		var currentRefereeRole = await this.dbContext.Users.WithIdentifier(userId)
 			.Join(this.dbContext.Roles.Where(r => r.AccessType == UserAccessType.Referee), u => u.Id, r => r.UserId, (u, _) => u)
-			.GroupJoin(this.dbContext.RefereeLocations, u => u.Id, l => l.RefereeId, (u, l) => new
-			{
-				User = u,
-				PrimaryLocationId = l.Where(l => l.AssociationType == RefereeNgbAssociationType.Primary).Select(l => l.NationalGoverningBodyId).SingleOrDefault(),
-				SecondaryLocationId = l.Where(l => l.AssociationType == RefereeNgbAssociationType.Secondary).Select(l => l.NationalGoverningBodyId).SingleOrDefault(),
-			})
+			.GroupJoin(this.dbContext.RefereeLocations, u => u.Id, l => l.RefereeId, (u, l) => new { User = u, Locations = l })
+			.SelectMany(g => g.Locations.DefaultIfEmpty(), (g, location) => new { g.User, Location = location })
 			.GroupJoin(this.dbContext.RefereeTeams, g => g.User.Id, t => t.RefereeId, (g, t) => new
 			{
 				g.User,
-				g.PrimaryLocationId,
-				g.SecondaryLocationId,
-				CoachingTeamId = t.Where(t => t.AssociationType == RefereeTeamAssociationType.Coach).Select(t => t.TeamId).SingleOrDefault(),
-				PlayingTeamId = t.Where(t => t.AssociationType == RefereeTeamAssociationType.Player).Select(t => t.TeamId).SingleOrDefault(),
+				g.Location,
+				Teams = t,
+			})
+			.SelectMany(g => g.Teams.DefaultIfEmpty(), (g, team) => new
+			{
+				g.User,
+				g.Location,
+				Team = team,
+			})
+			.GroupBy(g => g.User.Id, (u, g) => new
+			{
+				PrimaryLocationId = g.Where(gx => gx.Location != null && gx.Location.AssociationType == RefereeNgbAssociationType.Primary).Select(gx => gx.Location.NationalGoverningBodyId).SingleOrDefault(),
+				SecondaryLocationId = g.Where(gx => gx.Location != null && gx.Location.AssociationType == RefereeNgbAssociationType.Secondary).Select(gx => gx.Location.NationalGoverningBodyId).SingleOrDefault(),
+				CoachingTeamId = g.Where(gx => gx.Team != null && gx.Team.AssociationType == RefereeTeamAssociationType.Coach).Select(gx => gx.Team.TeamId).SingleOrDefault(),
+				PlayingTeamId = g.Where(gx => gx.Team != null && gx.Team.AssociationType == RefereeTeamAssociationType.Player).Select(gx => gx.Team.TeamId).SingleOrDefault(),
 			})
 			.Select(g => new RefereeRole
 			{
@@ -161,6 +168,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					CreatedAt = now,
 					UpdatedAt = now,
 				});
+				await this.dbContext.SaveChangesAsync(cancellationToken);
 			}
 		}
 
@@ -204,6 +212,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					CreatedAt = now,
 					UpdatedAt = now,
 				});
+				await this.dbContext.SaveChangesAsync(cancellationToken);
 			}
 		}
 
@@ -247,6 +256,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					CreatedAt = now,
 					UpdatedAt = now,
 				});
+				await this.dbContext.SaveChangesAsync(cancellationToken);
 			}
 		}
 
@@ -290,6 +300,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					CreatedAt = now,
 					UpdatedAt = now,
 				});
+				await this.dbContext.SaveChangesAsync(cancellationToken);
 			}
 		}
 

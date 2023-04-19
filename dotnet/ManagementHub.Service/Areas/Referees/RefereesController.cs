@@ -39,6 +39,7 @@ public class RefereesController : ControllerBase
 		await this.updateRefereeRoleCommand.UpdateRefereeRoleAsync(userContext.UserId, refereeRole => new RefereeRole
 		{
 			IsActive = refereeRole.IsActive,
+			// TODO: handle how to detect partial patch vs setting null actually
 			CoachingTeam = refereeUpdate.CoachingTeam ?? refereeRole.CoachingTeam,
 			PlayingTeam = refereeUpdate.PlayingTeam ?? refereeRole.PlayingTeam,
 			PrimaryNgb = refereeUpdate.PrimaryNgb ?? refereeRole.PrimaryNgb,
