@@ -1,0 +1,21 @@
+﻿using System;
+
+namespace ManagementHub.Models.Domain.Tests;
+
+/// <summary>
+/// Struct encapsulating a percentage value.
+/// </summary>
+public struct Percentage
+{
+	public Percentage(int value)
+	{
+		if (value <= 0 || value > 100)
+		{
+			throw new ArgumentOutOfRangeException(nameof(value));
+		}
+
+		this.Value = value;
+	}
+
+	public int Value { get; }
+}

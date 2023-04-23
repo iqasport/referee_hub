@@ -16,4 +16,6 @@ public interface IRefereeContextProvider
 	/// Retrieves a queryable collection of referee view contexts that satisfy the <paramref name="ngbConstraint"/>.
 	/// </summary>
 	IQueryable<IRefereeViewContext> GetRefereeViewContextQueryable(NgbConstraint ngbConstraint);
+
+	Task<IRefereeTestContext> GetRefereeTestContextAsync(UserIdentifier userId);
 }

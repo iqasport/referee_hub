@@ -10,7 +10,7 @@ public record struct TestIdentifier(Guid UniqueId)
 	public long Id => this.ToLegacyUserId();
 
 	/// <summary>
-	/// Returns the serialized user identifier.
+	/// Returns the serialized test identifier.
 	/// </summary>
 	public override string ToString()
 	{
@@ -38,9 +38,9 @@ public record struct TestIdentifier(Guid UniqueId)
 	}
 
 	/// <summary>
-	/// Creates a new unique user identifier.
+	/// Creates a new unique test identifier.
 	/// </summary>
-	public static TestIdentifier NewUserId() => new TestIdentifier(Guid.NewGuid());
+	public static TestIdentifier NewTestId() => new TestIdentifier(Guid.NewGuid());
 
 	/// <summary>
 	/// Converts the <paramref name="value"/> into <paramref name="result"/> if it matches the expected format.
