@@ -11,15 +11,15 @@ namespace ManagementHub.Storage.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "UniqueId",
+                name: "unique_id",
                 table: "users",
-                type: "text",
+                type: "nvarchar(40)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "UniqueId",
+                name: "unique_id",
                 table: "tests",
-                type: "text",
+                type: "nvarchar(40)",
                 nullable: true);
         }
 

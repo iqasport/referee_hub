@@ -1036,6 +1036,10 @@ namespace ManagementHub.Storage
 
 				entity.Property(e => e.Id).HasColumnName("id");
 
+				entity.Property(e => e.UniqueId)
+					.HasColumnType("nvarchar(40)")
+					.HasColumnName("unique_id");
+
 				entity.Property(e => e.Active).HasColumnName("active");
 
 				entity.Property(e => e.CertificationId).HasColumnName("certification_id");
@@ -1212,6 +1216,10 @@ namespace ManagementHub.Storage
 					.IsUnique();
 
 				entity.Property(e => e.Id).HasColumnName("id");
+
+				entity.Property(e => e.UniqueId)
+					.HasColumnType("nvarchar(40)")
+					.HasColumnName("unique_id");
 
 				entity.Property(e => e.Admin)
 					.HasColumnName("admin")
