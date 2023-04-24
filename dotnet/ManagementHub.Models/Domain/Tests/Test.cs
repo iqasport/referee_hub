@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Tests.Policies;
 
 namespace ManagementHub.Models.Domain.Tests;
 
+[DebuggerDisplay("{Name} ({TestId})")]
 public class Test
 {
 	public required TestIdentifier TestId { get; set; }

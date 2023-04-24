@@ -20,19 +20,18 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId);
 
-		if (test.RecertificationFor.HasValue)
+		if (test.RecertificationFor != null)
 		{
-			// we will let another policy take care of this :/
-			return true;
+			return referee.AcquiredCertifications.Contains(test.RecertificationFor);
 		}
 
 		Certification lowestAwardedCert = GetLowestAwardedCertification(test.AwardedCertifications);
 
 		Certification? requiredCert = GetRequiredCertificationToAttempt(lowestAwardedCert);
 
-		if (requiredCert.HasValue)
+		if (requiredCert != null)
 		{
-			return referee.AcquiredCertifications.Contains(requiredCert.Value);
+			return referee.AcquiredCertifications.Contains(requiredCert);
 		}
 
 		return true;

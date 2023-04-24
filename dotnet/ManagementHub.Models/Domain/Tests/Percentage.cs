@@ -18,4 +18,7 @@ public struct Percentage
 	}
 
 	public int Value { get; }
+
+	public static implicit operator Percentage(int value) => new(value);
+	public static explicit operator int(Percentage value) => value.Value;
 }

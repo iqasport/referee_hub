@@ -9,6 +9,8 @@ namespace ManagementHub.Models.Enums
 		[EnumMember(Value = "snitch")]
 		Snitch = 0,
 
+		Flag = 0,
+
 		[EnumMember(Value = "assistant")]
 		Assistant = 1,
 

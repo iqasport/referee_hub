@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Processing", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Service", "ManagementHub.Service\ManagementHub.Service.csproj", "{FCC371A2-353D-4F13-AF4E-1181CF5E2C39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagementHub.Serialization", "ManagementHub.Serialization\ManagementHub.Serialization.csproj", "{D517F793-4BCB-4674-9DBC-F9C3332BEBFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Serialization", "ManagementHub.Serialization\ManagementHub.Serialization.csproj", "{D517F793-4BCB-4674-9DBC-F9C3332BEBFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagementHub.UnitTests", "ManagementHub.UnitTests\ManagementHub.UnitTests.csproj", "{D9C8C9B1-A996-4BF3-8C81-3A2313752C73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{D517F793-4BCB-4674-9DBC-F9C3332BEBFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D517F793-4BCB-4674-9DBC-F9C3332BEBFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D517F793-4BCB-4674-9DBC-F9C3332BEBFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9C8C9B1-A996-4BF3-8C81-3A2313752C73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9C8C9B1-A996-4BF3-8C81-3A2313752C73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9C8C9B1-A996-4BF3-8C81-3A2313752C73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9C8C9B1-A996-4BF3-8C81-3A2313752C73}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
