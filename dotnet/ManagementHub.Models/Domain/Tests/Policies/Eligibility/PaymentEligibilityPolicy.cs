@@ -24,7 +24,10 @@ public class PaymentEligibilityPolicy : IRefereeEligibilityPolicy
 		{
 			foreach (var certification in hrCertifications)
 			{
-				referee.HeadCertificationsPaid.Contains(certification.Version);
+				if (!referee.HeadCertificationsPaid.Contains(certification.Version))
+				{
+					return false;
+				}
 			}
 		}
 

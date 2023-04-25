@@ -9,7 +9,7 @@ public struct Percentage
 {
 	public Percentage(int value)
 	{
-		if (value <= 0 || value > 100)
+		if (value < 0 || value > 100)
 		{
 			throw new ArgumentOutOfRangeException(nameof(value));
 		}
