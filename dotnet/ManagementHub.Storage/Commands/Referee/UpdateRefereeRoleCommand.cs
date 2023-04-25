@@ -145,7 +145,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				else
 				{
 					var newTeamId = newRefereeRole.CoachingTeam.Value.Id;
-					var updatedAt = this.clock.UtcNow.DateTime;
+					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
 					this.logger.LogInformation(0, "Updating coaching team ({oldTeamId} -> {newTeamId}) for referee ({userId}).", oldTeamId, newTeamId, userId);
 					await team.ExecuteUpdateAsync(t => t
@@ -157,7 +157,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 			else
 			{
 				var newTeamId = newRefereeRole.CoachingTeam?.Id ?? throw new InvalidOperationException("Both current and new are null?");
-				var now = this.clock.UtcNow.DateTime;
+				var now = this.clock.UtcNow.UtcDateTime;
 				
 				this.logger.LogInformation(0, "Adding coaching team ({teamId}) for referee ({userId}).", newTeamId, userId);
 				this.dbContext.RefereeTeams.Add(new RefereeTeam
@@ -189,7 +189,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				else
 				{
 					var newTeamId = newRefereeRole.PlayingTeam.Value.Id;
-					var updatedAt = this.clock.UtcNow.DateTime;
+					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
 					this.logger.LogInformation(0, "Updating playing team ({oldTeamId} -> {newTeamId}) for referee ({userId}).", oldTeamId, newTeamId, userId);
 					await team.ExecuteUpdateAsync(t => t
@@ -201,7 +201,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 			else
 			{
 				var newTeamId = newRefereeRole.PlayingTeam?.Id ?? throw new InvalidOperationException("Both current and new are null?");
-				var now = this.clock.UtcNow.DateTime;
+				var now = this.clock.UtcNow.UtcDateTime;
 
 				this.logger.LogInformation(0, "Adding playing team ({teamId}) for referee ({userId}).", newTeamId, userId);
 				this.dbContext.RefereeTeams.Add(new RefereeTeam
@@ -233,7 +233,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				else
 				{
 					var newNgbId = newRefereeRole.PrimaryNgb.Value.Id;
-					var updatedAt = this.clock.UtcNow.DateTime;
+					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
 					this.logger.LogInformation(0, "Updating primary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
 					await ngb.ExecuteUpdateAsync(t => t
@@ -245,7 +245,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 			else
 			{
 				var newNgbId = newRefereeRole.PrimaryNgb?.Id ?? throw new InvalidOperationException("Both current and new are null?");
-				var now = this.clock.UtcNow.DateTime;
+				var now = this.clock.UtcNow.UtcDateTime;
 
 				this.logger.LogInformation(0, "Adding primary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
 				this.dbContext.RefereeLocations.Add(new RefereeLocation
@@ -277,7 +277,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				else
 				{
 					var newNgbId = newRefereeRole.SecondaryNgb.Value.Id;
-					var updatedAt = this.clock.UtcNow.DateTime;
+					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
 					this.logger.LogInformation(0, "Updating secondary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
 					await ngb.ExecuteUpdateAsync(t => t
@@ -289,7 +289,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 			else
 			{
 				var newNgbId = newRefereeRole.SecondaryNgb?.Id ?? throw new InvalidOperationException("Both current and new are null?");
-				var now = this.clock.UtcNow.DateTime;
+				var now = this.clock.UtcNow.UtcDateTime;
 
 				this.logger.LogInformation(0, "Adding secondary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
 				this.dbContext.RefereeLocations.Add(new RefereeLocation

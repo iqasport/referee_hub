@@ -39,7 +39,7 @@ public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 		var cooldown = test.AwardedCertifications.Any(c => c.Level == CertificationLevel.Head)
 			? TimeSpan.FromDays(3)
 			: TimeSpan.FromDays(1);
-		var now = this.systemClock.UtcNow.DateTime;
+		var now = this.systemClock.UtcNow.UtcDateTime;
 
 		if (attempt is FinishedTestAttempt finished)
 		{
