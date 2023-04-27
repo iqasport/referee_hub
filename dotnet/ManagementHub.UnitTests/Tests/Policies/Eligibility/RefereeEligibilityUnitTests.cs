@@ -433,4 +433,105 @@ public class RefereeEligibilityUnitTests
 		result.Excludes(TestData.Head20);
 		result.Excludes(TestData.Assistant22);
 	}
+
+	[Fact]
+	public async Task ReturnsNoRecertTests_WhenRefereeHasNoCerts()
+	{
+		this.SetupReferee(Array.Empty<Certification>(), Array.Empty<CertificationVersion>(), Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+			TestData.RecertFlag22,
+			TestData.RecertHead22,
+		});
+
+		result.Excludes(TestData.RecertAssistant22);
+		result.Excludes(TestData.RecertFlag22);
+		result.Excludes(TestData.RecertHead22);
+	}
+
+	[Fact]
+	public async Task ReturnsAssistantRecertTests_WhenRefereeHasAssistantCert()
+	{
+		this.SetupReferee(new[]
+		{
+			new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+		}, Array.Empty<CertificationVersion>(), Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+			TestData.RecertFlag22,
+			TestData.RecertHead22,
+		});
+
+		result.Includes(TestData.RecertAssistant22);
+		result.Excludes(TestData.RecertFlag22);
+		result.Excludes(TestData.RecertHead22);
+	}
+
+	[Fact]
+	public async Task ReturnsFlagRecertTests_WhenRefereeHasFlagCert()
+	{
+		this.SetupReferee(new[]
+		{
+			new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+			new Certification(CertificationLevel.Flag, CertificationVersion.Twenty),
+		}, Array.Empty<CertificationVersion>(), Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+			TestData.RecertFlag22,
+			TestData.RecertHead22,
+		});
+
+		result.Excludes(TestData.RecertAssistant22);
+		result.Includes(TestData.RecertFlag22);
+		result.Excludes(TestData.RecertHead22);
+	}
+
+	[Fact]
+	public async Task ReturnsNoRecertTests_WhenRefereeHasSameYearCerts_AssistantPreviousYear()
+	{
+		this.SetupReferee(new[]
+		{
+			new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+			new Certification(CertificationLevel.Assistant, CertificationVersion.TwentyTwo),
+		}, Array.Empty<CertificationVersion>(), Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+			TestData.RecertFlag22,
+			TestData.RecertHead22,
+		});
+
+		result.Excludes(TestData.RecertAssistant22);
+		result.Excludes(TestData.RecertFlag22);
+		result.Excludes(TestData.RecertHead22);
+	}
+
+	[Fact]
+	public async Task ReturnsNoRecertTests_WhenRefereeHasSameYearCerts_FlagPreviousYear()
+	{
+		this.SetupReferee(new[]
+		{
+			new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+			new Certification(CertificationLevel.Flag, CertificationVersion.Twenty),
+			new Certification(CertificationLevel.Assistant, CertificationVersion.TwentyTwo),
+		}, Array.Empty<CertificationVersion>(), Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+			TestData.RecertFlag22,
+			TestData.RecertHead22,
+		});
+
+		result.Excludes(TestData.RecertAssistant22);
+		result.Excludes(TestData.RecertFlag22);
+		result.Excludes(TestData.RecertHead22);
+	}
 }
