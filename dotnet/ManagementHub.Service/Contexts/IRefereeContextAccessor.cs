@@ -5,6 +5,8 @@ namespace ManagementHub.Service.Contexts;
 
 public interface IRefereeContextAccessor
 {
+	Task<IRefereeTestContext> GetRefereeTestContextForCurrentUserAsync();
+
 	Task<IRefereeViewContext> GetRefereeViewContextForCurrentUserAsync();
 
 	Task<IRefereeViewContext> GetRefereeViewContextAsync(UserIdentifier userId);

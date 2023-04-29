@@ -40,6 +40,12 @@ public class RefereeContextAccessor : IRefereeContextAccessor
 		return await this.contextProvider.GetRefereeViewContextAsync(currentUser.UserId, NgbConstraint.Any, this.HttpContext.RequestAborted);
 	}
 
+	public async Task<IRefereeTestContext> GetRefereeTestContextForCurrentUserAsync()
+	{
+		var currentUser = await this.userContextAccessor.GetCurrentUserContextAsync();
+		return await this.contextProvider.GetRefereeTestContextAsync(currentUser.UserId, this.HttpContext.RequestAborted);
+	}
+
 	private NgbConstraint GetNgbConstraint(IUserContext currentUser)
 	{
 		var refereeViewerRole = currentUser.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
