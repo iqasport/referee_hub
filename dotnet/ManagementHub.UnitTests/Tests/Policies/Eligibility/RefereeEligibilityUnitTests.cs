@@ -26,7 +26,6 @@ internal static class RefereeEligibilityUnitTestsExtensions
 
 public class RefereeEligibilityUnitTests
 {
-	private readonly Mock<IUserContextProvider> userContextProvider = new();
 	private readonly Mock<IRefereeContextProvider> refereeContextProvider = new();
 	private readonly Mock<ISystemClock> clock = new();
 
@@ -44,7 +43,6 @@ public class RefereeEligibilityUnitTests
 				new PaymentEligibilityPolicy(this.refereeContextProvider.Object),
 				new RefereeAttemptEligibilityPolicy(this.refereeContextProvider.Object, this.clock.Object),
 				new RefereeCertifiedEligibilityPolicy(this.refereeContextProvider.Object),
-				new RefereeLanguageEligibilityPolicy(this.userContextProvider.Object),
 			},
 			Mock.Of<ILogger<RefereeEligibilityChecker>>());
 	}
@@ -91,16 +89,6 @@ public class RefereeEligibilityUnitTests
 
 		this.refereeContextProvider.Setup(p => p.GetRefereeTestContextAsync(TestUserId))
 			.ReturnsAsync(refereeContext.Object);
-
-		var userContext = new Mock<IUserContext>();
-		userContext.Setup(u => u.UserId).Returns(TestUserId);
-		userContext.Setup(u => u.UserData).Returns(new UserData(new Email("test@test.com"), "John", "Smith")
-		{
-			UserLang = lang ?? LanguageIdentifier.Default,
-		});
-
-		this.userContextProvider.Setup(p => p.GetUserContextAsync(TestUserId, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(userContext.Object);
 
 		this.clock.Setup(c => c.UtcNow).Returns(TestCurrentDateTime);
 	}
@@ -398,7 +386,7 @@ public class RefereeEligibilityUnitTests
 				StartedAt = TestCurrentDateTime.AddDays(-1).Add(-1 * TestData.Assistant22.TimeLimit),
 				TestId = TestData.Assistant22.TestId,
 				UserId = TestUserId,
-				FinishedAt = TestCurrentDateTime.AddDays(-1).Add(-1 * TestData.Assistant22.TimeLimit).AddSeconds(10),
+				FinishedAt = TestCurrentDateTime.AddDays(-1).AddSeconds(10),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
 			},
@@ -407,7 +395,7 @@ public class RefereeEligibilityUnitTests
 				StartedAt = TestCurrentDateTime.AddDays(-1).Add(-1 * TestData.Flag18.TimeLimit),
 				TestId = TestData.Flag18.TestId,
 				UserId = TestUserId,
-				FinishedAt = TestCurrentDateTime.AddDays(-1).Add(-1 * TestData.Flag18.TimeLimit).AddSeconds(10),
+				FinishedAt = TestCurrentDateTime.AddDays(-1).AddSeconds(10),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
 			},
@@ -416,7 +404,7 @@ public class RefereeEligibilityUnitTests
 				StartedAt = TestCurrentDateTime.AddDays(-3).Add(-1 * TestData.Head20.TimeLimit),
 				TestId = TestData.Head20.TestId,
 				UserId = TestUserId,
-				FinishedAt = TestCurrentDateTime.AddDays(-3).Add(-1 * TestData.Head20.TimeLimit).AddSeconds(10),
+				FinishedAt = TestCurrentDateTime.AddDays(-3).AddSeconds(10),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
 			},
