@@ -1,5 +1,6 @@
 ﻿using System;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Domain.Tests;
 public class TestAttempt
@@ -18,6 +19,11 @@ public class TestAttempt
 	/// Identifier of the attempted test.
 	/// </summary>
 	public required TestIdentifier TestId { get; set; }
+
+	/// <summary>
+	/// Certification level (highest level awardable by the test).
+	/// </summary>
+	public required CertificationLevel Level { get; set; }
 
 	/// <summary>
 	/// When the attempt was started.

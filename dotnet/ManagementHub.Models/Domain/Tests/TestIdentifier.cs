@@ -29,7 +29,7 @@ public record struct TestIdentifier(Guid UniqueId)
 	/// <summary>
 	/// Uses upper 8 bytes of the <see cref="UniqueId"/> as the id.
 	/// </summary>
-	public static TestIdentifier FromLegacyUserId(long id)
+	public static TestIdentifier FromLegacyTestId(long id)
 	{
 		Guid uniqueId = new Guid();
 		GuidAsLongSpan(ref uniqueId)[0] = id;

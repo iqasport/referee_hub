@@ -21,12 +21,22 @@ public class FinishedTestAttempt : TestAttempt
 	public required Percentage Score { get; set; }
 
 	/// <summary>
+	/// Minimum score required to pass.
+	/// </summary>
+	public required Percentage PassPercentage { get; set; }
+
+	/// <summary>
 	/// Whether the score was enough to pass the test. (saved in case the test was later modified)
 	/// </summary>
-	public bool Passed { get; set; }
+	public required bool Passed { get; set; }
 
 	/// <summary>
 	/// New certifications the referee was awarded with this attempt if passed.
 	/// </summary>
 	public HashSet<Certification>? AwardedCertifications { get; set; }
+
+	/// <summary>
+	/// Duration of the test.
+	/// </summary>
+	public TimeSpan Duration => this.FinishedAt - this.StartedAt;
 }

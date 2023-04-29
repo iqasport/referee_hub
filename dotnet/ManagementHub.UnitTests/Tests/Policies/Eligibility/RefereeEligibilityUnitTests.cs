@@ -242,18 +242,21 @@ public class RefereeEligibilityUnitTests
 				StartedAt = TestCurrentDateTime.AddDays(-2),
 				TestId = TestData.Assistant22.TestId,
 				UserId = TestUserId,
+				Level = CertificationLevel.Assistant,
 			},
 			new TestAttempt
 			{
 				StartedAt = TestCurrentDateTime.AddDays(-2),
 				TestId = TestData.Flag18.TestId,
 				UserId = TestUserId,
+				Level = CertificationLevel.Flag,
 			},
 			new TestAttempt
 			{
 				StartedAt = TestCurrentDateTime.AddDays(-4),
 				TestId = TestData.Head20.TestId,
 				UserId = TestUserId,
+				Level = CertificationLevel.Head,
 			},
 		});
 
@@ -287,18 +290,21 @@ public class RefereeEligibilityUnitTests
 				StartedAt = TestCurrentDateTime.AddDays(-1),
 				TestId = TestData.Assistant22.TestId,
 				UserId = TestUserId,
+				Level = CertificationLevel.Assistant,
 			},
 			new TestAttempt
 			{
 				StartedAt = TestCurrentDateTime.AddDays(-1),
 				TestId = TestData.Flag18.TestId,
 				UserId = TestUserId,
+				Level = CertificationLevel.Flag,
 			},
 			new TestAttempt
 			{
 				StartedAt = TestCurrentDateTime.AddDays(-3),
 				TestId = TestData.Head20.TestId,
 				UserId = TestUserId,
+				Level = CertificationLevel.Head,
 			},
 		});
 
@@ -335,6 +341,9 @@ public class RefereeEligibilityUnitTests
 				FinishedAt = TestCurrentDateTime.AddDays(-1).Add(-1 * TestData.Assistant22.TimeLimit).AddSeconds(-1),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
+				Level = CertificationLevel.Assistant,
+				PassPercentage = TestData.Assistant22.PassPercentage,
+				Passed = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -344,6 +353,9 @@ public class RefereeEligibilityUnitTests
 				FinishedAt = TestCurrentDateTime.AddDays(-1).Add(-1 * TestData.Flag18.TimeLimit).AddSeconds(-1),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
+				Level = CertificationLevel.Flag,
+				PassPercentage = TestData.Flag18.PassPercentage,
+				Passed = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -353,6 +365,9 @@ public class RefereeEligibilityUnitTests
 				FinishedAt = TestCurrentDateTime.AddDays(-3).Add(-1 * TestData.Head20.TimeLimit).AddSeconds(-1),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
+				Level = CertificationLevel.Head,
+				PassPercentage = TestData.Head20.PassPercentage,
+				Passed = false,
 			},
 		});
 
@@ -389,6 +404,9 @@ public class RefereeEligibilityUnitTests
 				FinishedAt = TestCurrentDateTime.AddDays(-1).AddSeconds(10),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
+				Level = CertificationLevel.Assistant,
+				PassPercentage = TestData.Assistant22.PassPercentage,
+				Passed = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -398,6 +416,9 @@ public class RefereeEligibilityUnitTests
 				FinishedAt = TestCurrentDateTime.AddDays(-1).AddSeconds(10),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
+				Level = CertificationLevel.Flag,
+				PassPercentage = TestData.Flag18.PassPercentage,
+				Passed = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -407,6 +428,9 @@ public class RefereeEligibilityUnitTests
 				FinishedAt = TestCurrentDateTime.AddDays(-3).AddSeconds(10),
 				FinishMethod = TestAttemptFinishMethod.Timeout,
 				Score = 0,
+				Level = CertificationLevel.Head,
+				PassPercentage = TestData.Head20.PassPercentage,
+				Passed = false,
 			},
 		});
 
