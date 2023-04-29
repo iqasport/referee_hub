@@ -11,6 +11,7 @@ using ManagementHub.Storage.BlobStorage.LocalFilesystem;
 using ManagementHub.Storage.Commands.Referee;
 using ManagementHub.Storage.Commands.User;
 using ManagementHub.Storage.Contexts.Referee;
+using ManagementHub.Storage.Contexts.Tests;
 using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Database;
 using ManagementHub.Storage.Database.Transactions;
@@ -77,6 +78,7 @@ public static class DbServiceCollectionExtentions
 			sp.GetRequiredService<IAccessFileCommand>(),
 			sp.GetRequiredService<ILoggerFactory>())));
 		services.AddScoped<IRefereeContextProvider, DbRefereeContextProvider>();
+		services.AddScoped<ITestContextProvider, DbTestContextProvider>();
 
 		services.AddTransient<IQueryable<User>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<User>());
 		services.AddTransient<IQueryable<Language>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<Language>());

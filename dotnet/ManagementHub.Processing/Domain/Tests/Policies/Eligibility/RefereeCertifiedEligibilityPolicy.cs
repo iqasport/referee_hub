@@ -2,14 +2,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 
-namespace ManagementHub.Models.Domain.Tests.Policies.Eligibility;
-public class NumberOfAttemptsEligibilityPolicy : IRefereeEligibilityPolicy
+namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
+public class RefereeCertifiedEligibilityPolicy : IRefereeEligibilityPolicy
 {
 	private readonly IRefereeContextProvider refereeContextProvider;
 
-	public NumberOfAttemptsEligibilityPolicy(IRefereeContextProvider refereeContextProvider)
+	public RefereeCertifiedEligibilityPolicy(IRefereeContextProvider refereeContextProvider)
 	{
 		this.refereeContextProvider = refereeContextProvider;
 	}
@@ -18,8 +19,8 @@ public class NumberOfAttemptsEligibilityPolicy : IRefereeEligibilityPolicy
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
-		// checks if referee has attempted the test less than maximum times
-		if (referee.TestAttempts.Count(at => at.TestId == test.TestId) < test.MaximumAttempts)
+		// return true if the test can award any certifications the user doesn't have yet.
+		if (test.AwardedCertifications.Except(referee.AcquiredCertifications).Any())
 		{
 			return true;
 		}

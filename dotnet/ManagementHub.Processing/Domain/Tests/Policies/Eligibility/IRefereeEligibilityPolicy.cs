@@ -1,8 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 
-namespace ManagementHub.Models.Domain.Tests.Policies.Eligibility;
+namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 
 public interface IRefereeEligibilityPolicy
 {

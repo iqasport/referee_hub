@@ -1,5 +1,6 @@
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
+using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
 using ManagementHub.Serialization;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
@@ -49,6 +50,8 @@ public static class Program
 		services.AddHttpContextAccessor();
 		services.AddScoped<IUserContextAccessor, UserContextAccessor>();
 		services.AddScoped<IRefereeContextAccessor, RefereeContextAccessor>();
+
+		services.AddTestPolicies();
 
 		services.AddScoped<IAuthorizationHandler, UserRoleAuthorizationHandler>();
 		services.AddAuthorization(options =>

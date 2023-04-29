@@ -3,9 +3,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Enums;
 
-namespace ManagementHub.Models.Domain.Tests.Policies.Eligibility;
+namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 public class PaymentEligibilityPolicy : IRefereeEligibilityPolicy
 {
 	private readonly IRefereeContextProvider refereeContextProvider;
@@ -19,7 +21,7 @@ public class PaymentEligibilityPolicy : IRefereeEligibilityPolicy
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
-		var hrCertifications = test.AwardedCertifications.Where(c => c.Level == Enums.CertificationLevel.Head);
+		var hrCertifications = test.AwardedCertifications.Where(c => c.Level == CertificationLevel.Head);
 
 		if (hrCertifications.Any())
 		{
