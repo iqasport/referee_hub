@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
@@ -13,9 +14,9 @@ public class RefereeCertifiedEligibilityPolicy : IRefereeEligibilityPolicy
 		this.refereeContextProvider = refereeContextProvider;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId)
+	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId);
+		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		// return true if the test can award any certifications the user doesn't have yet.
 		if (test.AwardedCertifications.Except(referee.AcquiredCertifications).Any())

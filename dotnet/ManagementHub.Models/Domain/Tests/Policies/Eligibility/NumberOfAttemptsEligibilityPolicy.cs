@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
@@ -13,9 +14,9 @@ public class NumberOfAttemptsEligibilityPolicy : IRefereeEligibilityPolicy
 		this.refereeContextProvider = refereeContextProvider;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId)
+	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId);
+		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		// checks if referee has attempted the test less than maximum times
 		if (referee.TestAttempts.Count(at => at.TestId == test.TestId) < test.MaximumAttempts)

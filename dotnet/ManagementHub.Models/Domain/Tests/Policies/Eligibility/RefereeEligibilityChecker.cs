@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Domain.User;
 using Microsoft.Extensions.Logging;
@@ -17,13 +18,13 @@ public class RefereeEligibilityChecker
 		this.logger = logger;
 	}
 
-	public async Task<bool> CheckRefereeEligibilityAsync(Test test, UserIdentifier userId)
+	public async Task<bool> CheckRefereeEligibilityAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		foreach (var policy in this.refereeEligibilityPolicies)
 		{
 			try
 			{
-				var result = await policy.IsUserEligibleForTestAsync(test, userId);
+				var result = await policy.IsUserEligibleForTestAsync(test, userId, cancellationToken);
 
 				if (!result)
 				{

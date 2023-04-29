@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
@@ -18,9 +19,9 @@ public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 		this.systemClock = systemClock;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId)
+	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId);
+		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		foreach (var attempt in referee.TestAttempts.Where(at => at.TestId == test.TestId))
 		{

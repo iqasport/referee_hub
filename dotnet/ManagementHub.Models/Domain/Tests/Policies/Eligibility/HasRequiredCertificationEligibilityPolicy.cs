@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
@@ -16,9 +17,9 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 		this.refereeContextProvider = refereeContextProvider;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId)
+	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId);
+		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		if (test.RecertificationFor != null)
 		{

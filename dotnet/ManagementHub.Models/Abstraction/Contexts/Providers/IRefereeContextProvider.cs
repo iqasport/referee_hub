@@ -17,5 +17,5 @@ public interface IRefereeContextProvider
 	/// </summary>
 	IQueryable<IRefereeViewContext> GetRefereeViewContextQueryable(NgbConstraint ngbConstraint);
 
-	Task<IRefereeTestContext> GetRefereeTestContextAsync(UserIdentifier userId);
+	Task<IRefereeTestContext> GetRefereeTestContextAsync(UserIdentifier userId, CancellationToken cancellationToken);
 }

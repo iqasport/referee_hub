@@ -54,7 +54,7 @@ public class RefereeEligibilityUnitTests
 
 		foreach (var test in tests)
 		{
-			results[test] = await checker.CheckRefereeEligibilityAsync(test, TestUserId);
+			results[test] = await checker.CheckRefereeEligibilityAsync(test, TestUserId, default);
 		}
 
 		return results;
@@ -87,7 +87,7 @@ public class RefereeEligibilityUnitTests
 		refereeContext.Setup(r => r.HeadCertificationsPaid).Returns(payments);
 		refereeContext.Setup(r => r.UserId).Returns(TestUserId);
 
-		this.refereeContextProvider.Setup(p => p.GetRefereeTestContextAsync(TestUserId))
+		this.refereeContextProvider.Setup(p => p.GetRefereeTestContextAsync(TestUserId, default))
 			.ReturnsAsync(refereeContext.Object);
 
 		this.clock.Setup(c => c.UtcNow).Returns(TestCurrentDateTime);
