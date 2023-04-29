@@ -1,4 +1,5 @@
 ﻿using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Domain.Language;
 
 namespace ManagementHub.Service.Areas.User;
 
@@ -25,6 +26,7 @@ public class UserDataViewModel
 			this.Pronouns = userDataContext.ExtendedUserData.Pronouns;
 		}
 		this.ExportName = userDataContext.ExtendedUserData.ExportName;
+		this.Language = userDataContext.ExtendedUserData.UserLang;
 	}
 
 	public string? FirstName { get; set; }
@@ -33,4 +35,5 @@ public class UserDataViewModel
 	public string? Pronouns { get; set; }
 	public bool? ShowPronouns { get; set; }
 	public bool? ExportName { get; set; }
+	public LanguageIdentifier? Language { get; set; }
 }

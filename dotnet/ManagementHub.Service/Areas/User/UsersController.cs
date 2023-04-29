@@ -64,13 +64,14 @@ public class UsersController : ControllerBase
 			var pronouns = userData.Pronouns ?? data.Pronouns;
 			var showPronouns = userData.ShowPronouns ?? data.ShowPronouns;
 			var exportName = userData.ExportName ?? data.ExportName;
+			var lang = userData.Language ?? data.UserLang;
 			return new ExtendedUserData(data.Email, firstName, lastName)
 			{
 				Bio = bio,
 				ExportName = exportName,
 				Pronouns = pronouns,
 				ShowPronouns = showPronouns,
-				UserLang = data.UserLang,
+				UserLang = lang,
 			};
 		}, this.HttpContext.RequestAborted);
 	}
