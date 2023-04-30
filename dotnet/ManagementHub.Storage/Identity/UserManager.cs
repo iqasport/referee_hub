@@ -124,4 +124,28 @@ public class UserManager : UserManager<UserIdentity>
 		}
 		return await this.UpdatePasswordHash(user, newPassword, validatePassword: true).ConfigureAwait(false);
 	}
+
+	// override to not call UpdateAsync()
+	public override async Task<bool> CheckPasswordAsync(UserIdentity user, string password)
+	{
+		this.ThrowIfDisposed();
+		var passwordStore = (IUserPasswordStore<UserIdentity>)this.Store;
+		if (user == null)
+		{
+			return false;
+		}
+
+		var result = await this.VerifyPasswordAsync(passwordStore, user, password).ConfigureAwait(false);
+		if (result == PasswordVerificationResult.SuccessRehashNeeded)
+		{
+			await this.UpdatePasswordHash(user, password, validatePassword: false).ConfigureAwait(false);
+		}
+
+		var success = result != PasswordVerificationResult.Failed;
+		if (!success)
+		{
+			this.Logger.LogDebug(new EventId(0, "InvalidPassword"), "Invalid password for user.");
+		}
+		return success;
+	}
 }
