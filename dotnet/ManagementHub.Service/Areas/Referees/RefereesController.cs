@@ -33,7 +33,7 @@ public class RefereesController : ControllerBase
 
 	[HttpPatch("me")]
 	[Authorize(AuthotizationPolicies.RefereePolicy)]
-	public async Task UpdateReferee([FromBody]RefereeUpdateViewModel refereeUpdate)
+	public async Task UpdateReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		await this.updateRefereeRoleCommand.UpdateRefereeRoleAsync(userContext.UserId, refereeRole => new RefereeRole
@@ -66,7 +66,7 @@ public class RefereesController : ControllerBase
 
 	[HttpGet("{userId}")]
 	[Authorize(AuthotizationPolicies.RefereeViewerPolicy)]
-	public async Task<RefereeViewModel> GetReferee([FromRoute]UserIdentifier userId)
+	public async Task<RefereeViewModel> GetReferee([FromRoute] UserIdentifier userId)
 	{
 		if (userId == default)
 		{
@@ -88,7 +88,7 @@ public class RefereesController : ControllerBase
 
 	[HttpGet]
 	[Authorize(AuthotizationPolicies.RefereeViewerPolicy)]
-	public async Task<IQueryable<RefereeViewModel>> GetReferees(PagingParameters paging)
+	public async Task<IQueryable<RefereeViewModel>> GetReferees([FromQuery] PagingParameters paging)
 	{
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync();
 		return collection.Select(context => new RefereeViewModel
