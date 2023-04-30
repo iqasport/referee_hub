@@ -42,6 +42,7 @@ public static class DbServiceCollectionExtentions
 	{
 		if (inMemoryStorage)
 		{
+			// NOTE: this storage is deleted when application shuts down.
 			services.AddDbContext<ManagementHubDbContext>((options) =>
 			{
 				options.UseSqlite(SharedInMemorySqliteConnectionString);
@@ -54,6 +55,9 @@ public static class DbServiceCollectionExtentions
 
 			// for in memory database we run creation script
 			services.AddHostedService<EnsureDatabaseCreatedService>();
+
+			// seed the database with test data
+			services.AddHostedService<EnsureDatabaseSeededForTesting>();
 		}
 		else
 		{
@@ -128,7 +132,7 @@ public static class DbServiceCollectionExtentions
 		services.AddTransient<IUserIdentityRepository, UserIdentityRepository>();
 		services.AddTransient<IUserStore<UserIdentity>, UserStore>();
 		services.AddTransient<EmailTokenProvider>();
-		services.AddTransient(typeof(IPasswordHasher<>), typeof(BCryptPasswordHasher<>));
+		services.AddTransient<IPasswordHasher<UserIdentity>, BCryptPasswordHasher<UserIdentity>>();
 
 		// custom overrides over user manager
 		services.AddScoped<UserManager<UserIdentity>, UserManager>();

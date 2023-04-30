@@ -7,8 +7,6 @@ namespace ManagementHub.Models.Enums
 	public enum CertificationLevel
 	{
 		[EnumMember(Value = "snitch")]
-		Snitch = 0,
-
 		Flag = 0,
 
 		[EnumMember(Value = "assistant")]

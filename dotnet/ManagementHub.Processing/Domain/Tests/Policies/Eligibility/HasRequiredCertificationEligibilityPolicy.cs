@@ -60,39 +60,10 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 		{
 			case CertificationLevel.Scorekeeper: return null;
 			case CertificationLevel.Assistant: return null;
-			case CertificationLevel.Snitch: return new Certification(CertificationLevel.Assistant, lowestAwardedCert.Version);
-			case CertificationLevel.Head: return new Certification(CertificationLevel.Snitch, lowestAwardedCert.Version);
+			case CertificationLevel.Flag: return new Certification(CertificationLevel.Assistant, lowestAwardedCert.Version);
+			case CertificationLevel.Head: return new Certification(CertificationLevel.Flag, lowestAwardedCert.Version);
 			default: throw new InvalidOperationException("Could not determine required certification.");
 		}
-	}
-
-	private static Certification GetLowestAwardedCertification(IEnumerable<Certification> awardedCertifications)
-	{
-		var scorekeeper = awardedCertifications.FirstOrDefault(static c => c.Level == CertificationLevel.Scorekeeper);
-		if (scorekeeper != default)
-		{
-			return scorekeeper;
-		}
-
-		var assistant = awardedCertifications.FirstOrDefault(static c => c.Level == CertificationLevel.Assistant);
-		if (assistant != default)
-		{
-			return assistant;
-		}
-
-		var flag = awardedCertifications.FirstOrDefault(static c => c.Level == CertificationLevel.Snitch);
-		if (flag != default)
-		{
-			return flag;
-		}
-
-		var head = awardedCertifications.FirstOrDefault(static c => c.Level == CertificationLevel.Head);
-		if (head != default)
-		{
-			return head;
-		}
-
-		throw new InvalidOperationException("Could not find the lowest awarded certification.");
 	}
 
 	private sealed class CertificationComparer : IComparer<Certification>

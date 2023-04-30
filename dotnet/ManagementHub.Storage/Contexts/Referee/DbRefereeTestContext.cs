@@ -91,7 +91,7 @@ public class DbRefereeTestContextFactory
 			else if (testCertification.Level == CertificationLevel.Head)
 			{
 				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Assistant, testCertification.Version));
-				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Snitch, testCertification.Version));
+				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Flag, testCertification.Version));
 			}
 		}
 
