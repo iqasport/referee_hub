@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Domain.Language;
+using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Serialization.Identifiers;
 using ManagementHub.Serialization.Roles;
@@ -14,8 +15,11 @@ public static class DefaultJsonSerialization
 	public static JsonSerializerOptions ConfigureOptions(JsonSerializerOptions options)
 	{
 		options.Converters.Add(new UserIdentifierJsonConverter());
+		options.Converters.Add(new TestIdentifierJsonConverter());
+		options.Converters.Add(new TestAttemptIdentifierJsonConverter());
 		options.Converters.Add(new LanguageIdentifierJsonConverter());
 		options.Converters.Add(new UserRoleJsonConverter());
+		options.Converters.Add(new PercentageJsonConverter());
 
 		options.AllowTrailingCommas = true;
 		options.NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals;
@@ -31,6 +35,8 @@ public static class DefaultJsonSerialization
 	public static SwaggerGenOptions MapSwaggerTypes(SwaggerGenOptions options)
 	{
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(UserIdentifier), () => new OpenApiSchema { Type = "string" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TestIdentifier), () => new OpenApiSchema { Type = "string" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TestAttemptIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(LanguageIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(IUserRole), () =>
 		{
@@ -43,6 +49,7 @@ public static class DefaultJsonSerialization
 				}
 			};
 		});
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(Percentage), () => new OpenApiSchema { Type = "number" });
 
 		return options;
 	}
