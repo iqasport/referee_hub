@@ -29,25 +29,13 @@ public class DbRefereeTestContext : IRefereeTestContext
 public class DbRefereeTestContextFactory
 {
 	private readonly IQueryable<User> users;
-	private readonly IQueryable<Certification> certifications;
-	private readonly IQueryable<RefereeCertification> refereeCertifications;
-	private readonly IQueryable<TestResult> testResults;
-	private readonly IQueryable<CertificationPayment> certificationPayment;
 	private readonly ILogger<DbRefereeTestContextFactory> logger;
 
 	public DbRefereeTestContextFactory(
 		IQueryable<User> users,
-		IQueryable<Certification> certifications,
-		IQueryable<RefereeCertification> refereeCertifications,
-		IQueryable<TestResult> testResults,
-		IQueryable<CertificationPayment> certificationPayment,
 		ILogger<DbRefereeTestContextFactory> logger)
 	{
 		this.users = users;
-		this.certifications = certifications;
-		this.refereeCertifications = refereeCertifications;
-		this.testResults = testResults;
-		this.certificationPayment = certificationPayment;
 		this.logger = logger;
 	}
 
@@ -65,8 +53,7 @@ public class DbRefereeTestContextFactory
 				HeadCertificationsPaid = u.CertificationPayments.Select(p => p.Certification.Version ?? default).ToList(),
 				TestAttempts = u.TestResults.Select(tr => new Models.Domain.Tests.FinishedTestAttempt
 				{
-					// TODO: recert tests can award multiple certs
-					AwardedCertifications = new HashSet<Models.Domain.Tests.Certification> { new Models.Domain.Tests.Certification(tr.Test.Certification.Level, tr.Test.Certification.Version) },
+					AwardedCertifications = GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false),
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = Models.Domain.Tests.TestAttemptFinishMethod.Submission,
 					Level = tr.Test.Certification.Level,
@@ -86,5 +73,28 @@ public class DbRefereeTestContextFactory
 		}
 
 		return referee;
+	}
+
+	private static HashSet<Models.Domain.Tests.Certification> GetAwardedCertifications(Certification testCertification, bool recertification)
+	{
+		var certifications = new HashSet<Models.Domain.Tests.Certification>()
+		{
+			new Models.Domain.Tests.Certification(testCertification.Level, testCertification.Version),
+		};
+
+		if (recertification)
+		{
+			if (testCertification.Level == CertificationLevel.Flag)
+			{
+				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Assistant, testCertification.Version));
+			}
+			else if (testCertification.Level == CertificationLevel.Head)
+			{
+				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Assistant, testCertification.Version));
+				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Snitch, testCertification.Version));
+			}
+		}
+
+		return certifications;
 	}
 }

@@ -28,10 +28,6 @@ public class DbRefereeContextProvider : IRefereeContextProvider
 
 		this.dbRefereeTestContextFactory = new DbRefereeTestContextFactory(
 			dbContext.Users,
-			dbContext.Certifications,
-			dbContext.RefereeCertifications,
-			dbContext.TestResults,
-			dbContext.CertificationPayments,
 			loggerFactory.CreateLogger<DbRefereeTestContextFactory>());
 	}
 
