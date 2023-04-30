@@ -31,19 +31,30 @@ public class RefereeTestsController : ControllerBase
 
 	[HttpGet("available")]
 	[Authorize(AuthotizationPolicies.RefereePolicy)]
-	public async Task<Dictionary<TestIdentifier, bool>> GetAvailableTests()
+	public async Task<IEnumerable<RefereeTestAvailableViewModel>> GetAvailableTests()
 	{
-		// TODO: make a view model (enumerable test details + eligible) and move logic to a processor
+		// TODO: move logic to a processor
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
 		var tests = await this.testProvider.GetTestsAsync(this.HttpContext.RequestAborted);
-		var tempResponse = new Dictionary<TestIdentifier, bool>();
+
+		var activeTests = tests.Where(t => t.IsActive).ToList();
+
+		var response = new List<RefereeTestAvailableViewModel>(activeTests.Count);
 		
-		foreach (var test in tests.Where(t => t.IsActive))
+		foreach (var test in activeTests)
 		{
-			tempResponse.Add(test.TestId, await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted));
+			var isRefereeEligible = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
+			response.Add(new RefereeTestAvailableViewModel
+			{
+				AwardedCertifications = test.AwardedCertifications,
+				IsRefereeEligible = isRefereeEligible,
+				Language = test.Language,
+				TestId = test.TestId,
+				Title = test.Title,
+			});
 		}
 
-		return tempResponse;
+		return response;
 	}
 
 	[HttpGet("attempts")]

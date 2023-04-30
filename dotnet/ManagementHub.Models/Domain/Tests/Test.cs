@@ -6,15 +6,15 @@ using ManagementHub.Models.Domain.Tests.Policies;
 
 namespace ManagementHub.Models.Domain.Tests;
 
-[DebuggerDisplay("{Name} ({TestId})")]
+[DebuggerDisplay("{Title} ({TestId})")]
 public class Test
 {
 	public required TestIdentifier TestId { get; set; }
 
 	/// <summary>
-	/// Name of the test (how it's displayed to users).
+	/// Title of the test (how it's displayed to users).
 	/// </summary>
-	public required string Name { get; set; }
+	public required string Title { get; set; }
 
 	/// <summary>
 	/// Block of text displayed to the refere before taking the test.

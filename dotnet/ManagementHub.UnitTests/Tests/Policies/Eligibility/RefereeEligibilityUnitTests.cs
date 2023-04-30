@@ -18,8 +18,8 @@ namespace ManagementHub.UnitTests.Tests.Policies.Eligibility;
 
 internal static class RefereeEligibilityUnitTestsExtensions
 {
-	public static void Includes(this Dictionary<Test, bool> result, Test test) => Assert.True(result[test], $"Result should include {test.Name}");
-	public static void Excludes(this Dictionary<Test, bool> result, Test test) => Assert.False(result[test], $"Result should not include {test.Name}");
+	public static void Includes(this Dictionary<Test, bool> result, Test test) => Assert.True(result[test], $"Result should include {test.Title}");
+	public static void Excludes(this Dictionary<Test, bool> result, Test test) => Assert.False(result[test], $"Result should not include {test.Title}");
 }
 
 public class RefereeEligibilityUnitTests
