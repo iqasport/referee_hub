@@ -16,6 +16,7 @@ namespace ManagementHub.Models.Data
 		}
 
 		public long Id { get; set; }
+		public string CountryCode { get; set; } // new identifier
 		public string Name { get; set; } = null!;
 		public string? Website { get; set; }
 		public DateTime CreatedAt { get; set; }

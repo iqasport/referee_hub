@@ -11,6 +11,9 @@ public static class NgbCollectionExtensions
 	{
 		if (constraint.AppliesToAny) return ngbs;
 		var ngbIdentifiers = constraint as IEnumerable<NgbIdentifier> ?? throw new InvalidOperationException("Constraint is not ANY, but not an enumerable?");
-		return ngbs.Where(ngb => ngbIdentifiers.Select(c => c.Id).Contains(ngb.Id));
+		return ngbs.Where(ngb => ngbIdentifiers.Select(c => c.NgbCode).Contains(ngb.CountryCode));
 	}
+
+	public static IQueryable<NationalGoverningBody> WithIdentifier(this IQueryable<NationalGoverningBody> ngbs, NgbIdentifier ngbId)
+		=> ngbs.Where(ngb => ngb.CountryCode == ngbId.NgbCode);
 }

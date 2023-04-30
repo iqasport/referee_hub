@@ -37,7 +37,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		{
 			new NationalGoverningBody
 			{
-				Acronym = "ARG",
+				CountryCode = "ARG",
 				Name = "Asociación de Quidditch Argentina",
 				Country = "Argentina",
 				Region = NgbRegion.SouthAmerica,
@@ -48,7 +48,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			},
 			new NationalGoverningBody
 			{
-				Acronym = "AUS",
+				CountryCode = "AUS",
 				Name = "Quidditch Australia",
 				Country = "Australia",
 				Region = NgbRegion.Asia,
@@ -59,7 +59,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			},
 			new NationalGoverningBody
 			{
-				Acronym = "BRA",
+				CountryCode = "BRA",
 				Name = "Associação Brasileira de Quadball",
 				Country = "Brazil",
 				Region = NgbRegion.SouthAmerica,
@@ -70,7 +70,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			},
 			new NationalGoverningBody
 			{
-				Acronym = "POL",
+				CountryCode = "POL",
 				Name = "Polska Liga Quidditcha",
 				Country = "Poland",
 				Region = NgbRegion.Europe,
@@ -81,7 +81,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			},
 			new NationalGoverningBody
 			{
-				Acronym = "USA",
+				CountryCode = "USA",
 				Name = "US Quadball",
 				Country = "United States",
 				Region = NgbRegion.NorthAmerica,

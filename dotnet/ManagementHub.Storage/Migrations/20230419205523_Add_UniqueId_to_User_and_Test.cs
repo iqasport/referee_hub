@@ -13,13 +13,13 @@ namespace ManagementHub.Storage.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "unique_id",
                 table: "users",
-                type: "nvarchar(40)",
+                type: "varchar(40)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "unique_id",
                 table: "tests",
-                type: "nvarchar(40)",
+                type: "varchar(40)",
                 nullable: true);
         }
 

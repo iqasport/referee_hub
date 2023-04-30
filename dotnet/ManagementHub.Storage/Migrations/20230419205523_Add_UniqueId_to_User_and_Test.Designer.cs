@@ -1258,7 +1258,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasDefaultValueSql("18");
 
                     b.Property<string>("UniqueId")
-                        .HasColumnType("nvarchar(40)")
+                        .HasColumnType("varchar(40)")
 						.HasColumnName("unique_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1552,7 +1552,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("submitted_payment_at");
 
                     b.Property<string>("UniqueId")
-                        .HasColumnType("nvarchar(40)")
+                        .HasColumnType("varchar(40)")
 						.HasColumnName("unique_id");
 
                     b.Property<string>("UnlockToken")

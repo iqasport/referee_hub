@@ -40,35 +40,16 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 		await using var transaction = await this.transactionProvider.BeginAsync();
 
 		var currentRefereeRole = await this.dbContext.Users.WithIdentifier(userId)
-			.Join(this.dbContext.Roles.Where(r => r.AccessType == UserAccessType.Referee), u => u.Id, r => r.UserId, (u, _) => u)
-			.GroupJoin(this.dbContext.RefereeLocations, u => u.Id, l => l.RefereeId, (u, l) => new { User = u, Locations = l })
-			.SelectMany(g => g.Locations.DefaultIfEmpty(), (g, location) => new { g.User, Location = location })
-			.GroupJoin(this.dbContext.RefereeTeams, g => g.User.Id, t => t.RefereeId, (g, t) => new
-			{
-				g.User,
-				g.Location,
-				Teams = t,
-			})
-			.SelectMany(g => g.Teams.DefaultIfEmpty(), (g, team) => new
-			{
-				g.User,
-				g.Location,
-				Team = team,
-			})
-			.GroupBy(g => g.User.Id, (u, g) => new
-			{
-				PrimaryLocationId = g.Where(gx => gx.Location != null && gx.Location.AssociationType == RefereeNgbAssociationType.Primary).Select(gx => gx.Location.NationalGoverningBodyId).SingleOrDefault(),
-				SecondaryLocationId = g.Where(gx => gx.Location != null && gx.Location.AssociationType == RefereeNgbAssociationType.Secondary).Select(gx => gx.Location.NationalGoverningBodyId).SingleOrDefault(),
-				CoachingTeamId = g.Where(gx => gx.Team != null && gx.Team.AssociationType == RefereeTeamAssociationType.Coach).Select(gx => gx.Team.TeamId).SingleOrDefault(),
-				PlayingTeamId = g.Where(gx => gx.Team != null && gx.Team.AssociationType == RefereeTeamAssociationType.Player).Select(gx => gx.Team.TeamId).SingleOrDefault(),
-			})
-			.Select(g => new RefereeRole
+			.Include(u => u.Roles).Where(u => u.Roles.Any(r => r.AccessType == UserAccessType.Referee))
+			.Include(u => u.RefereeLocations).ThenInclude(rl => rl.NationalGoverningBody)
+			.Include(u => u.RefereeTeams).ThenInclude(rl => rl.Team)
+			.Select(u => new RefereeRole
 			{
 				IsActive = true,
-				CoachingTeam = g.CoachingTeamId != null ? new TeamIdentifier(g.CoachingTeamId.Value) : null,
-				PlayingTeam = g.PlayingTeamId != null ? new TeamIdentifier(g.PlayingTeamId.Value) : null,
-				PrimaryNgb = g.PrimaryLocationId != default ? new NgbIdentifier(g.PrimaryLocationId) : null,
-				SecondaryNgb = g.SecondaryLocationId != default ? new NgbIdentifier(g.SecondaryLocationId) : null,
+				CoachingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Coach).Select(rt => new TeamIdentifier(rt.Team.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
+				PlayingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Player).Select(rt => new TeamIdentifier(rt.Team.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
+				PrimaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Primary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
+				SecondaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Secondary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
 			})
 			.SingleAsync(cancellationToken);
 
@@ -220,7 +201,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 		{
 			if (currentRefereeRole.PrimaryNgb != null)
 			{
-				var oldNgbId = currentRefereeRole.PrimaryNgb.Value.Id;
+				var oldNgbId = currentRefereeRole.PrimaryNgb.Value.NgbCode;
 				var ngb = this.dbContext.RefereeLocations
 					.Join(this.dbContext.Users.WithIdentifier(userId), t => t.RefereeId, u => u.Id, (t, _) => t)
 					.Where(t => t.AssociationType == RefereeNgbAssociationType.Primary);
@@ -232,27 +213,29 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				}
 				else
 				{
-					var newNgbId = newRefereeRole.PrimaryNgb.Value.Id;
+					var newNgbId = newRefereeRole.PrimaryNgb.Value.NgbCode;
 					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
 					this.logger.LogInformation(0, "Updating primary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
+					var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.PrimaryNgb.Value, cancellationToken);
 					await ngb.ExecuteUpdateAsync(t => t
-						.SetProperty(x => x.NationalGoverningBodyId, newNgbId)
+						.SetProperty(x => x.NationalGoverningBodyId, newNgbIdLong)
 						.SetProperty(x => x.UpdatedAt, updatedAt),
 						cancellationToken);
 				}
 			}
 			else
 			{
-				var newNgbId = newRefereeRole.PrimaryNgb?.Id ?? throw new InvalidOperationException("Both current and new are null?");
+				var newNgbId = newRefereeRole.PrimaryNgb?.NgbCode ?? throw new InvalidOperationException("Both current and new are null?");
 				var now = this.clock.UtcNow.UtcDateTime;
 
 				this.logger.LogInformation(0, "Adding primary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
+				var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.PrimaryNgb.Value, cancellationToken);
 				this.dbContext.RefereeLocations.Add(new RefereeLocation
 				{
 					AssociationType = RefereeNgbAssociationType.Primary,
 					Referee = referee ??= await this.dbContext.Users.WithIdentifier(userId).SingleAsync(cancellationToken),
-					NationalGoverningBodyId = newNgbId,
+					NationalGoverningBodyId = newNgbIdLong,
 					CreatedAt = now,
 					UpdatedAt = now,
 				});
@@ -264,7 +247,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 		{
 			if (currentRefereeRole.SecondaryNgb != null)
 			{
-				var oldNgbId = currentRefereeRole.SecondaryNgb.Value.Id;
+				var oldNgbId = currentRefereeRole.SecondaryNgb.Value.NgbCode;
 				var ngb = this.dbContext.RefereeLocations
 					.Join(this.dbContext.Users.WithIdentifier(userId), t => t.RefereeId, u => u.Id, (t, _) => t)
 					.Where(t => t.AssociationType == RefereeNgbAssociationType.Secondary);
@@ -276,27 +259,29 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				}
 				else
 				{
-					var newNgbId = newRefereeRole.SecondaryNgb.Value.Id;
+					var newNgbId = newRefereeRole.SecondaryNgb.Value.NgbCode;
 					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
 					this.logger.LogInformation(0, "Updating secondary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
+					var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.SecondaryNgb.Value, cancellationToken);
 					await ngb.ExecuteUpdateAsync(t => t
-						.SetProperty(x => x.NationalGoverningBodyId, newNgbId)
+						.SetProperty(x => x.NationalGoverningBodyId, newNgbIdLong)
 						.SetProperty(x => x.UpdatedAt, updatedAt),
 						cancellationToken);
 				}
 			}
 			else
 			{
-				var newNgbId = newRefereeRole.SecondaryNgb?.Id ?? throw new InvalidOperationException("Both current and new are null?");
+				var newNgbId = newRefereeRole.SecondaryNgb?.NgbCode ?? throw new InvalidOperationException("Both current and new are null?");
 				var now = this.clock.UtcNow.UtcDateTime;
 
 				this.logger.LogInformation(0, "Adding secondary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
+				var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.SecondaryNgb.Value, cancellationToken);
 				this.dbContext.RefereeLocations.Add(new RefereeLocation
 				{
 					AssociationType = RefereeNgbAssociationType.Secondary,
 					Referee = referee ??= await this.dbContext.Users.WithIdentifier(userId).SingleAsync(cancellationToken),
-					NationalGoverningBodyId = newNgbId,
+					NationalGoverningBodyId = newNgbIdLong,
 					CreatedAt = now,
 					UpdatedAt = now,
 				});
@@ -305,5 +290,10 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 		}
 
 		await transaction.CommitAsync(cancellationToken);
+	}
+
+	private Task<long> GetNgbIdForUpdate(NgbIdentifier ngbIdentifier, CancellationToken cancellationToken)
+	{
+		return this.dbContext.NationalGoverningBodies.WithIdentifier(ngbIdentifier).Select(ngb => ngb.Id).SingleAsync(cancellationToken);
 	}
 }

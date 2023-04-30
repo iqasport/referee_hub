@@ -95,19 +95,20 @@ public class DbUserContextFactory
 		{
 			case UserAccessType.Referee:
 				{
-					var teams = await this.users.WithIdentifier(userId)
-						.Join(this.refereeTeams, u => u.Id, r => r.RefereeId, (_, r) => r)
-						.Select(team => new RefereeTeam { AssociationType = team.AssociationType, TeamId = team.TeamId })
-						.ToListAsync(cancellationToken);
-					var ngbs = await this.users.WithIdentifier(userId)
-						.Join(this.refereeLocations, u => u.Id, r => r.RefereeId, (_, r) => r)
-						.Select(location => new RefereeLocation { AssociationType = location.AssociationType, NationalGoverningBodyId = location.NationalGoverningBodyId })
-						.ToListAsync(cancellationToken);
+					var properties = await this.users.WithIdentifier(userId)
+						.Include(u => u.RefereeTeams).ThenInclude(rt => rt.Team)
+						.Include(u => u.RefereeLocations).ThenInclude(rl => rl.NationalGoverningBody)
+						.Select(u => new
+						{
+							RefereeTeams = u.RefereeTeams.Select(rt => new { rt.AssociationType, rt.TeamId }),
+							RefereeLocations = u.RefereeLocations.Select(rt => new { rt.AssociationType, NgbId = rt.NationalGoverningBody.CountryCode }),
+						})
+						.SingleAsync(cancellationToken);
 
-					var playingTeam = teams.FirstOrDefault(team => team.AssociationType == RefereeTeamAssociationType.Player);
-					var coachingTeam = teams.FirstOrDefault(team => team.AssociationType == RefereeTeamAssociationType.Coach);
-					var primaryNgb = ngbs.FirstOrDefault(ngb => ngb.AssociationType == RefereeNgbAssociationType.Primary);
-					var secondaryNgb = ngbs.FirstOrDefault(ngb => ngb.AssociationType == RefereeNgbAssociationType.Secondary);
+					var playingTeam = properties.RefereeTeams.FirstOrDefault(team => team.AssociationType == RefereeTeamAssociationType.Player);
+					var coachingTeam = properties.RefereeTeams.FirstOrDefault(team => team.AssociationType == RefereeTeamAssociationType.Coach);
+					var primaryNgb = properties.RefereeLocations.FirstOrDefault(ngb => ngb.AssociationType == RefereeNgbAssociationType.Primary);
+					var secondaryNgb = properties.RefereeLocations.FirstOrDefault(ngb => ngb.AssociationType == RefereeNgbAssociationType.Secondary);
 
 					return new IUserRole[] {
 						new RefereeRole
@@ -115,16 +116,16 @@ public class DbUserContextFactory
 							IsActive = true,
 							PlayingTeam = playingTeam is not null ? new TeamIdentifier(playingTeam.TeamId ?? throw new Exception("I don't know why this is nullable")) : null,
 							CoachingTeam = coachingTeam is not null ? new TeamIdentifier(coachingTeam.TeamId ?? throw new Exception("I don't know why this is nullable")) : null,
-							PrimaryNgb = primaryNgb is not null ? new NgbIdentifier(primaryNgb.NationalGoverningBodyId) : null,
-							SecondaryNgb = secondaryNgb is not null ? new NgbIdentifier(secondaryNgb.NationalGoverningBodyId) : null,
+							PrimaryNgb = primaryNgb is not null ? NgbIdentifier.Parse(primaryNgb.NgbId) : null,
+							SecondaryNgb = secondaryNgb is not null ? NgbIdentifier.Parse(secondaryNgb.NgbId) : null,
 						},
 					};
 				}
 			case UserAccessType.NgbAdmin:
 				{
 					var ngbConstraint = NgbConstraint.Set(await this.users.WithIdentifier(userId)
-						.Join(this.nationalGoverningBodyAdmins, u => u.Id, r => r.UserId, (_, r) => r)
-						.Select(ngbAdmin => new NgbIdentifier(ngbAdmin.NationalGoverningBodyId))
+						.Include(u => u.NationalGoverningBodyAdmin).ThenInclude(a => a.NationalGoverningBody)
+						.Select(u => NgbIdentifier.Parse(u.NationalGoverningBodyAdmin.NationalGoverningBody.CountryCode))
 						.ToListAsync(cancellationToken));
 
 					return new IUserRole[]

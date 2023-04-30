@@ -25,7 +25,7 @@ public class RefereeExportController : ControllerBase
 
 	[HttpPost("{ngb}")]
 	[Authorize(AuthotizationPolicies.RefereeViewerPolicy)]
-	public async Task ExportRefereesForNgb([FromQuery]NgbIdentifier ngbIdentifier)
+	public async Task ExportRefereesForNgb([FromRoute]NgbIdentifier ngb)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
@@ -34,9 +34,9 @@ public class RefereeExportController : ControllerBase
 			throw new AccessDeniedException(nameof(RefereeViewerRole));
 		}
 
-		if (!refereeViewerRole.Ngb.AppliesTo(ngbIdentifier))
+		if (!refereeViewerRole.Ngb.AppliesTo(ngb))
 		{
-			throw new AccessDeniedException(ngbIdentifier.ToString());
+			throw new AccessDeniedException(ngb.ToString());
 		}
 
 		// TODO: schedule a job for exporting referee data for the NGB using the IRefereeContextProvider and sent over email to the current user

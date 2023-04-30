@@ -384,8 +384,14 @@ namespace ManagementHub.Storage
 				entity.ToTable("national_governing_bodies");
 
 				entity.HasIndex(e => e.Region, "index_national_governing_bodies_on_region");
+				entity.HasIndex(e => e.CountryCode, "index_national_governing_bodies_on_country_code")
+					.IsUnique();
 
 				entity.Property(e => e.Id).HasColumnName("id");
+
+				entity.Property(e => e.CountryCode)
+					.HasColumnType("varchar(3)")
+					.HasColumnName("countryCode");
 
 				entity.Property(e => e.Acronym)
 					.HasColumnType("character varying")
@@ -1037,7 +1043,7 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.Id).HasColumnName("id");
 
 				entity.Property(e => e.UniqueId)
-					.HasColumnType("nvarchar(40)")
+					.HasColumnType("varchar(40)")
 					.HasColumnName("unique_id");
 
 				entity.Property(e => e.Active).HasColumnName("active");
@@ -1218,7 +1224,7 @@ namespace ManagementHub.Storage
 				entity.Property(e => e.Id).HasColumnName("id");
 
 				entity.Property(e => e.UniqueId)
-					.HasColumnType("nvarchar(40)")
+					.HasColumnType("varchar(40)")
 					.HasColumnName("unique_id");
 
 				entity.Property(e => e.Admin)

@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Domain.Language;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Serialization.Identifiers;
@@ -18,6 +19,7 @@ public static class DefaultJsonSerialization
 		options.Converters.Add(new TestIdentifierJsonConverter());
 		options.Converters.Add(new TestAttemptIdentifierJsonConverter());
 		options.Converters.Add(new LanguageIdentifierJsonConverter());
+		options.Converters.Add(new NgbIdentifierJsonConverter());
 		options.Converters.Add(new UserRoleJsonConverter());
 		options.Converters.Add(new PercentageJsonConverter());
 
@@ -38,6 +40,7 @@ public static class DefaultJsonSerialization
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TestIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TestAttemptIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(LanguageIdentifier), () => new OpenApiSchema { Type = "string" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(NgbIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(IUserRole), () =>
 		{
 			return new OpenApiSchema
