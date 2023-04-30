@@ -128,7 +128,8 @@ public static class DbServiceCollectionExtentions
 		services.AddTransient<IUserIdentityRepository, UserIdentityRepository>();
 		services.AddTransient<IUserStore<UserIdentity>, UserStore>();
 		services.AddTransient<EmailTokenProvider>();
-		
+		services.AddTransient(typeof(IPasswordHasher<>), typeof(BCryptPasswordHasher<>));
+
 		// custom overrides over user manager
 		services.AddScoped<UserManager<UserIdentity>, UserManager>();
 
