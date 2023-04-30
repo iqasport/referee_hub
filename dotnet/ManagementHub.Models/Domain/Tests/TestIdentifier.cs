@@ -33,7 +33,7 @@ public record struct TestIdentifier(Guid UniqueId)
 	{
 		Guid uniqueId = new Guid();
 		GuidAsLongSpan(ref uniqueId)[0] = id;
-		var userId = new TestIdentifier();
+		var userId = new TestIdentifier(uniqueId);
 		return userId;
 	}
 

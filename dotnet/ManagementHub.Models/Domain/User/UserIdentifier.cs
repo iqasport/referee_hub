@@ -38,7 +38,7 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 	{
 		Guid uniqueId = new Guid();
 		GuidAsLongSpan(ref uniqueId)[0] = id;
-		var userId = new UserIdentifier();
+		var userId = new UserIdentifier(uniqueId);
 		return userId;
 	}
 
