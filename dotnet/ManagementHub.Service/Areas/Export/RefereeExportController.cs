@@ -24,7 +24,7 @@ public class RefereeExportController : ControllerBase
 	}
 
 	[HttpPost("{ngb}")]
-	[Authorize(AuthotizationPolicies.RefereeViewerPolicy)]
+	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task ExportRefereesForNgb([FromRoute]NgbIdentifier ngb)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();

@@ -30,7 +30,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpGet("available")]
-	[Authorize(AuthotizationPolicies.RefereePolicy)]
+	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<IEnumerable<RefereeTestAvailableViewModel>> GetAvailableTests()
 	{
 		// TODO: move logic to a processor
@@ -58,7 +58,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpGet("attempts")]
-	[Authorize(AuthotizationPolicies.RefereePolicy)]
+	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<IEnumerable<TestAttempt>> GetTestAttempts()
 	{
 		// TODO: return a list of test attempts/results the user has made (via view model)
@@ -68,7 +68,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpPost("{testId}/start")]
-	[Authorize(AuthotizationPolicies.RefereePolicy)]
+	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task StartTest([FromRoute] TestIdentifier testId)
 	{
 		// TODO: move logic to a processor

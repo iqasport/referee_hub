@@ -6,7 +6,7 @@ namespace ManagementHub.Service.Authorization;
 /// <summary>
 /// Constants and helpers related to creating authorization policies.
 /// </summary>
-public static class AuthotizationPolicies
+public static class AuthorizationPolicies
 {
 	public const string RefereePolicy = nameof(RefereePolicy);
 
@@ -22,5 +22,13 @@ public static class AuthotizationPolicies
 		options.AddPolicy(RefereeViewerPolicy, policy =>
 		{
 			policy.AddRequirements(new UserRoleAuthorizationRequirement<RefereeViewerRole>());
+		});
+
+	public const string TechAdminPolicy = nameof(TechAdminPolicy);
+
+	public static void AddTechAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(TechAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new UserRoleAuthorizationRequirement<TechAdminRole>());
 		});
 }

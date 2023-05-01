@@ -59,6 +59,7 @@ public static class Program
 		{
 			options.AddRefereePolicy();
 			options.AddRefereeViewerPolicy();
+			options.AddTechAdminPolicy();
 		});
 
 		services.AddHangfireServer();
@@ -147,7 +148,7 @@ public static class Program
 			endpoints.MapControllers();
 			endpoints.MapRazorPages();
 			endpoints.MapSwagger();
-			endpoints.MapHangfireDashboard();
+			endpoints.MapHangfireDashboard("/admin/jobs").RequireAuthorization(AuthorizationPolicies.TechAdminPolicy);
 		});
 		app.UseSwaggerUI();
 	}
