@@ -67,12 +67,36 @@ public class RefereeTestsController : ControllerBase
 		return refereeTestCtx.TestAttempts;
 	}
 
-	// POST start
-	// creates a test attempt if user is eligible
-	// schedules test finalization
+	[HttpPost("{testId}/start")]
+	[Authorize(AuthotizationPolicies.RefereePolicy)]
+	public async Task StartTest([FromRoute] TestIdentifier testId)
+	{
+		// TODO: move logic to a processor
+		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
+		var test = await this.testProvider.GetTestWithQuestionsAsync(testId, this.HttpContext.RequestAborted);
+
+		if (!test.IsActive)
+		{
+			throw new InvalidOperationException("Cannot start an inactive test.");
+		}
+
+		var isRefereeEligible = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
+		if (!isRefereeEligible)
+		{
+			throw new InvalidOperationException("User is not eligible to start this test.");
+		}
+
+		// FUTURE: create in progress attempt
+		var questions = test.QuestionChoicePolicy.ChooseQuestions(test.AvailableQuestions);
+		// TODO: mix answers order here or in UX?
+		// FUTURE: schedule a job to finilize the test via timeout in TimeLimit + 20 seconds
+		return; // TODO: create view model and remove the "correctAnswer" from questions
+	}
 
 	// POST finish
 	// executes test finalization
+
+	// FUTURE ENDPOINTS BELOW
 
 	// GET continue/{attempt_id}
 	// retrieves current test status to continue it (incl scheduled date of termination)

@@ -156,7 +156,7 @@ public static class Program
 
 		var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
 
-		// TODO move this method to another file
+		// TODO move this method to another file and refactor common code
 		switch (exceptionHandlerPathFeature?.Error)
 		{
 			case NotFoundException notFound:
@@ -166,6 +166,10 @@ public static class Program
 			case AccessDeniedException accessDenied:
 				context.Response.StatusCode = StatusCodes.Status403Forbidden;
 				await context.Response.WriteAsync(accessDenied.Message);
+				break;
+			case InvalidOperationException invalidOperation:
+				context.Response.StatusCode = StatusCodes.Status400BadRequest;
+				await context.Response.WriteAsync(invalidOperation.Message);
 				break;
 			default:
 				await context.Response.WriteAsync("Unexpected error occured.");
