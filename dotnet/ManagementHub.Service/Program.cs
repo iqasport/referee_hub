@@ -1,3 +1,4 @@
+using Hangfire;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
@@ -59,6 +60,8 @@ public static class Program
 			options.AddRefereePolicy();
 			options.AddRefereeViewerPolicy();
 		});
+
+		services.AddHangfireServer();
     }
 
     public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
@@ -144,6 +147,7 @@ public static class Program
 			endpoints.MapControllers();
 			endpoints.MapRazorPages();
 			endpoints.MapSwagger();
+			endpoints.MapHangfireDashboard();
 		});
 		app.UseSwaggerUI();
 	}

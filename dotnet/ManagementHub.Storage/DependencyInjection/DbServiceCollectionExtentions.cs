@@ -1,4 +1,7 @@
 ﻿using System.Linq;
+using Hangfire;
+using Hangfire.MemoryStorage;
+using Hangfire.Redis.StackExchange;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Data;
@@ -58,6 +61,9 @@ public static class DbServiceCollectionExtentions
 
 			// seed the database with test data
 			services.AddHostedService<EnsureDatabaseSeededForTesting>();
+
+			// register job system in memory
+			services.AddHangfire(config => config.UseMemoryStorage());
 		}
 		else
 		{
@@ -74,6 +80,9 @@ public static class DbServiceCollectionExtentions
 
 			// for hosted database we run migration script
 			services.AddHostedService<EnsureDatabaseMigratedService>();
+
+			// TODO: pass in redis connection string
+			services.AddHangfire(config => config.UseRedisStorage());
 		}
 
 		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbUserContextProvider(
