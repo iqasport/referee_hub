@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Hangfire;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
@@ -6,6 +7,7 @@ using ManagementHub.Serialization;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Telemetry;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
@@ -102,6 +104,9 @@ public static class Program
 			OverrideRedirectsForApiEndpoints(options);
 		});
 		services.AddSwaggerGen(options => DefaultJsonSerialization.MapSwaggerTypes(options));
+
+		services.AddSingleton<DistributedContextPropagator, CookieTraceContextPropagator>();
+		services.AddScoped<TraceCookieMiddleware>();
     }
 
 	private static void OverrideRedirectsForApiEndpoints(CookieAuthenticationOptions options)
@@ -140,6 +145,7 @@ public static class Program
 	public static void ConfigureWebApp(WebHostBuilderContext context, IApplicationBuilder app)
 	{
 		app.UseExceptionHandler(exceptionHandlerApp => exceptionHandlerApp.Run(HandleRequestError));
+		app.UseMiddleware<TraceCookieMiddleware>();
 		app.UseRouting();
 		app.UseAuthentication();
 		app.UseAuthorization();
