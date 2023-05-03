@@ -29,11 +29,12 @@ public class CookieTraceContextPropagator : DistributedContextPropagator
             var cookies = CookieHeaderValue.ParseList(headers.Cookie);
             foreach (var c in cookies)
             {
-                if (c.Name == "traceid")
+                const int traceIdLength = 32; // 16 bytes in hex
+                if (c.Name.Equals(TraceCookieMiddleware.TraceIdCookieName, StringComparison.OrdinalIgnoreCase) &&
+                    c.Value.Length == traceIdLength)
                 {
-                    //TODO: first validate it a little
                     traceId = c.Value.ToString();
-                    logger.LogInformation("Extracted traceId from cookie: {traceId}", traceId);
+                    logger.LogDebug(0, "Extracted traceId from '{cookieName}' cookie: {traceId}", TraceCookieMiddleware.TraceIdCookieName, traceId);
                 }
             }
         }
