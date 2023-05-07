@@ -21,4 +21,7 @@ public struct Percentage
 
 	public static implicit operator Percentage(int value) => new(value);
 	public static explicit operator int(Percentage value) => value.Value;
+
+	public static bool operator >=(Percentage value1, Percentage value2) => value1.Value >= value2.Value;
+	public static bool operator <=(Percentage value1, Percentage value2) => value1.Value <= value2.Value;
 }

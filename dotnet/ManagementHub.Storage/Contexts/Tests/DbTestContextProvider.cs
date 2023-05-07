@@ -67,7 +67,7 @@ public class DbTestContextProvider : ITestContextProvider
 			? dataset.Select(t => new TestWithQuestions
 			{
 				AvailableQuestions = ConvertQuestions(t.Questions),
-				AwardedCertifications = new[] { new Certification(t.Certification.Level, t.Certification.Version) },
+				AwardedCertifications = new HashSet<Certification> { new Certification(t.Certification.Level, t.Certification.Version) },
 				Description = t.Description,
 				IsActive = t.Active,
 				Language = new LanguageIdentifier(t.NewLanguage.ShortName, t.NewLanguage.ShortRegion),
@@ -81,7 +81,7 @@ public class DbTestContextProvider : ITestContextProvider
 			})
 			: dataset.Select(t => new Test
 			{
-				AwardedCertifications = new[] { new Certification(t.Certification.Level, t.Certification.Version) },
+				AwardedCertifications = new HashSet<Certification> { new Certification(t.Certification.Level, t.Certification.Version) },
 				Description = t.Description,
 				IsActive = t.Active,
 				Language = new LanguageIdentifier(t.NewLanguage.ShortName, t.NewLanguage.ShortRegion),

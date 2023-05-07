@@ -10,7 +10,7 @@ public class Question
 	/// <summary>
 	/// Identifier of the question (unique within a test).
 	/// </summary>
-	public required long QuestionId { get; set; }
+	public required QuestionId QuestionId { get; set; }
 
 	/// <summary>
 	/// The question text - Html formatted.

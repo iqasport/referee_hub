@@ -33,7 +33,7 @@ public class FinishedTestAttempt : TestAttempt
 	/// <summary>
 	/// New certifications the referee was awarded with this attempt if passed.
 	/// </summary>
-	public HashSet<Certification>? AwardedCertifications { get; set; }
+	public ISet<Certification>? AwardedCertifications { get; set; }
 
 	/// <summary>
 	/// Duration of the test.

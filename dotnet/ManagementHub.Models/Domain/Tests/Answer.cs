@@ -5,7 +5,7 @@ public class Answer
 	/// <summary>
 	/// Id of an answer (unique within a test).
 	/// </summary>
-	public required long AnswerId { get; set; }
+	public required AnswerId AnswerId { get; set; }
 
 	/// <summary>
 	/// The answer text - Html formatted.

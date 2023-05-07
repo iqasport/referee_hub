@@ -34,7 +34,7 @@ public class Test
 	/// <summary>
 	/// Set of certifications awarded to the referee upon passing the test.
 	/// </summary>
-	public required IEnumerable<Certification> AwardedCertifications { get; set; }
+	public required ISet<Certification> AwardedCertifications { get; set; }
 
 	/// <summary>
 	/// Time limit for the test (can be overriden for user with accessibility needs).
