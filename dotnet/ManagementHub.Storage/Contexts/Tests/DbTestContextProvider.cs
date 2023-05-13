@@ -106,7 +106,7 @@ public class DbTestContextProvider : ITestContextProvider
 			{
 				var answer = new Answer
 				{
-					AnswerId = dbAnswer.Id,
+					AnswerId = new AnswerId(dbAnswer.Id),
 					HtmlText = dbAnswer.Description,
 				};
 
@@ -122,7 +122,7 @@ public class DbTestContextProvider : ITestContextProvider
 				CorrectAnswers = correctAnswer != null ? new HashSet<Answer> { correctAnswer } : new HashSet<Answer>(),
 				HtmlText = q.Description,
 				Points = q.PointsAvailable,
-				QuestionId = q.Id,
+				QuestionId = new QuestionId(q.Id),
 			};
 		});
 	}
