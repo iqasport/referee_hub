@@ -40,6 +40,7 @@ public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 
 		var attempt = new Models.Data.TestAttempt
 		{
+			UniqueId = finishedTest.Id.ToString(),
 			CreatedAt = this.clock.UtcNow.UtcDateTime,
 			NextAttemptAt = null,
 			UpdatedAt = this.clock.UtcNow.UtcDateTime,
@@ -59,6 +60,7 @@ public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 
 		var result = new Models.Data.TestResult
 		{
+			UniqueId = finishedTest.Id.ToString(),
 			CreatedAt = finishedTest.FinishedAt, // IMPORTANT
 			UpdatedAt = this.clock.UtcNow.UtcDateTime,
 			Duration = finishedTest.Duration.ToString("hh\\:mm\\:ss"),

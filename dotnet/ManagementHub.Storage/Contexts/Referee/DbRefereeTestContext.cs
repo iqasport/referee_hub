@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
-using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
@@ -13,15 +13,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.Referee;
-using User = ManagementHub.Models.Data.User;
+using User = Models.Data.User;
 
 public class DbRefereeTestContext : IRefereeTestContext
 {
 	public required UserIdentifier UserId { get; set; }
 
-	public required HashSet<Models.Domain.Tests.Certification> AcquiredCertifications { get; set; }
+	public required HashSet<Certification> AcquiredCertifications { get; set; }
 
-	public required IEnumerable<Models.Domain.Tests.TestAttempt> TestAttempts { get; set; }
+	public required IEnumerable<TestAttempt> TestAttempts { get; set; }
 
 	public required IEnumerable<CertificationVersion> HeadCertificationsPaid { get; set; }
 }
@@ -49,20 +49,21 @@ public class DbRefereeTestContextFactory
 			.Select(u => new DbRefereeTestContext
 			{
 				UserId = userId,
-				AcquiredCertifications = u.RefereeCertifications.Select(rc => new Models.Domain.Tests.Certification(rc.Certification.Level, rc.Certification.Version)).ToHashSet(),
+				AcquiredCertifications = u.RefereeCertifications.Select(rc => new Certification(rc.Certification.Level, rc.Certification.Version)).ToHashSet(),
 				HeadCertificationsPaid = u.CertificationPayments.Select(p => p.Certification.Version ?? default).ToList(),
-				TestAttempts = u.TestResults.Select(tr => new Models.Domain.Tests.FinishedTestAttempt
+				TestAttempts = u.TestResults.Select(tr => new FinishedTestAttempt
 				{
 					AwardedCertifications = GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false),
 					FinishedAt = tr.CreatedAt,
-					FinishMethod = Models.Domain.Tests.TestAttemptFinishMethod.Submission,
+					FinishMethod = TestAttemptFinishMethod.Submission,
 					Level = tr.Test.Certification.Level,
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,
 					StartedAt = tr.CreatedAt - TimeSpan.Parse(tr.Duration ?? "00:00:00"),
-					TestId = tr.Test.UniqueId != null ? Models.Domain.Tests.TestIdentifier.Parse(tr.Test.UniqueId) : Models.Domain.Tests.TestIdentifier.FromLegacyTestId(tr.Test.Id),
+					TestId = tr.Test.UniqueId != null ? TestIdentifier.Parse(tr.Test.UniqueId) : TestIdentifier.FromLegacyTestId(tr.Test.Id),
 					UserId = userId,
+					Id = tr.UniqueId != null ? TestAttemptIdentifier.Parse(tr.UniqueId) : TestAttemptIdentifier.FromLegacyId(tr.CreatedAt, tr.Id),
 				})
 			})
 			.SingleOrDefaultAsync(cancellationToken);
@@ -75,23 +76,23 @@ public class DbRefereeTestContextFactory
 		return referee;
 	}
 
-	private static HashSet<Models.Domain.Tests.Certification> GetAwardedCertifications(Certification testCertification, bool recertification)
+	private static HashSet<Certification> GetAwardedCertifications(Models.Data.Certification testCertification, bool recertification)
 	{
-		var certifications = new HashSet<Models.Domain.Tests.Certification>()
+		var certifications = new HashSet<Certification>()
 		{
-			new Models.Domain.Tests.Certification(testCertification.Level, testCertification.Version),
+			new Certification(testCertification.Level, testCertification.Version),
 		};
 
 		if (recertification)
 		{
 			if (testCertification.Level == CertificationLevel.Flag)
 			{
-				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Assistant, testCertification.Version));
+				certifications.Add(new Certification(CertificationLevel.Assistant, testCertification.Version));
 			}
 			else if (testCertification.Level == CertificationLevel.Head)
 			{
-				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Assistant, testCertification.Version));
-				certifications.Add(new Models.Domain.Tests.Certification(CertificationLevel.Flag, testCertification.Version));
+				certifications.Add(new Certification(CertificationLevel.Assistant, testCertification.Version));
+				certifications.Add(new Certification(CertificationLevel.Flag, testCertification.Version));
 			}
 		}
 

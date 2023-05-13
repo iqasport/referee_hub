@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace ManagementHub.Models.Domain.Tests;
 
@@ -19,6 +20,11 @@ public record struct TestAttemptIdentifier(Ulid UniqueId)
 	/// Creates a new unique test attempt identifier.
 	/// </summary>
 	public static TestAttemptIdentifier NewTestAttemptId() => new TestAttemptIdentifier(Ulid.NewUlid());
+
+	/// <summary>
+	/// Creates a new identifier based on legacy properties.
+	/// </summary>
+	public static TestAttemptIdentifier FromLegacyId(DateTime createdAt, long id) => new TestAttemptIdentifier(Ulid.NewUlid(createdAt, MemoryMarshal.Cast<long, byte>(new Span<long>(ref id))));
 
 	/// <summary>
 	/// Converts the <paramref name="value"/> into <paramref name="result"/> if it matches the expected format.
