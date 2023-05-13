@@ -60,27 +60,15 @@ public class DbRefereeViewContext : IRefereeViewContext
 public class DbRefereeViewContextFactory
 {
 	private readonly IQueryable<User> users;
-	private readonly IQueryable<Role> roles;
-	private readonly IQueryable<RefereeCertification> certifications;
-	private readonly IQueryable<RefereeLocation> locations;
-	private readonly IQueryable<RefereeTeam> teams;
 	private readonly IQueryable<NationalGoverningBody> nationalGoverningBody;
 	private readonly ILogger<DbRefereeViewContextFactory> logger;
 
 	public DbRefereeViewContextFactory(
 		IQueryable<User> users,
-		IQueryable<Role> roles,
-		IQueryable<RefereeCertification> certifications,
-		IQueryable<RefereeLocation> locations, 
-		IQueryable<RefereeTeam> teams, 
 		IQueryable<NationalGoverningBody> nationalGoverningBody, 
 		ILogger<DbRefereeViewContextFactory> logger)
 	{
 		this.users = users;
-		this.roles = roles;
-		this.certifications = certifications;
-		this.locations = locations;
-		this.teams = teams;
 		this.nationalGoverningBody = nationalGoverningBody;
 		this.logger = logger;
 	}

@@ -76,7 +76,7 @@ public class DbRefereeTestContextFactory
 		return referee;
 	}
 
-	private static HashSet<Certification> GetAwardedCertifications(Models.Data.Certification testCertification, bool recertification)
+	internal static HashSet<Certification> GetAwardedCertifications(Models.Data.Certification testCertification, bool recertification)
 	{
 		var certifications = new HashSet<Certification>()
 		{

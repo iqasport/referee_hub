@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Models.Abstraction.Contexts.Providers;
@@ -18,4 +19,6 @@ public interface IRefereeContextProvider
 	IQueryable<IRefereeViewContext> GetRefereeViewContextQueryable(NgbConstraint ngbConstraint);
 
 	Task<IRefereeTestContext> GetRefereeTestContextAsync(UserIdentifier userId, CancellationToken cancellationToken);
+
+	Task<IRefereeEmailFeedbackContext> GetRefereeEmailFeedbackContextAsync(TestAttemptIdentifier testAttemptId, CancellationToken cancellationToken);
 }

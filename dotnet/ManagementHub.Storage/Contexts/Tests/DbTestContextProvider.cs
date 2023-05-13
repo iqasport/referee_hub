@@ -43,7 +43,7 @@ public class DbTestContextProvider : ITestContextProvider
 
 	public async Task<TestWithQuestions> GetTestWithQuestionsAsync(TestIdentifier testId, CancellationToken cancellationToken)
 	{
-		var test = await Query(this.dbContext.Tests.WithIdentifier(testId), withQuestions: true).SingleOrDefaultAsync(cancellationToken);
+		var test = await Query(this.dbContext.Tests.AsNoTracking().WithIdentifier(testId), withQuestions: true).SingleOrDefaultAsync(cancellationToken);
 
 		if (test == null)
 		{
