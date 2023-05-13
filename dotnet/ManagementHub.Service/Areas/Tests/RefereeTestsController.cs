@@ -181,7 +181,7 @@ public class RefereeTestsController : ControllerBase
 		var timeError = TimeSpan.FromSeconds(10); // assuming slow internet and long db access time for the request to get to submission time
 		if (testDuration > test.TimeLimit + timeError)
 		{
-			this.logger.LogWarning(0, "Test has been submitted after time has passed.");
+			this.logger.LogWarning(0, "Test has been submitted after time has passed (limit: {timeLimit}, actual: {actual}).", test.TimeLimit, testDuration);
 			// previously this resulted in an automatic fail, but it happened once since 2020 rulebook, so I won't action on it
 		}
 
