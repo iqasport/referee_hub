@@ -15,16 +15,16 @@ public class RefereeCertifiedEligibilityPolicy : IRefereeEligibilityPolicy
 		this.refereeContextProvider = refereeContextProvider;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
+	public async Task<RefereeEligibilityResult> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		// return true if the test can award any certifications the user doesn't have yet.
 		if (test.AwardedCertifications.Except(referee.AcquiredCertifications).Any())
 		{
-			return true;
+			return RefereeEligibilityResult.Eligible;
 		}
 
-		return false;
+		return RefereeEligibilityResult.RefereeAlreadyCertified;
 	}
 }

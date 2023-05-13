@@ -13,13 +13,25 @@ using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ManagementHub.UnitTests.Tests.Policies.Eligibility;
 
 internal static class RefereeEligibilityUnitTestsExtensions
 {
-	public static void Includes(this Dictionary<Test, bool> result, Test test) => Assert.True(result[test], $"Result should include {test.Title}");
-	public static void Excludes(this Dictionary<Test, bool> result, Test test) => Assert.False(result[test], $"Result should not include {test.Title}");
+	[ThreadStatic] public static ITestOutputHelper? TestOutput;
+
+	public static void Includes(this Dictionary<Test, RefereeEligibilityResult> result, Test test)
+	{
+		TestOutput?.WriteLine($"{test.Title}: {result[test]}");
+		Assert.True(RefereeEligibilityResult.Eligible == result[test], $"Result should include {test.Title}");
+	}
+
+	public static void Excludes(this Dictionary<Test, RefereeEligibilityResult> result, Test test)
+	{
+		TestOutput?.WriteLine($"{test.Title}: {result[test]}");
+		Assert.False(RefereeEligibilityResult.Eligible == result[test], $"Result should not include {test.Title}");
+	}
 }
 
 public class RefereeEligibilityUnitTests
@@ -30,6 +42,8 @@ public class RefereeEligibilityUnitTests
 	private static readonly UserIdentifier TestUserId = UserIdentifier.NewUserId();
 
 	private static readonly DateTime TestCurrentDateTime = new DateTime(2023, 04, 01, 21, 37, 42, DateTimeKind.Utc);
+
+	public RefereeEligibilityUnitTests(ITestOutputHelper testOutput) => RefereeEligibilityUnitTestsExtensions.TestOutput = testOutput;
 
 	private RefereeEligibilityChecker SetupChecker()
 	{
@@ -45,10 +59,10 @@ public class RefereeEligibilityUnitTests
 			Mock.Of<ILogger<RefereeEligibilityChecker>>());
 	}
 
-	private async Task<Dictionary<Test, bool>> ExecuteChecksAsync(IEnumerable<Test> tests)
+	private async Task<Dictionary<Test, RefereeEligibilityResult>> ExecuteChecksAsync(IEnumerable<Test> tests)
 	{
 		var checker = this.SetupChecker();
-		var results = new Dictionary<Test, bool>();
+		var results = new Dictionary<Test, RefereeEligibilityResult>();
 
 		foreach (var test in tests)
 		{
@@ -543,5 +557,66 @@ public class RefereeEligibilityUnitTests
 		result.Excludes(TestData.RecertAssistant22);
 		result.Excludes(TestData.RecertFlag22);
 		result.Excludes(TestData.RecertHead22);
+	}
+
+	[Fact]
+	public async Task ReturnsNoTests_WhenRefereeHasPassedAttemptThreshold()
+	{
+		// has 6 attempts for AR test and 1 for recert
+		var attempts = Enumerable.Range(1, 6).Select(i => new TestAttempt
+		{
+			TestId = TestData.Assistant18.TestId,
+			Level = CertificationLevel.Assistant,
+			StartedAt = TestCurrentDateTime.AddDays(-i-1),
+			UserId = TestUserId,
+		}).Concat(new[]
+		{
+			new TestAttempt
+			{
+				TestId = TestData.RecertAssistant22.TestId,
+				Level= CertificationLevel.Assistant,
+				StartedAt = TestCurrentDateTime.AddHours(-5),
+				UserId = TestUserId,
+			}
+		});
+		this.SetupReferee(new[]
+			{
+				new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+			},
+			Array.Empty<CertificationVersion>(),
+			attempts.ToArray());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.Assistant18,
+			TestData.RecertAssistant22,
+		});
+
+		result.Excludes(TestData.Assistant18);
+		result.Excludes(TestData.RecertAssistant22);
+	}
+
+	[Fact]
+	public async Task ReturnsTest_WhenRefereeHasNotYetPassedAttemptThreshold()
+	{
+		// has 6 attempts for AR test, so with 5 should be withing threshold
+		var attempts = Enumerable.Range(1, 5).Select(i => new TestAttempt
+		{
+			TestId = TestData.Assistant18.TestId,
+			Level = CertificationLevel.Assistant,
+			StartedAt = TestCurrentDateTime.AddDays(-i-1),
+			UserId = TestUserId,
+		});
+		this.SetupReferee(
+			Array.Empty<Certification>(),
+			Array.Empty<CertificationVersion>(),
+			attempts.ToArray());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.Assistant18,
+		});
+
+		result.Includes(TestData.Assistant18);
 	}
 }

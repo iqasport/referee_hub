@@ -19,7 +19,7 @@ public class RefereeEligibilityChecker
 		this.logger = logger;
 	}
 
-	public async Task<bool> CheckRefereeEligibilityAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
+	public async Task<RefereeEligibilityResult> CheckRefereeEligibilityAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		foreach (var policy in this.refereeEligibilityPolicies)
 		{
@@ -27,10 +27,14 @@ public class RefereeEligibilityChecker
 			{
 				var result = await policy.IsUserEligibleForTestAsync(test, userId, cancellationToken);
 
-				if (!result)
+				if (result == default)
 				{
-					this.logger.LogWarning(0, "Referee ({userId}) not eligible for test ({testId}). Failed policy: {policy}", userId, test.TestId, policy.GetType().Name);
-					return false;
+					this.logger.LogError(0, "Policy {policy} dud not return a valid result. Continuing checking further policies.", result);
+				}
+				else if (result != RefereeEligibilityResult.Eligible)
+				{
+					this.logger.LogWarning(0, "Referee ({userId}) not eligible for test ({testId}). Failed policy: {policy} with result: {result}", userId, test.TestId, policy.GetType().Name, result);
+					return result;
 				}
 			}
 			catch (Exception ex)
@@ -40,6 +44,6 @@ public class RefereeEligibilityChecker
 			}
 		}
 
-		return true;
+		return RefereeEligibilityResult.Eligible;
 	}
 }

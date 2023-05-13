@@ -15,16 +15,16 @@ public class NumberOfAttemptsEligibilityPolicy : IRefereeEligibilityPolicy
 		this.refereeContextProvider = refereeContextProvider;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
+	public async Task<RefereeEligibilityResult> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		// checks if referee has attempted the test less than maximum times
 		if (referee.TestAttempts.Count(at => at.TestId == test.TestId) < test.MaximumAttempts)
 		{
-			return true;
+			return RefereeEligibilityResult.Eligible;
 		}
 
-		return false;
+		return RefereeEligibilityResult.TestAttemptedMaximumNumberOfTimes;
 	}
 }

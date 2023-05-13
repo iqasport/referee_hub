@@ -20,7 +20,7 @@ public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 		this.systemClock = systemClock;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
+	public async Task<RefereeEligibilityResult> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
@@ -28,11 +28,11 @@ public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 		{
 			if (this.IsWithinCooldownPeriod(attempt, test))
 			{
-				return false;
+				return RefereeEligibilityResult.InCooldownPeriod;
 			}
 		}
 
-		return true;
+		return RefereeEligibilityResult.Eligible;
 	}
 
 	private bool IsWithinCooldownPeriod(TestAttempt attempt, Test test)

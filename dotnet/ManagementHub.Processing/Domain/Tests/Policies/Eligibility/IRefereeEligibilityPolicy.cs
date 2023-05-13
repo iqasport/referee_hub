@@ -7,5 +7,5 @@ namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 
 public interface IRefereeEligibilityPolicy
 {
-	Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken);
+	Task<RefereeEligibilityResult> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken);
 }

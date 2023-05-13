@@ -17,23 +17,19 @@ public class PaymentEligibilityPolicy : IRefereeEligibilityPolicy
 		this.refereeContextProvider = refereeContextProvider;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
+	public async Task<RefereeEligibilityResult> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		var hrCertifications = test.AwardedCertifications.Where(c => c.Level == CertificationLevel.Head);
-
-		if (hrCertifications.Any())
+		foreach (var certification in hrCertifications)
 		{
-			foreach (var certification in hrCertifications)
+			if (!referee.HeadCertificationsPaid.Contains(certification.Version))
 			{
-				if (!referee.HeadCertificationsPaid.Contains(certification.Version))
-				{
-					return false;
-				}
+				return RefereeEligibilityResult.MissingCertificationPayment;
 			}
 		}
 
-		return true;
+		return RefereeEligibilityResult.Eligible;
 	}
 }

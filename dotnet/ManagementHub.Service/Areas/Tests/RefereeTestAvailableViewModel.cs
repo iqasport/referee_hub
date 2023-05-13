@@ -1,5 +1,6 @@
 ﻿using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Tests;
+using ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 
 namespace ManagementHub.Service.Areas.Tests;
 
@@ -10,4 +11,5 @@ public class RefereeTestAvailableViewModel
 	public required IEnumerable<Certification> AwardedCertifications { get; set; }
 	public required LanguageIdentifier Language { get; set; }
 	public required bool IsRefereeEligible { get; set; }
+	public RefereeEligibilityResult RefereeEligibilityResult { get; set; }
 }

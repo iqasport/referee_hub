@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 		this.refereeContextProvider = refereeContextProvider;
 	}
 
-	public async Task<bool> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
+	public async Task<RefereeEligibilityResult> IsUserEligibleForTestAsync(Test test, UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
@@ -34,13 +33,27 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 			var highestPreviousLevel = previousCertification.Length > 0
 				? (CertificationLevel?)previousCertification.Max()
 				: null;
-			return
-				// referee has a certification this test recertifies
-				referee.AcquiredCertifications.Contains(test.RecertificationFor) &&
-				// the recertification level is greater or equal to the highest previously acquired level
-				test.RecertificationFor.Level.Compare(highestPreviousLevel) >= 0 &&
-				// referee does not have any other certifications for the version of rulebook this provides
-				!referee.AcquiredCertifications.Where(c => c.Version == awardedVersion).Any();
+
+			if (referee.AcquiredCertifications.Where(c => c.Version == awardedVersion).Any())
+			{
+				// referee has another certification for the version of rulebook this provides
+				return RefereeEligibilityResult.RecertificationNotAllowedDueToInitialCertificationStarted;
+			}
+			else if (test.RecertificationFor.Level.Compare(highestPreviousLevel) < 0)
+			{
+				// the recertification level is lower than the highest previously acquired level
+				return RefereeEligibilityResult.RecertificationForLowerThanPreviouslyHeld;
+
+			}
+			else if (!referee.AcquiredCertifications.Contains(test.RecertificationFor))
+			{
+				// referee is missing a certification this test recertifies
+				return RefereeEligibilityResult.MissingRequiredCertification;
+			}
+			else
+			{
+				return RefereeEligibilityResult.Eligible;
+			}
 		}
 
 		Certification lowestAwardedCert = test.AwardedCertifications.Min()!;
@@ -49,10 +62,13 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 
 		if (requiredCert != null)
 		{
-			return referee.AcquiredCertifications.Contains(requiredCert);
+			if (referee.AcquiredCertifications.Contains(requiredCert))
+				return RefereeEligibilityResult.Eligible;
+			else
+				return RefereeEligibilityResult.MissingRequiredCertification;
 		}
 
-		return true;
+		return RefereeEligibilityResult.Eligible;
 	}
 
 	private static Certification? GetRequiredCertificationToAttempt(Certification lowestAwardedCert)

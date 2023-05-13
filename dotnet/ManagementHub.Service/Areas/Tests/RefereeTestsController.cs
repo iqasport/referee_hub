@@ -57,11 +57,12 @@ public class RefereeTestsController : ControllerBase
 		
 		foreach (var test in activeTests)
 		{
-			var isRefereeEligible = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
+			var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
 			response.Add(new RefereeTestAvailableViewModel
 			{
 				AwardedCertifications = test.AwardedCertifications,
-				IsRefereeEligible = isRefereeEligible,
+				IsRefereeEligible = eligibilityResult == RefereeEligibilityResult.Eligible,
+				RefereeEligibilityResult = eligibilityResult,
 				Language = test.Language,
 				TestId = test.TestId,
 				Title = test.Title,
