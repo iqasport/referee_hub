@@ -1,4 +1,5 @@
-﻿using ManagementHub.Models.Abstraction.Contexts.Providers;
+﻿using ManagementHub.Models.Abstraction.Commands.Tests;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tests.Policies;
 using ManagementHub.Models.Enums;
@@ -27,6 +28,7 @@ public class RefereeTestsController : ControllerBase
 	private readonly RefereeEligibilityChecker refereeEligibilityChecker;
 	private readonly IDatabaseTransactionProvider databaseTransactionProvider;
 	private readonly ILogger logger;
+	private readonly ISaveSubmittedTestCommand saveSubmittedTestCommand;
 
 	public RefereeTestsController(
 		IUserContextAccessor userContextAccessor,
@@ -34,7 +36,8 @@ public class RefereeTestsController : ControllerBase
 		ITestContextProvider testProvider,
 		RefereeEligibilityChecker refereeEligibilityChecker,
 		IDatabaseTransactionProvider databaseTransactionProvider,
-		ILogger<RefereeTestsController> logger)
+		ILogger<RefereeTestsController> logger,
+		ISaveSubmittedTestCommand saveSubmittedTestCommand)
 	{
 		this.userContextAccessor = userContextAccessor;
 		this.refereeContextAccessor = refereeContextAccessor;
@@ -42,6 +45,7 @@ public class RefereeTestsController : ControllerBase
 		this.refereeEligibilityChecker = refereeEligibilityChecker;
 		this.databaseTransactionProvider = databaseTransactionProvider;
 		this.logger = logger;
+		this.saveSubmittedTestCommand = saveSubmittedTestCommand;
 	}
 
 	[HttpGet("available")]
@@ -199,19 +203,9 @@ public class RefereeTestsController : ControllerBase
 			AwardedCertifications = passed ? test.AwardedCertifications : null,
 		};
 
-		using (var transaction = await this.databaseTransactionProvider.BeginAsync())
-		{
-			var dataForRA = new
-			{
-				Level = highestCertificationLevel,
-				TestId = test.TestId,
-				UserId = user.UserId,
-				Answers = mappedQuestionsWithSelectedAnswers.Select(p => (p.question.QuestionId, p.selectedAnswer.AnswerId))
-			};
-
-			//TODO: command for saving RefereeAnswers
-			//TODO: command for saving the testResult
-		}
+		await this.saveSubmittedTestCommand.SaveSubmittedTestAsync(
+			testResult,
+			mappedQuestionsWithSelectedAnswers.Select(p => (p.question.QuestionId, p.selectedAnswer.AnswerId)));
 
 		// if the save to database was successful enqueue the mail
 		//TODO: create mail job for sending test feedback and send it via Hangfire
