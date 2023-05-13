@@ -196,6 +196,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				PositiveFeedback = "You passed",
 				Recertification = false,
 				TimeLimit = 10,
+				TestableQuestionCount = 5,
 			},
 			new Test
 			{
@@ -211,7 +212,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				PositiveFeedback = "You passed",
 				Recertification = true,
 				TimeLimit = 10,
-				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString()
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 5,
 			},
 		};
 		dbContext.Tests.AddRange(tests);
@@ -229,6 +231,23 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			Test = tests[1],
 			TestLevel = TestLevel.Assistant,
 		});
+
+		var questions = Enumerable.Range(1, 10).Select(i => new Question
+		{
+			Test = tests[1],
+			Description = $"Question {i}",
+			PointsAvailable = 1,
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
+			Answers = Enumerable.Range(1, 4).Select(j => new Answer
+			{
+				Correct = (i % 4) + 1 == j,
+				Description = $"{((i % 4) + 1 == j ? "Correct " : string.Empty)}Answer {j}",
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			}).ToArray(),
+		});
+		dbContext.Questions.AddRange(questions);
 
 		await dbContext.SaveChangesAsync(stoppingToken);
 	}

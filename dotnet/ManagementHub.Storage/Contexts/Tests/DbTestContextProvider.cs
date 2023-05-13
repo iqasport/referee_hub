@@ -109,6 +109,7 @@ public class DbTestContextProvider : ITestContextProvider
 					AnswerId = new AnswerId(dbAnswer.Id),
 					HtmlText = dbAnswer.Description,
 				};
+				answers.Add(answer);
 
 				if (dbAnswer.Correct)
 				{
@@ -124,6 +125,6 @@ public class DbTestContextProvider : ITestContextProvider
 				Points = q.PointsAvailable,
 				QuestionId = new QuestionId(q.Id),
 			};
-		});
+		}).ToList();
 	}
 }

@@ -2,6 +2,7 @@
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tests.Policies;
 using ManagementHub.Models.Enums;
+using ManagementHub.Models.Misc;
 using ManagementHub.Processing.Domain.Tests.Extensions;
 using ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 using ManagementHub.Service.Authorization;
@@ -84,7 +85,7 @@ public class RefereeTestsController : ControllerBase
 
 	[HttpPost("{testId}/start")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
-	public async Task StartTest([FromRoute] TestIdentifier testId)
+	public async Task<RefereeTestStartModel> StartTest([FromRoute] TestIdentifier testId)
 	{
 		// TODO: move logic to a processor
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
@@ -95,17 +96,32 @@ public class RefereeTestsController : ControllerBase
 			throw new InvalidOperationException("Cannot start an inactive test.");
 		}
 
-		var isRefereeEligible = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
-		if (!isRefereeEligible)
+		var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
+		if (eligibilityResult != RefereeEligibilityResult.Eligible)
 		{
-			throw new InvalidOperationException("User is not eligible to start this test.");
+			throw new InvalidOperationException($"User is not eligible to start this test ({eligibilityResult}).");
 		}
+
+		// IMPORTANT: we set the random context before choosing questions and shuffling answers for best randomness
+		EnumerableExtensions.SetAsyncRandomContext();
 
 		// FUTURE: create in progress attempt
 		var questions = test.QuestionChoicePolicy.ChooseQuestions(test.AvailableQuestions);
-		// TODO: mix answers order here
+		var startModel = new RefereeTestStartModel
+		{
+			Questions = questions.Select(q => new RefereeTestStartModel.Question
+			{
+				QuestionId = q.QuestionId.Id,
+				HtmlText = q.HtmlText,
+				Answers = q.Answers.Shuffle().Select(a => new RefereeTestStartModel.Answer
+				{
+					AnswerId = a.AnswerId.Id,
+					HtmlText = a.HtmlText,
+				})
+			})
+		};
 		// FUTURE: schedule a job to finilize the test via timeout in TimeLimit + 20 seconds
-		return; // TODO: create view model and remove the "correctAnswer" from questions
+		return startModel;
 	}
 
 	[HttpPost("{testId}/submit")]
