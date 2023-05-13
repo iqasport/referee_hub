@@ -13,6 +13,7 @@ namespace ManagementHub.Models.Data
 		}
 
 		public long Id { get; set; }
+		public string? UniqueId { get; set; }
 		public long? TestId { get; set; }
 		public long? RefereeId { get; set; }
 		public TestLevel? TestLevel { get; set; }

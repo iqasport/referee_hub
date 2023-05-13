@@ -1109,6 +1109,10 @@ namespace ManagementHub.Storage
 
 				entity.Property(e => e.Id).HasColumnName("id");
 
+				entity.Property(e => e.UniqueId)
+					.HasColumnType("varchar(40)")
+					.HasColumnName("unique_id");
+
 				entity.Property(e => e.CreatedAt)
 					.HasColumnType("timestamp without time zone")
 					.HasColumnName("created_at");
@@ -1145,6 +1149,10 @@ namespace ManagementHub.Storage
 				entity.HasIndex(e => e.RefereeId, "index_test_results_on_referee_id");
 
 				entity.Property(e => e.Id).HasColumnName("id");
+
+				entity.Property(e => e.UniqueId)
+					.HasColumnType("varchar(40)")
+					.HasColumnName("unique_id");
 
 				entity.Property(e => e.CertificateUrl)
 					.HasColumnType("character varying")

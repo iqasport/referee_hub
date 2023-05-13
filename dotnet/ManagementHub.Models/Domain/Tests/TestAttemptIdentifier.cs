@@ -4,7 +4,7 @@ namespace ManagementHub.Models.Domain.Tests;
 
 public record struct TestAttemptIdentifier(Ulid UniqueId)
 {
-	private const string IdPrefix = "tat$";
+	private const string IdPrefix = "TAT_";
 	private const int UlidAsStringLength = 26;
 
 	/// <summary>

@@ -7,6 +7,7 @@ namespace ManagementHub.Models.Data
 	public partial class TestResult : IIdentifiable
 	{
 		public long Id { get; set; }
+		public string? UniqueId { get; set; }
 		public long RefereeId { get; set; }
 		public TimeOnly? TimeStarted { get; set; }
 		public TimeOnly? TimeFinished { get; set; }
