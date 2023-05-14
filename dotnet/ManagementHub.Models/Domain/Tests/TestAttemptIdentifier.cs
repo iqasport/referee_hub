@@ -24,7 +24,12 @@ public record struct TestAttemptIdentifier(Ulid UniqueId)
 	/// <summary>
 	/// Creates a new identifier based on legacy properties.
 	/// </summary>
-	public static TestAttemptIdentifier FromLegacyId(DateTime createdAt, long id) => new TestAttemptIdentifier(Ulid.NewUlid(createdAt, MemoryMarshal.Cast<long, byte>(new Span<long>(ref id))));
+	public static TestAttemptIdentifier FromLegacyId(DateTime createdAt, long id)
+	{
+		Span<long> randomness = stackalloc long[2];
+		randomness[0] = id;
+		return new TestAttemptIdentifier(Ulid.NewUlid(createdAt, MemoryMarshal.Cast<long, byte>(randomness)[0..10]));
+	}
 
 	/// <summary>
 	/// Converts the <paramref name="value"/> into <paramref name="result"/> if it matches the expected format.

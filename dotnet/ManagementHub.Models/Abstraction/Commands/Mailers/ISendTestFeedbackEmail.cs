@@ -5,5 +5,5 @@ using ManagementHub.Models.Domain.Tests;
 namespace ManagementHub.Models.Abstraction.Commands.Mailers;
 public interface ISendTestFeedbackEmail
 {
-	public Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, CancellationToken cancellation = default);
+	public Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, CancellationToken cancellation);
 }

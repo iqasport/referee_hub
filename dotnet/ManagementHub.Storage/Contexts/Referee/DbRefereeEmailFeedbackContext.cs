@@ -20,6 +20,8 @@ public class DbRefereeEmailFeedbackContext : IRefereeEmailFeedbackContext
 	public required FinishedTestAttempt TestAttempt { get; set; }
 
 	public required IEnumerable<QuestionResult> QuestionResults { get; set; }
+
+	public string TestFeedback { get; set; } = string.Empty;
 }
 
 public class DbRefereeEmailFeedbackContextFactory
@@ -45,30 +47,37 @@ public class DbRefereeEmailFeedbackContextFactory
 	{
 		this.logger.LogInformation("Loading referee email feedback context for test attempt ({testAttemptId}).", testAttemptId);
 
-		var attempt = await this.testResults.AsNoTracking()
+		var attemptWrapper = await this.testResults.AsNoTracking()
 			.Where(tr => tr.UniqueId == testAttemptId.ToString())
 			.Include(tr => tr.Referee)
 			.Include(tr => tr.Test).ThenInclude(t => t.Certification)
-			.Select(tr => new FinishedTestAttempt
+			.Select(tr => new
 			{
-				AwardedCertifications = DbRefereeTestContextFactory.GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false),
-				FinishedAt = tr.CreatedAt,
-				FinishMethod = TestAttemptFinishMethod.Submission,
-				Level = tr.Test.Certification.Level,
-				PassPercentage = tr.MinimumPassPercentage ?? default,
-				Passed = tr.Passed ?? false,
-				Score = tr.Percentage ?? default,
-				StartedAt = tr.CreatedAt - TimeSpan.Parse(tr.Duration ?? "00:00:00"),
-				TestId = tr.Test.UniqueId != null ? TestIdentifier.Parse(tr.Test.UniqueId) : TestIdentifier.FromLegacyTestId(tr.Test.Id),
-				UserId = tr.Referee.UniqueId != null ? UserIdentifier.Parse(tr.Referee.UniqueId) : UserIdentifier.FromLegacyUserId(tr.Referee.Id),
-				Id = testAttemptId,
+				Attempt = new FinishedTestAttempt
+				{
+					AwardedCertifications = DbRefereeTestContextFactory.GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false),
+					FinishedAt = tr.CreatedAt,
+					FinishMethod = TestAttemptFinishMethod.Submission,
+					Level = tr.Test.Certification.Level,
+					PassPercentage = tr.MinimumPassPercentage ?? default,
+					Passed = tr.Passed ?? false,
+					Score = tr.Percentage ?? default,
+					StartedAt = tr.CreatedAt - TimeSpan.Parse(tr.Duration ?? "00:00:00"),
+					TestId = tr.Test.UniqueId != null ? TestIdentifier.Parse(tr.Test.UniqueId) : TestIdentifier.FromLegacyTestId(tr.Test.Id),
+					UserId = tr.Referee.UniqueId != null ? UserIdentifier.Parse(tr.Referee.UniqueId) : UserIdentifier.FromLegacyUserId(tr.Referee.Id),
+					Id = testAttemptId,
+				},
+				TestFeedback = tr.Passed == true ? tr.Test.PositiveFeedback : tr.Test.NegativeFeedback,
 			})
 			.SingleOrDefaultAsync(cancellationToken);
 
-		if (attempt is null)
+		if (attemptWrapper is null)
 		{
 			throw new NotFoundException(testAttemptId.ToString());
 		}
+
+		var attempt = attemptWrapper.Attempt;
+		var testFeedback = attemptWrapper.TestFeedback;
 
 		var test = await this.testContextProvider.GetTestAsync(attempt.TestId, cancellationToken);
 
@@ -91,6 +100,7 @@ public class DbRefereeEmailFeedbackContextFactory
 			QuestionResults = questionResults,
 			Test = test,
 			TestAttempt = attempt,
+			TestFeedback = testFeedback ?? string.Empty,
 		};
 	}
 }

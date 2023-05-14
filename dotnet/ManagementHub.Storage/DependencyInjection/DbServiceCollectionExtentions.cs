@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Redis.StackExchange;
@@ -63,9 +64,6 @@ public static class DbServiceCollectionExtentions
 
 			// seed the database with test data
 			services.AddHostedService<EnsureDatabaseSeededForTesting>();
-
-			// register job system in memory
-			services.AddHangfire(config => config.UseMemoryStorage());
 		}
 		else
 		{
@@ -82,9 +80,6 @@ public static class DbServiceCollectionExtentions
 
 			// for hosted database we run migration script
 			services.AddHostedService<EnsureDatabaseMigratedService>();
-
-			// TODO: pass in redis connection string
-			services.AddHangfire(config => config.UseRedisStorage());
 		}
 
 		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbUserContextProvider(
@@ -114,7 +109,7 @@ public static class DbServiceCollectionExtentions
 		return services;
 	}
 
-	public static IServiceCollection AddmanagementHubBlobStorage(this IServiceCollection services, bool localFileSystem)
+	public static IServiceCollection AddManagementHubBlobStorage(this IServiceCollection services, bool localFileSystem)
 	{
 		if (localFileSystem)
 		{
@@ -150,5 +145,26 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<UserManager<UserIdentity>, UserManager>();
 
 		return services;
+	}
+
+	public static IServiceCollection AddHangfire(this IServiceCollection services, bool inMemoryStorage)
+	{
+		return services.AddHangfire(config =>
+		{
+			if (inMemoryStorage)
+			{
+				// register job system in memory
+				config.UseMemoryStorage();
+			}
+			else
+			{
+				// TODO: pass in redis connection string
+				config
+					.UseRedisStorage()
+					.WithJobExpirationTimeout(TimeSpan.FromDays(7));
+			}
+			
+			config.UseRecommendedSerializerSettings();
+		});
 	}
 }

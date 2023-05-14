@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Hangfire;
+using ManagementHub.Mailers;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
@@ -47,8 +48,12 @@ public static class Program
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
 	{
 		services.AddManagementHubStorage(inMemoryStorage: true);
-		services.AddmanagementHubBlobStorage(localFileSystem: true);
+		services.AddManagementHubBlobStorage(localFileSystem: true);
 		services.AddManagementHubIdentity();
+
+		services.AddHangfire(inMemoryStorage: true);
+
+		services.AddMailers(inMemory: true);
 
 		services.AddHttpContextAccessor();
 		services.AddScoped<IUserContextAccessor, UserContextAccessor>();

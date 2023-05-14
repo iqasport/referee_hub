@@ -8,5 +8,7 @@ namespace ManagementHub.Mailers.Configuration;
 
 internal class EmailSenderSettings
 {
-	public string EmailSender { get; set; } = "noreply@iqareferees.org";
+	public string SenderEmail { get; set; } = "noreply@iqareferees.org";
+	public string? SenderDisplayName { get; set; }
+	public string ReplyToEmail { get; set; } = "tech@iqareferees.org"; // TODO: should this be referees@iqareferees.org?
 }

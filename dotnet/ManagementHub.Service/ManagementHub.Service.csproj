@@ -10,6 +10,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ManagementHub.Mailers\ManagementHub.Mailers.csproj" />
     <ProjectReference Include="..\ManagementHub.Models\ManagementHub.Models.csproj" />
     <ProjectReference Include="..\ManagementHub.Processing\ManagementHub.Processing.csproj" />
     <ProjectReference Include="..\ManagementHub.Serialization\ManagementHub.Serialization.csproj" />

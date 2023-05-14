@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Net.Mail;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentEmail.Core;
 using FluentEmail.Core.Interfaces;
-using FluentEmail.Core.Models;
 using FluentEmail.Smtp;
 using ManagementHub.Mailers.Configuration;
+using ManagementHub.Mailers.Utils;
 using ManagementHub.Models.Abstraction.Commands.Mailers;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ManagementHub.Mailers;
@@ -32,12 +28,11 @@ public static class DependencyInjectionExtensions
 			.BindConfiguration("Mailers");
 
 		services
-			.AddFluentEmail(new EmailSenderSettings().EmailSender)
-			.AddRazorRenderer();
+			.AddFluentEmail(new EmailSenderSettings().SenderEmail);
 
 		if (inMemory)
 		{
-			services.AddScoped<ISender>()
+			services.AddScoped<ISender, LogSender>();
 		}
 		else
 		{
@@ -70,26 +65,5 @@ public static class DependencyInjectionExtensions
 		}
 
 		return services;
-	}
-
-	private class LogSender : ISender
-	{
-		private readonly ILogger<LogSender> logger;
-
-		public LogSender(ILogger<LogSender> logger)
-		{
-			this.logger = logger;
-		}
-
-		public SendResponse Send(IFluentEmail email, CancellationToken? token = null)
-		{
-			this.logger.LogInformation("Sending email:\n{email}", email);
-			return new SendResponse();
-		}
-
-		public Task<SendResponse> SendAsync(IFluentEmail email, CancellationToken? token = null)
-		{
-			return Task.FromResult(this.Send(email, token));
-		}
 	}
 }

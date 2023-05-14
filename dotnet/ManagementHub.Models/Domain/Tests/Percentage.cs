@@ -19,6 +19,8 @@ public struct Percentage
 
 	public int Value { get; }
 
+	public override string ToString() => $"{this.Value}%";
+
 	public static implicit operator Percentage(int value) => new(value);
 	public static explicit operator int(Percentage value) => value.Value;
 

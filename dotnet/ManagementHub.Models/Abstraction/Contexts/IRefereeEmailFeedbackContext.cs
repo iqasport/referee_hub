@@ -22,4 +22,9 @@ public interface IRefereeEmailFeedbackContext
 	/// Results per question.
 	/// </summary>
 	IEnumerable<QuestionResult> QuestionResults { get; }
+
+	/// <summary>
+	/// Feedback words on having passed or failed the test.
+	/// </summary>
+	string TestFeedback { get; }
 }

@@ -1,4 +1,6 @@
-﻿using ManagementHub.Models.Abstraction.Commands.Tests;
+﻿using Hangfire;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
+using ManagementHub.Models.Abstraction.Commands.Tests;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tests.Policies;
@@ -29,6 +31,7 @@ public class RefereeTestsController : ControllerBase
 	private readonly IDatabaseTransactionProvider databaseTransactionProvider;
 	private readonly ILogger logger;
 	private readonly ISaveSubmittedTestCommand saveSubmittedTestCommand;
+	private readonly IBackgroundJobClient backgroundJob;
 
 	public RefereeTestsController(
 		IUserContextAccessor userContextAccessor,
@@ -37,7 +40,8 @@ public class RefereeTestsController : ControllerBase
 		RefereeEligibilityChecker refereeEligibilityChecker,
 		IDatabaseTransactionProvider databaseTransactionProvider,
 		ILogger<RefereeTestsController> logger,
-		ISaveSubmittedTestCommand saveSubmittedTestCommand)
+		ISaveSubmittedTestCommand saveSubmittedTestCommand,
+		IBackgroundJobClient backgroundJob)
 	{
 		this.userContextAccessor = userContextAccessor;
 		this.refereeContextAccessor = refereeContextAccessor;
@@ -46,6 +50,7 @@ public class RefereeTestsController : ControllerBase
 		this.databaseTransactionProvider = databaseTransactionProvider;
 		this.logger = logger;
 		this.saveSubmittedTestCommand = saveSubmittedTestCommand;
+		this.backgroundJob = backgroundJob;
 	}
 
 	[HttpGet("available")]
@@ -208,7 +213,8 @@ public class RefereeTestsController : ControllerBase
 			mappedQuestionsWithSelectedAnswers.Select(p => (p.question.QuestionId, p.selectedAnswer.AnswerId)));
 
 		// if the save to database was successful enqueue the mail
-		//TODO: create mail job for sending test feedback and send it via Hangfire
+		var attemptId = testResult.Id;
+		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(cmd => cmd.SendTestFeedbackEmailAsync(attemptId, CancellationToken.None));
 
 		return new RefereeTestSubmitResponse
 		{
