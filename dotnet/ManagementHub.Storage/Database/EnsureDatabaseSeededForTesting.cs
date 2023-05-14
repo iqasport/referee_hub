@@ -33,7 +33,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 
 	private async Task SeedDatabaseAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
 	{
-		dbContext.NationalGoverningBodies.AddRange(new[]
+		var ngbs = new[]
 		{
 			new NationalGoverningBody
 			{
@@ -90,7 +90,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Website = "https://www.usquadball.org/",
 				CreatedAt = DateTime.UtcNow,
 			},
-		});
+		};
+		dbContext.NationalGoverningBodies.AddRange(ngbs);
 
 		var certifications = new List<Certification>(32);
 		foreach(var version in Enum.GetValues<CertificationVersion>())
@@ -164,6 +165,14 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				User = iqaAdmin,
 				CreatedAt = DateTime.UtcNow,
 			});
+
+		dbContext.NationalGoverningBodyAdmins.Add(new NationalGoverningBodyAdmin
+		{
+			CreatedAt = DateTime.UtcNow,
+			NationalGoverningBody = ngbs.Last(),
+			UpdatedAt = DateTime.UtcNow,
+			User = ngbAdmin,
+		});
 
 		var tests = new[]
 		{

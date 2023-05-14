@@ -2,6 +2,7 @@
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Exceptions;
 
 namespace ManagementHub.Service.Contexts;
 
@@ -9,9 +10,6 @@ public class UserContextAccessor : IUserContextAccessor
 {
 	private readonly IHttpContextAccessor httpContextAccessor;
 	private readonly IUserContextProvider contextProvider;
-
-	// cached context so that we don't parse the user id multiple times
-	private IUserContext? user;
 
 	public UserContextAccessor(
 		IHttpContextAccessor httpContextAccessor,
@@ -23,17 +21,14 @@ public class UserContextAccessor : IUserContextAccessor
 
 	public async Task<IUserContext> GetCurrentUserContextAsync()
 	{
-		if (this.user != null)
-		{
-			return this.user;
-		}
-
 		var httpContext = this.HttpContext;
 
-		var claim = httpContext.User.Claims.SingleOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier);
+		// In usual scenario there's just one claim like this.
+		// But in an impersonation scenario we're going to add an identity and use the last claim as the desired userId.
+		var claim = httpContext.User.Claims.LastOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier);
 		if (claim == null)
 		{
-			throw new InvalidOperationException("The current HTTP context is missing user information.");
+			throw new AuthenticationRequiredException("The current HTTP context is missing user information.");
 		}
 
 		if (!UserIdentifier.TryParse(claim.Value, out var userId))
@@ -41,10 +36,8 @@ public class UserContextAccessor : IUserContextAccessor
 			throw new FormatException($"The value in the 'nameidentifier' claim is not a valid {nameof(UserIdentifier)}.");
 		}
 
-		this.user = await this.contextProvider.GetUserContextAsync(userId, httpContext.RequestAborted);
-		return this.user;
+		return await this.contextProvider.GetUserContextAsync(userId, httpContext.RequestAborted);
 	}
-
 
 	public Task<IUserDataContext> GetUserDataContextAsync(UserIdentifier userId)
 	{

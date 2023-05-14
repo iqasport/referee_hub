@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.Operations;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ManagementHub.Service;
@@ -112,6 +113,7 @@ public static class Program
 
 		services.AddSingleton<DistributedContextPropagator, CookieTraceContextPropagator>();
 		services.AddScoped<TraceCookieMiddleware>();
+		services.AddScoped<ImpersonationMiddleware>();
     }
 
 	private static void OverrideRedirectsForApiEndpoints(CookieAuthenticationOptions options)
@@ -149,10 +151,18 @@ public static class Program
 
 	public static void ConfigureWebApp(WebHostBuilderContext context, IApplicationBuilder app)
 	{
-		app.UseExceptionHandler(exceptionHandlerApp => exceptionHandlerApp.Run(HandleRequestError));
+		var exceptionHandlerPipeline = app.New();
+		exceptionHandlerPipeline.Run(HandleRequestError);
+		app.UseExceptionHandler(new ExceptionHandlerOptions
+		{
+			AllowStatusCode404Response = true,
+			ExceptionHandler = exceptionHandlerPipeline.Build(),
+		});
+
 		app.UseMiddleware<TraceCookieMiddleware>();
 		app.UseRouting();
 		app.UseAuthentication();
+		app.UseMiddleware<ImpersonationMiddleware>();
 		app.UseAuthorization();
 		app.UseEndpoints(endpoints =>
 		{
@@ -183,9 +193,17 @@ public static class Program
 				context.Response.StatusCode = StatusCodes.Status403Forbidden;
 				await context.Response.WriteAsync(accessDenied.Message);
 				break;
+			case AuthenticationRequiredException authRequired:
+				context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+				await context.Response.WriteAsync(authRequired.Message);
+				break;
 			case InvalidOperationException invalidOperation:
 				context.Response.StatusCode = StatusCodes.Status400BadRequest;
 				await context.Response.WriteAsync(invalidOperation.Message);
+				break;
+			case ArgumentException argument:
+				context.Response.StatusCode = StatusCodes.Status400BadRequest;
+				await context.Response.WriteAsync(argument.Message);
 				break;
 			default:
 				await context.Response.WriteAsync("Unexpected error occured.");

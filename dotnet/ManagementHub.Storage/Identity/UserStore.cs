@@ -106,7 +106,7 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 	{
 		if (!UserIdentifier.TryParse(userIdentifier, out var userId))
 		{
-			throw new ArgumentException("User Id is in an incorrect format!", nameof(userIdentifier));
+			throw new ArgumentException("User Id is in an incorrect format! Please clear your cookies.", nameof(userIdentifier));
 		}
 
 		this.logger.LogInformation(0, "Looking up user by id ({userId}).", userId);

@@ -11,7 +11,7 @@ public record struct NgbIdentifier(string NgbCode)
 
 	public static bool TryParse(string value, out NgbIdentifier identifier)
 	{
-		if (value.Length != 3)
+		if (value == null || value.Length != 3)
 		{
 			identifier = default;
 			return false;

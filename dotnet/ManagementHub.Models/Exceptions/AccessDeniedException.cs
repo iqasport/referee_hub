@@ -10,6 +10,9 @@ public class AccessDeniedException : Exception
 	public AccessDeniedException() : base("User doesn't have access to the specified resource.")
 	{ }
 
-	public AccessDeniedException(string identifier) : base($"User doesn't have access to the specified resource (;{identifier}').")
+	public AccessDeniedException(string identifier) : base($"User doesn't have access to the specified resource ('{identifier}').")
+	{ }
+
+	public AccessDeniedException(string message, bool customMessage) : base(message)
 	{ }
 }
