@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using DotNetEd.CoreAdmin;
 using Hangfire;
 using ManagementHub.Mailers;
 using ManagementHub.Models.Domain.User;
@@ -68,6 +69,12 @@ public static class Program
 			options.AddRefereePolicy();
 			options.AddRefereeViewerPolicy();
 			options.AddTechAdminPolicy();
+		});
+
+		services.AddCoreAdmin(new CoreAdminOptions {
+			CustomAuthorisationMethod = () => Task.FromResult(true),
+			ShowPageSizes = true,
+			Title = "Generic DB Admin portal",
 		});
 
 		services.AddHangfireServer();
@@ -160,6 +167,7 @@ public static class Program
 		});
 
 		app.UseMiddleware<TraceCookieMiddleware>();
+		app.UseStaticFiles();
 		app.UseRouting();
 		app.UseAuthentication();
 		app.UseMiddleware<ImpersonationMiddleware>();
@@ -170,6 +178,10 @@ public static class Program
 			endpoints.MapRazorPages();
 			endpoints.MapSwagger();
 			endpoints.MapHangfireDashboard("/admin/jobs").RequireAuthorization(AuthorizationPolicies.TechAdminPolicy);
+			endpoints.MapControllerRoute(
+				name: "coreadminroute",
+				pattern: "admin/db/{controller=CoreAdmin}/{action=Index}/{id?}")
+				.RequireAuthorization(AuthorizationPolicies.TechAdminPolicy);
 		});
 		app.UseSwaggerUI();
 	}
