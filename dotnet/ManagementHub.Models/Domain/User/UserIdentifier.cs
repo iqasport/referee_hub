@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Misc;
 
 namespace ManagementHub.Models.Domain.User;
 
@@ -10,8 +11,8 @@ namespace ManagementHub.Models.Domain.User;
 /// </summary>
 public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 {
-	private const string IdPrefix = "u$";
-	private const int GuidAsStringLength = 36;
+	private const string IdPrefix = "U_";
+	private const int GuidAsStringLength = 26;
 	public long Id => this.ToLegacyUserId();
 
 	/// <summary>
@@ -19,7 +20,7 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 	/// </summary>
 	public override string ToString()
 	{
-		return $"{IdPrefix}{this.UniqueId}";
+		return $"{IdPrefix}{this.UniqueId.ToBase32String()}";
 	}
 
 	/// <summary>
@@ -61,7 +62,8 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 		if (!value.StartsWith(IdPrefix, StringComparison.OrdinalIgnoreCase))
 			return false;
 
-		if(!Guid.TryParse(value.AsSpan().Slice(IdPrefix.Length), out var uniqueId))
+		var uniqueId = value.AsSpan().Slice(IdPrefix.Length).GuidFromBase32String();
+		if (uniqueId == default)
 			return false;
 
 		result = new UserIdentifier(uniqueId);

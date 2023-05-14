@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ManagementHub.Models.Misc;
 
 namespace ManagementHub.Models.Domain.Tests;
 
 public record struct TestIdentifier(Guid UniqueId)
 {
-	private const string IdPrefix = "t$";
-	private const int GuidAsStringLength = 36;
+	private const string IdPrefix = "T_";
+	private const int GuidAsStringLength = 26;
 	public long Id => this.ToLegacyUserId();
 
 	/// <summary>
@@ -14,7 +15,7 @@ public record struct TestIdentifier(Guid UniqueId)
 	/// </summary>
 	public override string ToString()
 	{
-		return $"{IdPrefix}{this.UniqueId}";
+		return $"{IdPrefix}{this.UniqueId.ToBase32String()}";
 	}
 
 	/// <summary>
@@ -56,7 +57,8 @@ public record struct TestIdentifier(Guid UniqueId)
 		if (!value.StartsWith(IdPrefix, StringComparison.OrdinalIgnoreCase))
 			return false;
 
-		if (!Guid.TryParse(value.AsSpan().Slice(IdPrefix.Length), out var uniqueId))
+		var uniqueId = value.AsSpan().Slice(IdPrefix.Length).GuidFromBase32String();
+		if (uniqueId == default)
 			return false;
 
 		result = new TestIdentifier(uniqueId);
