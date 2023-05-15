@@ -79,5 +79,7 @@ public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 
 		await this.dbContext.SaveChangesAsync();
 		await transaction.CommitAsync();
+
+		this.logger.LogInformation(0, "Successfully saved submitted test attempt for referee ({userId}) and test ({testId})", finishedTest.UserId, finishedTest.TestId);
 	}
 }

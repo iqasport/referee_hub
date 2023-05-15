@@ -1,8 +1,10 @@
-﻿using ManagementHub.Models.Domain.Ngb;
+﻿using Hangfire;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,10 +19,14 @@ namespace ManagementHub.Service.Areas.Export;
 public class RefereeExportController : ControllerBase
 {
 	private readonly IUserContextAccessor contextAccessor;
+	private readonly IBackgroundJobClient backgroundJob;
+	private readonly ILogger logger;
 
-	public RefereeExportController(IUserContextAccessor contextAccessor)
+	public RefereeExportController(IUserContextAccessor contextAccessor, IBackgroundJobClient backgroundJob, ILogger<RefereeExportController> logger)
 	{
 		this.contextAccessor = contextAccessor;
+		this.backgroundJob = backgroundJob;
+		this.logger = logger;
 	}
 
 	[HttpPost("{ngb}")]
@@ -39,7 +45,12 @@ public class RefereeExportController : ControllerBase
 			throw new AccessDeniedException(ngb.ToString());
 		}
 
-		// TODO: schedule a job for exporting referee data for the NGB using the IRefereeContextProvider and sent over email to the current user
-		throw new NotImplementedException();
+		var requestorId = userContext.UserId;
+		var ngbConstraint = NgbConstraint.Single(ngb);
+		var jobId = this.backgroundJob.Enqueue<ISendExportRefereesEmail>(this.logger, service =>
+			service.SendExportRefereesEmailAsync(requestorId, ngbConstraint, CancellationToken.None));
+
+		var response = new { JobId = jobId };
+		return; // TODO model and return
 	}
 }

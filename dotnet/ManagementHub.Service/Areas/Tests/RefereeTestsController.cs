@@ -10,6 +10,7 @@ using ManagementHub.Processing.Domain.Tests.Extensions;
 using ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Extensions;
 using ManagementHub.Storage.Database.Transactions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -150,6 +151,8 @@ public class RefereeTestsController : ControllerBase
 			throw new InvalidOperationException("Cannot submit an inactive test.");
 		}
 
+		// TODO: eligibility check of some sort
+
 		CertificationLevel highestCertificationLevel = test.AwardedCertifications.Select(c => c.Level).Max();
 
 		var mappedQuestionsWithSelectedAnswers = test.AvailableQuestions.Join(
@@ -214,7 +217,7 @@ public class RefereeTestsController : ControllerBase
 
 		// if the save to database was successful enqueue the mail
 		var attemptId = testResult.Id;
-		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(cmd => cmd.SendTestFeedbackEmailAsync(attemptId, CancellationToken.None));
+		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(this.logger, cmd => cmd.SendTestFeedbackEmailAsync(attemptId, CancellationToken.None));
 
 		return new RefereeTestSubmitResponse
 		{

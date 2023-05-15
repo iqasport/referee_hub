@@ -290,6 +290,8 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 		}
 
 		await transaction.CommitAsync(cancellationToken);
+
+		this.logger.LogInformation(0, "Successfully updated referee ({userId})", userId);
 	}
 
 	private Task<long> GetNgbIdForUpdate(NgbIdentifier ngbIdentifier, CancellationToken cancellationToken)
