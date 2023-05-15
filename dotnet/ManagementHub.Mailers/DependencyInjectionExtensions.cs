@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Mail;
 using FluentEmail.Core.Interfaces;
 using FluentEmail.Smtp;
+using ManagementHub.Mailers.Commands;
 using ManagementHub.Mailers.Configuration;
 using ManagementHub.Mailers.Utils;
 using ManagementHub.Models.Abstraction.Commands.Mailers;
@@ -16,6 +17,7 @@ public static class DependencyInjectionExtensions
 	public static IServiceCollection AddMailers(this IServiceCollection services, bool inMemory)
 	{
 		services.AddScoped<ISendTestFeedbackEmail, SendTestFeedbackEmail>();
+		services.AddScoped<ISendExportRefereesEmail, SendExportRefereesEmail>();
 
 		services.AddOptions<SmtpSettings>()
 			.ValidateDataAnnotations()

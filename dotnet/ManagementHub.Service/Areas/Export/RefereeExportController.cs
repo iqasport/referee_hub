@@ -46,9 +46,8 @@ public class RefereeExportController : ControllerBase
 		}
 
 		var requestorId = userContext.UserId;
-		var ngbConstraint = NgbConstraint.Single(ngb);
 		var jobId = this.backgroundJob.Enqueue<ISendExportRefereesEmail>(this.logger, service =>
-			service.SendExportRefereesEmailAsync(requestorId, ngbConstraint, CancellationToken.None));
+			service.SendExportRefereesEmailAsync(requestorId, ngb, CancellationToken.None));
 
 		var response = new { JobId = jobId };
 		return; // TODO model and return

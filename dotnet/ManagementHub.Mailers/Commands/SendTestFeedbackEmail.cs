@@ -10,7 +10,7 @@ using ManagementHub.Models.Domain.Tests;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace ManagementHub.Mailers;
+namespace ManagementHub.Mailers.Commands;
 
 internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 {

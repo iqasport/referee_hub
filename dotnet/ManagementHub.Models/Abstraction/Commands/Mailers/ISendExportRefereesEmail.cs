@@ -5,5 +5,5 @@ using ManagementHub.Models.Domain.User;
 
 public interface ISendExportRefereesEmail
 {
-    Task SendExportRefereesEmailAsync(UserIdentifier requestorId, NgbConstraint ngb, CancellationToken cancellationToken);
+    Task SendExportRefereesEmailAsync(UserIdentifier requestorId, NgbIdentifier ngb, CancellationToken cancellationToken);
 }
