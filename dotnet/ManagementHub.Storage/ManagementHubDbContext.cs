@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using ManagementHub.Models.Data;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace ManagementHub.Storage
 {
-	public partial class ManagementHubDbContext : DbContext
+	public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyContext
 	{
 		public ManagementHubDbContext()
 		{
@@ -48,6 +49,8 @@ namespace ManagementHub.Storage
 		public virtual DbSet<TestAttempt> TestAttempts { get; set; } = null!;
 		public virtual DbSet<TestResult> TestResults { get; set; } = null!;
 		public virtual DbSet<User> Users { get; set; } = null!;
+
+		public virtual DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{

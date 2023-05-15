@@ -23,6 +23,7 @@ using ManagementHub.Storage.Database;
 using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.DbAccessors;
 using ManagementHub.Storage.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,6 +78,10 @@ public static class DbServiceCollectionExtentions
 				var connectionString = connectionStringBuilder.Value.ConnectionString;
 				options.UseNpgsql(connectionString);
 			});
+
+			// save encryption keys to the database so that they persist across app startups
+			services.AddDataProtection()
+				.PersistKeysToDbContext<ManagementHubDbContext>();
 
 			// for hosted database we run migration script
 			services.AddHostedService<EnsureDatabaseMigratedService>();
