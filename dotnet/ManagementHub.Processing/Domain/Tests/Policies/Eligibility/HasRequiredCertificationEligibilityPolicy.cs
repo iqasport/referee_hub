@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Tests;
-using ManagementHub.Processing.Domain.Tests.Extensions;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
+using ManagementHub.Processing.Domain.Tests.Extensions;
 
 namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPolicy

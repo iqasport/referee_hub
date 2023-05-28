@@ -26,7 +26,7 @@ public class RefereeContextAccessor : IRefereeContextAccessor
 		var ngbConstraint = this.GetNgbConstraint(currentUser);
 		return await this.contextProvider.GetRefereeViewContextAsync(userId, ngbConstraint, this.HttpContext.RequestAborted);
 	}
-	
+
 	public async Task<IQueryable<IRefereeViewContext>> GetRefereeViewContextListAsync()
 	{
 		var currentUser = await this.userContextAccessor.GetCurrentUserContextAsync();

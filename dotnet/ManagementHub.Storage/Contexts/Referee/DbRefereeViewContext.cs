@@ -65,7 +65,7 @@ public class DbRefereeViewContextFactory
 
 	public DbRefereeViewContextFactory(
 		IQueryable<User> users,
-		IQueryable<NationalGoverningBody> nationalGoverningBody, 
+		IQueryable<NationalGoverningBody> nationalGoverningBody,
 		ILogger<DbRefereeViewContextFactory> logger)
 	{
 		this.users = users;

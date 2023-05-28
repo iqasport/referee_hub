@@ -7,14 +7,14 @@ namespace ManagementHub.Models.Domain.User;
 /// </summary>
 public class UserIdentity
 {
-    public UserIdentity(UserIdentifier userId, Email email)
-    {
-        this.UserId = userId;
-        this.UserEmail = email;
-    }
+	public UserIdentity(UserIdentifier userId, Email email)
+	{
+		this.UserId = userId;
+		this.UserEmail = email;
+	}
 
-    public UserIdentifier UserId { get; }
-    public Email UserEmail { get; }
-    public bool IsEmailConfirmed { get; set; }
-    public UserPassword? UserPassword { get; set; }
+	public UserIdentifier UserId { get; }
+	public Email UserEmail { get; }
+	public bool IsEmailConfirmed { get; set; }
+	public UserPassword? UserPassword { get; set; }
 }

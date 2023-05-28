@@ -105,7 +105,7 @@ public class RefereeEligibilityUnitTests
 		this.clock.Setup(c => c.UtcNow).Returns(TestCurrentDateTime);
 	}
 
-	
+
 
 	[Fact]
 	public async Task ReturnsAllAssistantTests_WhenRefHasNoCerts()
@@ -567,7 +567,7 @@ public class RefereeEligibilityUnitTests
 		{
 			TestId = TestData.Assistant18.TestId,
 			Level = CertificationLevel.Assistant,
-			StartedAt = TestCurrentDateTime.AddDays(-i-1),
+			StartedAt = TestCurrentDateTime.AddDays(-i - 1),
 			UserId = TestUserId,
 		}).Concat(new[]
 		{
@@ -604,7 +604,7 @@ public class RefereeEligibilityUnitTests
 		{
 			TestId = TestData.Assistant18.TestId,
 			Level = CertificationLevel.Assistant,
-			StartedAt = TestCurrentDateTime.AddDays(-i-1),
+			StartedAt = TestCurrentDateTime.AddDays(-i - 1),
 			UserId = TestUserId,
 		});
 		this.SetupReferee(

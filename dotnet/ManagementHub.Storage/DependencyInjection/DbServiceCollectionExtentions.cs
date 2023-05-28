@@ -168,7 +168,7 @@ public static class DbServiceCollectionExtentions
 					.UseRedisStorage()
 					.WithJobExpirationTimeout(TimeSpan.FromDays(7));
 			}
-			
+
 			config.UseRecommendedSerializerSettings();
 		});
 	}

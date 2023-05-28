@@ -94,8 +94,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		dbContext.NationalGoverningBodies.AddRange(ngbs);
 
 		var certifications = new List<Certification>(32);
-		foreach(var version in Enum.GetValues<CertificationVersion>())
-			foreach(var level in Enum.GetValues<CertificationLevel>())
+		foreach (var version in Enum.GetValues<CertificationVersion>())
+			foreach (var level in Enum.GetValues<CertificationLevel>())
 				certifications.Add(new Certification
 				{
 					CreatedAt = DateTime.UtcNow,

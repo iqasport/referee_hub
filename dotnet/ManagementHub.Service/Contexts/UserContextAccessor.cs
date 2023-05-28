@@ -42,7 +42,7 @@ public class UserContextAccessor : IUserContextAccessor
 	public Task<IUserDataContext> GetUserDataContextAsync(UserIdentifier userId)
 	{
 		var httpContext = this.HttpContext;
-		
+
 		return this.contextProvider.GetUserDataContextAsync(userId, httpContext.RequestAborted);
 	}
 
@@ -56,7 +56,7 @@ public class UserContextAccessor : IUserContextAccessor
 	public Task<IUserContext> GetUserContextAsync(UserIdentifier userId)
 	{
 		var httpContext = this.HttpContext;
-		
+
 		return this.contextProvider.GetUserContextAsync(userId, httpContext.RequestAborted);
 	}
 

@@ -24,17 +24,17 @@ namespace ManagementHub.Service;
 
 public static class Program
 {
-    public static void Main(string[] args)
-    {
+	public static void Main(string[] args)
+	{
 		var builder = WebHost.CreateDefaultBuilder(args)
 			.ConfigureAppConfiguration(BuildConfiguration)
 			.ConfigureServices(ConfigureServices)
 			.ConfigureServices(ConfigureWebServices)
 			.Configure(ConfigureWebApp);
 
-        var app = builder.Build();
+		var app = builder.Build();
 
-        app.Run();
+		app.Run();
 	}
 
 	private static void BuildConfiguration(WebHostBuilderContext context, IConfigurationBuilder builder)
@@ -71,40 +71,41 @@ public static class Program
 			options.AddTechAdminPolicy();
 		});
 
-		services.AddCoreAdmin(new CoreAdminOptions {
+		services.AddCoreAdmin(new CoreAdminOptions
+		{
 			CustomAuthorisationMethod = () => Task.FromResult(true),
 			ShowPageSizes = true,
 			Title = "Generic DB Admin portal",
 		});
 
 		services.AddHangfireServer();
-    }
+	}
 
-    public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
+	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
 	{
 		services.AddControllers()
 			.AddJsonOptions(options => DefaultJsonSerialization.ConfigureOptions(options.JsonSerializerOptions));
 		services.AddRazorPages();
 		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = false); // TODO: set it based on environment
-        services.Configure<IdentityOptions>(options =>
-        {
-            // Password settings.
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequiredLength = 8;
+		services.Configure<IdentityOptions>(options =>
+		{
+			// Password settings.
+			options.Password.RequireDigit = false;
+			options.Password.RequireLowercase = false;
+			options.Password.RequireNonAlphanumeric = false;
+			options.Password.RequireUppercase = false;
+			options.Password.RequiredLength = 8;
 
-            // Lockout settings.
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            options.Lockout.MaxFailedAccessAttempts = 5;
-            options.Lockout.AllowedForNewUsers = true;
+			// Lockout settings.
+			options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+			options.Lockout.MaxFailedAccessAttempts = 5;
+			options.Lockout.AllowedForNewUsers = true;
 
 			const string emailConfirmationProvider = "EmailConfirmation";
 			options.Tokens.EmailConfirmationTokenProvider = emailConfirmationProvider;
-            options.Tokens.ProviderMap[emailConfirmationProvider] = new TokenProviderDescriptor(typeof(EmailTokenProvider));
-        });
-        services.ConfigureApplicationCookie(options =>
+			options.Tokens.ProviderMap[emailConfirmationProvider] = new TokenProviderDescriptor(typeof(EmailTokenProvider));
+		});
+		services.ConfigureApplicationCookie(options =>
 		{
 			// Cookie settings
 			options.Cookie.HttpOnly = true;
@@ -121,7 +122,7 @@ public static class Program
 		services.AddSingleton<DistributedContextPropagator, CookieTraceContextPropagator>();
 		services.AddScoped<TraceCookieMiddleware>();
 		services.AddScoped<ImpersonationMiddleware>();
-    }
+	}
 
 	private static void OverrideRedirectsForApiEndpoints(CookieAuthenticationOptions options)
 	{

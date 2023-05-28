@@ -1,8 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using FluentEmail.Core;
 using FluentEmail.Core.Interfaces;
 using FluentEmail.Core.Models;
-using FluentEmail.Core;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Mailers.Utils;

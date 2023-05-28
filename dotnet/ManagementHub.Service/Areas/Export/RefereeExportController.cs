@@ -31,7 +31,7 @@ public class RefereeExportController : ControllerBase
 
 	[HttpPost("{ngb}")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
-	public async Task ExportRefereesForNgb([FromRoute]NgbIdentifier ngb)
+	public async Task ExportRefereesForNgb([FromRoute] NgbIdentifier ngb)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();

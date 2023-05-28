@@ -13,32 +13,32 @@ namespace ManagementHub.Service.Areas.Identity;
 /// </summary>
 public class UserManager : UserManager<UserIdentity>
 {
-    public UserManager(
-        IUserStore<UserIdentity> store,
-        IOptions<IdentityOptions> optionsAccessor,
-        IPasswordHasher<UserIdentity> passwordHasher,
-        IEnumerable<IUserValidator<UserIdentity>> userValidators,
-        IEnumerable<IPasswordValidator<UserIdentity>> passwordValidators,
-        ILookupNormalizer keyNormalizer,
-        IdentityErrorDescriber errors,
-        IServiceProvider services,
-        ILogger<UserManager<UserIdentity>> logger)
-        : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
-    {
-    }
+	public UserManager(
+		IUserStore<UserIdentity> store,
+		IOptions<IdentityOptions> optionsAccessor,
+		IPasswordHasher<UserIdentity> passwordHasher,
+		IEnumerable<IUserValidator<UserIdentity>> userValidators,
+		IEnumerable<IPasswordValidator<UserIdentity>> passwordValidators,
+		ILookupNormalizer keyNormalizer,
+		IdentityErrorDescriber errors,
+		IServiceProvider services,
+		ILogger<UserManager<UserIdentity>> logger)
+		: base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
+	{
+	}
 
-    // override user creation to skip an assumption made on email normalization
-    public override async Task<IdentityResult> CreateAsync(UserIdentity user)
-    {
+	// override user creation to skip an assumption made on email normalization
+	public override async Task<IdentityResult> CreateAsync(UserIdentity user)
+	{
 		this.ThrowIfDisposed();
-        var result = await this.ValidateUserAsync(user).ConfigureAwait(false);
-        if (!result.Succeeded)
-        {
-            return result;
-        }
+		var result = await this.ValidateUserAsync(user).ConfigureAwait(false);
+		if (!result.Succeeded)
+		{
+			return result;
+		}
 
-        return await this.Store.CreateAsync(user, this.CancellationToken).ConfigureAwait(false);
-    }
+		return await this.Store.CreateAsync(user, this.CancellationToken).ConfigureAwait(false);
+	}
 
 	// override to not call UpdateAsync()
 	public override async Task<IdentityResult> ConfirmEmailAsync(UserIdentity user, string token)
@@ -95,7 +95,7 @@ public class UserManager : UserManager<UserIdentity>
 			{
 				await store.SetEmailConfirmedAsync(user, true, this.CancellationToken).ConfigureAwait(false);
 			}
-			
+
 			return IdentityResult.Success;
 		}
 		catch (Exception ex) when (ex is not OutOfMemoryException)

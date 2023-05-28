@@ -84,7 +84,7 @@ public class AttachmentRepository : IAttachmentRepository
 	public Task RemoveBlobAsync(ActiveStorageBlob blob, CancellationToken cancellationToken)
 	{
 		this.logger.LogInformation(0, "Removing blob with id '{blobId}'.", blob.Id);
-		
+
 		return this.dbContext.ActiveStorageBlobs.Where(b => b.Id == blob.Id).ExecuteDeleteAsync(cancellationToken);
 	}
 

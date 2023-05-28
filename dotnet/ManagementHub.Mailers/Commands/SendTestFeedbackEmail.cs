@@ -42,7 +42,7 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 
 			var emailFeedbackContext = await this.refereeContextProvider.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellation);
 			var userContext = await this.userContextProvider.GetUserContextAsync(emailFeedbackContext.TestAttempt.UserId, cancellation);
-			
+
 			this.logger.LogInformation(0, "Sending test feedback to user ({userId}).", userContext.UserId);
 
 			await this.emailFactory.Create()

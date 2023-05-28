@@ -65,7 +65,7 @@ public class RefereeTestsController : ControllerBase
 		var activeTests = tests.Where(t => t.IsActive).ToList();
 
 		var response = new List<RefereeTestAvailableViewModel>(activeTests.Count);
-		
+
 		foreach (var test in activeTests)
 		{
 			var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);

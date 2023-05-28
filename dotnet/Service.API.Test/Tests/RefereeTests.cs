@@ -146,7 +146,7 @@ namespace Service.API.Test.Tests
 
 			var user = await userContext.WebClient.GetModelAsync<User>("/api/v1/users/current_user");
 			Assert.NotNull(user);
-			
+
 			// Set NGB on user
 			user = await userContext.WebClient.PatchModelAsync<WebUser>($"/api/v1/referees/{user.Id}", new()
 			{

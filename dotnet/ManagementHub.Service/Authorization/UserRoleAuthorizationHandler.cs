@@ -20,7 +20,7 @@ public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthori
 	protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, UserRoleAuthorizationRequirement requirement)
 	{
 		var userContext = await this.currentContextAccessor.GetCurrentUserContextAsync();
-		
+
 		foreach (var userRole in userContext.Roles)
 		{
 			if (requirement.Satisfies(userRole))

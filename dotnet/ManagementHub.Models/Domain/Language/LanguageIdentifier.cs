@@ -13,11 +13,11 @@ public record struct LanguageIdentifier(string Lang, string? Region = null)
 	{
 		langId = default;
 		if (string.IsNullOrWhiteSpace(value)) return false;
-		
+
 		var parts = value.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 		var lang = parts[0];
 		var region = parts.Length > 1 ? parts[1] : null;
-		
+
 		langId = new LanguageIdentifier(lang, region);
 		return true;
 	}

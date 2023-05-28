@@ -9,9 +9,9 @@ namespace ManagementHub.Models.Abstraction.Contexts;
 /// </summary>
 public interface IUserContext
 {
-    UserIdentifier UserId { get; }
+	UserIdentifier UserId { get; }
 
-    UserData UserData { get; }
+	UserData UserData { get; }
 
-    IEnumerable<IUserRole> Roles { get; }
+	IEnumerable<IUserRole> Roles { get; }
 }

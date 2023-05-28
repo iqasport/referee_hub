@@ -139,7 +139,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 			{
 				var newTeamId = newRefereeRole.CoachingTeam?.Id ?? throw new InvalidOperationException("Both current and new are null?");
 				var now = this.clock.UtcNow.UtcDateTime;
-				
+
 				this.logger.LogInformation(0, "Adding coaching team ({teamId}) for referee ({userId}).", newTeamId, userId);
 				this.dbContext.RefereeTeams.Add(new RefereeTeam
 				{

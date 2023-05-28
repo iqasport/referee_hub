@@ -33,8 +33,8 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 		this.userRepository = userRepository;
 		this.logger = logger;
 	}
-    
-    public async Task<IdentityResult> CreateAsync(UserIdentity user, CancellationToken cancellationToken)
+
+	public async Task<IdentityResult> CreateAsync(UserIdentity user, CancellationToken cancellationToken)
 	{
 		if (user.UserId == default)
 		{
@@ -67,17 +67,17 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 	public Task<IdentityResult> DeleteAsync(UserIdentity user, CancellationToken cancellationToken)
 	{
 		throw new NotImplementedException();
-    }
+	}
 
-    public Task<IdentityResult> UpdateAsync(UserIdentity user, CancellationToken cancellationToken)
-    {
+	public Task<IdentityResult> UpdateAsync(UserIdentity user, CancellationToken cancellationToken)
+	{
 		// This method throws an exception because it's a generic Update
 		// Potentially anything could be changed and I'd have to write some logic to detect this.
 		// Instead it's simpler to just enforce setting values in the special set methods.
-        throw new NotSupportedException($"{nameof(UpdateAsync)} is not supported on this {nameof(UserStore)}. Use a specific Set* method below instead.");
-    }
+		throw new NotSupportedException($"{nameof(UpdateAsync)} is not supported on this {nameof(UserStore)}. Use a specific Set* method below instead.");
+	}
 
-    public void Dispose()
+	public void Dispose()
 	{
 		// not used
 	}
@@ -210,8 +210,8 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 			throw new Exception("User Id is in an incorrect format!");
 		}
 
-        return UserIdentifier.FromLegacyUserId(id);
-    }
+		return UserIdentifier.FromLegacyUserId(id);
+	}
 
 	private class DbUserView
 	{

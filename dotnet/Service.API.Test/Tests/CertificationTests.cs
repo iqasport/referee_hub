@@ -43,7 +43,7 @@ namespace Service.API.Test.Tests
 
 			var certs = await userContext.WebClient.GetModelListAsync<Certification>("/api/v1/certifications");
 			Assert.NotNull(certs);
-			foreach(var certLevel in Enum.GetValues<CertificationLevel>())
+			foreach (var certLevel in Enum.GetValues<CertificationLevel>())
 			{
 				foreach (var certVersion in Enum.GetValues<CertificationVersion>())
 				{

@@ -46,9 +46,9 @@ public class UserIdentityRepository : IUserIdentityRepository
 
 	public async Task<string?> GetEmailConfirmationToken(UserIdentity user)
 	{
-        var dbUser = await this.QueryUsers().SingleAsync(u => u.Email == user.UserEmail.Value);
+		var dbUser = await this.QueryUsers().SingleAsync(u => u.Email == user.UserEmail.Value);
 		return dbUser.ConfirmationToken;
-    }
+	}
 
 	public Task SetEmailConfirmationToken(UserIdentity user, string token, CancellationToken cancellationToken) =>
 		this.UpdateUser(dbUser => dbUser.ConfirmationToken = token, user, cancellationToken);

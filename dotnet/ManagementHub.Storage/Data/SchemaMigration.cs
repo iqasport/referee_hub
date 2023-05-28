@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ManagementHub.Models.Data
+namespace ManagementHub.Models.Data;
+
+public partial class SchemaMigration
 {
-	public partial class SchemaMigration
-	{
-		public string Version { get; set; } = null!;
-	}
+	public string Version { get; set; } = null!;
 }

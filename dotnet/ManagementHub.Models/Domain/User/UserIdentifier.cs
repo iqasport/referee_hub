@@ -55,7 +55,7 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 	public static bool TryParse(string value, out UserIdentifier result)
 	{
 		result = default;
-		
+
 		if (value.Length != GuidAsStringLength + IdPrefix.Length)
 			return false;
 

@@ -27,7 +27,7 @@ public class DbTestContextProvider : ITestContextProvider
 	public async Task<Test> GetTestAsync(TestIdentifier testId, CancellationToken cancellationToken)
 	{
 		var test = await Query(this.dbContext.Tests.WithIdentifier(testId), withQuestions: false).SingleOrDefaultAsync(cancellationToken);
-		
+
 		if (test == null)
 		{
 			throw new NotFoundException($"Could not find test ({testId}).");

@@ -10,10 +10,10 @@ public class AmazonS3Config : Amazon.S3.AmazonS3Config
 {
 	[Required]
 	public required string AccessKeyId { get; set; }
-	
+
 	[Required]
 	public required string SecretAccessKey { get; set; }
-	
+
 	[Required]
 	public required string Bucket { get; set; }
 
