@@ -5,6 +5,7 @@ using ManagementHub.Mailers;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
+using ManagementHub.Processing.Export;
 using ManagementHub.Serialization;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
@@ -62,6 +63,7 @@ public static class Program
 		services.AddScoped<IRefereeContextAccessor, RefereeContextAccessor>();
 
 		services.AddTestPolicies();
+		services.AddExportProcessors();
 
 		services.AddScoped<IAuthorizationHandler, UserRoleAuthorizationHandler>();
 		services.AddAuthorization(options =>

@@ -1,17 +1,18 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentEmail.Core;
 using ManagementHub.Mailers.Configuration;
 using ManagementHub.Mailers.Utils;
+using ManagementHub.Models.Abstraction.Commands.Export;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
-using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ManagementHub.Mailers.Commands;
 
@@ -28,13 +29,13 @@ internal class SendExportRefereesEmail : ISendExportRefereesEmail
 		IUserContextProvider userContextProvider,
 		IExportRefereesToCsv exportRefereesToCsv,
 		ILogger<SendExportRefereesEmail> logger,
-		EmailSenderSettings emailSenderSettings)
+		IOptionsSnapshot<EmailSenderSettings> emailSenderSettings)
 	{
 		this.emailFactory = emailFactory;
 		this.userContextProvider = userContextProvider;
 		this.exportRefereesToCsv = exportRefereesToCsv;
 		this.logger = logger;
-		this.emailSenderSettings = emailSenderSettings;
+		this.emailSenderSettings = emailSenderSettings.Value;
 	}
 
 	public async Task SendExportRefereesEmailAsync(UserIdentifier requestorId, NgbIdentifier ngb, CancellationToken cancellationToken)
@@ -43,7 +44,6 @@ internal class SendExportRefereesEmail : ISendExportRefereesEmail
 		{
 			this.logger.LogInformation(0, "Exporting referees of NGB {ngb} requested by ({userId}).", ngb, requestorId);
 
-			// TODO: move all this to another background job for CSV processing before email job is invoked
 			var userContext = await this.userContextProvider.GetUserContextAsync(requestorId, cancellationToken);
 			var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
 			if (refereeViewerRole == null)
@@ -58,19 +58,24 @@ internal class SendExportRefereesEmail : ISendExportRefereesEmail
 				return;
 			}
 
-			var attachmentStream = this.exportRefereesToCsv.ExportRefereesAsync(NgbConstraint.Single(ngb), cancellationToken);
+			using var attachmentStream = this.exportRefereesToCsv.ExportRefereesAsync(NgbConstraint.Single(ngb), cancellationToken);
+
+			var templateData = new
+			{
+				User = userContext.UserData,
+			};
 
 			await this.emailFactory.Create()
 				.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
 				.To(userContext.UserData.Email.Value)
 				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
 				.Subject($"Your Referee Export is ready")
-				.UsingEmbeddedTemplate("CsvExportEmail", (object?)null) // TODO: align model with view
+				.UsingEmbeddedTemplate("CsvExportEmail", templateData)
 				.Attach(new FluentEmail.Core.Models.Attachment
 				{
-					Filename = $"RefereeExport_{ngb}_{DateTime.UtcNow.Date:YYYYMMDD}.csv",
+					Filename = $"RefereeExport_{ngb}_{DateTime.UtcNow.Date:yyyyMMdd}.csv",
 					Data = attachmentStream,
-					ContentType = "text/csv", // TODO: validate this is a thing
+					ContentType = "text/csv",
 				})
 				.SendAsync();
 		}

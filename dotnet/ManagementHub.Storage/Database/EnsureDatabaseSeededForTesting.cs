@@ -174,6 +174,15 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			User = ngbAdmin,
 		});
 
+		dbContext.RefereeLocations.Add(new RefereeLocation
+		{
+			Referee = referee,
+			AssociationType = RefereeNgbAssociationType.Primary,
+			NationalGoverningBody = ngbs.Last(),
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
+		});
+
 		var tests = new[]
 		{
 			new Test

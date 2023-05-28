@@ -6,8 +6,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using FluentEmail.Core;
 using FluentEmail.Core.Models;
-using Microsoft.AspNetCore.Components.RenderTree;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ManagementHub.Mailers.Utils;
 internal static class FluentEmailExtensions
@@ -31,6 +29,24 @@ internal static class FluentEmailExtensions
 		}
 
 		builder.AppendLine().AppendLine(email.Data.Body);
+
+		foreach (var attachment in email.Data.Attachments)
+		{
+			builder.AppendLine()
+				.Append("Attachment: \"")
+				.Append(attachment.Filename)
+				.Append("\" - ")
+				.Append(attachment.ContentType)
+				.Append(" - isInline: ")
+				.Append(attachment.IsInline)
+				.AppendLine();
+
+			if (attachment.ContentType.StartsWith("text"))
+			{
+				using var reader = new StreamReader(attachment.Data);
+				builder.AppendLine(reader.ReadToEnd());
+			}
+		}
 
 		return builder.ToString();
 	}

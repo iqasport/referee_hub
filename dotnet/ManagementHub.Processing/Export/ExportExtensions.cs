@@ -5,8 +5,11 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Abstraction.Commands.Export;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+namespace ManagementHub.Processing.Export;
 public static class ExportExtensions
 {
 	/// <summary>
@@ -57,5 +60,12 @@ public static class ExportExtensions
 		});
 
 		return readStream;
+	}
+
+	public static IServiceCollection AddExportProcessors(this IServiceCollection services)
+	{
+		services.AddScoped<IExportRefereesToCsv, ExportRefereesToCsv>();
+
+		return services;
 	}
 }

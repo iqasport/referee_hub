@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Exceptions;
