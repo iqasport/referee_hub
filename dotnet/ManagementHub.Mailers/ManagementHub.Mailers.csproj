@@ -13,7 +13,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ManagementHub.Models\ManagementHub.Models.csproj" />
-    <PackageReference Include="CsvHelper" Version="30.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentEmail.Core" Version="3.0.2" />
     <PackageReference Include="FluentEmail.Smtp" Version="3.0.2" />
     <PackageReference Include="RazorLight" Version="2.3.1" />

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Domain.Ngb;
@@ -17,6 +18,11 @@ public interface IRefereeContextProvider
 	/// Retrieves a queryable collection of referee view contexts that satisfy the <paramref name="ngbConstraint"/>.
 	/// </summary>
 	IQueryable<IRefereeViewContext> GetRefereeViewContextQueryable(NgbConstraint ngbConstraint);
+
+	/// <summary>
+	/// Retrieves an enumerable collection of referee view contexts that satisfy the <paramref name="ngbConstraint"/>.
+	/// </summary>
+	IAsyncEnumerable<IRefereeViewContext> GetRefereeViewContextAsyncEnumerable(NgbConstraint ngbConstraint);
 
 	Task<IRefereeTestContext> GetRefereeTestContextAsync(UserIdentifier userId, CancellationToken cancellationToken);
 

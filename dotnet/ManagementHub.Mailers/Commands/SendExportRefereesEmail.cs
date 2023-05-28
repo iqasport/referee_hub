@@ -17,65 +17,63 @@ namespace ManagementHub.Mailers.Commands;
 
 internal class SendExportRefereesEmail : ISendExportRefereesEmail
 {
-    private readonly IFluentEmailFactory emailFactory;
+	private readonly IFluentEmailFactory emailFactory;
 	private readonly IUserContextProvider userContextProvider;
-	private readonly IRefereeContextProvider refereeContextProvider;
+	private readonly IExportRefereesToCsv exportRefereesToCsv;
 	private readonly ILogger<SendExportRefereesEmail> logger;
 	private readonly EmailSenderSettings emailSenderSettings;
 
 	public SendExportRefereesEmail(
-        IFluentEmailFactory emailFactory,
-        IUserContextProvider userContextProvider,
-        IRefereeContextProvider refereeContextProvider,
-        ILogger<SendExportRefereesEmail> logger,
-        EmailSenderSettings emailSenderSettings)
+		IFluentEmailFactory emailFactory,
+		IUserContextProvider userContextProvider,
+		IExportRefereesToCsv exportRefereesToCsv,
+		ILogger<SendExportRefereesEmail> logger,
+		EmailSenderSettings emailSenderSettings)
 	{
 		this.emailFactory = emailFactory;
 		this.userContextProvider = userContextProvider;
-		this.refereeContextProvider = refereeContextProvider;
+		this.exportRefereesToCsv = exportRefereesToCsv;
 		this.logger = logger;
 		this.emailSenderSettings = emailSenderSettings;
 	}
 
 	public async Task SendExportRefereesEmailAsync(UserIdentifier requestorId, NgbIdentifier ngb, CancellationToken cancellationToken)
 	{
-        try
+		try
 		{
 			this.logger.LogInformation(0, "Exporting referees of NGB {ngb} requested by ({userId}).", ngb, requestorId);
 
-            // TODO: move all this to another background job for CSV processing before email job is invoked
-            var userContext = await this.userContextProvider.GetUserContextAsync(requestorId, cancellationToken);
-            var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
-            if (refereeViewerRole == null)
-            {
-                this.logger.LogError(0, $"User is not authorized - missing {nameof(RefereeViewerRole)}.");
-                return;
-            }
+			// TODO: move all this to another background job for CSV processing before email job is invoked
+			var userContext = await this.userContextProvider.GetUserContextAsync(requestorId, cancellationToken);
+			var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
+			if (refereeViewerRole == null)
+			{
+				this.logger.LogError(0, $"User is not authorized - missing {nameof(RefereeViewerRole)}.");
+				return;
+			}
 
-            if (!refereeViewerRole.Ngb.AppliesTo(ngb))
-            {
-                this.logger.LogError(0, $"User is not authorized - no access to NGB {ngb}.", ngb);
-                return;
-            }
+			if (!refereeViewerRole.Ngb.AppliesTo(ngb))
+			{
+				this.logger.LogError(0, $"User is not authorized - no access to NGB {ngb}.", ngb);
+				return;
+			}
 
-            var referees = this.refereeContextProvider.GetRefereeViewContextQueryable(NgbConstraint.Single(ngb));
-            var teams = new Dictionary<TeamIdentifier, string>(); // TODO: load teams to get their names
+			var attachmentStream = this.exportRefereesToCsv.ExportRefereesAsync(NgbConstraint.Single(ngb), cancellationToken);
 
-            // TODO: build CSV file and upload
-            // TODO: save record in dbcontext
-            // TODO: invoke this mailer job
-            // TODO: check what is the link in the db - is it time bound? see the buckets in AWS "@userId-exports"?
-
-            var export = new { Type = "Referee Export" }; // TODO: load export from db
-
-            await this.emailFactory.Create()
+			await this.emailFactory.Create()
 				.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
 				.To(userContext.UserData.Email.Value)
 				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
-				.Subject($"Your {export.Type} is ready")
-				.UsingEmbeddedTemplate("CsvExportEmail", export) // TODO: align model with view
+				.Subject($"Your Referee Export is ready")
+				.UsingEmbeddedTemplate("CsvExportEmail", (object?)null) // TODO: align model with view
+				.Attach(new FluentEmail.Core.Models.Attachment
+				{
+					Filename = $"RefereeExport_{ngb}_{DateTime.UtcNow.Date:YYYYMMDD}.csv",
+					Data = attachmentStream,
+					ContentType = "text/csv", // TODO: validate this is a thing
+				})
 				.SendAsync();
-        }
+		}
 		catch (Exception ex)
 		{
 			this.logger.LogError(0, ex, "Failed to export referees.");
@@ -83,10 +81,5 @@ internal class SendExportRefereesEmail : ISendExportRefereesEmail
 		}
 	}
 
-    private class CsvRow
-    {
-        public required string Name {get;set;}
-        public required string Teams {get;set;}
-        public required string Certifications {get;set;} 
-    }
+
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
@@ -6,6 +7,7 @@ using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.Referee;
@@ -49,6 +51,11 @@ public class DbRefereeContextProvider : IRefereeContextProvider
 	public async Task<IRefereeViewContext> GetRefereeViewContextAsync(UserIdentifier userId, NgbConstraint ngbConstraint, CancellationToken cancellationToken)
 	{
 		return await this.dbRefereeViewContextFactory.LoadAsync(userId, ngbConstraint, cancellationToken);
+	}
+
+	public IAsyncEnumerable<IRefereeViewContext> GetRefereeViewContextAsyncEnumerable(NgbConstraint ngbConstraint)
+	{
+		return this.GetRefereeViewContextQueryable(ngbConstraint).AsAsyncEnumerable();
 	}
 
 	public IQueryable<IRefereeViewContext> GetRefereeViewContextQueryable(NgbConstraint ngbConstraint)
