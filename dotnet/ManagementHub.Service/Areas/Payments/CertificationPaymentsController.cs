@@ -9,26 +9,27 @@ using Stripe.Checkout;
 namespace ManagementHub.Service.Areas.Payments;
 
 /// <summary>
-/// Actions related to exporting users with the referee role.
+/// Actions related to processing certification related payments.
 /// </summary>
 [ApiController]
-[Route("api/v2/payments/")]
+[Route("api/v2/certifications/payments/")]
 [Produces("application/json")]
 [Authorize]
-public class PaymentsController : ControllerBase
+public class CertificationPaymentsController : ControllerBase
 {
 	private readonly IUserContextAccessor contextAccessor;
     private readonly IStripeClient stripeClient;
 
-	public PaymentsController(IUserContextAccessor contextAccessor, IStripeClient stripeClient)
+	public CertificationPaymentsController(IUserContextAccessor contextAccessor, IStripeClient stripeClient)
 	{
 		this.contextAccessor = contextAccessor;
 		this.stripeClient = stripeClient;
 	}
 
-    // FUTURE: add query parameters that allow searching for specific product types?
-	[HttpGet("products")]
-	public async Task GetProducts()
+    // TODO: move as much Stripe logic as possible to a service class (2nd layer with certification specific stuff)
+
+	[HttpGet("")]
+	public async Task GetAvailablePayments()
 	{
 		var productService = new ProductService(this.stripeClient);
 		var priceService = new PriceService(this.stripeClient);
@@ -40,9 +41,8 @@ public class PaymentsController : ControllerBase
         });
         
         var response = products.Select(p => new {
-            p.Id,
-            p.Active,
-            p.Name,
+            Certification = (object?)null, // TODO
+            DisplayName = p.Name,
             Price = new { p.DefaultPrice.UnitAmount, p.DefaultPrice.Currency }
         });
         // TODO: see what data we need to pass to ux and for other endpoints
@@ -102,5 +102,20 @@ public class PaymentsController : ControllerBase
 
         var response = new {SessionId = session.Id};
         return; // TODO: create response model
+    }
+
+    [HttpPost("submit")]
+    public async Task SubmitPaymentSession([FromBody] Event stripeEvent)
+    {
+        // TODO: log the event metadata
+        // TODO: if event is 'session completed' or smth like that
+        if (stripeEvent.Type != "TODO")
+        {
+            throw new InvalidOperationException($"Could not process Stripe event of type {stripeEvent.Type} in this endpoint");
+        }
+        var session = stripeEvent.Data.Object as Stripe.Checkout.Session;
+        var email = session.CustomerEmail;
+        // TODO: get user by email
+        // TODO: get certification from metadata
     }
 }
