@@ -55,6 +55,7 @@ public static class Program
 		services.AddManagementHubIdentity();
 
 		services.AddHangfire(inMemoryStorage: true);
+		GlobalJobFilters.Filters.Add(new HangfireTraceFilter(), 0);
 
 		services.AddMailers(inMemory: true);
 
