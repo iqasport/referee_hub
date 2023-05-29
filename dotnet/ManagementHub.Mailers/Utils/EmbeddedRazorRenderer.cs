@@ -20,12 +20,13 @@ public class EmbeddedRazorRenderer : ITemplateRenderer
 	/// Initializes a new instance of the <see cref="EmbeddedRazorRenderer"/> class.
 	/// Configures RazorLight to use a project whose persistent store an assembly manifest resource stream.
 	/// </summary>
-	/// <param name="embeddedResRootType">Any type in the root namespace (prefix) for your assembly manifest resource stream.</param>
+	/// <param name="assembly">Assembly containing templates.</param>
+	/// <param name="rootTemplateNamespace">Namespace of the folder with templates - root namespace for the assembly plus path.to.subfolder.</param>
 	/// <remarks>Docs borrowed from RazorLight UseEmbeddedResourcesProject.</remarks>
-	public EmbeddedRazorRenderer(Assembly assembly, string rootNamespace)
+	public EmbeddedRazorRenderer(Assembly assembly, string rootTemplateNamespace)
 	{
 		this.engine = new RazorLightEngineBuilder()
-			.UseEmbeddedResourcesProject(assembly, rootNamespace)
+			.UseEmbeddedResourcesProject(assembly, rootTemplateNamespace)
 			.SetOperatingAssembly(assembly)
 			.UseMemoryCachingProvider()
 			.Build();
@@ -37,7 +38,6 @@ public class EmbeddedRazorRenderer : ITemplateRenderer
 		.ConfigureAwait(false);
 
 	/// <inheritdoc/>
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "This is required to satisfy ITemplateRenderer implemenation")]
 	public string Parse<T>(string template, T model, bool isHtml) => this.ParseAsync(template, model, isHtml)
 		.GetAwaiter()
 		.GetResult();

@@ -10,5 +10,5 @@ internal class EmailSenderSettings
 {
 	public string SenderEmail { get; set; } = "noreply@iqareferees.org";
 	public string? SenderDisplayName { get; set; }
-	public string ReplyToEmail { get; set; } = "tech@iqareferees.org"; // TODO: should this be referees@iqareferees.org?
+	public string ReplyToEmail { get; set; } = "tech@iqareferees.org";
 }

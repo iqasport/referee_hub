@@ -32,7 +32,7 @@ public class RefereeExportController : ControllerBase
 
 	[HttpPost("{ngb}")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
-	public async Task ExportRefereesForNgb([FromRoute] NgbIdentifier ngb)
+	public async Task<RefereeExportResponse> ExportRefereesForNgb([FromRoute] NgbIdentifier ngb)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
@@ -50,7 +50,9 @@ public class RefereeExportController : ControllerBase
 		var jobId = this.backgroundJob.Enqueue<ISendExportRefereesEmail>(this.logger, service =>
 			service.SendExportRefereesEmailAsync(requestorId, ngb, CancellationToken.None));
 
-		var response = new { JobId = jobId };
-		return; // TODO model and return
+		return new RefereeExportResponse
+		{
+			JobId = jobId,
+		};
 	}
 }

@@ -53,8 +53,8 @@ internal static class FluentEmailExtensions
 
 	public static IFluentEmail UsingEmbeddedTemplate<T>(this IFluentEmail email, string templateName, T? model)
 	{
-		email = email.UsingTemplateEngine(new EmbeddedRazorRenderer(typeof(FluentEmailExtensions).Assembly, "ManagementHub.Mailers"));
-		var result = email.Renderer.Parse($"Templates.{templateName}.cshtml", model, isHtml: true);
+		email = email.UsingTemplateEngine(new EmbeddedRazorRenderer(typeof(FluentEmailExtensions).Assembly, "ManagementHub.Mailers.Templates"));
+		var result = email.Renderer.Parse($"{templateName}.cshtml", model, isHtml: true);
 		email.Data.IsHtml = true;
 		email.Data.Body = result;
 		return email;

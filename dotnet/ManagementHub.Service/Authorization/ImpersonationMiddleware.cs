@@ -1,10 +1,8 @@
 ﻿using System.Security.Claims;
-using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ManagementHub.Service.Authorization;
 

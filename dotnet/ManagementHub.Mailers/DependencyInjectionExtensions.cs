@@ -16,6 +16,7 @@ public static class DependencyInjectionExtensions
 {
 	public static IServiceCollection AddMailers(this IServiceCollection services, bool inMemory)
 	{
+		services.AddScoped<ISendAccountEmail, SendAccountEmail>();
 		services.AddScoped<ISendTestFeedbackEmail, SendTestFeedbackEmail>();
 		services.AddScoped<ISendExportRefereesEmail, SendExportRefereesEmail>();
 

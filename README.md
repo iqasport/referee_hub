@@ -67,3 +67,16 @@ and is required to develop on the application.
 * Deployment instructions
   - Deploys are automatically managed through Heroku after a branch is successfully merged.
     Changes to the deploy process should be made in `Procfile`
+
+-----
+
+## CSS
+CSS is compiled using PostCSS and Tailwind. See configuration in `postcss.config.js` which imports packages defined in `package.json`.
+
+Compiled CSS is included in the core application for single pages (like auth) and for the SPA.
+
+We can use AWS CloudFront to be a CDN on top of our application. The service hosts static files such as CSS/JS in a normal way.
+We have a CF endpoint pointing at our service. We use the CF endpoint when referring to our static assets so that they're cached and geo distributed.
+
+In rails this was done automatically using these instructions https://devcenter.heroku.com/articles/using-amazon-cloudfront-cdn#adding-cloudfront-to-rails
+and by calling special tags in views.

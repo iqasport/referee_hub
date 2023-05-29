@@ -139,7 +139,7 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 		{
 			this.logger.LogInformation(0, "Updating user data for ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
 
-			var result = await this.users.ExecuteUpdateAsync(propertySetters, cancellationToken);
+			var result = await this.users.AsNoTracking().WithIdentifier(userId).ExecuteUpdateAsync(propertySetters, cancellationToken);
 			Debug.Assert(result == 1); // only one row of the specific user should have been updated.
 
 			await transaction.CommitAsync(cancellationToken);

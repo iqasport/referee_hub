@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Hangfire;
 using Hangfire.Annotations;
+using ManagementHub.Models.Misc;
 
 namespace ManagementHub.Service.Extensions;
 
@@ -23,7 +24,7 @@ public static class LoggingExtensions
 	{
 		var result = new StringBuilder();
 		result.Append(methodCall.Method.Name);
-		result.Append("(");
+		result.Append('(');
 
 		var arguments = methodCall.Arguments;
 		var parameters = methodCall.Method.GetParameters();
@@ -35,11 +36,19 @@ public static class LoggingExtensions
 			if (idx > 0) result.Append(", ");
 
 			result.Append(parameters[idx].Name).Append(": ");
-			var value = GetValueFromExpression(arguments[idx]);
-			result.Append(value?.ToString() ?? "null");
+
+			if (parameters[idx].GetCustomAttribute<SensitiveDataAttribute>() is not null)
+			{
+				result.Append("<redacted>");
+			}
+			else
+			{
+				var value = GetValueFromExpression(arguments[idx]);
+				result.Append(value?.ToString() ?? "null");
+			}
 		}
 
-		result.Append(")");
+		result.Append(')');
 		return result.ToString();
 	}
 

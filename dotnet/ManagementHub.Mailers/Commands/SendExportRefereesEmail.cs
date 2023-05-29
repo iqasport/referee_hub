@@ -69,7 +69,7 @@ internal class SendExportRefereesEmail : ISendExportRefereesEmail
 				.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
 				.To(userContext.UserData.Email.Value)
 				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
-				.Subject($"Your Referee Export is ready")
+				.Subject("Your Referee Export is ready")
 				.UsingEmbeddedTemplate("CsvExportEmail", templateData)
 				.Attach(new FluentEmail.Core.Models.Attachment
 				{
