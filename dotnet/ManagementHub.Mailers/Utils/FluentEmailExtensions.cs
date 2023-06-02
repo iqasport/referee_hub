@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -53,6 +55,11 @@ internal static class FluentEmailExtensions
 
 	public static IFluentEmail UsingEmbeddedTemplate<T>(this IFluentEmail email, string templateName, T? model)
 	{
+		using var activity = SenderTelemetryWrapper.ActivitySource
+			.StartActivity("RenderEmail", ActivityKind.Internal, default(ActivityContext), new Dictionary<string, object?>
+			{
+				["email.template"] = templateName,
+			});
 		email = email.UsingTemplateEngine(new EmbeddedRazorRenderer(typeof(FluentEmailExtensions).Assembly, "ManagementHub.Mailers.Templates"));
 		var result = email.Renderer.Parse($"{templateName}.cshtml", model, isHtml: true);
 		email.Data.IsHtml = true;
