@@ -17,10 +17,17 @@ using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.AmbientMetadata;
+using Microsoft.Extensions.Telemetry.Enrichment;
+using Microsoft.Extensions.Telemetry.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -34,9 +41,10 @@ public static class Program
 	{
 		var builder = WebHost.CreateDefaultBuilder(args)
 			.ConfigureAppConfiguration(BuildConfiguration)
+			.ConfigureLogging(ConfigureLogging)
+			.ConfigureServices(ConfigureInstrumentation)
 			.ConfigureServices(ConfigureServices)
 			.ConfigureServices(ConfigureWebServices)
-			.ConfigureServices(ConfigureInstrumentation)
 			.Configure(ConfigureWebApp);
 
 		var app = builder.Build();
@@ -234,12 +242,18 @@ public static class Program
 
 	private static void ConfigureInstrumentation(WebHostBuilderContext context, IServiceCollection services)
 	{
+		// Adding the OtlpExporter creates a GrpcChannel.
+		// This switch must be set before creating a GrpcChannel/HttpClient when calling an insecure gRPC service.
+		// See: https://docs.microsoft.com/aspnet/core/grpc/troubleshoot#call-insecure-grpc-services-with-net-core-client
+		AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
 		services.AddOpenTelemetry()
 			.ConfigureResource(o => o.AddService("ManagementHub"))
 			.WithTracing(builder => builder
 				.AddAspNetCoreInstrumentation(options =>
 				{
 					options.RecordException = true;
+					options.EnrichWithHttpResponse = (activity, resp) => activity.DisplayName = $"{activity.GetTagItem("http.method")} {activity.DisplayName} {resp.StatusCode}";
 				})
 				.AddEntityFrameworkCoreInstrumentation(options =>
 				{
@@ -252,6 +266,13 @@ public static class Program
 					options.RecordException = true;
 					options.DisplayNameFunc = (info) => $"JOB {info.Job.Method.Name.AsDisplayName()}";
 				})
+				.AddServiceTraceEnricher(options =>
+				{
+					options.ApplicationName = false;
+					options.BuildVersion = true;
+					options.EnvironmentName = true;
+					options.DeploymentRing = false;
+				})
 				.AddSource("ManagementHub", "ManagementHub.Mailers"))
 			.WithMetrics(builder => builder
 				.AddAspNetCoreInstrumentation()
@@ -259,7 +280,61 @@ public static class Program
 				.AddRuntimeInstrumentation()
 				.AddEventCountersInstrumentation(o => o.AddEventSources(/* TODO names of source? */)));
 
-		services.AddOpenTelemetry().WithTracing(b => b.AddZipkinExporter());
-		// TODO: metrics export and logs export
+		services.AddApplicationMetadata(metadata =>
+		{
+			metadata.ApplicationName = context.HostingEnvironment.ApplicationName;
+			metadata.BuildVersion = typeof(Program).Assembly.GetName().Version?.ToString();
+			metadata.EnvironmentName = context.HostingEnvironment.EnvironmentName;
+		});
+		services.AddProcessLogEnricher();
+		services.AddServiceLogEnricher(options =>
+		{
+			options.ApplicationName = false;
+			options.BuildVersion = true;
+			options.EnvironmentName = true;
+			options.DeploymentRing = false;
+		});
+
+		var settings = context.Configuration.GetSection("Telemetry").Get<TelemetrySettings>() ?? new TelemetrySettings();
+
+		if (settings.Exporter == "Otlp")
+		{
+			services.AddOpenTelemetry()
+				.WithTracing(b => b.AddOtlpExporter(otlpOptions =>
+				{
+					otlpOptions.Endpoint = settings.OtlpEndpoint;
+				}))
+				.WithMetrics(b => b.AddOtlpExporter(otlpOptions =>
+				{
+					otlpOptions.Endpoint = settings.OtlpEndpoint;
+				}));
+		}
+	}
+
+	public static void ConfigureLogging(WebHostBuilderContext context, ILoggingBuilder builder)
+	{
+		builder.AddOpenTelemetryLogging(options =>
+		{
+			options.IncludeStackTrace = true;
+			options.UseFormattedMessage = true;
+		});
+
+		var settings = context.Configuration.GetSection("Telemetry").Get<TelemetrySettings>() ?? new TelemetrySettings();
+
+		if (settings.Exporter == "Otlp")
+		{
+			var exporterOptions = new OtlpExporterOptions()
+			{
+				Endpoint = settings.OtlpEndpoint,
+			};
+			var batchOptions = exporterOptions.BatchExportProcessorOptions;
+			var otlpExporter = (BaseExporter<LogRecord>?)Activator.CreateInstance(typeof(OtlpExporterOptions).Assembly.GetType("OpenTelemetry.Exporter.OtlpLogExporter"), exporterOptions);
+			builder.AddProcessor(new BatchLogRecordExportProcessor(
+						otlpExporter!,
+						batchOptions.MaxQueueSize,
+						batchOptions.ScheduledDelayMilliseconds,
+						batchOptions.ExporterTimeoutMilliseconds,
+						batchOptions.MaxExportBatchSize));
+		}
 	}
 }
