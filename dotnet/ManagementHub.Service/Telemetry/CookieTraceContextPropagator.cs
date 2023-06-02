@@ -29,12 +29,15 @@ public class CookieTraceContextPropagator : DistributedContextPropagator
 			var cookies = CookieHeaderValue.ParseList(headers.Cookie);
 			foreach (var c in cookies)
 			{
-				const int traceIdLength = 32; // 16 bytes in hex
+				const int traceIdLength = 32; // 16 bytes trace id
 				if (c.Name.Equals(TraceCookieMiddleware.TraceIdCookieName, StringComparison.OrdinalIgnoreCase) &&
 					c.Value.Length == traceIdLength)
 				{
-					traceId = c.Value.ToString();
-					this.logger.LogDebug(0, "Extracted traceId from '{cookieName}' cookie: {traceId}", TraceCookieMiddleware.TraceIdCookieName, traceId);
+					// in the cookie we are storing only the trace id
+					// but the code in ASP.NET Core expects a full W3C activity id
+					// so we're making one with a parent span id being constant 1 (all zeroes doesn't work)
+					traceId = $"00-{c.Value}-0000000000000001-01";
+					this.logger.LogDebug(0, "Extracted traceId from '{cookieName}' cookie: {traceId}", TraceCookieMiddleware.TraceIdCookieName, c.Value);
 				}
 			}
 		}
