@@ -8,6 +8,7 @@ using ManagementHub.Mailers.Configuration;
 using ManagementHub.Mailers.Utils;
 using ManagementHub.Models.Abstraction.Commands.Mailers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ManagementHub.Mailers;
@@ -35,7 +36,7 @@ public static class DependencyInjectionExtensions
 
 		if (inMemory)
 		{
-			services.AddScoped<ISender, LogSender>();
+			services.AddScoped<ISender>(s => new SenderTelemetryWrapper(new LogSender(s.GetRequiredService<ILogger<LogSender>>())));
 		}
 		else
 		{
@@ -63,7 +64,7 @@ public static class DependencyInjectionExtensions
 					client.TargetName = $"STARTTLS/{settings.Host}";
 				}
 
-				return new SmtpSender(client);
+				return new SenderTelemetryWrapper(new SmtpSender(client));
 			});
 		}
 

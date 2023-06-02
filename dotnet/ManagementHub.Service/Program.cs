@@ -4,6 +4,7 @@ using Hangfire;
 using ManagementHub.Mailers;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
+using ManagementHub.Models.Misc;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
 using ManagementHub.Processing.Export;
 using ManagementHub.Serialization;
@@ -19,6 +20,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.EntityFrameworkCore.Internal;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ManagementHub.Service;
@@ -31,6 +36,7 @@ public static class Program
 			.ConfigureAppConfiguration(BuildConfiguration)
 			.ConfigureServices(ConfigureServices)
 			.ConfigureServices(ConfigureWebServices)
+			.ConfigureServices(ConfigureInstrumentation)
 			.Configure(ConfigureWebApp);
 
 		var app = builder.Build();
@@ -55,7 +61,6 @@ public static class Program
 		services.AddManagementHubIdentity();
 
 		services.AddHangfire(inMemoryStorage: true);
-		GlobalJobFilters.Filters.Add(new HangfireTraceFilter(), 0);
 
 		services.AddMailers(inMemory: true);
 
@@ -225,5 +230,36 @@ public static class Program
 				await context.Response.WriteAsync("Unexpected error occured.");
 				break;
 		}
+	}
+
+	private static void ConfigureInstrumentation(WebHostBuilderContext context, IServiceCollection services)
+	{
+		services.AddOpenTelemetry()
+			.ConfigureResource(o => o.AddService("ManagementHub"))
+			.WithTracing(builder => builder
+				.AddAspNetCoreInstrumentation(options =>
+				{
+					options.RecordException = true;
+				})
+				.AddEntityFrameworkCoreInstrumentation(options =>
+				{
+					options.SetDbStatementForText = true;
+					options.SetDbStatementForStoredProcedure = true;
+					options.EnrichWithIDbCommand = (activity, dbCommand) => activity.DisplayName = "efcore";
+				})
+				.AddHangfireInstrumentation(options =>
+				{
+					options.RecordException = true;
+					options.DisplayNameFunc = (info) => $"JOB {info.Job.Method.Name.AsDisplayName()}";
+				})
+				.AddSource("ManagementHub", "ManagementHub.Mailers"))
+			.WithMetrics(builder => builder
+				.AddAspNetCoreInstrumentation()
+				.AddProcessInstrumentation()
+				.AddRuntimeInstrumentation()
+				.AddEventCountersInstrumentation(o => o.AddEventSources(/* TODO names of source? */)));
+
+		services.AddOpenTelemetry().WithTracing(b => b.AddZipkinExporter());
+		// TODO: metrics export and logs export
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Diagnostics;
+using System.Security.Claims;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Contexts;
@@ -32,7 +33,7 @@ public class ImpersonationMiddleware : IMiddleware
 				throw new AccessDeniedException($"User does not have permission to perform impersonation.", customMessage: true);
 			}
 
-			// TODO: add impersonation info to logs as a column
+			Activity.Current?.AddTag("user.impersonatedby", impersonatingUser.UserId.ToString());
 			this.logger.LogInformation(0, "Impersonating user ({userId})...", impersonatedUserId);
 
 			try

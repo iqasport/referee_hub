@@ -1,4 +1,5 @@
-﻿using ManagementHub.Service.Contexts;
+﻿using System.Diagnostics;
+using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ManagementHub.Service.Authorization;
@@ -20,6 +21,8 @@ public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthori
 	protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, UserRoleAuthorizationRequirement requirement)
 	{
 		var userContext = await this.currentContextAccessor.GetCurrentUserContextAsync();
+
+		Activity.Current?.AddTag("user.id", userContext.UserId.ToString());
 
 		foreach (var userRole in userContext.Roles)
 		{
