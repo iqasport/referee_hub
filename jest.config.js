@@ -5,7 +5,7 @@ module.exports = {
     'node_modules',
     './',
     './utils',
-    './app/javascript/MainApp'
+    './src/frontend/app'
   ],
   moduleFileExtensions: ['js', 'jsx', 'json', 'node', 'ts', 'tsx'],
   testRegex: '(/__tests__/.*|(\\.|/)(test))\\.[jt]sx?$',
