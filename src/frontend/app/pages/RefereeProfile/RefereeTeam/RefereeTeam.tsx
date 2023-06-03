@@ -1,7 +1,7 @@
 import { omitBy } from "lodash";
 import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { InputActionMeta, ValueType, ActionMeta } from "react-select";
+import { InputActionMeta, MultiValue, ActionMeta } from "react-select";
 
 import { AssociationData } from "../../../apis/referee";
 import { GetTeamsFilter } from "../../../apis/team";
@@ -9,6 +9,7 @@ import { getTeams, updateFilters } from "../../../modules/team/teams";
 import { RootState } from "../../../rootReducer";
 import { AssociationType, IncludedAttributes } from "../../../schemas/getRefereeSchema";
 import Select, { SelectOption } from "../../../components/Select/Select";
+import { AppDispatch } from "../../../store";
 
 interface RefereeTeamProps {
   teams: IncludedAttributes[];
@@ -21,7 +22,7 @@ interface RefereeTeamProps {
 
 const RefereeTeam = (props: RefereeTeamProps) => {
   const { isEditing, associationValue, onChange, teams, locations, isDisabled } = props;
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { teams: allTeams, filters } = useSelector((state: RootState) => state.teams, shallowEqual);
 
   const updateTeams = (updatedFilters: GetTeamsFilter) => {
@@ -110,14 +111,14 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
 
   const handleChange = (type: AssociationType) => (
-    value: ValueType<SelectOption, false>,
+    value: SelectOption | MultiValue<SelectOption>,
     action: ActionMeta<SelectOption>
   ) => {
     switch (action.action) {
       case "clear":
         handleSelect(type, { value: "-1", label: "" });
       case "select-option":
-        handleSelect(type, value);
+        handleSelect(type, value as SelectOption); // cast only works while isMulti={false} below
     }
   };
 

@@ -13,6 +13,7 @@ import { RootState } from "../../../rootReducer";
 import { TestLevel } from "../../../schemas/getTestSchema";
 
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
+import { AppDispatch } from "../../../store";
 
 type UpdateCertification = {
   level: TestLevel;
@@ -83,7 +84,7 @@ const TestEditModal = (props: TestEditModalProps) => {
   const { test, certification } = useSelector((state: RootState) => state.test, shallowEqual);
   const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual);
   const { languages } = useSelector((state: RootState) => state.languages, shallowEqual);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const formType = testId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);

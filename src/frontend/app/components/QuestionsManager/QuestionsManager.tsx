@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getQuestions } from "../../modules/question/questions";
 import { RootState } from "../../rootReducer";
 import Question from "./Question";
+import { AppDispatch } from "../../store";
 
 interface QuestionsManagerProps {
   testId: string;
@@ -12,7 +13,7 @@ interface QuestionsManagerProps {
 const QuestionsManager = (props: QuestionsManagerProps) => {
   const { testId } = props;
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { questions, answers } = useSelector((state: RootState) => state.questions);
 
   useEffect(() => {

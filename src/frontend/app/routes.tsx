@@ -8,6 +8,7 @@ import Avatar from "./components/Avatar";
 import Loader from "./components/Loader";
 import { fetchCurrentUser } from "./modules/currentUser/currentUser";
 import { RootState } from "./rootReducer";
+import { AppDispatch } from "./store";
 
 const AsyncPage = loadable((props) => import(`./pages/${props.page}`), {
   fallback: <Loader />,
@@ -17,7 +18,7 @@ const PUBLIC_ROUTES = ["/privacy", /\/referees\/\d$/];
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { currentUser, roles, id, error } = useSelector(
     (state: RootState) => state.currentUser,
     shallowEqual

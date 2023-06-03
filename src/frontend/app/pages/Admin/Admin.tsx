@@ -1,7 +1,7 @@
 import classnames from "classnames";
 import React, { useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
-import { useNavigate, use } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import NgbEditModal from "../../components/modals/NgbEditModal";
 import TestEditModal from "../../components/modals/TestEditModal";

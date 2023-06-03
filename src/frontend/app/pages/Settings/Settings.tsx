@@ -8,6 +8,7 @@ import { CurrentUserState, updateUser } from "../../modules/currentUser/currentU
 import { getLanguages, LanguagesState } from "../../modules/language/languages";
 import { RootState } from "../../rootReducer";
 import { formatLanguage } from "../../utils/langUtils";
+import { AppDispatch } from "../../store";
 
 const Settings = () => {
   const [updatedUser, setUpdatedUser] = useState<UpdatedUserRequest>();
@@ -20,7 +21,7 @@ const Settings = () => {
     (state: RootState): LanguagesState => state.languages,
     shallowEqual
   );
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   if (!currentUser?.enabledFeatures?.includes("i18n")) return <Navigate to="/" replace />;
 
   useEffect(() => {

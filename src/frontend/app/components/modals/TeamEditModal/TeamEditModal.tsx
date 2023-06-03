@@ -11,6 +11,7 @@ import { toDateTime } from "../../../utils/dateUtils";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
+import { AppDispatch } from "../../../store";
 
 const STATUS_OPTIONS = ["competitive", "developing", "inactive"];
 const TYPE_OPTIONS = ["community", "university", "youth"];
@@ -50,7 +51,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const [newTeam, setNewTeam] = useState<UpdateTeamRequest>(initialNewTeam);
   const [urls, setUrls] = useState<string[]>();
   const { team, socialAccounts } = useSelector((state: RootState) => state.team, shallowEqual);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const formType = teamId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);

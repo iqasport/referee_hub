@@ -12,7 +12,10 @@ const DragNDrop = (props: DragNDropProps) => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: ["text/csv", "application/vnd.ms-excel"],
+    accept: {
+      "text/csv": [".csv"],
+      "application/vnd.ms-excel": [".csv"],
+    },
   });
 
   return (

@@ -14,6 +14,7 @@ import WarningModal from "../../../components/modals/WarningModal";
 import Table, { CellConfig } from "../../../components/tables/Table/Table";
 
 import ActionDropdown from "./ActionDropdown";
+import { AppDispatch } from "../../../store";
 
 enum ModalType {
   Edit = "edit",
@@ -29,7 +30,7 @@ const TeamTable = (props: TeamTableProps) => {
   const [openModal, setOpenModal] = useState<ModalType>();
   const [activeTeamId, setActiveTeamId] = useState<string>();
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { teams, isLoading, meta, filters } = useSelector(
     (state: RootState): TeamsState => state.teams,
     shallowEqual

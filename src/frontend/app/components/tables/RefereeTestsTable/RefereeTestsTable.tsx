@@ -8,6 +8,7 @@ import { RootState } from "../../../rootReducer";
 import { Datum } from "../../../schemas/getTestsSchema";
 import { getTestCertVersion } from "../../../utils/certUtils";
 import Table, { CellConfig } from "../Table/Table";
+import { AppDispatch } from "../../../store";
 
 const HEADER_CELLS = ["title", "level", "rulebook", "language"];
 
@@ -18,7 +19,7 @@ interface RefereeTestsTableProps {
 const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   const { refId } = props;
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { tests, isLoading, certifications } = useSelector(
     (state: RootState) => state.tests,
     shallowEqual

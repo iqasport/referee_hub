@@ -7,6 +7,7 @@ import { getNationalGoverningBodies } from "../../../modules/nationalGoverningBo
 import { RootState } from "../../../rootReducer";
 import { Datum } from "../../../schemas/getNationalGoverningBodiesSchema";
 import { IncludedAttributes } from "../../../schemas/getRefereeSchema";
+import { AppDispatch } from "../../../store";
 
 interface LocationProps {
   ngbs: IncludedAttributes[];
@@ -18,7 +19,7 @@ interface LocationProps {
 
 const RefereeLocation = (props: LocationProps) => {
   const { ngbs, locations, isEditing, value, onChange } = props;
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { allNgbs } = useSelector((state: RootState) => {
     return {
       allNgbs: state.nationalGoverningBodies.nationalGoverningBodies,

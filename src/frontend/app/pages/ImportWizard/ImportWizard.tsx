@@ -19,6 +19,7 @@ import FinishStep from "./FinishStep";
 import MapStep, { HeadersMap, requiredHeaders } from "./MapStep";
 import StepDescriptions from "./StepDescriptions";
 import UploadStep from "./UploadStep";
+import { AppDispatch } from "../../store";
 
 type StepConfig = {
   title: string;
@@ -66,7 +67,7 @@ const ImportWizard = () => {
     shallowEqual
   );
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const isFinalStep = stepCount === 3;
   const buttonText = isFinalStep ? "Done" : "Next";

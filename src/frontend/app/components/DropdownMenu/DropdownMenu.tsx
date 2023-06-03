@@ -36,9 +36,9 @@ const DropdownMenu = (props: DropdownMenuProps) => {
     );
   };
 
+  renderTrigger(handleToggle); // closes menu on next render after something changes
   return (
     <div className="relative">
-      {renderTrigger(handleToggle)}
       {isDropdownOpen && (
         <button
           onClick={handleClose}

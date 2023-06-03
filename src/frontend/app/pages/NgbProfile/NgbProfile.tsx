@@ -18,6 +18,7 @@ import { RootState } from "../../rootReducer";
 import ActionsButton from "./ActionsButton";
 import NgbTables from "./NgbTables";
 import Sidebar from "./Sidebar";
+import { AppDispatch } from "../../store";
 
 type IdParams = { id: string };
 
@@ -30,7 +31,7 @@ enum ModalType {
 const NgbProfile = () => {
   const { id } = useParams<IdParams>();
   const [openModal, setOpenModal] = useState<ModalType>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { ngb, socialAccounts, refereeCount, teamCount, stats, isLoading } = useSelector(
     (state: RootState): SingleNationalGoverningBodyState => state.nationalGoverningBody,

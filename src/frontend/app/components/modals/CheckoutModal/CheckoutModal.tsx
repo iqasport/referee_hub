@@ -12,6 +12,7 @@ import { GetProductsSchema } from "../../../schemas/getProductsSchema";
 
 import Loader from "../../Loader";
 import Modal, { ModalSize } from "../Modal/Modal";
+import { AppDispatch } from "../../../store";
 
 interface CheckoutModalProps {
   refId: string;
@@ -21,7 +22,7 @@ interface CheckoutModalProps {
 
 const CheckoutModal = (props: CheckoutModalProps) => {
   const [isRedirect, setIsRedirect] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { products, error: productsError } = useSelector(
     (state: RootState) => state.products,
     shallowEqual

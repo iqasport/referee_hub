@@ -19,6 +19,7 @@ import WarningModal from "../../modals/WarningModal";
 import Table, { CellConfig } from "../Table/Table";
 
 import ActionDropdown from "./ActionDropdown";
+import { AppDispatch } from "../../../store";
 
 const HEADER_CELLS = ["title", "level", "version", "language", "active", "last updated", "actions"];
 
@@ -31,7 +32,7 @@ const TestsTable = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [activeTest, setActiveTest] = useState<string>(null);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { tests, isLoading, certifications } = useSelector(
     (state: RootState) => state.tests,
     shallowEqual

@@ -15,6 +15,7 @@ import DataLabel from "../../components/DataLabel";
 import UploadedImage from "../../components/UploadedImage";
 import { updateNgbLogo } from "../../modules/nationalGoverningBody/nationalGoverningBody";
 import { DataAttributes, IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
+import { AppDispatch } from "../../store";
 
 type SocialConfig = {
   [key: string]: {
@@ -57,7 +58,7 @@ type SidebarProps = {
 
 const Sidebar = (props: SidebarProps) => {
   const { ngb, socialAccounts, teamCount, refereeCount, ngbId } = props;
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleLogoUpdate = (file: File) => {
     dispatch(updateNgbLogo(ngbId, file));

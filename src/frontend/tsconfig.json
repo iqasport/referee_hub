@@ -10,21 +10,17 @@
     "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
-    "target": "ESNext",
-    "jsx": "preserve",
-    "baseUrl": ".",
+    "target": "es6",
+    "jsx": "react",
     "paths": {
-      "*": ["app/javascript/*"],
-      "test-utils": ["app/utils/test-utils"]
+      "test-utils": ["./app/utils/test-utils"]
     }
   },
   "include": ["./app/**/*"],
   "exclude": [
     "./node_modules",
     "./vendor",
-    "./public/assets/**/*",
-    "./public/packs/**/*",
-    "./app/assets/**/*"
+    "./assets/**/*"
   ],
   "compileOnSave": true
 }

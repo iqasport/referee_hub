@@ -7,6 +7,7 @@ import RefereeTestsTable from "../../components/tables/RefereeTestsTable";
 import Toast from "../../components/Toast";
 import { fetchReferee, RefereeState } from "../../modules/referee/referee";
 import { RootState } from "../../rootReducer";
+import { AppDispatch } from "../../store";
 
 type IdParams = {
   refereeId: string;
@@ -16,7 +17,7 @@ const RefereeTests = () => {
   const { refereeId } = useParams<IdParams>();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string>(null);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { referee, id } = useSelector(
     (state: RootState): RefereeState => state.referee,
     shallowEqual

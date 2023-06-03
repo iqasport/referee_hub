@@ -10,6 +10,7 @@ import { RootState } from "../../../rootReducer";
 import NgbEditModal from "../../modals/NgbEditModal";
 import Table, { CellConfig } from "../Table/Table";
 import ActionDropdown from "./ActionDropdown";
+import { AppDispatch } from "../../../store";
 
 const HEADER_CELLS = [
   "name",
@@ -23,7 +24,7 @@ const HEADER_CELLS = [
 
 const NgbTable = () => {
   const [activeEdit, setActiveEdit] = useState<string>(null);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { isLoading, nationalGoverningBodies } = useSelector(
     (state: RootState) => state.nationalGoverningBodies,

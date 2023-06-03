@@ -12,6 +12,7 @@ import { RootState } from "../../../rootReducer";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
+import { AppDispatch } from "../../../store";
 
 const REQUIRED_FIELDS = ["name", "region", "membershipStatus"];
 const REGION_OPTIONS = ["north_america", "south_america", "europe", "africa", "asia"];
@@ -53,7 +54,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
     shallowEqual
   );
   const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const formType = ngbId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);

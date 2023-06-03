@@ -45,6 +45,7 @@ node_modules
 yarn-debug.log*
 .yarn-integrity
 coverage
+dist
 
 # data dump file to convert api responses to typescript. It should never be checked in.
 junit.xml

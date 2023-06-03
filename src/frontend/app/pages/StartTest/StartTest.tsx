@@ -13,6 +13,7 @@ import { startTest } from "../../modules/question/questions";
 import { clearTest, getTest } from "../../modules/test/single_test";
 import { RootState } from "../../rootReducer";
 import { GetQuestionsSchemaDatum, Included } from "../../schemas/getQuestionsSchema";
+import { AppDispatch } from "../../store";
 
 export type FormattedQuestion = {
   questionId: string;
@@ -74,7 +75,7 @@ const StartTest = () => {
   });
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { test, error: testError, isLoading: testLoading } = useSelector(
     (state: RootState) => state.test,
     shallowEqual

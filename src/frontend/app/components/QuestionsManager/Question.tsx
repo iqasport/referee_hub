@@ -9,6 +9,7 @@ import { GetQuestionsSchemaDatum, Included } from "../../schemas/getQuestionsSch
 
 import WarningModal from "../modals/WarningModal";
 import Answer from "./Answer";
+import { AppDispatch } from "../../store";
 
 interface QuestionProps {
   question: GetQuestionsSchemaDatum;
@@ -26,7 +27,7 @@ const Question = (props: QuestionProps) => {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Answers);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const isAnswersActive = activeTab === ActiveTab.Answers;
   const isDetailsActive = activeTab === ActiveTab.Details;

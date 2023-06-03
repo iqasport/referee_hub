@@ -10,6 +10,7 @@ import { AssociationType } from "../../../schemas/getRefereesSchema";
 import { getVersion } from "../../../utils/certUtils";
 import FilterToolbar from "../../FilterToolbar";
 import Table, { CellConfig } from "../Table/Table";
+import { AppDispatch } from "../../../store";
 
 const HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB"];
 const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs"];
@@ -54,7 +55,7 @@ type NewRefereeTableProps = {
 const NewRefereeTable = (props: NewRefereeTableProps) => {
   const { ngbId, isHeightRestricted } = props;
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { referees, isLoading, meta, filters } = useSelector(
     (state: RootState) => state.referees,
     shallowEqual

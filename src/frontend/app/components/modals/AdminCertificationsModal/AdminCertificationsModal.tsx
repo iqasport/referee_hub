@@ -15,6 +15,7 @@ import { Datum } from "../../../schemas/getCertificationsSchema";
 import { getVersion } from "../../../utils/certUtils";
 
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
+import { AppDispatch } from "../../../store";
 
 type Omitted = "showClose" | "size";
 
@@ -25,7 +26,7 @@ interface AdminCertificationsModalProps extends Omit<ModalProps, Omitted> {
 const AdminCertificationsModal = (props: AdminCertificationsModalProps) => {
   const { open, refereeId, onClose } = props;
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { certifications, id } = useSelector((state: RootState) => state.referee, shallowEqual);
   const { certifications: allCerts } = useSelector(
     (state: RootState) => state.certifications,

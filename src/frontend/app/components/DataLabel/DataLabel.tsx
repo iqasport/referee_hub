@@ -4,6 +4,7 @@ import React, { FunctionComponent } from "react";
 type DataLabelProps = {
   label: string;
   customClass?: string;
+  children?: React.ReactNode;
 };
 
 const DataLabel: FunctionComponent<DataLabelProps> = (props) => {

@@ -20,6 +20,7 @@ import { IdParams } from "../RefereeProfile/types";
 import ActionsButton from "./ActionsButton";
 import Details from "./Details";
 import ExportTestModal from "./ExportTestModal";
+import { AppDispatch } from "../../store";
 
 enum SelectedTab {
   Details = "details",
@@ -37,7 +38,7 @@ const Test = () => {
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Details);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { test, isLoading } = useSelector((state: RootState) => state.test, shallowEqual);
   const { roles } = useSelector(
@@ -45,7 +46,7 @@ const Test = () => {
     shallowEqual
   );
   const { languages } = useSelector((state: RootState) => state.languages, shallowEqual);
-  if (roles.length && !roles.includes("iqa_admin")) history.goBack();
+  if (roles.length && !roles.includes("iqa_admin")) navigate(-1);
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab;
 
@@ -57,7 +58,7 @@ const Test = () => {
     dispatch(getLanguages());
   }, []);
 
-  const handleBackClick = () => history.goBack();
+  const handleBackClick = () => navigate(-1);
 
   const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTest = { active: event.currentTarget.checked };

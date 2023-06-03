@@ -14,12 +14,13 @@ import RefereeLocation from "./RefereeLocation";
 import RefereeTeam from "./RefereeTeam";
 import { IdParams } from "./types";
 import { initialUpdateState, selectRefereeState } from "./utils";
+import { AppDispatch } from "../../store";
 
 const RefereeProfile = () => {
   const { id } = useParams<IdParams>();
   const [isEditing, setIsEditing] = useState(false);
   const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { referee, certifications, ngbs, locations, teams, id: stateId, testResults } = useSelector(
     selectRefereeState,
