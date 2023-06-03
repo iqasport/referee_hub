@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = {
   entry: './app/index.tsx',
   devtool: 'inline-source-map',
-  mode: 'none',
+  mode: 'development',
   module: {
     rules: [
       {
@@ -17,7 +17,8 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: 'main.js',
+    filename: 'management_hub.js',
     path: path.resolve(__dirname, 'dist'),
+    clean: true,
   },
 };

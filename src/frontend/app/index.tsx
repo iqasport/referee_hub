@@ -9,8 +9,7 @@ import Routes from "./routes";
 import store from "./store";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const apiKey =
-    process.env.RAILS_ENV !== "production" ? "iamAFak3apiKey" : process.env.BUGSNAG_API_KEY;
+  const apiKey = process.env.BUGSNAG_API_KEY;
   Bugsnag.start({
     apiKey,
     autoDetectErrors: true,
