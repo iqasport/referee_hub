@@ -22,8 +22,6 @@ public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthori
 	{
 		var userContext = await this.currentContextAccessor.GetCurrentUserContextAsync();
 
-		Activity.Current?.AddTag("user.id", userContext.UserId.ToString());
-
 		foreach (var userRole in userContext.Roles)
 		{
 			if (requirement.Satisfies(userRole))

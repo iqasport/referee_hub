@@ -73,6 +73,7 @@ public static class Program
 		services.AddMailers(inMemory: true);
 
 		services.AddHttpContextAccessor();
+		services.AddScoped<ICurrentUserGetter, CurrentUserGetter>();
 		services.AddScoped<IUserContextAccessor, UserContextAccessor>();
 		services.AddScoped<IRefereeContextAccessor, RefereeContextAccessor>();
 
@@ -253,6 +254,10 @@ public static class Program
 				.AddAspNetCoreInstrumentation(options =>
 				{
 					options.RecordException = true;
+					options.EnrichWithHttpRequest = (activity, req) =>
+					{
+						Baggage.SetBaggage("request", $"{req.Method} {activity.DisplayName}");
+					};
 					options.EnrichWithHttpResponse = (activity, resp) => activity.DisplayName = $"{activity.GetTagItem("http.method")} {activity.DisplayName} {resp.StatusCode}";
 				})
 				.AddEntityFrameworkCoreInstrumentation(options =>
@@ -318,6 +323,8 @@ public static class Program
 			options.IncludeStackTrace = true;
 			options.UseFormattedMessage = true;
 		});
+		builder.Services.AddLogEnricher(new BaggageLogEnricher("request"));
+		builder.Services.AddLogEnricher(new BaggageLogEnricher("user_id"));
 
 		var settings = context.Configuration.GetSection("Telemetry").Get<TelemetrySettings>() ?? new TelemetrySettings();
 
@@ -328,7 +335,7 @@ public static class Program
 				Endpoint = settings.OtlpEndpoint,
 			};
 			var batchOptions = exporterOptions.BatchExportProcessorOptions;
-			var otlpExporter = (BaseExporter<LogRecord>?)Activator.CreateInstance(typeof(OtlpExporterOptions).Assembly.GetType("OpenTelemetry.Exporter.OtlpLogExporter"), exporterOptions);
+			var otlpExporter = (BaseExporter<LogRecord>?)Activator.CreateInstance(typeof(OtlpExporterOptions).Assembly.GetType("OpenTelemetry.Exporter.OtlpLogExporter")!, exporterOptions);
 			builder.AddProcessor(new BatchLogRecordExportProcessor(
 						otlpExporter!,
 						batchOptions.MaxQueueSize,
