@@ -4,8 +4,8 @@ import {
   createSession as createSessionApi,
   CreateSessionRequest,
   SessionResponse,
-} from "MainApp/apis/checkout";
-import { AppThunk } from "MainApp/store";
+} from "../../apis/checkout";
+import { AppThunk } from "../../store";
 
 export interface CheckoutState {
   sessionId: string | null;

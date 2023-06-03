@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 
-import { AnnotatedNgb } from "MainApp/apis/nationalGoverningBody";
-import { getNationalGoverningBodies } from "MainApp/modules/nationalGoverningBody/nationalGoverningBodies";
-import { RootState } from "MainApp/rootReducer";
+import { AnnotatedNgb } from "../../../apis/nationalGoverningBody";
+import { getNationalGoverningBodies } from "../../../modules/nationalGoverningBody/nationalGoverningBodies";
+import { RootState } from "../../../rootReducer";
 
 import NgbEditModal from "../../modals/NgbEditModal";
 import Table, { CellConfig } from "../Table/Table";

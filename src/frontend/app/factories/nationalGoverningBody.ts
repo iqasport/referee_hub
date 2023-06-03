@@ -1,7 +1,7 @@
 import Faker from "faker";
 import { Factory } from "fishery";
-import { Datum } from "MainApp/schemas/getNationalGoverningBodiesSchema";
-import { Region, MembershipStatus } from "MainApp/schemas/getNationalGoverningBodySchema";
+import { Datum } from "../schemas/getNationalGoverningBodiesSchema";
+import { Region, MembershipStatus } from "../schemas/getNationalGoverningBodySchema";
 
 export default Factory.define<Datum>(
   ({ sequence }): Datum => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
-import { FormattedQuestion } from "MainApp/pages/StartTest/StartTest";
-import { Included } from "MainApp/schemas/getQuestionsSchema";
+import { FormattedQuestion } from "../../pages/StartTest/StartTest";
+import { Included } from "../../schemas/getQuestionsSchema";
 
 import Counter from "../Counter";
 import ProgressBar from "../ProgressBar";

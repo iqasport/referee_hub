@@ -3,12 +3,12 @@ import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { InputActionMeta, ValueType, ActionMeta } from "react-select";
 
-import { AssociationData } from "MainApp/apis/referee";
-import { GetTeamsFilter } from "MainApp/apis/team";
-import { getTeams, updateFilters } from "MainApp/modules/team/teams";
-import { RootState } from "MainApp/rootReducer";
-import { AssociationType, IncludedAttributes } from "MainApp/schemas/getRefereeSchema";
-import Select, { SelectOption } from "MainApp/components/Select/Select";
+import { AssociationData } from "../../../apis/referee";
+import { GetTeamsFilter } from "../../../apis/team";
+import { getTeams, updateFilters } from "../../../modules/team/teams";
+import { RootState } from "../../../rootReducer";
+import { AssociationType, IncludedAttributes } from "../../../schemas/getRefereeSchema";
+import Select, { SelectOption } from "../../../components/Select/Select";
 
 interface RefereeTeamProps {
   teams: IncludedAttributes[];

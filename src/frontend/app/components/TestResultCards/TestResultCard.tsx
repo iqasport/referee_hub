@@ -9,8 +9,8 @@ import classnames from "classnames";
 import { capitalize } from "lodash";
 import React from "react";
 
-import { IdAttributes } from "MainApp/apis/referee";
-import { toDateTime } from "MainApp/utils/dateUtils";
+import { IdAttributes } from "../../apis/referee";
+import { toDateTime } from "../../utils/dateUtils";
 
 import ResultChart from "./ResultChart";
 

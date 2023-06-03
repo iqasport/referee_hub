@@ -5,16 +5,16 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { RouteComponentProps, useHistory } from "react-router-dom";
 
-import Loader from "MainApp/components/Loader";
-import TestEditModal from "MainApp/components/modals/TestEditModal";
-import WarningModal from "MainApp/components/modals/WarningModal";
-import QuestionsManager from "MainApp/components/QuestionsManager";
-import Toggle from "MainApp/components/Toggle";
-import { CurrentUserState } from "MainApp/modules/currentUser/currentUser";
-import { exportTest } from "MainApp/modules/job/job";
-import { getLanguages } from "MainApp/modules/language/languages";
-import { deleteTest, getTest, updateTest } from "MainApp/modules/test/single_test";
-import { RootState } from "MainApp/rootReducer";
+import Loader from "../../components/Loader";
+import TestEditModal from "../../components/modals/TestEditModal";
+import WarningModal from "../../components/modals/WarningModal";
+import QuestionsManager from "../../components/QuestionsManager";
+import Toggle from "../../components/Toggle";
+import { CurrentUserState } from "../../modules/currentUser/currentUser";
+import { exportTest } from "../../modules/job/job";
+import { getLanguages } from "../../modules/language/languages";
+import { deleteTest, getTest, updateTest } from "../../modules/test/single_test";
+import { RootState } from "../../rootReducer";
 import { IdParams } from "../RefereeProfile/types";
 
 import ActionsButton from "./ActionsButton";

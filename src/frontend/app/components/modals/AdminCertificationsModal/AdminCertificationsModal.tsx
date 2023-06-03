@@ -3,16 +3,16 @@ import { DateTime } from "luxon";
 import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { IdAttributes } from "MainApp/apis/referee";
-import { getCertifications } from "MainApp/modules/certification/certifications";
+import { IdAttributes } from "../../../apis/referee";
+import { getCertifications } from "../../../modules/certification/certifications";
 import {
   createCertification,
   revokeCertification,
-} from "MainApp/modules/certification/refCertification";
-import { fetchReferee } from "MainApp/modules/referee/referee";
-import { RootState } from "MainApp/rootReducer";
-import { Datum } from "MainApp/schemas/getCertificationsSchema";
-import { getVersion } from "MainApp/utils/certUtils";
+} from "../../../modules/certification/refCertification";
+import { fetchReferee } from "../../../modules/referee/referee";
+import { RootState } from "../../../rootReducer";
+import { Datum } from "../../../schemas/getCertificationsSchema";
+import { getVersion } from "../../../utils/certUtils";
 
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
 

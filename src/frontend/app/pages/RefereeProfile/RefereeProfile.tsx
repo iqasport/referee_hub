@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { RouteComponentProps, useHistory } from "react-router-dom";
 
-import { AssociationData, UpdateRefereeRequest } from "MainApp/apis/referee";
-import AdminCertificationsModal from "MainApp/components/modals/AdminCertificationsModal";
-import TestResultCards from "MainApp/components/TestResultCards";
-import { updateUserPolicy } from "MainApp/modules/currentUser/currentUser";
-import { fetchReferee, updateReferee } from "MainApp/modules/referee/referee";
-import { RootState } from "MainApp/rootReducer";
+import { AssociationData, UpdateRefereeRequest } from "../../apis/referee";
+import AdminCertificationsModal from "../../components/modals/AdminCertificationsModal";
+import TestResultCards from "../../components/TestResultCards";
+import { updateUserPolicy } from "../../modules/currentUser/currentUser";
+import { fetchReferee, updateReferee } from "../../modules/referee/referee";
+import { RootState } from "../../rootReducer";
 
 import RefereeHeader from "./RefereeHeader";
 import RefereeLocation from "./RefereeLocation";

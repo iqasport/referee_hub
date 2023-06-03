@@ -1,17 +1,17 @@
 import axios, { AxiosResponse } from "axios";
 import { transform } from "lodash";
 
-import { HeadersMap } from "MainApp/pages/ImportWizard/MapStep";
+import { HeadersMap } from "../pages/ImportWizard/MapStep";
 import {
   Datum,
   GetNationalGoverningBodiesSchema,
   Meta,
-} from "MainApp/schemas/getNationalGoverningBodiesSchema";
+} from "../schemas/getNationalGoverningBodiesSchema";
 import {
   DataAttributes,
   GetNationalGoverningBodySchema,
   IncludedAttributes,
-} from "MainApp/schemas/getNationalGoverningBodySchema";
+} from "../schemas/getNationalGoverningBodySchema";
 
 import { baseAxios } from "./utils";
 

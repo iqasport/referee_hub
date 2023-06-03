@@ -2,13 +2,13 @@ import { loadStripe } from "@stripe/stripe-js";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { getCertifications } from "MainApp/modules/certification/certifications";
-import { createSession } from "MainApp/modules/checkout/checkout";
-import { getProducts } from "MainApp/modules/checkout/products";
-import { fetchCurrentUser } from "MainApp/modules/currentUser/currentUser";
-import { RootState } from "MainApp/rootReducer";
-import { Datum } from "MainApp/schemas/getCertificationsSchema";
-import { GetProductsSchema } from "MainApp/schemas/getProductsSchema";
+import { getCertifications } from "../../../modules/certification/certifications";
+import { createSession } from "../../../modules/checkout/checkout";
+import { getProducts } from "../../../modules/checkout/products";
+import { fetchCurrentUser } from "../../../modules/currentUser/currentUser";
+import { RootState } from "../../../rootReducer";
+import { Datum } from "../../../schemas/getCertificationsSchema";
+import { GetProductsSchema } from "../../../schemas/getProductsSchema";
 
 import Loader from "../../Loader";
 import Modal, { ModalSize } from "../Modal/Modal";

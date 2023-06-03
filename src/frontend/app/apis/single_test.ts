@@ -1,8 +1,8 @@
 import axios from "axios";
 import { transform } from "lodash";
 
-import { HeadersMap } from "MainApp/pages/ImportWizard/MapStep";
-import { GetQuestionsSchema } from "MainApp/schemas/getQuestionsSchema";
+import { HeadersMap } from "../pages/ImportWizard/MapStep";
+import { GetQuestionsSchema } from "../schemas/getQuestionsSchema";
 import { Attributes, Data, GetTestSchema } from "../schemas/getTestSchema";
 import { Datum, GetTestsSchema, IncludedAttributes } from "../schemas/getTestsSchema";
 

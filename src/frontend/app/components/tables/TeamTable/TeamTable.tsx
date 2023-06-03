@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { GetTeamsFilter } from "MainApp/apis/team";
-import { deleteTeam } from "MainApp/modules/team/team";
-import { getTeams, TeamsState, updateFilters } from "MainApp/modules/team/teams";
-import { RootState } from "MainApp/rootReducer";
-import { Datum } from "MainApp/schemas/getTeamsSchema";
-import { toDateTime } from "MainApp/utils/dateUtils";
+import { GetTeamsFilter } from "../../../apis/team";
+import { deleteTeam } from "../../../modules/team/team";
+import { getTeams, TeamsState, updateFilters } from "../../../modules/team/teams";
+import { RootState } from "../../../rootReducer";
+import { Datum } from "../../../schemas/getTeamsSchema";
+import { toDateTime } from "../../../utils/dateUtils";
 
-import FilterToolbar from "MainApp/components/FilterToolbar";
-import TeamEditModal from "MainApp/components/modals/TeamEditModal";
-import WarningModal from "MainApp/components/modals/WarningModal";
-import Table, { CellConfig } from "MainApp/components/tables/Table/Table";
+import FilterToolbar from "../../../components/FilterToolbar";
+import TeamEditModal from "../../../components/modals/TeamEditModal";
+import WarningModal from "../../../components/modals/WarningModal";
+import Table, { CellConfig } from "../../../components/tables/Table/Table";
 
 import ActionDropdown from "./ActionDropdown";
 

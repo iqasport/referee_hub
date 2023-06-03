@@ -3,11 +3,11 @@ import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 
-import { GetRefereesFilter } from "MainApp/apis/referee";
-import { getReferees, Referee, updateFilters } from "MainApp/modules/referee/referees";
-import { RootState } from "MainApp/rootReducer";
-import { AssociationType } from "MainApp/schemas/getRefereesSchema";
-import { getVersion } from "MainApp/utils/certUtils";
+import { GetRefereesFilter } from "../../../apis/referee";
+import { getReferees, Referee, updateFilters } from "../../../modules/referee/referees";
+import { RootState } from "../../../rootReducer";
+import { AssociationType } from "../../../schemas/getRefereesSchema";
+import { getVersion } from "../../../utils/certUtils";
 import FilterToolbar from "../../FilterToolbar";
 import Table, { CellConfig } from "../Table/Table";
 

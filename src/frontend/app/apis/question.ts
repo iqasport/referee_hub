@@ -1,11 +1,11 @@
-import { Data, GetQuestionSchema } from "MainApp/schemas/getQuestionSchema";
+import { Data, GetQuestionSchema } from "../schemas/getQuestionSchema";
 import {
   DatumAttributes,
   GetQuestionsSchema,
   GetQuestionsSchemaDatum,
   Included,
   Meta,
-} from "MainApp/schemas/getQuestionsSchema";
+} from "../schemas/getQuestionsSchema";
 import { baseAxios } from "./utils";
 
 export interface QuestionsResponse {

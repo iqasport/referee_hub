@@ -2,7 +2,7 @@ import Faker from "faker";
 import { Factory } from "fishery";
 import { DateTime } from "luxon";
 
-import { Datum, DatumType, GroupAffiliation, Status } from "MainApp/schemas/getTeamsSchema";
+import { Datum, DatumType, GroupAffiliation, Status } from "../schemas/getTeamsSchema";
 
 export default Factory.define<Datum>(
   ({ sequence }): Datum => ({

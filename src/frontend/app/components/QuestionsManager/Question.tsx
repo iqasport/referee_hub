@@ -4,8 +4,8 @@ import classnames from "classnames";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
-import { deleteQuestion } from "MainApp/modules/question/question";
-import { GetQuestionsSchemaDatum, Included } from "MainApp/schemas/getQuestionsSchema";
+import { deleteQuestion } from "../../modules/question/question";
+import { GetQuestionsSchemaDatum, Included } from "../../schemas/getQuestionsSchema";
 
 import WarningModal from "../modals/WarningModal";
 import Answer from "./Answer";

@@ -6,9 +6,9 @@ import {
   RefereeCertificationResponse,
   revokeCertification as revokeCertApi,
   UpdateCertificationRequest,
-} from "MainApp/apis/certification";
-import { Data } from "MainApp/schemas/getRefereeCertificationSchema";
-import { AppThunk } from "MainApp/store";
+} from "../../apis/certification";
+import { Data } from "../../schemas/getRefereeCertificationSchema";
+import { AppThunk } from "../../store";
 
 import { fetchReferee } from "../referee/referee";
 

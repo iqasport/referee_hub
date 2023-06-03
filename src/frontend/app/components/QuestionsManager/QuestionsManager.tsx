@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { getQuestions } from "MainApp/modules/question/questions";
-import { RootState } from "MainApp/rootReducer";
+import { getQuestions } from "../../modules/question/questions";
+import { RootState } from "../../rootReducer";
 import Question from "./Question";
 
 interface QuestionsManagerProps {

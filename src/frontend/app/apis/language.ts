@@ -1,4 +1,4 @@
-import { Datum, GetLanguagesSchema } from "MainApp/schemas/getLanguagesSchema";
+import { Datum, GetLanguagesSchema } from "../schemas/getLanguagesSchema";
 
 import { baseAxios } from "./utils";
 

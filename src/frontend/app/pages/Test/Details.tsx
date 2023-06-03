@@ -1,8 +1,8 @@
 import { isBoolean, kebabCase } from "lodash";
 import React from "react";
 
-import { Datum } from "MainApp/schemas/getLanguagesSchema";
-import { Data } from "MainApp/schemas/getTestSchema";
+import { Datum } from "../../schemas/getLanguagesSchema";
+import { Data } from "../../schemas/getTestSchema";
 
 // the language field is excluded because it's a legacy attribute
 const EXCLUDED_ATTRIBUTES = ["active", "updatedAt", "certificationId", "language"];

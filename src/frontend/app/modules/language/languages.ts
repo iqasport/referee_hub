@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { getLanguages as getLanguagesApi, LanguagesResponse } from "MainApp/apis/language";
-import { Datum } from "MainApp/schemas/getLanguagesSchema";
-import { AppThunk } from "MainApp/store";
+import { getLanguages as getLanguagesApi, LanguagesResponse } from "../../apis/language";
+import { Datum } from "../../schemas/getLanguagesSchema";
+import { AppThunk } from "../../store";
 
 export interface LanguagesState {
   languages: Datum[];

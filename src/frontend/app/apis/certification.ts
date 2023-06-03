@@ -1,5 +1,5 @@
-import { Datum, GetCertificationsSchema } from "MainApp/schemas/getCertificationsSchema";
-import { Data, GetRefereeCertificationSchema } from "MainApp/schemas/getRefereeCertificationSchema";
+import { Datum, GetCertificationsSchema } from "../schemas/getCertificationsSchema";
+import { Data, GetRefereeCertificationSchema } from "../schemas/getRefereeCertificationSchema";
 
 import { baseAxios } from "./utils";
 

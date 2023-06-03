@@ -1,7 +1,7 @@
 import classnames from "classnames";
 import React from "react";
 
-import { Datum } from "MainApp/schemas/getLanguagesSchema";
+import { Datum } from "../../schemas/getLanguagesSchema";
 
 interface LanguageDropdownProps {
   name: string;

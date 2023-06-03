@@ -2,18 +2,18 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { RouteComponentProps, useHistory } from "react-router-dom";
 
-import Loader from "MainApp/components/Loader";
-import ExportModal, { ExportType } from "MainApp/components/modals/ExportModal/ExportModal";
-import NgbEditModal from "MainApp/components/modals/NgbEditModal";
-import TeamEditModal from "MainApp/components/modals/TeamEditModal";
-import StatsViewer from "MainApp/components/StatsViewer";
-import { CurrentUserState } from "MainApp/modules/currentUser/currentUser";
-import { exportNgbReferees, exportNgbTeams } from "MainApp/modules/job/job";
+import Loader from "../../components/Loader";
+import ExportModal, { ExportType } from "../../components/modals/ExportModal/ExportModal";
+import NgbEditModal from "../../components/modals/NgbEditModal";
+import TeamEditModal from "../../components/modals/TeamEditModal";
+import StatsViewer from "../../components/StatsViewer";
+import { CurrentUserState } from "../../modules/currentUser/currentUser";
+import { exportNgbReferees, exportNgbTeams } from "../../modules/job/job";
 import {
   getNationalGoverningBody,
   SingleNationalGoverningBodyState,
-} from "MainApp/modules/nationalGoverningBody/nationalGoverningBody";
-import { RootState } from "MainApp/rootReducer";
+} from "../../modules/nationalGoverningBody/nationalGoverningBody";
+import { RootState } from "../../rootReducer";
 
 import ActionsButton from "./ActionsButton";
 import NgbTables from "./NgbTables";

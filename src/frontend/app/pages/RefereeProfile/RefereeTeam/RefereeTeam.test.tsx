@@ -1,9 +1,9 @@
 import React from "react";
 import { render, screen, mockedStore } from "../../../utils/test-utils";
 
-import factories from "MainApp/factories";
+import factories from "../../../factories";
 import RefereeTeam from "./RefereeTeam";
-import { AssociationData } from "MainApp/apis/referee";
+import { AssociationData } from "../../../apis/referee";
 
 describe("RefereeTeam", () => {
   const allTeams = factories.team.buildList(10);

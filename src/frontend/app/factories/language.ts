@@ -1,7 +1,7 @@
 import Faker from "faker";
 import { Factory } from "fishery";
 
-import { Datum } from "MainApp/schemas/getLanguagesSchema";
+import { Datum } from "../schemas/getLanguagesSchema";
 
 export default Factory.define<Datum>(({ sequence }) => ({
   attributes: {

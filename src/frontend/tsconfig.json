@@ -15,10 +15,10 @@
     "baseUrl": ".",
     "paths": {
       "*": ["app/javascript/*"],
-      "test-utils": ["app/javascript/MainApp/utils/test-utils"]
+      "test-utils": ["app/utils/test-utils"]
     }
   },
-  "include": ["./app/javascript/MainApp/**/*"],
+  "include": ["./app/**/*"],
   "exclude": [
     "./node_modules",
     "./vendor",

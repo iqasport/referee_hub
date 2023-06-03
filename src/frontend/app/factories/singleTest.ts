@@ -2,7 +2,7 @@ import Faker from "faker";
 import { Factory } from "fishery";
 import { DateTime } from "luxon";
 
-import { Data, TestLevel } from "MainApp/schemas/getTestSchema";
+import { Data, TestLevel } from "../schemas/getTestSchema";
 
 export default Factory.define<Data>(
   ({ sequence }): Data => ({

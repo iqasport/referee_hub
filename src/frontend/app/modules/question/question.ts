@@ -5,8 +5,8 @@ import {
   QuestionResponse,
   updateQuestion as updateQuestionApi,
   UpdateQuestionRequest,
-} from "MainApp/apis/question";
-import { Data } from "MainApp/schemas/getQuestionSchema";
+} from "../../apis/question";
+import { Data } from "../../schemas/getQuestionSchema";
 
 import { AppThunk } from "../../store";
 import { getQuestions } from "./questions";

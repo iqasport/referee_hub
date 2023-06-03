@@ -3,14 +3,14 @@ import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { UpdateTestRequest } from "MainApp/apis/single_test";
-import LanguageDropdown from "MainApp/components/LanguageDropdown";
-import Toggle from "MainApp/components/Toggle";
-import { getCertifications } from "MainApp/modules/certification/certifications";
-import { getLanguages } from "MainApp/modules/language/languages";
-import { createTest, getTest, updateTest } from "MainApp/modules/test/single_test";
-import { RootState } from "MainApp/rootReducer";
-import { TestLevel } from "MainApp/schemas/getTestSchema";
+import { UpdateTestRequest } from "../../../apis/single_test";
+import LanguageDropdown from "../../../components/LanguageDropdown";
+import Toggle from "../../../components/Toggle";
+import { getCertifications } from "../../../modules/certification/certifications";
+import { getLanguages } from "../../../modules/language/languages";
+import { createTest, getTest, updateTest } from "../../../modules/test/single_test";
+import { RootState } from "../../../rootReducer";
+import { TestLevel } from "../../../schemas/getTestSchema";
 
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
 

@@ -10,10 +10,10 @@ import React, { useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { RouteComponentProps, useHistory } from "react-router-dom";
 
-import { importNgbs } from "MainApp/modules/nationalGoverningBody/nationalGoverningBodies";
-import { importTestQuestions } from "MainApp/modules/question/questions";
-import { importTeams } from "MainApp/modules/team/teams";
-import { RootState } from "MainApp/rootReducer";
+import { importNgbs } from "../../modules/nationalGoverningBody/nationalGoverningBodies";
+import { importTestQuestions } from "../../modules/question/questions";
+import { importTeams } from "../../modules/team/teams";
+import { RootState } from "../../rootReducer";
 
 import FinishStep from "./FinishStep";
 import MapStep, { HeadersMap, requiredHeaders } from "./MapStep";

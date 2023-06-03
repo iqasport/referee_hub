@@ -1,7 +1,7 @@
 import Faker from "faker";
 import { Factory } from "fishery";
 
-import { Data } from "MainApp/schemas/currentUserSchema";
+import { Data } from "../schemas/currentUserSchema";
 
 export default Factory.define<Data>(({ sequence }) => ({
   attributes: {

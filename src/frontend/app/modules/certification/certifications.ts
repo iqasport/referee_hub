@@ -3,9 +3,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   CertificationsResponse,
   getCertifications as getCertsApi,
-} from "MainApp/apis/certification";
-import { Datum } from "MainApp/schemas/getCertificationsSchema";
-import { AppThunk } from "MainApp/store";
+} from "../../apis/certification";
+import { Datum } from "../../schemas/getCertificationsSchema";
+import { AppThunk } from "../../store";
 
 interface CertificationsState {
   certifications: Datum[];

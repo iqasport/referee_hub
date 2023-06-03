@@ -1,4 +1,4 @@
-import { Datum } from "MainApp/schemas/getLanguagesSchema";
+import { Datum } from "../schemas/getLanguagesSchema";
 
 export const formatLanguage = (language: Datum) => {
   if (!language) return "---";

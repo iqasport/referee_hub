@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { RouteComponentProps } from "react-router-dom";
 
-import CheckoutModal from "MainApp/components/modals/CheckoutModal";
-import RefereeTestsTable from "MainApp/components/tables/RefereeTestsTable";
-import Toast from "MainApp/components/Toast";
-import { fetchReferee, RefereeState } from "MainApp/modules/referee/referee";
-import { RootState } from "MainApp/rootReducer";
+import CheckoutModal from "../../components/modals/CheckoutModal";
+import RefereeTestsTable from "../../components/tables/RefereeTestsTable";
+import Toast from "../../components/Toast";
+import { fetchReferee, RefereeState } from "../../modules/referee/referee";
+import { RootState } from "../../rootReducer";
 
 type IdParams = {
   refereeId: string;

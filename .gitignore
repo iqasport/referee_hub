@@ -41,13 +41,12 @@ yarn-debug.log*
 .env
 /public/packs
 /public/packs-test
-/node_modules
-/yarn-error.log
+node_modules
 yarn-debug.log*
 .yarn-integrity
+coverage
 
 # data dump file to convert api responses to typescript. It should never be checked in.
-/app/javascript/MainApp/schema.json
 junit.xml
 dump.rdb
 stats.json

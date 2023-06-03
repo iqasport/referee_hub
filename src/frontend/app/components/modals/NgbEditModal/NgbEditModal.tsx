@@ -3,12 +3,12 @@ import { capitalize, words } from "lodash";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { UpdateNgbRequest } from "MainApp/apis/nationalGoverningBody";
+import { UpdateNgbRequest } from "../../../apis/nationalGoverningBody";
 import {
   getNationalGoverningBody,
   updateNgb,
-} from "MainApp/modules/nationalGoverningBody/nationalGoverningBody";
-import { RootState } from "MainApp/rootReducer";
+} from "../../../modules/nationalGoverningBody/nationalGoverningBody";
+import { RootState } from "../../../rootReducer";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";

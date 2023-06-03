@@ -5,10 +5,10 @@ import {
   getNationalGoverningBodies as getNgbsApi,
   importNgbs as importNgbsApi,
   NgbsResponse,
-} from "MainApp/apis/nationalGoverningBody";
-import { HeadersMap } from "MainApp/pages/ImportWizard/MapStep";
-import { Meta } from "MainApp/schemas/getNationalGoverningBodiesSchema";
-import { AppThunk } from "MainApp/store";
+} from "../../apis/nationalGoverningBody";
+import { HeadersMap } from "../../pages/ImportWizard/MapStep";
+import { Meta } from "../../schemas/getNationalGoverningBodiesSchema";
+import { AppThunk } from "../../store";
 
 export interface NationalGoverningBodyState {
   nationalGoverningBodies: AnnotatedNgb[];

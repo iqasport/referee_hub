@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { getProducts as getProductsApi, ProductsResponse } from "MainApp/apis/checkout";
-import { GetProductsSchema } from "MainApp/schemas/getProductsSchema";
-import { AppThunk } from "MainApp/store";
+import { getProducts as getProductsApi, ProductsResponse } from "../../apis/checkout";
+import { GetProductsSchema } from "../../schemas/getProductsSchema";
+import { AppThunk } from "../../store";
 
 export interface ProductsState {
   products: GetProductsSchema[];

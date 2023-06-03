@@ -1,9 +1,9 @@
 import userEvent from "@testing-library/user-event";
 import React from "react";
 
-import factories from "MainApp/factories";
-import { formatLanguage } from "MainApp/utils/langUtils";
-import { mockedStore, render, screen } from "MainApp/utils/test-utils";
+import factories from "../../factories";
+import { formatLanguage } from "../../utils/langUtils";
+import { mockedStore, render, screen } from "../../utils/test-utils";
 
 import Settings from "./Settings";
 

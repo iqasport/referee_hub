@@ -4,10 +4,10 @@ import { DateTime } from "luxon";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { UpdateTeamRequest } from "MainApp/apis/team";
-import { createTeam, getTeam, updateTeam } from "MainApp/modules/team/team";
-import { RootState } from "MainApp/rootReducer";
-import { toDateTime } from "MainApp/utils/dateUtils";
+import { UpdateTeamRequest } from "../../../apis/team";
+import { createTeam, getTeam, updateTeam } from "../../../modules/team/team";
+import { RootState } from "../../../rootReducer";
+import { toDateTime } from "../../../utils/dateUtils";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";

@@ -3,13 +3,13 @@ import React, { useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 
-import NgbEditModal from "MainApp/components/modals/NgbEditModal";
-import TestEditModal from "MainApp/components/modals/TestEditModal";
-import NgbTable from "MainApp/components/tables/NgbTable";
-import NewRefereeTable from "MainApp/components/tables/RefereeTable";
-import TestsTable from "MainApp/components/tables/TestsTable";
-import { CurrentUserState } from "MainApp/modules/currentUser/currentUser";
-import { RootState } from "MainApp/rootReducer";
+import NgbEditModal from "../../components/modals/NgbEditModal";
+import TestEditModal from "../../components/modals/TestEditModal";
+import NgbTable from "../../components/tables/NgbTable";
+import NewRefereeTable from "../../components/tables/RefereeTable";
+import TestsTable from "../../components/tables/TestsTable";
+import { CurrentUserState } from "../../modules/currentUser/currentUser";
+import { RootState } from "../../rootReducer";
 
 import ActionsButton from "./ActionsButton";
 

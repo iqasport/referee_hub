@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { Redirect } from "react-router-dom";
 
-import { UpdatedUserRequest } from "MainApp/apis/user";
-import LanguageDropdown from "MainApp/components/LanguageDropdown";
-import { CurrentUserState, updateUser } from "MainApp/modules/currentUser/currentUser";
-import { getLanguages, LanguagesState } from "MainApp/modules/language/languages";
-import { RootState } from "MainApp/rootReducer";
-import { formatLanguage } from "MainApp/utils/langUtils";
+import { UpdatedUserRequest } from "../../apis/user";
+import LanguageDropdown from "../../components/LanguageDropdown";
+import { CurrentUserState, updateUser } from "../../modules/currentUser/currentUser";
+import { getLanguages, LanguagesState } from "../../modules/language/languages";
+import { RootState } from "../../rootReducer";
+import { formatLanguage } from "../../utils/langUtils";
 
 const Settings = () => {
   const [updatedUser, setUpdatedUser] = useState<UpdatedUserRequest>();

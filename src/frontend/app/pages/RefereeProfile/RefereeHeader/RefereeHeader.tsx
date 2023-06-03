@@ -4,11 +4,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalize } from "lodash";
 import React from "react";
 
-import { UpdateRefereeRequest } from "MainApp/apis/referee";
-import Toggle from "MainApp/components/Toggle";
-import { DataAttributes, IncludedAttributes } from "MainApp/schemas/getRefereeSchema";
-import { getRefereeCertVersion } from "MainApp/utils/certUtils";
-import { toDateTime } from "MainApp/utils/dateUtils";
+import { UpdateRefereeRequest } from "../../../apis/referee";
+import Toggle from "../../../components/Toggle";
+import { DataAttributes, IncludedAttributes } from "../../../schemas/getRefereeSchema";
+import { getRefereeCertVersion } from "../../../utils/certUtils";
+import { toDateTime } from "../../../utils/dateUtils";
 import HeaderButtons from "./HeaderButtons";
 import HeaderImage from "./HeaderImage";
 import HeaderName from "./HeaderName";

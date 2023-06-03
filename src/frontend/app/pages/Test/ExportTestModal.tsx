@@ -1,6 +1,6 @@
 import React from "react";
 
-import Modal, { ModalSize } from "MainApp/components/modals/Modal/Modal";
+import Modal, { ModalSize } from "../../components/modals/Modal/Modal";
 
 interface ExportModalProps {
   open: boolean;

@@ -3,9 +3,7 @@ module.exports = {
   testPathIgnorePatterns: ['<rootDir>/config'],
   moduleDirectories: [
     'node_modules',
-    './',
-    './utils',
-    './src/frontend/app'
+    './app'
   ],
   moduleFileExtensions: ['js', 'jsx', 'json', 'node', 'ts', 'tsx'],
   testRegex: '(/__tests__/.*|(\\.|/)(test))\\.[jt]sx?$',
@@ -14,10 +12,6 @@ module.exports = {
   coverageReporters: ['json', 'text'],
   coveragePathIgnorePatterns: [
     '/node_modules/',
-    '/app/javascript/MainApp/schemas/',
-    '/app/javascript/MainApp/factories/',
-    '/app/javascript/MainApp/rootReducer',
-    '/app/javascript/MainApp/store'
   ],
   reporters: ['default'],
   transform: {

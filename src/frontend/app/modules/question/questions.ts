@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { getQuestions as getQuestionsApi, QuestionsResponse } from "MainApp/apis/question";
-import { HeadersMap } from "MainApp/pages/ImportWizard/MapStep";
-import { GetQuestionsSchemaDatum, Included, Meta } from "MainApp/schemas/getQuestionsSchema";
+import { getQuestions as getQuestionsApi, QuestionsResponse } from "../../apis/question";
+import { HeadersMap } from "../../pages/ImportWizard/MapStep";
+import { GetQuestionsSchemaDatum, Included, Meta } from "../../schemas/getQuestionsSchema";
 import { importTests as importTestsApi, startTest as startTestApi } from "../../apis/single_test";
 import { AppThunk } from "../../store";
 

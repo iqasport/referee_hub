@@ -5,8 +5,8 @@ import React from "react";
 import factories from "../../../factories";
 import { mockedStore, render, screen } from "../../../utils/test-utils";
 
-import { toDateTime } from "MainApp/utils/dateUtils";
-import { formatLanguage } from "MainApp/utils/langUtils";
+import { toDateTime } from "../../../utils/dateUtils";
+import { formatLanguage } from "../../../utils/langUtils";
 
 import TestsTable from "./TestsTable";
 

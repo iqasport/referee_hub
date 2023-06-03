@@ -6,13 +6,13 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { RouteComponentProps, useHistory } from "react-router-dom";
 
-import { FinishTestRequest, RefereeAnswer } from "MainApp/apis/job";
-import NewTestTaker from "MainApp/components/TestTaker";
-import { finishTest } from "MainApp/modules/job/job";
-import { startTest } from "MainApp/modules/question/questions";
-import { clearTest, getTest } from "MainApp/modules/test/single_test";
-import { RootState } from "MainApp/rootReducer";
-import { GetQuestionsSchemaDatum, Included } from "MainApp/schemas/getQuestionsSchema";
+import { FinishTestRequest, RefereeAnswer } from "../../apis/job";
+import NewTestTaker from "../../components/TestTaker";
+import { finishTest } from "../../modules/job/job";
+import { startTest } from "../../modules/question/questions";
+import { clearTest, getTest } from "../../modules/test/single_test";
+import { RootState } from "../../rootReducer";
+import { GetQuestionsSchemaDatum, Included } from "../../schemas/getQuestionsSchema";
 
 export type FormattedQuestion = {
   questionId: string;
