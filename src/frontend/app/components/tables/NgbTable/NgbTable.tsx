@@ -1,7 +1,7 @@
 import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { AnnotatedNgb } from "../../../apis/nationalGoverningBody";
 import { getNationalGoverningBodies } from "../../../modules/nationalGoverningBody/nationalGoverningBodies";
@@ -24,7 +24,7 @@ const HEADER_CELLS = [
 const NgbTable = () => {
   const [activeEdit, setActiveEdit] = useState<string>(null);
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const { isLoading, nationalGoverningBodies } = useSelector(
     (state: RootState) => state.nationalGoverningBodies,
     shallowEqual
@@ -36,7 +36,7 @@ const NgbTable = () => {
     }
   }, [nationalGoverningBodies]);
 
-  const handleRowClick = (id: string) => history.push(`/national_governing_bodies/${id}`);
+  const handleRowClick = (id: string) => navigate(`/national_governing_bodies/${id}`);
   const handleEditClick = (id: string) => setActiveEdit(id);
   const handleEditClose = () => setActiveEdit(null);
 

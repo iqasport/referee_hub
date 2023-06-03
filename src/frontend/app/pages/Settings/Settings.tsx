@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 import { UpdatedUserRequest } from "../../apis/user";
 import LanguageDropdown from "../../components/LanguageDropdown";
@@ -21,7 +21,7 @@ const Settings = () => {
     shallowEqual
   );
   const dispatch = useDispatch();
-  if (!currentUser?.enabledFeatures?.includes("i18n")) return <Redirect to="/" />;
+  if (!currentUser?.enabledFeatures?.includes("i18n")) return <Navigate to="/" replace />;
 
   useEffect(() => {
     if (!languages.length) {

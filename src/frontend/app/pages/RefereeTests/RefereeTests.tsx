@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { RouteComponentProps } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import CheckoutModal from "../../components/modals/CheckoutModal";
 import RefereeTestsTable from "../../components/tables/RefereeTestsTable";
@@ -12,12 +12,8 @@ type IdParams = {
   refereeId: string;
 };
 
-const RefereeTests = (props: RouteComponentProps<IdParams>) => {
-  const {
-    match: {
-      params: { refereeId },
-    },
-  } = props;
+const RefereeTests = () => {
+  const { refereeId } = useParams<IdParams>();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string>(null);
   const dispatch = useDispatch();

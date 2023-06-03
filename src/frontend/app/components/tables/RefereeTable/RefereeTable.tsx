@@ -1,7 +1,7 @@
 import { capitalize } from "lodash";
 import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { GetRefereesFilter } from "../../../apis/referee";
 import { getReferees, Referee, updateFilters } from "../../../modules/referee/referees";
@@ -53,7 +53,7 @@ type NewRefereeTableProps = {
 
 const NewRefereeTable = (props: NewRefereeTableProps) => {
   const { ngbId, isHeightRestricted } = props;
-  const history = useHistory();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { referees, isLoading, meta, filters } = useSelector(
     (state: RootState) => state.referees,
@@ -71,7 +71,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
   }, []);
 
   const handleRowClick = (id: string) => {
-    history.push(`/referees/${id}`);
+    navigate(`/referees/${id}`);
   };
 
   const handleClearSearch = () => handleSearch("");

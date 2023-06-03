@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { RouteComponentProps, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import Loader from "../../components/Loader";
 import ExportModal, { ExportType } from "../../components/modals/ExportModal/ExportModal";
@@ -27,15 +27,11 @@ enum ModalType {
   Edit = "edit",
 }
 
-const NgbProfile = (props: RouteComponentProps<IdParams>) => {
-  const {
-    match: {
-      params: { id },
-    },
-  } = props;
+const NgbProfile = () => {
+  const { id } = useParams<IdParams>();
   const [openModal, setOpenModal] = useState<ModalType>();
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const { ngb, socialAccounts, refereeCount, teamCount, stats, isLoading } = useSelector(
     (state: RootState): SingleNationalGoverningBodyState => state.nationalGoverningBody,
     shallowEqual
@@ -56,9 +52,9 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
   const isUserNgbAdmin = roles.includes("ngb_admin") && Number(id) === currentUser.ownedNgbId;
 
   if (isUserReferee) {
-    history.goBack();
+    navigate(-1);
   } else if (!roles.includes("iqa_admin") && !isUserNgbAdmin) {
-    history.goBack();
+    navigate(-1);
   }
 
   const handleOpenModal = (type: ModalType) => () => setOpenModal(type);
@@ -75,7 +71,7 @@ const NgbProfile = (props: RouteComponentProps<IdParams>) => {
         break;
     }
   };
-  const handleImportClick = () => history.push(`/import/team_${id}`);
+  const handleImportClick = () => navigate(`/import/team_${id}`);
 
   const renderModals = () => {
     switch (openModal) {

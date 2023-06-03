@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { RouteComponentProps, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { AssociationData, UpdateRefereeRequest } from "../../apis/referee";
 import AdminCertificationsModal from "../../components/modals/AdminCertificationsModal";
@@ -15,16 +15,12 @@ import RefereeTeam from "./RefereeTeam";
 import { IdParams } from "./types";
 import { initialUpdateState, selectRefereeState } from "./utils";
 
-const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
-  const {
-    match: {
-      params: { id },
-    },
-  } = props;
+const RefereeProfile = () => {
+  const { id } = useParams<IdParams>();
   const [isEditing, setIsEditing] = useState(false);
   const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false);
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const { referee, certifications, ngbs, locations, teams, id: stateId, testResults } = useSelector(
     selectRefereeState,
     shallowEqual
@@ -58,7 +54,7 @@ const RefereeProfile = (props: RouteComponentProps<IdParams>) => {
   const handleEditClick = () => setIsEditing(true);
   const handleTestsClick = () => {
     if (referee.isEditable) {
-      history.push(`/referees/${id}/tests`);
+      navigate(`/referees/${id}/tests`);
     } else {
       setIsCertificationModalOpen(true);
     }

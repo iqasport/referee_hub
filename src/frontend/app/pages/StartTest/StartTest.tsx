@@ -4,7 +4,7 @@ import { shuffle } from "lodash";
 import { DateTime, Duration } from "luxon";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { RouteComponentProps, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { FinishTestRequest, RefereeAnswer } from "../../apis/job";
 import NewTestTaker from "../../components/TestTaker";
@@ -60,12 +60,8 @@ type TestParams = {
   refereeId: string;
 };
 
-const StartTest = (props: RouteComponentProps<TestParams>) => {
-  const {
-    match: {
-      params: { refereeId, testId },
-    },
-  } = props;
+const StartTest = () => {
+  const { refereeId, testId } = useParams<TestParams>();
 
   const [testQuestions, setTestQuestions] = useState<FormattedQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -77,7 +73,7 @@ const StartTest = (props: RouteComponentProps<TestParams>) => {
     seconds: 0,
   });
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { test, error: testError, isLoading: testLoading } = useSelector(
     (state: RootState) => state.test,
@@ -109,7 +105,7 @@ const StartTest = (props: RouteComponentProps<TestParams>) => {
 
   const handleGoBack = () => {
     dispatch(clearTest);
-    history.push(`/referees/${refereeId}`);
+    navigate(`/referees/${refereeId}`);
   };
 
   const handleStartTest = () => {

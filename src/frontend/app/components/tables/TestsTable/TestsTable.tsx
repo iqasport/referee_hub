@@ -4,7 +4,7 @@ import classnames from "classnames";
 import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { getLanguages } from "../../../modules/language/languages";
 import { deleteTest, updateTest } from "../../../modules/test/single_test";
@@ -30,7 +30,7 @@ enum ActiveModal {
 const TestsTable = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [activeTest, setActiveTest] = useState<string>(null);
-  const history = useHistory();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { tests, isLoading, certifications } = useSelector(
     (state: RootState) => state.tests,
@@ -48,7 +48,7 @@ const TestsTable = () => {
   }, []);
 
   const handleRowClick = (id: string) => {
-    history.push(`/admin/tests/${id}`);
+    navigate(`/admin/tests/${id}`);
   };
 
   const handleActiveToggle = (item: Datum) => (testId: string) => {

@@ -1,7 +1,7 @@
 import classnames from "classnames";
 import React, { useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate, use } from "react-router-dom";
 
 import NgbEditModal from "../../components/modals/NgbEditModal";
 import TestEditModal from "../../components/modals/TestEditModal";
@@ -27,17 +27,17 @@ enum SelectedTab {
 const Admin = () => {
   const [selectedModal, setSelectedModal] = useState<SelectedModal>();
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Ngbs);
-  const history = useHistory();
+  const navigate = useNavigate();
   const { roles } = useSelector(
     (state: RootState): CurrentUserState => state.currentUser,
     shallowEqual
   );
 
-  if (roles.length && !roles.includes("iqa_admin")) history.goBack();
+  if (roles.length && !roles.includes("iqa_admin")) navigate(-1);
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab;
 
-  const handleImportClick = () => history.push("/import/ngb");
+  const handleImportClick = () => navigate("/import/ngb");
   const handleOpenModal = (modal: SelectedModal) => () => setSelectedModal(modal);
   const handleCloseModal = () => setSelectedModal(null);
   const handleTabClick = (tab: SelectedTab) => () => setSelectedTab(tab);

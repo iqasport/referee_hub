@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { RouteComponentProps, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { importNgbs } from "../../modules/nationalGoverningBody/nationalGoverningBodies";
 import { importTestQuestions } from "../../modules/question/questions";
@@ -48,12 +48,8 @@ const defaultHeadersMap = (scope: string): HeadersMap =>
 
 type ScopeParams = { scope: string };
 
-const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
-  const {
-    match: {
-      params: { scope },
-    },
-  } = props;
+const ImportWizard = () => {
+  const { scope } = useParams<ScopeParams>();
   const [parsedScope, scopeId] = scope.split("_");
 
   const [stepCount, setStepCount] = useState(1);
@@ -69,7 +65,7 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
     (state: RootState) => state.nationalGoverningBodies,
     shallowEqual
   );
-  const history = useHistory();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const isFinalStep = stepCount === 3;
@@ -79,7 +75,7 @@ const ImportWizard = (props: RouteComponentProps<ScopeParams>) => {
   const dataType = parsedScope === "test" ? "questions" : `${parsedScope}s`;
   const goForward = () => setStepCount(stepCount + 1);
 
-  const handleHomeClick = () => history.goBack();
+  const handleHomeClick = () => navigate(-1);
   const handleButtonClick = () => {
     if (isFinalStep) {
       handleHomeClick();

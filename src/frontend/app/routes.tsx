@@ -2,7 +2,7 @@ import Bugsnag from "@bugsnag/js";
 import loadable from "@loadable/component";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { BrowserRouter as Router, Redirect, Route } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route } from "react-router-dom";
 
 import Avatar from "./components/Avatar";
 import Loader from "./components/Loader";
@@ -65,54 +65,45 @@ const App = () => {
             enabledFeatures={currentUser?.enabledFeatures}
           />
         </div>
-        <Route exact={true} path="/">
-          {redirectTo && <Redirect to={redirectTo} />}
+        <Route  path="/">
+          {redirectTo && <Navigate to={redirectTo} replace />}
         </Route>
         <Route
-          exact={true}
           path="/privacy"
-          render={(props) => <AsyncPage {...props} page="PrivacyPolicy" />}
+          element={<AsyncPage page="PrivacyPolicy" />}
         />
         <Route
-          exact={true}
           path="/referees/:id"
-          render={(props) => <AsyncPage {...props} page="RefereeProfile" />}
+          element={<AsyncPage page="RefereeProfile" />}
         />
         <Route
-          exact={true}
           path="/admin"
-          render={(props) => <AsyncPage {...props} page="Admin" />}
+          element={<AsyncPage page="Admin" />}
         />
         <Route
-          exact={true}
           path="/admin/tests/:id"
-          render={(props) => <AsyncPage {...props} page="Test" />}
+          element={<AsyncPage page="Test" />}
         />
         <Route
-          exact={true}
           path="/referees/:refereeId/tests/:testId"
-          render={(props) => <AsyncPage {...props} page="StartTest" />}
+          element={<AsyncPage page="StartTest" />}
         />
         <Route
-          exact={true}
           path="/national_governing_bodies/:id"
-          render={(props) => <AsyncPage {...props} page="NgbProfile" />}
+          element={<AsyncPage page="NgbProfile" />}
         />
         <Route
-          exact={true}
           path="/import/:scope"
-          render={(props) => <AsyncPage {...props} page="ImportWizard" />}
+          element={<AsyncPage page="ImportWizard" />}
         />
         <Route
-          exact={true}
           path="/referees/:refereeId/tests"
-          render={(props) => <AsyncPage {...props} page="RefereeTests" />}
+          element={<AsyncPage page="RefereeTests" />}
         />
         {currentUser?.enabledFeatures.includes("i18n") ? (
           <Route
-            exact={true}
             path="/settings"
-            render={(props) => <AsyncPage {...props} page="Settings" />}
+            element={<AsyncPage page="Settings" />}
           />
         ) : null}
       </div>

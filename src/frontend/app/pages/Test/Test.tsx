@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classnames from "classnames";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { RouteComponentProps, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import Loader from "../../components/Loader";
 import TestEditModal from "../../components/modals/TestEditModal";
@@ -32,17 +32,13 @@ enum ActiveModal {
   Export = "export",
 }
 
-const Test = (props: RouteComponentProps<IdParams>) => {
-  const {
-    match: {
-      params: { id },
-    },
-  } = props;
+const Test = () => {
+  const { id } = useParams<IdParams>();
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Details);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const { test, isLoading } = useSelector((state: RootState) => state.test, shallowEqual);
   const { roles } = useSelector(
     (state: RootState): CurrentUserState => state.currentUser,
@@ -68,7 +64,7 @@ const Test = (props: RouteComponentProps<IdParams>) => {
     dispatch(updateTest(id, newTest));
   };
 
-  const handleImportClick = () => history.push(`/import/test_${id}`);
+  const handleImportClick = () => navigate(`/import/test_${id}`);
   const handleTabClick = (newTab: SelectedTab) => () => {
     if (newTab === selectedTab) return null;
 

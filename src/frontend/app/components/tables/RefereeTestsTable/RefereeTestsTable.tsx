@@ -1,7 +1,7 @@
 import { capitalize } from "lodash";
 import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { getRefereeTests } from "../../../modules/test/tests";
 import { RootState } from "../../../rootReducer";
@@ -17,7 +17,7 @@ interface RefereeTestsTableProps {
 
 const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   const { refId } = props;
-  const history = useHistory();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { tests, isLoading, certifications } = useSelector(
     (state: RootState) => state.tests,
@@ -29,7 +29,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   }, []);
 
   const handleRowClick = (id: string) => {
-    history.push(`/referees/${refId}/tests/${id}`);
+    navigate(`/referees/${refId}/tests/${id}`);
   };
 
   const renderEmpty = () => {

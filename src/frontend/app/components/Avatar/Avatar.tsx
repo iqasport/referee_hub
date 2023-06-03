@@ -1,6 +1,6 @@
 import axios from "axios";
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import DropdownMenu, { ItemConfig } from "../DropdownMenu/DropdownMenu";
 
@@ -16,10 +16,10 @@ interface AvatarProps {
 const Avatar = (props: AvatarProps) => {
   const { firstName, lastName, roles, userId, ownedNgbId, enabledFeatures } = props;
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleHomeClick = () => {
-    history.push("/");
+    navigate("/");
   };
 
   const handleLogoutClick = () => {
@@ -36,15 +36,15 @@ const Avatar = (props: AvatarProps) => {
   };
 
   const handleRefProfileClick = () => {
-    history.push(`/referees/${userId}`);
+    navigate(`/referees/${userId}`);
   };
 
   const handleNgbProfileClick = () => {
-    history.push(`/national_governing_bodies/${ownedNgbId}`);
+    navigate(`/national_governing_bodies/${ownedNgbId}`);
   };
 
   const handleSettingsClick = () => {
-    history.push("/settings");
+    navigate("/settings");
   };
 
   const renderTrigger = (onClick) => {
