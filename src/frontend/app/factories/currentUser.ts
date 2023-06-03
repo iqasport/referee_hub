@@ -1,15 +1,15 @@
-import Faker from "faker";
+import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
 
 import { Data } from "../schemas/currentUserSchema";
 
 export default Factory.define<Data>(({ sequence }) => ({
   attributes: {
-    avatarUrl: Faker.image.imageUrl(),
+    avatarUrl: faker.image.url(),
     enabledFeatures: [],
-    firstName: Faker.name.firstName(),
+    firstName: faker.person.firstName(),
     hasPendingPolicies: false,
-    lastName: Faker.name.lastName(),
+    lastName: faker.person.lastName(),
     ownedNgbId: null,
   },
   id: sequence.toString(),

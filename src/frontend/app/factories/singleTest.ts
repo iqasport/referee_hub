@@ -1,4 +1,4 @@
-import Faker from "faker";
+import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
 import { DateTime } from "luxon";
 
@@ -9,13 +9,13 @@ export default Factory.define<Data>(
     attributes: {
       active: true,
       certificationId: 1,
-      description: Faker.lorem.sentence(),
+      description: faker.lorem.sentence(),
       level: TestLevel.Assistant,
       minimumPassPercentage: 80,
-      name: `${Faker.name.jobType()} Test`,
-      negativeFeedback: Faker.lorem.sentence(),
+      name: `${faker.person.jobType()} Test`,
+      negativeFeedback: faker.lorem.sentence(),
       newLanguageId: 1,
-      positiveFeedback: Faker.lorem.sentence(),
+      positiveFeedback: faker.lorem.sentence(),
       recertification: false,
       testableQuestionCount: 10,
       timeLimit: 18,

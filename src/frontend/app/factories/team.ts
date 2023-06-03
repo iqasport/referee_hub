@@ -1,4 +1,4 @@
-import Faker from "faker";
+import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
 import { DateTime } from "luxon";
 
@@ -7,11 +7,11 @@ import { Datum, DatumType, GroupAffiliation, Status } from "../schemas/getTeamsS
 export default Factory.define<Datum>(
   ({ sequence }): Datum => ({
     attributes: {
-      city: Faker.address.city(),
-      country: Faker.address.countryCode(),
-      name: Faker.company.companyName(),
+      city: faker.location.city(),
+      country: faker.location.countryCode(),
+      name: faker.company.name(),
       groupAffiliation: GroupAffiliation.Community,
-      state: Faker.address.state(),
+      state: faker.location.state(),
       status: Status.Competitive,
       joinedAt: DateTime.local().toString(),
     },

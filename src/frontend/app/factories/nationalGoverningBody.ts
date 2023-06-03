@@ -1,20 +1,20 @@
-import Faker from "faker";
+import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
 import { Datum } from "../schemas/getNationalGoverningBodiesSchema";
 import { Region, MembershipStatus } from "../schemas/getNationalGoverningBodySchema";
 
 export default Factory.define<Datum>(
   ({ sequence }): Datum => {
-    const ngbCountry = Faker.address.country();
+    const ngbCountry = faker.location.country();
     return {
       attributes: {
         name: `${ngbCountry} Quidditch`,
-        website: Faker.internet.url(),
+        website: faker.internet.url(),
         country: ngbCountry,
         acronym: `${ngbCountry[0].toUpperCase()}Q`,
-        playerCount: Faker.random.number(500),
+        playerCount: faker.number.int(500),
         region: Region.Europe,
-        logoUrl: Faker.internet.avatar(),
+        logoUrl: faker.internet.avatar(),
         membershipStatus: MembershipStatus.Emerging,
       },
       id: sequence.toString(),
