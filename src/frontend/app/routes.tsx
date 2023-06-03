@@ -1,6 +1,5 @@
 import Bugsnag from "@bugsnag/js";
-import loadable from "@loadable/component";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Navigate, Route } from "react-router-dom";
 
@@ -10,11 +9,17 @@ import { fetchCurrentUser } from "./modules/currentUser/currentUser";
 import { RootState } from "./rootReducer";
 import { AppDispatch } from "./store";
 
-const AsyncPage = loadable((props) => import(`./pages/${props.page}`), {
-  fallback: <Loader />,
-});
-
 const PUBLIC_ROUTES = ["/privacy", /\/referees\/\d$/];
+
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const RefereeProfile = lazy(() => import("./pages/RefereeProfile"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Test = lazy(() => import("./pages/Test"));
+const StartTest = lazy(() => import("./pages/StartTest"));
+const NgbProfile = lazy(() => import("./pages/NgbProfile"));
+const ImportWizard = lazy(() => import("./pages/ImportWizard"));
+const RefereeTests = lazy(() => import("./pages/RefereeTests"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
@@ -53,6 +58,7 @@ const App = () => {
   if (currentUser) Bugsnag.setUser(id);
 
   return (
+  <Suspense fallback={<Loader />}>
     <Router>
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
@@ -71,44 +77,45 @@ const App = () => {
         </Route>
         <Route
           path="/privacy"
-          element={<AsyncPage page="PrivacyPolicy" />}
+          element={<PrivacyPolicy />}
         />
         <Route
           path="/referees/:id"
-          element={<AsyncPage page="RefereeProfile" />}
+          element={<RefereeProfile />}
         />
         <Route
           path="/admin"
-          element={<AsyncPage page="Admin" />}
+          element={<Admin />}
         />
         <Route
           path="/admin/tests/:id"
-          element={<AsyncPage page="Test" />}
+          element={<Test />}
         />
         <Route
           path="/referees/:refereeId/tests/:testId"
-          element={<AsyncPage page="StartTest" />}
+          element={<StartTest />}
         />
         <Route
           path="/national_governing_bodies/:id"
-          element={<AsyncPage page="NgbProfile" />}
+          element={<NgbProfile />}
         />
         <Route
           path="/import/:scope"
-          element={<AsyncPage page="ImportWizard" />}
+          element={<ImportWizard />}
         />
         <Route
           path="/referees/:refereeId/tests"
-          element={<AsyncPage page="RefereeTests" />}
+          element={<RefereeTests />}
         />
         {currentUser?.enabledFeatures.includes("i18n") ? (
           <Route
             path="/settings"
-            element={<AsyncPage page="Settings" />}
+            element={<Settings />}
           />
         ) : null}
       </div>
     </Router>
+  </Suspense>
   );
 };
 

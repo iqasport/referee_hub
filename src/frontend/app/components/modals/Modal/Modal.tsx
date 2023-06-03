@@ -14,7 +14,7 @@ export interface ModalProps {
   onClose?: () => void;
   showClose: boolean;
   size: ModalSize;
-  children?: React.ReactElement[];
+  children?: React.ReactNode;
 }
 
 const Modal: FunctionComponent<ModalProps> = (props) => {

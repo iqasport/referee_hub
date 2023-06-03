@@ -1,24 +1,7 @@
-const path = require('path');
+const { merge } = require('webpack-merge');
+const common = require('./webpack.config.common.js');
 
-module.exports = {
-  entry: './app/index.tsx',
+module.exports = merge(common, {
   devtool: 'inline-source-map',
   mode: 'development',
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
-  output: {
-    filename: 'management_hub.js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,
-  },
-};
+});

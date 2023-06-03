@@ -1,7 +1,8 @@
-const path = require('path');
 const Dotenv = require('dotenv-webpack');
+const { merge } = require('webpack-merge');
+const common = require('./webpack.config.common.js');
 
-module.exports = {
+module.exports = merge(common, {
   entry: './app/index.tsx',
   mode: 'production',
   plugins: [
@@ -10,21 +11,4 @@ module.exports = {
       path: './.env.prod',
     }),
   ],
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
-  output: {
-    filename: 'management_hub_app.js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,
-  },
-};
+});
