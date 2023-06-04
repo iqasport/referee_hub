@@ -1,7 +1,7 @@
 import Bugsnag from "@bugsnag/js";
 import React, { useEffect, useState, lazy, Suspense } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { BrowserRouter as Router, Navigate, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Avatar from "./components/Avatar";
 import Loader from "./components/Loader";
@@ -59,7 +59,7 @@ const App = () => {
 
   return (
   <Suspense fallback={<Loader />}>
-    <Router>
+    <BrowserRouter>
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
@@ -70,51 +70,53 @@ const App = () => {
             userId={id}
             ownedNgbId={currentUser?.ownedNgbId}
             enabledFeatures={currentUser?.enabledFeatures}
-          />
+            />
         </div>
-        <Route  path="/">
-          {redirectTo && <Navigate to={redirectTo} replace />}
-        </Route>
-        <Route
-          path="/privacy"
-          element={<PrivacyPolicy />}
-        />
-        <Route
-          path="/referees/:id"
-          element={<RefereeProfile />}
-        />
-        <Route
-          path="/admin"
-          element={<Admin />}
-        />
-        <Route
-          path="/admin/tests/:id"
-          element={<Test />}
-        />
-        <Route
-          path="/referees/:refereeId/tests/:testId"
-          element={<StartTest />}
-        />
-        <Route
-          path="/national_governing_bodies/:id"
-          element={<NgbProfile />}
-        />
-        <Route
-          path="/import/:scope"
-          element={<ImportWizard />}
-        />
-        <Route
-          path="/referees/:refereeId/tests"
-          element={<RefereeTests />}
-        />
-        {currentUser?.enabledFeatures.includes("i18n") ? (
+        <Routes>
+          <Route  path="/">
+            {redirectTo && <Navigate to={redirectTo} replace />}
+          </Route>
           <Route
-            path="/settings"
-            element={<Settings />}
+            path="/privacy"
+            element={<PrivacyPolicy />}
           />
-        ) : null}
+          <Route
+            path="/referees/:id"
+            element={<RefereeProfile />}
+          />
+          <Route
+            path="/admin"
+            element={<Admin />}
+          />
+          <Route
+            path="/admin/tests/:id"
+            element={<Test />}
+          />
+          <Route
+            path="/referees/:refereeId/tests/:testId"
+            element={<StartTest />}
+          />
+          <Route
+            path="/national_governing_bodies/:id"
+            element={<NgbProfile />}
+          />
+          <Route
+            path="/import/:scope"
+            element={<ImportWizard />}
+          />
+          <Route
+            path="/referees/:refereeId/tests"
+            element={<RefereeTests />}
+          />
+          {currentUser?.enabledFeatures.includes("i18n") ? (
+            <Route
+              path="/settings"
+              element={<Settings />}
+            />
+          ) : null}
+        </Routes>
       </div>
-    </Router>
+    </BrowserRouter>
   </Suspense>
   );
 };

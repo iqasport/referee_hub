@@ -2,36 +2,41 @@
 import Bugsnag from "@bugsnag/js";
 import BugsnagPluginReact from "@bugsnag/plugin-react";
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from 'react-dom/client';
 import { Provider } from "react-redux";
 
 import Routes from "./routes";
 import store from "./store";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const apiKey = process.env.BUGSNAG_API_KEY;
-  Bugsnag.start({
-    apiKey,
-    autoDetectErrors: true,
-    autoTrackSessions: true,
-    enabledErrorTypes: {
-      unhandledExceptions: true,
-      unhandledRejections: true,
-    },
-    plugins: [new BugsnagPluginReact()],
-  });
+  let ErrorBoundary: React.ComponentType<{children?: React.ReactNode}> = React.Fragment;
+  const bugsnugApiKey = process.env.BUGSNAG_API_KEY;
+  if (bugsnugApiKey) {
+    Bugsnag.start({
+      apiKey: bugsnugApiKey,
+      autoDetectErrors: true,
+      autoTrackSessions: true,
+      enabledErrorTypes: {
+        unhandledExceptions: true,
+        unhandledRejections: true,
+      },
+      plugins: [new BugsnagPluginReact()],
+    });
 
-  const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
+    ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
+  }
+
   const domElement = document.getElementById("main-app");
   if (!domElement) return;
+  const root = createRoot(domElement);
+  
   Bugsnag.leaveBreadcrumb("Starting application...");
 
-  ReactDOM.render(
+  root.render(
     <Provider store={store}>
       <ErrorBoundary>
         <Routes />
       </ErrorBoundary>
-    </Provider>,
-    domElement
+    </Provider>
   );
 });
