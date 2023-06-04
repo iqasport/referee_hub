@@ -17,11 +17,8 @@ using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.AmbientMetadata;
 using Microsoft.Extensions.Telemetry.Enrichment;
 using Microsoft.Extensions.Telemetry.Logging;
@@ -49,15 +46,26 @@ public static class Program
 			.ConfigureServices(ConfigureWebServices)
 			.Configure(ConfigureWebApp);
 
+		ConfigureDevelopmentTimeWebRoot(builder);
+
+		var app = builder.Build();
+
+		app.Run();
+	}
+
+	[Conditional("Debug")]
+	private static void ConfigureDevelopmentTimeWebRoot(IWebHostBuilder builder)
+	{
+		// ContentRoot = current directory (in VS that it directory of the project; when deployed it should be folder containing the EXE)
+		//    this is where appsettings files are read from for example
+		// WebRoot is relative to content root
+		//    this is where html/js files are read from
+
 		if (Environment == Environments.Development)
 		{
 			// In development we will use the external folder for quicker dev-loop
 			builder.UseWebRoot("../../frontend/dist");
 		}
-
-		var app = builder.Build();
-
-		app.Run();
 	}
 
 	private static void BuildConfiguration(WebHostBuilderContext context, IConfigurationBuilder builder)
