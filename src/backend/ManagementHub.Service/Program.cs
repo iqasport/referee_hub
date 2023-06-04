@@ -40,6 +40,7 @@ public static class Program
 	public static void Main(string[] args)
 	{
 		var builder = WebHost.CreateDefaultBuilder(args)
+			.UseWebRoot(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location) ?? string.Empty, "wwwroot"))
 			.ConfigureAppConfiguration(BuildConfiguration)
 			.ConfigureLogging(ConfigureLogging)
 			.ConfigureServices(ConfigureInstrumentation)
@@ -200,6 +201,7 @@ public static class Program
 				name: "coreadminroute",
 				pattern: "admin/db/{controller=CoreAdmin}/{action=Index}/{id?}")
 				.RequireAuthorization(AuthorizationPolicies.TechAdminPolicy);
+			endpoints.MapFallbackToFile("index.html");
 		});
 		app.UseSwaggerUI();
 	}
