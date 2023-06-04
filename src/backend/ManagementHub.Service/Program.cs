@@ -37,16 +37,23 @@ namespace ManagementHub.Service;
 
 public static class Program
 {
+	private static readonly string Environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Environments.Development;
+
 	public static void Main(string[] args)
 	{
 		var builder = WebHost.CreateDefaultBuilder(args)
-			.UseWebRoot(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location) ?? string.Empty, "wwwroot"))
 			.ConfigureAppConfiguration(BuildConfiguration)
 			.ConfigureLogging(ConfigureLogging)
 			.ConfigureServices(ConfigureInstrumentation)
 			.ConfigureServices(ConfigureServices)
 			.ConfigureServices(ConfigureWebServices)
 			.Configure(ConfigureWebApp);
+
+		if (Environment == Environments.Development)
+		{
+			// In development we will use the external folder for quicker dev-loop
+			builder.UseWebRoot("../../frontend/dist");
+		}
 
 		var app = builder.Build();
 
