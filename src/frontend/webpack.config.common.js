@@ -19,6 +19,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: 'IQA Management Hub',
       template: 'app/index.html',
+      inject: false,
     })
   ],
   output: {

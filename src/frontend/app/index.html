@@ -5,6 +5,9 @@
     <title><%= htmlWebpackPlugin.options.title %></title>
     <link rel="stylesheet" href="management_hub.css">
     <link rel="stylesheet" href="management_hub_app.css">
+    <% htmlWebpackPlugin.files.js.forEach(function(file) { %>
+      <script defer src="<%= process.env.BASE_URL %><%= file %>"></script>
+    <% }) %>
   </head>
   <body>
     <div id="main-app"></div>
