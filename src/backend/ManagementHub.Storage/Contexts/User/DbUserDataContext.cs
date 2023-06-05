@@ -37,20 +37,7 @@ public class DbUserDataContextFactory
 	public async Task<DbUserDataContext> LoadAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		this.logger.LogInformation(0, "Loading user data context for user ({userId}).", userId);
-		var userData = await this.users.WithIdentifier(userId)
-			// THIS LEFT JOIN IN PURE LINQ
-			.GroupJoin(this.languages, u => u.LanguageId, l => l.Id, (u, l) => new { User = u, Languages = l })
-			.SelectMany(join => join.Languages.DefaultIfEmpty(), (join, l) => new { join.User, Language = l })
-			// UNTIL HERE
-			.Select(join => new ExtendedUserData(new Email(join.User.Email), join.User.FirstName ?? string.Empty, join.User.LastName ?? string.Empty)
-			{
-				Bio = join.User.Bio ?? string.Empty,
-				ExportName = join.User.ExportName ?? true,
-				Pronouns = join.User.Pronouns ?? string.Empty,
-				ShowPronouns = join.User.ShowPronouns ?? false,
-				UserLang = join.Language != null ? new LanguageIdentifier(join.Language.ShortName, join.Language.ShortRegion) : LanguageIdentifier.Default,
-			})
-			.SingleOrDefaultAsync(cancellationToken);
+		var userData = await QueryUserData(this.users.AsNoTracking().WithIdentifier(userId)).SingleOrDefaultAsync(cancellationToken);
 
 		if (userData == null)
 		{
@@ -60,5 +47,19 @@ public class DbUserDataContextFactory
 		this.logger.LogInformation(0, "Returning user data context.");
 
 		return new DbUserDataContext(userId, userData);
+	}
+
+	internal static IQueryable<ExtendedUserData> QueryUserData(IQueryable<User> users)
+	{
+		return users
+			.Include(u => u.Language)
+			.Select(user => new ExtendedUserData(new Email(user.Email), user.FirstName ?? string.Empty, user.LastName ?? string.Empty)
+			{
+				Bio = user.Bio ?? string.Empty,
+				ExportName = user.ExportName ?? true,
+				Pronouns = user.Pronouns ?? string.Empty,
+				ShowPronouns = user.ShowPronouns ?? false,
+				UserLang = user.Language != null ? new LanguageIdentifier(user.Language.ShortName, user.Language.ShortRegion) : LanguageIdentifier.Default,
+			});
 	}
 }

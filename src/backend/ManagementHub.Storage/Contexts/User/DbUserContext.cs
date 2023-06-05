@@ -57,14 +57,11 @@ public class DbUserContextFactory
 	{
 		this.logger.LogInformation(0, "Loading user context for user ({userId}).", userId);
 		// TODO: optimize it later into a database level view
-		var userData = await this.users.WithIdentifier(userId)
-			// THIS LEFT JOIN IN PURE LINQ
-			.GroupJoin(this.languages, u => u.LanguageId, l => l.Id, (u, l) => new { User = u, Languages = l })
-			.SelectMany(join => join.Languages.DefaultIfEmpty(), (join, l) => new { join.User, Language = l })
-			// UNTIL HERE
-			.Select(join => new UserData(new Email(join.User.Email), join.User.FirstName ?? string.Empty, join.User.LastName ?? string.Empty)
+		var userData = await this.users.AsNoTracking().WithIdentifier(userId)
+			.Include(u => u.Language)
+			.Select(user => new UserData(new Email(user.Email), user.FirstName ?? string.Empty, user.LastName ?? string.Empty)
 			{
-				UserLang = join.Language != null ? new LanguageIdentifier(join.Language.ShortName, join.Language.ShortRegion) : LanguageIdentifier.Default,
+				UserLang = user.Language != null ? new LanguageIdentifier(user.Language.ShortName, user.Language.ShortRegion) : LanguageIdentifier.Default,
 			})
 			.SingleOrDefaultAsync(cancellationToken);
 

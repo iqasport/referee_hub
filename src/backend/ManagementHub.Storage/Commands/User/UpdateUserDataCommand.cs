@@ -9,6 +9,7 @@ using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -47,20 +48,7 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 
 		await using var transaction = await this.transactionProvider.BeginAsync();
 
-		//TODO: this was copied from DbUserDataContext and should be refactored into some single place
-		var userData = await this.users.AsNoTracking().WithIdentifier(userId)
-			// THIS LEFT JOIN IN PURE LINQ
-			.GroupJoin(this.languages, u => u.LanguageId, l => l.Id, (u, l) => new { User = u, Languages = l })
-			.SelectMany(join => join.Languages.DefaultIfEmpty(), (join, l) => new { join.User, Language = l })
-			// UNTIL HERE
-			.Select(join => new ExtendedUserData(new Email(join.User.Email), join.User.FirstName ?? string.Empty, join.User.LastName ?? string.Empty)
-			{
-				Bio = join.User.Bio ?? string.Empty,
-				ExportName = join.User.ExportName ?? true,
-				Pronouns = join.User.Pronouns ?? string.Empty,
-				ShowPronouns = join.User.ShowPronouns ?? false,
-				UserLang = join.Language != null ? new LanguageIdentifier(join.Language.ShortName, join.Language.ShortRegion) : LanguageIdentifier.Default,
-			})
+		var userData = await DbUserDataContextFactory.QueryUserData(this.users.AsNoTracking().WithIdentifier(userId))
 			.SingleAsync(cancellationToken);
 
 		var newUserData = updater(userData);
