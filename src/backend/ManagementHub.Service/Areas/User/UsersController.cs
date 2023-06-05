@@ -52,7 +52,7 @@ public class UsersController : ControllerBase
 	/// </summary>
 	/// <param name="userData">A partial model of user data.</param>
 	[HttpPatch("me/info")]
-	public async Task UpdateUserData(UserDataViewModel userData)
+	public async Task UpdateCurrentUserData(UserDataViewModel userData)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		// TODO: move it to a processor
@@ -82,7 +82,7 @@ public class UsersController : ControllerBase
 	/// <returns><c>null</c> if user has no avatar, a uri to the image otherwise</returns>
 	[HttpGet("me/avatar")]
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
-	public async Task<Uri?> GetAvatar()
+	public async Task<Uri?> GetCurrentUserAvatar()
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var avatarContext = await this.contextAccessor.GetUserAvatarContextAsync(userContext.UserId);
@@ -95,7 +95,7 @@ public class UsersController : ControllerBase
 	/// <param name="avatarBlob">Avatar image file contents (streamable).</param>
 	/// <returns>A url to download the uploaded avatar from.</returns>
 	[HttpPut("me/avatar")]
-	public async Task<Uri> UpdateAvatar(IFormFile avatarBlob)
+	public async Task<Uri> UpdateCurrentUserAvatar(IFormFile avatarBlob)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		// TODO: move it to a processor

@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.AmbientMetadata;
 using Microsoft.Extensions.Telemetry.Enrichment;
 using Microsoft.Extensions.Telemetry.Logging;
@@ -150,7 +151,13 @@ public static class Program
 			options.SlidingExpiration = true;
 			OverrideRedirectsForApiEndpoints(options);
 		});
-		services.AddSwaggerGen(options => DefaultJsonSerialization.MapSwaggerTypes(options));
+		services.AddSwaggerGen(options =>
+		{
+			// Assign a fixed operation ID to each API endpoint to equal the name of the method.
+			// Operation IDs must be unique and are used to generate operation names for the UX.
+			options.CustomOperationIds(endpoint => endpoint.ActionDescriptor.RouteValues["action"]);
+			DefaultJsonSerialization.MapSwaggerTypes(options);
+		});
 
 		services.AddSingleton<DistributedContextPropagator, CookieTraceContextPropagator>();
 		services.AddScoped<TraceCookieMiddleware>();

@@ -33,7 +33,7 @@ public class RefereesController : ControllerBase
 
 	[HttpPatch("me")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
-	public async Task UpdateReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
+	public async Task UpdateCurrentReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		await this.updateRefereeRoleCommand.UpdateRefereeRoleAsync(userContext.UserId, refereeRole => new RefereeRole
