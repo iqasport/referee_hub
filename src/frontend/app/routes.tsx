@@ -1,13 +1,10 @@
 import Bugsnag from "@bugsnag/js";
 import React, { useEffect, useState, lazy, Suspense } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Avatar from "./components/Avatar";
 import Loader from "./components/Loader";
-import { fetchCurrentUser } from "./modules/currentUser/currentUser";
-import { RootState } from "./rootReducer";
-import { AppDispatch } from "./store";
+import { useGetCurrentUserQuery } from "./store/serviceApi";
 
 const PUBLIC_ROUTES = ["/privacy", /\/referees\/\d$/];
 
@@ -23,39 +20,30 @@ const Settings = lazy(() => import("./pages/Settings"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
-  const dispatch = useDispatch<AppDispatch>();
-  const { currentUser, roles, id, error } = useSelector(
-    (state: RootState) => state.currentUser,
-    shallowEqual
-  );
+  const { currentData: currentUser, isError } = useGetCurrentUserQuery()
+  const roles = currentUser?.roles?.map(r => r.roleType);
 
   const getRedirect = () => {
-    if (roles.includes("iqa_admin")) return "/admin";
-    if (roles.includes("ngb_admin")) return `/national_governing_bodies/${currentUser?.ownedNgbId}`;
-    if (roles.includes("referee")) return `/referees/${id}`;
+    if (roles.includes("IqaAdmin")) return "/admin";
+    if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${/*TODO: currentUser?.ownedNgbId*/""}`;
+    if (roles.includes("Referee")) return `/referees/${currentUser.userId}`;
 
     return null;
   };
 
   useEffect(() => {
-    if (!currentUser) {
-      dispatch(fetchCurrentUser());
-    }
-  }, [currentUser]);
-
-  useEffect(() => {
     const isPublic = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route));
 
-    if (error && !isPublic) {
+    if (isError && !isPublic) {
       window.location.href = `${window.location.origin}/sign_in`;
     }
-  }, [error]);
+  }, [isError]);
 
   useEffect(() => {
     setRedirectTo(getRedirect());
   }, [currentUser, roles]);
 
-  if (currentUser) Bugsnag.setUser(id);
+  if (currentUser) Bugsnag.setUser(currentUser.userId);
 
   return (
   <Suspense fallback={<Loader />}>
@@ -67,9 +55,9 @@ const App = () => {
             firstName={currentUser?.firstName}
             lastName={currentUser?.lastName}
             roles={roles}
-            userId={id}
-            ownedNgbId={currentUser?.ownedNgbId}
-            enabledFeatures={currentUser?.enabledFeatures}
+            userId={currentUser?.userId}
+            ownedNgbId={/* TODO currentUser?.ownedNgbId*/ undefined}
+            enabledFeatures={/* TODO currentUser?.enabledFeatures*/ undefined}
             />
         </div>
         <Routes>
@@ -108,12 +96,12 @@ const App = () => {
             path="/referees/:refereeId/tests"
             element={<RefereeTests />}
           />
-          {currentUser?.enabledFeatures.includes("i18n") ? (
+          {/* TODO {currentUser?.enabledFeatures.includes("i18n") ? (
             <Route
               path="/settings"
               element={<Settings />}
             />
-          ) : null}
+          ) : null} */}
         </Routes>
       </div>
     </BrowserRouter>

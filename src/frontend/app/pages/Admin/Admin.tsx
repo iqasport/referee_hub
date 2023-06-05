@@ -12,6 +12,7 @@ import { CurrentUserState } from "../../modules/currentUser/currentUser";
 import { RootState } from "../../rootReducer";
 
 import ActionsButton from "./ActionsButton";
+import { useGetCurrentUserQuery } from "../../store/serviceApi";
 
 enum SelectedModal {
   Test = "test",
@@ -28,12 +29,10 @@ const Admin = () => {
   const [selectedModal, setSelectedModal] = useState<SelectedModal>();
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Ngbs);
   const navigate = useNavigate();
-  const { roles } = useSelector(
-    (state: RootState): CurrentUserState => state.currentUser,
-    shallowEqual
-  );
+  const { currentData: currentUser } = useGetCurrentUserQuery()
+  const roles = currentUser?.roles?.map(r => r.roleType);
 
-  if (roles.length && !roles.includes("iqa_admin")) navigate(-1);
+  if (roles.length && !roles.includes("IqaAdmin")) navigate(-1);
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab;
 
