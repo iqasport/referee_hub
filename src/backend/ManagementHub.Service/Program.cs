@@ -81,13 +81,13 @@ public static class Program
 
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
 	{
-		services.AddManagementHubStorage(inMemoryStorage: true);
-		services.AddManagementHubBlobStorage(localFileSystem: true);
+		services.AddManagementHubStorage(inMemoryStorage: Environment == Environments.Development);
+		services.AddManagementHubBlobStorage(localFileSystem: Environment == Environments.Development);
 		services.AddManagementHubIdentity();
 
-		services.AddHangfire(inMemoryStorage: true);
+		services.AddHangfire(inMemoryStorage: Environment == Environments.Development);
 
-		services.AddMailers(inMemory: true);
+		services.AddMailers(inMemory: Environment == Environments.Development);
 
 		services.AddHttpContextAccessor();
 		services.AddScoped<ICurrentUserGetter, CurrentUserGetter>();
@@ -120,7 +120,7 @@ public static class Program
 		services.AddControllers()
 			.AddJsonOptions(options => DefaultJsonSerialization.ConfigureOptions(options.JsonSerializerOptions));
 		services.AddRazorPages();
-		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = false); // TODO: set it based on environment
+		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = Environment == Environments.Production);
 		services.Configure<IdentityOptions>(options =>
 		{
 			// Password settings.
