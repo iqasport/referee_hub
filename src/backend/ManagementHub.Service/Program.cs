@@ -18,6 +18,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.AmbientMetadata;
@@ -54,7 +55,7 @@ public static class Program
 		app.Run();
 	}
 
-	[Conditional("Debug")]
+	[Conditional("DEBUG")]
 	private static void ConfigureDevelopmentTimeWebRoot(IWebHostBuilder builder)
 	{
 		// ContentRoot = current directory (in VS that it directory of the project; when deployed it should be folder containing the EXE)
