@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Transactions;
 using Hangfire;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Commands.Mailers;
@@ -19,13 +13,10 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Service.Extensions;
 using ManagementHub.Storage.Database.Transactions;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Service.Areas.Identity.Pages.Account;
 
@@ -106,45 +97,16 @@ public class RegisterModel : PageModel
 		if (this.ModelState.IsValid)
 		{
 			var user = new UserIdentity(UserIdentifier.NewUserId(), new Email(this.Input.Email));
-			var userId = user.UserId;
 
-			await using (var transaction = await this.databaseTransactionProvider.BeginAsync())
+			var result = await this.CreateUser(user);
+			if (!result.Succeeded)
 			{
-				var result = await this.userManager.CreateAsync(user, this.Input.Password);
+				this.AddIdentityErrorsToModel(result);
 
-				if (!result.Succeeded)
-				{
-					foreach (var error in result.Errors)
-					{
-						this.ModelState.AddModelError(string.Empty, error.Description);
-					}
-
-					return this.Page();
-				}
-
-				this.logger.LogInformation("User created a new account with password.");
-
-				await this.updateUserDataCommand.UpdateUserDataAsync(userId, (data) => new ExtendedUserData(data.Email, this.Input.FirstName, this.Input.LastName), default);
-
-				// TODO: refactor this code to make it readable (split into a few methods)
-				await transaction.CommitAsync();
+				return this.Page();
 			}
 
-			var code = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
-			code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-			var callbackUrl = this.Url.Page(
-				"/Account/ConfirmEmail",
-				pageHandler: null,
-				values: new { area = "Identity", userId = userId.ToString(), code, returnUrl },
-				protocol: this.Request.Scheme);
-
-			this.backgroundJob.Enqueue<ISendAccountEmail>(this.logger, sender =>
-				sender.SendAccountEmailAsync(userId, "Confirm your email - IQA Management Hub",
-				$"""
-				<p>Welcome to the Management Hub {this.Input.FirstName}!</p>
-				<p>You can confirm your account email through the link below:</p>
-				<p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Confirm my account</a></p>
-				""", CancellationToken.None));
+			await this.SendConfirmationEmail(user);
 
 			if (this.userManager.Options.SignIn.RequireConfirmedAccount)
 			{
@@ -161,4 +123,59 @@ public class RegisterModel : PageModel
 		return this.Page();
 	}
 
+	private async Task SendConfirmationEmail(UserIdentity user)
+	{
+		var code = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+		code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+		var userId = user.UserId;
+		var callbackUrl = this.Url.Page(
+			"/Account/ConfirmEmail",
+			pageHandler: null,
+			values: new { area = "Identity", userId = userId.ToString(), code },
+			protocol: this.Request.Scheme);
+
+		this.backgroundJob.Enqueue<ISendAccountEmail>(this.logger, sender =>
+			sender.SendAccountEmailAsync(userId, "Confirm your email - IQA Management Hub",
+			$"""
+				<p>Welcome to the Management Hub {this.Input.FirstName}!</p>
+				<p>You can confirm your account email through the link below:</p>
+				<p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Confirm my account</a></p>
+				""", CancellationToken.None));
+	}
+
+	private void AddIdentityErrorsToModel(IdentityResult result)
+	{
+		foreach (var error in result.Errors)
+		{
+			this.ModelState.AddModelError(string.Empty, error.Description);
+		}
+	}
+
+	private async Task<IdentityResult> CreateUser(UserIdentity user)
+	{
+		try
+		{
+			await using (var transaction = await this.databaseTransactionProvider.BeginAsync())
+			{
+				var result = await this.userManager.CreateAsync(user, this.Input.Password);
+
+				if (!result.Succeeded)
+				{
+					return result;
+				}
+
+				this.logger.LogInformation("User created a new account with password.");
+
+				await this.updateUserDataCommand.UpdateUserDataAsync(user.UserId, (data) => new ExtendedUserData(data.Email, this.Input.FirstName, this.Input.LastName), default);
+
+				await transaction.CommitAsync();
+			}
+
+			return IdentityResult.Success;
+		} catch (Exception ex)
+		{
+			this.logger.LogError(0, ex, "Error while creating the user.");
+			return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+		}
+	}
 }
