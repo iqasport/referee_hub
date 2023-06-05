@@ -15,8 +15,8 @@ https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.ht
 - name: Configure AWS Credentials
     uses: aws-actions/configure-aws-credentials@v2
     with:
-    role-to-assume: arn:aws:iam::558550744343:role/ManagementHubGitHubActionsRole
-    aws-region: us-east-1
+        role-to-assume: arn:aws:iam::558550744343:role/ManagementHubGitHubActionsRole
+        aws-region: us-east-1
 ```
 
 ## Elastic container registry
@@ -24,6 +24,12 @@ After creating the container repository I wanted to setup automatic publish from
 So I followed https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-amazon-elastic-container-service
 
 When working with ECR locally via AWS CLI make sure that your docker client is up to date.
+
+## Elastic Beanstalk
+We're using Beanstalk to deploy the containerized application to a VM.
+https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker.html
+
+We're using the Docker platform branch (not the ECS one).
 
 ## CloudFront (CDN)
 We have a CloudFront on top of our service for hosting static files.

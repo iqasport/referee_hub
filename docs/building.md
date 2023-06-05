@@ -25,6 +25,22 @@ build the frontend and include it in its output.
 The backend with the frontend can be packaged together into a standalone Docker image.
 Simply invoke `dotnet publish --os linux --arch x64 -c Release -p:PublishProfile=DefaultContainer`.
 
-Additionally the container registry can be specified `-p:ContainerRegistry=<repository>`
-for AWS ECR (public image). You can find the `iqasport/management-hub` repository details
-in the AWS console.
+You can run the image locally with
+
+```
+docker run -p 5001:443 -e ASPNETCORE_ENVIRONMENT=Development -e URL=http://iqareferees.org:443/ iqasport/management-hub:latest
+```
+
+In order to publish the image directly to AWS ECR:
+1. Login to docker with an access key:
+    * Manually via AWS CLI
+        ```
+        aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/g7w7d4k3
+        ```
+    * In GitHub actions use `aws-actions/configure-aws-credentials@v2` and `aws-actions/amazon-ecr-login` as per [aws.md](./aws.md)
+2. Publish the service to build the image locally
+3. Add tag `docker tag iqasport/management-hub:latest public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest`
+4. Push the image
+    ```
+    docker push public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest
+    ```
