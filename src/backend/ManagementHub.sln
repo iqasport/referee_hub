@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Service", "ManagementHub.Service\ManagementHub.Service.csproj", "{FCC371A2-353D-4F13-AF4E-1181CF5E2C39}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.API.Test", "Service.API.Test\Service.API.Test.csproj", "{635864A9-39D9-46CA-A907-525D085BFA69}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Models", "ManagementHub.Models\ManagementHub.Models.csproj", "{B5E90A5C-0DCE-48A7-9F0C-582C7149F284}"
@@ -10,8 +12,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Storage", "ManagementHub.Storage\ManagementHub.Storage.csproj", "{F47013A6-1584-40B1-A492-DAB8C1AB1D48}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Processing", "ManagementHub.Processing\ManagementHub.Processing.csproj", "{6AF058B2-CDE6-4522-98F5-63C702448DA1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Service", "ManagementHub.Service\ManagementHub.Service.csproj", "{FCC371A2-353D-4F13-AF4E-1181CF5E2C39}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementHub.Serialization", "ManagementHub.Serialization\ManagementHub.Serialization.csproj", "{D517F793-4BCB-4674-9DBC-F9C3332BEBFC}"
 EndProject
