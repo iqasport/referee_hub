@@ -228,41 +228,32 @@ public static class Program
 		app.UseSwaggerUI();
 	}
 
+	private static readonly Dictionary<Type, int> ExceptionStatusCodes = new()
+	{
+		[typeof(NotFoundException)] = StatusCodes.Status404NotFound,
+		[typeof(AccessDeniedException)] = StatusCodes.Status403Forbidden,
+		[typeof(AuthenticationRequiredException)] = StatusCodes.Status401Unauthorized,
+		[typeof(InvalidOperationException)] = StatusCodes.Status400BadRequest,
+		[typeof(ArgumentException)] = StatusCodes.Status400BadRequest,
+	};
+
 	private static async Task HandleRequestError(HttpContext context)
 	{
-		context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-
-		context.Response.ContentType = Text.Plain;
-
 		var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
 
-		// TODO move this method to another file and refactor common code
-		switch (exceptionHandlerPathFeature?.Error)
+		context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+		context.Response.ContentType = Text.Plain;
+
+		var exception = exceptionHandlerPathFeature?.Error;
+		string errorMessage = "Unexpected error occured.";
+
+		if (exception != null && ExceptionStatusCodes.TryGetValue(exception.GetType(), out int statusCode))
 		{
-			case NotFoundException notFound:
-				context.Response.StatusCode = StatusCodes.Status404NotFound;
-				await context.Response.WriteAsync(notFound.Message);
-				break;
-			case AccessDeniedException accessDenied:
-				context.Response.StatusCode = StatusCodes.Status403Forbidden;
-				await context.Response.WriteAsync(accessDenied.Message);
-				break;
-			case AuthenticationRequiredException authRequired:
-				context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-				await context.Response.WriteAsync(authRequired.Message);
-				break;
-			case InvalidOperationException invalidOperation:
-				context.Response.StatusCode = StatusCodes.Status400BadRequest;
-				await context.Response.WriteAsync(invalidOperation.Message);
-				break;
-			case ArgumentException argument:
-				context.Response.StatusCode = StatusCodes.Status400BadRequest;
-				await context.Response.WriteAsync(argument.Message);
-				break;
-			default:
-				await context.Response.WriteAsync("Unexpected error occured.");
-				break;
+			context.Response.StatusCode = statusCode;
+			errorMessage = exception.Message;
 		}
+
+		await context.Response.WriteAsync(errorMessage);
 	}
 
 	private static void ConfigureInstrumentation(WebHostBuilderContext context, IServiceCollection services)
