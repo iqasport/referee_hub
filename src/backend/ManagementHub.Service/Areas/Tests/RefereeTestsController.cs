@@ -85,12 +85,11 @@ public class RefereeTestsController : ControllerBase
 
 	[HttpGet("attempts")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
-	public async Task<IEnumerable<TestAttempt>> GetTestAttempts()
+	public async Task<IEnumerable<TestAttemptViewModel>> GetTestAttempts()
 	{
-		// TODO: return a list of test attempts/results the user has made (via view model)
-		// TODO: make sure to include any [In Progress] attempts with a link to continue the test
+		// FUTURE: make sure to include any [In Progress] attempts with a link to continue the test
 		var refereeTestCtx = await this.refereeContextAccessor.GetRefereeTestContextForCurrentUserAsync();
-		return refereeTestCtx.TestAttempts;
+		return refereeTestCtx.TestAttempts.Select(TestAttemptViewModel.FromTestAttempt);
 	}
 
 	[HttpPost("{testId}/start")]
@@ -151,7 +150,11 @@ public class RefereeTestsController : ControllerBase
 			throw new InvalidOperationException("Cannot submit an inactive test.");
 		}
 
-		// TODO: eligibility check of some sort
+		var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
+		if (eligibilityResult != RefereeEligibilityResult.Eligible)
+		{
+			throw new InvalidOperationException($"User is not eligible to start this test ({eligibilityResult}).");
+		}
 
 		CertificationLevel highestCertificationLevel = test.AwardedCertifications.Select(c => c.Level).Max();
 
