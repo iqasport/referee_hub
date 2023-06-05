@@ -8,7 +8,7 @@ public class KnownEnvironmentVariablesConfigurationProvider : ConfigurationProvi
 	/// <summary>
 	/// Http hosting port variable coming from Heroku.
 	/// </summary>
-	public static string? HttpHostingPort = Environment.GetEnvironmentVariable("PORT");
+	public static string? HostUrl = Environment.GetEnvironmentVariable("URL");
 
 	public static string? AwsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
 	public static string? AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
@@ -18,11 +18,9 @@ public class KnownEnvironmentVariablesConfigurationProvider : ConfigurationProvi
 	{
 		// For each custom environment variable we check if it's set and apply it onto Data property
 
-		if (!string.IsNullOrWhiteSpace(HttpHostingPort))
+		if (!string.IsNullOrWhiteSpace(HostUrl))
 		{
-			this.Data.Add(
-				"Kestrel:Endpoints:Http:Url",
-				$"http://localhost:{HttpHostingPort}");
+			this.Data.Add("Kestrel:Endpoints:Http:Url", HostUrl);
 		}
 
 		if (!string.IsNullOrWhiteSpace(AwsAccessKeyId))
