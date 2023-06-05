@@ -5,11 +5,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CoreAdmin" Version="2.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
     <PackageReference Include="Microsoft.Extensions.Telemetry" Version="8.0.0-preview.4.23273.7" />
+    <PackageReference Include="Microsoft.NET.Build.Containers" Version="7.0.302" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.5.0-rc.1" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol.Logs" Version="1.5.0-rc.1" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.5.0-rc.1" />
@@ -29,6 +31,8 @@
     <ProjectReference Include="..\ManagementHub.Serialization\ManagementHub.Serialization.csproj" />
     <ProjectReference Include="..\ManagementHub.Storage\ManagementHub.Storage.csproj" />
   </ItemGroup>
+
+  <!-- FRONTEND BUILD AND INCLUDE -->
 
   <PropertyGroup>
     <!-- only build front end if it hasn't been built already -->
@@ -54,5 +58,25 @@
       </Content>
     </ItemGroup>
   </Target>
+
+  <!-- PUBLISHING WITH DOCKER -->
+  <!-- see https://learn.microsoft.com/en-us/dotnet/core/docker/publish-as-container -->
+
+  <Target Name="SetupContainerDetails" AfterTargets="Build">
+    <PropertyGroup>
+      <ContainerImageName>iqasport/management-hub</ContainerImageName>
+      <ContainerImageTags>$(Version);latest</ContainerImageTags>
+    </PropertyGroup>
+    <ItemGroup>
+      <ContainerPort Include="443" Type="tcp" />
+
+      <ContainerEnvironmentVariable Include="ASPNETCORE_ENVIRONMENT" Value="Staging" />
+      <ContainerEnvironmentVariable Include="URL" Value="http://iqareferees:443" />
+      
+      <ContainerEnvironmentVariable Include="AWS_ACCESS_KEY_ID" />
+      <ContainerEnvironmentVariable Include="AWS_SECRET_ACCESS_KEY" />
+      <ContainerEnvironmentVariable Include="AWS_BUCKET" />
+    </ItemGroup>
+    </Target>
 
 </Project>
