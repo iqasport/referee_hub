@@ -103,6 +103,6 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 
 	protected override void ScheduleCompletedSessionProcessing(string sessionId, string userEmail, Certification item)
 	{
-		this.backgroundJobClient.Enqueue<IProcessCertificationPayment>(this.logger, p => p.ProcessCertificationPaymentAsync(sessionId, userEmail, item, CancellationToken.None));
+		this.backgroundJobClient.Enqueue<IProcessCertificationPaymentCommand>(this.logger, p => p.ProcessCertificationPaymentAsync(sessionId, userEmail, item, CancellationToken.None));
 	}
 }

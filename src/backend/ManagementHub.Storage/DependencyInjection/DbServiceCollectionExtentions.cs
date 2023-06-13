@@ -4,6 +4,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Redis.StackExchange;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Commands.Payments;
 using ManagementHub.Models.Abstraction.Commands.Tests;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Data;
@@ -13,6 +14,7 @@ using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.BlobStorage.AmazonS3;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
+using ManagementHub.Storage.Commands.Payments;
 using ManagementHub.Storage.Commands.Referee;
 using ManagementHub.Storage.Commands.Tests;
 using ManagementHub.Storage.Commands.User;
@@ -104,6 +106,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IUpdateUserAvatarCommand, UpdateUserAvatarCommand>();
 		services.AddScoped<IUpdateRefereeRoleCommand, UpdateRefereeRoleCommand>();
 		services.AddScoped<ISaveSubmittedTestCommand, SaveSubmittedTestCommand>();
+		services.AddScoped<IProcessCertificationPaymentCommand, ProcessCertificationPaymentCommand>();
 
 		services.AddScoped<IAttachmentRepository, AttachmentRepository>();
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();
