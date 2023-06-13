@@ -21,11 +21,6 @@ public static class DependencyInjectionExtensions
 		services.AddScoped<ISendTestFeedbackEmail, SendTestFeedbackEmail>();
 		services.AddScoped<ISendExportRefereesEmail, SendExportRefereesEmail>();
 
-		services.AddOptions<SmtpSettings>()
-			.ValidateDataAnnotations()
-			.ValidateOnStart()
-			.BindConfiguration("Mailers:SMTP");
-
 		services.AddOptions<EmailSenderSettings>()
 			.ValidateDataAnnotations()
 			.ValidateOnStart()
@@ -40,6 +35,11 @@ public static class DependencyInjectionExtensions
 		}
 		else
 		{
+			services.AddOptions<SmtpSettings>()
+				.ValidateDataAnnotations()
+				.ValidateOnStart()
+				.BindConfiguration("Mailers:SMTP");
+
 			services.AddScoped<ISender>((IServiceProvider provider) =>
 			{
 				var settings = provider.GetRequiredService<IOptionsSnapshot<SmtpSettings>>().Value;

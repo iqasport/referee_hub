@@ -82,13 +82,15 @@ public static class Program
 
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
 	{
-		services.AddManagementHubStorage(inMemoryStorage: Environment == Environments.Development);
-		services.AddManagementHubBlobStorage(localFileSystem: Environment == Environments.Development);
+		var settings = context.Configuration.GetSection("Services").Get<ServicesSettings>() ?? new ServicesSettings();
+
+		services.AddManagementHubStorage(settings.UseInMemoryDatabase);
+		services.AddManagementHubBlobStorage(settings.UseLocalFilesystemBlobStorage);
 		services.AddManagementHubIdentity();
 
-		services.AddHangfire(inMemoryStorage: Environment == Environments.Development);
+		services.AddHangfire(settings.UseInMemoryJobSystem);
 
-		services.AddMailers(inMemory: Environment == Environments.Development);
+		services.AddMailers(settings.UseDebugMailer);
 
 		services.AddHttpContextAccessor();
 		services.AddScoped<ICurrentUserGetter, CurrentUserGetter>();
@@ -118,6 +120,7 @@ public static class Program
 
 	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
 	{
+		services.AddHealthChecks();
 		services.AddControllers()
 			.AddJsonOptions(options => DefaultJsonSerialization.ConfigureOptions(options.JsonSerializerOptions));
 		services.AddRazorPages();
@@ -219,6 +222,7 @@ public static class Program
 			endpoints.MapControllers();
 			endpoints.MapRazorPages();
 			endpoints.MapSwagger();
+			endpoints.MapHealthChecks("/healthz");
 			endpoints.MapHangfireDashboard("/admin/jobs").RequireAuthorization(AuthorizationPolicies.TechAdminPolicy);
 			endpoints.MapControllerRoute(
 				name: "coreadminroute",

@@ -1,0 +1,38 @@
+services:
+    dev:
+        image: public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest
+        ports:
+          - "80:443"
+        depends_on:
+            postgres:
+                condition: service_healthy
+        links:
+            - postgres:database
+        environment:
+            ASPNETCORE_ENVIRONMENT: Staging
+            ASPNETCORE_URLS: http://iqareferees-dev:443/
+            DatabaseConnection__Host: database # hostname of postgres container
+            DatabaseConnection__Database: management_hub_staging
+            DatabaseConnection__Username: docker
+            DatabaseConnection__Password: docker
+            DatabaseConnection__TrustServerCertificate: true
+        healthcheck:
+            # we make a raw HTTP request using bash against the /healthz endpoint
+            # if it returns 200 then we're healthy (grep returns 0)
+            test: 'exec 5<>/dev/tcp/localhost/443 && echo -e "GET /healthz HTTP/1.0\n\n" >&5 && grep "200 OK" <&5'
+            interval: 5s
+            timeout: 10s
+            retries: 20
+    postgres:
+        image: postgres:13
+        ports:
+            - "6432:5432"
+        environment:
+            POSTGRES_USER: docker
+            POSTGRES_PASSWORD: docker
+            POSTGRES_DB: management_hub_staging
+        healthcheck:
+          test: /usr/bin/pg_isready -U docker -d management_hub_staging
+          interval: 5s
+          timeout: 10s
+          retries: 20

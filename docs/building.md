@@ -39,8 +39,11 @@ In order to publish the image directly to AWS ECR:
         ```
     * In GitHub actions use `aws-actions/configure-aws-credentials@v2` and `aws-actions/amazon-ecr-login` as per [aws.md](./aws.md)
 2. Publish the service to build the image locally
-3. Add tag `docker tag iqasport/management-hub:latest public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest`
+3. Add tag
+    * `docker tag iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion) public.ecr.aws/g7w7d4k3/iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion)`
+    * `docker tag iqasport/management-hub:latest public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest`
 4. Push the image
     ```
+    docker push public.ecr.aws/g7w7d4k3/iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion)
     docker push public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest
     ```
