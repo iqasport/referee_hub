@@ -394,7 +394,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 			entity.Property(e => e.CountryCode)
 				.HasColumnType("varchar(3)")
-				.HasColumnName("countryCode");
+				.HasColumnName("countrycode");
 
 			entity.Property(e => e.Acronym)
 				.HasColumnType("character varying")

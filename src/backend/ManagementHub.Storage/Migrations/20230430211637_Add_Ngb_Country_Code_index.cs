@@ -11,7 +11,7 @@ public partial class Add_Ngb_Country_Code_index : Migration
 	protected override void Up(MigrationBuilder migrationBuilder)
 	{
 		migrationBuilder.AddColumn<string>(
-			name: "countryCode",
+			name: "countrycode",
 			table: "national_governing_bodies",
 			type: "varchar(3)",
 			nullable: false);
@@ -19,11 +19,11 @@ public partial class Add_Ngb_Country_Code_index : Migration
 		migrationBuilder.CreateIndex(
 			name: "index_national_governing_bodies_on_country_code",
 			table: "national_governing_bodies",
-			column: "countryCode",
+			column: "countrycode",
 			unique: true);
 
 		// copy data from acronym into the new column
-		migrationBuilder.Sql("UPDATE national_governing_bodies SET countryCode = acronym;");
+		migrationBuilder.Sql("UPDATE national_governing_bodies SET countrycode = acronym;");
 	}
 
 	/// <inheritdoc />
@@ -34,7 +34,7 @@ public partial class Add_Ngb_Country_Code_index : Migration
 			table: "national_governing_bodies");
 
 		migrationBuilder.DropColumn(
-			name: "countryCode",
+			name: "countrycode",
 			table: "national_governing_bodies");
 	}
 }

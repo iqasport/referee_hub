@@ -453,7 +453,7 @@ namespace ManagementHub.Storage.Migrations
                     b.Property<string>("CountryCode")
                         .IsRequired()
                         .HasColumnType("varchar(3)")
-                        .HasColumnName("countryCode");
+                        .HasColumnName("countrycode");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
