@@ -69,13 +69,6 @@
     </PropertyGroup>
     <ItemGroup>
       <ContainerPort Include="443" Type="tcp" />
-
-      <ContainerEnvironmentVariable Include="ASPNETCORE_ENVIRONMENT" Value="Staging" />
-      <ContainerEnvironmentVariable Include="URL" Value="http://iqareferees:443" />
-      
-      <ContainerEnvironmentVariable Include="AWS_ACCESS_KEY_ID" />
-      <ContainerEnvironmentVariable Include="AWS_SECRET_ACCESS_KEY" />
-      <ContainerEnvironmentVariable Include="AWS_BUCKET" />
     </ItemGroup>
     </Target>
 

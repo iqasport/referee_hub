@@ -5,4 +5,4 @@ services:
           - "80:443"
         environment:
           ASPNETCORE_ENVIRONMENT: Development
-          URL: http://iqareferees-dev:443/
+          ASPNETCORE_URLS: http://iqareferees-dev:443/

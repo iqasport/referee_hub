@@ -41,7 +41,6 @@ public static class Program
 	public static void Main(string[] args)
 	{
 		var builder = WebHost.CreateDefaultBuilder(args)
-			.ConfigureAppConfiguration(BuildConfiguration)
 			.ConfigureLogging(ConfigureLogging)
 			.ConfigureServices(ConfigureInstrumentation)
 			.ConfigureServices(ConfigureServices)
@@ -68,16 +67,6 @@ public static class Program
 			// In development we will use the external folder for quicker dev-loop
 			builder.UseWebRoot("../../frontend/dist");
 		}
-	}
-
-	private static void BuildConfiguration(WebHostBuilderContext context, IConfigurationBuilder builder)
-	{
-		// configuration order matters - the last provider overrides the previous ones
-
-		// appsettings.json and appsettings.<env>.json are added via WebHost.CreateDefaultBuilder()
-
-		// add configuration specified with custom environment variables (e.g. in production by Heroku)
-		builder.Add(KnownEnvironmentVariablesConfigurationProvider.Source);
 	}
 
 	public static void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
