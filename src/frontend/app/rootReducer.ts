@@ -17,6 +17,7 @@ import teamReducer from "./modules/team/team";
 import teamsReducer from "./modules/team/teams";
 import testReducer from "./modules/test/single_test";
 import testsReducer from "./modules/test/tests";
+import { serviceApi } from './store/serviceApi'
 
 const rootReducer = combineReducers({
   certifications: certificationsReducer,
@@ -36,6 +37,8 @@ const rootReducer = combineReducers({
   teams: teamsReducer,
   test: testReducer,
   tests: testsReducer,
+
+  [serviceApi.reducerPath]: serviceApi.reducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

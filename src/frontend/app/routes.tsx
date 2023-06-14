@@ -40,10 +40,14 @@ const App = () => {
   }, [isError]);
 
   useEffect(() => {
-    setRedirectTo(getRedirect());
+    if (currentUser) {
+      setRedirectTo(getRedirect());
+    }
   }, [currentUser, roles]);
 
   if (currentUser) Bugsnag.setUser(currentUser.userId);
+
+  if (!currentUser) return <Loader />;
 
   return (
   <Suspense fallback={<Loader />}>
@@ -61,9 +65,10 @@ const App = () => {
             />
         </div>
         <Routes>
-          <Route  path="/">
-            {redirectTo && <Navigate to={redirectTo} replace />}
-          </Route>
+          <Route
+            path="/"
+            element={redirectTo && <Navigate to={redirectTo} replace />}
+          />
           <Route
             path="/privacy"
             element={<PrivacyPolicy />}
