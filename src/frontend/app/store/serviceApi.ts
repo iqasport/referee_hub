@@ -37,7 +37,7 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: `/api/v2/certifications/payments/submit`,
           method: "POST",
-          body: queryArg.event,
+          body: queryArg.body,
         }),
         invalidatesTags: ["CertificationPayments"],
       }),
@@ -138,16 +138,16 @@ const injectedRtkApi = api
     overrideExisting: false,
   });
 export { injectedRtkApi as serviceApi };
-export type GetAvailablePaymentsApiResponse = unknown;
+export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
-export type CreatePaymentSessionApiResponse = unknown;
+export type CreatePaymentSessionApiResponse = /** status 200 Success */ CheckoutSession;
 export type CreatePaymentSessionApiArg = {
   level?: CertificationLevel;
   version?: CertificationVersion;
 };
 export type SubmitPaymentSessionApiResponse = unknown;
 export type SubmitPaymentSessionApiArg = {
-  event: Event;
+  body: object;
 };
 export type ExportRefereesForNgbApiResponse = /** status 200 Success */ RefereeExportResponse;
 export type ExportRefereesForNgbApiArg = {
@@ -171,7 +171,7 @@ export type GetRefereesApiArg = {
 export type GetAvailableTestsApiResponse =
   /** status 200 Success */ RefereeTestAvailableViewModel[];
 export type GetAvailableTestsApiArg = void;
-export type GetTestAttemptsApiResponse = /** status 200 Success */ TestAttempt[];
+export type GetTestAttemptsApiResponse = /** status 200 Success */ TestAttemptViewModel[];
 export type GetTestAttemptsApiArg = void;
 export type StartTestApiResponse = /** status 200 Success */ RefereeTestStartModel;
 export type StartTestApiArg = {
@@ -200,116 +200,23 @@ export type UpdateCurrentUserAvatarApiArg = {
 };
 export type CertificationLevel = "snitch" | "assistant" | "head" | "field" | "scorekeeper";
 export type CertificationVersion = "eighteen" | "twenty" | "twentytwo";
-export type JToken = JToken[];
-export type HttpStatusCode =
-  | 100
-  | 101
-  | 102
-  | 103
-  | 200
-  | 201
-  | 202
-  | 203
-  | 204
-  | 205
-  | 206
-  | 207
-  | 208
-  | 226
-  | 300
-  | 301
-  | 302
-  | 303
-  | 304
-  | 305
-  | 306
-  | 307
-  | 308
-  | 400
-  | 401
-  | 402
-  | 403
-  | 404
-  | 405
-  | 406
-  | 407
-  | 408
-  | 409
-  | 410
-  | 411
-  | 412
-  | 413
-  | 414
-  | 415
-  | 416
-  | 417
-  | 421
-  | 422
-  | 423
-  | 424
-  | 426
-  | 428
-  | 429
-  | 431
-  | 451
-  | 500
-  | 501
-  | 502
-  | 503
-  | 504
-  | 505
-  | 506
-  | 507
-  | 508
-  | 510
-  | 511;
-export type StringStringIEnumerableKeyValuePair = {
-  key?: string | null;
-  value?: string[] | null;
+export type Certification = {
+  level?: CertificationLevel;
+  version?: CertificationVersion;
 };
-export type StripeResponse = {
-  statusCode?: HttpStatusCode;
-  headers?: StringStringIEnumerableKeyValuePair[] | null;
-  date?: string | null;
-  idempotencyKey?: string | null;
-  requestId?: string | null;
-  content?: string | null;
+export type Price = {
+  priceId?: string | null;
+  unitPrice?: number;
+  currency?: string | null;
 };
-export type IHasObject = {
-  object?: string | null;
+export type CertificationProduct = {
+  displayName?: string | null;
+  description?: string | null;
+  item?: Certification;
+  price?: Price;
 };
-export type EventData = {
-  rawJObject?: {
-    [key: string]: JToken;
-  } | null;
-  stripeResponse?: StripeResponse;
-  object?: IHasObject;
-  previousAttributes?: any | null;
-  rawObject?: any | null;
-};
-export type EventRequest = {
-  rawJObject?: {
-    [key: string]: JToken;
-  } | null;
-  stripeResponse?: StripeResponse;
-  id?: string | null;
-  idempotencyKey?: string | null;
-};
-export type Event = {
-  rawJObject?: {
-    [key: string]: JToken;
-  } | null;
-  stripeResponse?: StripeResponse;
-  id?: string | null;
-  object?: string | null;
-  account?: string | null;
-  apiVersion?: string | null;
-  created?: string;
-  data?: EventData;
-  livemode?: boolean;
-  pendingWebhooks?: number;
-  request?: EventRequest;
-  type?: string | null;
+export type CheckoutSession = {
+  sessionId?: string | null;
 };
 export type RefereeExportResponse = {
   jobId?: string | null;
@@ -322,10 +229,6 @@ export type RefereeUpdateViewModel = {
   secondaryNgb?: string | null;
   playingTeam?: TeamIdentifier;
   coachingTeam?: TeamIdentifier;
-};
-export type Certification = {
-  level?: CertificationLevel;
-  version?: CertificationVersion;
 };
 export type RefereeViewModel = {
   userId?: string;
@@ -354,12 +257,19 @@ export type RefereeTestAvailableViewModel = {
   isRefereeEligible?: boolean;
   refereeEligibilityResult?: RefereeEligibilityResult;
 };
-export type TestAttempt = {
-  id?: string;
-  userId?: string;
+export type TestAttemptFinishMethod = "Timeout" | "Submission";
+export type TestAttemptViewModel = {
   testId?: string;
   level?: CertificationLevel;
   startedAt?: string;
+  isInProgress?: boolean;
+  finishedAt?: string | null;
+  finishMethod?: TestAttemptFinishMethod;
+  score?: number | null;
+  passPercentage?: number | null;
+  passed?: boolean | null;
+  awardedCertifications?: Certification[] | null;
+  duration?: string | null;
 };
 export type Answer = {
   answerId?: number;

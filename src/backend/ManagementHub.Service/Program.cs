@@ -11,6 +11,7 @@ using ManagementHub.Serialization;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Swagger;
 using ManagementHub.Service.Telemetry;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
@@ -149,6 +150,7 @@ public static class Program
 			// Assign a fixed operation ID to each API endpoint to equal the name of the method.
 			// Operation IDs must be unique and are used to generate operation names for the UX.
 			options.CustomOperationIds(endpoint => endpoint.ActionDescriptor.RouteValues["action"]);
+			options.OperationFilter<ExternalParameterInBodyFilter>();
 			DefaultJsonSerialization.MapSwaggerTypes(options);
 		});
 

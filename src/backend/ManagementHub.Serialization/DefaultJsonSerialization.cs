@@ -1,5 +1,7 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Ngb;
@@ -22,6 +24,7 @@ public static class DefaultJsonSerialization
 		options.Converters.Add(new NgbIdentifierJsonConverter());
 		options.Converters.Add(new UserRoleJsonConverter());
 		options.Converters.Add(new PercentageJsonConverter());
+		options.Converters.Add(JsonMetadataServices.TimeSpanConverter);
 
 		options.AllowTrailingCommas = true;
 		options.NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals;
@@ -53,6 +56,7 @@ public static class DefaultJsonSerialization
 			};
 		});
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(Percentage), () => new OpenApiSchema { Type = "number" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TimeSpan), () => new OpenApiSchema { Type = "string" });
 
 		return options;
 	}
