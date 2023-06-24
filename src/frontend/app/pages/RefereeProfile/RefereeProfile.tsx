@@ -16,6 +16,7 @@ import { IdParams } from "./types";
 import { useGetRefereeQuery, useGetTestAttemptsQuery, useUpdateCurrentRefereeMutation } from "../../store/serviceApi";
 import { RefereeLocationOptions } from "./RefereeLocation/RefereeLocation";
 import { RefereeTeamOptions } from "./RefereeTeam/RefereeTeam";
+import { getErrorString } from "../../utils/errorUtils";
 
 const RefereeDetails = () => {
   const { id } = useParams<IdParams>();
@@ -51,7 +52,7 @@ const RefereeDetails = () => {
       </button>}
     </div>
     { updateRefereeError && <div>
-      Error: {updateRefereeError.toString()}
+      Error: {getErrorString(updateRefereeError)}
     </div>}
     <RefereeLocation
       locations={{
@@ -85,7 +86,7 @@ const RefereeProfile = () => {
   const { currentData: referee, error: refereeGetError } = useGetRefereeQuery({ userId: id });
   const { data: testAttempts, error: testAttemptsError } = useGetTestAttemptsQuery(undefined, {skip: id !== "me"})
 
-  if (refereeGetError) return <p style={{color: "red"}}>{refereeGetError.toString()}</p>;
+  if (refereeGetError) return <p style={{color: "red"}}>{getErrorString(refereeGetError)}</p>;
   if (!referee) return null;
 
   const isCertificationsVisible = id === "me"; // TODO || isIqaAdmin;

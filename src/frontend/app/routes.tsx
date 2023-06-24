@@ -6,7 +6,7 @@ import Avatar from "./components/Avatar";
 import Loader from "./components/Loader";
 import { useGetCurrentUserQuery } from "./store/serviceApi";
 
-const PUBLIC_ROUTES = ["/privacy", /\/referees\/\d$/];
+const PUBLIC_ROUTES = ["/privacy", /\/referees\/\w*$/];
 
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const RefereeProfile = lazy(() => import("./pages/RefereeProfile"));
@@ -20,13 +20,13 @@ const Settings = lazy(() => import("./pages/Settings"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
-  const { currentData: currentUser, isError } = useGetCurrentUserQuery()
+  const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery()
   const roles = currentUser?.roles?.map(r => r.roleType);
 
   const getRedirect = () => {
     if (roles.includes("IqaAdmin")) return "/admin";
     if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${/*TODO: currentUser?.ownedNgbId*/""}`;
-    if (roles.includes("Referee")) return `/referees/me`;
+    if (roles.includes("Referee")) return `/referees/${"me"}`;
 
     return null;
   };
@@ -47,7 +47,7 @@ const App = () => {
 
   if (currentUser) Bugsnag.setUser(currentUser.userId);
 
-  if (!currentUser) return <Loader />;
+  if (isLoading === true) return <Loader />;
 
   return (
   <Suspense fallback={<Loader />}>
@@ -55,14 +55,14 @@ const App = () => {
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
-          <Avatar
-            firstName={currentUser?.firstName}
-            lastName={currentUser?.lastName}
+          { currentUser && <Avatar
+            firstName={currentUser.firstName}
+            lastName={currentUser.lastName}
             roles={roles}
-            userId={currentUser?.userId}
+            userId={currentUser.userId}
             ownedNgbId={/* TODO currentUser?.ownedNgbId*/ undefined}
             enabledFeatures={/* TODO currentUser?.enabledFeatures*/ undefined}
-            />
+            />}
         </div>
         <Routes>
           <Route
