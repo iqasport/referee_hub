@@ -6,6 +6,11 @@ namespace ManagementHub.Service.Areas.Tests;
 public class TestAttemptViewModel
 {
 	/// <summary>
+	/// Id of this attempt.
+	/// </summary>
+	public required TestAttemptIdentifier AttemptId { get; set; }
+
+	/// <summary>
 	/// Identifier of the attempted test.
 	/// </summary>
 	public required TestIdentifier TestId { get; set; }
@@ -64,6 +69,7 @@ public class TestAttemptViewModel
 	{
 		var model = new TestAttemptViewModel
 		{
+			AttemptId = attempt.Id,
 			TestId = attempt.TestId,
 			Level = attempt.Level,
 			StartedAt = attempt.StartedAt,
