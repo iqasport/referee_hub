@@ -37,6 +37,7 @@ public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 
 		var userId = await this.dbContext.Users.AsNoTracking().WithIdentifier(finishedTest.UserId).Select(u => u.Id).SingleAsync();
 		var testId = await this.dbContext.Tests.AsNoTracking().WithIdentifier(finishedTest.TestId).Select(t => t.Id).SingleAsync();
+		var certifications = await this.dbContext.Certifications.ToListAsync();
 
 		var attempt = new Models.Data.TestAttempt
 		{
@@ -74,8 +75,20 @@ public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 			TimeStarted = TimeOnly.FromDateTime(finishedTest.StartedAt),
 		};
 
+		var refereeCertifications = finishedTest.AwardedCertifications?.Select(cert => new Models.Data.RefereeCertification
+		{
+			CertificationId = certifications.Where(c => c.Level == cert.Level && c.Version == cert.Version).Select(c => c.Id).Single(),
+			CreatedAt = finishedTest.FinishedAt,
+			ReceivedAt = finishedTest.FinishedAt,
+			UpdatedAt = finishedTest.FinishedAt,
+			RefereeId = userId,
+		});
+
 		this.dbContext.TestAttempts.Add(attempt);
 		this.dbContext.TestResults.Add(result);
+
+		if (refereeCertifications != null)
+			this.dbContext.RefereeCertifications.AddRange(refereeCertifications);
 
 		await this.dbContext.SaveChangesAsync();
 		await transaction.CommitAsync();

@@ -165,6 +165,7 @@ public class RefereeTestsController : ControllerBase
 			(q, a) => (question: q, selectedAnswer: q.Answers.FirstOrDefault(aa => a.AnswerId == aa.AnswerId.Id)))
 			.Where(p => p.selectedAnswer != null)
 			.Cast<(Question question, Answer selectedAnswer)>()
+			.DistinctBy(p => p.question.QuestionId)
 			.ToList();
 
 		var expectedNumberOfQuestions = ((SubsetCountQuestionChoicePolicy)test.QuestionChoicePolicy).QuestionsCount;

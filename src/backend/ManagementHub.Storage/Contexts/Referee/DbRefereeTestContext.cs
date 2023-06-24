@@ -53,7 +53,7 @@ public class DbRefereeTestContextFactory
 				HeadCertificationsPaid = u.CertificationPayments.Select(p => p.Certification.Version ?? default).ToList(),
 				TestAttempts = u.TestResults.Select(tr => new FinishedTestAttempt
 				{
-					AwardedCertifications = GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false),
+					AwardedCertifications = tr.Passed == true ? GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false) : new HashSet<Certification>(),
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
 					Level = tr.Test.Certification.Level,
