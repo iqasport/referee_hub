@@ -1,9 +1,14 @@
-using ManagementHub.Models.Enums;
+﻿using ManagementHub.Models.Enums;
 
-namespace ManagementHub.Models.Domain.Ngb;
+namespace ManagementHub.Service.Areas.Ngbs;
 
-public class NgbData
+public class NgbViewModel
 {
+	/// <summary>
+	/// The identifier of the NGB.
+	/// </summary>
+	public required string CountryCode { get; set; }
+
 	/// <summary>
 	/// Official name of the NGB. 
 	/// </summary>
@@ -19,7 +24,13 @@ public class NgbData
 	/// </summary>
 	public string? Acronym { get; set; }
 
+	/// <summary>
+	/// Region the NGB is in.
+	/// </summary>
 	public NgbRegion? Region { get; set; }
 
+	/// <summary>
+	/// Membership status of the NGB.
+	/// </summary>
 	public NgbMembershipStatus MembershipStatus { get; set; }
 }
