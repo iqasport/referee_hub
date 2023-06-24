@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import CheckoutModal from "../../components/modals/CheckoutModal";
 import RefereeTestsTable from "../../components/tables/RefereeTestsTable";
@@ -8,6 +8,7 @@ import Toast from "../../components/Toast";
 import { fetchReferee, RefereeState } from "../../modules/referee/referee";
 import { RootState } from "../../rootReducer";
 import { AppDispatch } from "../../store";
+import { useGetCurrentRefereeQuery } from "../../store/serviceApi";
 
 type IdParams = {
   refereeId: string;
@@ -15,27 +16,12 @@ type IdParams = {
 
 const RefereeTests = () => {
   const { refereeId } = useParams<IdParams>();
+  if (refereeId !== "me") {
+    return <p>Cannot view tests for another referee.</p>;
+  }
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<string>(null);
-  const dispatch = useDispatch<AppDispatch>();
-  const { referee, id } = useSelector(
-    (state: RootState): RefereeState => state.referee,
-    shallowEqual
-  );
-
-  useEffect(() => {
-    if (!referee || id !== refereeId) {
-      dispatch(fetchReferee(refereeId));
-    }
-  }, [refereeId]);
-
-  useEffect(() => {
-    const [, status] = window.location.href.split("=");
-    if (status !== paymentStatus) {
-      setPaymentStatus(status);
-    }
-  }, [paymentStatus]);
-
+  const paymentStatus = new URLSearchParams(window.location.search).get("paymentStatus");
+  
   const handleCheckoutOpen = () => setCheckoutOpen(true);
   const handleCheckoutClose = () => setCheckoutOpen(false);
 
@@ -59,7 +45,7 @@ const RefereeTests = () => {
         </div>
         <RefereeTestsTable refId={refereeId} />
       </div>
-      <CheckoutModal open={checkoutOpen} refId={refereeId} onClose={handleCheckoutClose} />
+      <CheckoutModal open={checkoutOpen} onClose={handleCheckoutClose} />
     </div>
   );
 };

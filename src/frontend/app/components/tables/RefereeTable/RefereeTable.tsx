@@ -156,6 +156,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
         onRowClick={handleRowClick}
         emptyRenderer={renderEmpty}
         isHeightRestricted={isHeightRestricted}
+        getId={ref => ref.id}
       />
     </div>
   );

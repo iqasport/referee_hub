@@ -21,9 +21,11 @@ interface TableProps<T> {
   isLoading: boolean;
   onRowClick?: (id: string) => void;
   isHeightRestricted: boolean;
+  getId: (item: T) => string;
+  disabled?: (item: T) => boolean;
 }
 
-const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
+const Table = <T extends any>(props: TableProps<T>) => {
   const {
     items,
     isLoading,
@@ -38,17 +40,20 @@ const Table = <T extends Referee | Test | Team | Ngb>(props: TableProps<T>) => {
     if (onRowClick) onRowClick(id);
   };
 
+  const disabledTextClass = "text-gray-500"
+
   const renderRow = (item: T) => {
+    const disabled = props.disabled && props.disabled(item);
     return (
-      <tr key={item.id} className="border border-gray-300 hover:bg-gray-300">
+      <tr key={props.getId(item)} className={`border border-gray-300 hover:bg-gray-300 ${disabled ? disabledTextClass : ""}`}>
         {rowConfig.map((cell) => {
-          const handleClick = cell.dataKey === "actions" ? null : handleRowClick(item.id);
+          const handleClick = cell.dataKey === "actions" ? null : handleRowClick(props.getId(item));
 
           return (
             <td
               key={cell.dataKey}
               className={`w-1/4 py-4 px-8 ${cell.customStyle}`}
-              onClick={handleClick}
+              onClick={disabled ? undefined : handleClick}
             >
               {cell.cellRenderer(item)}
             </td>

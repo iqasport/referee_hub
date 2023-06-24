@@ -30,18 +30,22 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 		this.refereeContextAccessor = refereeContextAccessor;
 	}
 
-	protected override async Task<bool> CanPurchaseItemAsync(Certification item)
+	protected override async Task<IDictionary<Certification, ProductStatus>> CanPurchaseItemsAsync(IEnumerable<Certification> item)
 	{
 		// TODO: make another smaller context for this check
 		var referee = await this.refereeContextAccessor.GetRefereeTestContextForCurrentUserAsync();
-		
-		if (referee.HeadCertificationsPaid.Contains(item.Version))
+
+		ProductStatus HasPaidForCertification(Certification i)
 		{
-			this.logger.LogInformation(0, "Referee has already paid for this HR certification ({certification}).", item.Version);
-			return false;
+			if (referee.HeadCertificationsPaid.Contains(i.Version))
+			{
+				return ProductStatus.AlreadyPurchased; 
+			}
+			
+			return ProductStatus.Available;
 		}
 
-		return true;
+		return item.ToDictionary(i => i, HasPaidForCertification);
 	}
 
 	protected override Dictionary<string, string> ItemAsMetadata(Certification item)

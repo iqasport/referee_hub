@@ -105,6 +105,7 @@ const NgbTable = () => {
         isLoading={isLoading}
         emptyRenderer={renderEmpty}
         onRowClick={handleRowClick}
+        getId={ngb => ngb.id}
       />
       {activeEdit ? (
         <NgbEditModal

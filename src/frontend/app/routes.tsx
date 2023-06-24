@@ -6,7 +6,7 @@ import Avatar from "./components/Avatar";
 import Loader from "./components/Loader";
 import { useGetCurrentUserQuery } from "./store/serviceApi";
 
-const PUBLIC_ROUTES = ["/privacy", /\/referees\/\w*$/];
+const PUBLIC_ROUTES = ["/privacy"];
 
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const RefereeProfile = lazy(() => import("./pages/RefereeProfile"));

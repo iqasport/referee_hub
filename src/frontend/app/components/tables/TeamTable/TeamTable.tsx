@@ -170,6 +170,7 @@ const TeamTable = (props: TeamTableProps) => {
         rowConfig={rowConfig}
         emptyRenderer={renderEmpty}
         isHeightRestricted={true}
+        getId={team => team.id}
       />
       {renderModals()}
     </div>

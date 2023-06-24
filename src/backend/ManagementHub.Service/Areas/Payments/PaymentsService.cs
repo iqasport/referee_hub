@@ -1,4 +1,5 @@
-﻿using ManagementHub.Models.Domain.General;
+﻿using System.Text.Json.Serialization;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Exceptions;
 using Stripe;
 using Stripe.Checkout;
@@ -30,7 +31,7 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 	/// <summary>
 	/// Checks if the user can purchase a given item (e.g. that they haven't purchased one before if they can have just one, or that they're eligible).
 	/// </summary>
-	protected abstract Task<bool> CanPurchaseItemAsync(TItem item);
+	protected abstract Task<IDictionary<TItem, ProductStatus>> CanPurchaseItemsAsync(IEnumerable<TItem> items);
 
 	/// <summary>
 	/// Converts item into string format.
@@ -62,18 +63,26 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 			Expand = new List<string> { "default_price" },
 		});
 
-		return products.Where(this.ProductFilter).Select(product => new Product<TItem>
+		var productWithItem = products.Select(p => (product: p, item: this.ItemOfProduct(p)))
+			.Where(pp => pp.item != null)
+			.Cast<(Product product, TItem item)>()
+			.ToDictionary(pp => pp.product, pp => pp.item);
+
+		var itemWithStatus = await this.CanPurchaseItemsAsync(productWithItem.Values);
+
+		return productWithItem.Select(pp => new Product<TItem>
 		{
-			Item = this.ItemOfProduct(product)!, // the ProductFilter asserts this won't be null
-			DisplayName = product.Name,
-			Description = product.Description,
+			Item = pp.Value,
+			DisplayName = pp.Key.Name,
+			Description = pp.Key.Description,
+			Status = itemWithStatus[pp.Value],
 			Price = new Price
 			{
-				PriceId = product.DefaultPriceId,
-				Currency = product.DefaultPrice.Currency,
+				PriceId = pp.Key.DefaultPriceId,
+				Currency = pp.Key.DefaultPrice.Currency,
 				// Stripe returns the price in cents (0.01 of Currency unit)
 				// I'm going to normalize it into the decimal type.
-				UnitPrice = product.DefaultPrice.UnitAmount!.Value / 100m,
+				UnitPrice = pp.Key.DefaultPrice.UnitAmount!.Value / 100m,
 			}
 		});
 	}
@@ -85,7 +94,9 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 	{
 		ArgumentNullException.ThrowIfNull(item);
 
-		if (!await this.CanPurchaseItemAsync(item))
+		var status = (await this.CanPurchaseItemsAsync(new[] { item })).Single().Value;
+
+		if (status != ProductStatus.Available)
 		{
 			throw new InvalidOperationException($"Item {item} cannot be purchased.");
 		}
@@ -134,13 +145,18 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 
 		this.ScheduleCompletedSessionProcessing(session.Id, session.CustomerEmail, this.ItemOfMetadata(session.Metadata));
 	}
-
-	private bool ProductFilter(Product product) => this.ItemOfProduct(product) != null;
 }
 
 public static class PaymentsServiceConstants
 {
 	public static readonly string CheckoutSessionCompleted = "checkout.session.completed";
+}
+
+[JsonConverter(typeof(JsonStringEnumMemberConverter))]
+public enum ProductStatus
+{
+	Available,
+	AlreadyPurchased,
 }
 
 public class Product<TItem>
@@ -149,6 +165,7 @@ public class Product<TItem>
 	public required string Description { get; set; }
 	public required TItem Item { get; set; }
 	public required Price Price { get; set; }
+	public required ProductStatus Status { get; set; }
 }
 
 public struct Price

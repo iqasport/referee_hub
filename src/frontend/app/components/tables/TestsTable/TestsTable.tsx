@@ -169,6 +169,7 @@ const TestsTable = () => {
         emptyRenderer={renderEmpty}
         rowConfig={rowConfig}
         isHeightRestricted={false}
+        getId={test => test.id}
       />
       {renderModals()}
     </>

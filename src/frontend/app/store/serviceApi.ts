@@ -242,11 +242,13 @@ export type Price = {
   unitPrice?: number;
   currency?: string | null;
 };
+export type ProductStatus = "Available" | "AlreadyPurchased";
 export type CertificationProduct = {
   displayName?: string | null;
   description?: string | null;
   item?: Certification;
   price?: Price;
+  status?: ProductStatus;
 };
 export type CheckoutSession = {
   sessionId?: string | null;
@@ -309,6 +311,7 @@ export type RefereeTestAvailableViewModel = {
   language?: string;
   isRefereeEligible?: boolean;
   refereeEligibilityResult?: RefereeEligibilityResult;
+  level?: CertificationLevel;
 };
 export type TestAttemptFinishMethod = "Timeout" | "Submission";
 export type TestAttemptViewModel = {

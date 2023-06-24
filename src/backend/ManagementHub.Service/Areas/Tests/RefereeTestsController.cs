@@ -71,7 +71,7 @@ public class RefereeTestsController : ControllerBase
 			var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
 			response.Add(new RefereeTestAvailableViewModel
 			{
-				AwardedCertifications = test.AwardedCertifications,
+				AwardedCertifications = test.AwardedCertifications.Order(),
 				IsRefereeEligible = eligibilityResult == RefereeEligibilityResult.Eligible,
 				RefereeEligibilityResult = eligibilityResult,
 				Language = test.Language,
