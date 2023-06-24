@@ -1,5 +1,6 @@
 ﻿using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,17 @@ public class UsersController : ControllerBase
 	}
 
 	/// <summary>
+	/// Retrieves personal information about another user.
+	/// </summary>
+	[HttpGet("{userId}/info")]
+	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
+	public async Task<UserDataViewModel> GetUserData([FromRoute] UserIdentifier userId)
+	{
+		var userDataContext = await this.contextAccessor.GetUserDataContextAsync(userId);
+		return new UserDataViewModel(userDataContext, isCurrentUser: false);
+	}
+
+	/// <summary>
 	/// Updates the personal information of the currently signed-in user.
 	/// </summary>
 	/// <param name="userData">A partial model of user data.</param>
@@ -55,11 +67,14 @@ public class UsersController : ControllerBase
 	public async Task UpdateCurrentUserData(UserDataViewModel userData)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		static string? DefaultIfEmpty(string? value, string? defaultValue) => string.IsNullOrWhiteSpace(value) ? defaultValue : value;
+
 		// TODO: move it to a processor
 		await this.updateUserDataCommand.UpdateUserDataAsync(userContext.UserId, (data) =>
 		{
-			var firstName = userData.FirstName ?? data.FirstName;
-			var lastName = userData.LastName ?? data.LastName;
+			var firstName = DefaultIfEmpty(userData.FirstName, data.FirstName);
+			var lastName = DefaultIfEmpty(userData.LastName, data.LastName);
 			var bio = userData.Bio ?? data.Bio;
 			var pronouns = userData.Pronouns ?? data.Pronouns;
 			var showPronouns = userData.ShowPronouns ?? data.ShowPronouns;
@@ -86,6 +101,20 @@ public class UsersController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var avatarContext = await this.contextAccessor.GetUserAvatarContextAsync(userContext.UserId);
+		return avatarContext.AvatarUri;
+	}
+
+	/// <summary>
+	/// Retrieves the url of the avatar of another user.
+	/// </summary>
+	/// <returns><c>null</c> if user has no avatar, a uri to the image otherwise</returns>
+	[HttpGet("{userId}/avatar")]
+	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
+	[ProducesResponseType(typeof(Uri), StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	public async Task<Uri?> GetUserAvatar([FromRoute] UserIdentifier userId)
+	{
+		var avatarContext = await this.contextAccessor.GetUserAvatarContextAsync(userId);
 		return avatarContext.AvatarUri;
 	}
 
