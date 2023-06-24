@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,6 +61,7 @@ public class DbUserDataContextFactory
 				Pronouns = user.Pronouns ?? string.Empty,
 				ShowPronouns = user.ShowPronouns ?? false,
 				UserLang = user.Language != null ? new LanguageIdentifier(user.Language.ShortName, user.Language.ShortRegion) : LanguageIdentifier.Default,
+				CreatedAt = DateOnly.FromDateTime(user.CreatedAt),
 			});
 	}
 }

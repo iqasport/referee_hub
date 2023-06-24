@@ -1,4 +1,5 @@
-﻿using ManagementHub.Models.Domain.General;
+﻿using System;
+using ManagementHub.Models.Domain.General;
 
 namespace ManagementHub.Models.Domain.User;
 
@@ -30,4 +31,9 @@ public class ExtendedUserData : UserData
 	/// Whether to show user name in exported data.
 	/// </summary>
 	public bool ExportName { get; set; } = true;
+
+	/// <summary>
+	/// Date when the user signed up.
+	/// </summary>
+	public DateOnly CreatedAt { get; set; }
 }

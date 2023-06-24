@@ -27,6 +27,7 @@ public class UserDataViewModel
 		}
 		this.ExportName = userDataContext.ExtendedUserData.ExportName;
 		this.Language = userDataContext.ExtendedUserData.UserLang;
+		this.CreatedAt = userDataContext.ExtendedUserData.CreatedAt;
 	}
 
 	public string? FirstName { get; set; }
@@ -36,4 +37,5 @@ public class UserDataViewModel
 	public bool? ShowPronouns { get; set; }
 	public bool? ExportName { get; set; }
 	public LanguageIdentifier? Language { get; set; }
+	public DateOnly CreatedAt { get; set; }
 }
