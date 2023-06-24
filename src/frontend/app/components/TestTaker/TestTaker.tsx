@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
 import { FormattedQuestion } from "../../pages/StartTest/StartTest";
-import { Included } from "../../schemas/getQuestionsSchema";
 
 import Counter from "../Counter";
 import ProgressBar from "../ProgressBar";
@@ -37,20 +36,20 @@ const TestTaker = (props: TestTakerProps) => {
 
   const handleAnswerChange = (answerId: string) => () => onAnswerSelect(answerId);
 
-  const renderAnswer = (answer: Included) => {
-    const isSelected = selectedAnswer === answer.id;
+  const renderAnswer = (answer: { answerId: string; description: string }) => {
+    const isSelected = selectedAnswer === answer.answerId;
 
     return (
-      <div className="flex my-4 items-center" key={answer.id}>
+      <div className="flex my-4 items-center" key={answer.answerId}>
         <input
           type="checkbox"
           className="form-checkbox mx-4"
-          onChange={handleAnswerChange(answer.id)}
+          onChange={handleAnswerChange(answer.answerId)}
           checked={isSelected}
         />
         <div
           className="text-left"
-          dangerouslySetInnerHTML={{ __html: answer.attributes.description }}
+          dangerouslySetInnerHTML={{ __html: answer.description }}
         />
       </div>
     );

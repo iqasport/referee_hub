@@ -92,6 +92,28 @@ public class RefereeTestsController : ControllerBase
 		return refereeTestCtx.TestAttempts.Select(TestAttemptViewModel.FromTestAttempt);
 	}
 
+	[HttpGet("{testId}/details")]
+	[Authorize(AuthorizationPolicies.RefereePolicy)]
+	public async Task<RefereeTestDetailsViewModel> GetTestDetails([FromRoute] TestIdentifier testId)
+	{
+		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
+		var test = await this.testProvider.GetTestAsync(testId, this.HttpContext.RequestAborted);
+		var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
+
+		return new RefereeTestDetailsViewModel
+		{
+			AwardedCertifications = test.AwardedCertifications.Order(),
+			IsRefereeEligible = eligibilityResult == RefereeEligibilityResult.Eligible,
+			Language = test.Language,
+			TestId = test.TestId,
+			Title = test.Title,
+			TimeLimit = test.TimeLimit,
+			Description = test.Description,
+			MaximumAttempts = test.MaximumAttempts,
+			PassPercentage = test.PassPercentage,
+		};
+	}
+
 	[HttpPost("{testId}/start")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<RefereeTestStartModel> StartTest([FromRoute] TestIdentifier testId)
@@ -153,7 +175,7 @@ public class RefereeTestsController : ControllerBase
 		var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
 		if (eligibilityResult != RefereeEligibilityResult.Eligible)
 		{
-			throw new InvalidOperationException($"User is not eligible to start this test ({eligibilityResult}).");
+			throw new InvalidOperationException($"User is not eligible to submit this test ({eligibilityResult}).");
 		}
 
 		CertificationLevel highestCertificationLevel = test.AwardedCertifications.Select(c => c.Level).Max();

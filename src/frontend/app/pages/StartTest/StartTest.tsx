@@ -1,51 +1,37 @@
 import { faCheckSquare, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { shuffle } from "lodash";
 import { DateTime, Duration } from "luxon";
 import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { FinishTestRequest, RefereeAnswer } from "../../apis/job";
 import NewTestTaker from "../../components/TestTaker";
-import { finishTest } from "../../modules/job/job";
-import { startTest } from "../../modules/question/questions";
-import { clearTest, getTest } from "../../modules/test/single_test";
-import { RootState } from "../../rootReducer";
-import { GetQuestionsSchemaDatum, Included } from "../../schemas/getQuestionsSchema";
-import { AppDispatch } from "../../store";
+import { useGetTestDetailsQuery, useStartTestMutation, useSubmitTestMutation, Question, SubmittedTestAnswer } from "../../store/serviceApi";
+import { getErrorString } from "../../utils/errorUtils";
 
 export type FormattedQuestion = {
   questionId: string;
   description: string;
-  answers: Included[];
+  answers: { answerId: string; description: string }[];
   selectedAnswer: string;
 };
 
 const formatQuestions = (
-  questions: GetQuestionsSchemaDatum[],
-  answers: Included[]
+  questions: Question[]
 ): FormattedQuestion[] => {
   return questions.map(
-    (question): FormattedQuestion => {
-      const filteredAnswers = answers.filter(
-        (answer) => String(answer.attributes.questionId) === question.id
-      );
-
-      return {
-        answers: shuffle(filteredAnswers),
-        description: question.attributes.description,
-        questionId: question.id,
+    (question): FormattedQuestion => ({
+        answers: question.answers.map(answer => ({ answerId: answer.answerId.toString(), description: answer.htmlText })),
+        description: question.htmlText,
+        questionId: question.questionId.toString(),
         selectedAnswer: null,
-      };
-    }
-  );
-};
+      }));
+}
 
-const buildRefereeAnswers = (testQuestions: FormattedQuestion[]): RefereeAnswer[] => {
+const buildRefereeAnswers = (testQuestions: FormattedQuestion[]): SubmittedTestAnswer[] => {
   return testQuestions.map((question: FormattedQuestion) => ({
-    answer_id: question.selectedAnswer,
-    question_id: question.questionId,
+    // the plus here converts string to a number
+    answerId: +question.selectedAnswer,
+    questionId: +question.questionId,
   }));
 };
 
@@ -75,42 +61,33 @@ const StartTest = () => {
   });
 
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
-  const { test, error: testError, isLoading: testLoading } = useSelector(
-    (state: RootState) => state.test,
-    shallowEqual
-  );
-  const { questions, answers, isLoading: questionsLoading, error: questionsError } = useSelector(
-    (state: RootState) => state.questions,
-    shallowEqual
-  );
+  
+  // TODO: create a single call endpoint?
+  const { currentData: test, isLoading: testDetailsLoading, error: getTestError } = useGetTestDetailsQuery({ testId });
+
+  const [startTest, { data: startedTest, error: startTestError }] = useStartTestMutation();
+  const [submitTest, { data: submittedTest, error: submitTestError }] = useSubmitTestMutation();
+
+  const timeLimitInMinutes = test && Duration.fromISOTime(test.timeLimit).minutes;
 
   useEffect(() => {
-    if (!test || test.id !== testId) {
-      dispatch(getTest(testId));
-    }
-  }, [testId, test]);
-
-  useEffect(() => {
-    const questionsMatchTest = questions[0]?.attributes.testId === parseInt(testId, 10);
-    if (!questionsLoading && questionsMatchTest) {
-      const formattedQuestions = formatQuestions(questions, answers);
+    if (startedTest) {
+      const formattedQuestions = formatQuestions(startedTest.questions);
       setTestQuestions(formattedQuestions);
       setCurrentQuestion(formattedQuestions[0]);
-      setStartedAt(DateTime.local());
+      setStartedAt(DateTime.utc());
     }
-  }, [questions, answers, questionsLoading, testId]);
+  }, [startedTest]);
 
   const isLastQuestion = currentQuestionIndex === testQuestions.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
 
   const handleGoBack = () => {
-    dispatch(clearTest);
     navigate(`/referees/${refereeId}`);
   };
 
   const handleStartTest = () => {
-    dispatch(startTest(testId));
+    startTest({ testId });
   };
 
   const handleNext = () => {
@@ -135,13 +112,10 @@ const StartTest = () => {
     }
     const finishedTime = startedAt.plus(duration);
 
-    const request: FinishTestRequest = {
-      finishedAt: finishedTime,
-      refereeAnswers: buildRefereeAnswers(testQuestions),
-      startedAt,
-    };
-
-    dispatch(finishTest(testId, request));
+    submitTest({testId, refereeTestSubmitModel: {
+      startedAt: startedAt.toISO(),
+      answers: buildRefereeAnswers(testQuestions),
+    }});
     setFinishedAt(finishedTime);
     setTestQuestions([]);
     setStartedAt(null);
@@ -209,7 +183,7 @@ const StartTest = () => {
   const renderTest = () => {
     return (
       <NewTestTaker
-        timeLimit={test?.attributes.timeLimit}
+        timeLimit={timeLimitInMinutes}
         currentQuestion={currentQuestion}
         onAnswerSelect={handleAnswerSelect}
         totalQuestionCount={testQuestions.length}
@@ -224,10 +198,11 @@ const StartTest = () => {
     <div>
       <div className="flex flex-col items-center">
         <FontAwesomeIcon icon={faCheckSquare} className="text-blue-darker text-6xl" />
-        <h1 className="text-3xl font-bold my-4">{test?.attributes.name}</h1>
-        <span className="italic text-gray-600">{test?.attributes.description}</span>
+        <h1 className="text-3xl font-bold my-4">{test?.title}</h1>
+        <span className="italic text-gray-600">{test?.description}</span>
       </div>
       <div className="w-full h-px border-navy-blue border-t" />
+      {submitTestError && <h4 className="font-bold text-red-500 my-4">{getErrorString(submitTestError)}</h4>}
       <h4 className="font-bold my-4">We have received your answers for this test.</h4>
       <h4 className="font-bold my-4">
         Results will be emailed to you through the email you registered your account with.
@@ -246,11 +221,12 @@ const StartTest = () => {
     <div>
       <div className="flex flex-col items-center my-4">
         <FontAwesomeIcon icon={faEdit} className="text-blue-darker text-6xl" />
-        <h1 className="text-3xl font-bold my-4">{test?.attributes.name}</h1>
-        <span className="italic text-gray-600">{test?.attributes.description}</span>
+        <h1 className="text-3xl font-bold my-4">{test?.title}</h1>
+        <span className="italic text-gray-600">{test?.description}</span>
       </div>
       <div className="w-full h-px border-t border-navy-blue" />
-      <h4 className="font-bold my-4">{`You will have ${test?.attributes.timeLimit} minutes to complete this test.`}</h4>
+      {startTestError && <h4 className="font-bold text-red-500 my-4">{getErrorString(startTestError)}</h4>}
+      <h4 className="font-bold my-4">{`You will have ${timeLimitInMinutes} minutes to complete this test.`}</h4>
       <h4 className="font-bold my-4">Once you begin you may not exit the test.</h4>
       <h4 className="font-bold my-4">If you go over the time limit you will not pass the test.</h4>
       <h4 className="font-bold my-4">
@@ -283,3 +259,4 @@ const StartTest = () => {
 };
 
 export default StartTest;
+

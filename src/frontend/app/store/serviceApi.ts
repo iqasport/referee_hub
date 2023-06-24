@@ -91,6 +91,10 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/referees/me/tests/attempts` }),
         providesTags: ["RefereeTests"],
       }),
+      getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/referees/me/tests/${queryArg.testId}/details` }),
+        providesTags: ["RefereeTests"],
+      }),
       startTest: build.mutation<StartTestApiResponse, StartTestApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/referees/me/tests/${queryArg.testId}/start`,
@@ -196,6 +200,10 @@ export type GetAvailableTestsApiResponse =
 export type GetAvailableTestsApiArg = void;
 export type GetTestAttemptsApiResponse = /** status 200 Success */ TestAttemptViewModel[];
 export type GetTestAttemptsApiArg = void;
+export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
+export type GetTestDetailsApiArg = {
+  testId: string;
+};
 export type StartTestApiResponse = /** status 200 Success */ RefereeTestStartModel;
 export type StartTestApiArg = {
   testId: string;
@@ -328,6 +336,17 @@ export type TestAttemptViewModel = {
   awardedCertifications?: Certification[] | null;
   duration?: string | null;
 };
+export type RefereeTestDetailsViewModel = {
+  testId?: string;
+  title?: string | null;
+  awardedCertifications?: Certification[] | null;
+  language?: string;
+  isRefereeEligible?: boolean;
+  timeLimit?: string;
+  description?: string | null;
+  maximumAttempts?: number;
+  passPercentage?: number;
+};
 export type Answer = {
   answerId?: number;
   htmlText?: string | null;
@@ -389,6 +408,7 @@ export const {
   useGetRefereesQuery,
   useGetAvailableTestsQuery,
   useGetTestAttemptsQuery,
+  useGetTestDetailsQuery,
   useStartTestMutation,
   useSubmitTestMutation,
   useGetCurrentUserQuery,
