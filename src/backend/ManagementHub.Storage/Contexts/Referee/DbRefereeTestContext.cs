@@ -49,7 +49,7 @@ public class DbRefereeTestContextFactory
 			.Select(u => new DbRefereeTestContext
 			{
 				UserId = userId,
-				AcquiredCertifications = u.RefereeCertifications.Select(rc => new Certification(rc.Certification.Level, rc.Certification.Version)).ToHashSet(),
+				AcquiredCertifications = u.RefereeCertifications.Select(rc => Certification.New(rc.Certification.Level, rc.Certification.Version)).ToHashSet(),
 				HeadCertificationsPaid = u.CertificationPayments.Select(p => p.Certification.Version ?? default).ToList(),
 				TestAttempts = u.TestResults.Select(tr => new FinishedTestAttempt
 				{
@@ -80,19 +80,19 @@ public class DbRefereeTestContextFactory
 	{
 		var certifications = new HashSet<Certification>()
 		{
-			new Certification(testCertification.Level, testCertification.Version),
+			Certification.New(testCertification.Level, testCertification.Version),
 		};
 
 		if (recertification)
 		{
 			if (testCertification.Level == CertificationLevel.Flag)
 			{
-				certifications.Add(new Certification(CertificationLevel.Assistant, testCertification.Version));
+				certifications.Add(Certification.New(CertificationLevel.Assistant, testCertification.Version));
 			}
 			else if (testCertification.Level == CertificationLevel.Head)
 			{
-				certifications.Add(new Certification(CertificationLevel.Assistant, testCertification.Version));
-				certifications.Add(new Certification(CertificationLevel.Flag, testCertification.Version));
+				certifications.Add(Certification.New(CertificationLevel.Assistant, testCertification.Version));
+				certifications.Add(Certification.New(CertificationLevel.Flag, testCertification.Version));
 			}
 		}
 

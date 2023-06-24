@@ -2,6 +2,7 @@ using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Swagger;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Stripe;
@@ -54,17 +55,24 @@ public class CertificationPaymentsController : ControllerBase
 	}
 
 	[HttpPost("submit")]
+	[AllowAnonymous]
 	[ExternalParameterInBody("stripeEvent", MediaType = "application/json")]
 	public Task SubmitPaymentSession()
 	{
 		Event? stripeEvent = null;
 		try
 		{
+			// NewtonsoftJson doesn't support Async deserialization and since ASP.NET Core 3 there's an exception when reading body synchronously.
+			var syncIOFeature = this.HttpContext.Features.Get<IHttpBodyControlFeature>();
+			if (syncIOFeature != null)
+			{
+				syncIOFeature.AllowSynchronousIO = true;
+			}
 
 			using (var reader = new StreamReader(this.HttpContext.Request.Body, leaveOpen: true))
 			using (var jsonReader = new JsonTextReader(reader))
 			{
-				stripeEvent = JsonSerializer.Create().Deserialize<Event>(jsonReader);
+				stripeEvent = JsonSerializer.CreateDefault().Deserialize<Event>(jsonReader);
 			}
 		}
 		catch (Exception ex)
@@ -74,12 +82,12 @@ public class CertificationPaymentsController : ControllerBase
 
 		if (stripeEvent == null)
 		{
-			throw new ArgumentException();
+			throw new ArgumentException("Could not deserialize the Stripe event.");
 		}
 
 		if (stripeEvent.Type != PaymentsServiceConstants.CheckoutSessionCompleted)
 		{
-			throw new InvalidOperationException($"Could not process Stripe event of type {stripeEvent.Type} in this endpoint");
+			throw new InvalidOperationException($"Could not process Stripe event of type {stripeEvent.Type} in this endpoint.");
 		}
 
 		var session = (Session)stripeEvent.Data.Object;

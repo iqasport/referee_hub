@@ -8,8 +8,6 @@ namespace ManagementHub.Models.Domain.Tests;
 /// </summary>
 public record class Certification(CertificationLevel Level, CertificationVersion Version)
 {
-	public Certification(CertificationLevel level, CertificationVersion? version)
-		: this(level, version ?? throw new ArgumentNullException(nameof(version)))
-	{
-	}
+	public static Certification New(CertificationLevel level, CertificationVersion? version) =>
+		new Certification(level, version ?? throw new ArgumentNullException(nameof(version)));
 }

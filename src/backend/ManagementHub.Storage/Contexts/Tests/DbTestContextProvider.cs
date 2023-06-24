@@ -67,7 +67,7 @@ public class DbTestContextProvider : ITestContextProvider
 			? dataset.Select(t => new TestWithQuestions
 			{
 				AvailableQuestions = ConvertQuestions(t.Questions),
-				AwardedCertifications = new HashSet<Certification> { new Certification(t.Certification.Level, t.Certification.Version) },
+				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification.Level, t.Certification.Version) },
 				Description = t.Description,
 				IsActive = t.Active,
 				Language = new LanguageIdentifier(t.NewLanguage.ShortName, t.NewLanguage.ShortRegion),
@@ -75,13 +75,13 @@ public class DbTestContextProvider : ITestContextProvider
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,
 				QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = t.TestableQuestionCount },
-				RecertificationFor = (t.Recertification ?? false) ? new Certification(t.Certification.Level, t.Certification.Version - 1) : null,
+				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification.Level, t.Certification.Version - 1) : null,
 				TestId = t.UniqueId != null ? TestIdentifier.Parse(t.UniqueId) : TestIdentifier.FromLegacyTestId(t.Id),
 				TimeLimit = TimeSpan.FromMinutes(t.TimeLimit),
 			})
 			: dataset.Select(t => new Test
 			{
-				AwardedCertifications = new HashSet<Certification> { new Certification(t.Certification.Level, t.Certification.Version) },
+				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification.Level, t.Certification.Version) },
 				Description = t.Description,
 				IsActive = t.Active,
 				Language = new LanguageIdentifier(t.NewLanguage.ShortName, t.NewLanguage.ShortRegion),
@@ -89,7 +89,7 @@ public class DbTestContextProvider : ITestContextProvider
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,
 				QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = t.TestableQuestionCount },
-				RecertificationFor = (t.Recertification ?? false) ? new Certification(t.Certification.Level, t.Certification.Version - 1) : null,
+				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification.Level, t.Certification.Version - 1) : null,
 				TestId = t.UniqueId != null ? TestIdentifier.Parse(t.UniqueId) : TestIdentifier.FromLegacyTestId(t.Id),
 				TimeLimit = TimeSpan.FromMinutes(t.TimeLimit),
 			});

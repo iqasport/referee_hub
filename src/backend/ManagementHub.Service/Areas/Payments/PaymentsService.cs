@@ -60,7 +60,7 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 		var products = await productService.ListAsync(new ProductListOptions
 		{
 			Active = true,
-			Expand = new List<string> { "default_price" },
+			Expand = new List<string> { "data.default_price" },
 		});
 
 		var productWithItem = products.Select(p => (product: p, item: this.ItemOfProduct(p)))
@@ -94,19 +94,17 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 	{
 		ArgumentNullException.ThrowIfNull(item);
 
-		var status = (await this.CanPurchaseItemsAsync(new[] { item })).Single().Value;
-
-		if (status != ProductStatus.Available)
-		{
-			throw new InvalidOperationException($"Item {item} cannot be purchased.");
-		}
-
 		var availableProducts = await this.GetProductsAsync();
-		var product = availableProducts.FirstOrDefault(o => o.Item == item);
+		var product = availableProducts.FirstOrDefault(o => o.Item.Equals(item));
 
 		if (product == default)
 		{
 			throw new NotFoundException(item.ToString() ?? nameof(item));
+		}
+
+		if (product.Status != ProductStatus.Available)
+		{
+			throw new InvalidOperationException($"Item {item} cannot be purchased.");
 		}
 
 		var sessionOptions = new SessionCreateOptions
@@ -142,6 +140,11 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 	public void SubmitCheckoutSession(Session session)
 	{
 		this.logger.LogInformation(0, "Session ({sessionId}) has been submitted.", session.Id);
+
+		if (string.IsNullOrWhiteSpace(session.CustomerEmail))
+		{
+			throw new ArgumentException("Missing user email.");
+		}
 
 		this.ScheduleCompletedSessionProcessing(session.Id, session.CustomerEmail, this.ItemOfMetadata(session.Metadata));
 	}

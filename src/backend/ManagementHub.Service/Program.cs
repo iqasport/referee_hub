@@ -8,6 +8,7 @@ using ManagementHub.Models.Misc;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
 using ManagementHub.Processing.Export;
 using ManagementHub.Serialization;
+using ManagementHub.Service.Areas.Payments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
@@ -19,9 +20,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.AmbientMetadata;
 using Microsoft.Extensions.Telemetry.Enrichment;
 using Microsoft.Extensions.Telemetry.Logging;
@@ -42,6 +41,7 @@ public static class Program
 	public static void Main(string[] args)
 	{
 		var builder = WebHost.CreateDefaultBuilder(args)
+			.ConfigureAppConfiguration(c => c.AddJsonFile("appsettings.Sensitive.json", optional: true)) // for local sensitive data
 			.ConfigureLogging(ConfigureLogging)
 			.ConfigureServices(ConfigureInstrumentation)
 			.ConfigureServices(ConfigureServices)
@@ -86,6 +86,8 @@ public static class Program
 		services.AddScoped<ICurrentUserGetter, CurrentUserGetter>();
 		services.AddScoped<IUserContextAccessor, UserContextAccessor>();
 		services.AddScoped<IRefereeContextAccessor, RefereeContextAccessor>();
+
+		services.AddPaymentServices();
 
 		services.AddTestPolicies();
 		services.AddExportProcessors();

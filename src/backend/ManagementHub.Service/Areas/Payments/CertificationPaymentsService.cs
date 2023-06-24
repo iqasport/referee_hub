@@ -91,7 +91,7 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 		var matches = HeadRefCertificationProductName().Match(product.Name);
 		if (matches.Success)
 		{
-			switch(matches.Groups[0].Value)
+			switch (matches.Groups[1].Value) // 0th group represents whole regex, 1st the capture group
 			{
 				case "2018": return new Certification(CertificationLevel.Head, CertificationVersion.Eighteen);
 				case "2020": return new Certification(CertificationLevel.Head, CertificationVersion.Twenty);
