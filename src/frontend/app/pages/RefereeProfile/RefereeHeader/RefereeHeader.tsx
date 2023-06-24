@@ -2,60 +2,61 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalize } from "lodash";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { PickByValue } from "utility-types";
 
-import { UpdateRefereeRequest } from "../../../apis/referee";
 import Toggle from "../../../components/Toggle";
-import { DataAttributes, IncludedAttributes } from "../../../schemas/getRefereeSchema";
 import { getRefereeCertVersion } from "../../../utils/certUtils";
 import { toDateTime } from "../../../utils/dateUtils";
 import HeaderButtons from "./HeaderButtons";
 import HeaderImage from "./HeaderImage";
 import HeaderName from "./HeaderName";
+import { Certification, useGetUserAvatarQuery, useGetUserDataQuery, useUpdateCurrentUserDataMutation } from "../../../store/serviceApi";
+import { useParams } from "react-router";
+import { IdParams } from "../types";
 
 type HeaderProps = {
-  referee: DataAttributes;
-  certifications: IncludedAttributes[];
-  isEditing: boolean;
-  onChange: (value: string | boolean, stateKey: string) => void;
-  onEditClick: () => void;
-  onSubmit: () => void;
-  onCancel: () => void;
-  updatedValues: UpdateRefereeRequest;
-  id: string;
+  name: string;
+  certifications: Certification[];
+  isEditable: boolean;
 };
 
 const RefereeHeader = (props: HeaderProps) => {
-  const {
-    referee,
-    certifications,
-    isEditing,
-    onChange,
-    onEditClick,
-    onSubmit,
-    updatedValues,
-    id,
-    onCancel,
-  } = props;
+  const { id } = useParams<IdParams>();
+  const { certifications, name, isEditable } = props;
 
-  const refName = () => {
-    if (referee.firstName || referee.lastName) {
-      return `${referee.firstName} ${referee.lastName}`;
-    }
+  const { data: user, error: getUserError } = useGetUserDataQuery({ userId: id });
+  const { data: userAvatar, error: getUserAvatarError } = useGetUserAvatarQuery({ userId: id });
+  const [updateUser, { error: updateUserError }] = useUpdateCurrentUserDataMutation();
 
-    return "Anonymous Referee";
-  };
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableUser, setUser] = useState(user);
 
-  const handleChange = (stateKey: string) => (
+  // update editable user once the API returns
+  useEffect(() => {
+    setUser(user)
+  }, [user]);
+
+  const onEditClick = () => setIsEditing(true);
+  const onSubmit = () => {
+    setIsEditing(false);
+    updateUser({userDataViewModel: editableUser})
+  }
+  const onCancel = () => {
+    setIsEditing(false);
+    setUser(user);
+  }
+
+  const handleStringChange = (stateKey: keyof PickByValue<typeof user, string>) => (
     event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
     const value = event.currentTarget.value;
-    onChange(value, stateKey);
+    setUser({...editableUser, [stateKey]: value});
   };
 
-  const handleToggleChange = (stateKey: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleToggleChange = (stateKey: keyof PickByValue<typeof user, boolean>) => (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.currentTarget.checked;
-    onChange(value, stateKey);
+    setUser({...editableUser, [stateKey]: value});
   };
 
   const renderCertifications = () => {
@@ -72,11 +73,11 @@ const RefereeHeader = (props: HeaderProps) => {
   };
 
   const renderPronouns = (): JSX.Element | null => {
-    if (!isEditing && referee.showPronouns) {
+    if (!isEditing && user.showPronouns) {
       return (
         <h2 className="text-l">
           <FontAwesomeIcon icon={faUser} className="mr-2" />
-          {referee.pronouns}
+          {user.pronouns}
         </h2>
       );
     } else if (isEditing) {
@@ -86,13 +87,13 @@ const RefereeHeader = (props: HeaderProps) => {
             name="showPronouns"
             label="Show Pronouns?"
             onChange={handleToggleChange("showPronouns")}
-            checked={updatedValues.showPronouns}
+            checked={editableUser.showPronouns}
           />
           <input
             className="form-input"
             type="text"
-            value={updatedValues.pronouns ?? ""}
-            onChange={handleChange("pronouns")}
+            value={editableUser.pronouns ?? ""}
+            onChange={handleStringChange("pronouns")}
           />
         </div>
       );
@@ -104,7 +105,7 @@ const RefereeHeader = (props: HeaderProps) => {
   const renderJoined = (): JSX.Element | null => {
     if (isEditing) return null;
 
-    const joinDate = toDateTime(referee.createdAt).year;
+    const joinDate = toDateTime(user.createdAt).year;
     return (
       <h2 className="text-l">
         <FontAwesomeIcon className="mr-2" icon={faMapPin} />
@@ -115,39 +116,42 @@ const RefereeHeader = (props: HeaderProps) => {
 
   const renderBio = () => {
     if (!isEditing) {
-      return referee.bio;
+      return user.bio;
     } else {
       return (
         <textarea
           aria-multiline="true"
           className="bg-gray-200 rounded p-4 text-lg block w-full mb-4"
           style={{ resize: "none" }}
-          onChange={handleChange("bio")}
-          value={updatedValues.bio ?? ""}
+          onChange={handleStringChange("bio")}
+          value={editableUser.bio ?? ""}
         />
       );
     }
   };
 
+  if (!user) return <></>;
+
+  // TODO: render errors
   return (
     <div className="flex flex-col lg:flex-row xl:flex-row">
-      <HeaderImage avatarUrl={referee.avatarUrl} id={id} isEditable={referee.isEditable} />
+      <HeaderImage avatarUrl={userAvatar} id={id} isEditable={isEditable} />
       <div className="w-5/6 ml-8">
         <div className="flex flex-col items-center my-8 md:flex-row lg:flex-row xl:flex-row">
           <div className="flex-shrink w-full lg:mr-5 xl:mr-5 md:w-2/3 lg:w-2/3 xl:w-2/3">
             {
               <HeaderName
                 isEditing={isEditing}
-                onChange={handleChange}
+                onChange={handleStringChange}
                 onToggleChange={handleToggleChange}
-                updatedValues={updatedValues}
-                name={refName()}
+                updatedValues={editableUser}
+                name={name}
               />
             }
           </div>
           <div className="flex items-center flex-wrap">{renderCertifications()}</div>
           <div className="justify-end hidden md:flex lg:flex xl:flex">
-            {referee.isEditable && (
+            {isEditable && (
               <HeaderButtons
                 isEditing={isEditing}
                 onEdit={onEditClick}

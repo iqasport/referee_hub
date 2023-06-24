@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8"/>
     <title><%= htmlWebpackPlugin.options.title %></title>
-    <link rel="stylesheet" href="management_hub.css">
-    <link rel="stylesheet" href="management_hub_app.css">
+    <link rel="stylesheet" href="/management_hub.css">
+    <link rel="stylesheet" href="/management_hub_app.css">
     <% htmlWebpackPlugin.files.js.forEach(function(file) { %>
-      <script defer src="<%= process.env.BASE_URL %><%= file %>"></script>
+      <script defer src="<%= process.env.BASE_URL %>/<%= file %>"></script>
     <% }) %>
   </head>
   <body>

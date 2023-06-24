@@ -1,6 +1,7 @@
 import { baseApi as api } from "./baseApi";
 export const addTagTypes = [
   "CertificationPayments",
+  "Ngbs",
   "RefereeExport",
   "Referees",
   "RefereeTests",
@@ -40,6 +41,14 @@ const injectedRtkApi = api
           body: queryArg.body,
         }),
         invalidatesTags: ["CertificationPayments"],
+      }),
+      getNgbs: build.query<GetNgbsApiResponse, GetNgbsApiArg>({
+        query: () => ({ url: `/api/v2/Ngbs` }),
+        providesTags: ["Ngbs"],
+      }),
+      getNgbTeam: build.query<GetNgbTeamApiResponse, GetNgbTeamApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}/teams` }),
+        providesTags: ["Ngbs"],
       }),
       exportRefereesForNgb: build.mutation<
         ExportRefereesForNgbApiResponse,
@@ -116,6 +125,10 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Users"],
       }),
+      getUserData: build.query<GetUserDataApiResponse, GetUserDataApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
+        providesTags: ["Users"],
+      }),
       getCurrentUserAvatar: build.query<
         GetCurrentUserAvatarApiResponse,
         GetCurrentUserAvatarApiArg
@@ -134,6 +147,10 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Users"],
       }),
+      getUserAvatar: build.query<GetUserAvatarApiResponse, GetUserAvatarApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/avatar` }),
+        providesTags: ["Users"],
+      }),
     }),
     overrideExisting: false,
   });
@@ -148,6 +165,12 @@ export type CreatePaymentSessionApiArg = {
 export type SubmitPaymentSessionApiResponse = unknown;
 export type SubmitPaymentSessionApiArg = {
   body: object;
+};
+export type GetNgbsApiResponse = /** status 200 Success */ NgbViewModel[];
+export type GetNgbsApiArg = void;
+export type GetNgbTeamApiResponse = /** status 200 Success */ NgbTeamViewModel[];
+export type GetNgbTeamApiArg = {
+  ngb: string;
 };
 export type ExportRefereesForNgbApiResponse = /** status 200 Success */ RefereeExportResponse;
 export type ExportRefereesForNgbApiArg = {
@@ -190,6 +213,10 @@ export type UpdateCurrentUserDataApiResponse = unknown;
 export type UpdateCurrentUserDataApiArg = {
   userDataViewModel: UserDataViewModel;
 };
+export type GetUserDataApiResponse = /** status 200 Success */ UserDataViewModel;
+export type GetUserDataApiArg = {
+  userId: string;
+};
 export type GetCurrentUserAvatarApiResponse = unknown;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
@@ -197,6 +224,12 @@ export type UpdateCurrentUserAvatarApiArg = {
   body: {
     avatarBlob?: Blob;
   };
+};
+export type GetUserAvatarApiResponse = /** status 200 Success */
+  | string
+  | /** status 204 No Content */ undefined;
+export type GetUserAvatarApiArg = {
+  userId: string;
 };
 export type CertificationLevel = "snitch" | "assistant" | "head" | "field" | "scorekeeper";
 export type CertificationVersion = "eighteen" | "twenty" | "twentytwo";
@@ -218,11 +251,31 @@ export type CertificationProduct = {
 export type CheckoutSession = {
   sessionId?: string | null;
 };
-export type RefereeExportResponse = {
-  jobId?: string | null;
+export type NgbRegion = "north_america" | "south_america" | "europe" | "africa" | "asia";
+export type NgbMembershipStatus = "area_of_interest" | "emerging" | "developing" | "full";
+export type NgbViewModel = {
+  countryCode?: string | null;
+  name?: string | null;
+  country?: string | null;
+  acronym?: string | null;
+  region?: NgbRegion;
+  membershipStatus?: NgbMembershipStatus;
 };
 export type TeamIdentifier = {
   id?: number;
+};
+export type TeamStatus = "competitive" | "developing" | "inactive" | "other";
+export type TeamGroupAffiliation = "university" | "community" | "youth" | "not_applicable";
+export type NgbTeamViewModel = {
+  teamId?: TeamIdentifier;
+  name?: string | null;
+  city?: string | null;
+  state?: string | null;
+  status?: TeamStatus;
+  groupAffiliation?: TeamGroupAffiliation;
+};
+export type RefereeExportResponse = {
+  jobId?: string | null;
 };
 export type RefereeUpdateViewModel = {
   primaryNgb?: string | null;
@@ -259,6 +312,7 @@ export type RefereeTestAvailableViewModel = {
 };
 export type TestAttemptFinishMethod = "Timeout" | "Submission";
 export type TestAttemptViewModel = {
+  attemptId?: string;
   testId?: string;
   level?: CertificationLevel;
   startedAt?: string;
@@ -317,11 +371,14 @@ export type UserDataViewModel = {
   showPronouns?: boolean | null;
   exportName?: boolean | null;
   language?: string | null;
+  createdAt?: string;
 };
 export const {
   useGetAvailablePaymentsQuery,
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
+  useGetNgbsQuery,
+  useGetNgbTeamQuery,
   useExportRefereesForNgbMutation,
   useUpdateCurrentRefereeMutation,
   useGetCurrentRefereeQuery,
@@ -334,6 +391,8 @@ export const {
   useGetCurrentUserQuery,
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
+  useGetUserDataQuery,
   useGetCurrentUserAvatarQuery,
   useUpdateCurrentUserAvatarMutation,
+  useGetUserAvatarQuery,
 } = injectedRtkApi;

@@ -2,21 +2,22 @@ import React from "react";
 
 import { UpdateRefereeRequest } from "../../../apis/referee";
 import Toggle from "../../../components/Toggle";
+import { UserDataViewModel } from "../../../store/serviceApi";
 
 type HeaderNameProps = {
   name: string;
   onChange: (
-    stateKey: string
+    stateKey: "firstName" | "lastName"
   ) => (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
   onToggleChange: (stateKey: string) => (event: React.ChangeEvent<HTMLInputElement>) => void;
-  updatedValues: UpdateRefereeRequest;
+  updatedValues: UserDataViewModel;
   isEditing: boolean;
 };
 
 const HeaderName = (props: HeaderNameProps) => {
   const hasName = props.name !== "Anonymous Referee";
 
-  const renderNameInput = (nameType: string): JSX.Element => (
+  const renderNameInput = (nameType: "firstName" | "lastName"): JSX.Element => (
     <input
       className="form-input mr-4"
       type="text"
@@ -33,7 +34,7 @@ const HeaderName = (props: HeaderNameProps) => {
       name="exportName"
       label="Export Name?"
       onChange={props.onToggleChange("exportName")}
-      checked={props.updatedValues.exportName}
+      checked={props.updatedValues?.exportName ?? true}
     />
   );
   const renderEdit = (

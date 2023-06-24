@@ -9,13 +9,13 @@ import classnames from "classnames";
 import { capitalize } from "lodash";
 import React from "react";
 
-import { IdAttributes } from "../../apis/referee";
 import { toDateTime } from "../../utils/dateUtils";
 
 import ResultChart from "./ResultChart";
+import { TestAttemptViewModel } from "../../store/serviceApi";
 
 type CardProps = {
-  testResult: IdAttributes;
+  testResult: TestAttemptViewModel;
   isExpanded: boolean;
   onExpandClick: (id: string) => void;
   isDisabled: boolean;
@@ -23,7 +23,7 @@ type CardProps = {
 
 const TestResultCard = (props: CardProps) => {
   const {
-    testResult: { testLevel, createdAt, minimumPassPercentage, percentage, id, duration, passed },
+    testResult: { level: testLevel, startedAt: createdAt, passPercentage: minimumPassPercentage, score: percentage, attemptId: id, duration, passed },
     onExpandClick,
     isExpanded,
     isDisabled,

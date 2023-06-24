@@ -1,114 +1,74 @@
-import { omitBy } from "lodash";
-import React, { useEffect } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import React from "react";
 
-import { AssociationData } from "../../../apis/referee";
-import { getNationalGoverningBodies } from "../../../modules/nationalGoverningBody/nationalGoverningBodies";
-import { RootState } from "../../../rootReducer";
-import { Datum } from "../../../schemas/getNationalGoverningBodiesSchema";
-import { IncludedAttributes } from "../../../schemas/getRefereeSchema";
-import { AppDispatch } from "../../../store";
+import { NgbViewModel, RefereeViewModel, useGetNgbsQuery } from "../../../store/serviceApi";
+
+export type RefereeLocationOptions = Pick<RefereeViewModel, "primaryNgb" | "secondaryNgb">
 
 interface LocationProps {
-  ngbs: IncludedAttributes[];
-  locations: IncludedAttributes[];
+  locations: RefereeLocationOptions;
   isEditing: boolean;
-  onChange: (value: AssociationData, stateKey: string) => void;
-  value: AssociationData;
+  onChange: (newLocations: RefereeLocationOptions) => void;
 }
 
 const RefereeLocation = (props: LocationProps) => {
-  const { ngbs, locations, isEditing, value, onChange } = props;
-  const dispatch = useDispatch<AppDispatch>();
-  const { allNgbs } = useSelector((state: RootState) => {
-    return {
-      allNgbs: state.nationalGoverningBodies.nationalGoverningBodies,
-    };
-  }, shallowEqual);
+  const { locations, isEditing, onChange } = props;
+  const { data: allNgbs, error: getNgbsError } = useGetNgbsQuery();
 
-  useEffect(() => {
-    if (isEditing) {
-      dispatch(getNationalGoverningBodies());
-    }
-  }, [isEditing]);
-
-  const hasType = (type: string): boolean => {
-    return locations.filter((location) => location.associationType === type).length > 0;
+  const hasType = (type: keyof RefereeLocationOptions): boolean => {
+    return !!locations[type];
   };
 
-  const getNgbName = (type: string): string => {
-    let ngbId: number;
-    if (Object.values(value).includes("type")) {
-      ngbId = Number(Object.entries(value).find((association) => association[1] === type)[0]);
-    } else {
-      ngbId = locations.find((location) => location.associationType === type)
-        ?.nationalGoverningBodyId;
-    }
-
-    return ngbs.find((ngb) => ngb.nationalGoverningBodyId === ngbId)?.name;
+  const getNgbName = (type: keyof RefereeLocationOptions): string => {
+    return allNgbs.filter(ngb => ngb.countryCode === locations[type])[0]?.name;
   };
 
-  const getSelectedNgb = (type: string) => {
-    if (Object.values(value).includes(type)) {
-      return Object.entries(value).find((association) => association[1] === type)[0];
-    }
-
-    return locations.filter((location) => location.associationType === type)[0]
-      ?.nationalGoverningBodyId;
+  const getSelectedNgb = (type: keyof RefereeLocationOptions) => {
+    return locations[type];
   };
 
-  const handleChange = (type: string) => (event: React.ChangeEvent<HTMLSelectElement>) => {
-    let updatedValue: AssociationData = { ...value };
+  const handleChange = (type: keyof RefereeLocationOptions) => (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newNGB = event.target.value;
     const isBlank = newNGB === "-1";
-    const hasTypeInValue = Object.values(value).includes(type);
 
-    if (hasTypeInValue && !isBlank) {
-      const filtered = omitBy(value, (existingType: string) => existingType === type);
-      updatedValue = Object.assign(filtered, { [event.target.value]: type });
-    } else if (isBlank) {
-      updatedValue = omitBy(value, (existingType: string) => existingType === type);
-    } else {
-      updatedValue[newNGB] = type;
-    }
-
-    onChange(updatedValue, "ngbData");
+    onChange({...locations, [type]: isBlank ? undefined : newNGB})
   };
 
-  const renderOption = (ngb: Datum) => (
-    <option key={ngb.id} value={ngb.id}>
-      {ngb.attributes.name}
+  const renderOption = (ngb: NgbViewModel) => (
+    <option key={ngb.countryCode} value={ngb.countryCode}>
+      {ngb.name}
     </option>
   );
-  const renderDropdown = (type: string) => {
+  const renderDropdown = (type: keyof RefereeLocationOptions) => {
     return (
       <select
         className="form-select block mt-1"
         onChange={handleChange(type)}
-        value={getSelectedNgb(type)}
+        value={getSelectedNgb(type) ?? ""}
       >
-        {type === "secondary" && <option value="-1">None</option>}
+        {type === "secondaryNgb" && <option value="-1">None</option>}
         {allNgbs.map(renderOption)}
       </select>
     );
   };
   const emptyNgb = "National Governing Body not selected";
 
+  if (!allNgbs) return <></>;
+
   return (
     <div className="flex flex-col w-1/2 p-4">
       <div className="w-full mb-4">
         <h4 className="text-sm mb-2">Primary NGB</h4>
         {!isEditing && (
-          <p className="font-bold">{hasType("primary") ? getNgbName("primary") : emptyNgb}</p>
+          <p className="font-bold">{hasType("primaryNgb") ? getNgbName("primaryNgb") : emptyNgb}</p>
         )}
-        {isEditing && renderDropdown("primary")}
+        {isEditing && renderDropdown("primaryNgb")}
       </div>
       <div className="w-full">
         <h4 className="text-sm mb-2">Secondary NGB</h4>
         {!isEditing && (
-          <p className="font-bold">{hasType("secondary") ? getNgbName("secondary") : emptyNgb}</p>
+          <p className="font-bold">{hasType("secondaryNgb") ? getNgbName("secondaryNgb") : emptyNgb}</p>
         )}
-        {isEditing && renderDropdown("secondary")}
+        {isEditing && renderDropdown("secondaryNgb")}
       </div>
     </div>
   );
