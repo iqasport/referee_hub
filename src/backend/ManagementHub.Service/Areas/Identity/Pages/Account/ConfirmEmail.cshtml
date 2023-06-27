@@ -4,5 +4,7 @@
     ViewData["Title"] = "Confirm email";
 }
 
-<h1>@ViewData["Title"]</h1>
-<partial name="_StatusMessage" model="Model.StatusMessage" />
+<h1 class="text-4xl font-bold text-navy-blue">@ViewData["Title"]</h1>
+<div class="mt-10">
+	<p>@Model.StatusMessage</p>
+</div>

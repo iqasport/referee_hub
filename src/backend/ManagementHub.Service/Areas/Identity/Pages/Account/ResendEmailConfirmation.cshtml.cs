@@ -5,7 +5,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using Hangfire;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -19,12 +22,14 @@ namespace ManagementHub.Service.Areas.Identity.Pages.Account;
 public class ResendEmailConfirmationModel : PageModel
 {
 	private readonly UserManager<UserIdentity> userManager;
-	private readonly IEmailSender emailSender;
+	private readonly IBackgroundJobClient backgroundJob;
+	private readonly ILogger<ResendEmailConfirmationModel> logger;
 
-	public ResendEmailConfirmationModel(UserManager<UserIdentity> userManager, IEmailSender emailSender)
+	public ResendEmailConfirmationModel(UserManager<UserIdentity> userManager, IBackgroundJobClient backgroundJob, ILogger<ResendEmailConfirmationModel> logger)
 	{
 		this.userManager = userManager;
-		this.emailSender = emailSender;
+		this.backgroundJob = backgroundJob;
+		this.logger = logger;
 	}
 
 	/// <summary>
@@ -75,10 +80,14 @@ public class ResendEmailConfirmationModel : PageModel
 			pageHandler: null,
 			values: new { userId, code },
 			protocol: this.Request.Scheme);
-		await this.emailSender.SendEmailAsync(
-			this.Input.Email,
-			"Confirm your email",
-			$"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+		var userIdentifier = user.UserId;
+		this.backgroundJob.Enqueue<ISendAccountEmail>(this.logger, sender =>
+			sender.SendAccountEmailAsync(userIdentifier, "Confirm your email - IQA Management Hub",
+			$"""
+				<p>Please confirm your account by clicking the link below:</p>
+				<p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Confirm email address</a></p>
+				""", CancellationToken.None));
 
 		this.ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
 		return this.Page();

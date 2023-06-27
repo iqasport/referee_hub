@@ -4,8 +4,12 @@
 
 using System;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Hangfire;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -19,12 +23,14 @@ namespace ManagementHub.Service.Areas.Identity.Pages.Account;
 public class RegisterConfirmationModel : PageModel
 {
 	private readonly UserManager<UserIdentity> userManager;
-	private readonly IEmailSender sender;
+	private readonly IBackgroundJobClient backgroundJob;
+	private readonly ILogger<RegisterConfirmationModel> logger;
 
-	public RegisterConfirmationModel(UserManager<UserIdentity> userManager, IEmailSender sender)
+	public RegisterConfirmationModel(UserManager<UserIdentity> userManager, IBackgroundJobClient backgroundJob, ILogger<RegisterConfirmationModel> logger)
 	{
 		this.userManager = userManager;
-		this.sender = sender;
+		this.backgroundJob = backgroundJob;
+		this.logger = logger;
 	}
 
 	/// <summary>
@@ -59,20 +65,22 @@ public class RegisterConfirmationModel : PageModel
 			return this.NotFound($"Unable to load user with email '{email}'.");
 		}
 
-		this.Email = email;
-		// Once you add a real email sender, you should remove this code that lets you confirm the account
-		this.DisplayConfirmAccountLink = true;
-		if (this.DisplayConfirmAccountLink)
-		{
-			var userId = await this.userManager.GetUserIdAsync(user);
-			var code = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
-			code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-			this.EmailConfirmationUrl = this.Url.Page(
+		var userId = await this.userManager.GetUserIdAsync(user);
+		var code = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+		code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+		var callbackUrl = this.EmailConfirmationUrl = this.Url.Page(
 			"/Account/ConfirmEmail",
 			pageHandler: null,
 			values: new { area = "Identity", userId, code, returnUrl },
 			protocol: this.Request.Scheme);
-		}
+
+		var userIdentifier = user.UserId;
+		this.backgroundJob.Enqueue<ISendAccountEmail>(this.logger, sender =>
+			sender.SendAccountEmailAsync(userIdentifier, "Confirm your email - IQA Management Hub",
+			$"""
+			<p>Please confirm your account by clicking the link below:</p>
+			<p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Confirm email address</a></p>
+			""", CancellationToken.None));
 
 		return this.Page();
 	}

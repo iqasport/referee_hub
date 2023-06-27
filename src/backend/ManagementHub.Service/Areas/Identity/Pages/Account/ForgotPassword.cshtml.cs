@@ -5,7 +5,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using Hangfire;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -17,12 +21,14 @@ namespace ManagementHub.Service.Areas.Identity.Pages.Account;
 public class ForgotPasswordModel : PageModel
 {
 	private readonly UserManager<UserIdentity> userManager;
-	private readonly IEmailSender emailSender;
+	private readonly IBackgroundJobClient backgroundJob;
+	private readonly ILogger<ForgotPasswordModel> logger;
 
-	public ForgotPasswordModel(UserManager<UserIdentity> userManager, IEmailSender emailSender)
+	public ForgotPasswordModel(UserManager<UserIdentity> userManager, IBackgroundJobClient backgroundJob, ILogger<ForgotPasswordModel> logger)
 	{
 		this.userManager = userManager;
-		this.emailSender = emailSender;
+		this.backgroundJob = backgroundJob;
+		this.logger = logger;
 	}
 
 	/// <summary>
@@ -68,10 +74,13 @@ public class ForgotPasswordModel : PageModel
 				values: new { area = "Identity", code },
 				protocol: this.Request.Scheme);
 
-			await this.emailSender.SendEmailAsync(
-				this.Input.Email,
-				"Reset Password",
-				$"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+			var userId = user.UserId;
+			this.backgroundJob.Enqueue<ISendAccountEmail>(this.logger, sender =>
+				sender.SendAccountEmailAsync(userId, "Reset Password - IQA Management Hub",
+				$"""
+					<p>We've heard you forgot your password. You can reset your password by clicking the link below:</p>
+					<p><a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>Reset my password</a></p>
+					""", CancellationToken.None));
 
 			return this.RedirectToPage("./ForgotPasswordConfirmation");
 		}
