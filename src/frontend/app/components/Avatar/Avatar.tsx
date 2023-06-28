@@ -23,10 +23,7 @@ const Avatar = (props: AvatarProps) => {
   };
 
   const handleLogoutClick = () => {
-    const token = document.getElementsByName("csrf-token")[0].getAttribute("content");
-    axios.defaults.headers.common["X-CSRF-Token"] = token;
-    axios.defaults.headers.common.Accept = "application/json";
-    axios.delete("/sign_out").then(() => {
+    axios.post("/sign_out").then(() => {
       window.location.href = `${window.location.origin}/sign_in`;
     });
   };
@@ -87,22 +84,9 @@ const Avatar = (props: AvatarProps) => {
 
   if (enabledFeatures?.includes("i18n")) items.push(settings);
 
-  if (roles.length > 1) {
-    const isNgbAndIqa = roles.includes("ngb_admin") && roles.includes("iqa_admin");
-    const isRefereeAndNgb = roles.includes("ngb_admin") && roles.includes("referee");
-    const isNgbAndRefereeAndIqa =
-      roles.includes("ngb_admin") && roles.includes("iqa_admin") && roles.includes("referee");
-
-    if (isNgbAndRefereeAndIqa) {
-      items.push(...[ngbProfile, refereeProfile, invite]);
-    } else if (isNgbAndIqa) {
-      items.push(...[ngbProfile, invite]);
-    } else if (isRefereeAndNgb) {
-      items.push(...[refereeProfile]);
-    }
-  } else if (roles.includes("iqa_admin")) {
-    items.push(...[invite]);
-  }
+  if (roles.includes("NgbAdmin")) items.push(ngbProfile);
+  if (roles.includes("Referee")) items.push(refereeProfile);
+  if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite);
 
   items.push(logout);
 

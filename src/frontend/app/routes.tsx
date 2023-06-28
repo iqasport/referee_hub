@@ -67,7 +67,7 @@ const App = () => {
         <Routes>
           <Route
             path="/"
-            element={redirectTo && <Navigate to={redirectTo} replace />}
+            element={redirectTo && <Navigate to={redirectTo} replace /> || <></>}
           />
           <Route
             path="/privacy"
