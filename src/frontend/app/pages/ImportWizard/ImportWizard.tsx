@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { importNgbs } from "../../modules/nationalGoverningBody/nationalGoverningBodies";
 import { importTestQuestions } from "../../modules/question/questions";
@@ -20,6 +20,7 @@ import MapStep, { HeadersMap, requiredHeaders } from "./MapStep";
 import StepDescriptions from "./StepDescriptions";
 import UploadStep from "./UploadStep";
 import { AppDispatch } from "../../store";
+import { useNavigate } from "../../utils/navigationUtils";
 
 type StepConfig = {
   title: string;

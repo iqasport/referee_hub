@@ -1,7 +1,6 @@
 import { capitalize } from "lodash";
 import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 
 import { GetRefereesFilter } from "../../../apis/referee";
 import { getReferees, Referee, updateFilters } from "../../../modules/referee/referees";
@@ -11,6 +10,7 @@ import { getVersion } from "../../../utils/certUtils";
 import FilterToolbar from "../../FilterToolbar";
 import Table, { CellConfig } from "../Table/Table";
 import { AppDispatch } from "../../../store";
+import { useNavigate } from "../../../utils/navigationUtils";
 
 const HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB"];
 const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs"];

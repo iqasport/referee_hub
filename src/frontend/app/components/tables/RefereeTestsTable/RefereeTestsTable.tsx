@@ -1,6 +1,5 @@
 import { capitalize, startCase } from "lodash";
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
 import { getVersion } from "../../../utils/certUtils";
 import Table, { CellConfig } from "../Table/Table";
@@ -9,6 +8,7 @@ import { getErrorString } from "../../../utils/errorUtils";
 import { faBan, faCircleCheck, faClock } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Loader from "../../Loader/Loader";
+import { useNavigate } from "../../../utils/navigationUtils";
 
 const HEADER_CELLS = ["title", "level", "rulebook", "language"];
 

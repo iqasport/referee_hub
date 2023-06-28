@@ -1,13 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 
-import { AssociationData, UpdateRefereeRequest } from "../../apis/referee";
-import AdminCertificationsModal from "../../components/modals/AdminCertificationsModal";
 import TestResultCards from "../../components/TestResultCards";
-import { updateUserPolicy } from "../../modules/currentUser/currentUser";
-import { fetchReferee, updateReferee } from "../../modules/referee/referee";
-import { RootState } from "../../rootReducer";
 
 import RefereeHeader from "./RefereeHeader";
 import RefereeLocation from "./RefereeLocation";
@@ -17,6 +11,7 @@ import { useGetRefereeQuery, useGetTestAttemptsQuery, useUpdateCurrentRefereeMut
 import { RefereeLocationOptions } from "./RefereeLocation/RefereeLocation";
 import { RefereeTeamOptions } from "./RefereeTeam/RefereeTeam";
 import { getErrorString } from "../../utils/errorUtils";
+import { useNavigate } from "../../utils/navigationUtils";
 
 const RefereeDetails = () => {
   const { id } = useParams<IdParams>();

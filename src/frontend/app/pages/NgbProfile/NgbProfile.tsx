@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import Loader from "../../components/Loader";
 import ExportModal, { ExportType } from "../../components/modals/ExportModal/ExportModal";
@@ -19,6 +19,7 @@ import ActionsButton from "./ActionsButton";
 import NgbTables from "./NgbTables";
 import Sidebar from "./Sidebar";
 import { AppDispatch } from "../../store";
+import { useNavigate } from "../../utils/navigationUtils";
 
 type IdParams = { id: string };
 

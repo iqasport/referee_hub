@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classnames from "classnames";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import Loader from "../../components/Loader";
 import TestEditModal from "../../components/modals/TestEditModal";
@@ -21,6 +21,7 @@ import ActionsButton from "./ActionsButton";
 import Details from "./Details";
 import ExportTestModal from "./ExportTestModal";
 import { AppDispatch } from "../../store";
+import { useNavigate } from "../../utils/navigationUtils";
 
 enum SelectedTab {
   Details = "details",

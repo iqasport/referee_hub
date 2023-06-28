@@ -2,11 +2,12 @@ import { faCheckSquare, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime, Duration } from "luxon";
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import NewTestTaker from "../../components/TestTaker";
 import { useGetTestDetailsQuery, useStartTestMutation, useSubmitTestMutation, Question, SubmittedTestAnswer } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
+import { useNavigate } from "../../utils/navigationUtils";
 
 export type FormattedQuestion = {
   questionId: string;

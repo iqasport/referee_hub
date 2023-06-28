@@ -1,18 +1,15 @@
 import classnames from "classnames";
 import React, { useState } from "react";
-import { shallowEqual, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 
 import NgbEditModal from "../../components/modals/NgbEditModal";
 import TestEditModal from "../../components/modals/TestEditModal";
 import NgbTable from "../../components/tables/NgbTable";
 import NewRefereeTable from "../../components/tables/RefereeTable";
 import TestsTable from "../../components/tables/TestsTable";
-import { CurrentUserState } from "../../modules/currentUser/currentUser";
-import { RootState } from "../../rootReducer";
 
 import ActionsButton from "./ActionsButton";
 import { useGetCurrentUserQuery } from "../../store/serviceApi";
+import { useNavigate } from "../../utils/navigationUtils";
 
 enum SelectedModal {
   Test = "test",

@@ -4,7 +4,6 @@ import classnames from "classnames";
 import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 
 import { getLanguages } from "../../../modules/language/languages";
 import { deleteTest, updateTest } from "../../../modules/test/single_test";
@@ -20,6 +19,7 @@ import Table, { CellConfig } from "../Table/Table";
 
 import ActionDropdown from "./ActionDropdown";
 import { AppDispatch } from "../../../store";
+import { useNavigate } from "../../../utils/navigationUtils";
 
 const HEADER_CELLS = ["title", "level", "version", "language", "active", "last updated", "actions"];
 

@@ -1,8 +1,8 @@
 import axios from "axios";
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
 import DropdownMenu, { ItemConfig } from "../DropdownMenu/DropdownMenu";
+import { useNavigate } from "../../utils/navigationUtils";
 
 interface AvatarProps {
   firstName: string;
