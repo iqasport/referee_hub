@@ -141,8 +141,8 @@ public static class Program
 			options.Cookie.HttpOnly = true;
 			options.ExpireTimeSpan = TimeSpan.FromDays(1);
 
-			options.LoginPath = "/login";
-			options.LogoutPath = "/logout";
+			options.LoginPath = "/sign_in";
+			options.LogoutPath = "/sign_out";
 			options.AccessDeniedPath = "/";
 			options.SlidingExpiration = true;
 			OverrideRedirectsForApiEndpoints(options);
