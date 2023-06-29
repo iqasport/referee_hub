@@ -26,7 +26,7 @@ const App = () => {
   const getRedirect = () => {
     if (roles.includes("IqaAdmin")) return "/admin";
     if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${/*TODO: currentUser?.ownedNgbId*/""}`;
-    if (roles.includes("Referee")) return `/referees/${"me"}`;
+    if (roles.includes("Referee")) return `/referees/${currentUser.userId}`;
 
     return null;
   };
