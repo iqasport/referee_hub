@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
 
 import TestResultCards from "../../components/TestResultCards";
 
@@ -11,13 +10,13 @@ import { useGetRefereeQuery, useGetTestAttemptsQuery, useUpdateCurrentRefereeMut
 import { RefereeLocationOptions } from "./RefereeLocation/RefereeLocation";
 import { RefereeTeamOptions } from "./RefereeTeam/RefereeTeam";
 import { getErrorString } from "../../utils/errorUtils";
-import { useNavigate } from "../../utils/navigationUtils";
+import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 
 const RefereeDetails = () => {
-  const { id } = useParams<IdParams>();
+  const { refereeId } = useNavigationParams<"refereeId">();
   const [isEditing, setIsEditing] = useState(false);
 
-  const { currentData: referee } = useGetRefereeQuery({ userId: id });
+  const { currentData: referee } = useGetRefereeQuery({ userId: refereeId });
   const [editableReferee, setReferee] = useState<RefereeLocationOptions & RefereeTeamOptions>(referee);
   const [updateReferee, { error: updateRefereeError }] = useUpdateCurrentRefereeMutation();
 
@@ -38,7 +37,7 @@ const RefereeDetails = () => {
   return (<div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 mb-8">
     <div className="flex justify-between items-center mb-4">
       <h3 className="border-b-2 border-green text-xl text-center">Details</h3>
-      { id == "me" && <button
+      { refereeId == "me" && <button
         type="button"
         className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
         onClick={buttonClick}
@@ -74,17 +73,17 @@ const RefereeDetails = () => {
 
 const RefereeProfile = () => {
   const navigate = useNavigate();
-  const { id } = useParams<IdParams>();
+  const { refereeId } = useNavigationParams<"refereeId">();
 
   //const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false);
   
-  const { currentData: referee, error: refereeGetError } = useGetRefereeQuery({ userId: id });
-  const { data: testAttempts, error: testAttemptsError } = useGetTestAttemptsQuery(undefined, {skip: id !== "me"})
+  const { currentData: referee, error: refereeGetError } = useGetRefereeQuery({ userId: refereeId });
+  const { data: testAttempts, error: testAttemptsError } = useGetTestAttemptsQuery(undefined, {skip: refereeId !== "me"})
 
   if (refereeGetError) return <p style={{color: "red"}}>{getErrorString(refereeGetError)}</p>;
   if (!referee) return null;
 
-  const isCertificationsVisible = id === "me"; // TODO || isIqaAdmin;
+  const isCertificationsVisible = refereeId === "me"; // TODO || isIqaAdmin;
   //const handleCertificationModalClose = () => setIsCertificationModalOpen(false);
 
   return (
@@ -93,7 +92,7 @@ const RefereeProfile = () => {
         <RefereeHeader
           name={referee.name}
           certifications={referee.acquiredCertifications}
-          isEditable={id === "me"}
+          isEditable={refereeId === "me"}
         />
         <div className="flex flex-col lg:flex-row xl:flex-row w-full">
           <RefereeDetails />
@@ -104,7 +103,7 @@ const RefereeProfile = () => {
                 <button
                   type="button"
                   className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
-                  onClick={() => navigate(`/referees/${id}/tests`)}
+                  onClick={() => navigate(`/referees/${refereeId}/tests`)}
                 >
                   {/* TODO - wrap it in a component to modify behavior based on admin/ref/viewer - isIqaAdmin && !referee.isEditable ? "Manage Certifications" : "Take Tests" */}
                   Take Tests

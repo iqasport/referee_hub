@@ -8,7 +8,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
 
 import { importNgbs } from "../../modules/nationalGoverningBody/nationalGoverningBodies";
 import { importTestQuestions } from "../../modules/question/questions";
@@ -20,7 +19,7 @@ import MapStep, { HeadersMap, requiredHeaders } from "./MapStep";
 import StepDescriptions from "./StepDescriptions";
 import UploadStep from "./UploadStep";
 import { AppDispatch } from "../../store";
-import { useNavigate } from "../../utils/navigationUtils";
+import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 
 type StepConfig = {
   title: string;
@@ -48,11 +47,9 @@ const defaultHeadersMap = (scope: string): HeadersMap =>
     return acc;
   }, {});
 
-type ScopeParams = { scope: string };
-
 const ImportWizard = () => {
-  const { scope } = useParams<ScopeParams>();
-  const [parsedScope, scopeId] = scope.split("_");
+  const { importScope } = useNavigationParams<"importScope">();
+  const [parsedScope, scopeId] = importScope.split("_");
 
   const [stepCount, setStepCount] = useState(1);
   const [uploadedFile, setUploadedFile] = useState<File>();

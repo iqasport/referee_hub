@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
 
 import CheckoutModal from "../../components/modals/CheckoutModal";
 import RefereeTestsTable from "../../components/tables/RefereeTestsTable";
 import Toast from "../../components/Toast";
+import { useNavigationParams } from "../../utils/navigationUtils";
 
 type IdParams = {
   refereeId: string;
 };
 
 const RefereeTests = () => {
-  const { refereeId } = useParams<IdParams>();
+  const { refereeId } = useNavigationParams<"refereeId">();
   if (refereeId !== "me") {
     return <p>Cannot view tests for another referee.</p>;
   }

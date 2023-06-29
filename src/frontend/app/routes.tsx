@@ -74,7 +74,7 @@ const App = () => {
             element={<PrivacyPolicy />}
           />
           <Route
-            path="/referees/:id"
+            path="/referees/:refereeId"
             element={<RefereeProfile />}
           />
           <Route
@@ -82,7 +82,7 @@ const App = () => {
             element={<Admin />}
           />
           <Route
-            path="/admin/tests/:id"
+            path="/admin/tests/:testId"
             element={<Test />}
           />
           <Route
@@ -90,11 +90,11 @@ const App = () => {
             element={<StartTest />}
           />
           <Route
-            path="/national_governing_bodies/:id"
+            path="/national_governing_bodies/:ngbId"
             element={<NgbProfile />}
           />
           <Route
-            path="/import/:scope"
+            path="/import/:importScope"
             element={<ImportWizard />}
           />
           <Route

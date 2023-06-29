@@ -12,8 +12,7 @@ import HeaderButtons from "./HeaderButtons";
 import HeaderImage from "./HeaderImage";
 import HeaderName from "./HeaderName";
 import { Certification, useGetUserAvatarQuery, useGetUserDataQuery, useUpdateCurrentUserDataMutation } from "../../../store/serviceApi";
-import { useParams } from "react-router";
-import { IdParams } from "../types";
+import { useNavigationParams } from "../../../utils/navigationUtils";
 
 type HeaderProps = {
   name: string;
@@ -22,11 +21,11 @@ type HeaderProps = {
 };
 
 const RefereeHeader = (props: HeaderProps) => {
-  const { id } = useParams<IdParams>();
+  const { refereeId } = useNavigationParams<"refereeId">();
   const { certifications, name, isEditable } = props;
 
-  const { data: user, error: getUserError } = useGetUserDataQuery({ userId: id });
-  const { data: userAvatar, error: getUserAvatarError } = useGetUserAvatarQuery({ userId: id });
+  const { data: user, error: getUserError } = useGetUserDataQuery({ userId: refereeId });
+  const { data: userAvatar, error: getUserAvatarError } = useGetUserAvatarQuery({ userId: refereeId });
   const [updateUser, { error: updateUserError }] = useUpdateCurrentUserDataMutation();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -135,7 +134,7 @@ const RefereeHeader = (props: HeaderProps) => {
   // TODO: render errors
   return (
     <div className="flex flex-col lg:flex-row xl:flex-row">
-      <HeaderImage avatarUrl={userAvatar} id={id} isEditable={isEditable} />
+      <HeaderImage avatarUrl={userAvatar} id={refereeId} isEditable={isEditable} />
       <div className="w-5/6 ml-8">
         <div className="flex flex-col items-center my-8 md:flex-row lg:flex-row xl:flex-row">
           <div className="flex-shrink w-full lg:mr-5 xl:mr-5 md:w-2/3 lg:w-2/3 xl:w-2/3">

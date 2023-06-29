@@ -2,12 +2,11 @@ import { faCheckSquare, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime, Duration } from "luxon";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 
 import NewTestTaker from "../../components/TestTaker";
 import { useGetTestDetailsQuery, useStartTestMutation, useSubmitTestMutation, Question, SubmittedTestAnswer } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
-import { useNavigate } from "../../utils/navigationUtils";
+import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 
 export type FormattedQuestion = {
   questionId: string;
@@ -49,7 +48,7 @@ type TestParams = {
 };
 
 const StartTest = () => {
-  const { refereeId, testId } = useParams<TestParams>();
+  const { refereeId, testId } = useNavigationParams<"refereeId" | "testId">();
 
   const [testQuestions, setTestQuestions] = useState<FormattedQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

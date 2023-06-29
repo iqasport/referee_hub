@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
 
 import Loader from "../../components/Loader";
 import ExportModal, { ExportType } from "../../components/modals/ExportModal/ExportModal";
@@ -19,9 +18,7 @@ import ActionsButton from "./ActionsButton";
 import NgbTables from "./NgbTables";
 import Sidebar from "./Sidebar";
 import { AppDispatch } from "../../store";
-import { useNavigate } from "../../utils/navigationUtils";
-
-type IdParams = { id: string };
+import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 
 enum ModalType {
   Export = "export",
@@ -30,7 +27,7 @@ enum ModalType {
 }
 
 const NgbProfile = () => {
-  const { id } = useParams<IdParams>();
+  const { ngbId } = useNavigationParams<"ngbId">();
   const [openModal, setOpenModal] = useState<ModalType>();
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -44,14 +41,14 @@ const NgbProfile = () => {
   );
 
   useEffect(() => {
-    if (id) {
-      dispatch(getNationalGoverningBody(parseInt(id, 10)));
+    if (ngbId) {
+      dispatch(getNationalGoverningBody(parseInt(ngbId, 10)));
     }
-  }, [id, dispatch]);
+  }, [ngbId, dispatch]);
 
   if (!ngb) return null;
   const isUserReferee = roles.length === 1 && roles.includes("referee");
-  const isUserNgbAdmin = roles.includes("ngb_admin") && Number(id) === currentUser.ownedNgbId;
+  const isUserNgbAdmin = roles.includes("ngb_admin") && Number(ngbId) === currentUser.ownedNgbId;
 
   if (isUserReferee) {
     navigate(-1);
@@ -66,28 +63,28 @@ const NgbProfile = () => {
 
     switch (type) {
       case ExportType.Team:
-        dispatch(exportNgbTeams(id));
+        dispatch(exportNgbTeams(ngbId));
         break;
       case ExportType.Referee:
-        dispatch(exportNgbReferees(id));
+        dispatch(exportNgbReferees(ngbId));
         break;
     }
   };
-  const handleImportClick = () => navigate(`/import/team_${id}`);
+  const handleImportClick = () => navigate(`/import/team_${ngbId}`);
 
   const renderModals = () => {
     switch (openModal) {
       case ModalType.Export:
         return <ExportModal open={true} onClose={handleCloseModal} onExport={handleExport} />;
       case ModalType.Team:
-        return <TeamEditModal open={true} onClose={handleCloseModal} showClose={true} ngbId={id} />;
+        return <TeamEditModal open={true} onClose={handleCloseModal} showClose={true} ngbId={ngbId} />;
       case ModalType.Edit:
         return (
           <NgbEditModal
             open={true}
             onClose={handleCloseModal}
             showClose={true}
-            ngbId={parseInt(id, 10)}
+            ngbId={parseInt(ngbId, 10)}
           />
         );
       default:
@@ -114,11 +111,11 @@ const NgbProfile = () => {
             refereeCount={refereeCount}
             teamCount={teamCount}
             isEditing={false}
-            ngbId={id}
+            ngbId={ngbId}
           />
           <div className="flex flex-col w-full md:w-4/5 md:pl-8">
             <StatsViewer stats={stats} />
-            <NgbTables ngbId={parseInt(id, 10)} />
+            <NgbTables ngbId={parseInt(ngbId, 10)} />
           </div>
         </div>
       </>

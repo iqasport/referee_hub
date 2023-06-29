@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classnames from "classnames";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
 
 import Loader from "../../components/Loader";
 import TestEditModal from "../../components/modals/TestEditModal";
@@ -15,13 +14,12 @@ import { exportTest } from "../../modules/job/job";
 import { getLanguages } from "../../modules/language/languages";
 import { deleteTest, getTest, updateTest } from "../../modules/test/single_test";
 import { RootState } from "../../rootReducer";
-import { IdParams } from "../RefereeProfile/types";
 
 import ActionsButton from "./ActionsButton";
 import Details from "./Details";
 import ExportTestModal from "./ExportTestModal";
 import { AppDispatch } from "../../store";
-import { useNavigate } from "../../utils/navigationUtils";
+import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 
 enum SelectedTab {
   Details = "details",
@@ -35,7 +33,7 @@ enum ActiveModal {
 }
 
 const Test = () => {
-  const { id } = useParams<IdParams>();
+  const { testId } = useNavigationParams<"testId">();
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Details);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -52,8 +50,8 @@ const Test = () => {
   const isSelected = (tab: SelectedTab) => selectedTab === tab;
 
   useEffect(() => {
-    dispatch(getTest(id));
-  }, [id]);
+    dispatch(getTest(testId));
+  }, [testId]);
 
   useEffect(() => {
     dispatch(getLanguages());
@@ -63,10 +61,10 @@ const Test = () => {
 
   const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTest = { active: event.currentTarget.checked };
-    dispatch(updateTest(id, newTest));
+    dispatch(updateTest(testId, newTest));
   };
 
-  const handleImportClick = () => navigate(`/import/test_${id}`);
+  const handleImportClick = () => navigate(`/import/test_${testId}`);
   const handleTabClick = (newTab: SelectedTab) => () => {
     if (newTab === selectedTab) return null;
 
@@ -75,7 +73,7 @@ const Test = () => {
   const handleModalClick = (newModal: ActiveModal) => () => setActiveModal(newModal);
   const handleModalClose = () => setActiveModal(null);
   const handleDelete = () => {
-    dispatch(deleteTest(id));
+    dispatch(deleteTest(testId));
     handleBackClick();
   };
   const handleExport = () => {
@@ -88,7 +86,7 @@ const Test = () => {
       case SelectedTab.Details:
         return <Details test={test} languages={languages} />;
       case SelectedTab.Questions:
-        return <QuestionsManager testId={id} />;
+        return <QuestionsManager testId={testId} />;
       default:
         return null;
     }
