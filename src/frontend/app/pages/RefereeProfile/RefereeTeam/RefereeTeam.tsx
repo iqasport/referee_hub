@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InputActionMeta, MultiValue, ActionMeta } from "react-select";
 
 import Select, { SelectOption } from "../../../components/Select/Select";
@@ -21,14 +21,18 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamQuery({ ngb: locations.primaryNgb }, {skip: !locations.primaryNgb});
   const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamQuery({ ngb: locations.secondaryNgb }, {skip: !locations.secondaryNgb});
   const allTeams = (primaryNgbTeams ?? []).concat(secondaryNgbTeams ?? []);
-  const [filteredTeams, setFilteredTeams] = useState(allTeams);
+  const [filteredTeams, setFilteredTeams] = useState([]);
+
+  // update local state after teams are loaded
+  // can't use allTeams here as it's changing on each rerender
+  useEffect(() => setFilteredTeams((primaryNgbTeams ?? []).concat(secondaryNgbTeams ?? [])), [primaryNgbTeams, secondaryNgbTeams]);
 
   const hasType = (type: keyof RefereeTeamOptions): boolean => {
     return !!teams[type];
   };
 
   const getTeamName = (type: keyof RefereeTeamOptions): string => {
-    return allTeams.filter(team => team.teamId.id === locations[type]?.id)[0]?.name;
+    return allTeams.filter(team => team.teamId.id === teams[type]?.id)[0]?.name;
   };
 
   const getSelectedTeam = (type: keyof RefereeTeamOptions): SelectOption => {
@@ -40,10 +44,10 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
 
   const handleSelect = (type: keyof RefereeTeamOptions, option: { value: string; label: string }) => {
-    const newTeamId = option.value;
-    const isBlank = newTeamId === "-1";
+    const newTeamId = option?.value;
+    const isBlank = newTeamId === "-1" || !newTeamId;
 
-    onChange({...teams, [type]: isBlank ? undefined : { id: newTeamId }})
+    onChange({...teams, [type]: isBlank ? null : { id: newTeamId }})
   };
 
   const handleSearch = (searchValue: string) => {
