@@ -37,6 +37,10 @@ In order to publish the image directly to AWS ECR:
         ```
         aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/g7w7d4k3
         ```
+        * In powershell
+            ```
+            aws ecr-public get-login-password --region us-east-1 | foreach { docker -D login --username AWS --password $_ public.ecr.aws/g7w7d4k3 }
+            ```
     * In GitHub actions use `aws-actions/configure-aws-credentials@v2` and `aws-actions/amazon-ecr-login` as per [aws.md](./aws.md)
 2. Publish the service to build the image locally
 3. Add tag
