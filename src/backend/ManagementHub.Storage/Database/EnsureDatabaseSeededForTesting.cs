@@ -93,6 +93,48 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		};
 		dbContext.NationalGoverningBodies.AddRange(ngbs);
 
+		var teams = new List<Team>
+		{
+			new Team
+			{
+				City = "New York",
+				Country = "USA",
+				Name = "Yankees",
+				NationalGoverningBody = ngbs.Last(),
+				GroupAffiliation = TeamGroupAffiliation.Community,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Los Angeles",
+				Country = "USA",
+				Name = "LA Bisons",
+				NationalGoverningBody = ngbs.Last(),
+				GroupAffiliation = TeamGroupAffiliation.University,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Buenos Aires",
+				Country = "Argentina",
+				Name = "BA Jacks",
+				NationalGoverningBody = ngbs.First(),
+				GroupAffiliation = TeamGroupAffiliation.Community,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+		};
+
+		dbContext.Teams.AddRange(teams);
+
 		var certifications = new List<Certification>(32);
 		foreach (var version in Enum.GetValues<CertificationVersion>())
 			foreach (var level in Enum.GetValues<CertificationLevel>())
@@ -183,6 +225,15 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			UpdatedAt = DateTime.UtcNow,
 		});
 
+		dbContext.RefereeTeams.Add(new RefereeTeam
+		{
+			Referee = referee,
+			AssociationType = RefereeTeamAssociationType.Player,
+			Team = teams.First(),
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
+		});
+
 		var tests = new[]
 		{
 			new Test
@@ -199,6 +250,22 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				PositiveFeedback = "You passed",
 				Recertification =false,
 				TimeLimit = 10,
+			},
+			new Test
+			{
+				Active = false,
+				Certification = certifications.First(c => c.Level == CertificationLevel.Assistant && c.Version == CertificationVersion.Twenty),
+				Description = "Previous AR test",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.Assistant,
+				MinimumPassPercentage = 80,
+				Name = "Assitant Ref 2020",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = false,
+				TimeLimit = 10,
+				TestableQuestionCount = 5,
 			},
 			new Test
 			{
@@ -219,6 +286,57 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			new Test
 			{
 				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.Flag),
+				Description = "Latest FR test",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.Snitch,
+				MinimumPassPercentage = 80,
+				Name = "Flag Ref 2022",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = false,
+				TimeLimit = 10,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 5,
+			},
+			new Test
+			{
+				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.Head),
+				Description = "Latest HR test",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.Head,
+				MinimumPassPercentage = 80,
+				Name = "Head Ref 2022",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = false,
+				TimeLimit = 15,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 8,
+			},
+			new Test
+			{
+				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.Scorekeeper),
+				Description = "Latest SC test",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.Scorekeeper,
+				MinimumPassPercentage = 80,
+				Name = "Scorekeeper 2022",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = false,
+				TimeLimit = 5,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 5,
+			},
+			new Test
+			{
+				Active = true,
 				Certification = certifications.Last(c => c.Level == CertificationLevel.Assistant),
 				Description = "Latest AR test",
 				NewLanguage = languages.First(),
@@ -233,9 +351,56 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
 				TestableQuestionCount = 5,
 			},
+			new Test
+			{
+				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.Flag),
+				Description = "Latest FR test",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.Snitch,
+				MinimumPassPercentage = 80,
+				Name = "Flag Ref 2022 - Recertification",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = true,
+				TimeLimit = 10,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 5,
+			},
+			new Test
+			{
+				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.Head),
+				Description = "Latest HR test",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.Head,
+				MinimumPassPercentage = 80,
+				Name = "Head Ref 2022 - Recertification",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = true,
+				TimeLimit = 15,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 12,
+			},
 		};
 		dbContext.Tests.AddRange(tests);
 
+		dbContext.TestResults.Add(new TestResult
+		{
+			CreatedAt = DateTime.UtcNow.AddDays(-50),
+			Duration = "00:10:00",
+			MinimumPassPercentage = 80,
+			Passed = true,
+			Percentage = 80,
+			PointsAvailable = 25,
+			PointsScored = 20,
+			Referee = referee,
+			Test = tests[1],
+			TestLevel = TestLevel.Assistant,
+		});
 		dbContext.TestResults.Add(new TestResult
 		{
 			CreatedAt = DateTime.UtcNow.AddDays(-5),
@@ -246,26 +411,36 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			PointsAvailable = 25,
 			PointsScored = 5,
 			Referee = referee,
-			Test = tests[1],
+			Test = tests[2],
 			TestLevel = TestLevel.Assistant,
 		});
-
-		var questions = Enumerable.Range(1, 10).Select(i => new Question
+		dbContext.RefereeCertifications.Add(new RefereeCertification
 		{
-			Test = tests[1],
-			Description = $"Question {i}",
-			PointsAvailable = 1,
-			CreatedAt = DateTime.UtcNow,
-			UpdatedAt = DateTime.UtcNow,
-			Answers = Enumerable.Range(1, 4).Select(j => new Answer
+			Certification = tests[1].Certification!,
+			CreatedAt = DateTime.UtcNow.AddDays(-50),
+			ReceivedAt = DateTime.UtcNow.AddDays(-50),
+			Referee = referee,
+		});
+
+		foreach (var test in tests)
+		{
+			var questions = Enumerable.Range(1, test.TestableQuestionCount).Select(i => new Question
 			{
-				Correct = (i % 4) + 1 == j,
-				Description = $"{((i % 4) + 1 == j ? "Correct " : string.Empty)}Answer {j}",
+				Test = test,
+				Description = $"Question {i}",
+				PointsAvailable = 1,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
-			}).ToArray(),
-		});
-		dbContext.Questions.AddRange(questions);
+				Answers = Enumerable.Range(1, 4).Select(j => new Answer
+				{
+					Correct = (i % 4) + 1 == j,
+					Description = $"{((i % 4) + 1 == j ? "Correct " : string.Empty)}Answer {j}",
+					CreatedAt = DateTime.UtcNow,
+					UpdatedAt = DateTime.UtcNow,
+				}).ToArray(),
+			});
+			dbContext.Questions.AddRange(questions);
+		}
 
 		await dbContext.SaveChangesAsync(stoppingToken);
 	}
