@@ -22,14 +22,18 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
 
   const { currentData: tests, isLoading, error: getTestsError } = useGetAvailableTestsQuery();
 
-  const sortedTests = !tests ? undefined : [...tests].sort((a, b) =>
-    a.refereeEligibilityResult === b.refereeEligibilityResult
-      ? 0
-      : a.refereeEligibilityResult === "Eligible"
-        ? -1
-        : a.level === b.level
-          ? 0
-          : a.level < b.level ? -1 : 1);
+  // sorts first by level and then by eligibility
+  // TODO: improve readability on this and correct sorting by level and add weights to eligibility status
+  const testComparer = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
+    const levelComparison = a.level < b.level ? -1 : a.level === b.level ? 0 : 1;
+    if (a.isRefereeEligible) {
+      if (b.isRefereeEligible) return levelComparison;
+      else return -1;
+    }
+    if (b.isRefereeEligible) return 1;
+    return levelComparison;
+  }
+  const sortedTests = !tests ? undefined : [...tests].sort(testComparer);
 
   const handleRowClick = (id: string) => {
     navigate(`/referees/${refId}/tests/${id}`);
