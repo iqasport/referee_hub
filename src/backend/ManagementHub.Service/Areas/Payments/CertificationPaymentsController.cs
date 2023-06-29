@@ -42,10 +42,10 @@ public class CertificationPaymentsController : ControllerBase
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
 		var serviceBaseUri = new Uri("http://localhost:5000"); // TODO: load from config
-		var redirectPath = new Uri("/referees/me/tests", UriKind.Relative); // TODO: load from config
+		var redirectPath = "/referees/me/tests"; // TODO: load from config
 		var resultParameter = "paymentStatus";  // TODO: load from config
 
-		Uri GetReturnUri(string result) => new Uri($"{serviceBaseUri.AbsoluteUri}{redirectPath}?{resultParameter}={result}", UriKind.Absolute);
+		Uri GetReturnUri(string result) => new Uri($"{serviceBaseUri.AbsoluteUri.TrimEnd('/')}{redirectPath}?{resultParameter}={result}", UriKind.Absolute);
 
 		return await this.paymentsService.CreateCheckoutSessionAsync(
 			certification,
