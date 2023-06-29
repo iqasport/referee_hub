@@ -31,6 +31,7 @@ public class CertificationPaymentsController : ControllerBase
 	}
 
 	[HttpGet("")]
+	[Tags("Referee")]
 	public async Task<IEnumerable<Product<Certification>>> GetAvailablePayments()
 	{
 		return await this.paymentsService.GetProductsAsync();

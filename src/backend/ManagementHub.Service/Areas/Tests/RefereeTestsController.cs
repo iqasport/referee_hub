@@ -55,6 +55,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpGet("available")]
+	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<IEnumerable<RefereeTestAvailableViewModel>> GetAvailableTests()
 	{
@@ -84,6 +85,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpGet("attempts")]
+	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<IEnumerable<TestAttemptViewModel>> GetTestAttempts()
 	{
@@ -93,6 +95,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpGet("{testId}/details")]
+	[Tags("Tests")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<RefereeTestDetailsViewModel> GetTestDetails([FromRoute] TestIdentifier testId)
 	{
@@ -115,6 +118,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpPost("{testId}/start")]
+	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<RefereeTestStartModel> StartTest([FromRoute] TestIdentifier testId)
 	{
@@ -156,6 +160,7 @@ public class RefereeTestsController : ControllerBase
 	}
 
 	[HttpPost("{testId}/submit")]
+	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<RefereeTestSubmitResponse> SubmitTest([FromRoute] TestIdentifier testId, [FromBody] RefereeTestSubmitModel testSubmitModel)
 	{

@@ -31,6 +31,7 @@ public class RefereeExportController : ControllerBase
 	}
 
 	[HttpPost("{ngb}")]
+	[Tags("Export")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task<RefereeExportResponse> ExportRefereesForNgb([FromRoute] NgbIdentifier ngb)
 	{

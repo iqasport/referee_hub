@@ -1,9 +1,6 @@
 ﻿using ManagementHub.Models.Abstraction.Commands;
-using ManagementHub.Models.Data;
-using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
-using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Paging;
@@ -32,6 +29,7 @@ public class RefereesController : ControllerBase
 	}
 
 	[HttpPatch("me")]
+	[Tags("Referee", "User")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task UpdateCurrentReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
 	{
@@ -48,6 +46,7 @@ public class RefereesController : ControllerBase
 	}
 
 	[HttpGet("me")]
+	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<RefereeViewModel> GetCurrentReferee()
 	{
@@ -65,6 +64,7 @@ public class RefereesController : ControllerBase
 	}
 
 	[HttpGet("{userId}")]
+	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task<RefereeViewModel> GetReferee([FromRoute] UserIdentifier userId)
 	{
@@ -87,6 +87,7 @@ public class RefereesController : ControllerBase
 	}
 
 	[HttpGet]
+	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task<IQueryable<RefereeViewModel>> GetReferees([FromQuery] PagingParameters paging)
 	{

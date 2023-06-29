@@ -31,6 +31,7 @@ public class UsersController : ControllerBase
 	/// Retrieves identity information about the currently signed-in user.
 	/// </summary>
 	[HttpGet("me")]
+	[Tags("User")]
 	public async Task<CurrentUserViewModel> GetCurrentUser()
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
@@ -41,6 +42,7 @@ public class UsersController : ControllerBase
 	/// Retrieves personal information about the currently signed-in user.
 	/// </summary>
 	[HttpGet("me/info")]
+	[Tags("UserInfo")]
 	public async Task<UserDataViewModel> GetCurrentUserData()
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
@@ -52,6 +54,7 @@ public class UsersController : ControllerBase
 	/// Retrieves personal information about another user.
 	/// </summary>
 	[HttpGet("{userId}/info")]
+	[Tags("UserInfo")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task<UserDataViewModel> GetUserData([FromRoute] UserIdentifier userId)
 	{
@@ -64,6 +67,7 @@ public class UsersController : ControllerBase
 	/// </summary>
 	/// <param name="userData">A partial model of user data.</param>
 	[HttpPatch("me/info")]
+	[Tags("UserInfo")]
 	public async Task UpdateCurrentUserData(UserDataViewModel userData)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
@@ -96,6 +100,7 @@ public class UsersController : ControllerBase
 	/// </summary>
 	/// <returns><c>null</c> if user has no avatar, a uri to the image otherwise</returns>
 	[HttpGet("me/avatar")]
+	[Tags("UserAvatar")]
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	public async Task<Uri?> GetCurrentUserAvatar()
 	{
@@ -109,6 +114,7 @@ public class UsersController : ControllerBase
 	/// </summary>
 	/// <returns><c>null</c> if user has no avatar, a uri to the image otherwise</returns>
 	[HttpGet("{userId}/avatar")]
+	[Tags("UserAvatar")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	[ProducesResponseType(typeof(Uri), StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -124,6 +130,7 @@ public class UsersController : ControllerBase
 	/// <param name="avatarBlob">Avatar image file contents (streamable).</param>
 	/// <returns>A url to download the uploaded avatar from.</returns>
 	[HttpPut("me/avatar")]
+	[Tags("UserAvatar")]
 	public async Task<Uri> UpdateCurrentUserAvatar(IFormFile avatarBlob)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();

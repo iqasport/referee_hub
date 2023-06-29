@@ -24,6 +24,7 @@ public class NgbsController : ControllerBase
 	}
 
 	[HttpGet]
+	[Tags("Ngb")]
 	public IEnumerable<NgbViewModel> GetNgbs()
 	{
 		return this.ngbContextProvider.QueryNgbs().Select(ngb => new NgbViewModel
@@ -38,6 +39,7 @@ public class NgbsController : ControllerBase
 	}
 
 	[HttpGet("{ngb}/teams")]
+	[Tags("Team")]
 	public IEnumerable<NgbTeamViewModel> GetNgbTeam([FromRoute] NgbIdentifier ngb)
 	{
 		return this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb)).Select(team => new NgbTeamViewModel
