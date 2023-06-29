@@ -23,9 +23,7 @@ const Avatar = (props: AvatarProps) => {
   };
 
   const handleLogoutClick = () => {
-    axios.post("/sign_out").then(() => {
-      window.location.href = `${window.location.origin}/sign_in`;
-    });
+    window.location.href = `${window.location.origin}/sign_out`;
   };
 
   const handleInviteClick = () => {

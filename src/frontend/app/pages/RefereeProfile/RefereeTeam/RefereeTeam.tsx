@@ -47,7 +47,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
     const newTeamId = option?.value;
     const isBlank = newTeamId === "-1" || !newTeamId;
 
-    onChange({...teams, [type]: isBlank ? null : { id: newTeamId }})
+    onChange({...teams, [type]: isBlank ? null : { id: parseInt(newTeamId) }})
   };
 
   const handleSearch = (searchValue: string) => {
