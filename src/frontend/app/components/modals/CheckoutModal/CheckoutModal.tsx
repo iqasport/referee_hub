@@ -54,13 +54,13 @@ const CheckoutModal = (props: CheckoutModalProps) => {
     return (
       <div key={product.price.priceId} className="my-8 p-4 flex justify-between bg-white rounded">
         <div className="w-2/3 flex flex-col">
-          <p className="font-semibold text-lg text-navy-blue">{product.displayName}</p>
+          <p className={`font-semibold text-lg ${available ? "text-navy-blue" : "text-gray-500"}`}>{product.displayName}</p>
           <p className="font-light text-sm text-gray-500">{formattedPrice}</p>
         </div>
         <button
-          className="py-2 px-4 bg-blue-darker text-white rounded"
+          className={`py-2 px-4 ${available ? "bg-blue-darker" : "bg-green-lighter"} text-white rounded`}
           disabled={!available}
-          onClick={handleCheckout(product)}
+          onClick={available ? handleCheckout(product) : () => {}}
         >
           { available ? "Checkout" : "Purchased" }
         </button>
