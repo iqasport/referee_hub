@@ -48,8 +48,25 @@ jobs:
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
 
-    - name: Build & Test
-      uses: ./.github/workflows/build.yml
+    # FROM build.yml
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+    - name: Restore dependencies
+      run: dotnet restore
+      working-directory: src/backend
+    - name: Build
+      run: dotnet build --no-restore -c Debug
+      working-directory: src/backend
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      working-directory: src/backend
+    # END FROM build.yml
 
     - name: Perform CodeQL Analysis C#
       uses: github/codeql-action/analyze@v2
