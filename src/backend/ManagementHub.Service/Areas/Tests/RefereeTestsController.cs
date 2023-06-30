@@ -137,9 +137,6 @@ public class RefereeTestsController : ControllerBase
 			throw new InvalidOperationException($"User is not eligible to start this test ({eligibilityResult}).");
 		}
 
-		// IMPORTANT: we set the random context before choosing questions and shuffling answers for best randomness
-		EnumerableExtensions.SetAsyncRandomContext();
-
 		// FUTURE: create in progress attempt
 		var questions = test.QuestionChoicePolicy.ChooseQuestions(test.AvailableQuestions);
 		var startModel = new RefereeTestStartModel

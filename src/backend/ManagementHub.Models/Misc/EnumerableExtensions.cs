@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ManagementHub.Models.Misc;
 public static class EnumerableExtensions
 {
-	private static readonly AsyncLocal<Random?> asynRandom = new AsyncLocal<Random?>();
-	public static void SetAsyncRandomContext() => asynRandom.Value = new Random();
-	public static void SetAsyncRandomContext(int seed) => asynRandom.Value = new Random(seed);
-
 	/// <summary>
 	/// Shuffles the enumerable collection using Fisher–Yates algorithm.
 	/// </summary>
@@ -16,10 +12,7 @@ public static class EnumerableExtensions
 	/// <returns>A list containing items from the collection in random order.</returns>
 	public static List<T> Shuffle<T>(this IEnumerable<T> enumerable)
 	{
-		if (asynRandom.Value is null)
-			return enumerable.Shuffle((int)DateTime.Now.Ticks);
-		else
-			return enumerable.Shuffle(asynRandom.Value);
+		return enumerable.Shuffle(Random.Shared);
 	}
 
 	/// <summary>
@@ -36,6 +29,7 @@ public static class EnumerableExtensions
 	/// <param name="enumerable">Enumerble collection of finite size.</param>
 	/// <param name="rng">Random number generator.</param>
 	/// <returns>A list containing items from the collection in random order.</returns>
+	[SuppressMessage("Security", "SCS0005:Weak random number generator.", Justification = "RNG used for shuffling a collection and not for crypto.")]
 	public static List<T> Shuffle<T>(this IEnumerable<T> enumerable, Random rng)
 	{
 		// source: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle ("inside out" section)
