@@ -26,7 +26,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 18.x
-        cache: 'npm'
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
