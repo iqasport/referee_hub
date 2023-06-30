@@ -1,0 +1,8 @@
+services:
+    dev:
+        image: public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest
+        ports:
+          - "80:443"
+        environment:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://iqareferees-dev:443/

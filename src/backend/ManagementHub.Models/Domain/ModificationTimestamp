@@ -1,0 +1,12 @@
+using System;
+
+namespace ManagementHub.Models.Domain;
+
+/// <summary>
+/// Information on the modification dates of a record.
+/// </summary>
+public class RecordModification
+{
+    public DateTime CreatedAt { get; }
+    public DateTime UpdatedAt { get; }
+}

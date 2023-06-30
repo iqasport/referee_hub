@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "declaration": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "target": "es6",
+    "jsx": "react",
+    "paths": {
+      "test-utils": ["./app/utils/test-utils"]
+    }
+  },
+  "include": ["./app/**/*"],
+  "exclude": [
+    "./node_modules",
+    "./vendor",
+    "./assets/**/*"
+  ],
+  "compileOnSave": true
+}

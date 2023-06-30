@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <Sdk Name="Yarn.MSBuild" Version="1.22.19" />
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CoreAdmin" Version="2.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Telemetry" Version="8.0.0-preview.4.23273.7" />
+    <PackageReference Include="Microsoft.NET.Build.Containers" Version="7.0.302" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.5.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol.Logs" Version="1.5.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.5.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.14" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta.6" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EventCounters" Version="1.0.0-alpha.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Hangfire" Version="1.0.0-beta.4" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="0.5.0-beta.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.1.0-rc.2" />
+    <PackageReference Include="Stripe.net" Version="41.16.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ManagementHub.Mailers\ManagementHub.Mailers.csproj" />
+    <ProjectReference Include="..\ManagementHub.Models\ManagementHub.Models.csproj" />
+    <ProjectReference Include="..\ManagementHub.Processing\ManagementHub.Processing.csproj" />
+    <ProjectReference Include="..\ManagementHub.Serialization\ManagementHub.Serialization.csproj" />
+    <ProjectReference Include="..\ManagementHub.Storage\ManagementHub.Storage.csproj" />
+  </ItemGroup>
+
+  <!-- FRONTEND BUILD AND INCLUDE -->
+
+  <PropertyGroup>
+    <!-- only build front end if it hasn't been built already -->
+    <BuildFrontend Condition=" ! Exists('$(SolutionDir)/../frontend/dist/index.html')">true</BuildFrontend>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildFrontend)' == 'true'">
+    <YarnWorkingDir>$(SolutionDir)/../frontend</YarnWorkingDir>
+    <YarnBuildCommand>run build:dev</YarnBuildCommand>
+    <YarnBuildCommand Condition="'$(Configuration)' == 'Release'">run build:prod</YarnBuildCommand>
+  </PropertyGroup>
+
+  <Target Name="YarnInstall" Condition="'$(BuildFrontend)' == 'true'" BeforeTargets="YarnBuild">
+    <Yarn Command="install --immutable" Condition=" ! Exists('$(SolutionDir)/../frontend/node_modules/')" />
+  </Target>
+
+  <Target Name="IncludeFrontendDist" AfterTargets="YarnBuild">
+    <ItemGroup>
+      <FrontendFiles Include="$(SolutionDir)/../frontend/dist/**/*" />
+      <Content Include="@(FrontendFiles)">
+        <TargetPath>wwwroot/%(FrontendFiles.RecursiveDir)%(FrontendFiles.Filename)%(FrontendFiles.Extension)</TargetPath>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+  </Target>
+
+  <!-- PUBLISHING WITH DOCKER -->
+  <!-- see https://learn.microsoft.com/en-us/dotnet/core/docker/publish-as-container -->
+
+  <Target Name="SetupContainerDetails" AfterTargets="Build">
+    <PropertyGroup>
+      <ContainerImageName>iqasport/management-hub</ContainerImageName>
+      <ContainerImageTags>$(Version);latest</ContainerImageTags>
+    </PropertyGroup>
+    <ItemGroup>
+      <ContainerPort Include="443" Type="tcp" />
+    </ItemGroup>
+    </Target>
+
+</Project>
