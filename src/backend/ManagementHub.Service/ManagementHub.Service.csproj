@@ -46,7 +46,7 @@
   </PropertyGroup>
 
   <Target Name="YarnInstall" Condition="'$(BuildFrontend)' == 'true'" BeforeTargets="YarnBuild">
-    <Yarn Command="install --immutable" Condition=" ! Exists('$(SolutionDir)/../frontend/node_modules/')" />
+    <Yarn Command="install --immutable" Condition=" ! Exists('$(SolutionDir)/../frontend/node_modules/')" WorkingDirectory="$(YarnWorkingDir)" />
   </Target>
 
   <Target Name="IncludeFrontendDist" AfterTargets="YarnBuild">
