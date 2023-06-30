@@ -84,7 +84,7 @@ public class UsersController : ControllerBase
 			var showPronouns = userData.ShowPronouns ?? data.ShowPronouns;
 			var exportName = userData.ExportName ?? data.ExportName;
 			var lang = userData.Language ?? data.UserLang;
-			return new ExtendedUserData(data.Email, firstName, lastName)
+			return new ExtendedUserData(data.Email, firstName!, lastName!)
 			{
 				Bio = bio,
 				ExportName = exportName,

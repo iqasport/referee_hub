@@ -50,15 +50,15 @@ public class DbRefereeEmailFeedbackContextFactory
 		var attemptWrapper = await this.testResults.AsNoTracking()
 			.Where(tr => tr.UniqueId == testAttemptId.ToString())
 			.Include(tr => tr.Referee)
-			.Include(tr => tr.Test).ThenInclude(t => t.Certification)
+			.Include(tr => tr.Test).ThenInclude(t => t!.Certification)
 			.Select(tr => new
 			{
 				Attempt = new FinishedTestAttempt
 				{
-					AwardedCertifications = DbRefereeTestContextFactory.GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false),
+					AwardedCertifications = DbRefereeTestContextFactory.GetAwardedCertifications(tr.Test!.Certification!, tr.Test.Recertification ?? false),
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
-					Level = tr.Test.Certification.Level,
+					Level = tr.Test!.Certification!.Level,
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,

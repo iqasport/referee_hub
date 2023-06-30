@@ -67,10 +67,10 @@ public class DbTestContextProvider : ITestContextProvider
 			? dataset.Select(t => new TestWithQuestions
 			{
 				AvailableQuestions = ConvertQuestions(t.Questions),
-				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification.Level, t.Certification.Version) },
+				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification!.Level, t.Certification.Version) },
 				Description = t.Description,
 				IsActive = t.Active,
-				Language = new LanguageIdentifier(t.NewLanguage.ShortName, t.NewLanguage.ShortRegion),
+				Language = new LanguageIdentifier(t.NewLanguage!.ShortName, t.NewLanguage.ShortRegion),
 				MaximumAttempts = (t.Recertification ?? false) ? 1 : 6,
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,
@@ -81,10 +81,10 @@ public class DbTestContextProvider : ITestContextProvider
 			})
 			: dataset.Select(t => new Test
 			{
-				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification.Level, t.Certification.Version) },
+				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification!.Level, t.Certification.Version) },
 				Description = t.Description,
 				IsActive = t.Active,
-				Language = new LanguageIdentifier(t.NewLanguage.ShortName, t.NewLanguage.ShortRegion),
+				Language = new LanguageIdentifier(t.NewLanguage!.ShortName, t.NewLanguage.ShortRegion),
 				MaximumAttempts = (t.Recertification ?? false) ? 1 : 6,
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,

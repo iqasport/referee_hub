@@ -52,6 +52,6 @@ public class CsvExportTests
 	private class CsvRow
 	{
 		public int Number { get; set; }
-		public string Word { get; set; }
+		public string Word { get; set; } = string.Empty;
 	}
 }

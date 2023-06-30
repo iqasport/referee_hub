@@ -31,14 +31,14 @@ public class DbTeamContextFactory
 			t = t.Join(this.nationalGoverningBodies.WithConstraint(ngbs), tt => tt.NationalGoverningBodyId, n => n.Id, (tt, n) => tt);
 		}
 
-		return t.Select(tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody.CountryCode), new TeamData
+		return t.Select(tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
 		{
 			Name = tt.Name,
 			City = tt.City,
 			State = tt.State,
 			Country = tt.Country,
-			GroupAffiliation = tt.GroupAffiliation.Value,
-			Status = tt.Status.Value,
+			GroupAffiliation = tt.GroupAffiliation!.Value,
+			Status = tt.Status!.Value,
 		}));
 	}
 }

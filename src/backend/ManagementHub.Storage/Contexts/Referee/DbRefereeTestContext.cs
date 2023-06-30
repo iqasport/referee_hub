@@ -45,7 +45,7 @@ public class DbRefereeTestContextFactory
 		var referee = await this.users.WithIdentifier(userId)
 			.Include(u => u.RefereeCertifications).ThenInclude(rc => rc.Certification)
 			.Include(u => u.CertificationPayments).ThenInclude(p => p.Certification)
-			.Include(u => u.TestResults).ThenInclude(tr => tr.Test).ThenInclude(t => t.Certification)
+			.Include(u => u.TestResults).ThenInclude(tr => tr.Test).ThenInclude(t => t!.Certification)
 			.Select(u => new DbRefereeTestContext
 			{
 				UserId = userId,
@@ -53,10 +53,10 @@ public class DbRefereeTestContextFactory
 				HeadCertificationsPaid = u.CertificationPayments.Select(p => p.Certification.Version ?? default).ToList(),
 				TestAttempts = u.TestResults.Select(tr => new FinishedTestAttempt
 				{
-					AwardedCertifications = tr.Passed == true ? GetAwardedCertifications(tr.Test.Certification, tr.Test.Recertification ?? false) : new HashSet<Certification>(),
+					AwardedCertifications = tr.Passed == true ? GetAwardedCertifications(tr.Test!.Certification!, tr.Test.Recertification ?? false) : new HashSet<Certification>(),
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
-					Level = tr.Test.Certification.Level,
+					Level = tr.Test!.Certification!.Level,
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,
