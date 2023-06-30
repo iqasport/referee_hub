@@ -4,11 +4,11 @@
 name: Build & Test
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
+  workflow_call:
+    inputs:
+      configuration:
+        required: true
+        type: string
 jobs:
   build:
 
@@ -28,8 +28,11 @@ jobs:
         node-version: 18.x
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: src/backend
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c ${{ inputs.configuration }}
+      working-directory: src/backend
     - name: Test
       run: dotnet test --no-build --verbosity normal
+      working-directory: src/backend
     # TODO: add yarn test once those tests are back working
