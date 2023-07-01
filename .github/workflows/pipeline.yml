@@ -18,11 +18,11 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
   schedule:
-    - cron: '30 5 * * 3'
+    - cron: '30 5 15 * *' # run every month on the 15th
 
 jobs:
   analyze:
-    name: Build & Analyze
+    name: Build, Test & Analyze
     runs-on: 'ubuntu-latest'
     timeout-minutes: 120
     permissions:
@@ -41,14 +41,8 @@ jobs:
       uses: github/codeql-action/init@v2
       with:
         languages: 'csharp,javascript'
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
 
-        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-        # queries: security-extended,security-and-quality
-
-    # FROM build.yml
+    # BUILD
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -57,23 +51,32 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 18.x
-    - name: Restore dependencies
+        cache: yarn
+        cache-dependency-path: src/frontend/yarn.lock
+
+    - name: Restore frontend dependencies
+      run: yarn install --immutable
+      working-directory: src/frontend
+    - name: Restore backend dependencies
       run: dotnet restore
       working-directory: src/backend
-    - name: Build
+
+    - name: Build frontend
+      run: yarn build:dev
+      working-directory: src/frontend
+    - name: Build backend
       run: dotnet build --no-restore -c Debug
       working-directory: src/backend
-    - name: Test
+
+    - name: Test frontend
+      run: yarn test
+      working-directory: src/frontend
+      if: false # skip frontend testing while it's broken
+    - name: Test backend
       run: dotnet test --no-build --verbosity normal
       working-directory: src/backend
-    # END FROM build.yml
+    # END BUILD
 
-    - name: Perform CodeQL Analysis C#
+    - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:csharp"
 
-    - name: Perform CodeQL Analysis JS/TS
-      uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:javascript"
