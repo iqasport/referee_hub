@@ -9,7 +9,7 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
-name: "CodeQL"
+name: "CI pipeline"
 
 on:
   push:
@@ -19,6 +19,11 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: '30 5 15 * *' # run every month on the 15th
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: public.ecr.aws/g7w7d4k3
+  IMAGE_NAME: iqasport/management-hub
 
 jobs:
   analyze:
@@ -80,3 +85,67 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
 
+  publish:
+    name: Build Release & Publish
+    runs-on: 'ubuntu-latest'
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # full clone is necessary for GitVersion to work
+
+    # BUILD
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: yarn
+        cache-dependency-path: src/frontend/yarn.lock
+
+    - name: Restore frontend dependencies
+      run: yarn install --immutable
+      working-directory: src/frontend
+    - name: Restore backend dependencies
+      run: dotnet restore
+      working-directory: src/backend
+    - name: Restore dotnet tools
+      run: dotnet tool restore
+      working-directory: src/backend
+
+    - name: Build frontend
+      run: yarn build:prod
+      working-directory: src/frontend
+    - name: Build backend
+      run: dotnet build --no-restore -c Release
+      working-directory: src/backend
+    - name: Create docker image
+      run: dotnet publish --os linux --arch x64 -c Release -p:PublishProfile=DefaultContainer
+      working-directory: src/backend
+    # END BUILD
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::558550744343:role/ManagementHubGitHubActionsRole
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Tag and publish the docker image to Amazon ECR
+      working-directory: src/backend
+      run: |
+        echo "Tagging $ECR_REPOSITORY/$IMAGE_NAME with tags - latest, $(dotnet gitversion -showvariable NuGetVersion)"
+        docker tag iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion) $ECR_REPOSITORY/$IMAGE_NAME:$(dotnet gitversion -showvariable NuGetVersion)
+        docker tag iqasport/management-hub:latest $ECR_REPOSITORY/$IMAGE_NAME:latest
+        echo "Pushing $ECR_REPOSITORY/$IMAGE_NAME with tags - latest"
+        docker push $ECR_REPOSITORY/$IMAGE_NAME:latest
