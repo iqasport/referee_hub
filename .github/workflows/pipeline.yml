@@ -91,6 +91,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
+      id-token: write # required to create JWT for AWS authentication
 
     steps:
     - name: Checkout repository
@@ -128,7 +129,7 @@ jobs:
       working-directory: src/backend
     - name: Create docker image
       run: dotnet publish --os linux --arch x64 -c Release -p:PublishProfile=DefaultContainer
-      working-directory: src/backend
+      working-directory: src/backend/ManagementHub.Service
     # END BUILD
 
     - name: Configure AWS Credentials
