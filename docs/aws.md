@@ -19,6 +19,8 @@ https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.ht
         aws-region: us-east-1
 ```
 
+See the permissions required for uploading a docker image: https://github.com/aws-actions/amazon-ecr-login#ecr-public
+
 ## Elastic container registry
 After creating the container repository I wanted to setup automatic publish from GitHub actions.
 So I followed https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-amazon-elastic-container-service

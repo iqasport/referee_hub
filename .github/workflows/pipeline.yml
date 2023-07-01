@@ -132,6 +132,8 @@ jobs:
       working-directory: src/backend/ManagementHub.Service
     # END BUILD
 
+    # TODO: execute tests
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -141,6 +143,8 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+      with:
+        registry-type: public
 
     - name: Tag and publish the docker image to Amazon ECR
       working-directory: src/backend
