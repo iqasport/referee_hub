@@ -21,6 +21,7 @@ public static class DefaultJsonSerialization
 		options.Converters.Add(new TestIdentifierJsonConverter());
 		options.Converters.Add(new TestAttemptIdentifierJsonConverter());
 		options.Converters.Add(new LanguageIdentifierJsonConverter());
+		options.Converters.Add(new NgbConstraintJsonConverter());
 		options.Converters.Add(new NgbIdentifierJsonConverter());
 		options.Converters.Add(new UserRoleJsonConverter());
 		options.Converters.Add(new PercentageJsonConverter());
