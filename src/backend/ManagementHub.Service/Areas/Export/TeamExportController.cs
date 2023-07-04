@@ -15,15 +15,15 @@ namespace ManagementHub.Service.Areas.Export;
 /// Actions related to exporting users with the referee role.
 /// </summary>
 [ApiController]
-[Route("api/v2/Ngbs/{ngb}/referees/export")]
+[Route("api/v2/Ngbs/{ngb}/teams/export")]
 [Produces("application/json")]
-public class RefereeExportController : ControllerBase
+public class TeamsExportController : ControllerBase
 {
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly IBackgroundJobClient backgroundJob;
 	private readonly ILogger logger;
 
-	public RefereeExportController(IUserContextAccessor contextAccessor, IBackgroundJobClient backgroundJob, ILogger<RefereeExportController> logger)
+	public TeamsExportController(IUserContextAccessor contextAccessor, IBackgroundJobClient backgroundJob, ILogger<RefereeExportController> logger)
 	{
 		this.contextAccessor = contextAccessor;
 		this.backgroundJob = backgroundJob;
@@ -32,21 +32,22 @@ public class RefereeExportController : ControllerBase
 
 	[HttpPost]
 	[Tags("Export")]
-	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
-	public async Task<ExportResponse> ExportRefereesForNgb([FromRoute] NgbIdentifier ngb)
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	public async Task<ExportResponse> ExportTeamsForNgb([FromRoute] NgbIdentifier ngb)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-		var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
-		if (refereeViewerRole == null)
+		var ngbAdminRole = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault();
+		if (ngbAdminRole == null)
 		{
-			throw new AccessDeniedException(nameof(RefereeViewerRole));
+			throw new AccessDeniedException(nameof(NgbAdminRole));
 		}
 
-		if (!refereeViewerRole.Ngb.AppliesTo(ngb))
+		if (!ngbAdminRole.Ngb.AppliesTo(ngb))
 		{
 			throw new AccessDeniedException(ngb.ToString());
 		}
 
+		// TODO: make it export team data
 		var requestorId = userContext.UserId;
 		var jobId = this.backgroundJob.Enqueue<ISendExportRefereesEmail>(this.logger, service =>
 			service.SendExportRefereesEmailAsync(requestorId, ngb, CancellationToken.None));

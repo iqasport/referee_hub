@@ -42,7 +42,14 @@ const injectedRtkApi = api
         ExportRefereesForNgbApiResponse,
         ExportRefereesForNgbApiArg
       >({
-        query: (queryArg) => ({ url: `/api/v2/referees/export/${queryArg.ngb}`, method: "POST" }),
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/referees/export`,
+          method: "POST",
+        }),
+        invalidatesTags: ["Export"],
+      }),
+      exportTeamsForNgb: build.mutation<ExportTeamsForNgbApiResponse, ExportTeamsForNgbApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}/teams/export`, method: "POST" }),
         invalidatesTags: ["Export"],
       }),
       getNgbs: build.query<GetNgbsApiResponse, GetNgbsApiArg>({
@@ -171,8 +178,12 @@ export type SubmitPaymentSessionApiResponse = unknown;
 export type SubmitPaymentSessionApiArg = {
   body: object;
 };
-export type ExportRefereesForNgbApiResponse = /** status 200 Success */ RefereeExportResponse;
+export type ExportRefereesForNgbApiResponse = /** status 200 Success */ ExportResponse;
 export type ExportRefereesForNgbApiArg = {
+  ngb: string;
+};
+export type ExportTeamsForNgbApiResponse = /** status 200 Success */ ExportResponse;
+export type ExportTeamsForNgbApiArg = {
   ngb: string;
 };
 export type GetNgbsApiResponse = /** status 200 Success */ NgbViewModel[];
@@ -247,7 +258,7 @@ export type CheckoutSession = {
 };
 export type CertificationLevel = "snitch" | "assistant" | "head" | "field" | "scorekeeper";
 export type CertificationVersion = "eighteen" | "twenty" | "twentytwo";
-export type RefereeExportResponse = {
+export type ExportResponse = {
   jobId?: string | null;
 };
 export type NgbRegion = "north_america" | "south_america" | "europe" | "africa" | "asia";
@@ -402,6 +413,7 @@ export const {
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
   useExportRefereesForNgbMutation,
+  useExportTeamsForNgbMutation,
   useGetNgbsQuery,
   useGetAvailableTestsQuery,
   useGetTestAttemptsQuery,

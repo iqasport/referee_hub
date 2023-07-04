@@ -24,6 +24,14 @@ public static class AuthorizationPolicies
 			policy.AddRequirements(new UserRoleAuthorizationRequirement<RefereeViewerRole>());
 		});
 
+	public const string NgbAdminPolicy = nameof(NgbAdminPolicy);
+
+	public static void AddNgbAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(NgbAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new UserRoleAuthorizationRequirement<NgbAdminRole>());
+		});
+
 	public const string TechAdminPolicy = nameof(TechAdminPolicy);
 
 	public static void AddTechAdminPolicy(this AuthorizationOptions options) =>
