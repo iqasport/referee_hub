@@ -162,7 +162,7 @@ public static class DbServiceCollectionExtentions
 		return services;
 	}
 
-	public static IServiceCollection AddHangfire(this IServiceCollection services, bool inMemoryStorage)
+	public static IServiceCollection AddHangfire(this IServiceCollection services, bool inMemoryStorage, string? redisConnectionString)
 	{
 		return services.AddHangfire(config =>
 		{
@@ -173,9 +173,9 @@ public static class DbServiceCollectionExtentions
 			}
 			else
 			{
-				// TODO: pass in redis connection string
+				ArgumentException.ThrowIfNullOrEmpty(redisConnectionString);
 				config
-					.UseRedisStorage()
+					.UseRedisStorage(redisConnectionString)
 					.WithJobExpirationTimeout(TimeSpan.FromDays(7));
 			}
 

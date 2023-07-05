@@ -78,7 +78,7 @@ public static class Program
 		services.AddManagementHubBlobStorage(settings.UseLocalFilesystemBlobStorage);
 		services.AddManagementHubIdentity();
 
-		services.AddHangfire(settings.UseInMemoryJobSystem);
+		services.AddHangfire(settings.UseInMemoryJobSystem, settings.RedisConnectionString);
 
 		services.AddMailers(settings.UseDebugMailer);
 
