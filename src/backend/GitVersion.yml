@@ -1,8 +1,8 @@
 assembly-versioning-scheme: MajorMinorPatch
 assembly-file-versioning-scheme: MajorMinorPatch
-mode: ContinuousDeployment
-next-version: 2.0.0
+mode: Mainline
 continuous-delivery-fallback-tag: pr
+increment: Patch
 branches: {}
 ignore:
   sha: []
