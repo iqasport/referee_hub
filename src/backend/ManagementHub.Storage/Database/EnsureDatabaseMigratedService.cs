@@ -20,18 +20,19 @@ public class EnsureDatabaseMigratedService : DatabaseStartupService
 	{
 	}
 
-	protected override async Task ExecuteAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
+	// IMPORTANT: This method must execute synchronously in order to block startup until migrations are applied
+	protected override Task ExecuteAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
 	{
 		try
 		{
 			this.logger.LogInformation(0, "Ensuring database is migrated...");
 
-			var migrations = new List<string>(await dbContext.Database.GetPendingMigrationsAsync(stoppingToken));
+			var migrations = new List<string>(dbContext.Database.GetPendingMigrations());
 			if (migrations.Count > 0)
 			{
 				this.logger.LogInformation(0, "Applying database migrations: {migrations}", string.Join(", ", migrations));
 
-				await dbContext.Database.MigrateAsync(stoppingToken);
+				dbContext.Database.Migrate();
 
 				this.logger.LogInformation(0, "Database migrations have been successfully applied.");
 			}
@@ -39,6 +40,8 @@ public class EnsureDatabaseMigratedService : DatabaseStartupService
 			{
 				this.logger.LogInformation(0, "Database already up to date.");
 			}
+
+			return Task.CompletedTask;
 		}
 		catch (Exception ex)
 		{

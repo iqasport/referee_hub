@@ -83,12 +83,12 @@ public static class DbServiceCollectionExtentions
 				options.UseNpgsql(connectionString);
 			});
 
+			// for hosted database we run migration script
+			services.AddHostedService<EnsureDatabaseMigratedService>();
+
 			// save encryption keys to the database so that they persist across app startups
 			services.AddDataProtection()
 				.PersistKeysToDbContext<ManagementHubDbContext>();
-
-			// for hosted database we run migration script
-			services.AddHostedService<EnsureDatabaseMigratedService>();
 		}
 
 		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbUserContextProvider(
