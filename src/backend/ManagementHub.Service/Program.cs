@@ -216,7 +216,7 @@ public static class Program
 			endpoints.MapRazorPages();
 			endpoints.MapSwagger();
 			endpoints.MapHealthChecks("/healthz");
-			endpoints.MapHangfireDashboard("/admin/jobs").RequireAuthorization(AuthorizationPolicies.TechAdminPolicy);
+			endpoints.MapHangfireDashboardWithAuthorizationPolicy(AuthorizationPolicies.TechAdminPolicy, "/admin/jobs");
 			endpoints.MapControllerRoute(
 				name: "coreadminroute",
 				pattern: "admin/db/{controller=CoreAdmin}/{action=Index}/{id?}")

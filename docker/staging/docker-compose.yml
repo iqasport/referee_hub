@@ -6,8 +6,11 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
+            redis:
+                condition: service_healthy
         links:
             - postgres:database
+            - redis:jobcache
         environment:
             ASPNETCORE_ENVIRONMENT: Staging
             ASPNETCORE_URLS: http://iqareferees-dev:443/
@@ -16,6 +19,7 @@ services:
             DatabaseConnection__Username: docker
             DatabaseConnection__Password: docker
             DatabaseConnection__TrustServerCertificate: true
+            Services__RedisConnectionString: jobcache # pointing at the hostname of redis container on the default redis port
         healthcheck:
             # we make a raw HTTP request using bash against the /healthz endpoint
             # if it returns 200 then we're healthy (grep returns 0)
@@ -23,6 +27,7 @@ services:
             interval: 5s
             timeout: 10s
             retries: 20
+        restart: on-failure:20
     postgres:
         image: postgres:13
         ports:
@@ -36,3 +41,11 @@ services:
           interval: 5s
           timeout: 10s
           retries: 20
+    redis:
+        image: redis:6.0
+        healthcheck:
+            test: '[ "$(redis-cli -h localhost ping)" = "PONG" ]'
+            interval: 5s
+            timeout: 10s
+            retries: 20
+        
