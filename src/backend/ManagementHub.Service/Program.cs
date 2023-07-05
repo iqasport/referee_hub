@@ -74,7 +74,7 @@ public static class Program
 	{
 		var settings = context.Configuration.GetSection("Services").Get<ServicesSettings>() ?? new ServicesSettings();
 
-		services.AddManagementHubStorage(settings.UseInMemoryDatabase);
+		services.AddManagementHubStorage(settings.UseInMemoryDatabase, settings.SeedDatabaseWithTestData);
 		services.AddManagementHubBlobStorage(settings.UseLocalFilesystemBlobStorage);
 		services.AddManagementHubIdentity();
 

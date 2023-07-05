@@ -49,7 +49,7 @@ public static class DbServiceCollectionExtentions
 	/// <summary>
 	/// Adds dependencies for services of the storage based implementations of abstract interfaces.
 	/// </summary>
-	public static IServiceCollection AddManagementHubStorage(this IServiceCollection services, bool inMemoryStorage)
+	public static IServiceCollection AddManagementHubStorage(this IServiceCollection services, bool inMemoryStorage, bool seedDatabase)
 	{
 		if (inMemoryStorage)
 		{
@@ -66,9 +66,6 @@ public static class DbServiceCollectionExtentions
 
 			// for in memory database we run creation script
 			services.AddHostedService<EnsureDatabaseCreatedService>();
-
-			// seed the database with test data
-			services.AddHostedService<EnsureDatabaseSeededForTesting>();
 		}
 		else
 		{
@@ -89,6 +86,12 @@ public static class DbServiceCollectionExtentions
 			// save encryption keys to the database so that they persist across app startups
 			services.AddDataProtection()
 				.PersistKeysToDbContext<ManagementHubDbContext>();
+		}
+
+		if (seedDatabase)
+		{
+			// seed the database with test data
+			services.AddHostedService<EnsureDatabaseSeededForTesting>();
 		}
 
 		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbUserContextProvider(
