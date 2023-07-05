@@ -76,7 +76,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.BlobId).HasColumnName("blob_id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Name)
@@ -116,7 +116,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("content_type");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Filename)
@@ -139,7 +139,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Correct).HasColumnName("correct");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Description).HasColumnName("description");
@@ -147,7 +147,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.QuestionId).HasColumnName("question_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Question)
@@ -169,11 +169,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("key");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.Value)
@@ -191,7 +191,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.DisplayName)
@@ -202,7 +202,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Level).HasColumnName("level");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.Version)
@@ -219,7 +219,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.CertificationId).HasColumnName("certification_id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.StripeSessionId)
@@ -227,7 +227,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("stripe_session_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -266,7 +266,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.ExportOptions)
@@ -275,11 +275,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("'{}'");
 
 			entity.Property(e => e.ProcessedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("processed_at");
 
 			entity.Property(e => e.SentAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("sent_at");
 
 			entity.Property(e => e.Type)
@@ -287,7 +287,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("type");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.Url)
@@ -307,7 +307,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Key)
@@ -315,7 +315,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("key");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 		});
 
@@ -329,7 +329,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.FeatureKey)
@@ -341,7 +341,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("key");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.Value)
@@ -356,7 +356,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.LongName)
@@ -378,7 +378,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("short_region");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 		});
 
@@ -405,7 +405,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("country");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.ImageUrl)
@@ -423,7 +423,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Region).HasColumnName("region");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.Website)
@@ -443,13 +443,13 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.NationalGoverningBodyId).HasColumnName("national_governing_body_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -488,7 +488,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.DevelopingTeamsCount)
@@ -496,7 +496,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.EndTime)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("end_time");
 
 			entity.Property(e => e.HeadRefereesCount)
@@ -518,7 +518,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.Start)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("start");
 
 			entity.Property(e => e.TeamStatusChangeCount)
@@ -542,7 +542,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.YouthTeamsCount)
@@ -564,11 +564,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.ExpireAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("expire_at");
 
 			entity.Property(e => e.State)
@@ -576,7 +576,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("state");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -594,17 +594,17 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.AcceptedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("accepted_at");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Description).HasColumnName("description");
 
 			entity.Property(e => e.RejectedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("rejected_at");
 
 			entity.Property(e => e.Rule)
@@ -616,7 +616,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("state");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 		});
 
@@ -633,7 +633,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.State)
@@ -643,7 +643,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.TermId).HasColumnName("term_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -666,7 +666,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Description).HasColumnName("description");
@@ -680,7 +680,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.TestId).HasColumnName("test_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Test)
@@ -709,7 +709,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.AnswerId).HasColumnName("answer_id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.QuestionId).HasColumnName("question_id");
@@ -721,7 +721,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.TestId).HasColumnName("test_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Answer)
@@ -768,29 +768,29 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.CertificationId).HasColumnName("certification_id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.NeedsRenewalAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("needs_renewal_at");
 
 			entity.Property(e => e.ReceivedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("received_at");
 
 			entity.Property(e => e.RefereeId).HasColumnName("referee_id");
 
 			entity.Property(e => e.RenewedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("renewed_at");
 
 			entity.Property(e => e.RevokedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("revoked_at");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Certification)
@@ -820,7 +820,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.NationalGoverningBodyId).HasColumnName("national_governing_body_id");
@@ -828,7 +828,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.RefereeId).HasColumnName("referee_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.NationalGoverningBody)
@@ -862,7 +862,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.RefereeId).HasColumnName("referee_id");
@@ -870,7 +870,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.TeamId).HasColumnName("team_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Referee)
@@ -898,11 +898,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.AccessType).HasColumnName("access_type");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
@@ -936,7 +936,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.AccountType).HasColumnName("account_type");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.OwnableId).HasColumnName("ownable_id");
@@ -946,7 +946,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("ownable_type");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.Property(e => e.Url)
@@ -971,7 +971,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("country");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.GroupAffiliation)
@@ -979,7 +979,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.JoinedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("joined_at")
 				.HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -998,7 +998,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("0");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.NationalGoverningBody)
@@ -1016,7 +1016,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.NewStatus)
@@ -1030,7 +1030,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.TeamId).HasColumnName("team_id");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Team)
@@ -1054,7 +1054,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.CertificationId).HasColumnName("certification_id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Description).HasColumnName("description");
@@ -1092,7 +1092,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasDefaultValueSql("18");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Certification)
@@ -1117,11 +1117,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("unique_id");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.NextAttemptAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("next_attempt_at");
 
 			entity.Property(e => e.RefereeId).HasColumnName("referee_id");
@@ -1131,7 +1131,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.TestLevel).HasColumnName("test_level");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Referee)
@@ -1162,7 +1162,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("certificate_url");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.Duration)
@@ -1192,7 +1192,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.TimeStarted).HasColumnName("time_started");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Referee)
@@ -1245,7 +1245,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Bio).HasColumnName("bio");
 
 			entity.Property(e => e.ConfirmationSentAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("confirmation_sent_at");
 
 			entity.Property(e => e.ConfirmationToken)
@@ -1253,15 +1253,15 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("confirmation_token");
 
 			entity.Property(e => e.ConfirmedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("confirmed_at");
 
 			entity.Property(e => e.CreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
 
 			entity.Property(e => e.CurrentSignInAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("current_sign_in_at");
 
 			entity.Property(e => e.CurrentSignInIp).HasColumnName("current_sign_in_ip");
@@ -1287,17 +1287,17 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("first_name");
 
 			entity.Property(e => e.InvitationAcceptedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("invitation_accepted_at");
 
 			entity.Property(e => e.InvitationCreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("invitation_created_at");
 
 			entity.Property(e => e.InvitationLimit).HasColumnName("invitation_limit");
 
 			entity.Property(e => e.InvitationSentAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("invitation_sent_at");
 
 			entity.Property(e => e.InvitationToken)
@@ -1321,13 +1321,13 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("last_name");
 
 			entity.Property(e => e.LastSignInAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("last_sign_in_at");
 
 			entity.Property(e => e.LastSignInIp).HasColumnName("last_sign_in_ip");
 
 			entity.Property(e => e.LockedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("locked_at");
 
 			entity.Property(e => e.Pronouns)
@@ -1335,11 +1335,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("pronouns");
 
 			entity.Property(e => e.RememberCreatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("remember_created_at");
 
 			entity.Property(e => e.ResetPasswordSentAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("reset_password_sent_at");
 
 			entity.Property(e => e.ResetPasswordToken)
@@ -1357,7 +1357,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("stripe_customer_id");
 
 			entity.Property(e => e.SubmittedPaymentAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("submitted_payment_at");
 
 			entity.Property(e => e.UnlockToken)
@@ -1365,7 +1365,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("unlock_token");
 
 			entity.Property(e => e.UpdatedAt)
-				.HasColumnType("timestamp without time zone")
+				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
 			entity.HasOne(d => d.Language)
