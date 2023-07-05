@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Database;
@@ -18,6 +19,13 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 	{
 		try
 		{
+			var ngbCount = await dbContext.NationalGoverningBodies.CountAsync(stoppingToken);
+			if (ngbCount > 0)
+			{
+				this.logger.LogInformation(0, "Database not empty. Skipping seeding.");
+				return;
+			}
+
 			this.logger.LogInformation(0, "Ensuring database is seeded...");
 
 			await this.SeedDatabaseAsync(dbContext, stoppingToken);
