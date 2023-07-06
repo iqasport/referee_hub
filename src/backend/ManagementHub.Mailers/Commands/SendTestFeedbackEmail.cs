@@ -50,7 +50,7 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 				.To(userContext.UserData.Email.Value)
 				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
 				.Subject($"{emailFeedbackContext.Test.Title} Results")
-				.UsingEmbeddedTemplate("TestFeedbackEmail", emailFeedbackContext)
+				.UsingEmbeddedTemplate("TestFeedbackEmail", emailFeedbackContext) // TODO: include host URL for links
 				.SendAsync();
 
 			this.logger.LogInformation(0, "Email has been sent.");

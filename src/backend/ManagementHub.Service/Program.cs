@@ -8,12 +8,14 @@ using ManagementHub.Models.Misc;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
 using ManagementHub.Processing.Export;
 using ManagementHub.Serialization;
+using ManagementHub.Service.Areas.Export;
 using ManagementHub.Service.Areas.Payments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Swagger;
 using ManagementHub.Service.Telemetry;
+using ManagementHub.Storage.BlobStorage.LocalFilesystem;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
@@ -108,6 +110,8 @@ public static class Program
 		});
 
 		services.AddHangfireServer();
+
+		services.AddSingleton<ILocalFileSystemBlobUriBaseProvider, LocalFileSystemBlobUriBaseProvider>();
 	}
 
 	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)

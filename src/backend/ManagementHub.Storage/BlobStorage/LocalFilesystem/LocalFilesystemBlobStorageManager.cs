@@ -16,18 +16,22 @@ namespace ManagementHub.Storage.BlobStorage.LocalFilesystem;
 public class LocalFilesystemBlobStorageManager : IUploadFileCommand, IAccessFileCommand
 {
 	private readonly DirectoryInfo tempDir;
-	private readonly ILogger<AmazonBlobStorageManager> logger;
+	private readonly ILogger<LocalFilesystemBlobStorageManager> logger;
+	private readonly ILocalFileSystemBlobUriBaseProvider baseUriProvider;
 
-	public LocalFilesystemBlobStorageManager(ILogger<AmazonBlobStorageManager> logger)
+	public LocalFilesystemBlobStorageManager(ILogger<LocalFilesystemBlobStorageManager> logger, ILocalFileSystemBlobUriBaseProvider baseUriProvider)
 	{
 		this.tempDir = Directory.CreateTempSubdirectory("ManagementHubBlobStorage");
 		this.logger = logger;
+		this.baseUriProvider = baseUriProvider;
 	}
 
 	public Task<Uri> GetFileAccessUriAsync(string fileKey, TimeSpan expiration, CancellationToken cancellationToken)
 	{
-		return Task.FromResult(new Uri($"file:///{fileKey}"));
+		return Task.FromResult(new Uri($"{this.baseUriProvider.BaseUri}/{fileKey}"));
 	}
+
+	public FileStream OpenFile(string fileKey) => File.OpenRead(Path.Combine(this.tempDir.FullName, fileKey));
 
 	public async Task<FileUploadResult> UploadFileAsync(string contentType, Stream fileContents, CancellationToken cancellationToken)
 	{
@@ -50,6 +54,6 @@ public class LocalFilesystemBlobStorageManager : IUploadFileCommand, IAccessFile
 			}
 		}
 
-		return new FileUploadResult(path, checksum);
+		return new FileUploadResult(fileName, checksum);
 	}
 }
