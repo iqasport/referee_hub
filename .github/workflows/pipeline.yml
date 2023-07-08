@@ -73,22 +73,47 @@ jobs:
       run: dotnet build --no-restore -c Debug
       working-directory: src/backend
 
-    - name: Test frontend
-      run: yarn test
+    - name: Lint frontend
+      run: yarn lint:ci
       working-directory: src/frontend
-      if: false # skip frontend testing while it's broken
+      continue-on-error: true # perform frontend testing, but ignore failure while it's broken
+    - name: Test frontend
+      run: yarn test:ci
+      working-directory: src/frontend
+      continue-on-error: true # perform frontend testing, but ignore failure while it's broken
     - name: Test backend
       run: dotnet test --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-test-result.xml"
       working-directory: src/backend
     # END BUILD
 
+    - name: Print summary header for Lint Summary frontend
+      run: echo "### Lint results for the frontend" >> $GITHUB_STEP_SUMMARY
+      if: success() || failure()
+    - name: Lint Summary frontend
+      uses: test-summary/action@v2
+      with:
+        paths: |
+          src/frontend/**/eslint-junit.xml
+        show: "fail, skip"
+      if: success() || failure()
+    - name: Print summary header for Test Summary frontend
+      run: echo "### Test results for the frontend" >> $GITHUB_STEP_SUMMARY
+      if: success() || failure()
+    - name: Test Summary frontend
+      uses: test-summary/action@v2
+      with:
+        paths: |
+          src/frontend/**/junit.xml
+      if: success() || failure()
     - name: Print summary header for Test Summary backend
       run: echo "### Test results for the backend" >> $GITHUB_STEP_SUMMARY
+      if: success() || failure()
     - name: Test Summary backend
       uses: test-summary/action@v2
       with:
         paths: |
           src/backend/**/dotnet-test-result.xml
+      if: success() || failure()
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
