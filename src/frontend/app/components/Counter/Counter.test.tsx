@@ -22,7 +22,7 @@ describe("Counter", () => {
   test("it renders a counter", () => {
     render(<Counter {...defaultProps} />);
 
-    expect(screen.getByText("00:00")).toBeDefined();
+    expect(screen.getByText("00:00")).toBeInTheDocument();
   });
 
   test("it handles a second tick", () => {
@@ -32,7 +32,7 @@ describe("Counter", () => {
       jest.advanceTimersByTime(1000);
     });
 
-    expect(screen.getByText("00:01")).toBeDefined();
+    expect(screen.getByText("00:01")).toBeInTheDocument();
   });
 });
 

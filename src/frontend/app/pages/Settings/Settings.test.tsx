@@ -136,7 +136,7 @@ describe("Settings", () => {
     it("does not render the settings page", () => {
       render(<Settings />, disabledFeatureMock);
 
-      expect(screen.queryByText("Settings")).toBeNull();
+      expect(screen.queryByText("Settings")).not.toBeInTheDocument();
     });
   });
 });
