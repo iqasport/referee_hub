@@ -18,7 +18,7 @@ export interface QuestionResponse {
   question: Data;
 }
 
-export interface UpdateQuestionRequest extends Omit<DatumAttributes, "testId"> {}
+export type UpdateQuestionRequest = Omit<DatumAttributes, "testId">
 
 export async function getQuestions(testId: string): Promise<QuestionsResponse> {
   const url = `tests/${testId}/questions`;

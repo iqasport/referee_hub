@@ -25,7 +25,7 @@ interface TableProps<T> {
   disabled?: (item: T) => boolean;
 }
 
-const Table = <T extends any>(props: TableProps<T>) => {
+const Table : <T>(props: TableProps<T>) => React.ReactNode = (props) => {
   const {
     items,
     isLoading,
