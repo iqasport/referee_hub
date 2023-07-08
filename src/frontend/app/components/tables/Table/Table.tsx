@@ -102,6 +102,6 @@ function Table<T>(props: TableProps<T>) {
       </div>
     </>
   );
-};
+}
 
 export default Table;
