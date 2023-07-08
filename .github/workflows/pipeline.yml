@@ -78,9 +78,15 @@ jobs:
       working-directory: src/frontend
       if: false # skip frontend testing while it's broken
     - name: Test backend
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-test-result.xml"
       working-directory: src/backend
     # END BUILD
+
+    - name: Test Summary
+      uses: test-summary/action@v2
+      with:
+        paths: |
+          src/backend/**/dotnet-test-result.xml
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
