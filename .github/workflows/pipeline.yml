@@ -82,7 +82,9 @@ jobs:
       working-directory: src/backend
     # END BUILD
 
-    - name: Test Summary
+    - name: Print summary header for Test Summary backend
+      run: echo "### Test results for the backend" >> $GITHUB_STEP_SUMMARY
+    - name: Test Summary backend
       uses: test-summary/action@v2
       with:
         paths: |
@@ -159,7 +161,7 @@ jobs:
         echo "Tagging $ECR_REPOSITORY/$IMAGE_NAME with tags - latest, $(dotnet gitversion -showvariable NuGetVersion)"
         docker tag iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion) $ECR_REPOSITORY/$IMAGE_NAME:$(dotnet gitversion -showvariable NuGetVersion)
         docker tag iqasport/management-hub:latest $ECR_REPOSITORY/$IMAGE_NAME:latest
-        echo -e "Tagged docker image $ECR_REPOSITORY/$IMAGE_NAME with tags:\n\n- latest\n- $(dotnet gitversion -showvariable NuGetVersion)\n" >> $GITHUB_STEP_SUMMARY
+        echo -e "Tagged docker image \`$ECR_REPOSITORY/$IMAGE_NAME\` with tags:\n\n- \`latest\`\n- \`$(dotnet gitversion -showvariable NuGetVersion)\`\n" >> $GITHUB_STEP_SUMMARY
         echo "Pushing $ECR_REPOSITORY/$IMAGE_NAME with tags - latest"
         docker push $ECR_REPOSITORY/$IMAGE_NAME:latest
-        echo -e "Pushed docker image $ECR_REPOSITORY/$IMAGE_NAME with tags:\n\n- latest\n" >> $GITHUB_STEP_SUMMARY
+        echo -e "Pushed docker image \`$ECR_REPOSITORY/$IMAGE_NAME\` with tags:\n\n- \`latest\`\n" >> $GITHUB_STEP_SUMMARY
