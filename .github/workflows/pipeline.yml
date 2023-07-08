@@ -123,6 +123,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     needs: build
     if: github.ref == 'refs/heads/main'
+    environment: staging # for now we only support one environment for UX variables TODO: figure out how to tag the builds to support both at the same time
     permissions:
       contents: read
       id-token: write # required to create JWT for AWS authentication
@@ -158,6 +159,8 @@ jobs:
     - name: Build frontend
       run: yarn build:prod
       working-directory: src/frontend
+      env:
+        STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
     - name: Build backend
       run: dotnet build --no-restore -c Release
       working-directory: src/backend
