@@ -1,0 +1,36 @@
+services:
+    dev:
+        image: public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest
+        ports:
+          - "443:443"
+        volumes:
+          - certs:/certs
+        depends_on:
+            openssl:
+                condition: service_started
+        environment:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: https://iqareferees-dev:443/
+          Kestrel__Certificates__Default__Path: /certs/cert.pem
+          Kestrel__Certificates__Default__KeyPath: /certs/privkey.pem
+    openssl:
+        image: finalgene/openssh
+        volumes:
+          - certs:/certs
+        entrypoint:
+          - openssl
+          - req
+          - -x509
+          - -newkey
+          - rsa:4096
+          - -keyout
+          - /certs/privkey.pem
+          - -out
+          - /certs/cert.pem
+          - -days
+          - "90"
+          - -nodes # don't ask for password
+          - -subj
+          - /CN=localhost
+volumes:
+    certs:
