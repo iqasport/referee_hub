@@ -68,8 +68,10 @@ const RefereeTeam = (props: RefereeTeamProps) => {
     switch (action.action) {
       case "clear":
         handleSelect(type, { value: "-1", label: "" });
+        break;
       case "select-option":
         handleSelect(type, value as SelectOption); // cast only works while isMulti={false} below
+        break;
     }
   };
 

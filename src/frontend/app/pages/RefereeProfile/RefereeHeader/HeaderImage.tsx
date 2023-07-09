@@ -15,7 +15,7 @@ const HeaderImage = (props: HeaderImageProps) => {
 
   const handleSubmit = (file: File) => {
     // at the moment RTK Query code gen doesn't support multipart form requests
-    var payload = new FormData();
+    const payload = new FormData();
     payload.append("avatarBlob", file);
     fetch("/api/v2/Users/me/avatar", {
       method: "PUT",

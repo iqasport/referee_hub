@@ -23,7 +23,7 @@ export interface TestResponse {
   certification: IdAttributes;
 }
 
-export interface UpdateTestRequest extends Omit<Attributes, "updatedAt"> {}
+export type UpdateTestRequest = Omit<Attributes, "updatedAt">
 
 export async function getTests(): Promise<TestsResponse> {
   const url = "tests";

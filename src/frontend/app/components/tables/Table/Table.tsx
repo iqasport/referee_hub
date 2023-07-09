@@ -25,7 +25,7 @@ interface TableProps<T> {
   disabled?: (item: T) => boolean;
 }
 
-const Table = <T extends any>(props: TableProps<T>) => {
+function Table<T>(props: TableProps<T>) {
   const {
     items,
     isLoading,
@@ -102,6 +102,6 @@ const Table = <T extends any>(props: TableProps<T>) => {
       </div>
     </>
   );
-};
+}
 
 export default Table;

@@ -100,7 +100,7 @@ export const getTest = (id: string): AppThunk => async (dispatch) => {
 export const updateTest = (
   id: string,
   updatedTest: UpdateTestRequest,
-  shouldUpdateTests: boolean = true
+  shouldUpdateTests = true
 ): AppThunk => async (dispatch) => {
   try {
     dispatch(updateTestStart());
