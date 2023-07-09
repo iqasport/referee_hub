@@ -295,6 +295,7 @@ public static class Program
 					options.EnvironmentName = true;
 					options.DeploymentRing = false;
 				})
+				.AddAWSInstrumentation()
 				.AddSource("ManagementHub", "ManagementHub.Mailers"))
 			.WithMetrics(builder => builder
 				.AddAspNetCoreInstrumentation()
