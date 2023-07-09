@@ -33,6 +33,10 @@
     <ProjectReference Include="..\ManagementHub.Storage\ManagementHub.Storage.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Telemetry/otel-config.yml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!-- FRONTEND BUILD AND INCLUDE -->
 
   <PropertyGroup>
