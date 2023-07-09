@@ -121,7 +121,7 @@
     "suiteName": "ES Lint",
     "output": "./eslint-junit.xml",
     "classNameTemplate": "{ruleId}",
-    "titleTemplate": "L{line}: {ruleId}"
+    "titleTemplate": "{filePath} {line}:{column} {message}"
   },
   "scripts": {
     "test": "jest -c jest.config.js --coverage",
