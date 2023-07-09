@@ -67,14 +67,17 @@
   <!-- PUBLISHING WITH DOCKER -->
   <!-- see https://learn.microsoft.com/en-us/dotnet/core/docker/publish-as-container -->
 
-  <Target Name="SetupContainerDetails" AfterTargets="Build">
-    <PropertyGroup>
-      <ContainerImageName>iqasport/management-hub</ContainerImageName>
-      <ContainerImageTags>$(Version);latest</ContainerImageTags>
-    </PropertyGroup>
-    <ItemGroup>
-      <ContainerPort Include="443" Type="tcp" />
-    </ItemGroup>
-    </Target>
+  <PropertyGroup>
+    <ContainerImageName>iqasport/management-hub</ContainerImageName>
+    <ContainerImageTags>latest</ContainerImageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <ContainerPort Include="443" Type="tcp" />
+  </ItemGroup>
+  
+  <!-- UNCOMMENT IF YOU NEED ADDITIONAL DOCKER STEPS POST BUILD -->
+  <!--<Target Name="AddVolumeToContainer" AfterTargets="PublishContainer">
+    <Exec Command="docker build -t iqasport/management-hub:latest ." WorkingDirectory="$(SolutionDir)/../../docker/build" />
+  </Target>-->
 
 </Project>
