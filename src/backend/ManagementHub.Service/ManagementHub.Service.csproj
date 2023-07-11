@@ -75,9 +75,8 @@
     <ContainerPort Include="443" Type="tcp" />
   </ItemGroup>
   
-  <!-- UNCOMMENT IF YOU NEED ADDITIONAL DOCKER STEPS POST BUILD -->
-  <!--<Target Name="AddVolumeToContainer" AfterTargets="PublishContainer">
+  <Target Name="AddVolumeToContainer" AfterTargets="PublishContainer">
     <Exec Command="docker build -t iqasport/management-hub:latest ." WorkingDirectory="$(SolutionDir)/../../docker/build" />
-  </Target>-->
+  </Target>
 
 </Project>
