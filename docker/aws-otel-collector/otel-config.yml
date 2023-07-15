@@ -29,7 +29,7 @@ service:
       receivers: [otlp]
       exporters: [awsemf]
 
-  extensions: [pprof]
+  extensions: [pprof, health_check]
   telemetry:
     logs:
       level: debug
