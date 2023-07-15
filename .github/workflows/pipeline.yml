@@ -190,6 +190,7 @@ jobs:
         docker tag iqasport/management-hub:latest $ECR_REPOSITORY/$IMAGE_NAME:$(dotnet gitversion -showvariable NuGetVersion)
         docker tag iqasport/management-hub:latest $ECR_REPOSITORY/$IMAGE_NAME:latest
         echo -e "Tagged docker image \`$ECR_REPOSITORY/$IMAGE_NAME\` with tags:\n\n- \`latest\`\n- \`$(dotnet gitversion -showvariable NuGetVersion)\`\n" >> $GITHUB_STEP_SUMMARY
-        echo "Pushing $ECR_REPOSITORY/$IMAGE_NAME with tags - latest"
+        echo "Pushing $ECR_REPOSITORY/$IMAGE_NAME with tags - latest, $(dotnet gitversion -showvariable NuGetVersion)"
         docker push $ECR_REPOSITORY/$IMAGE_NAME:latest
-        echo -e "Pushed docker image \`$ECR_REPOSITORY/$IMAGE_NAME\` with tags:\n\n- \`latest\`\n" >> $GITHUB_STEP_SUMMARY
+        docker push $ECR_REPOSITORY/$IMAGE_NAME:$(dotnet gitversion -showvariable NuGetVersion)
+        echo -e "Pushed docker image \`$ECR_REPOSITORY/$IMAGE_NAME\` with tags:\n\n- \`latest\`\n- \`$(dotnet gitversion -showvariable NuGetVersion)\`\n" >> $GITHUB_STEP_SUMMARY
