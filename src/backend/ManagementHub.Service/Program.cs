@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using DotNetEd.CoreAdmin;
 using Hangfire;
 using ManagementHub.Mailers;
@@ -24,6 +25,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.AmbientMetadata;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Telemetry.Enrichment;
 using Microsoft.Extensions.Telemetry.Logging;
 using OpenTelemetry;
@@ -332,6 +334,12 @@ public static class Program
 					otlpOptions.Endpoint = settings.OtlpEndpoint;
 				}));
 		}
+		else if (settings.Exporter == "Azure")
+		{
+			services.AddOpenTelemetry()
+				.WithTracing(b => b.AddAzureMonitorTraceExporter(o => o.ConnectionString = settings.AzureConnectionString))
+				.WithMetrics(b => b.AddAzureMonitorMetricExporter(o => o.ConnectionString = settings.AzureConnectionString));
+		}
 	}
 
 	public static void ConfigureLogging(WebHostBuilderContext context, ILoggingBuilder builder)
@@ -360,6 +368,15 @@ public static class Program
 						batchOptions.ScheduledDelayMilliseconds,
 						batchOptions.ExporterTimeoutMilliseconds,
 						batchOptions.MaxExportBatchSize));
+		}
+		else if (settings.Exporter == "Azure")
+		{
+			var exporterOptions = new AzureMonitorExporterOptions()
+			{
+				ConnectionString = settings.AzureConnectionString,
+			};
+			var otlpExporter = (BaseExporter<LogRecord>?)Activator.CreateInstance(typeof(AzureMonitorExporterOptions).Assembly.GetType("Azure.Monitor.OpenTelemetry.Exporter.AzureMonitorLogExporter")!, exporterOptions);
+			builder.AddProcessor(new BatchLogRecordExportProcessor(otlpExporter!));
 		}
 	}
 }
