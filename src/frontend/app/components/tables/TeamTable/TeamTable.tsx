@@ -1,11 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-
-import { GetTeamsFilter } from "../../../apis/team";
-import { deleteTeam } from "../../../modules/team/team";
-import { getTeams, TeamsState, updateFilters } from "../../../modules/team/teams";
-import { RootState } from "../../../rootReducer";
-import { Datum } from "../../../schemas/getTeamsSchema";
+import React, { useState } from "react";
 import { toDateTime } from "../../../utils/dateUtils";
 
 import FilterToolbar from "../../../components/FilterToolbar";
@@ -14,7 +7,7 @@ import WarningModal from "../../../components/modals/WarningModal";
 import Table, { CellConfig } from "../../../components/tables/Table/Table";
 
 import ActionDropdown from "./ActionDropdown";
-import { AppDispatch } from "../../../store";
+import { NgbTeamViewModel, useGetNgbTeamsQuery } from "../../../store/serviceApi";
 
 enum ModalType {
   Edit = "edit",
@@ -23,29 +16,17 @@ enum ModalType {
 
 interface TeamTableProps {
   ngbId: string;
+  teamCount: number;
 }
 
 const TeamTable = (props: TeamTableProps) => {
   const { ngbId } = props;
   const [openModal, setOpenModal] = useState<ModalType>();
   const [activeTeamId, setActiveTeamId] = useState<string>();
+  const [filter, setFilter] = useState<string | undefined>(undefined);
+  const [page, setPage] = useState(1);
 
-  const dispatch = useDispatch<AppDispatch>();
-  const { teams, isLoading, meta, filters } = useSelector(
-    (state: RootState): TeamsState => state.teams,
-    shallowEqual
-  );
-
-  useEffect(() => {
-    const filter: GetTeamsFilter = {
-      nationalGoverningBodies: [parseInt(props.ngbId, 10)],
-      nationalGoverningBodyId: ngbId,
-      page: 1,
-      limit: 25,
-    };
-    dispatch(updateFilters(filter));
-    dispatch(getTeams(filter));
-  }, [ngbId]);
+  const { data: teams, isLoading } = useGetNgbTeamsQuery({ngb: ngbId, filter, page, pageSize: 25})
 
   const handleCloseModal = () => setOpenModal(null);
   const handleEditClick = (teamId: string) => {
@@ -57,22 +38,18 @@ const TeamTable = (props: TeamTableProps) => {
     setOpenModal(ModalType.Delete);
   };
   const handleDeleteConfirm = () => {
-    dispatch(deleteTeam(activeTeamId, ngbId));
+    //dispatch(deleteTeam(activeTeamId, ngbId)); TODO
     handleCloseModal();
   };
 
   const handleClearSearch = () => handleSearch("");
 
   const handleSearch = (newValue: string) => {
-    const newFilters: GetTeamsFilter = { ...filters, q: newValue };
-    dispatch(updateFilters(newFilters));
-    dispatch(getTeams(newFilters));
+    setFilter(newValue ?? undefined)
   };
 
   const handlePageSelect = (newPage: number) => {
-    const newFilters: GetTeamsFilter = { ...filters, page: newPage };
-    dispatch(updateFilters(newFilters));
-    dispatch(getTeams(newFilters));
+    setPage(newPage);
   };
 
   const renderModals = () => {
@@ -105,43 +82,43 @@ const TeamTable = (props: TeamTableProps) => {
   const renderEmpty = () => <h2>No teams found</h2>;
 
   const HEADER_CELLS = ["name", "city", "joined date", "type", "status", "actions"];
-  const rowConfig: CellConfig<Datum>[] = [
+  const rowConfig: CellConfig<NgbTeamViewModel>[] = [
     {
-      cellRenderer: (item: Datum) => {
-        return item.attributes.name;
+      cellRenderer: (item: NgbTeamViewModel) => {
+        return item.name;
       },
       dataKey: "name",
     },
     {
-      cellRenderer: (item: Datum) => {
-        const stateField = item.attributes.state ? `, ${item.attributes.state}` : "";
-        return `${item.attributes.city}${stateField}`;
+      cellRenderer: (item: NgbTeamViewModel) => {
+        const stateField = item.state ? `, ${item.state}` : "";
+        return `${item.city}${stateField}`;
       },
       dataKey: "city",
     },
     {
-      cellRenderer: (item: Datum) => {
-        return toDateTime(item.attributes.joinedAt).toFormat("DDD");
+      cellRenderer: (item: NgbTeamViewModel) => {
+        return "TODO"; //toDateTime(item.joinedAt).toFormat("DDD");
       },
       dataKey: "joinedAt",
     },
     {
-      cellRenderer: (item: Datum) => {
-        return item.attributes.groupAffiliation;
+      cellRenderer: (item: NgbTeamViewModel) => {
+        return item.groupAffiliation;
       },
       dataKey: "groupAffiliation",
     },
     {
-      cellRenderer: (item: Datum) => {
-        return item.attributes.status;
+      cellRenderer: (item: NgbTeamViewModel) => {
+        return item.status;
       },
       dataKey: "status",
     },
     {
-      cellRenderer: (item: Datum) => {
+      cellRenderer: (item: NgbTeamViewModel) => {
         return (
           <ActionDropdown
-            teamId={item.id}
+            teamId={item.teamId.id.toString()}
             onEditClick={handleEditClick}
             onDeleteClick={handleDeleteClick}
           />
@@ -154,11 +131,11 @@ const TeamTable = (props: TeamTableProps) => {
 
   return (
     <div className="w-full">
-      {teams.length > 0 && (
+      {teams?.length > 0 && (
         <FilterToolbar
-          currentPage={parseInt(meta?.page, 10)}
+          currentPage={page}
           onClearSearch={handleClearSearch}
-          total={meta?.total}
+          total={props.teamCount}
           onSearchInput={handleSearch}
           onPageSelect={handlePageSelect}
         />
@@ -170,7 +147,7 @@ const TeamTable = (props: TeamTableProps) => {
         rowConfig={rowConfig}
         emptyRenderer={renderEmpty}
         isHeightRestricted={true}
-        getId={team => team.id}
+        getId={team => team.teamId.id.toString()}
       />
       {renderModals()}
     </div>

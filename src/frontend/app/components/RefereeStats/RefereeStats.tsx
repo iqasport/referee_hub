@@ -1,10 +1,10 @@
 import classnames from "classnames";
 import React from "react";
 
-import { IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
 import { getMonths, toDateTime } from "../../utils/dateUtils";
 import HistoricChart from "../HistoricChart";
 import StatBarChart from "../StatBarChart";
+import { INgbStatsContext } from "../../store/serviceApi";
 
 interface RefereeStatsProps {
   assistantCount: number;
@@ -14,13 +14,13 @@ interface RefereeStatsProps {
   uncertifiedCount: number;
   onClick: () => void;
   showFull: boolean;
-  stats: IncludedAttributes[];
+  stats: INgbStatsContext[];
 }
 
 const RefereeStats = (props: RefereeStatsProps) => {
   const { total, headCount, assistantCount, snitchCount, showFull, onClick, stats } = props;
   const historicChartData = getMonths().map((month) => {
-    const foundStat = stats.find((stat) => toDateTime(stat.endTime).monthShort === month);
+    const foundStat = stats.find((stat) => toDateTime(stat.collectedAt).monthShort === month);
     if (!foundStat) {
       return {
         month,

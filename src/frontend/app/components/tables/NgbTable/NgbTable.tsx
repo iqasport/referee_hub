@@ -33,7 +33,7 @@ const NgbTable = () => {
 
   useEffect(() => {
     if (!nationalGoverningBodies.length) {
-      dispatch(getNationalGoverningBodies());
+      //dispatch(getNationalGoverningBodies()); TODO skipping for now
     }
   }, [nationalGoverningBodies]);
 
@@ -111,7 +111,7 @@ const NgbTable = () => {
         <NgbEditModal
           open={!!activeEdit}
           showClose={true}
-          ngbId={parseInt(activeEdit, 10)}
+          ngbId={activeEdit}
           onClose={handleEditClose}
         />
       ) : null}

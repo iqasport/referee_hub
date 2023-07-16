@@ -10,7 +10,9 @@ enum SelectedTable {
 }
 
 interface NgbTablesProps {
-  ngbId: number;
+  ngbId: string;
+  refereeCount: number;
+  teamCount: number;
 }
 
 const NgbTables = (props: NgbTablesProps) => {
@@ -44,8 +46,8 @@ const NgbTables = (props: NgbTablesProps) => {
           Teams
         </button>
       </div>
-      {isRefereesActive && <NewRefereeTable ngbId={ngbId} isHeightRestricted={true} />}
-      {isTeamsActive && <TeamTable ngbId={ngbId.toString()} />}
+      {isRefereesActive && <NewRefereeTable ngbId={ngbId} refereeCount={props.refereeCount} isHeightRestricted={true} />}
+      {isTeamsActive && <TeamTable ngbId={ngbId} teamCount={props.teamCount} />}
     </div>
   );
 };

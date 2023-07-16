@@ -1,35 +1,12 @@
-import { Interval } from "luxon";
 import React, { useState } from "react";
 
-import { IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
-import { toDateTime } from "../../utils/dateUtils";
 import RefereeStats from "../RefereeStats";
 import TeamStatusStats from "../TeamStatusStats";
 import TeamTypeStats from "../TeamTypeStats";
-
-const sortByTimestamp = (stats: IncludedAttributes[]): IncludedAttributes[] => {
-  if (!stats.length) return [];
-
-  return stats.slice().sort((a, b) => {
-    const aEndTime = toDateTime(a.endTime);
-    const aStartTime = toDateTime(a.start);
-    const bEndTime = toDateTime(b.endTime);
-    const aInterval = Interval.fromDateTimes(aStartTime, aEndTime);
-
-    if (aInterval.isBefore(bEndTime)) {
-      return 1;
-    }
-
-    if (aInterval.isAfter(bEndTime)) {
-      return -1;
-    }
-
-    return 0;
-  });
-};
+import { INgbStatsContext } from "../../store/serviceApi";
 
 interface StatsViewerProps {
-  stats: IncludedAttributes[];
+  stats: INgbStatsContext[];
 }
 
 enum SelectedStat {
@@ -40,8 +17,8 @@ enum SelectedStat {
 
 const StatsViewer = (props: StatsViewerProps) => {
   const [selectedStat, setSelectedStat] = useState<SelectedStat>();
-  const orderedStats = sortByTimestamp(props.stats);
-  const currentStat = orderedStats[0];
+  const orderedStats = props.stats;
+  const currentStat = props.stats[0];
 
   const handleStatClick = (type: SelectedStat) => () => {
     if (selectedStat !== type) {
@@ -62,8 +39,8 @@ const StatsViewer = (props: StatsViewerProps) => {
           <RefereeStats
             headCount={currentStat?.headRefereesCount}
             assistantCount={currentStat?.assistantRefereesCount}
-            snitchCount={currentStat?.snitchRefereesCount}
-            uncertifiedCount={currentStat?.uncertifiedCount}
+            snitchCount={currentStat?.flagRefereesCount}
+            uncertifiedCount={currentStat?.uncertifiedRefereesCount}
             total={currentStat?.totalRefereesCount}
             onClick={handleStatClick(SelectedStat.Referee)}
             showFull={refereeSelected}

@@ -1,16 +1,10 @@
 import { capitalize } from "lodash";
-import React, { useEffect } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-
-import { GetRefereesFilter } from "../../../apis/referee";
-import { getReferees, Referee, updateFilters } from "../../../modules/referee/referees";
-import { RootState } from "../../../rootReducer";
-import { AssociationType } from "../../../schemas/getRefereesSchema";
+import React, { useState } from "react";
 import { getVersion } from "../../../utils/certUtils";
 import FilterToolbar from "../../FilterToolbar";
 import Table, { CellConfig } from "../Table/Table";
-import { AppDispatch } from "../../../store";
 import { useNavigate } from "../../../utils/navigationUtils";
+import { RefereeViewModel, useGetNgbRefereesQuery } from "../../../store/serviceApi";
 
 const HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB"];
 const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs"];
@@ -21,9 +15,9 @@ const sortByLength = (a: string, b: string): number => {
   return a.length - b.length;
 };
 
-const findHighestCert = (referee: Referee): string => {
+const findHighestCert = (referee: RefereeViewModel): string => {
   const certHashMap: { [version: string]: string[] } = {};
-  referee?.certifications.forEach((cert) => {
+  referee?.acquiredCertifications.forEach((cert) => {
     if (certHashMap[cert.version]) {
       certHashMap[cert.version].push(cert.level);
     } else {
@@ -48,28 +42,20 @@ const findHighestCert = (referee: Referee): string => {
 };
 
 type NewRefereeTableProps = {
-  ngbId?: number;
+  ngbId?: string;
   isHeightRestricted?: boolean;
+  refereeCount: number;
 };
 
 const NewRefereeTable = (props: NewRefereeTableProps) => {
   const { ngbId, isHeightRestricted } = props;
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
-  const { referees, isLoading, meta, filters } = useSelector(
-    (state: RootState) => state.referees,
-    shallowEqual
-  );
+  const [filter, setFilter] = useState<string | undefined>(undefined);
+  const [page, setPage] = useState(1);
+  
+  const { data: referees, isLoading } = useGetNgbRefereesQuery({ngb: ngbId, filter, page, pageSize: 25})
 
   const headerCells = ngbId ? HEADER_CELLS : ADMIN_HEADER_CELLS;
-
-  useEffect(() => {
-    const filter: GetRefereesFilter = {};
-    if (props.ngbId) filter.nationalGoverningBodies = [props.ngbId];
-
-    dispatch(updateFilters(filter));
-    dispatch(getReferees(filter));
-  }, []);
 
   const handleRowClick = (id: string) => {
     navigate(`/referees/${id}`);
@@ -78,38 +64,32 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
   const handleClearSearch = () => handleSearch("");
 
   const handleSearch = (newValue: string) => {
-    const newFilters: GetRefereesFilter = { ...filters, q: newValue };
-    dispatch(updateFilters(newFilters));
-    dispatch(getReferees(newFilters));
+    setFilter(newValue ?? undefined);
   };
 
   const handlePageSelect = (newPage: number) => {
-    const newFilters: GetRefereesFilter = { ...filters, page: newPage };
-    dispatch(updateFilters(newFilters));
-    dispatch(getReferees(newFilters));
+    setPage(newPage);
   };
 
   const renderEmpty = () => {
     return <h2>No referees found.</h2>;
   };
 
-  const rowConfig: CellConfig<Referee>[] = [
+  const rowConfig: CellConfig<RefereeViewModel>[] = [
     {
-      cellRenderer: (item: Referee) => {
-        if (!item?.referee.firstName) return "Anonymous Referee";
-        return `${item?.referee.firstName} ${item?.referee.lastName}`;
-      },
+      cellRenderer: (item: RefereeViewModel) => item.name,
       dataKey: "name",
     },
     {
-      cellRenderer: (item: Referee) => {
+      cellRenderer: (item: RefereeViewModel) => {
         return findHighestCert(item);
       },
       dataKey: "certifications",
     },
     {
-      cellRenderer: (item: Referee) => {
-        return item?.teams.map((team) => team.name).join(", ");
+      cellRenderer: (item: RefereeViewModel) => {
+        return "TODO"; // we need to get teams from referees locations then map name to id OR fetch it on the backend
+        //return [item.playingTeam, item.coachingTeam].filter(t => !!t).map((team) => team.name).join(", ");
       },
       dataKey: "teams",
     },
@@ -117,23 +97,21 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
 
   if (ngbId) {
     rowConfig.push({
-      cellRenderer: (item: Referee) => {
-        const secondary = item?.locations.filter(
-          (location) => location.associationType === AssociationType.Secondary
-        );
-        const secondaryName =
-          secondary.length &&
-          item?.ngbs.find((ngb) => {
-            return ngb.id === secondary[0].nationalGoverningBodyId.toString();
-          })?.name;
+      cellRenderer: (item: RefereeViewModel) => {
+        const secondary = item?.secondaryNgb;
+        const secondaryName = "TODO";
+          // secondary.length &&
+          // item?.ngbs.find((ngb) => {
+          //   return ngb.id === secondary[0].nationalGoverningBodyId.toString();
+          // })?.name;
         return secondaryName || "N/A";
       },
       dataKey: "locations",
     });
   } else {
     rowConfig.push({
-      cellRenderer: (item: Referee) => {
-        return item?.ngbs.map((location) => location.name).join(", ");
+      cellRenderer: (item: RefereeViewModel) => {
+        return "TODO"; //item?.ngbs.map((location) => location.name).join(", ");
       },
       dataKey: "locations",
     });
@@ -142,9 +120,9 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
   return (
     <div className="w-full">
       <FilterToolbar
-        currentPage={parseInt(meta?.page, 10)}
+        currentPage={page}
         onClearSearch={handleClearSearch}
-        total={meta?.total}
+        total={props.refereeCount}
         onSearchInput={handleSearch}
         onPageSelect={handlePageSelect}
       />
@@ -156,7 +134,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
         onRowClick={handleRowClick}
         emptyRenderer={renderEmpty}
         isHeightRestricted={isHeightRestricted}
-        getId={ref => ref.id}
+        getId={ref => ref.userId}
       />
     </div>
   );

@@ -9,13 +9,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classnames from "classnames";
 import { capitalize, words } from "lodash";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import DataLabel from "../../components/DataLabel";
 import UploadedImage from "../../components/UploadedImage";
-import { updateNgbLogo } from "../../modules/nationalGoverningBody/nationalGoverningBody";
-import { DataAttributes, IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
-import { AppDispatch } from "../../store";
+import { NgbInfoViewModel, SocialAccount } from "../../store/serviceApi";
 
 type SocialConfig = {
   [key: string]: {
@@ -26,7 +23,7 @@ type SocialConfig = {
 
 const socialConfig: SocialConfig = {
   facebook: {
-    color: "hover:text-blue-400",
+    color: "hover:text-blue",
     icon: faFacebookSquare,
   },
   instagram: {
@@ -48,27 +45,22 @@ const socialConfig: SocialConfig = {
 };
 
 type SidebarProps = {
-  ngb: DataAttributes;
-  socialAccounts: IncludedAttributes[];
-  teamCount: number;
-  refereeCount: number;
-  ngbId: string;
-  isEditing: boolean;
+  ngb: NgbInfoViewModel;
 };
 
 const Sidebar = (props: SidebarProps) => {
-  const { ngb, socialAccounts, teamCount, refereeCount, ngbId } = props;
-  const dispatch = useDispatch<AppDispatch>();
+  const { ngb } = props;
 
   const handleLogoUpdate = (file: File) => {
-    dispatch(updateNgbLogo(ngbId, file));
+    // TODO: PATCH Ngb Avatar
+    alert("Not implemented yet.")
   };
 
-  const renderSocialMedia = (account: IncludedAttributes, index) => {
-    const iconConfig = socialConfig[account.accountType];
+  const renderSocialMedia = (account: SocialAccount, index) => {
+    const iconConfig = socialConfig[account.type];
     return (
       <a
-        key={`${account.accountType}-${index}`}
+        key={`${account.type}-${index}`}
         href={account.url}
         target="_blank"
         rel="noopener noreferrer"
@@ -84,17 +76,17 @@ const Sidebar = (props: SidebarProps) => {
       <div className="flex justify-center">
         <UploadedImage
           imageAlt="national governing body logo"
-          imageUrl={ngb.logoUrl}
+          imageUrl={ngb.avatarUri}
           onSubmit={handleLogoUpdate}
           isEditable={true}
         />
       </div>
       <div className="w-full flex flex-row justify-between mt-8">
         <DataLabel label="teams" customClass="flex-shrink">
-          <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">{teamCount}</h3>
+          <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">{ngb.currentStats.totalTeamsCount}</h3>
         </DataLabel>
         <DataLabel label="referees" customClass="flex-shrink">
-          <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">{refereeCount}</h3>
+          <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">{ngb.currentStats.totalRefereesCount}</h3>
         </DataLabel>
         <DataLabel label="players" customClass="flex-shrink">
           <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">
@@ -129,7 +121,7 @@ const Sidebar = (props: SidebarProps) => {
         </h3>
       </DataLabel>
       <DataLabel label="social media" customClass="w-full">
-        <div className="flex w-full mt-2 flex-wrap">{socialAccounts.map(renderSocialMedia)}</div>
+        <div className="flex w-full mt-2 flex-wrap">{ngb.socialAccounts.map(renderSocialMedia)}</div>
       </DataLabel>
     </div>
   );

@@ -23,9 +23,15 @@ const App = () => {
   const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery()
   const roles = currentUser?.roles?.map(r => r.roleType);
 
+  const ownedNgbIds = currentUser ? (() => {
+    const ngb = (currentUser?.roles?.filter(r => r.roleType == "NgbAdmin")[0] as any)?.ngb;
+    if (typeof ngb === "string") return [ngb];
+    else return ngb;
+  })() : undefined;
+
   const getRedirect = () => {
     if (roles.includes("IqaAdmin")) return "/admin";
-    if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${/*TODO: currentUser?.ownedNgbId*/""}`;
+    if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${ownedNgbIds[0]}`;
     if (roles.includes("Referee")) return `/referees/${currentUser.userId}`;
 
     return null;
@@ -60,7 +66,7 @@ const App = () => {
             lastName={currentUser.lastName}
             roles={roles}
             userId={currentUser.userId}
-            ownedNgbId={/* TODO currentUser?.ownedNgbId*/ undefined}
+            ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
             enabledFeatures={/* TODO currentUser?.enabledFeatures*/ undefined}
             />}
         </div>

@@ -39,7 +39,7 @@ const validateInput = (ngb: UpdateNgbRequest): string[] => {
 };
 
 interface NgbEditModalProps extends Omit<ModalProps, "size"> {
-  ngbId?: number;
+  ngbId?: string;
 }
 
 const NgbEditModal = (props: NgbEditModalProps) => {
@@ -62,7 +62,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
 
   useEffect(() => {
     if (ngbId && !ngb) {
-      dispatch(getNationalGoverningBody(ngbId));
+      //dispatch(getNationalGoverningBody(ngbId));
     }
   }, [ngbId, dispatch]);
 
@@ -84,7 +84,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
 
     const ngbToSend = { ...newNgb, urls };
     if (ngbId) {
-      dispatch(updateNgb(ngbId, ngbToSend));
+      //dispatch(updateNgb(ngbId, ngbToSend));
     }
 
     setHasChangedNgb(false);

@@ -1,10 +1,10 @@
 import classnames from "classnames";
 import React from "react";
 
-import { IncludedAttributes } from "../../schemas/getNationalGoverningBodySchema";
 import { getMonths, toDateTime } from "../../utils/dateUtils";
 import HistoricChart from "../HistoricChart";
 import StatBarChart from "../StatBarChart";
+import { INgbStatsContext } from "../../store/serviceApi";
 
 interface TeamStatusProps {
   competitiveCount: number;
@@ -13,7 +13,7 @@ interface TeamStatusProps {
   total: number;
   onClick: () => void;
   showFull: boolean;
-  stats: IncludedAttributes[];
+  stats: INgbStatsContext[];
 }
 
 const TeamStatusStats = (props: TeamStatusProps) => {
@@ -27,7 +27,7 @@ const TeamStatusStats = (props: TeamStatusProps) => {
     stats,
   } = props;
   const historicChartData = getMonths().map((month) => {
-    const foundStat = stats.find((stat) => toDateTime(stat.endTime).monthShort === month);
+    const foundStat = stats.find((stat) => toDateTime(stat.collectedAt).monthShort === month);
     if (!foundStat) {
       return { month, developingTeamsCount: 0, inactiveTeamsCount: 0, competitiveTeamsCount: 0 };
     }

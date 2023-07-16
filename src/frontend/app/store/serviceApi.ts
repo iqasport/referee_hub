@@ -113,7 +113,14 @@ const injectedRtkApi = api
       getReferees: build.query<GetRefereesApiResponse, GetRefereesApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Referees`,
-          params: { Page: queryArg.page, PageSize: queryArg.pageSize },
+          params: { Page: queryArg.page, PageSize: queryArg.pageSize, Filter: queryArg.filter },
+        }),
+        providesTags: ["Referee"],
+      }),
+      getNgbReferees: build.query<GetNgbRefereesApiResponse, GetNgbRefereesApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/referees`,
+          params: { Page: queryArg.page, PageSize: queryArg.pageSize, Filter: queryArg.filter },
         }),
         providesTags: ["Referee"],
       }),
@@ -125,7 +132,10 @@ const injectedRtkApi = api
         providesTags: ["Referee"],
       }),
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
-        query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}/teams` }),
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
+          params: { Page: queryArg.page, PageSize: queryArg.pageSize, Filter: queryArg.filter },
+        }),
         providesTags: ["Team"],
       }),
       getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
@@ -236,12 +246,23 @@ export type GetRefereesApiResponse = /** status 200 Success */ RefereeViewModel[
 export type GetRefereesApiArg = {
   page?: number;
   pageSize?: number;
+  filter?: string;
+};
+export type GetNgbRefereesApiResponse = /** status 200 Success */ RefereeViewModel[];
+export type GetNgbRefereesApiArg = {
+  ngb: string;
+  page?: number;
+  pageSize?: number;
+  filter?: string;
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
 export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModel[];
 export type GetNgbTeamsApiArg = {
   ngb: string;
+  page?: number;
+  pageSize?: number;
+  filter?: string;
 };
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
@@ -291,19 +312,23 @@ export type NgbViewModel = {
   region?: NgbRegion;
   membershipStatus?: NgbMembershipStatus;
   website?: string | null;
+  playerCount?: number;
 };
-export type NgbStatsViewModel = {
-  refereeCountByHighestObtainedLevelForCurrentRulebook?: {
-    [key: string]: number;
-  } | null;
-  teamCountByGroupAffiliation?: {
-    [key: string]: number;
-  } | null;
-  teamCountByStatus?: {
-    [key: string]: number;
-  } | null;
-  refereeCount?: number;
-  teamCount?: number;
+export type INgbStatsContext = {
+  totalRefereesCount?: number;
+  headRefereesCount?: number;
+  assistantRefereesCount?: number;
+  flagRefereesCount?: number;
+  scorekeeperRefereesCount?: number;
+  uncertifiedRefereesCount?: number;
+  competitiveTeamsCount?: number;
+  developingTeamsCount?: number;
+  inactiveTeamsCount?: number;
+  youthTeamsCount?: number;
+  universityTeamsCount?: number;
+  communityTeamsCount?: number;
+  totalTeamsCount?: number;
+  collectedAt?: string;
 };
 export type SocialAccountType = "facebook" | "twitter" | "youtube" | "instagram" | "other";
 export type SocialAccount = {
@@ -318,8 +343,11 @@ export type NgbInfoViewModel = {
   region?: NgbRegion;
   membershipStatus?: NgbMembershipStatus;
   website?: string | null;
-  stats?: NgbStatsViewModel;
+  playerCount?: number;
+  currentStats?: INgbStatsContext;
+  historicalStats?: INgbStatsContext[] | null;
   socialAccounts?: SocialAccount[] | null;
+  avatarUri?: string | null;
 };
 export type Certification = {
   level?: CertificationLevel;
@@ -477,6 +505,7 @@ export const {
   useGetCurrentRefereeQuery,
   useGetRefereeQuery,
   useGetRefereesQuery,
+  useGetNgbRefereesQuery,
   useGetAvailablePaymentsQuery,
   useGetNgbTeamsQuery,
   useGetTestDetailsQuery,
