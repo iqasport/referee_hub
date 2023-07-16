@@ -1,9 +1,10 @@
 ﻿using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
-using ManagementHub.Service.Paging;
+using ManagementHub.Service.Filtering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -89,10 +90,10 @@ public class RefereesController : ControllerBase
 	[HttpGet]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
-	public async Task<IQueryable<RefereeViewModel>> GetReferees([FromQuery] PagingParameters paging)
+	public async Task<IQueryable<RefereeViewModel>> GetReferees([FromQuery] PagingParameters paging, [FromQuery] FilteringParameters filtering)
 	{
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync();
-		return collection.Select(context => new RefereeViewModel
+		return collection.ApplyFilter(filtering).Page(paging).Select(context => new RefereeViewModel
 		{
 			AcquiredCertifications = context.AcquiredCertifications,
 			CoachingTeam = context.CoachingTeam,
@@ -101,6 +102,24 @@ public class RefereesController : ControllerBase
 			PrimaryNgb = context.PrimaryNgb,
 			SecondaryNgb = context.SecondaryNgb,
 			UserId = context.UserId,
-		}).Page(paging);
+		});
+	}
+
+	[HttpGet("/api/v2/Ngbs/{ngb}/referees")]
+	[Tags("Referee")]
+	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
+	public async Task<IQueryable<RefereeViewModel>> GetNgbReferees([FromRoute] NgbIdentifier ngb, [FromQuery] PagingParameters paging, [FromQuery] FilteringParameters filtering)
+	{
+		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync(ngb);
+		return collection.ApplyFilter(filtering).Page(paging).Select(context => new RefereeViewModel
+		{
+			AcquiredCertifications = context.AcquiredCertifications,
+			CoachingTeam = context.CoachingTeam,
+			Name = context.DisplayName,
+			PlayingTeam = context.PlayingTeam,
+			PrimaryNgb = context.PrimaryNgb,
+			SecondaryNgb = context.SecondaryNgb,
+			UserId = context.UserId,
+		});
 	}
 }

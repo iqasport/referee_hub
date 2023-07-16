@@ -1,9 +1,12 @@
-﻿using ManagementHub.Models.Domain.General;
+﻿using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Domain.General;
 
 namespace ManagementHub.Service.Areas.Ngbs;
 
 public class NgbInfoViewModel : NgbViewModel
 {
-	public required NgbStatsViewModel Stats { get; set; }
+	public required INgbStatsContext CurrentStats { get; set; }
+	public required IEnumerable<INgbStatsContext> HistoricalStats { get; set; }
 	public required IEnumerable<SocialAccount> SocialAccounts { get; set; }
+	public required Uri? AvatarUri { get; set; }
 }

@@ -25,4 +25,5 @@ public class NgbData
 	public NgbMembershipStatus MembershipStatus { get; set; }
 
 	public Uri? Website { get; set; }
+	public int PlayerCount { get; set; }
 }

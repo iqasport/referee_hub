@@ -1,4 +1,5 @@
 ﻿using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Service.Contexts;
@@ -12,4 +13,5 @@ public interface IRefereeContextAccessor
 	Task<IRefereeViewContext> GetRefereeViewContextAsync(UserIdentifier userId);
 
 	Task<IQueryable<IRefereeViewContext>> GetRefereeViewContextListAsync();
+	Task<IQueryable<IRefereeViewContext>> GetRefereeViewContextListAsync(NgbIdentifier ngbIdentifier);
 }

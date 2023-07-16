@@ -8,6 +8,7 @@ using ManagementHub.Models.Abstraction.Commands.Payments;
 using ManagementHub.Models.Abstraction.Commands.Tests;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Processing.Contexts;
 using ManagementHub.Service.Areas.Identity;
@@ -121,6 +122,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IAttachmentRepository, AttachmentRepository>();
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();
 		services.AddTransient<IDbAccessor<UserIdentifier>, UserDbAccessor>();
+		services.AddTransient<IDbAccessor<NgbIdentifier>, NgbDbAccessor>();
 
 		services.AddTransient<ISystemClock, SystemClock>();
 

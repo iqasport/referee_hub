@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.DbAccessors;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ public class AttachmentRepository : IAttachmentRepository
 	private static readonly Dictionary<Type, string> identifierToRecordTypeMapping = new()
 	{
 		[typeof(UserIdentifier)] = "User",
+		[typeof(NgbIdentifier)] = "NationalGoverningBody",
 	};
 
 	private readonly ManagementHubDbContext dbContext;

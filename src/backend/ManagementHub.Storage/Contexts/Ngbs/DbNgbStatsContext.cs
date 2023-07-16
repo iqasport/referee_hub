@@ -1,26 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Enums;
-
-namespace ManagementHub.Storage.Contexts.Ngbs;
-using ManagementHub.Models.Data;
 using ManagementHub.Processing.Domain.Tests.Extensions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
+
+namespace ManagementHub.Storage.Contexts.Ngbs;
+
+using System.Collections.Generic;
+using ManagementHub.Models.Data;
 
 public class DbNgbStatsContext : INgbStatsContext
 {
-	public required Dictionary<CertificationLevel, int> RefereeCountByHighestObtainedLevelForCurrentRulebook { get; set; }
+	public int TotalRefereesCount { get; set; }
 
-	public required Dictionary<TeamGroupAffiliation, int> TeamCountByGroupAffiliation { get; set; }
+	public int HeadRefereesCount { get; set; }
 
-	public required Dictionary<TeamStatus, int> TeamCountByStatus { get; set; }
+	public int AssistantRefereesCount { get; set; }
+
+	public int FlagRefereesCount { get; set; }
+
+	public int ScorekeeperRefereesCount { get; set; }
+
+	public int UncertifiedRefereesCount { get; set; }
+
+	public int CompetitiveTeamsCount { get; set; }
+
+	public int DevelopingTeamsCount { get; set; }
+
+	public int InactiveTeamsCount { get; set; }
+
+	public int YouthTeamsCount { get; set; }
+
+	public int UniversityTeamsCount { get; set; }
+
+	public int CommunityTeamsCount { get; set; }
+
+	public int TotalTeamsCount { get; set; }
+
+	public DateTime CollectedAt { get; set; }
 }
 
 public class DbNgbStatsContextFactory
@@ -72,13 +93,60 @@ public class DbNgbStatsContextFactory
 		var teamsByAffiliation = await teamsByAffiliationTask;
 		var teamsByStatus = await teamsByStatusTask;
 
-		refsCertsLevels.Add((CertificationLevel)(-1), refereeCount - refsCertsLevels.Values.Sum());
 
 		return new DbNgbStatsContext
 		{
-			RefereeCountByHighestObtainedLevelForCurrentRulebook = refsCertsLevels,
-			TeamCountByGroupAffiliation = teamsByAffiliation,
-			TeamCountByStatus = teamsByStatus,
+			CollectedAt = DateTime.UtcNow,
+
+			TotalRefereesCount = refereeCount,
+			HeadRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Head),
+			FlagRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Flag),
+			AssistantRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Assistant),
+			ScorekeeperRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Scorekeeper),
+			UncertifiedRefereesCount = refereeCount - refsCertsLevels.Values.Sum(),
+
+			CommunityTeamsCount = teamsByAffiliation.GetValueOrDefault(TeamGroupAffiliation.Community),
+			UniversityTeamsCount = teamsByAffiliation.GetValueOrDefault(TeamGroupAffiliation.University),
+			YouthTeamsCount = teamsByAffiliation.GetValueOrDefault(TeamGroupAffiliation.Youth),
+
+			CompetitiveTeamsCount = teamsByStatus.GetValueOrDefault(TeamStatus.Competitive),
+			DevelopingTeamsCount = teamsByStatus.GetValueOrDefault(TeamStatus.Developing),
+			InactiveTeamsCount = teamsByStatus.GetValueOrDefault(TeamStatus.Inactive),
+
+			TotalTeamsCount = teamsByStatus.Values.Sum(),
 		};
+	}
+
+	public async Task<IOrderedEnumerable<INgbStatsContext>> GetHistoricalNgbStatsAsync(NgbIdentifier ngb)
+	{
+		IQueryable<NationalGoverningBody> ngbs = this.dbContext.NationalGoverningBodies.WithIdentifier(ngb);
+		IQueryable<NationalGoverningBodyStat> stats = this.dbContext.NationalGoverningBodyStats
+			.Join(ngbs, s => s.NationalGoverningBodyId, n => n.Id, (s, _) => s)
+			.Where(s => s.EndTime > DateTime.UtcNow.AddMonths(-12)) // collect data for the last 12 months
+			.OrderByDescending(s => s.EndTime);
+
+		var materializedStats = await stats.Select(s => new DbNgbStatsContext
+		{
+			CollectedAt = s.EndTime ?? DateTime.UtcNow,
+
+			TotalRefereesCount = s.TotalRefereesCount ?? 0,
+			HeadRefereesCount = s.HeadRefereesCount ?? 0,
+			FlagRefereesCount = s.SnitchRefereesCount ?? 0,
+			AssistantRefereesCount = s.AssistantRefereesCount ?? 0,
+			ScorekeeperRefereesCount = s.ScorekeeperRefereesCount ?? 0,
+			UncertifiedRefereesCount = s.UncertifiedCount ?? 0,
+
+			CommunityTeamsCount = s.CommunityTeamsCount ?? 0,
+			UniversityTeamsCount = s.UncertifiedCount ?? 0,
+			YouthTeamsCount = s.YouthTeamsCount ?? 0,
+
+			CompetitiveTeamsCount = s.CompetitiveTeamsCount ?? 0,
+			DevelopingTeamsCount = s.DevelopingTeamsCount ?? 0,
+			InactiveTeamsCount = s.InactiveTeamsCount ?? 0,
+
+			TotalTeamsCount = s.TotalTeamsCount ?? 0,
+		}).ToListAsync();
+
+		return materializedStats.OrderByDescending(s => s.CollectedAt);
 	}
 }

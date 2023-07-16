@@ -89,7 +89,8 @@ public class DbRefereeViewContextFactory
 				.Where(u => this.nationalGoverningBody.WithConstraint(ngbs).Select(ngb => ngb.Id).Intersect(u.RefereeLocations.Select(rl => rl.NationalGoverningBodyId)).Any());
 		}
 
-		return referees.Select(u => new DbRefereeViewContext
+		// we do ordering here in order to get decent paging consistency
+		return referees.OrderBy(u => u.Id).Select(u => new DbRefereeViewContext
 		{
 			UserId = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id),
 			DisplayName = u.ExportName != false ? $"{u.FirstName} {u.LastName}" : "Anonymous referee",

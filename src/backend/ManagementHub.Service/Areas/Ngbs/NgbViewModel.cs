@@ -38,4 +38,9 @@ public class NgbViewModel
 	/// Website of the NGB.
 	/// </summary>
 	public Uri? Website { get; set; }
+
+	/// <summary>
+	/// Number of players as declared by the NGB.
+	/// </summary>
+	public int PlayerCount { get; set; }
 }

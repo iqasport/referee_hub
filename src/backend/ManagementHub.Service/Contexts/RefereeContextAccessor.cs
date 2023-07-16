@@ -57,5 +57,16 @@ public class RefereeContextAccessor : IRefereeContextAccessor
 		return refereeViewerRole.Ngb;
 	}
 
+	public async Task<IQueryable<IRefereeViewContext>> GetRefereeViewContextListAsync(NgbIdentifier ngbId)
+	{
+		var currentUser = await this.userContextAccessor.GetCurrentUserContextAsync();
+		var ngbUserConstraint = this.GetNgbConstraint(currentUser);
+		if (!ngbUserConstraint.AppliesTo(ngbId))
+		{
+			throw new AccessDeniedException(ngbId.ToString());
+		}
+		return this.contextProvider.GetRefereeViewContextQueryable(NgbConstraint.Single(ngbId));
+	}
+
 	private HttpContext HttpContext => this.httpContextAccessor.HttpContext ?? throw new Exception("Could not retrieve current http context.");
 }

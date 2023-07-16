@@ -1,7 +1,9 @@
-﻿using ManagementHub.Models.Abstraction.Contexts.Providers;
+﻿using Amazon.S3.Model;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Exceptions;
+using ManagementHub.Service.Filtering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,6 +40,7 @@ public class NgbsController : ControllerBase
 			Acronym = ngb.NgbData.Acronym,
 			Country = ngb.NgbData.Country,
 			MembershipStatus = ngb.NgbData.MembershipStatus,
+			PlayerCount = ngb.NgbData.PlayerCount,
 			Region = ngb.NgbData.Region,
 			Website = ngb.NgbData.Website,
 		});
@@ -53,9 +56,17 @@ public class NgbsController : ControllerBase
 			throw new NotFoundException(ngb.ToString());
 		}
 
-		var socialAccounts = await this.socialAccountsProvider.QueryNgbSocialAccounts(NgbConstraint.Single(ngb));
+		var socialAccountsTask = this.socialAccountsProvider.QueryNgbSocialAccounts(NgbConstraint.Single(ngb));
+		var statsTask = this.ngbContextProvider.GetCurrentNgbStatsAsync(ngb);
+		var historicalStatsTask = this.ngbContextProvider.GetHistoricalNgbStatsAsync(ngb);
+		var avatarUriTask = this.ngbContextProvider.GetNgbAvatarUriAsync(ngb);
 
-		var stats = await this.ngbContextProvider.GetNgbStatsAsync(ngb);
+		await Task.WhenAll(socialAccountsTask, statsTask, historicalStatsTask, avatarUriTask);
+
+		var socialAccounts = await socialAccountsTask;
+		var stats = await statsTask;
+		var historicalStats = await historicalStatsTask;
+		var avatarUri = await avatarUriTask;
 
 		return new NgbInfoViewModel
 		{
@@ -64,25 +75,24 @@ public class NgbsController : ControllerBase
 			CountryCode = context.NgbId.NgbCode,
 			MembershipStatus = context.NgbData.MembershipStatus,
 			Name = context.NgbData.Name,
+			PlayerCount = context.NgbData.PlayerCount,
 			Region = context.NgbData.Region,
 			SocialAccounts = socialAccounts.GetValueOrDefault(ngb, Enumerable.Empty<SocialAccount>()),
-			Stats = new NgbStatsViewModel
-			{
-				RefereeCountByHighestObtainedLevelForCurrentRulebook = stats.RefereeCountByHighestObtainedLevelForCurrentRulebook,
-				TeamCountByGroupAffiliation = stats.TeamCountByGroupAffiliation,
-				TeamCountByStatus = stats.TeamCountByStatus,
-			},
+			CurrentStats = stats,
+			HistoricalStats = historicalStats,
 			Website = context.NgbData.Website,
+			AvatarUri = avatarUri,
 		};
 	}
 
 	[HttpGet("{ngb}/teams")]
 	[Tags("Team")]
-	public async Task<IEnumerable<NgbTeamViewModel>> GetNgbTeams([FromRoute] NgbIdentifier ngb)
+	public async Task<IEnumerable<NgbTeamViewModel>> GetNgbTeams([FromRoute] NgbIdentifier ngb, [FromQuery] PagingParameters paging, [FromQuery] FilteringParameters filtering)
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Single(ngb));
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
 		return this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb))
+			.ApplyFilter(filtering).Page(paging)
 			.Select(team => new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Domain.Ngb;
 
@@ -8,6 +9,9 @@ public interface INgbContextProvider
 {
 	IQueryable<INgbContext> QueryNgbs();
 
-	Task<INgbStatsContext> GetNgbStatsAsync(NgbIdentifier ngbIdentifier);
+	Task<INgbStatsContext> GetCurrentNgbStatsAsync(NgbIdentifier ngbIdentifier);
 	Task<INgbContext> GetNgbContextAsync(NgbIdentifier ngb);
+
+	Task<Uri?> GetNgbAvatarUriAsync(NgbIdentifier ngb);
+	Task<IOrderedEnumerable<INgbStatsContext>> GetHistoricalNgbStatsAsync(NgbIdentifier ngb);
 }

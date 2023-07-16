@@ -35,6 +35,7 @@ public class DbNgbContextFactory
 					Acronym = n.Acronym,
 					Country = n.Country,
 					MembershipStatus = n.MembershipStatus,
+					PlayerCount = n.PlayerCount,
 					Region = n.Region,
 					Website = n.Website != null ? new Uri(n.Website) : null,
 				}));

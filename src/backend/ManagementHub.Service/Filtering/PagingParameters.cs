@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace ManagementHub.Service.Paging;
+﻿namespace ManagementHub.Service.Filtering;
 
 public class PagingParameters
 {
