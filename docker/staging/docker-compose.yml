@@ -25,6 +25,7 @@ services:
             Services__RedisConnectionString: jobcache # pointing at the hostname of redis container on the default redis port
             Mailers__SMTP__Host: smtpserver
             Mailers__SMTP__Port: 1025
+            Telemetry__Exporter: Azure
         healthcheck:
             # we make a raw HTTP request using bash against the /healthz endpoint
             # if it returns 200 then we're healthy (grep returns 0)
