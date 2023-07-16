@@ -99,7 +99,10 @@ public static class DbServiceCollectionExtentions
 			sp.GetRequiredService<IAttachmentRepository>(),
 			sp.GetRequiredService<IAccessFileCommand>(),
 			sp.GetRequiredService<ILoggerFactory>())));
-		services.AddScoped<IRefereeContextProvider, DbRefereeContextProvider>();
+		services.AddScoped<IRefereeContextProvider>(sp => new CachedRefereeContextProvider(new DbRefereeContextProvider(
+			sp.GetRequiredService<ManagementHubDbContext>(),
+			sp.GetRequiredService<ITestContextProvider>(),
+			sp.GetRequiredService<ILoggerFactory>())));
 		services.AddScoped<ITestContextProvider, DbTestContextProvider>();
 		services.AddScoped<ITeamContextProvider, DbTeamContextProvider>();
 		services.AddScoped<INgbContextProvider, DbNgbContextProvider>();
