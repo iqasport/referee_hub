@@ -1,6 +1,7 @@
 import { baseApi as api } from "./baseApi";
 export const addTagTypes = [
   "CertificationPayments",
+  "Debug",
   "Export",
   "Ngb",
   "Referee",
@@ -38,6 +39,13 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["CertificationPayments"],
       }),
+      getDataFromLocalBlob: build.query<
+        GetDataFromLocalBlobApiResponse,
+        GetDataFromLocalBlobApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/debug/blob/${queryArg.fileKey}` }),
+        providesTags: ["Debug"],
+      }),
       exportRefereesForNgb: build.mutation<
         ExportRefereesForNgbApiResponse,
         ExportRefereesForNgbApiArg
@@ -54,6 +62,10 @@ const injectedRtkApi = api
       }),
       getNgbs: build.query<GetNgbsApiResponse, GetNgbsApiArg>({
         query: () => ({ url: `/api/v2/Ngbs` }),
+        providesTags: ["Ngb"],
+      }),
+      getNgbInfo: build.query<GetNgbInfoApiResponse, GetNgbInfoApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}` }),
         providesTags: ["Ngb"],
       }),
       getAvailableTests: build.query<GetAvailableTestsApiResponse, GetAvailableTestsApiArg>({
@@ -112,7 +124,7 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/certifications/payments` }),
         providesTags: ["Referee"],
       }),
-      getNgbTeam: build.query<GetNgbTeamApiResponse, GetNgbTeamApiArg>({
+      getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}/teams` }),
         providesTags: ["Team"],
       }),
@@ -178,6 +190,10 @@ export type SubmitPaymentSessionApiResponse = unknown;
 export type SubmitPaymentSessionApiArg = {
   body: object;
 };
+export type GetDataFromLocalBlobApiResponse = unknown;
+export type GetDataFromLocalBlobApiArg = {
+  fileKey: string;
+};
 export type ExportRefereesForNgbApiResponse = /** status 200 Success */ ExportResponse;
 export type ExportRefereesForNgbApiArg = {
   ngb: string;
@@ -188,6 +204,10 @@ export type ExportTeamsForNgbApiArg = {
 };
 export type GetNgbsApiResponse = /** status 200 Success */ NgbViewModel[];
 export type GetNgbsApiArg = void;
+export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModel;
+export type GetNgbInfoApiArg = {
+  ngb: string;
+};
 export type GetAvailableTestsApiResponse =
   /** status 200 Success */ RefereeTestAvailableViewModel[];
 export type GetAvailableTestsApiArg = void;
@@ -219,8 +239,8 @@ export type GetRefereesApiArg = {
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
-export type GetNgbTeamApiResponse = /** status 200 Success */ NgbTeamViewModel[];
-export type GetNgbTeamApiArg = {
+export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModel[];
+export type GetNgbTeamsApiArg = {
   ngb: string;
 };
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
@@ -270,6 +290,36 @@ export type NgbViewModel = {
   acronym?: string | null;
   region?: NgbRegion;
   membershipStatus?: NgbMembershipStatus;
+  website?: string | null;
+};
+export type NgbStatsViewModel = {
+  refereeCountByHighestObtainedLevelForCurrentRulebook?: {
+    [key: string]: number;
+  } | null;
+  teamCountByGroupAffiliation?: {
+    [key: string]: number;
+  } | null;
+  teamCountByStatus?: {
+    [key: string]: number;
+  } | null;
+  refereeCount?: number;
+  teamCount?: number;
+};
+export type SocialAccountType = "facebook" | "twitter" | "youtube" | "instagram" | "other";
+export type SocialAccount = {
+  url?: string | null;
+  type?: SocialAccountType;
+};
+export type NgbInfoViewModel = {
+  countryCode?: string | null;
+  name?: string | null;
+  country?: string | null;
+  acronym?: string | null;
+  region?: NgbRegion;
+  membershipStatus?: NgbMembershipStatus;
+  website?: string | null;
+  stats?: NgbStatsViewModel;
+  socialAccounts?: SocialAccount[] | null;
 };
 export type Certification = {
   level?: CertificationLevel;
@@ -373,8 +423,10 @@ export type NgbTeamViewModel = {
   name?: string | null;
   city?: string | null;
   state?: string | null;
+  country?: string | null;
   status?: TeamStatus;
   groupAffiliation?: TeamGroupAffiliation;
+  socialAccounts?: SocialAccount[] | null;
 };
 export type RefereeTestDetailsViewModel = {
   testId?: string;
@@ -412,9 +464,11 @@ export type UserDataViewModel = {
 export const {
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
+  useGetDataFromLocalBlobQuery,
   useExportRefereesForNgbMutation,
   useExportTeamsForNgbMutation,
   useGetNgbsQuery,
+  useGetNgbInfoQuery,
   useGetAvailableTestsQuery,
   useGetTestAttemptsQuery,
   useStartTestMutation,
@@ -424,7 +478,7 @@ export const {
   useGetRefereeQuery,
   useGetRefereesQuery,
   useGetAvailablePaymentsQuery,
-  useGetNgbTeamQuery,
+  useGetNgbTeamsQuery,
   useGetTestDetailsQuery,
   useGetCurrentUserQuery,
   useGetCurrentUserAvatarQuery,

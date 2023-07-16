@@ -3,7 +3,7 @@ import { InputActionMeta, MultiValue, ActionMeta } from "react-select";
 
 import Select, { SelectOption } from "../../../components/Select/Select";
 import { RefereeLocationOptions } from "../RefereeLocation/RefereeLocation";
-import { RefereeViewModel, useGetNgbTeamQuery } from "../../../store/serviceApi";
+import { RefereeViewModel, useGetNgbTeamsQuery } from "../../../store/serviceApi";
 
 export type RefereeTeamOptions = Pick<RefereeViewModel, "playingTeam" | "coachingTeam">
 
@@ -18,8 +18,8 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   const { isEditing, onChange, teams, locations } = props;
   const isDisabled = !locations.primaryNgb && !locations.secondaryNgb;
   
-  const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamQuery({ ngb: locations.primaryNgb }, {skip: !locations.primaryNgb});
-  const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamQuery({ ngb: locations.secondaryNgb }, {skip: !locations.secondaryNgb});
+  const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb }, {skip: !locations.primaryNgb});
+  const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.secondaryNgb }, {skip: !locations.secondaryNgb});
   const allTeams = (primaryNgbTeams ?? []).concat(secondaryNgbTeams ?? []);
   const [filteredTeams, setFilteredTeams] = useState([]);
 
