@@ -18,6 +18,7 @@ using ManagementHub.Storage.Commands.Payments;
 using ManagementHub.Storage.Commands.Referee;
 using ManagementHub.Storage.Commands.Tests;
 using ManagementHub.Storage.Commands.User;
+using ManagementHub.Storage.Contexts.General;
 using ManagementHub.Storage.Contexts.Ngbs;
 using ManagementHub.Storage.Contexts.Referee;
 using ManagementHub.Storage.Contexts.Team;
@@ -106,6 +107,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<ITestContextProvider, DbTestContextProvider>();
 		services.AddScoped<ITeamContextProvider, DbTeamContextProvider>();
 		services.AddScoped<INgbContextProvider, DbNgbContextProvider>();
+		services.AddScoped<ISocialAccountsProvider, DbSocialAccountsProvider>();
 
 		services.AddTransient<IQueryable<User>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<User>());
 		services.AddTransient<IQueryable<Language>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<Language>());

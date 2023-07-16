@@ -1,4 +1,5 @@
-﻿using ManagementHub.Models.Domain.Team;
+﻿using ManagementHub.Models.Domain.General;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Service.Areas.Ngbs;
@@ -26,6 +27,11 @@ public class NgbTeamViewModel
 	public string? State { get; set; }
 
 	/// <summary>
+	/// The country the team is based in (for multi country Ngbs).
+	/// </summary>
+	public string? Country { get; set; }
+
+	/// <summary>
 	/// Team status.
 	/// </summary>
 	public required TeamStatus Status { get; set; }
@@ -34,4 +40,7 @@ public class NgbTeamViewModel
 	/// Team group affiliation.
 	/// </summary>
 	public required TeamGroupAffiliation GroupAffiliation { get; set; }
+
+	public required IEnumerable<SocialAccount> SocialAccounts { get; set; }
+
 }

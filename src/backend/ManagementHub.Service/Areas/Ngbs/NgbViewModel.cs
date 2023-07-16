@@ -33,4 +33,9 @@ public class NgbViewModel
 	/// Membership status of the NGB.
 	/// </summary>
 	public NgbMembershipStatus MembershipStatus { get; set; }
+
+	/// <summary>
+	/// Website of the NGB.
+	/// </summary>
+	public Uri? Website { get; set; }
 }

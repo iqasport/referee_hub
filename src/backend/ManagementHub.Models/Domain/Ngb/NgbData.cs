@@ -1,3 +1,4 @@
+using System;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Domain.Ngb;
@@ -22,4 +23,6 @@ public class NgbData
 	public NgbRegion? Region { get; set; }
 
 	public NgbMembershipStatus MembershipStatus { get; set; }
+
+	public Uri? Website { get; set; }
 }

@@ -22,7 +22,7 @@ public partial class NationalGoverningBody : IIdentifiable
 	public DateTime CreatedAt { get; set; }
 	public DateTime UpdatedAt { get; set; }
 	public int PlayerCount { get; set; }
-	public string? ImageUrl { get; set; }
+	public string? ImageUrl { get; set; } // obsolete
 	public string? Country { get; set; }
 	public string? Acronym { get; set; }
 	public NgbRegion? Region { get; set; }

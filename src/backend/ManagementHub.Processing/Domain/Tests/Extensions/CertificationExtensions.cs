@@ -12,6 +12,7 @@ public static class CertificationExtensions
 	public static IOrderedEnumerable<Certification> Order(this IEnumerable<Certification> certifications) => certifications.Order(CertificationComparer.Instance);
 	public static CertificationLevel Max(this IEnumerable<CertificationLevel> levels) => levels.Max(CertificationLevelComparer.Instance);
 	public static CertificationLevel Min(this IEnumerable<CertificationLevel> levels) => levels.Min(CertificationLevelComparer.Instance);
+	public static CertificationLevel? Max(this IEnumerable<CertificationLevel?> levels) => levels.Max(CertificationLevelOrNullComparer.Instance);
 
 	public static int Compare(this CertificationLevel l1, CertificationLevel? l2) => CertificationLevelOrNullComparer.Instance.Compare(l1, l2);
 	public static int Compare(this CertificationLevel? l1, CertificationLevel? l2) => CertificationLevelOrNullComparer.Instance.Compare(l1, l2);
