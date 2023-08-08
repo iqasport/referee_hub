@@ -1,8 +1,8 @@
 using System.Linq;
 using ManagementHub.Models.Abstraction.Contexts;
-using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,24 +12,54 @@ public record DbTeamContext(TeamIdentifier TeamId, NgbIdentifier NgbId, TeamData
 
 public class DbTeamContextFactory
 {
-	private readonly IQueryable<Models.Data.Team> teams;
-	private readonly IQueryable<Models.Data.NationalGoverningBody> nationalGoverningBodies;
+	private readonly ManagementHubDbContext dbContext;
+	private readonly CollectionFilteringContext filteringContext;
 
-	public DbTeamContextFactory(IQueryable<Models.Data.Team> teams, IQueryable<NationalGoverningBody> nationalGoverningBodies)
+	public DbTeamContextFactory(ManagementHubDbContext dbContext, CollectionFilteringContext filteringContext)
 	{
-		this.teams = teams;
-		this.nationalGoverningBodies = nationalGoverningBodies;
+		this.dbContext = dbContext;
+		this.filteringContext = filteringContext;
 	}
 
 	public IQueryable<ITeamContext> QueryTeams(NgbConstraint ngbs)
 	{
-		IQueryable<Models.Data.Team> t = this.teams.AsNoTracking()
+		IQueryable<Models.Data.Team> t = this.dbContext.Teams.AsNoTracking()
 				.Include(t => t.NationalGoverningBody);
 		
 		if (!ngbs.AppliesToAny)
 		{
-			t = t.Join(this.nationalGoverningBodies.WithConstraint(ngbs), tt => tt.NationalGoverningBodyId, n => n.Id, (tt, n) => tt);
+			t = t.Join(this.dbContext.NationalGoverningBodies.WithConstraint(ngbs), tt => tt.NationalGoverningBodyId, n => n.Id, (tt, n) => tt);
 		}
+
+		t = t.OrderBy(x => x.Name);
+
+		var filter = this.filteringContext.FilteringParameters.Filter;
+		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
+		if (!string.IsNullOrEmpty(filter))
+		{
+			if (this.dbContext.Database.IsNpgsql())
+			{
+				t = t.Where(x =>
+					EF.Functions.ILike(x.Name, filter) ||
+					EF.Functions.ILike(x.City, filter) ||
+					EF.Functions.ILike(x.State!, filter));
+			}
+			else
+			{
+				t = t.Where(x =>
+					EF.Functions.Like(x.Name, filter) ||
+					EF.Functions.Like(x.City, filter) ||
+					EF.Functions.Like(x.State!, filter));
+			}
+		}
+
+		if (this.filteringContext.FilteringMetadata != null)
+		{
+			//TODO: figure out some way to make this async in a nice way
+			this.filteringContext.FilteringMetadata.TotalCount = t.Count();
+		}
+
+		t = t.Page(this.filteringContext.FilteringParameters);
 
 		return t.Select(tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
 		{

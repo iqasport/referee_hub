@@ -5,6 +5,7 @@ using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -90,10 +91,10 @@ public class RefereesController : ControllerBase
 	[HttpGet]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
-	public async Task<IQueryable<RefereeViewModel>> GetReferees([FromQuery] PagingParameters paging, [FromQuery] FilteringParameters filtering)
+	public async Task<Filtered<RefereeViewModel>> GetReferees([FromQuery] FilteringParameters filtering)
 	{
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync();
-		return collection.ApplyFilter(filtering).Page(paging).Select(context => new RefereeViewModel
+		return collection.Select(context => new RefereeViewModel
 		{
 			AcquiredCertifications = context.AcquiredCertifications,
 			CoachingTeam = context.CoachingTeam,
@@ -102,16 +103,16 @@ public class RefereesController : ControllerBase
 			PrimaryNgb = context.PrimaryNgb,
 			SecondaryNgb = context.SecondaryNgb,
 			UserId = context.UserId,
-		});
+		}).AsFiltered();
 	}
 
 	[HttpGet("/api/v2/Ngbs/{ngb}/referees")]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
-	public async Task<IQueryable<RefereeViewModel>> GetNgbReferees([FromRoute] NgbIdentifier ngb, [FromQuery] PagingParameters paging, [FromQuery] FilteringParameters filtering)
+	public async Task<Filtered<RefereeViewModel>> GetNgbReferees([FromRoute] NgbIdentifier ngb, [FromQuery] FilteringParameters filtering)
 	{
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync(ngb);
-		return collection.ApplyFilter(filtering).Page(paging).Select(context => new RefereeViewModel
+		return collection.Select(context => new RefereeViewModel
 		{
 			AcquiredCertifications = context.AcquiredCertifications,
 			CoachingTeam = context.CoachingTeam,
@@ -120,6 +121,6 @@ public class RefereesController : ControllerBase
 			PrimaryNgb = context.PrimaryNgb,
 			SecondaryNgb = context.SecondaryNgb,
 			UserId = context.UserId,
-		});
+		}).AsFiltered();
 	}
 }

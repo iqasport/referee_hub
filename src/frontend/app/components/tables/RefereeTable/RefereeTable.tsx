@@ -122,12 +122,12 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
       <FilterToolbar
         currentPage={page}
         onClearSearch={handleClearSearch}
-        total={props.refereeCount}
+        total={referees?.metadata?.totalCount}
         onSearchInput={handleSearch}
         onPageSelect={handlePageSelect}
       />
       <Table
-        items={referees}
+        items={referees?.items}
         isLoading={isLoading}
         headerCells={headerCells}
         rowConfig={rowConfig}

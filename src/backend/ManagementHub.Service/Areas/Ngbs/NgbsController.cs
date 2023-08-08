@@ -4,6 +4,7 @@ using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,7 +32,7 @@ public class NgbsController : ControllerBase
 
 	[HttpGet]
 	[Tags("Ngb")]
-	public IEnumerable<NgbViewModel> GetNgbs()
+	public Filtered<NgbViewModel> GetNgbs([FromQuery] FilteringParameters filtering)
 	{
 		return this.ngbContextProvider.QueryNgbs().Select(ngb => new NgbViewModel
 		{
@@ -43,7 +44,7 @@ public class NgbsController : ControllerBase
 			PlayerCount = ngb.NgbData.PlayerCount,
 			Region = ngb.NgbData.Region,
 			Website = ngb.NgbData.Website,
-		});
+		}).AsFiltered();
 	}
 
 	[HttpGet("{ngb}")]
@@ -87,12 +88,11 @@ public class NgbsController : ControllerBase
 
 	[HttpGet("{ngb}/teams")]
 	[Tags("Team")]
-	public async Task<IEnumerable<NgbTeamViewModel>> GetNgbTeams([FromRoute] NgbIdentifier ngb, [FromQuery] PagingParameters paging, [FromQuery] FilteringParameters filtering)
+	public async Task<Filtered<NgbTeamViewModel>> GetNgbTeams([FromRoute] NgbIdentifier ngb, [FromQuery] FilteringParameters filtering)
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Single(ngb));
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
 		return this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb))
-			.ApplyFilter(filtering).Page(paging)
 			.Select(team => new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,
@@ -103,7 +103,7 @@ public class NgbsController : ControllerBase
 			State = team.TeamData.State,
 			Country = team.TeamData.Country,
 			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
-		});
+		}).AsFiltered();
 	}
 
 }

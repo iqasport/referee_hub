@@ -6,6 +6,7 @@ using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Storage.Attachments;
+using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Contexts.User;
 using Microsoft.Extensions.Logging;
 
@@ -20,9 +21,10 @@ public class DbNgbContextProvider : INgbContextProvider
 		ManagementHubDbContext dbContext,
 		IAttachmentRepository attachmentRepository,
 		IAccessFileCommand accessFile,
+		CollectionFilteringContext filteringContext,
 		ILoggerFactory loggerFactory)
 	{
-		this.ngbContextFactory = new(dbContext, loggerFactory.CreateLogger<DbNgbContextFactory>());
+		this.ngbContextFactory = new(dbContext, loggerFactory.CreateLogger<DbNgbContextFactory>(), filteringContext);
 		this.ngbStatsContextFactory = new(dbContext);
 		this.dbNgbAvatarContextFactory = new(attachmentRepository, accessFile, loggerFactory.CreateLogger<DbNgbAvatarContextFactory>());
 	}

@@ -20,12 +20,12 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   
   const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb }, {skip: !locations.primaryNgb});
   const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.secondaryNgb }, {skip: !locations.secondaryNgb});
-  const allTeams = (primaryNgbTeams ?? []).concat(secondaryNgbTeams ?? []);
+  const allTeams = (primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? []);
   const [filteredTeams, setFilteredTeams] = useState([]);
 
   // update local state after teams are loaded
   // can't use allTeams here as it's changing on each rerender
-  useEffect(() => setFilteredTeams((primaryNgbTeams ?? []).concat(secondaryNgbTeams ?? [])), [primaryNgbTeams, secondaryNgbTeams]);
+  useEffect(() => setFilteredTeams((primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? [])), [primaryNgbTeams, secondaryNgbTeams]);
 
   const hasType = (type: keyof RefereeTeamOptions): boolean => {
     return !!teams[type];

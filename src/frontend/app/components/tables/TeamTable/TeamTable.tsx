@@ -131,17 +131,17 @@ const TeamTable = (props: TeamTableProps) => {
 
   return (
     <div className="w-full">
-      {teams?.length > 0 && (
+      {teams?.items?.length > 0 && (
         <FilterToolbar
           currentPage={page}
           onClearSearch={handleClearSearch}
-          total={props.teamCount}
+          total={teams.metadata?.totalCount}
           onSearchInput={handleSearch}
           onPageSelect={handlePageSelect}
         />
       )}
       <Table
-        items={teams}
+        items={teams?.items}
         isLoading={isLoading}
         headerCells={HEADER_CELLS}
         rowConfig={rowConfig}

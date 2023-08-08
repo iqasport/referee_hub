@@ -61,7 +61,10 @@ const injectedRtkApi = api
         invalidatesTags: ["Export"],
       }),
       getNgbs: build.query<GetNgbsApiResponse, GetNgbsApiArg>({
-        query: () => ({ url: `/api/v2/Ngbs` }),
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs`,
+          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
+        }),
         providesTags: ["Ngb"],
       }),
       getNgbInfo: build.query<GetNgbInfoApiResponse, GetNgbInfoApiArg>({
@@ -113,14 +116,14 @@ const injectedRtkApi = api
       getReferees: build.query<GetRefereesApiResponse, GetRefereesApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Referees`,
-          params: { Page: queryArg.page, PageSize: queryArg.pageSize, Filter: queryArg.filter },
+          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
         }),
         providesTags: ["Referee"],
       }),
       getNgbReferees: build.query<GetNgbRefereesApiResponse, GetNgbRefereesApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/referees`,
-          params: { Page: queryArg.page, PageSize: queryArg.pageSize, Filter: queryArg.filter },
+          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
         }),
         providesTags: ["Referee"],
       }),
@@ -134,7 +137,7 @@ const injectedRtkApi = api
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
-          params: { Page: queryArg.page, PageSize: queryArg.pageSize, Filter: queryArg.filter },
+          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
         }),
         providesTags: ["Team"],
       }),
@@ -212,8 +215,12 @@ export type ExportTeamsForNgbApiResponse = /** status 200 Success */ ExportRespo
 export type ExportTeamsForNgbApiArg = {
   ngb: string;
 };
-export type GetNgbsApiResponse = /** status 200 Success */ NgbViewModel[];
-export type GetNgbsApiArg = void;
+export type GetNgbsApiResponse = /** status 200 Success */ NgbViewModelFiltered;
+export type GetNgbsApiArg = {
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+};
 export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModel;
 export type GetNgbInfoApiArg = {
   ngb: string;
@@ -242,27 +249,27 @@ export type GetRefereeApiResponse = /** status 200 Success */ RefereeViewModel;
 export type GetRefereeApiArg = {
   userId: string;
 };
-export type GetRefereesApiResponse = /** status 200 Success */ RefereeViewModel[];
+export type GetRefereesApiResponse = /** status 200 Success */ RefereeViewModelFiltered;
 export type GetRefereesApiArg = {
+  filter?: string;
   page?: number;
   pageSize?: number;
-  filter?: string;
 };
-export type GetNgbRefereesApiResponse = /** status 200 Success */ RefereeViewModel[];
+export type GetNgbRefereesApiResponse = /** status 200 Success */ RefereeViewModelFiltered;
 export type GetNgbRefereesApiArg = {
   ngb: string;
+  filter?: string;
   page?: number;
   pageSize?: number;
-  filter?: string;
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
-export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModel[];
+export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNgbTeamsApiArg = {
   ngb: string;
+  filter?: string;
   page?: number;
   pageSize?: number;
-  filter?: string;
 };
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
@@ -302,6 +309,9 @@ export type CertificationVersion = "eighteen" | "twenty" | "twentytwo";
 export type ExportResponse = {
   jobId?: string | null;
 };
+export type FilteringMetadata = {
+  totalCount?: number | null;
+};
 export type NgbRegion = "north_america" | "south_america" | "europe" | "africa" | "asia";
 export type NgbMembershipStatus = "area_of_interest" | "emerging" | "developing" | "full";
 export type NgbViewModel = {
@@ -313,6 +323,10 @@ export type NgbViewModel = {
   membershipStatus?: NgbMembershipStatus;
   website?: string | null;
   playerCount?: number;
+};
+export type NgbViewModelFiltered = {
+  metadata?: FilteringMetadata;
+  items?: NgbViewModel[] | null;
 };
 export type INgbStatsContext = {
   totalRefereesCount?: number;
@@ -431,6 +445,10 @@ export type RefereeViewModel = {
   coachingTeam?: TeamIdentifier;
   acquiredCertifications?: Certification[] | null;
 };
+export type RefereeViewModelFiltered = {
+  metadata?: FilteringMetadata;
+  items?: RefereeViewModel[] | null;
+};
 export type Price = {
   priceId?: string | null;
   unitPrice?: number;
@@ -455,6 +473,10 @@ export type NgbTeamViewModel = {
   status?: TeamStatus;
   groupAffiliation?: TeamGroupAffiliation;
   socialAccounts?: SocialAccount[] | null;
+};
+export type NgbTeamViewModelFiltered = {
+  metadata?: FilteringMetadata;
+  items?: NgbTeamViewModel[] | null;
 };
 export type RefereeTestDetailsViewModel = {
   testId?: string;

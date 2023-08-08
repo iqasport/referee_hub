@@ -15,6 +15,7 @@ using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.BlobStorage.AmazonS3;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
+using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Commands.Payments;
 using ManagementHub.Storage.Commands.Referee;
 using ManagementHub.Storage.Commands.Tests;
@@ -96,15 +97,12 @@ public static class DbServiceCollectionExtentions
 			services.AddHostedService<EnsureDatabaseSeededForTesting>();
 		}
 
-		services.AddScoped<IUserContextProvider>(sp => new CachedUserContextProvider(new DbUserContextProvider(
-			sp.GetRequiredService<ManagementHubDbContext>(),
-			sp.GetRequiredService<IAttachmentRepository>(),
-			sp.GetRequiredService<IAccessFileCommand>(),
-			sp.GetRequiredService<ILoggerFactory>())));
-		services.AddScoped<IRefereeContextProvider>(sp => new CachedRefereeContextProvider(new DbRefereeContextProvider(
-			sp.GetRequiredService<ManagementHubDbContext>(),
-			sp.GetRequiredService<ITestContextProvider>(),
-			sp.GetRequiredService<ILoggerFactory>())));
+		services.AddScoped<DbUserContextProvider>();
+		services.AddScoped<IUserContextProvider>(
+			sp => new CachedUserContextProvider(sp.GetRequiredService<DbUserContextProvider>()));
+		services.AddScoped<DbRefereeContextProvider>();
+		services.AddScoped<IRefereeContextProvider>(
+			sp => new CachedRefereeContextProvider(sp.GetRequiredService<DbRefereeContextProvider>()));
 		services.AddScoped<ITestContextProvider, DbTestContextProvider>();
 		services.AddScoped<ITeamContextProvider, DbTeamContextProvider>();
 		services.AddScoped<INgbContextProvider, DbNgbContextProvider>();
@@ -123,6 +121,8 @@ public static class DbServiceCollectionExtentions
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();
 		services.AddTransient<IDbAccessor<UserIdentifier>, UserDbAccessor>();
 		services.AddTransient<IDbAccessor<NgbIdentifier>, NgbDbAccessor>();
+
+		services.AddScoped<CollectionFilteringContext>();
 
 		services.AddTransient<ISystemClock, SystemClock>();
 

@@ -14,6 +14,7 @@ using ManagementHub.Service.Areas.Payments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Filtering;
 using ManagementHub.Service.Swagger;
 using ManagementHub.Service.Telemetry;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
@@ -119,7 +120,10 @@ public static class Program
 	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
 	{
 		services.AddHealthChecks();
-		services.AddControllers()
+		services.AddControllers(mvc =>
+			{
+				mvc.Filters.Add<CollectionFilteringActionFilter>();
+			})
 			.AddJsonOptions(options => DefaultJsonSerialization.ConfigureOptions(options.JsonSerializerOptions));
 		services.AddRazorPages();
 		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = Environment == Environments.Production);

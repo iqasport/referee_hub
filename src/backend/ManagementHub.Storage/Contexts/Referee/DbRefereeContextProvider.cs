@@ -7,6 +7,7 @@ using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Storage.Collections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -20,12 +21,13 @@ public class DbRefereeContextProvider : IRefereeContextProvider
 	public DbRefereeContextProvider(
 		ManagementHubDbContext dbContext,
 		ITestContextProvider testContextProvider,
+		CollectionFilteringContext filteringContext,
 		ILoggerFactory loggerFactory)
 	{
 		this.dbRefereeViewContextFactory = new DbRefereeViewContextFactory(
-			dbContext.Users,
-			dbContext.NationalGoverningBodies,
-			loggerFactory.CreateLogger<DbRefereeViewContextFactory>());
+			dbContext,
+			loggerFactory.CreateLogger<DbRefereeViewContextFactory>(),
+			filteringContext);
 
 		this.dbRefereeTestContextFactory = new DbRefereeTestContextFactory(
 			dbContext.Users,

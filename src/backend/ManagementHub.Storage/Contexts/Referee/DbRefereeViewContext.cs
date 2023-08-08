@@ -14,6 +14,7 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
+using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -59,18 +60,18 @@ public class DbRefereeViewContext : IRefereeViewContext
 
 public class DbRefereeViewContextFactory
 {
-	private readonly IQueryable<User> users;
-	private readonly IQueryable<NationalGoverningBody> nationalGoverningBody;
+	private readonly ManagementHubDbContext dbContext;
 	private readonly ILogger<DbRefereeViewContextFactory> logger;
+	private readonly CollectionFilteringContext filteringContext;
 
 	public DbRefereeViewContextFactory(
-		IQueryable<User> users,
-		IQueryable<NationalGoverningBody> nationalGoverningBody,
-		ILogger<DbRefereeViewContextFactory> logger)
+		ManagementHubDbContext dbContext,
+		ILogger<DbRefereeViewContextFactory> logger,
+		CollectionFilteringContext filteringContext)
 	{
-		this.users = users;
-		this.nationalGoverningBody = nationalGoverningBody;
+		this.dbContext = dbContext;
 		this.logger = logger;
+		this.filteringContext = filteringContext;
 	}
 
 	private IQueryable<DbRefereeViewContext> QueryRefereesByNgb(IQueryable<User> users, NgbConstraint ngbs)
@@ -86,11 +87,39 @@ public class DbRefereeViewContextFactory
 		{
 			// if there's an NgbConstraint, select these referees who's set of locations intersects with the set of NGBs in the constraint
 			referees = referees
-				.Where(u => this.nationalGoverningBody.WithConstraint(ngbs).Select(ngb => ngb.Id).Intersect(u.RefereeLocations.Select(rl => rl.NationalGoverningBodyId)).Any());
+				.Where(u => this.dbContext.NationalGoverningBodies.WithConstraint(ngbs).Select(ngb => ngb.Id).Intersect(u.RefereeLocations.Select(rl => rl.NationalGoverningBodyId)).Any());
 		}
 
 		// we do ordering here in order to get decent paging consistency
-		return referees.OrderBy(u => u.Id).Select(u => new DbRefereeViewContext
+		referees = referees.OrderBy(u => u.FirstName);
+
+		var filter = this.filteringContext.FilteringParameters.Filter;
+		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
+		if (!string.IsNullOrEmpty(filter))
+		{
+			if (this.dbContext.Database.IsNpgsql())
+			{
+				referees = referees.Where(u =>
+					EF.Functions.ILike(u.FirstName!, filter) ||
+					EF.Functions.ILike(u.LastName!, filter));
+			}
+			else
+			{
+				referees = referees.Where(u =>
+					EF.Functions.Like(u.FirstName!, filter) ||
+					EF.Functions.Like(u.LastName!, filter));
+			}
+		}
+
+		if (this.filteringContext.FilteringMetadata != null)
+		{
+			//TODO: figure out some way to make this async in a nice way
+			this.filteringContext.FilteringMetadata.TotalCount = referees.Count();
+		}
+
+		referees = referees.Page(this.filteringContext.FilteringParameters);
+
+		return referees.Select(u => new DbRefereeViewContext
 		{
 			UserId = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id),
 			DisplayName = u.ExportName != false ? $"{u.FirstName} {u.LastName}" : "Anonymous referee",
@@ -105,7 +134,7 @@ public class DbRefereeViewContextFactory
 	public async Task<DbRefereeViewContext> LoadAsync(UserIdentifier userId, NgbConstraint ngbs, CancellationToken cancellationToken)
 	{
 		this.logger.LogInformation(0, "Loading referee profile for user ({userId}) with constraint [{ngbConstraint}]", userId, ngbs);
-		var referee = await this.QueryRefereesByNgb(this.users.WithIdentifier(userId), ngbs)
+		var referee = await this.QueryRefereesByNgb(this.dbContext.Users.WithIdentifier(userId), ngbs)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (referee == null)
@@ -120,6 +149,6 @@ public class DbRefereeViewContextFactory
 	{
 		this.logger.LogInformation(0, "Creating referee profile query with constraint [{ngbConstraint}]", ngbs);
 
-		return this.QueryRefereesByNgb(this.users, ngbs);
+		return this.QueryRefereesByNgb(this.dbContext.Users, ngbs);
 	}
 }

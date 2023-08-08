@@ -12,14 +12,14 @@ interface LocationProps {
 
 const RefereeLocation = (props: LocationProps) => {
   const { locations, isEditing, onChange } = props;
-  const { data: allNgbs, error: getNgbsError } = useGetNgbsQuery();
+  const { data: allNgbs, error: getNgbsError } = useGetNgbsQuery({});
 
   const hasType = (type: keyof RefereeLocationOptions): boolean => {
     return !!locations[type];
   };
 
   const getNgbName = (type: keyof RefereeLocationOptions): string => {
-    return allNgbs.filter(ngb => ngb.countryCode === locations[type])[0]?.name;
+    return allNgbs.items.filter(ngb => ngb.countryCode === locations[type])[0]?.name;
   };
 
   const getSelectedNgb = (type: keyof RefereeLocationOptions) => {
@@ -46,7 +46,7 @@ const RefereeLocation = (props: LocationProps) => {
         value={getSelectedNgb(type) ?? ""}
       >
         {type === "secondaryNgb" && <option value="-1">None</option>}
-        {allNgbs.map(renderOption)}
+        {allNgbs.items.map(renderOption)}
       </select>
     );
   };
