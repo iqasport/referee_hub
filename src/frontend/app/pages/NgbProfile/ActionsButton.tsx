@@ -24,7 +24,7 @@ const ActionsButton = (props: ActionsButtonProps) => {
   };
 
   const items = [
-    {
+    /*{
       content: "Edit",
       onClick: onEditClick,
     },
@@ -35,7 +35,7 @@ const ActionsButton = (props: ActionsButtonProps) => {
     {
       content: "Import",
       onClick: onImportClick,
-    },
+    },*/ // TODO: unblock functionality once implemented
     {
       content: "Export",
       onClick: onExportClick,

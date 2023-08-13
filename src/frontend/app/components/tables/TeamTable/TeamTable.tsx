@@ -81,7 +81,7 @@ const TeamTable = (props: TeamTableProps) => {
 
   const renderEmpty = () => <h2>No teams found</h2>;
 
-  const HEADER_CELLS = ["name", "city", "joined date", "type", "status", "actions"];
+  const HEADER_CELLS = ["name", "city", "joined date", "type", "status"/*, "actions"*/];
   const rowConfig: CellConfig<NgbTeamViewModel>[] = [
     {
       cellRenderer: (item: NgbTeamViewModel) => {
@@ -114,7 +114,7 @@ const TeamTable = (props: TeamTableProps) => {
       },
       dataKey: "status",
     },
-    {
+    /*{
       cellRenderer: (item: NgbTeamViewModel) => {
         return (
           <ActionDropdown
@@ -126,7 +126,7 @@ const TeamTable = (props: TeamTableProps) => {
       },
       customStyle: "text-right",
       dataKey: "actions",
-    },
+    },*/
   ];
 
   return (

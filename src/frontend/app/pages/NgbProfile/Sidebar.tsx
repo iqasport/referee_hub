@@ -78,7 +78,7 @@ const Sidebar = (props: SidebarProps) => {
           imageAlt="national governing body logo"
           imageUrl={ngb.avatarUri}
           onSubmit={handleLogoUpdate}
-          isEditable={true}
+          isEditable={false}
         />
       </div>
       <div className="w-full flex flex-row justify-between mt-8">
