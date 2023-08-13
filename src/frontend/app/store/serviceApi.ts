@@ -472,6 +472,7 @@ export type NgbTeamViewModel = {
   country?: string | null;
   status?: TeamStatus;
   groupAffiliation?: TeamGroupAffiliation;
+  joinedAt?: string;
   socialAccounts?: SocialAccount[] | null;
 };
 export type NgbTeamViewModelFiltered = {

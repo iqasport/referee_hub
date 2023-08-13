@@ -1,3 +1,4 @@
+using System;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Domain.Team;
@@ -10,4 +11,5 @@ public class TeamData
 	public required string Country { get; set; }
 	public required TeamStatus Status { get; set; } 
 	public required TeamGroupAffiliation GroupAffiliation { get; set; } 
+	public required DateTime JoinedAt { get; set; }
 }

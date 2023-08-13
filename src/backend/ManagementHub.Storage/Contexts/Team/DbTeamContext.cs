@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
@@ -69,6 +70,7 @@ public class DbTeamContextFactory
 			Country = tt.Country,
 			GroupAffiliation = tt.GroupAffiliation!.Value,
 			Status = tt.Status!.Value,
+			JoinedAt = tt.JoinedAt ?? new DateTime(),
 		}));
 	}
 }

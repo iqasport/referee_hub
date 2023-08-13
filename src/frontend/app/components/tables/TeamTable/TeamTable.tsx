@@ -98,7 +98,7 @@ const TeamTable = (props: TeamTableProps) => {
     },
     {
       cellRenderer: (item: NgbTeamViewModel) => {
-        return "TODO"; //toDateTime(item.joinedAt).toFormat("DDD");
+        return toDateTime(item.joinedAt).toFormat("DDD");
       },
       dataKey: "joinedAt",
     },

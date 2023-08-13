@@ -41,6 +41,8 @@ public class NgbTeamViewModel
 	/// </summary>
 	public required TeamGroupAffiliation GroupAffiliation { get; set; }
 
+	public required DateOnly JoinedAt { get; set; }
+
 	public required IEnumerable<SocialAccount> SocialAccounts { get; set; }
 
 }

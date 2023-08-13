@@ -102,6 +102,7 @@ public class NgbsController : ControllerBase
 			Status = team.TeamData.Status,
 			State = team.TeamData.State,
 			Country = team.TeamData.Country,
+			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
 		}).AsFiltered();
 	}
