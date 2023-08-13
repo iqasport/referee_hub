@@ -88,8 +88,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
     },
     {
       cellRenderer: (item: RefereeViewModel) => {
-        return "TODO"; // we need to get teams from referees locations then map name to id OR fetch it on the backend
-        //return [item.playingTeam, item.coachingTeam].filter(t => !!t).map((team) => team.name).join(", ");
+        return [item.playingTeam, item.coachingTeam].filter(t => !!t).map((team) => team.name).join(", ");
       },
       dataKey: "teams",
     },
@@ -99,19 +98,14 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
     rowConfig.push({
       cellRenderer: (item: RefereeViewModel) => {
         const secondary = item?.secondaryNgb;
-        const secondaryName = "TODO";
-          // secondary.length &&
-          // item?.ngbs.find((ngb) => {
-          //   return ngb.id === secondary[0].nationalGoverningBodyId.toString();
-          // })?.name;
-        return secondaryName || "N/A";
+        return secondary || "N/A";
       },
       dataKey: "locations",
     });
   } else {
     rowConfig.push({
       cellRenderer: (item: RefereeViewModel) => {
-        return "TODO"; //item?.ngbs.map((location) => location.name).join(", ");
+        return [item.primaryNgb, item.secondaryNgb].filter(t => !!t).join(", ");
       },
       dataKey: "locations",
     });
