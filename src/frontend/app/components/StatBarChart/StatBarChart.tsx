@@ -3,6 +3,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   LabelList,
   ResponsiveContainer,
   XAxis,
@@ -32,6 +33,14 @@ const StatBarChart = (props: StatBarChartProps) => {
 
   const renderBar = (bar: BarConfig) => (
     <Bar key={bar.dataKey} {...bar} minPointSize={5}>
+      {
+        // https://github.com/recharts/recharts/issues/1265#issuecomment-822297208
+        // hiding undefined entries
+        chartData.map((entry, index) => {
+          return <Cell key={`cell-${index}`}
+            style={{display: (entry[bar.dataKey] === 0 || entry[bar.dataKey] > 0) ? '' : 'none'}}/>
+        })
+      }
       <LabelList dataKey="type" position="center" angle={270} />
     </Bar>
   );
