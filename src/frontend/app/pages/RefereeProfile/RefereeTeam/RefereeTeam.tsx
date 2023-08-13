@@ -3,7 +3,7 @@ import { InputActionMeta, MultiValue, ActionMeta } from "react-select";
 
 import Select, { SelectOption } from "../../../components/Select/Select";
 import { RefereeLocationOptions } from "../RefereeLocation/RefereeLocation";
-import { RefereeViewModel, useGetNgbTeamsQuery } from "../../../store/serviceApi";
+import { NgbTeamViewModel, NgbViewModel, RefereeViewModel, useGetNgbTeamsQuery } from "../../../store/serviceApi";
 
 export type RefereeTeamOptions = Pick<RefereeViewModel, "playingTeam" | "coachingTeam">
 
@@ -21,7 +21,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb }, {skip: !locations.primaryNgb});
   const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.secondaryNgb }, {skip: !locations.secondaryNgb});
   const allTeams = (primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? []);
-  const [filteredTeams, setFilteredTeams] = useState([]);
+  const [filteredTeams, setFilteredTeams] = useState<NgbTeamViewModel[]>([]);
 
   // update local state after teams are loaded
   // can't use allTeams here as it's changing on each rerender
@@ -32,13 +32,13 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
 
   const getTeamName = (type: keyof RefereeTeamOptions): string => {
-    return allTeams.filter(team => team.teamId.id === teams[type]?.id)[0]?.name;
+    return allTeams.filter(team => team.teamId === teams[type])[0]?.name;
   };
 
   const getSelectedTeam = (type: keyof RefereeTeamOptions): SelectOption => {
     if (!hasType(type)) return null;
     return ({
-      value: teams[type]?.id.toString(),
+      value: teams[type]?.toString(),
       label: getTeamName(type),
     });
   };
@@ -47,7 +47,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
     const newTeamId = option?.value;
     const isBlank = newTeamId === "-1" || !newTeamId;
 
-    onChange({...teams, [type]: isBlank ? null : { id: parseInt(newTeamId) }})
+    onChange({...teams, [type]: isBlank ? null : newTeamId})
   };
 
   const handleSearch = (searchValue: string) => {
@@ -85,7 +85,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
           isDisabled={isDisabled}
           onInputChange={handleInputChange}
           onChange={handleChange(type)}
-          options={filteredTeams.map((team) => ({ value: team.teamId.id.toString(), label: team.name }))}
+          options={filteredTeams.map((team) => ({ value: team.teamId.toString(), label: team.name }))}
           value={getSelectedTeam(type)}
         />
       </label>

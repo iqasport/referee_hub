@@ -427,22 +427,19 @@ export type RefereeTestSubmitModel = {
   startedAt?: string;
   answers: SubmittedTestAnswer[];
 };
-export type TeamIdentifier = {
-  id?: number;
-};
 export type RefereeUpdateViewModel = {
   primaryNgb?: string | null;
   secondaryNgb?: string | null;
-  playingTeam?: TeamIdentifier;
-  coachingTeam?: TeamIdentifier;
+  playingTeam?: string | null;
+  coachingTeam?: string | null;
 };
 export type RefereeViewModel = {
   userId?: string;
   name?: string | null;
   primaryNgb?: string | null;
   secondaryNgb?: string | null;
-  playingTeam?: TeamIdentifier;
-  coachingTeam?: TeamIdentifier;
+  playingTeam?: string | null;
+  coachingTeam?: string | null;
   acquiredCertifications?: Certification[] | null;
 };
 export type RefereeViewModelFiltered = {
@@ -465,7 +462,7 @@ export type CertificationProduct = {
 export type TeamStatus = "competitive" | "developing" | "inactive" | "other";
 export type TeamGroupAffiliation = "university" | "community" | "youth" | "not_applicable";
 export type NgbTeamViewModel = {
-  teamId?: TeamIdentifier;
+  teamId?: string;
   name?: string | null;
   city?: string | null;
   state?: string | null;

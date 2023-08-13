@@ -147,7 +147,7 @@ const TeamTable = (props: TeamTableProps) => {
         rowConfig={rowConfig}
         emptyRenderer={renderEmpty}
         isHeightRestricted={true}
-        getId={team => team.teamId.id.toString()}
+        getId={team => team.teamId.toString()}
       />
       {renderModals()}
     </div>
