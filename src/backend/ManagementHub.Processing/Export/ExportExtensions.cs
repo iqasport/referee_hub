@@ -65,6 +65,7 @@ public static class ExportExtensions
 	public static IServiceCollection AddExportProcessors(this IServiceCollection services)
 	{
 		services.AddScoped<IExportRefereesToCsv, ExportRefereesToCsv>();
+		services.AddScoped<IExportTeamsToCsv, ExportTeamsToCsv>();
 
 		return services;
 	}

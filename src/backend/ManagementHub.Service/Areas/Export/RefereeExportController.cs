@@ -48,7 +48,7 @@ public class RefereeExportController : ControllerBase
 		}
 
 		var requestorId = userContext.UserId;
-		var jobId = this.backgroundJob.Enqueue<ISendExportRefereesEmail>(this.logger, service =>
+		var jobId = this.backgroundJob.Enqueue<ISendNgbExportEmail>(this.logger, service =>
 			service.SendExportRefereesEmailAsync(requestorId, ngb, CancellationToken.None));
 
 		return new ExportResponse

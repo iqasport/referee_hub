@@ -19,7 +19,7 @@ public static class DependencyInjectionExtensions
 	{
 		services.AddScoped<ISendAccountEmail, SendAccountEmail>();
 		services.AddScoped<ISendTestFeedbackEmail, SendTestFeedbackEmail>();
-		services.AddScoped<ISendExportRefereesEmail, SendExportRefereesEmail>();
+		services.AddScoped<ISendNgbExportEmail, SendNgbExportEmail>();
 
 		services.AddOptions<EmailSenderSettings>()
 			.ValidateDataAnnotations()

@@ -16,13 +16,13 @@ internal class SendAccountEmail : ISendAccountEmail
 {
 	private readonly IFluentEmailFactory emailFactory;
 	private readonly IUserContextProvider userContextProvider;
-	private readonly ILogger<SendExportRefereesEmail> logger;
+	private readonly ILogger<SendNgbExportEmail> logger;
 	private readonly EmailSenderSettings emailSenderSettings;
 
 	public SendAccountEmail(
 		IFluentEmailFactory emailFactory,
 		IUserContextProvider userContextProvider,
-		ILogger<SendExportRefereesEmail> logger,
+		ILogger<SendNgbExportEmail> logger,
 		IOptionsSnapshot<EmailSenderSettings> emailSenderSettings)
 	{
 		this.emailFactory = emailFactory;

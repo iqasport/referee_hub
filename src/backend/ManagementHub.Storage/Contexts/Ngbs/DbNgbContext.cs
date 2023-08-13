@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
@@ -54,6 +55,7 @@ public class DbNgbContextFactory
 		return this.QueryNgbs(filteredNgbs.Page(this.filteringContext.FilteringParameters));
 	}
 	public async Task<INgbContext> GetSingleNgb(NgbIdentifier ngb) => await this.QueryNgbs(this.dbContext.NationalGoverningBodies.WithIdentifier(ngb)).SingleAsync();
+	public IAsyncEnumerable<INgbContext> GetMultipleNgbs(NgbConstraint ngb) => this.QueryNgbs(this.dbContext.NationalGoverningBodies.WithConstraint(ngb)).AsAsyncEnumerable();
 	private IQueryable<INgbContext> QueryNgbs(IQueryable<NationalGoverningBody> ngbs)
 	{
 		return ngbs.AsNoTracking()

@@ -47,10 +47,9 @@ public class TeamsExportController : ControllerBase
 			throw new AccessDeniedException(ngb.ToString());
 		}
 
-		// TODO: make it export team data
 		var requestorId = userContext.UserId;
-		var jobId = this.backgroundJob.Enqueue<ISendExportRefereesEmail>(this.logger, service =>
-			service.SendExportRefereesEmailAsync(requestorId, ngb, CancellationToken.None));
+		var jobId = this.backgroundJob.Enqueue<ISendNgbExportEmail>(this.logger, service =>
+			service.SendExportTeamsEmailAsync(requestorId, ngb, CancellationToken.None));
 
 		return new ExportResponse
 		{

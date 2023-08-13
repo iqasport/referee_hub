@@ -16,26 +16,29 @@ using Microsoft.Extensions.Options;
 
 namespace ManagementHub.Mailers.Commands;
 
-internal class SendExportRefereesEmail : ISendExportRefereesEmail
+internal class SendNgbExportEmail : ISendNgbExportEmail
 {
 	private readonly IFluentEmailFactory emailFactory;
 	private readonly IUserContextProvider userContextProvider;
 	private readonly IExportRefereesToCsv exportRefereesToCsv;
-	private readonly ILogger<SendExportRefereesEmail> logger;
+	private readonly ILogger<SendNgbExportEmail> logger;
 	private readonly EmailSenderSettings emailSenderSettings;
+	private readonly IExportTeamsToCsv exportTeamsToCsv;
 
-	public SendExportRefereesEmail(
+	public SendNgbExportEmail(
 		IFluentEmailFactory emailFactory,
 		IUserContextProvider userContextProvider,
 		IExportRefereesToCsv exportRefereesToCsv,
-		ILogger<SendExportRefereesEmail> logger,
-		IOptionsSnapshot<EmailSenderSettings> emailSenderSettings)
+		ILogger<SendNgbExportEmail> logger,
+		IOptionsSnapshot<EmailSenderSettings> emailSenderSettings,
+		IExportTeamsToCsv exportTeamsToCsv)
 	{
 		this.emailFactory = emailFactory;
 		this.userContextProvider = userContextProvider;
 		this.exportRefereesToCsv = exportRefereesToCsv;
 		this.logger = logger;
 		this.emailSenderSettings = emailSenderSettings.Value;
+		this.exportTeamsToCsv = exportTeamsToCsv;
 	}
 
 	public async Task SendExportRefereesEmailAsync(UserIdentifier requestorId, NgbIdentifier ngb, CancellationToken cancellationToken)
@@ -86,5 +89,51 @@ internal class SendExportRefereesEmail : ISendExportRefereesEmail
 		}
 	}
 
+	public async Task SendExportTeamsEmailAsync(UserIdentifier requestorId, NgbIdentifier ngb, CancellationToken cancellationToken)
+	{
+		try
+		{
+			this.logger.LogInformation(0, "Exporting teams of NGB {ngb} requested by ({userId}).", ngb, requestorId);
 
+			var userContext = await this.userContextProvider.GetUserContextAsync(requestorId, cancellationToken);
+			var refereeViewerRole = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault();
+			if (refereeViewerRole == null)
+			{
+				this.logger.LogError(0, $"User is not authorized - missing {nameof(NgbAdminRole)}.");
+				return;
+			}
+
+			if (!refereeViewerRole.Ngb.AppliesTo(ngb))
+			{
+				this.logger.LogError(0, $"User is not authorized - no access to NGB {ngb}.", ngb);
+				return;
+			}
+
+			using var attachmentStream = this.exportTeamsToCsv.ExportTeamsAsync(NgbConstraint.Single(ngb), cancellationToken);
+
+			var templateData = new
+			{
+				User = userContext.UserData,
+			};
+
+			await this.emailFactory.Create()
+				.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
+				.To(userContext.UserData.Email.Value)
+				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
+				.Subject("Your Team Export is ready")
+				.UsingEmbeddedTemplate("CsvExportEmail", templateData)
+				.Attach(new FluentEmail.Core.Models.Attachment
+				{
+					Filename = $"TeamExport_{ngb}_{DateTime.UtcNow.Date:yyyyMMdd}.csv",
+					Data = attachmentStream,
+					ContentType = "text/csv",
+				})
+				.SendAsync();
+		}
+		catch (Exception ex)
+		{
+			this.logger.LogError(0, ex, "Failed to export teams.");
+			throw;
+		}
+	}
 }

@@ -103,6 +103,7 @@ public static class Program
 			options.AddRefereePolicy();
 			options.AddRefereeViewerPolicy();
 			options.AddTechAdminPolicy();
+			options.AddNgbAdminPolicy();
 		});
 
 		services.AddCoreAdmin(new CoreAdminOptions

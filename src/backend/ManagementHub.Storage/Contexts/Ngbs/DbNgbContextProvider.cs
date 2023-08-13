@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
@@ -52,5 +53,10 @@ public class DbNgbContextProvider : INgbContextProvider
 	public IQueryable<INgbContext> QueryNgbs()
 	{
 		return this.ngbContextFactory.QueryNgbs();
+	}
+
+	public IAsyncEnumerable<INgbContext> GetNgbContextsAsync(NgbConstraint ngb)
+	{
+		return this.ngbContextFactory.GetMultipleNgbs(ngb);
 	}
 }
