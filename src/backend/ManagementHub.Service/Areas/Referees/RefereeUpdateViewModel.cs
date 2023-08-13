@@ -18,10 +18,15 @@ public class RefereeUpdateViewModel
 	/// <summary>
 	/// Team the referee is playing for.
 	/// </summary>
-	public TeamIdentifier? PlayingTeam { get; set; }
+	public RefereeTeamUpdater? PlayingTeam { get; set; }
 
 	/// <summary>
 	/// Team the referee is coaching.
 	/// </summary>
-	public TeamIdentifier? CoachingTeam { get; set; }
+	public RefereeTeamUpdater? CoachingTeam { get; set; }
+}
+
+public class RefereeTeamUpdater
+{
+	public TeamIdentifier Id { get; set; }
 }

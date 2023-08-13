@@ -427,19 +427,26 @@ export type RefereeTestSubmitModel = {
   startedAt?: string;
   answers: SubmittedTestAnswer[];
 };
+export type RefereeTeamUpdater = {
+  id?: string;
+};
 export type RefereeUpdateViewModel = {
   primaryNgb?: string | null;
   secondaryNgb?: string | null;
-  playingTeam?: string | null;
-  coachingTeam?: string | null;
+  playingTeam?: RefereeTeamUpdater;
+  coachingTeam?: RefereeTeamUpdater;
+};
+export type TeamIndicator = {
+  id?: string;
+  name?: string | null;
 };
 export type RefereeViewModel = {
   userId?: string;
   name?: string | null;
   primaryNgb?: string | null;
   secondaryNgb?: string | null;
-  playingTeam?: string | null;
-  coachingTeam?: string | null;
+  playingTeam?: TeamIndicator;
+  coachingTeam?: TeamIndicator;
   acquiredCertifications?: Certification[] | null;
 };
 export type RefereeViewModelFiltered = {

@@ -30,15 +30,21 @@ public class RefereeViewModel
 	/// <summary>
 	/// Team the referee is playing for.
 	/// </summary>
-	public TeamIdentifier? PlayingTeam { get; set; }
+	public TeamIndicator? PlayingTeam { get; set; }
 
 	/// <summary>
 	/// Team the referee is coaching.
 	/// </summary>
-	public TeamIdentifier? CoachingTeam { get; set; }
+	public TeamIndicator? CoachingTeam { get; set; }
 
 	/// <summary>
 	/// Certifications acquired by this referee.
 	/// </summary>
 	public HashSet<Certification> AcquiredCertifications { get; set; } = new HashSet<Certification>();
+}
+
+public class TeamIndicator
+{
+	public required TeamIdentifier Id { get; set; }
+	public required string Name { get; set; }
 }

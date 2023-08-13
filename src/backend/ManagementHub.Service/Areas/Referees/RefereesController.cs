@@ -1,4 +1,5 @@
 ﻿using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
@@ -40,8 +41,8 @@ public class RefereesController : ControllerBase
 		{
 			IsActive = refereeRole.IsActive,
 			// TODO: handle how to detect partial patch vs setting null actually
-			CoachingTeam = refereeUpdate.CoachingTeam ?? refereeRole.CoachingTeam,
-			PlayingTeam = refereeUpdate.PlayingTeam ?? refereeRole.PlayingTeam,
+			CoachingTeam = refereeUpdate.CoachingTeam?.Id ?? refereeRole.CoachingTeam,
+			PlayingTeam = refereeUpdate.PlayingTeam?.Id ?? refereeRole.PlayingTeam,
 			PrimaryNgb = refereeUpdate.PrimaryNgb ?? refereeRole.PrimaryNgb,
 			SecondaryNgb = refereeUpdate.SecondaryNgb ?? refereeRole.SecondaryNgb,
 		}, this.HttpContext.RequestAborted);
@@ -53,16 +54,7 @@ public class RefereesController : ControllerBase
 	public async Task<RefereeViewModel> GetCurrentReferee()
 	{
 		var context = await this.refereeContextAccessor.GetRefereeViewContextForCurrentUserAsync();
-		return new RefereeViewModel
-		{
-			AcquiredCertifications = context.AcquiredCertifications,
-			CoachingTeam = context.CoachingTeam,
-			Name = context.DisplayName,
-			PlayingTeam = context.PlayingTeam,
-			PrimaryNgb = context.PrimaryNgb,
-			SecondaryNgb = context.SecondaryNgb,
-			UserId = context.UserId,
-		};
+		return MapRefereeViewContextToViewModel(context);
 	}
 
 	[HttpGet("{userId}")]
@@ -76,16 +68,7 @@ public class RefereesController : ControllerBase
 		}
 
 		var context = await this.refereeContextAccessor.GetRefereeViewContextAsync(userId);
-		return new RefereeViewModel
-		{
-			AcquiredCertifications = context.AcquiredCertifications,
-			CoachingTeam = context.CoachingTeam,
-			Name = context.DisplayName,
-			PlayingTeam = context.PlayingTeam,
-			PrimaryNgb = context.PrimaryNgb,
-			SecondaryNgb = context.SecondaryNgb,
-			UserId = context.UserId,
-		};
+		return MapRefereeViewContextToViewModel(context);
 	}
 
 	[HttpGet]
@@ -94,16 +77,7 @@ public class RefereesController : ControllerBase
 	public async Task<Filtered<RefereeViewModel>> GetReferees([FromQuery] FilteringParameters filtering)
 	{
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync();
-		return collection.Select(context => new RefereeViewModel
-		{
-			AcquiredCertifications = context.AcquiredCertifications,
-			CoachingTeam = context.CoachingTeam,
-			Name = context.DisplayName,
-			PlayingTeam = context.PlayingTeam,
-			PrimaryNgb = context.PrimaryNgb,
-			SecondaryNgb = context.SecondaryNgb,
-			UserId = context.UserId,
-		}).AsFiltered();
+		return collection.Select(MapRefereeViewContextToViewModel).AsFiltered();
 	}
 
 	[HttpGet("/api/v2/Ngbs/{ngb}/referees")]
@@ -112,15 +86,28 @@ public class RefereesController : ControllerBase
 	public async Task<Filtered<RefereeViewModel>> GetNgbReferees([FromRoute] NgbIdentifier ngb, [FromQuery] FilteringParameters filtering)
 	{
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync(ngb);
-		return collection.Select(context => new RefereeViewModel
+		return collection.Select(MapRefereeViewContextToViewModel).AsFiltered();
+	}
+
+	private static RefereeViewModel MapRefereeViewContextToViewModel(IRefereeViewContext context)
+	{
+		return new RefereeViewModel
 		{
 			AcquiredCertifications = context.AcquiredCertifications,
-			CoachingTeam = context.CoachingTeam,
+			CoachingTeam = context.CoachingTeam == null ? null : new TeamIndicator
+			{
+				Id = context.CoachingTeam.Value,
+				Name = context.TeamContext[context.CoachingTeam.Value].TeamData.Name,
+			},
 			Name = context.DisplayName,
-			PlayingTeam = context.PlayingTeam,
+			PlayingTeam = context.PlayingTeam == null ? null : new TeamIndicator
+			{
+				Id = context.PlayingTeam.Value,
+				Name = context.TeamContext[context.PlayingTeam.Value].TeamData.Name,
+			},
 			PrimaryNgb = context.PrimaryNgb,
 			SecondaryNgb = context.SecondaryNgb,
 			UserId = context.UserId,
-		}).AsFiltered();
+		};
 	}
 }

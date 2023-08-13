@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
@@ -62,15 +63,17 @@ public class DbTeamContextFactory
 
 		t = t.Page(this.filteringContext.FilteringParameters);
 
-		return t.Select(tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
-		{
-			Name = tt.Name,
-			City = tt.City,
-			State = tt.State,
-			Country = tt.Country,
-			GroupAffiliation = tt.GroupAffiliation!.Value,
-			Status = tt.Status!.Value,
-			JoinedAt = tt.JoinedAt ?? new DateTime(),
-		}));
+		return t.Select(Selector);
 	}
+
+	public static Expression<Func<Models.Data.Team, DbTeamContext>> Selector = tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
+	{
+		Name = tt.Name,
+		City = tt.City,
+		State = tt.State,
+		Country = tt.Country,
+		GroupAffiliation = tt.GroupAffiliation!.Value,
+		Status = tt.Status!.Value,
+		JoinedAt = tt.JoinedAt ?? new DateTime(),
+	});
 }

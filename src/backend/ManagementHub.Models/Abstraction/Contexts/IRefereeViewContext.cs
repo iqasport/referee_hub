@@ -41,4 +41,6 @@ public interface IRefereeViewContext
 	/// Certifications acquired by this referee.
 	/// </summary>
 	HashSet<Certification> AcquiredCertifications { get; }
+
+	IDictionary<TeamIdentifier, ITeamContext> TeamContext { get; }
 }

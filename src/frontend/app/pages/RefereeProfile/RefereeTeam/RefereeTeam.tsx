@@ -32,13 +32,13 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
 
   const getTeamName = (type: keyof RefereeTeamOptions): string => {
-    return allTeams.filter(team => team.teamId === teams[type])[0]?.name;
+    return allTeams.filter(team => team.teamId === teams[type]?.id)[0]?.name;
   };
 
   const getSelectedTeam = (type: keyof RefereeTeamOptions): SelectOption => {
     if (!hasType(type)) return null;
     return ({
-      value: teams[type]?.toString(),
+      value: teams[type]?.id.toString(),
       label: getTeamName(type),
     });
   };
@@ -47,7 +47,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
     const newTeamId = option?.value;
     const isBlank = newTeamId === "-1" || !newTeamId;
 
-    onChange({...teams, [type]: isBlank ? null : newTeamId})
+    onChange({...teams, [type]: isBlank ? null : { id: newTeamId }})
   };
 
   const handleSearch = (searchValue: string) => {

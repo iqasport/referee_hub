@@ -15,6 +15,7 @@ using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Contexts.Team;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -56,6 +57,9 @@ public class DbRefereeViewContext : IRefereeViewContext
 	/// Certifications acquired by this referee.
 	/// </summary>
 	public required HashSet<DomainCertification> AcquiredCertifications { get; set; }
+
+	public required List<ITeamContext> TeamContextList { get; set; }
+	public IDictionary<TeamIdentifier, ITeamContext> TeamContext => this.TeamContextList.ToDictionary(t => t.TeamId);
 }
 
 public class DbRefereeViewContextFactory
@@ -80,7 +84,7 @@ public class DbRefereeViewContextFactory
 		IQueryable<User> referees = users
 			.Include(u => u.Roles).Where(u => u.Roles.Any(r => r.AccessType == UserAccessType.Referee))
 			.Include(u => u.RefereeLocations).ThenInclude(rl => rl.NationalGoverningBody)
-			.Include(u => u.RefereeTeams).ThenInclude(rl => rl.Team)
+			.Include(u => u.RefereeTeams).ThenInclude(rl => rl.Team).ThenInclude(t => t.NationalGoverningBody)
 			.Include(u => u.RefereeCertifications).ThenInclude(rc => rc.Certification);
 
 		if (!ngbs.AppliesToAny)
@@ -128,6 +132,16 @@ public class DbRefereeViewContextFactory
 			PlayingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Player).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
 			PrimaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Primary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
 			SecondaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Secondary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
+			TeamContextList = u.RefereeTeams.Select(rt => rt.Team!).Select(tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
+			{
+				Name = tt.Name,
+				City = tt.City,
+				State = tt.State,
+				Country = tt.Country,
+				GroupAffiliation = tt.GroupAffiliation!.Value,
+				Status = tt.Status!.Value,
+				JoinedAt = tt.JoinedAt ?? new DateTime(),
+			})).Cast<ITeamContext>().ToList(),
 		});
 	}
 
