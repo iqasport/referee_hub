@@ -59,6 +59,7 @@ public class DbNgbContextFactory
 	private IQueryable<INgbContext> QueryNgbs(IQueryable<NationalGoverningBody> ngbs)
 	{
 		return ngbs.AsNoTracking()
+			.OrderBy(n => n.CountryCode)
 			.Select(n => new DbNgbContext(
 				NgbIdentifier.Parse(n.CountryCode),
 				new NgbData
