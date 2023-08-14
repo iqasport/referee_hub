@@ -30,7 +30,7 @@ public class CachedRefereeContextProvider : IRefereeContextProvider
 
 	public Task<IRefereeEmailFeedbackContext> GetRefereeEmailFeedbackContextAsync(TestAttemptIdentifier testAttemptId, CancellationToken cancellationToken)
 	{
-		return this.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellationToken);
+		return this.innerProvider.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellationToken);
 	}
 
 	public async Task<IRefereeTestContext> GetRefereeTestContextAsync(UserIdentifier userId, CancellationToken cancellationToken)
