@@ -60,7 +60,7 @@ const CheckoutModal = (props: CheckoutModalProps) => {
         <button
           className={`py-2 px-4 ${available ? "bg-blue-darker" : "bg-green-lighter"} text-white rounded`}
           disabled={!available}
-          onClick={available && handleCheckout(product)}
+          onClick={available ? handleCheckout(product) : undefined}
         >
           { available ? "Checkout" : "Purchased" }
         </button>
