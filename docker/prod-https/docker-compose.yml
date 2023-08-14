@@ -1,0 +1,80 @@
+services:
+    dev:
+        image: public.ecr.aws/g7w7d4k3/iqasport/management-hub:latest
+        ports:
+            - "443:443"
+        volumes:
+            - certs:/certs
+        depends_on:
+            redis:
+                condition: service_healthy
+            mailhog:
+                condition: service_started
+            letsencrypt:
+                condition: service_started
+        links:
+            - redis:jobcache
+            - mailhog:smtpserver
+        environment:
+            ASPNETCORE_ENVIRONMENT: Production
+            ASPNETCORE_URLS: https://iqareferees-dev:443/
+            Kestrel__Certificates__Default__Path: /certs/live/iqahub/cert.pem
+            Kestrel__Certificates__Default__KeyPath: /certs/live/iqahub/privkey.pem
+            DatabaseConnection__Host: $RDS_HOSTNAME
+            DatabaseConnection__Database: $RDS_DB_NAME
+            DatabaseConnection__Username: $RDS_USERNAME
+            DatabaseConnection__Password: $RDS_PASSWORD
+            AWS__AccessKeyId: $AWS__AccessKeyId
+            AWS__Bucket: $AWS__Bucket
+            AWS__Region: $AWS__Region
+            AWS__SecretAccessKey: $AWS__SecretAccessKey
+            Services__RedisConnectionString: jobcache # pointing at the hostname of redis container on the default redis port
+            Mailers__SMTP__Host: smtpserver
+            Mailers__SMTP__Port: "1025"
+            Telemetry__Exporter: Azure
+            Telemetry__AzureConnectionString: $Telemetry__AzureConnectionString
+        healthcheck:
+            # we make a raw HTTP request using bash against the /healthz endpoint
+            # if it returns 200 then we're healthy (grep returns 0)
+            test: 'exec 5<>/dev/tcp/localhost/443 && echo -e "GET /healthz HTTP/1.0\n\n" >&5 && grep "200 OK" <&5'
+            interval: 5s
+            timeout: 10s
+            retries: 20
+        restart: on-failure:20
+    redis:
+        image: redis:6.0
+        healthcheck:
+            test: redis-cli -h localhost ping
+            interval: 5s
+            timeout: 10s
+            retries: 20
+    mailhog:
+        image: mailhog/mailhog
+        logging:
+          driver: 'none'  # disable saving logs
+        ports:
+          #- 1025:1025 # smtp server
+          - 8025:8025 # web ui
+    letsencrypt:
+        image: certbot/certbot
+        ports:
+          - "80:80"
+        volumes:
+            - certs:/etc/letsencrypt/
+        entrypoint: 
+            - "certbot"
+            - "certonly"
+            - "--standalone"
+            - "--agree-tos"
+            - "--non-interactive"
+            - "--cert-name"
+            - "iqahub"
+            - "--keep"
+            - "--email"
+            - "tech@iqasport.org"
+            - -v #verbose logging
+            - "-d"
+            - "iqasport-hub.us-east-1.elasticbeanstalk.com"
+
+volumes:
+    certs:
