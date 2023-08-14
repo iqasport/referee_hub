@@ -6,6 +6,11 @@ public static class FilteringExtensions
 {
 	public static IQueryable<T> Page<T>(this IQueryable<T> query, FilteringParameters parameters)
 	{
+		if (parameters.SkipPaging)
+		{
+			return query;
+		}
+
 		var take = parameters.PageSize;
 		var skip = (parameters.Page - 1) * take;
 		return query.Skip(skip).Take(take);

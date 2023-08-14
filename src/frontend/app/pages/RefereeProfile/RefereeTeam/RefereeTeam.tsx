@@ -18,8 +18,8 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   const { isEditing, onChange, teams, locations } = props;
   const isDisabled = !locations.primaryNgb && !locations.secondaryNgb;
   
-  const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb }, {skip: !locations.primaryNgb});
-  const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.secondaryNgb }, {skip: !locations.secondaryNgb});
+  const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb, skipPaging: true }, {skip: !locations.primaryNgb});
+  const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.secondaryNgb, skipPaging: true }, {skip: !locations.secondaryNgb});
   const allTeams = (primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? []);
   const [filteredTeams, setFilteredTeams] = useState<NgbTeamViewModel[]>([]);
 

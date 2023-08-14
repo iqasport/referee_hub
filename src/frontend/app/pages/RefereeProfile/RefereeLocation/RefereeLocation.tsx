@@ -12,7 +12,7 @@ interface LocationProps {
 
 const RefereeLocation = (props: LocationProps) => {
   const { locations, isEditing, onChange } = props;
-  const { data: allNgbs, error: getNgbsError } = useGetNgbsQuery({});
+  const { data: allNgbs, error: getNgbsError } = useGetNgbsQuery({ skipPaging: true });
 
   const hasType = (type: keyof RefereeLocationOptions): boolean => {
     return !!locations[type];

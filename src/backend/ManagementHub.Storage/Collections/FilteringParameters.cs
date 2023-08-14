@@ -19,4 +19,9 @@ public class FilteringParameters
 	/// Page size.
 	/// </summary>
 	public int PageSize { get; set; } = 25;
+
+	/// <summary>
+	/// if true, paging is skipped.
+	/// </summary>
+	public bool SkipPaging { get; set; }
 }

@@ -63,7 +63,12 @@ const injectedRtkApi = api
       getNgbs: build.query<GetNgbsApiResponse, GetNgbsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs`,
-          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
         }),
         providesTags: ["Ngb"],
       }),
@@ -116,14 +121,24 @@ const injectedRtkApi = api
       getReferees: build.query<GetRefereesApiResponse, GetRefereesApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Referees`,
-          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
         }),
         providesTags: ["Referee"],
       }),
       getNgbReferees: build.query<GetNgbRefereesApiResponse, GetNgbRefereesApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/referees`,
-          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
         }),
         providesTags: ["Referee"],
       }),
@@ -137,7 +152,12 @@ const injectedRtkApi = api
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
-          params: { Filter: queryArg.filter, Page: queryArg.page, PageSize: queryArg.pageSize },
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
         }),
         providesTags: ["Team"],
       }),
@@ -220,6 +240,7 @@ export type GetNgbsApiArg = {
   filter?: string;
   page?: number;
   pageSize?: number;
+  skipPaging?: boolean;
 };
 export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModel;
 export type GetNgbInfoApiArg = {
@@ -254,6 +275,7 @@ export type GetRefereesApiArg = {
   filter?: string;
   page?: number;
   pageSize?: number;
+  skipPaging?: boolean;
 };
 export type GetNgbRefereesApiResponse = /** status 200 Success */ RefereeViewModelFiltered;
 export type GetNgbRefereesApiArg = {
@@ -261,6 +283,7 @@ export type GetNgbRefereesApiArg = {
   filter?: string;
   page?: number;
   pageSize?: number;
+  skipPaging?: boolean;
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
@@ -270,6 +293,7 @@ export type GetNgbTeamsApiArg = {
   filter?: string;
   page?: number;
   pageSize?: number;
+  skipPaging?: boolean;
 };
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
