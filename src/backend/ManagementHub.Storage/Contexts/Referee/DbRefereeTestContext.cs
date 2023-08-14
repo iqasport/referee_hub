@@ -53,15 +53,23 @@ public class DbRefereeTestContextFactory
 				HeadCertificationsPaid = u.CertificationPayments.Select(p => p.Certification.Version ?? default).ToList(),
 				TestAttempts = u.TestResults.Select(tr => new FinishedTestAttempt
 				{
-					AwardedCertifications = tr.Passed == true ? GetAwardedCertifications(tr.Test!.Certification!, tr.Test.Recertification ?? false) : new HashSet<Certification>(),
+					AwardedCertifications = tr.Passed == true
+						? tr.Test != null
+							? GetAwardedCertifications(tr.Test.Certification!, tr.Test.Recertification ?? false)
+							: tr.TestLevel != null
+								? GetAwardedCertifications(new Models.Data.Certification { Level = tr.TestLevel.Value.ToCertificationLevel(), Version = CertificationVersion.Eighteen }, false)
+								: new HashSet<Certification>()
+						: new HashSet<Certification>(),
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
-					Level = tr.Test!.Certification!.Level,
+					Level = tr.Test != null ? tr.Test.Certification!.Level : tr.TestLevel.Value.ToCertificationLevel(),
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,
 					StartedAt = tr.CreatedAt - TimeSpan.Parse(tr.Duration ?? "00:00:00"),
-					TestId = tr.Test.UniqueId != null ? TestIdentifier.Parse(tr.Test.UniqueId) : TestIdentifier.FromLegacyTestId(tr.Test.Id),
+					TestId = tr.Test != null
+						? tr.Test.UniqueId != null ? TestIdentifier.Parse(tr.Test.UniqueId) : TestIdentifier.FromLegacyTestId(tr.Test.Id)
+						: new TestIdentifier(),
 					UserId = userId,
 					Id = tr.UniqueId != null ? TestAttemptIdentifier.Parse(tr.UniqueId) : TestAttemptIdentifier.FromLegacyId(tr.CreatedAt, tr.Id),
 				})
