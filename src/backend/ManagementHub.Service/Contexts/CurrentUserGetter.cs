@@ -48,6 +48,7 @@ public class CurrentUserGetter : ICurrentUserGetter
 		}
 
 		Activity.Current?.AddTag("user.id", userId.ToString());
+		Activity.Current?.AddTag("enduser.id", userId.ToString()); // for tracking users in Application Insights
 		Baggage.SetBaggage("user_id", userId.ToString());
 
 		return userId;
