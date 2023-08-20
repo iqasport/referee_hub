@@ -8,13 +8,10 @@ services:
         depends_on:
             redis:
                 condition: service_healthy
-            mailhog:
-                condition: service_started
             letsencrypt:
                 condition: service_started
         links:
             - redis:jobcache
-            - mailhog:smtpserver
         environment:
             ASPNETCORE_ENVIRONMENT: Production
             ASPNETCORE_URLS: https://iqareferees-dev:443/
@@ -28,9 +25,12 @@ services:
             AWS__Bucket: $AWS__Bucket
             AWS__Region: $AWS__Region
             AWS__SecretAccessKey: $AWS__SecretAccessKey
-            Services__RedisConnectionString: jobcache # pointing at the hostname of redis container on the default redis port
-            Mailers__SMTP__Host: smtpserver
-            Mailers__SMTP__Port: "1025"
+            Services__RedisConnectionString: jobcache
+            Mailers__SMTP__Host: $Mailers__SMTP__Host
+            Mailers__SMTP__Port: $Mailers__SMTP__Port
+            Mailers__SMTP__Username: $Mailers__SMTP__Username
+            Mailers__SMTP__Password: $Mailers__SMTP__Password
+            Mailers__SMTP__EnableSsl: "true"
             Telemetry__Exporter: Azure
             Telemetry__AzureConnectionString: $Telemetry__AzureConnectionString
         healthcheck:
@@ -43,18 +43,14 @@ services:
         restart: on-failure:20
     redis:
         image: redis:6.0
+        volumes:
+            - redis-data:/data
+        command: "redis-server --save 60 1" # save data to disk every 60 seconds
         healthcheck:
             test: redis-cli -h localhost ping
             interval: 5s
             timeout: 10s
             retries: 20
-    mailhog:
-        image: mailhog/mailhog
-        logging:
-          driver: 'none'  # disable saving logs
-        ports:
-          #- 1025:1025 # smtp server
-          - 8025:8025 # web ui
     letsencrypt:
         image: certbot/certbot
         ports:
@@ -78,3 +74,4 @@ services:
 
 volumes:
     certs:
+    redis-data:
