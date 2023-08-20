@@ -14,7 +14,24 @@ public class TraceCookieMiddleware : IMiddleware
 		var activity = Activity.Current;
 		if (activity is not null && activity.TraceId != default)
 		{
-			context.Response.Cookies.Append(TraceIdCookieName, activity.TraceId.ToString());
+			var setCookie = false;
+			// Setting cookies prevents CloudFlare from caching the requests.
+			// So if the cookie is already set with the same value as current trace ID, don't set it again.
+			// Unless on API requests - those are not cached anyway.
+			// The cookie has Session lifetime, so it will be removed when the browser is closed.
+			if (context.Request.Cookies.TryGetValue(TraceIdCookieName, out var incomingIdValue) && incomingIdValue != activity.TraceId.ToString())
+			{
+				setCookie = true;
+			}
+			else if (context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+			{
+				setCookie = true;
+			}
+
+			if (setCookie)
+			{
+				context.Response.Cookies.Append(TraceIdCookieName, activity.TraceId.ToString());
+			}
 		}
 
 		await next(context);
