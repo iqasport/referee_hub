@@ -206,8 +206,8 @@ jobs:
 
     - name: Create new Elastic Beanstalk Application Version
       working-directory: src/backend
-      run: aws elasticbeanstalk create-application-version --application-name ${{ env.EB_APPLICATION_NAME }} --version-label "$(dotnet gitversion -showvariable NuGetVersion)-prod" --source-bundle S3Bucket=${{ env.EB_PACKAGE_S3_BUCKET_NAME }},S3Key=${{ github.sha }}-docker-compose.yml
+      run: aws elasticbeanstalk create-application-version --application-name ${{ env.EB_APPLICATION_NAME }} --version-label "$(dotnet gitversion -showvariable NuGetVersion)-prod-${{ github.run_attempt }}" --source-bundle S3Bucket=${{ env.EB_PACKAGE_S3_BUCKET_NAME }},S3Key=${{ github.sha }}-docker-compose.yml
 
     - name: "Deploy Application Version to EB Environment"
       working-directory: src/backend
-      run: aws elasticbeanstalk update-environment --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "$(dotnet gitversion -showvariable NuGetVersion)-prod"
+      run: aws elasticbeanstalk update-environment --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "$(dotnet gitversion -showvariable NuGetVersion)-prod-${{ github.run_attempt }}"
