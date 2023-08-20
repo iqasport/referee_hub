@@ -67,6 +67,7 @@ public static class CertificationExtensions
 			CertificationLevel.Assistant => 1,
 			CertificationLevel.Flag => 2,
 			CertificationLevel.Head => 3,
+			CertificationLevel.Field => 4,
 			_ => throw new NotSupportedException(level.ToString())
 		};
 	}

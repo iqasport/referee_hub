@@ -16,6 +16,7 @@ using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.BlobStorage.AmazonS3;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Commands.Ngb;
 using ManagementHub.Storage.Commands.Payments;
 using ManagementHub.Storage.Commands.Referee;
 using ManagementHub.Storage.Commands.Tests;
@@ -116,6 +117,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IUpdateRefereeRoleCommand, UpdateRefereeRoleCommand>();
 		services.AddScoped<ISaveSubmittedTestCommand, SaveSubmittedTestCommand>();
 		services.AddScoped<IProcessCertificationPaymentCommand, ProcessCertificationPaymentCommand>();
+		services.AddScoped<ICreateNgbStatsSnapshotCommand, CreateNgbStatsSnapshotCommand>();
 
 		services.AddScoped<IAttachmentRepository, AttachmentRepository>();
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();

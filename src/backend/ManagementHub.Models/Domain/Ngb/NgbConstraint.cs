@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ManagementHub.Models.Domain.Ngb;
 
@@ -17,6 +18,25 @@ public abstract class NgbConstraint
 	public static NgbConstraint Single(NgbIdentifier ngbId) => Set(new[] { ngbId });
 
 	public static NgbConstraint Set(IEnumerable<NgbIdentifier> ngbIds) => new SetNgbConstraint(ngbIds);
+
+	public static bool TryParse(string value, [NotNullWhen(true)] out NgbConstraint? constraint)
+	{
+		if (value == "ANY")
+		{
+			constraint = Any;
+			return true;
+		}
+		else if (NgbIdentifier.TryParse(value, out var id))
+		{
+			constraint = Single(id);
+			return true;
+		}
+
+		constraint = default;
+		return false;
+	}
+
+	public static NgbConstraint Parse(string value) => TryParse(value, out var constraint) ? constraint : throw new FormatException($"The string is not a valid {nameof(NgbConstraint)}");
 
 	private sealed class AnyNgbConstraint : NgbConstraint
 	{
