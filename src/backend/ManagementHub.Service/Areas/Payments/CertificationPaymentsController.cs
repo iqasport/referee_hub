@@ -42,7 +42,7 @@ public class CertificationPaymentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var serviceBaseUri = new Uri(this.HttpContext.Request.Host.Value);
+		var serviceBaseUri = new Uri($"{this.HttpContext.Request.Scheme}://{this.HttpContext.Request.Host.Value}");
 		var redirectPath = "/referees/me/tests"; // TODO: load from config
 		var resultParameter = "paymentStatus";  // TODO: load from config
 

@@ -122,6 +122,7 @@ public class LoginModel : PageModel
 			}
 			else
 			{
+				this.logger.LogInformation("Invalid login attempt.");
 				this.ModelState.AddModelError(string.Empty, "Invalid login attempt.");
 				return this.Page();
 			}
