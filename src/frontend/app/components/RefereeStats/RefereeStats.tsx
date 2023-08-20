@@ -25,7 +25,7 @@ const RefereeStats = (props: RefereeStatsProps) => {
       return {
         month,
         assistantRefereesCount: 0,
-        snitchRefereesCount: 0,
+        flagRefereesCount: 0,
         headRefereesCount: 0,
         uncertifiedCount: 0,
       };
@@ -37,18 +37,18 @@ const RefereeStats = (props: RefereeStatsProps) => {
   const chartData = [
     { type: "head", head: headCount },
     { type: "assistant", assistant: assistantCount },
-    { type: "snitch", snitch: snitchCount },
+    { type: "flag", flag: snitchCount },
   ];
 
   const barConfig = [
     { dataKey: "head", fill: "#286E20" },
     { dataKey: "assistant", fill: "#72BA6C" },
-    { dataKey: "snitch", fill: "#C1EDBC" },
+    { dataKey: "flag", fill: "#C1EDBC" },
   ];
 
   const lineConfig = [
     { name: "Assistant", dataKey: "assistantRefereesCount", stroke: "#72BA6C" },
-    { name: "Snitch", dataKey: "snitchRefereesCount", stroke: "#C1EDBC" },
+    { name: "Flag", dataKey: "flagRefereesCount", stroke: "#C1EDBC" },
     { name: "Head", dataKey: "headRefereesCount", stroke: "#286E20" },
   ];
 
