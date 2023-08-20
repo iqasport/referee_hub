@@ -29,6 +29,7 @@ using Microsoft.Extensions.AmbientMetadata;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Telemetry.Enrichment;
 using Microsoft.Extensions.Telemetry.Logging;
+using Microsoft.Net.Http.Headers;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
@@ -216,7 +217,25 @@ public static class Program
 		});
 
 		app.UseMiddleware<TraceCookieMiddleware>();
-		app.UseStaticFiles();
+
+		if (context.HostingEnvironment.IsDevelopment())
+		{
+			app.UseStaticFiles();
+		}
+		else
+		{
+			// enable caching of static files for 1 hour
+			app.UseStaticFiles(new StaticFileOptions
+			{
+				OnPrepareResponse = ctx =>
+				{
+					const int durationInSeconds = 60 * 60; // 1h
+					ctx.Context.Response.Headers[HeaderNames.CacheControl] =
+						"public,max-age=" + durationInSeconds;
+				}
+			});
+		}
+
 		app.UseRouting();
 		app.UseAuthentication();
 		app.UseMiddleware<ImpersonationMiddleware>();
