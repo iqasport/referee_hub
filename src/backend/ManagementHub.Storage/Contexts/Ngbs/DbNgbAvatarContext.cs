@@ -29,7 +29,7 @@ public class DbNgbAvatarContextFactory
 
 		try
 		{
-			const string attachmentName = "avatar";
+			const string attachmentName = "logo";
 			var attachment = await this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
 
 			if (attachment == null)
