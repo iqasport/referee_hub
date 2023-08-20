@@ -3,6 +3,7 @@
 #nullable disable
 
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Telemetry;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -23,6 +24,7 @@ public class LogoutModel : PageModel
 	public async Task<IActionResult> OnPost(string returnUrl = null)
 	{
 		await this.signInManager.SignOutAsync();
+		this.HttpContext.Response.Cookies.Delete(TraceCookieMiddleware.TraceIdCookieName);
 		this.logger.LogInformation("User logged out.");
 		if (returnUrl != null)
 		{
