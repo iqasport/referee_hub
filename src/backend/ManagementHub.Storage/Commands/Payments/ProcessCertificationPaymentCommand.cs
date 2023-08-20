@@ -43,7 +43,7 @@ public class ProcessCertificationPaymentCommand : IProcessCertificationPaymentCo
 
 	private async Task ProcessInternalAsync(string sessionId, string userEmail, Certification certification, CancellationToken cancellationToken)
 	{
-		using var transaction = await this.transactionProvider.BeginAsync(IsolationLevel.RepeatableRead);
+		using var transaction = await this.transactionProvider.BeginAsync(IsolationLevel.Serializable);
 
 		var existingPayment = await this.dbContext.Users.WithEmail(userEmail)
 			.Include(u => u.CertificationPayments).ThenInclude(p => p.Certification)
