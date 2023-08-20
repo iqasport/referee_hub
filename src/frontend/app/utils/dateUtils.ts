@@ -11,9 +11,6 @@ export function getMonths(): string[] {
   const allMonths = Info.months("short");
   const monthsCopy = [...allMonths]; // copy the months so we're not manipulating the original array
   const currentMonth = DateTime.local().month;
-  // get the previous month because the current month will never have a stat
-  const prevMonthIndex = currentMonth === 1 ? 12 : currentMonth - 1;
-  const splicedMonths = monthsCopy.splice(prevMonthIndex);
-
+  const splicedMonths = monthsCopy.splice(currentMonth);
   return splicedMonths.concat(monthsCopy);
 }

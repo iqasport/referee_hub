@@ -117,7 +117,7 @@ public class DbNgbStatsContextFactory
 		IQueryable<NationalGoverningBodyStat> stats = this.dbContext.NationalGoverningBodyStats.AsNoTracking()
 			.Join(ngbs, s => s.NationalGoverningBodyId, n => n.Id, (s, _) => s)
 			.Where(s => s.EndTime > DateTime.UtcNow.AddMonths(-12)) // collect data for the last 12 months
-			.OrderByDescending(s => s.EndTime);
+			.OrderByDescending(s => s.EndTime); // latest first
 
 		var materializedStats = await stats.Select(s => new DbNgbStatsContext
 		{
@@ -131,7 +131,7 @@ public class DbNgbStatsContextFactory
 			UncertifiedRefereesCount = s.UncertifiedCount ?? 0,
 
 			CommunityTeamsCount = s.CommunityTeamsCount ?? 0,
-			UniversityTeamsCount = s.UncertifiedCount ?? 0,
+			UniversityTeamsCount = s.UniversityTeamsCount ?? 0,
 			YouthTeamsCount = s.YouthTeamsCount ?? 0,
 
 			CompetitiveTeamsCount = s.CompetitiveTeamsCount ?? 0,
