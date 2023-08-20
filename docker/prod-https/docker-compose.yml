@@ -31,6 +31,7 @@ services:
             Mailers__SMTP__Username: $Mailers__SMTP__Username
             Mailers__SMTP__Password: $Mailers__SMTP__Password
             Mailers__SMTP__EnableSsl: "true"
+            Stripe__ApiKey: $Stripe__ApiKey
             Telemetry__Exporter: Azure
             Telemetry__AzureConnectionString: $Telemetry__AzureConnectionString
         healthcheck:
