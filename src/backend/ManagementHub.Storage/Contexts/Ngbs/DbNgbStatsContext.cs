@@ -58,41 +58,35 @@ public class DbNgbStatsContextFactory
 
 	public async Task<DbNgbStatsContext> GetNgbStatsContextAsync(NgbIdentifier ngb)
 	{
-		IQueryable<NationalGoverningBody> ngbs = this.dbContext.NationalGoverningBodies.WithIdentifier(ngb);
-		IQueryable<RefereeLocation> locationsInNgb = this.dbContext.RefereeLocations
+		IQueryable<NationalGoverningBody> ngbs = this.dbContext.NationalGoverningBodies.AsNoTracking().WithIdentifier(ngb);
+		IQueryable<RefereeLocation> locationsInNgb = this.dbContext.RefereeLocations.AsNoTracking()
 			.Join(ngbs, loc => loc.NationalGoverningBodyId, ngb => ngb.Id, (loc, _) => loc);
 		IQueryable<long> refereeIds = locationsInNgb.Select(l => l.RefereeId);
-		var refereeCountTask = refereeIds.CountAsync();
+		var refereeCount = await refereeIds.CountAsync();
 
-		IQueryable<Certification> currentCertifications = this.dbContext.Certifications.Where(c => c.Version == CurrentVersion);
-		var refsCertsLevelTask = this.dbContext.RefereeCertifications
+		IQueryable<Certification> currentCertifications = this.dbContext.Certifications.AsNoTracking().Where(c => c.Version == CurrentVersion);
+		var refsCertsLevelValues = await this.dbContext.RefereeCertifications.AsNoTracking()
 			.Join(refereeIds, rc => rc.RefereeId, id => id, (rc, _) => rc)
 			.Join(currentCertifications, rc => rc.CertificationId, c => c.Id, (rc, c) => new { rc.RefereeId, c.Level })
 			.GroupBy(g => g.RefereeId)
 			.Select(g => new { RefereeId = g.Key, HighestLevel = g.Select(rc => rc.Level).Max() })
 			.ToDictionaryAsync(g => g.RefereeId, g => g.HighestLevel);
 
-		var teamsByAffiliationTask = this.dbContext.Teams
+		var teamsByAffiliation = await this.dbContext.Teams.AsNoTracking()
 			.Join(ngbs, t => t.NationalGoverningBodyId, n => n.Id, (t, _) => t)
 			.GroupBy(t => t.GroupAffiliation)
 			.Select(g => new { GroupAffiliation = g.Key, Count = g.Count() })
 			.Where(g => g.GroupAffiliation != null)
 			.ToDictionaryAsync(g => g.GroupAffiliation!.Value, g => g.Count);
 
-		var teamsByStatusTask = this.dbContext.Teams
+		var teamsByStatus = await this.dbContext.Teams.AsNoTracking()
 			.Join(ngbs, t => t.NationalGoverningBodyId, n => n.Id, (t, _) => t)
 			.GroupBy(t => t.Status)
 			.Select(g => new { Status = g.Key, Count = g.Count() })
 			.Where(g => g.Status != null)
 			.ToDictionaryAsync(g => g.Status!.Value, g => g.Count);
 
-		await Task.WhenAll(refereeCountTask, refsCertsLevelTask, teamsByAffiliationTask, teamsByStatusTask);
-
-		var refereeCount = await refereeCountTask;
-		var refsCertsLevels = (await refsCertsLevelTask).GroupBy(r => r.Value).ToDictionary(g => g.Key, g => g.Count());
-		var teamsByAffiliation = await teamsByAffiliationTask;
-		var teamsByStatus = await teamsByStatusTask;
-
+		var refsCertsLevels = refsCertsLevelValues.GroupBy(r => r.Value).ToDictionary(g => g.Key, g => g.Count());
 
 		return new DbNgbStatsContext
 		{
@@ -119,8 +113,8 @@ public class DbNgbStatsContextFactory
 
 	public async Task<IOrderedEnumerable<INgbStatsContext>> GetHistoricalNgbStatsAsync(NgbIdentifier ngb)
 	{
-		IQueryable<NationalGoverningBody> ngbs = this.dbContext.NationalGoverningBodies.WithIdentifier(ngb);
-		IQueryable<NationalGoverningBodyStat> stats = this.dbContext.NationalGoverningBodyStats
+		IQueryable<NationalGoverningBody> ngbs = this.dbContext.NationalGoverningBodies.AsNoTracking().WithIdentifier(ngb);
+		IQueryable<NationalGoverningBodyStat> stats = this.dbContext.NationalGoverningBodyStats.AsNoTracking()
 			.Join(ngbs, s => s.NationalGoverningBodyId, n => n.Id, (s, _) => s)
 			.Where(s => s.EndTime > DateTime.UtcNow.AddMonths(-12)) // collect data for the last 12 months
 			.OrderByDescending(s => s.EndTime);

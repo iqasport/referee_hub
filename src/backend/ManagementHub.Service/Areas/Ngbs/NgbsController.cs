@@ -57,17 +57,10 @@ public class NgbsController : ControllerBase
 			throw new NotFoundException(ngb.ToString());
 		}
 
-		var socialAccountsTask = this.socialAccountsProvider.QueryNgbSocialAccounts(NgbConstraint.Single(ngb));
-		var statsTask = this.ngbContextProvider.GetCurrentNgbStatsAsync(ngb);
-		var historicalStatsTask = this.ngbContextProvider.GetHistoricalNgbStatsAsync(ngb);
-		var avatarUriTask = this.ngbContextProvider.GetNgbAvatarUriAsync(ngb);
-
-		await Task.WhenAll(socialAccountsTask, statsTask, historicalStatsTask, avatarUriTask);
-
-		var socialAccounts = await socialAccountsTask;
-		var stats = await statsTask;
-		var historicalStats = await historicalStatsTask;
-		var avatarUri = await avatarUriTask;
+		var socialAccounts = await this.socialAccountsProvider.QueryNgbSocialAccounts(NgbConstraint.Single(ngb));
+		var stats = await this.ngbContextProvider.GetCurrentNgbStatsAsync(ngb);
+		var historicalStats = await this.ngbContextProvider.GetHistoricalNgbStatsAsync(ngb);
+		var avatarUri = await this.ngbContextProvider.GetNgbAvatarUriAsync(ngb);
 
 		return new NgbInfoViewModel
 		{

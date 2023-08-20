@@ -43,7 +43,7 @@ public class AttachmentRepository : IAttachmentRepository
 
 		this.logger.LogInformation(0, "Retrieving attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
 
-		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier);
+		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
 		return await recordQueryable.Join(attachments, record => record.Id, attachment => attachment.RecordId, (_, attachment) => attachment)
 			.Include(a => a.Blob) // IMPORTANT: include the blob in the result
