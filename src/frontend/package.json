@@ -77,6 +77,7 @@
     "babel-plugin-dynamic-import-node": "^2.3.3",
     "babel-plugin-lodash": "^3.3.4",
     "babel-plugin-module-resolver": "^5.0.0",
+    "cpy-cli": "5.0.0",
     "css-loader": "^6.8.1",
     "cssnano": "^6.0.1",
     "dotenv-webpack": "^8.0.1",
@@ -129,12 +130,13 @@
     "lint": "eslint .",
     "lint:ci": "eslint -f ./node_modules/eslint-junit/index.js .",
     "swaggergen": "rtk-query-codegen-openapi openapi-config.js",
-    "build:dev": "yarn build:app:dev && yarn styles",
-    "build:prod": "yarn build:app:prod && yarn styles",
+    "build:dev": "yarn build:app:dev && yarn styles && yarn images:copy",
+    "build:prod": "yarn build:app:prod && yarn styles && yarn images:copy",
     "build:app:dev": "webpack --config webpack.config.dev.js",
     "build:app:prod": "webpack --config webpack.config.prod.js",
     "styles": "yarn styles:common && yarn styles:app",
     "styles:common": "postcss ./assets/stylesheets/application.css -o dist/management_hub.css",
-    "styles:app": "sass ./app/assets/stylesheets/app.scss dist/management_hub_app.css"
+    "styles:app": "sass ./app/assets/stylesheets/app.scss dist/management_hub_app.css",
+    "images:copy": "cpy ./assets/images/* ./dist/images/"
   }
 }
