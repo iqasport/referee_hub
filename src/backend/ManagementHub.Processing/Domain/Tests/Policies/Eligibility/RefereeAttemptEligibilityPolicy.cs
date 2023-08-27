@@ -38,9 +38,7 @@ public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 	private bool IsWithinCooldownPeriod(TestAttempt attempt, Test test)
 	{
 		// TODO: put this into configuration?
-		var cooldown = test.AwardedCertifications.Any(c => c.Level == CertificationLevel.Head)
-			? TimeSpan.FromDays(3)
-			: TimeSpan.FromDays(1);
+		var cooldown = test.Cooldown;
 		var now = this.systemClock.UtcNow.UtcDateTime;
 
 		if (attempt is FinishedTestAttempt finished)

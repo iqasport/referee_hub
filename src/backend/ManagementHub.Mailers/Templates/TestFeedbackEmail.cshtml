@@ -561,7 +561,7 @@ body{background-color:#2b343f}.logo a:hover,.logo a:focus{color:#7096b5 !importa
         @if(!Model.TestAttempt.Passed) {
           <p>
             Although you did not pass this time you will be able to take this test again in
-            <strong>@* TODO next attempt at *@</strong>
+            <strong>@Model.Test.Cooldown.Days day(s)</strong>
           </p>
         }
 		@if(!string.IsNullOrEmpty(Model.TestFeedback)) {

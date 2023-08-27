@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Tests.Policies;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Domain.Tests;
 
@@ -60,4 +62,8 @@ public class Test
 	/// Maximum attempts at this test. TODO: make it configurable in database.
 	/// </summary>
 	public int MaximumAttempts { get; set; } = 6;
+
+	public TimeSpan Cooldown => this.AwardedCertifications.Any(c => c.Level == CertificationLevel.Head)
+		? TimeSpan.FromDays(3)
+		: TimeSpan.FromDays(1);
 }
