@@ -1,5 +1,6 @@
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Extensions;
 using ManagementHub.Service.Swagger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
@@ -42,7 +43,7 @@ public class CertificationPaymentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var serviceBaseUri = new Uri($"{this.HttpContext.Request.Scheme}://{this.HttpContext.Request.Host.Value}");
+		var serviceBaseUri = this.GetHostBaseUri();
 		var redirectPath = "/referees/me/tests"; // TODO: load from config
 		var resultParameter = "paymentStatus";  // TODO: load from config
 

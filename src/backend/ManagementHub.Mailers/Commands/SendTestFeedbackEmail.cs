@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentEmail.Core;
 using ManagementHub.Mailers.Configuration;
+using ManagementHub.Mailers.Models;
 using ManagementHub.Mailers.Utils;
 using ManagementHub.Models.Abstraction.Commands.Mailers;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
@@ -34,7 +35,7 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 		this.emailSenderSettings = emailSenderSettings.Value;
 	}
 
-	public async Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, CancellationToken cancellation)
+	public async Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, Uri hostUri, CancellationToken cancellation)
 	{
 		try
 		{
@@ -50,7 +51,7 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 				.To(userContext.UserData.Email.Value)
 				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
 				.Subject($"{emailFeedbackContext.Test.Title} Results")
-				.UsingEmbeddedTemplate("TestFeedbackEmail", emailFeedbackContext) // TODO: include host URL for links
+				.UsingEmbeddedTemplate("TestFeedbackEmail", new FeedbackContextWithHostUrl(emailFeedbackContext, hostUri))
 				.SendAsync();
 
 			this.logger.LogInformation(0, "Email has been sent.");
