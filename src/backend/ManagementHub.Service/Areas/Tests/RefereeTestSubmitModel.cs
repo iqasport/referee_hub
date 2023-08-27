@@ -13,5 +13,7 @@ public class RefereeTestSubmitModel
 	{
 		public required long QuestionId { get; set; }
 		public required long AnswerId { get; set; }
+
+		public override string ToString() => $"{{ Q: {this.QuestionId}, A: {this.AnswerId} }}";
 	}
 }

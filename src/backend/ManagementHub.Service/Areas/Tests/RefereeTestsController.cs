@@ -166,6 +166,8 @@ public class RefereeTestsController : ControllerBase
 		// TODO: move logic to a processor
 		var now = DateTime.UtcNow; // use the same date throughout operations in this logic
 
+		this.logger.LogInformation(0, "Submitting test ({testId}) with answers {@answers}.", testId, testSubmitModel.Answers);
+
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
 		var test = await this.testProvider.GetTestWithQuestionsAsync(testId, this.HttpContext.RequestAborted);
 
