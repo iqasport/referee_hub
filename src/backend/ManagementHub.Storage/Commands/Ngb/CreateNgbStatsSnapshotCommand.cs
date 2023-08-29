@@ -31,7 +31,7 @@ public class CreateNgbStatsSnapshotCommand : ICreateNgbStatsSnapshotCommand
 
 		var ngbIds = this.dbContext.NationalGoverningBodies.AsNoTracking().WithConstraint(ngbs).Select(ngb => ValueTuple.Create(NgbIdentifier.Parse(ngb.CountryCode), ngb.Id)).ToList();
 
-		this.logger.LogInformation(0, "Creating stats snapshot for ngbs: ", ngbIds.Select(x => x.Item1));
+		this.logger.LogInformation(-0x9faad00, "Creating stats snapshot for ngbs: ", ngbIds.Select(x => x.Item1));
 
 		foreach (var (ngbId, ngbDbId) in ngbIds)
 		{

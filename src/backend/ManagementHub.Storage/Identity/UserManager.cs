@@ -62,7 +62,7 @@ public class UserManager : UserManager<UserIdentity>
 		}
 		catch (Exception ex) when (ex is not OutOfMemoryException)
 		{
-			this.Logger.LogError(0, ex, "Failed to confirm email.");
+			this.Logger.LogError(-0x198aaf00, ex, "Failed to confirm email.");
 			return IdentityResult.Failed();
 		}
 	}
@@ -100,7 +100,7 @@ public class UserManager : UserManager<UserIdentity>
 		}
 		catch (Exception ex) when (ex is not OutOfMemoryException)
 		{
-			this.Logger.LogError(0, ex, "Failed to change email.");
+			this.Logger.LogError(-0x198aaeff, ex, "Failed to change email.");
 			return IdentityResult.Failed();
 		}
 	}

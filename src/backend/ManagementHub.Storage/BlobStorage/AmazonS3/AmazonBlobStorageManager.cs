@@ -47,7 +47,7 @@ public sealed class AmazonBlobStorageManager : IUploadFileCommand, IAccessFileCo
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Error occured during generation of file access URI.");
+			this.logger.LogError(-0x6fb55900, ex, "Error occured during generation of file access URI.");
 			throw;
 		}
 	}
@@ -76,18 +76,18 @@ public sealed class AmazonBlobStorageManager : IUploadFileCommand, IAccessFileCo
 			var response = await this.amazonClient.PutObjectAsync(request, cancellationToken);
 			if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
 			{
-				this.logger.LogInformation(0, "Successfully uploaded file '{key}' to S3 blob storage (bucket: {bucket}).", key, bucket);
+				this.logger.LogInformation(-0x6fb558ff, "Successfully uploaded file '{key}' to S3 blob storage (bucket: {bucket}).", key, bucket);
 				return new FileUploadResult(key, response.ChecksumSHA256);
 			}
 			else
 			{
-				this.logger.LogError(0, "Could not upload file '{key}' to S3 blob storage (bucket: {bucket}). Status code: {statusCode}, Metadata: {metadata}", key, bucket, response.HttpStatusCode, response.ResponseMetadata.Metadata);
+				this.logger.LogError(-0x6fb558fe, "Could not upload file '{key}' to S3 blob storage (bucket: {bucket}). Status code: {statusCode}, Metadata: {metadata}", key, bucket, response.HttpStatusCode, response.ResponseMetadata.Metadata);
 				throw new FileUploadException($"Amazon S3 file upload failed - status code {response.HttpStatusCode}");
 			}
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Error occured during file upload.");
+			this.logger.LogError(-0x6fb558fd, ex, "Error occured during file upload.");
 			throw new FileUploadException("Exception encountered during file upload.", ex);
 		}
 	}

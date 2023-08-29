@@ -27,7 +27,7 @@ public class DbUserAvatarContextFactory
 
 	public async Task<IUserAvatarContext> LoadAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Getting avatar context for user ({userId}).", userId);
+		this.logger.LogInformation(0x4727dc00, "Getting avatar context for user ({userId}).", userId);
 
 		try
 		{
@@ -47,7 +47,7 @@ public class DbUserAvatarContextFactory
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Error while getting avatar URI for user ({userId}).", userId);
+			this.logger.LogError(0x4727dc01, ex, "Error while getting avatar URI for user ({userId}).", userId);
 			throw;
 		}
 	}

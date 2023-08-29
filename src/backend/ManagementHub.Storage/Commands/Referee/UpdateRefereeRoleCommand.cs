@@ -35,7 +35,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 	public async Task UpdateRefereeRoleAsync(UserIdentifier userId, Func<RefereeRole, RefereeRole> updater, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Performing update on referee ({userId})", userId);
+		this.logger.LogInformation(0x5fd20700, "Performing update on referee ({userId})", userId);
 
 		await using var transaction = await this.transactionProvider.BeginAsync();
 
@@ -96,11 +96,11 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 		if (propertyNames.Count == 0)
 		{
-			this.logger.LogInformation(0, "No changes have been made to the referee.");
+			this.logger.LogInformation(0x5fd20701, "No changes have been made to the referee.");
 			return;
 		}
 
-		this.logger.LogInformation(0, "Updating referee ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
+		this.logger.LogInformation(0x5fd20702, "Updating referee ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
 
 		Models.Data.User? referee = null;
 
@@ -120,7 +120,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 				if (newRefereeRole.CoachingTeam == null)
 				{
-					this.logger.LogInformation(0, "Removing coaching team ({teamId}) from referee ({userId}).", oldTeamId, userId);
+					this.logger.LogInformation(0x5fd20703, "Removing coaching team ({teamId}) from referee ({userId}).", oldTeamId, userId);
 					await team.ExecuteDeleteAsync(cancellationToken);
 				}
 				else
@@ -128,7 +128,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					var newTeamId = newRefereeRole.CoachingTeam.Value.Id;
 					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
-					this.logger.LogInformation(0, "Updating coaching team ({oldTeamId} -> {newTeamId}) for referee ({userId}).", oldTeamId, newTeamId, userId);
+					this.logger.LogInformation(0x5fd20704, "Updating coaching team ({oldTeamId} -> {newTeamId}) for referee ({userId}).", oldTeamId, newTeamId, userId);
 					await team.ExecuteUpdateAsync(t => t
 						.SetProperty(x => x.TeamId, newTeamId)
 						.SetProperty(x => x.UpdatedAt, updatedAt),
@@ -140,7 +140,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				var newTeamId = newRefereeRole.CoachingTeam?.Id ?? throw new InvalidOperationException("Both current and new are null?");
 				var now = this.clock.UtcNow.UtcDateTime;
 
-				this.logger.LogInformation(0, "Adding coaching team ({teamId}) for referee ({userId}).", newTeamId, userId);
+				this.logger.LogInformation(0x5fd20705, "Adding coaching team ({teamId}) for referee ({userId}).", newTeamId, userId);
 				this.dbContext.RefereeTeams.Add(new RefereeTeam
 				{
 					AssociationType = RefereeTeamAssociationType.Coach,
@@ -164,7 +164,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 				if (newRefereeRole.PlayingTeam == null)
 				{
-					this.logger.LogInformation(0, "Removing playing team ({teamId}) from referee ({userId}).", oldTeamId, userId);
+					this.logger.LogInformation(0x5fd20706, "Removing playing team ({teamId}) from referee ({userId}).", oldTeamId, userId);
 					await team.ExecuteDeleteAsync(cancellationToken);
 				}
 				else
@@ -172,7 +172,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					var newTeamId = newRefereeRole.PlayingTeam.Value.Id;
 					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
-					this.logger.LogInformation(0, "Updating playing team ({oldTeamId} -> {newTeamId}) for referee ({userId}).", oldTeamId, newTeamId, userId);
+					this.logger.LogInformation(0x5fd20707, "Updating playing team ({oldTeamId} -> {newTeamId}) for referee ({userId}).", oldTeamId, newTeamId, userId);
 					await team.ExecuteUpdateAsync(t => t
 						.SetProperty(x => x.TeamId, newTeamId)
 						.SetProperty(x => x.UpdatedAt, updatedAt),
@@ -184,7 +184,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				var newTeamId = newRefereeRole.PlayingTeam?.Id ?? throw new InvalidOperationException("Both current and new are null?");
 				var now = this.clock.UtcNow.UtcDateTime;
 
-				this.logger.LogInformation(0, "Adding playing team ({teamId}) for referee ({userId}).", newTeamId, userId);
+				this.logger.LogInformation(0x5fd20708, "Adding playing team ({teamId}) for referee ({userId}).", newTeamId, userId);
 				this.dbContext.RefereeTeams.Add(new RefereeTeam
 				{
 					AssociationType = RefereeTeamAssociationType.Player,
@@ -208,7 +208,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 				if (newRefereeRole.PrimaryNgb == null)
 				{
-					this.logger.LogInformation(0, "Removing primary NGB ({ngbId}) from referee ({userId}).", oldNgbId, userId);
+					this.logger.LogInformation(0x5fd20709, "Removing primary NGB ({ngbId}) from referee ({userId}).", oldNgbId, userId);
 					await ngb.ExecuteDeleteAsync(cancellationToken);
 				}
 				else
@@ -216,7 +216,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					var newNgbId = newRefereeRole.PrimaryNgb.Value.NgbCode;
 					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
-					this.logger.LogInformation(0, "Updating primary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
+					this.logger.LogInformation(0x5fd2070a, "Updating primary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
 					var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.PrimaryNgb.Value, cancellationToken);
 					await ngb.ExecuteUpdateAsync(t => t
 						.SetProperty(x => x.NationalGoverningBodyId, newNgbIdLong)
@@ -229,7 +229,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				var newNgbId = newRefereeRole.PrimaryNgb?.NgbCode ?? throw new InvalidOperationException("Both current and new are null?");
 				var now = this.clock.UtcNow.UtcDateTime;
 
-				this.logger.LogInformation(0, "Adding primary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
+				this.logger.LogInformation(0x5fd2070b, "Adding primary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
 				var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.PrimaryNgb.Value, cancellationToken);
 				this.dbContext.RefereeLocations.Add(new RefereeLocation
 				{
@@ -254,7 +254,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 				if (newRefereeRole.SecondaryNgb == null)
 				{
-					this.logger.LogInformation(0, "Removing secondary NGB ({ngbId}) from referee ({userId}).", oldNgbId, userId);
+					this.logger.LogInformation(0x5fd2070c, "Removing secondary NGB ({ngbId}) from referee ({userId}).", oldNgbId, userId);
 					await ngb.ExecuteDeleteAsync(cancellationToken);
 				}
 				else
@@ -262,7 +262,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					var newNgbId = newRefereeRole.SecondaryNgb.Value.NgbCode;
 					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
-					this.logger.LogInformation(0, "Updating secondary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
+					this.logger.LogInformation(0x5fd2070d, "Updating secondary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
 					var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.SecondaryNgb.Value, cancellationToken);
 					await ngb.ExecuteUpdateAsync(t => t
 						.SetProperty(x => x.NationalGoverningBodyId, newNgbIdLong)
@@ -275,7 +275,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				var newNgbId = newRefereeRole.SecondaryNgb?.NgbCode ?? throw new InvalidOperationException("Both current and new are null?");
 				var now = this.clock.UtcNow.UtcDateTime;
 
-				this.logger.LogInformation(0, "Adding secondary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
+				this.logger.LogInformation(0x5fd2070e, "Adding secondary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
 				var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.SecondaryNgb.Value, cancellationToken);
 				this.dbContext.RefereeLocations.Add(new RefereeLocation
 				{
@@ -291,7 +291,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 		await transaction.CommitAsync(cancellationToken);
 
-		this.logger.LogInformation(0, "Successfully updated referee ({userId})", userId);
+		this.logger.LogInformation(0x5fd2070f, "Successfully updated referee ({userId})", userId);
 	}
 
 	private Task<long> GetNgbIdForUpdate(NgbIdentifier ngbIdentifier, CancellationToken cancellationToken)

@@ -27,16 +27,16 @@ public class ProcessCertificationPaymentCommand : IProcessCertificationPaymentCo
 
 	public async Task ProcessCertificationPaymentAsync(string sessionId, [SensitiveData] string userEmail, Certification certification, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Processing certification payment for session ({sessionId}) and certification ({certification}).", sessionId, certification);
+		this.logger.LogInformation(0x2a4cae00, "Processing certification payment for session ({sessionId}) and certification ({certification}).", sessionId, certification);
 
 		try
 		{
 			await this.ProcessInternalAsync(sessionId, userEmail, certification, cancellationToken);
-			this.logger.LogInformation(0, "Processing certification payment completed successfully.");
+			this.logger.LogInformation(0x2a4cae01, "Processing certification payment completed successfully.");
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Error occurred while processing certification payment.");
+			this.logger.LogError(0x2a4cae02, ex, "Error occurred while processing certification payment.");
 			throw;
 		}
 	}
@@ -53,10 +53,10 @@ public class ProcessCertificationPaymentCommand : IProcessCertificationPaymentCo
 
 		if (existingPayment is not null)
 		{
-			this.logger.LogInformation(0, "A payment record already exists for certification ({certification}).", certification);
+			this.logger.LogInformation(0x2a4cae03, "A payment record already exists for certification ({certification}).", certification);
 			if (existingPayment.StripeSessionId != sessionId)
 			{
-				this.logger.LogWarning(0, "Existing payment session ID ({existingSesionId}) is not the same as current one ({sessionId}).", existingPayment.StripeSessionId, sessionId);
+				this.logger.LogWarning(0x2a4cae04, "Existing payment session ID ({existingSesionId}) is not the same as current one ({sessionId}).", existingPayment.StripeSessionId, sessionId);
 			}
 
 			return;

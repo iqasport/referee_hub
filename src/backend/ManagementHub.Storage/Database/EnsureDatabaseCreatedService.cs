@@ -22,15 +22,15 @@ public class EnsureDatabaseCreatedService : DatabaseStartupService
 	{
 		try
 		{
-			this.logger.LogInformation(0, "Ensuring database is created...");
+			this.logger.LogInformation(0x6b0bd000, "Ensuring database is created...");
 
 			await dbContext.Database.EnsureCreatedAsync(stoppingToken);
 
-			this.logger.LogInformation(0, "Ensuring database is created completed.");
+			this.logger.LogInformation(0x6b0bd001, "Ensuring database is created completed.");
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Error while creating database.");
+			this.logger.LogError(0x6b0bd002, ex, "Error while creating database.");
 			throw;
 		}
 	}

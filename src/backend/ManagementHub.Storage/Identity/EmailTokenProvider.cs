@@ -30,7 +30,7 @@ public class EmailTokenProvider : IUserTwoFactorTokenProvider<UserIdentity>
 	{
 		if (purpose == UserManager<UserIdentity>.ConfirmEmailTokenPurpose)
 		{
-			this.logger.LogInformation(0, "Generating token for email confirmation.");
+			this.logger.LogInformation(0x3ae99700, "Generating token for email confirmation.");
 
 			var token = new TokenData
 			{
@@ -40,7 +40,7 @@ public class EmailTokenProvider : IUserTwoFactorTokenProvider<UserIdentity>
 			};
 			var base64encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(token)));
 
-			this.logger.LogInformation(0, "Saving token for email confirmation to the database.");
+			this.logger.LogInformation(0x3ae99701, "Saving token for email confirmation to the database.");
 			await this.userRepository.SetEmailConfirmationToken(user, base64encoded, default);
 
 			return base64encoded;
@@ -53,29 +53,29 @@ public class EmailTokenProvider : IUserTwoFactorTokenProvider<UserIdentity>
 	{
 		if (purpose == UserManager<UserIdentity>.ConfirmEmailTokenPurpose)
 		{
-			this.logger.LogInformation(0, "Validating token for email confirmation.");
+			this.logger.LogInformation(0x3ae99702, "Validating token for email confirmation.");
 
 			var tokenData = JsonSerializer.Deserialize<TokenData>(Encoding.UTF8.GetString(Convert.FromBase64String(token)));
 
 			if (tokenData is null)
 			{
-				this.logger.LogInformation(0, "Token could not be deserialized.");
+				this.logger.LogInformation(0x3ae99703, "Token could not be deserialized.");
 				return false;
 			}
 
 			if (!string.Equals(tokenData.Email, user.UserEmail.Value, StringComparison.OrdinalIgnoreCase))
 			{
-				this.logger.LogInformation(0, "Token contains incorrect email.");
+				this.logger.LogInformation(0x3ae99704, "Token contains incorrect email.");
 				return false;
 			}
 
 			if (tokenData.Expires < DateTime.UtcNow)
 			{
-				this.logger.LogInformation(0, "Token has expired.");
+				this.logger.LogInformation(0x3ae99705, "Token has expired.");
 				return false;
 			}
 
-			this.logger.LogInformation(0, "Checking if token matches the one from the database.");
+			this.logger.LogInformation(0x3ae99706, "Checking if token matches the one from the database.");
 			var dbToken = await this.userRepository.GetEmailConfirmationToken(user);
 
 			return token == dbToken;

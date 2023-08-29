@@ -14,7 +14,7 @@ public static class LoggingExtensions
 	{
 		var jobId = backgroundJobClient.Enqueue(methodCall);
 		var methodCallExpression = (MethodCallExpression)methodCall.Body;
-		logger.LogInformation(0, "Enqueued background job: {methodCall} - id '{jobId}'",
+		logger.LogInformation(-0x5db8e100, "Enqueued background job: {methodCall} - id '{jobId}'",
 			PrintMethodCall(methodCallExpression),
 			jobId);
 		return jobId;

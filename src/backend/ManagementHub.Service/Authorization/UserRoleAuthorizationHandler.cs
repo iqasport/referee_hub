@@ -26,12 +26,12 @@ public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthori
 		{
 			if (requirement.Satisfies(userRole))
 			{
-				this.logger.LogInformation(0, "{requirement} has been satisfied.", requirement);
+				this.logger.LogInformation(0x25719400, "{requirement} has been satisfied.", requirement);
 				context.Succeed(requirement);
 				return;
 			}
 		}
 
-		this.logger.LogWarning(0, "{requirement} failed to be satisfied.", requirement);
+		this.logger.LogWarning(0x25719401, "{requirement} failed to be satisfied.", requirement);
 	}
 }

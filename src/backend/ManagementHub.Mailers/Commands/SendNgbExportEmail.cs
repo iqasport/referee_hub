@@ -45,19 +45,19 @@ internal class SendNgbExportEmail : ISendNgbExportEmail
 	{
 		try
 		{
-			this.logger.LogInformation(0, "Exporting referees of NGB {ngb} requested by ({userId}).", ngb, requestorId);
+			this.logger.LogInformation(0x6438f900, "Exporting referees of NGB {ngb} requested by ({userId}).", ngb, requestorId);
 
 			var userContext = await this.userContextProvider.GetUserContextAsync(requestorId, cancellationToken);
 			var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault();
 			if (refereeViewerRole == null)
 			{
-				this.logger.LogError(0, $"User is not authorized - missing {nameof(RefereeViewerRole)}.");
+				this.logger.LogError(0x6438f901, $"User is not authorized - missing {nameof(RefereeViewerRole)}.");
 				return;
 			}
 
 			if (!refereeViewerRole.Ngb.AppliesTo(ngb))
 			{
-				this.logger.LogError(0, $"User is not authorized - no access to NGB {ngb}.", ngb);
+				this.logger.LogError(0x6438f902, $"User is not authorized - no access to NGB {ngb}.", ngb);
 				return;
 			}
 
@@ -84,7 +84,7 @@ internal class SendNgbExportEmail : ISendNgbExportEmail
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Failed to export referees.");
+			this.logger.LogError(0x6438f903, ex, "Failed to export referees.");
 			throw;
 		}
 	}
@@ -93,19 +93,19 @@ internal class SendNgbExportEmail : ISendNgbExportEmail
 	{
 		try
 		{
-			this.logger.LogInformation(0, "Exporting teams of NGB {ngb} requested by ({userId}).", ngb, requestorId);
+			this.logger.LogInformation(0x6438f904, "Exporting teams of NGB {ngb} requested by ({userId}).", ngb, requestorId);
 
 			var userContext = await this.userContextProvider.GetUserContextAsync(requestorId, cancellationToken);
 			var refereeViewerRole = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault();
 			if (refereeViewerRole == null)
 			{
-				this.logger.LogError(0, $"User is not authorized - missing {nameof(NgbAdminRole)}.");
+				this.logger.LogError(0x6438f905, $"User is not authorized - missing {nameof(NgbAdminRole)}.");
 				return;
 			}
 
 			if (!refereeViewerRole.Ngb.AppliesTo(ngb))
 			{
-				this.logger.LogError(0, $"User is not authorized - no access to NGB {ngb}.", ngb);
+				this.logger.LogError(0x6438f906, $"User is not authorized - no access to NGB {ngb}.", ngb);
 				return;
 			}
 
@@ -132,7 +132,7 @@ internal class SendNgbExportEmail : ISendNgbExportEmail
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Failed to export teams.");
+			this.logger.LogError(0x6438f907, ex, "Failed to export teams.");
 			throw;
 		}
 	}

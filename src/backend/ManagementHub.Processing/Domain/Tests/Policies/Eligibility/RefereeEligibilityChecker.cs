@@ -29,17 +29,17 @@ public class RefereeEligibilityChecker
 
 				if (result == default)
 				{
-					this.logger.LogError(0, "Policy {policy} dud not return a valid result. Continuing checking further policies.", result);
+					this.logger.LogError(-0x28fdac00, "Policy {policy} dud not return a valid result. Continuing checking further policies.", result);
 				}
 				else if (result != RefereeEligibilityResult.Eligible)
 				{
-					this.logger.LogWarning(0, "Referee ({userId}) not eligible for test ({testId}). Failed policy: {policy} with result: {result}", userId, test.TestId, policy.GetType().Name, result);
+					this.logger.LogWarning(-0x28fdabff, "Referee ({userId}) not eligible for test ({testId}). Failed policy: {policy} with result: {result}", userId, test.TestId, policy.GetType().Name, result);
 					return result;
 				}
 			}
 			catch (Exception ex)
 			{
-				this.logger.LogError(0, ex, "Exception occured while checking eligibility for referee ({userId}) while checking policy {policy}", userId, policy.GetType().Name);
+				this.logger.LogError(-0x28fdabfe, ex, "Exception occured while checking eligibility for referee ({userId}) while checking policy {policy}", userId, policy.GetType().Name);
 				throw;
 			}
 		}

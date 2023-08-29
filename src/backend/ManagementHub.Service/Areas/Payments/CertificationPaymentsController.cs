@@ -79,7 +79,7 @@ public class CertificationPaymentsController : ControllerBase
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Failed to deserialize Stripe event object.");
+			this.logger.LogError(-0x3eeb7100, ex, "Failed to deserialize Stripe event object.");
 		}
 
 		if (stripeEvent == null)

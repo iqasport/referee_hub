@@ -41,7 +41,7 @@ public class DbRefereeTestContextFactory
 
 	public async Task<DbRefereeTestContext> LoadAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Loading referee test context for user ({userId}).", userId);
+		this.logger.LogInformation(0x5dc5900, "Loading referee test context for user ({userId}).", userId);
 		var referee = await this.users.WithIdentifier(userId)
 			.Include(u => u.RefereeCertifications).ThenInclude(rc => rc.Certification)
 			.Include(u => u.CertificationPayments).ThenInclude(p => p.Certification)

@@ -22,19 +22,19 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			var ngbCount = await dbContext.NationalGoverningBodies.CountAsync(stoppingToken);
 			if (ngbCount > 0)
 			{
-				this.logger.LogInformation(0, "Database not empty. Skipping seeding.");
+				this.logger.LogInformation(-0x48302e00, "Database not empty. Skipping seeding.");
 				return;
 			}
 
-			this.logger.LogInformation(0, "Ensuring database is seeded...");
+			this.logger.LogInformation(-0x48302dff, "Ensuring database is seeded...");
 
 			await this.SeedDatabaseAsync(dbContext, stoppingToken);
 
-			this.logger.LogInformation(0, "Ensuring database is seeded completed.");
+			this.logger.LogInformation(-0x48302dfe, "Ensuring database is seeded completed.");
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Error while seeding database.");
+			this.logger.LogError(-0x48302dfd, ex, "Error while seeding database.");
 			throw;
 		}
 	}

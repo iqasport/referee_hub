@@ -147,7 +147,7 @@ public class DbRefereeViewContextFactory
 
 	public async Task<DbRefereeViewContext> LoadAsync(UserIdentifier userId, NgbConstraint ngbs, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Loading referee profile for user ({userId}) with constraint [{ngbConstraint}]", userId, ngbs);
+		this.logger.LogInformation(0x42d8be00, "Loading referee profile for user ({userId}) with constraint [{ngbConstraint}]", userId, ngbs);
 		var referee = await this.QueryRefereesByNgb(this.dbContext.Users.WithIdentifier(userId), ngbs)
 			.SingleOrDefaultAsync(cancellationToken);
 
@@ -161,7 +161,7 @@ public class DbRefereeViewContextFactory
 
 	public IQueryable<DbRefereeViewContext> QueryReferees(NgbConstraint ngbs)
 	{
-		this.logger.LogInformation(0, "Creating referee profile query with constraint [{ngbConstraint}]", ngbs);
+		this.logger.LogInformation(0x42d8be01, "Creating referee profile query with constraint [{ngbConstraint}]", ngbs);
 
 		return this.QueryRefereesByNgb(this.dbContext.Users, ngbs);
 	}

@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LoggerEventIdGenerator" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" /> <!-- for the ISystemClock -->
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
     <PackageReference Include="Macross.Json.Extensions" Version="3.0.0" />

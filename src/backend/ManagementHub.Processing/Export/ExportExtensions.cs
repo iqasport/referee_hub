@@ -46,11 +46,11 @@ public static class ExportExtensions
 			}
 			catch (OperationCanceledException cex)
 			{
-				logger?.LogWarning(0, cex, "Cancellation was requested while exporting data to CSV.");
+				logger?.LogWarning(-0x2f01cd00, cex, "Cancellation was requested while exporting data to CSV.");
 			}
 			catch (Exception ex)
 			{
-				logger?.LogError(0, ex, "Error occurred while exporting data to CSV.");
+				logger?.LogError(-0x2f01ccff, ex, "Error occurred while exporting data to CSV.");
 			}
 			finally
 			{

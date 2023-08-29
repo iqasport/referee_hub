@@ -41,7 +41,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0, "Retrieving attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
+		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
 
 		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
@@ -54,7 +54,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0, "Upserting attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
+		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
 
 		this.dbContext.ActiveStorageBlobs.Add(blob);
 
@@ -85,7 +85,7 @@ public class AttachmentRepository : IAttachmentRepository
 
 	public Task RemoveBlobAsync(ActiveStorageBlob blob, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Removing blob with id '{blobId}'.", blob.Id);
+		this.logger.LogInformation(0xff45502, "Removing blob with id '{blobId}'.", blob.Id);
 
 		return this.dbContext.ActiveStorageBlobs.Where(b => b.Id == blob.Id).ExecuteDeleteAsync(cancellationToken);
 	}

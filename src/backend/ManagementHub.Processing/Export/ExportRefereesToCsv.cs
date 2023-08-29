@@ -37,14 +37,14 @@ public class ExportRefereesToCsv : IExportRefereesToCsv
 				if (teams.TryGetValue(referee.PlayingTeam.Value, out var teamName))
 					refereeTeams.Add(teamName);
 				else
-					this.logger.LogWarning(0, "Referee {userId} has a playing team {teamId} that does not exist in the collection.", referee.UserId, referee.PlayingTeam.Value);
+					this.logger.LogWarning(0x6caf5d00, "Referee {userId} has a playing team {teamId} that does not exist in the collection.", referee.UserId, referee.PlayingTeam.Value);
 			}
 			if (referee.CoachingTeam.HasValue)
 			{
 				if (teams.TryGetValue(referee.CoachingTeam.Value, out var teamName))
 					refereeTeams.Add(teamName);
 				else
-					this.logger.LogWarning(0, "Referee {userId} has a coaching team {teamId} that does not exist in the collection.", referee.UserId, referee.CoachingTeam.Value);
+					this.logger.LogWarning(0x6caf5d01, "Referee {userId} has a coaching team {teamId} that does not exist in the collection.", referee.UserId, referee.CoachingTeam.Value);
 			}
 
 			return new CsvRow

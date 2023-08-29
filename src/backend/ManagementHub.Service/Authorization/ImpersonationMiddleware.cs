@@ -34,7 +34,7 @@ public class ImpersonationMiddleware : IMiddleware
 			}
 
 			Activity.Current?.AddTag("user.impersonatedby", impersonatingUser.UserId.ToString());
-			this.logger.LogInformation(0, "Impersonating user ({userId})...", impersonatedUserId);
+			this.logger.LogInformation(-0x6da5fd00, "Impersonating user ({userId})...", impersonatedUserId);
 
 			try
 			{
@@ -46,11 +46,11 @@ public class ImpersonationMiddleware : IMiddleware
 				context.Response.Headers.Add("X-Impersonated", impersonatedUser.UserId.ToString());
 				context.Response.Headers.Add("X-Impersonated-By", impersonatingUser.UserId.ToString());
 
-				this.logger.LogInformation(0, "User ({userId}) successfully impersonated.", impersonatedUserId);
+				this.logger.LogInformation(-0x6da5fcff, "User ({userId}) successfully impersonated.", impersonatedUserId);
 			}
 			catch (NotFoundException ex)
 			{
-				this.logger.LogError(0, ex, "No such user ({userId}) - impersonation failed.", impersonatedUserId);
+				this.logger.LogError(-0x6da5fcfe, ex, "No such user ({userId}) - impersonation failed.", impersonatedUserId);
 				context.Response.Headers.Add("X-Impersonated-Error", "No such user");
 
 				// I'm writing out the response here,

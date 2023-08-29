@@ -31,7 +31,7 @@ public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 
 	public async Task SaveSubmittedTestAsync(FinishedTestAttempt finishedTest, IEnumerable<(QuestionId questionId, AnswerId answerId)> markedQuestions)
 	{
-		this.logger.LogInformation(0, "Saving submitted test attempt for referee ({userId}) and test ({testId})", finishedTest.UserId, finishedTest.TestId);
+		this.logger.LogInformation(-0xf8b7300, "Saving submitted test attempt for referee ({userId}) and test ({testId})", finishedTest.UserId, finishedTest.TestId);
 
 		await using var transaction = await this.transactionProvider.BeginAsync();
 
@@ -93,6 +93,6 @@ public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 		await this.dbContext.SaveChangesAsync();
 		await transaction.CommitAsync();
 
-		this.logger.LogInformation(0, "Successfully saved submitted test attempt for referee ({userId}) and test ({testId})", finishedTest.UserId, finishedTest.TestId);
+		this.logger.LogInformation(-0xf8b72ff, "Successfully saved submitted test attempt for referee ({userId}) and test ({testId})", finishedTest.UserId, finishedTest.TestId);
 	}
 }

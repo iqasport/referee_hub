@@ -39,12 +39,12 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 	{
 		try
 		{
-			this.logger.LogInformation(0, "Sending test feedback for test attempt ({attemptId}).", testAttemptId);
+			this.logger.LogInformation(-0x32943200, "Sending test feedback for test attempt ({attemptId}).", testAttemptId);
 
 			var emailFeedbackContext = await this.refereeContextProvider.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellation);
 			var userContext = await this.userContextProvider.GetUserContextAsync(emailFeedbackContext.TestAttempt.UserId, cancellation);
 
-			this.logger.LogInformation(0, "Sending test feedback to user ({userId}).", userContext.UserId);
+			this.logger.LogInformation(-0x329431ff, "Sending test feedback to user ({userId}).", userContext.UserId);
 
 			await this.emailFactory.Create()
 				.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
@@ -54,11 +54,11 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 				.UsingEmbeddedTemplate("TestFeedbackEmail", new FeedbackContextWithHostUrl(emailFeedbackContext, hostUri))
 				.SendAsync();
 
-			this.logger.LogInformation(0, "Email has been sent.");
+			this.logger.LogInformation(-0x329431fe, "Email has been sent.");
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Failed to send test feedback.");
+			this.logger.LogError(-0x329431fd, ex, "Failed to send test feedback.");
 			throw;
 		}
 	}

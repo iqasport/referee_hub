@@ -37,7 +37,7 @@ public class CookieTraceContextPropagator : DistributedContextPropagator
 					// but the code in ASP.NET Core expects a full W3C activity id
 					// so we're making one with a parent span id being constant 1 (all zeroes doesn't work)
 					traceId = $"00-{c.Value}-0000000000000001-01";
-					this.logger.LogDebug(0, "Extracted traceId from '{cookieName}' cookie: {traceId}", TraceCookieMiddleware.TraceIdCookieName, c.Value);
+					this.logger.LogDebug(-0x1dbab00, "Extracted traceId from '{cookieName}' cookie: {traceId}", TraceCookieMiddleware.TraceIdCookieName, c.Value);
 				}
 			}
 		}

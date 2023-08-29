@@ -129,7 +129,7 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 		var sessionService = new SessionService(this.stripeClient);
 		var session = await sessionService.CreateAsync(sessionOptions);
 
-		this.logger.LogInformation(0, "Created checkout session ({sessionId}) for item ({item}).", session.Id, item);
+		this.logger.LogInformation(0x62475600, "Created checkout session ({sessionId}) for item ({item}).", session.Id, item);
 
 		return new CheckoutSession { SessionId = session.Id };
 	}
@@ -139,7 +139,7 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 	/// </summary>
 	public void SubmitCheckoutSession(Session session)
 	{
-		this.logger.LogInformation(0, "Session ({sessionId}) has been submitted.", session.Id);
+		this.logger.LogInformation(0x62475601, "Session ({sessionId}) has been submitted.", session.Id);
 
 		if (string.IsNullOrWhiteSpace(session.CustomerEmail))
 		{

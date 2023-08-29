@@ -22,7 +22,7 @@ public class CollectionFilteringActionFilter : IAsyncActionFilter
 		{
 			this.collectionFilteringContext.FilteringParameters = filtering;
 			this.collectionFilteringContext.FilteringMetadata = new();
-			this.logger.LogInformation(0, "Applying filtering: Filter='{filter}', Page={page}, PageSize={pageSize}", filtering.Filter, filtering.Page, filtering.PageSize);
+			this.logger.LogInformation(0x6fe63600, "Applying filtering: Filter='{filter}', Page={page}, PageSize={pageSize}", filtering.Filter, filtering.Page, filtering.PageSize);
 			appliesFilter = true;
 		}
 
@@ -31,7 +31,7 @@ public class CollectionFilteringActionFilter : IAsyncActionFilter
 		if (appliesFilter && actionResult.Result is ObjectResult result && result.Value is Filtered filtered)
 		{
 			filtered.Metadata = this.collectionFilteringContext.FilteringMetadata;
-			this.logger.LogInformation(0, "Adding filtered metadata: TotalCount='{count}'", filtered.Metadata?.TotalCount);
+			this.logger.LogInformation(0x6fe63601, "Adding filtered metadata: TotalCount='{count}'", filtered.Metadata?.TotalCount);
 		}
 	}
 }

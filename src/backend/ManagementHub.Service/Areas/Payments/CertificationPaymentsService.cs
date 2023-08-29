@@ -61,25 +61,25 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 	{
 		if (!metadata.TryGetValue(nameof(Certification.Level), out string? levelString))
 		{
-			this.logger.LogError(0, "No value in metadata for level.");
+			this.logger.LogError(-0x2a709300, "No value in metadata for level.");
 			throw new InvalidOperationException();
 		}
 
 		if (!metadata.TryGetValue(nameof(Certification.Version), out string? versionString))
 		{
-			this.logger.LogError(0, "No value in metadata for version.");
+			this.logger.LogError(-0x2a7092ff, "No value in metadata for version.");
 			throw new InvalidOperationException();
 		}
 
 		if (!Enum.TryParse<CertificationLevel>(levelString, out var level))
 		{
-			this.logger.LogError(0, "Invalid value for level. Got '{value}'.", levelString);
+			this.logger.LogError(-0x2a7092fe, "Invalid value for level. Got '{value}'.", levelString);
 			throw new InvalidOperationException();
 		}
 
 		if (!Enum.TryParse<CertificationVersion>(versionString, out var version))
 		{
-			this.logger.LogError(0, "Invalid value for version. Got '{value}'.", versionString);
+			this.logger.LogError(-0x2a7092fd, "Invalid value for version. Got '{value}'.", versionString);
 			throw new InvalidOperationException();
 		}
 
@@ -97,7 +97,7 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 				case "2020": return new Certification(CertificationLevel.Head, CertificationVersion.Twenty);
 				case "2022": return new Certification(CertificationLevel.Head, CertificationVersion.TwentyTwo);
 				default:
-					this.logger.LogWarning(0, "A new certification product has been added to Stripe without a corresponding rulebook version being added to the service.");
+					this.logger.LogWarning(-0x2a7092fc, "A new certification product has been added to Stripe without a corresponding rulebook version being added to the service.");
 					return null;
 			}
 		}

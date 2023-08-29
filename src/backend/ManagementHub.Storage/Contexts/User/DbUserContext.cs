@@ -55,7 +55,7 @@ public class DbUserContextFactory
 
 	public async Task<DbUserContext> LoadAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Loading user context for user ({userId}).", userId);
+		this.logger.LogInformation(-0x58e19300, "Loading user context for user ({userId}).", userId);
 		// TODO: optimize it later into a database level view
 		var userData = await this.users.AsNoTracking().WithIdentifier(userId)
 			.Include(u => u.Language)
@@ -80,7 +80,7 @@ public class DbUserContextFactory
 			roles.AddRange(await this.ConvertFromDbRoleAsync(userId, dbRole, cancellationToken));
 		}
 
-		this.logger.LogInformation(0, "Returning user context with roles: {roles}.", string.Join(", ", roles));
+		this.logger.LogInformation(-0x58e192ff, "Returning user context with roles: {roles}.", string.Join(", ", roles));
 
 		return new DbUserContext(userId, userData, roles);
 	}

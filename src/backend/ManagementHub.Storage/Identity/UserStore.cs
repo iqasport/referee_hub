@@ -41,13 +41,13 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 			throw new ArgumentException("Provided user object must have the user id already set.", nameof(user));
 		}
 
-		this.logger.LogInformation(0, "Creating new user ({userId}).", user.UserId);
+		this.logger.LogInformation(0x752e2700, "Creating new user ({userId}).", user.UserId);
 
 		var existingUserById = await this.FindByIdAsync(user.UserId.ToString(), cancellationToken);
 
 		if (existingUserById is not null)
 		{
-			this.logger.LogError(0, "User with specified id ({userId}) already exists!", user.UserId);
+			this.logger.LogError(0x752e2701, "User with specified id ({userId}) already exists!", user.UserId);
 			return IdentityResult.Failed();
 		}
 
@@ -55,7 +55,7 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 
 		if (existingUserByEmail is not null)
 		{
-			this.logger.LogError(0, "User with specified email already exists!");
+			this.logger.LogError(0x752e2702, "User with specified email already exists!");
 			return IdentityResult.Failed(new IdentityError { Description = "User with specified email already exists!" });
 		}
 
@@ -84,20 +84,20 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 
 	public async Task<UserIdentity?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Looking up user by email address.");
+		this.logger.LogInformation(0x752e2703, "Looking up user by email address.");
 		var userEmail = new Email(normalizedEmail);
 		var dbUser = await SelectUserIdentityDataFromQueryable(this.userRepository.QueryUsers().Where(user => user.Email == userEmail.Value))
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (dbUser is null)
 		{
-			this.logger.LogInformation(0, "User for the specified email address was not found.");
+			this.logger.LogInformation(0x752e2704, "User for the specified email address was not found.");
 			return null;
 		}
 
 		var user = ConvertDbUserViewToUserIdentity(dbUser);
 
-		this.logger.LogInformation(0, "Loaded user ({userId}).", user.UserId);
+		this.logger.LogInformation(0x752e2705, "Loaded user ({userId}).", user.UserId);
 
 		return user;
 	}
@@ -109,19 +109,19 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 			throw new ArgumentException("User Id is in an incorrect format! Please clear your cookies.", nameof(userIdentifier));
 		}
 
-		this.logger.LogInformation(0, "Looking up user by id ({userId}).", userId);
+		this.logger.LogInformation(0x752e2706, "Looking up user by id ({userId}).", userId);
 		var dbUser = await SelectUserIdentityDataFromQueryable(this.userRepository.QueryUsers().WithIdentifier(userId))
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (dbUser is null)
 		{
-			this.logger.LogInformation(0, "User for the specified user id ({userId}) was not found.", userId);
+			this.logger.LogInformation(0x752e2707, "User for the specified user id ({userId}) was not found.", userId);
 			return null;
 		}
 
 		var user = ConvertDbUserViewToUserIdentity(dbUser);
 
-		this.logger.LogInformation(0, "Loaded user ({userId}).", user.UserId);
+		this.logger.LogInformation(0x752e2708, "Loaded user ({userId}).", user.UserId);
 
 		return user;
 	}
@@ -151,13 +151,13 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 			throw new NotSupportedException($"{nameof(SetEmailConfirmedAsync)} should not be called with a false value.");
 		}
 
-		this.logger.LogInformation(0, "Setting email as confirmed.");
+		this.logger.LogInformation(0x752e2709, "Setting email as confirmed.");
 		await this.userRepository.SetEmailConfirmedAsync(user, cancellationToken);
 	}
 
 	public async Task SetNormalizedEmailAsync(UserIdentity user, string? normalizedEmail, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Updating user email.");
+		this.logger.LogInformation(0x752e270a, "Updating user email.");
 		var newEmail = new Email(normalizedEmail ?? string.Empty);
 		await this.userRepository.UpdateEmailAsync(user, newEmail, cancellationToken);
 	}
@@ -176,7 +176,7 @@ public partial class UserStore : IUserStore<UserIdentity>, IUserPasswordStore<Us
 			return Task.CompletedTask;
 		}
 
-		this.logger.LogInformation(0, "Updating user password.");
+		this.logger.LogInformation(0x752e270b, "Updating user password.");
 
 		return this.userRepository.UpdatePasswordAsync(user, new UserPassword(passwordHash), cancellationToken);
 	}

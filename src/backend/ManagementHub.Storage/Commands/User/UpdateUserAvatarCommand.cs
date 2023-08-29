@@ -43,7 +43,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "avatar";
 			var attachment = this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0, "Uploading new avatar for user ({userId}) of content type '{contentType}'. User had previously an avatar: {hadAvatar}.", userId, contentType, attachment != null);
+			this.logger.LogInformation(0x2d0ef100, "Uploading new avatar for user ({userId}) of content type '{contentType}'. User had previously an avatar: {hadAvatar}.", userId, contentType, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 			fileUploaded = true;
@@ -58,7 +58,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 				Key = uploadResult.Key,
 			};
 
-			this.logger.LogInformation(0, "Setting new avatar for user ({userId}) in the database.", userId);
+			this.logger.LogInformation(0x2d0ef101, "Setting new avatar for user ({userId}) in the database.", userId);
 			await this.attachmentRepository.UpsertAttachmentAsync(userId, attachmentName, blob, cancellationToken);
 
 			await transaction.CommitAsync(cancellationToken);
@@ -70,7 +70,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Error occurred during user avatar upload for user ({userId}). File uploaded = {fileUploaded}.", userId, fileUploaded);
+			this.logger.LogError(0x2d0ef102, ex, "Error occurred during user avatar upload for user ({userId}). File uploaded = {fileUploaded}.", userId, fileUploaded);
 
 			// TODO: if uploaded and not committed, remove file.
 			throw;

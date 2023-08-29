@@ -44,7 +44,7 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 
 	public async Task UpdateUserDataAsync(UserIdentifier userId, Func<ExtendedUserData, ExtendedUserData> updater, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Performing update on user ({userId})", userId);
+		this.logger.LogInformation(0xe860100, "Performing update on user ({userId})", userId);
 
 		await using var transaction = await this.transactionProvider.BeginAsync();
 
@@ -125,7 +125,7 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 
 		if (propertySetters.Count > 0)
 		{
-			this.logger.LogInformation(0, "Updating user data for ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
+			this.logger.LogInformation(0xe860101, "Updating user data for ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
 
 			var result = await this.users.AsNoTracking().WithIdentifier(userId).ExecuteUpdateAsync(propertySetters, cancellationToken);
 			Debug.Assert(result == 1); // only one row of the specific user should have been updated.
@@ -134,7 +134,7 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 		}
 		else
 		{
-			this.logger.LogInformation(0, "No changes have been made to the user.");
+			this.logger.LogInformation(0xe860102, "No changes have been made to the user.");
 		}
 	}
 }

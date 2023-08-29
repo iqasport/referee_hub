@@ -166,7 +166,7 @@ public class RefereeTestsController : ControllerBase
 		// TODO: move logic to a processor
 		var now = DateTime.UtcNow; // use the same date throughout operations in this logic
 
-		this.logger.LogInformation(0, "Submitting test ({testId}) with answers {@answers}.", testId, testSubmitModel.Answers);
+		this.logger.LogInformation(0x30121800, "Submitting test ({testId}) with answers {@answers}.", testId, testSubmitModel.Answers);
 
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
 		var test = await this.testProvider.GetTestWithQuestionsAsync(testId, this.HttpContext.RequestAborted);
@@ -197,7 +197,7 @@ public class RefereeTestsController : ControllerBase
 		var expectedNumberOfQuestions = ((SubsetCountQuestionChoicePolicy)test.QuestionChoicePolicy).QuestionsCount;
 		if (mappedQuestionsWithSelectedAnswers.Count != expectedNumberOfQuestions)
 		{
-			this.logger.LogWarning(0, "Test has been submitted with an incorrect number of answers. Expected {expected}, but got {submitted}.", expectedNumberOfQuestions, mappedQuestionsWithSelectedAnswers.Count);
+			this.logger.LogWarning(0x30121801, "Test has been submitted with an incorrect number of answers. Expected {expected}, but got {submitted}.", expectedNumberOfQuestions, mappedQuestionsWithSelectedAnswers.Count);
 			// if more answers have been submitted we only take the first X (at most)
 			mappedQuestionsWithSelectedAnswers = mappedQuestionsWithSelectedAnswers.Take(expectedNumberOfQuestions).ToList();
 		}
@@ -210,7 +210,7 @@ public class RefereeTestsController : ControllerBase
 
 		if (scoredPoints > maxPoints)
 		{
-			this.logger.LogWarning(0, "Scored points ({scored}) is greater than max points ({max}).", scoredPoints, maxPoints);
+			this.logger.LogWarning(0x30121802, "Scored points ({scored}) is greater than max points ({max}).", scoredPoints, maxPoints);
 			// IMO this shouldn't happen the way I'm calculating points, but if it does, let's cap it and move on rather than block the submission
 			scoredPoints = maxPoints;
 		}
@@ -223,7 +223,7 @@ public class RefereeTestsController : ControllerBase
 		var timeError = TimeSpan.FromSeconds(10); // assuming slow internet and long db access time for the request to get to submission time
 		if (testDuration > test.TimeLimit + timeError)
 		{
-			this.logger.LogWarning(0, "Test has been submitted after time has passed (limit: {timeLimit}, actual: {actual}).", test.TimeLimit, testDuration);
+			this.logger.LogWarning(0x30121803, "Test has been submitted after time has passed (limit: {timeLimit}, actual: {actual}).", test.TimeLimit, testDuration);
 			// previously this resulted in an automatic fail, but it happened once since 2020 rulebook, so I won't action on it
 		}
 

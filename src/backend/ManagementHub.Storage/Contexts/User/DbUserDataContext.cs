@@ -37,7 +37,7 @@ public class DbUserDataContextFactory
 
 	public async Task<DbUserDataContext> LoadAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Loading user data context for user ({userId}).", userId);
+		this.logger.LogInformation(-0x23686b00, "Loading user data context for user ({userId}).", userId);
 		var userData = await QueryUserData(this.users.AsNoTracking().WithIdentifier(userId)).SingleOrDefaultAsync(cancellationToken);
 
 		if (userData == null)
@@ -45,7 +45,7 @@ public class DbUserDataContextFactory
 			throw new NotFoundException(userId.ToString());
 		}
 
-		this.logger.LogInformation(0, "Returning user data context.");
+		this.logger.LogInformation(-0x23686aff, "Returning user data context.");
 
 		return new DbUserDataContext(userId, userData);
 	}

@@ -27,7 +27,7 @@ public class EnsureDatabaseConnectionKeptAliveService : IHostedService
 
 	public async Task StartAsync(CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Openning a db connection for the duration of the process.");
+		this.logger.LogInformation(0x5497d700, "Openning a db connection for the duration of the process.");
 		this.serviceScope = this.serviceProvider.CreateAsyncScope();
 		this.dbContext = this.serviceScope?.ServiceProvider.GetRequiredService<ManagementHubDbContext>();
 		await this.dbContext!.Database.OpenConnectionAsync();
@@ -35,7 +35,7 @@ public class EnsureDatabaseConnectionKeptAliveService : IHostedService
 
 	public async Task StopAsync(CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(0, "Closing db connection.");
+		this.logger.LogInformation(0x5497d701, "Closing db connection.");
 		this.dbContext = null;
 		if (this.serviceScope != null)
 		{

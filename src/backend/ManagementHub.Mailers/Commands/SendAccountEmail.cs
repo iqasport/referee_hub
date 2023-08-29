@@ -35,7 +35,7 @@ internal class SendAccountEmail : ISendAccountEmail
 	{
 		try
 		{
-			this.logger.LogInformation(0, "Sending account related email to user ({userId}) with subject '{subject}'.", userId, subject);
+			this.logger.LogInformation(0x6f17cc00, "Sending account related email to user ({userId}) with subject '{subject}'.", userId, subject);
 
 			var userContext = await this.userContextProvider.GetUserContextAsync(userId, cancellationToken);
 
@@ -49,7 +49,7 @@ internal class SendAccountEmail : ISendAccountEmail
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0, ex, "Failed to send account email.");
+			this.logger.LogError(0x6f17cc01, ex, "Failed to send account email.");
 			throw;
 		}
 	}
