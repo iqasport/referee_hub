@@ -66,7 +66,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			// TODO: remove old file in blob storage and remove blob from database
 
 			// TODO: put expiration in settings
-			return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromSeconds(20), cancellationToken);
+			return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
 		}
 		catch (Exception ex)
 		{
