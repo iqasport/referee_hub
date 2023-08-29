@@ -32,8 +32,20 @@ public class ExportRefereesToCsv : IExportRefereesToCsv
 		return referees.ExportAsyncEnumerableAsCsv((referee) =>
 		{
 			var refereeTeams = new List<string>(2);
-			if (referee.PlayingTeam.HasValue) refereeTeams.Add(teams[referee.PlayingTeam.Value]);
-			if (referee.CoachingTeam.HasValue) refereeTeams.Add(teams[referee.CoachingTeam.Value]);
+			if (referee.PlayingTeam.HasValue)
+			{
+				if (teams.TryGetValue(referee.PlayingTeam.Value, out var teamName))
+					refereeTeams.Add(teamName);
+				else
+					this.logger.LogWarning(0, "Referee {userId} has a playing team {teamId} that does not exist in the collection.", referee.UserId, referee.PlayingTeam.Value);
+			}
+			if (referee.CoachingTeam.HasValue)
+			{
+				if (teams.TryGetValue(referee.CoachingTeam.Value, out var teamName))
+					refereeTeams.Add(teamName);
+				else
+					this.logger.LogWarning(0, "Referee {userId} has a coaching team {teamId} that does not exist in the collection.", referee.UserId, referee.CoachingTeam.Value);
+			}
 
 			return new CsvRow
 			{
