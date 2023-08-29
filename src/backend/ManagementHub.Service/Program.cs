@@ -217,6 +217,7 @@ public static class Program
 		});
 
 		app.UseMiddleware<TraceCookieMiddleware>();
+		app.UseForwardedHeaders();
 
 		if (context.HostingEnvironment.IsDevelopment())
 		{
