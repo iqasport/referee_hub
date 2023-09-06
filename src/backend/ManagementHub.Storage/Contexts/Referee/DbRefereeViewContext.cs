@@ -59,7 +59,7 @@ public class DbRefereeViewContext : IRefereeViewContext
 	public required HashSet<DomainCertification> AcquiredCertifications { get; set; }
 
 	public required List<ITeamContext> TeamContextList { get; set; }
-	public IDictionary<TeamIdentifier, ITeamContext> TeamContext => this.TeamContextList.ToDictionary(t => t.TeamId);
+	public IDictionary<TeamIdentifier, ITeamContext> TeamContext => this.TeamContextList.DistinctBy(t => t.TeamId).ToDictionary(t => t.TeamId);
 }
 
 public class DbRefereeViewContextFactory
