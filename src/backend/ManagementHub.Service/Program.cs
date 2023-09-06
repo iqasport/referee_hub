@@ -15,6 +15,7 @@ using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Service.Jobs;
 using ManagementHub.Service.Swagger;
 using ManagementHub.Service.Telemetry;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
@@ -117,6 +118,8 @@ public static class Program
 		services.AddHangfireServer();
 
 		services.AddSingleton<ILocalFileSystemBlobUriBaseProvider, LocalFileSystemBlobUriBaseProvider>();
+
+		services.AddHostedService<EnsureMonthlyStatsSnapshot>();
 	}
 
 	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
