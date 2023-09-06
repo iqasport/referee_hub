@@ -98,7 +98,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
     rowConfig.push({
       cellRenderer: (item: RefereeViewModel) => {
         const secondary = item?.secondaryNgb;
-        return secondary || "N/A";
+        return secondary || "";
       },
       dataKey: "locations",
     });
