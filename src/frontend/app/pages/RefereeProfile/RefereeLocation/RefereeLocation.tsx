@@ -38,6 +38,7 @@ const RefereeLocation = (props: LocationProps) => {
       {ngb.name}
     </option>
   );
+  const otherLocation = (type: keyof RefereeLocationOptions): keyof RefereeLocationOptions => type === "primaryNgb" ? "secondaryNgb" : "primaryNgb";
   const renderDropdown = (type: keyof RefereeLocationOptions) => {
     return (
       <select
@@ -46,7 +47,7 @@ const RefereeLocation = (props: LocationProps) => {
         value={getSelectedNgb(type) ?? ""}
       >
         {type === "secondaryNgb" && <option value="-1">None</option>}
-        {allNgbs.items.map(renderOption)}
+        {allNgbs.items.map(renderOption).filter(o => !getSelectedNgb(otherLocation(type)) || o.key != getSelectedNgb(otherLocation(type)))}
       </select>
     );
   };
