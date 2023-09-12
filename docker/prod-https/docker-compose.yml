@@ -41,7 +41,7 @@ services:
             interval: 5s
             timeout: 10s
             retries: 20
-        restart: on-failure:20
+        restart: on-failure
     redis:
         image: redis:6.0
         volumes:
@@ -56,6 +56,7 @@ services:
         image: certbot/certbot
         ports:
           - "80:80"
+        restart: on-failure
         volumes:
             - certs:/etc/letsencrypt/
         entrypoint: 
