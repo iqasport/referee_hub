@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands.Migrations;
@@ -46,7 +47,7 @@ public class UserIdMigrationCommand : IUserIdMigrationCommand
 
 		await this.dbContext.Users
 			.Where(u => u.Id == userIdAndStatus.Id)
-			.ExecuteUpdateAsync(update => update.SetProperty(u => u.UniqueId, newUserId.ToString()));
+			.ExecuteUpdateAsync(update => update.SetProperty(u => u.UniqueId, newUserId.ToString()).SetProperty(u => u.UpdatedAt, DateTime.UtcNow));
 
 		this.logger.LogInformation(0x1eb9ea03, "Migration completed.");
 	}
