@@ -4,7 +4,7 @@ import { getVersion } from "../../../utils/certUtils";
 import FilterToolbar from "../../FilterToolbar";
 import Table, { CellConfig } from "../Table/Table";
 import { useNavigate } from "../../../utils/navigationUtils";
-import { RefereeViewModel, useGetNgbRefereesQuery } from "../../../store/serviceApi";
+import { RefereeViewModel, useGetNgbRefereesQuery, useGetRefereesQuery } from "../../../store/serviceApi";
 
 const HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB"];
 const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs"];
@@ -44,7 +44,6 @@ const findHighestCert = (referee: RefereeViewModel): string => {
 type NewRefereeTableProps = {
   ngbId?: string;
   isHeightRestricted?: boolean;
-  refereeCount: number;
 };
 
 const NewRefereeTable = (props: NewRefereeTableProps) => {
@@ -53,7 +52,10 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
   const [filter, setFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
   
-  const { data: referees, isLoading } = useGetNgbRefereesQuery({ngb: ngbId, filter, page, pageSize: 25})
+  const { data: referees, isLoading } =
+    ngbId === undefined
+      ? useGetRefereesQuery({filter, page, pageSize: 25})
+      : useGetNgbRefereesQuery({ngb: ngbId, filter, page, pageSize: 25})
 
   const headerCells = ngbId ? HEADER_CELLS : ADMIN_HEADER_CELLS;
 

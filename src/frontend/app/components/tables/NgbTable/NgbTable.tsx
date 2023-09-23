@@ -1,41 +1,27 @@
 import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-
-import { AnnotatedNgb } from "../../../apis/nationalGoverningBody";
-import { getNationalGoverningBodies } from "../../../modules/nationalGoverningBody/nationalGoverningBodies";
-import { RootState } from "../../../rootReducer";
 
 import NgbEditModal from "../../modals/NgbEditModal";
 import Table, { CellConfig } from "../Table/Table";
 import ActionDropdown from "./ActionDropdown";
-import { AppDispatch } from "../../../store";
 import { useNavigate } from "../../../utils/navigationUtils";
+import { NgbViewModel, useGetNgbsQuery } from "../../../store/serviceApi";
 
 const HEADER_CELLS = [
   "name",
   "region",
   "membership status",
   "player count",
-  "team count",
-  "referee count",
+  // "team count",
+  // "referee count",
   "actions",
 ];
 
 const NgbTable = () => {
   const [activeEdit, setActiveEdit] = useState<string>(null);
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { isLoading, nationalGoverningBodies } = useSelector(
-    (state: RootState) => state.nationalGoverningBodies,
-    shallowEqual
-  );
 
-  useEffect(() => {
-    if (!nationalGoverningBodies.length) {
-      //dispatch(getNationalGoverningBodies()); TODO skipping for now
-    }
-  }, [nationalGoverningBodies]);
+  var { data: nationalGoverningBodies, isLoading } = useGetNgbsQuery({skipPaging: true})
 
   const handleRowClick = (id: string) => navigate(`/national_governing_bodies/${id}`);
   const handleEditClick = (id: string) => setActiveEdit(id);
@@ -43,16 +29,16 @@ const NgbTable = () => {
 
   const renderEmpty = () => <h2>No National Governing Bodies found</h2>;
 
-  const rowConfig: CellConfig<AnnotatedNgb>[] = [
+  const rowConfig: CellConfig<NgbViewModel>[] = [
     {
-      cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes.name;
+      cellRenderer: (item: NgbViewModel) => {
+        return item.name;
       },
       dataKey: "name",
     },
     {
-      cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes?.region
+      cellRenderer: (item: NgbViewModel) => {
+        return item.region
           ?.split("_")
           .map((word) => capitalize(word))
           .join(" ");
@@ -60,8 +46,8 @@ const NgbTable = () => {
       dataKey: "region",
     },
     {
-      cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes?.membershipStatus
+      cellRenderer: (item: NgbViewModel) => {
+        return item.membershipStatus
           ?.split("_")
           .map((word) => capitalize(word))
           .join(" ");
@@ -69,26 +55,26 @@ const NgbTable = () => {
       dataKey: "membershipStatus",
     },
     {
-      cellRenderer: (item: AnnotatedNgb) => {
-        return item?.attributes.playerCount.toString();
+      cellRenderer: (item: NgbViewModel) => {
+        return item.playerCount.toString();
       },
       dataKey: "playerCount",
     },
+    // {
+    //   cellRenderer: (item: NgbViewModel) => {
+    //     return item.teamCount.toString();
+    //   },
+    //   dataKey: "teamCount",
+    // },
+    // {
+    //   cellRenderer: (item: NgbViewModel) => {
+    //     return item?.refereeCount.toString();
+    //   },
+    //   dataKey: "refereeCount",
+    // },
     {
-      cellRenderer: (item: AnnotatedNgb) => {
-        return item?.teamCount.toString();
-      },
-      dataKey: "teamCount",
-    },
-    {
-      cellRenderer: (item: AnnotatedNgb) => {
-        return item?.refereeCount.toString();
-      },
-      dataKey: "refereeCount",
-    },
-    {
-      cellRenderer: (item: AnnotatedNgb) => {
-        return <ActionDropdown ngbId={item.id} onEditClick={handleEditClick} />;
+      cellRenderer: (item: NgbViewModel) => {
+        return <ActionDropdown ngbId={item.countryCode} onEditClick={handleEditClick} />;
       },
       customStyle: "text-right",
       dataKey: "actions",
@@ -98,14 +84,14 @@ const NgbTable = () => {
   return (
     <>
       <Table
-        items={nationalGoverningBodies}
+        items={nationalGoverningBodies?.items}
         rowConfig={rowConfig}
         headerCells={HEADER_CELLS}
         isHeightRestricted={false}
         isLoading={isLoading}
         emptyRenderer={renderEmpty}
         onRowClick={handleRowClick}
-        getId={ngb => ngb.id}
+        getId={ngb => ngb.countryCode}
       />
       {activeEdit ? (
         <NgbEditModal

@@ -82,7 +82,7 @@ const NgbProfile = () => {
           />
           <div className="flex flex-col w-full md:w-4/5 md:pl-8">
             <StatsViewer stats={[ngb.currentStats, ...ngb.historicalStats]} />
-            <NgbTables ngbId={ngbId} refereeCount={ngb.currentStats.totalRefereesCount} teamCount={ngb.currentStats.totalTeamsCount} />
+            <NgbTables ngbId={ngbId} />
           </div>
         </div>
       </>

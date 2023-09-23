@@ -52,7 +52,7 @@ const Admin = () => {
       case SelectedTab.Ngbs:
         return <NgbTable />;
       case SelectedTab.Referees:
-        return <NewRefereeTable refereeCount={30 /*TODO*/} isHeightRestricted={false} />;
+        return <NewRefereeTable isHeightRestricted={false} />;
       case SelectedTab.Tests:
         return <TestsTable />;
     }

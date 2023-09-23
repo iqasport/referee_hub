@@ -16,7 +16,6 @@ enum ModalType {
 
 interface TeamTableProps {
   ngbId: string;
-  teamCount: number;
 }
 
 const TeamTable = (props: TeamTableProps) => {
