@@ -55,7 +55,6 @@ public class UsersController : ControllerBase
 	/// </summary>
 	[HttpGet("{userId}/info")]
 	[Tags("UserInfo")]
-	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task<UserDataViewModel> GetUserData([FromRoute] UserIdentifier userId)
 	{
 		var userDataContext = await this.contextAccessor.GetUserDataContextAsync(userId);
@@ -115,7 +114,6 @@ public class UsersController : ControllerBase
 	/// <returns><c>null</c> if user has no avatar, a uri to the image otherwise</returns>
 	[HttpGet("{userId}/avatar")]
 	[Tags("UserAvatar")]
-	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	[ProducesResponseType(typeof(Uri), StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	public async Task<Uri?> GetUserAvatar([FromRoute] UserIdentifier userId)

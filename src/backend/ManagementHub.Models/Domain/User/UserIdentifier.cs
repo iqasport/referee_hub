@@ -13,7 +13,17 @@ public record struct UserIdentifier(Guid UniqueId) : IIdentifiable
 {
 	private const string IdPrefix = "U_";
 	private const int GuidAsStringLength = 26;
+
 	public long Id => this.ToLegacyUserId();
+
+	public bool IsLegacy
+	{
+		get
+		{
+			var uniqueId = this.UniqueId;
+			return GuidAsLongSpan(ref uniqueId)[1] == 0;
+		}
+	}
 
 	/// <summary>
 	/// Returns the serialized user identifier.

@@ -22,8 +22,20 @@ public class RefereeContextAccessor : IRefereeContextAccessor
 
 	public async Task<IRefereeViewContext> GetRefereeViewContextAsync(UserIdentifier userId)
 	{
-		var currentUser = await this.userContextAccessor.GetCurrentUserContextAsync();
-		var ngbConstraint = this.GetNgbConstraint(currentUser);
+		NgbConstraint ngbConstraint;
+		// if user id is legacy (based on sequential number) then we enforce the ngb constraint
+		// otherwise, since the id is pseudo random we allow anyone who knows it to query it
+		// usually after the referee has shared theie profile URL with them.
+		if (userId.IsLegacy)
+		{
+			var currentUser = await this.userContextAccessor.GetCurrentUserContextAsync();
+			ngbConstraint = this.GetNgbConstraint(currentUser);
+		}
+		else
+		{
+			ngbConstraint = NgbConstraint.Any;
+		}
+
 		return await this.contextProvider.GetRefereeViewContextAsync(userId, ngbConstraint, this.HttpContext.RequestAborted);
 	}
 

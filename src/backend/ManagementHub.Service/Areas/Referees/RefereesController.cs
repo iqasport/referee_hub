@@ -59,7 +59,7 @@ public class RefereesController : ControllerBase
 
 	[HttpGet("{userId}")]
 	[Tags("Referee")]
-	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
+	[Authorize]
 	public async Task<RefereeViewModel> GetReferee([FromRoute] UserIdentifier userId)
 	{
 		if (userId == default)
