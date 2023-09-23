@@ -3,6 +3,7 @@
 #nullable disable
 
 using System.ComponentModel.DataAnnotations;
+using ManagementHub.Models.Abstraction.Commands.Migrations;
 using ManagementHub.Models.Domain.User;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -14,11 +15,13 @@ namespace ManagementHub.Service.Areas.Identity.Pages.Account;
 public class LoginModel : PageModel
 {
 	private readonly SignInManager<UserIdentity> signInManager;
+	private readonly IUserIdMigrationCommand userIdMigrationCommand;
 	private readonly ILogger<LoginModel> logger;
 
-	public LoginModel(SignInManager<UserIdentity> signInManager, ILogger<LoginModel> logger)
+	public LoginModel(SignInManager<UserIdentity> signInManager, IUserIdMigrationCommand userIdMigrationCommand, ILogger<LoginModel> logger)
 	{
 		this.signInManager = signInManager;
+		this.userIdMigrationCommand = userIdMigrationCommand;
 		this.logger = logger;
 	}
 
@@ -103,6 +106,8 @@ public class LoginModel : PageModel
 
 		if (this.ModelState.IsValid)
 		{
+			await this.userIdMigrationCommand.TryMigrateUserIdAsync(this.Input.Email, this.HttpContext.RequestAborted);
+
 			// This doesn't count login failures towards account lockout
 			// To enable password failures to trigger account lockout, set lockoutOnFailure: true
 			var result = await this.signInManager.PasswordSignInAsync(this.Input.Email, this.Input.Password, this.Input.RememberMe, lockoutOnFailure: false);

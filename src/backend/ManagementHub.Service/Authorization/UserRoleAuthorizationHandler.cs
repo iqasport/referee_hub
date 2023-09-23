@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
 
@@ -20,7 +21,17 @@ public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthori
 
 	protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, UserRoleAuthorizationRequirement requirement)
 	{
-		var userContext = await this.currentContextAccessor.GetCurrentUserContextAsync();
+		IUserContext userContext;
+		try
+		{
+			userContext = await this.currentContextAccessor.GetCurrentUserContextAsync();
+		}
+		catch (NotFoundException ex)
+		{
+			this.logger.LogWarning(0x25719402, ex, "User context was not found, which means we need to invalidate the session.");
+			context.Fail(new AuthorizationFailureReason(this, "Unable to load user context. Sign in again."));
+			return;
+		}
 
 		foreach (var userRole in userContext.Roles)
 		{

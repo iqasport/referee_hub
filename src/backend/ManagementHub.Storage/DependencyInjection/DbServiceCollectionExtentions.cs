@@ -4,6 +4,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Redis.StackExchange;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Commands.Migrations;
 using ManagementHub.Models.Abstraction.Commands.Payments;
 using ManagementHub.Models.Abstraction.Commands.Tests;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
@@ -16,6 +17,7 @@ using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.BlobStorage.AmazonS3;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Commands.Migrations;
 using ManagementHub.Storage.Commands.Ngb;
 using ManagementHub.Storage.Commands.Payments;
 using ManagementHub.Storage.Commands.Referee;
@@ -36,7 +38,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
@@ -118,6 +119,8 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<ISaveSubmittedTestCommand, SaveSubmittedTestCommand>();
 		services.AddScoped<IProcessCertificationPaymentCommand, ProcessCertificationPaymentCommand>();
 		services.AddScoped<ICreateNgbStatsSnapshotCommand, CreateNgbStatsSnapshotCommand>();
+
+		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
 
 		services.AddScoped<IAttachmentRepository, AttachmentRepository>();
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();
