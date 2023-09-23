@@ -21,7 +21,7 @@ const NgbTable = () => {
   const [activeEdit, setActiveEdit] = useState<string>(null);
   const navigate = useNavigate();
 
-  var { data: nationalGoverningBodies, isLoading } = useGetNgbsQuery({skipPaging: true})
+  const { data: nationalGoverningBodies, isLoading } = useGetNgbsQuery({skipPaging: true})
 
   const handleRowClick = (id: string) => navigate(`/national_governing_bodies/${id}`);
   const handleEditClick = (id: string) => setActiveEdit(id);
