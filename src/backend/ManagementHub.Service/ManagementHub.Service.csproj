@@ -34,6 +34,11 @@
     <ProjectReference Include="..\ManagementHub.Storage\ManagementHub.Storage.csproj" />
   </ItemGroup>
 
+  <!-- Workaround for ASP.NET Core bug -->
+  <Target Name="CreateWWWrootForLocalRun" BeforeTargets="Build">
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="mkdir wwwroot" Condition="!Exists('$(MSBuildProjectDirectory)/wwwroot')" />
+  </Target>
+
   <!-- FRONTEND BUILD AND INCLUDE -->
 
   <PropertyGroup>

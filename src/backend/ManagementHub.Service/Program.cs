@@ -107,6 +107,13 @@ public static class Program
 			options.AddTechAdminPolicy();
 			options.AddNgbAdminPolicy();
 		});
+		services.ConfigureApplicationCookie(options =>
+        {
+			// Enforce authentication cookie to use SameSite=Strict
+			// it will ensure cross-origin requests aren't authenticated, including redirects
+			// Redirects should only load the SPA, which later makes API requests with the cookie without issues
+            options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+        });
 
 		services.AddCoreAdmin(new CoreAdminOptions
 		{
