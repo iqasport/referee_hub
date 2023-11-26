@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Models.Abstraction.Contexts;
@@ -14,4 +15,6 @@ public interface IUserContext
 	UserData UserData { get; }
 
 	IEnumerable<IUserRole> Roles { get; }
+
+	IDictionary<string, JsonDocument> Attributes { get; }
 }

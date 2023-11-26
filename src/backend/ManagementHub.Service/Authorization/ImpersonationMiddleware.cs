@@ -43,15 +43,15 @@ public class ImpersonationMiddleware : IMiddleware
 				// Adds a secondary user identity which will be read in the UserContextAccessor as the current user
 				context.User.AddIdentity(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, impersonatedUserId.ToString()) }));
 
-				context.Response.Headers.Add("X-Impersonated", impersonatedUser.UserId.ToString());
-				context.Response.Headers.Add("X-Impersonated-By", impersonatingUser.UserId.ToString());
+				context.Response.Headers.Append("X-Impersonated", impersonatedUser.UserId.ToString());
+				context.Response.Headers.Append("X-Impersonated-By", impersonatingUser.UserId.ToString());
 
 				this.logger.LogInformation(-0x6da5fcff, "User ({userId}) successfully impersonated.", impersonatedUserId);
 			}
 			catch (NotFoundException ex)
 			{
 				this.logger.LogError(-0x6da5fcfe, ex, "No such user ({userId}) - impersonation failed.", impersonatedUserId);
-				context.Response.Headers.Add("X-Impersonated-Error", "No such user");
+				context.Response.Headers.Append("X-Impersonated-Error", "No such user");
 
 				// I'm writing out the response here,
 				// because throwin an exception resets the HttpContext and anything we've done before with Response is lost (e.g. headers)

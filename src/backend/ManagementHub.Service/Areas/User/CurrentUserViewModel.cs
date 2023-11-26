@@ -1,4 +1,5 @@
-﻿using ManagementHub.Models.Abstraction;
+﻿using System.Text.Json;
+using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.User;
@@ -14,6 +15,7 @@ public class CurrentUserViewModel
 		this.LastName = userContext.UserData.LastName;
 		this.LanguageId = userContext.UserData.UserLang;
 		this.Roles = userContext.Roles.ToList();
+		this.Attributes = userContext.Attributes.AsReadOnly();
 	}
 
 	public UserIdentifier UserId { get; set; }
@@ -22,4 +24,5 @@ public class CurrentUserViewModel
 	public Uri? AvatarUrl { get; set; }
 	public LanguageIdentifier? LanguageId { get; set; }
 	public IReadOnlyCollection<IUserRole> Roles { get; set; }
+	public IReadOnlyDictionary<string, JsonDocument> Attributes { get; set; }
 }

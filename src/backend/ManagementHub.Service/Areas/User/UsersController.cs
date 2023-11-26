@@ -35,6 +35,7 @@ public class UsersController : ControllerBase
 	public async Task<CurrentUserViewModel> GetCurrentUser()
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		// TODO: add attribute filtering as per access (me should return root attributes only)
 		return new CurrentUserViewModel(userContext);
 	}
 
