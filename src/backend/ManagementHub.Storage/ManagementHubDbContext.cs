@@ -49,6 +49,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	public virtual DbSet<TestAttempt> TestAttempts { get; set; } = null!;
 	public virtual DbSet<TestResult> TestResults { get; set; } = null!;
 	public virtual DbSet<User> Users { get; set; } = null!;
+	public virtual DbSet<UserAttribute> UserAttributes { get; set; } = null!;
 
 	public virtual DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
@@ -1372,6 +1373,30 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.WithMany(p => p.Users)
 				.HasForeignKey(d => d.LanguageId)
 				.HasConstraintName("users__language_fkey");
+		});
+
+		modelBuilder.Entity<UserAttribute>(entity =>
+		{
+			entity.ToTable("user_attributes");
+
+			entity.Property(e => e.UserId).HasColumnName("user_id");
+
+			entity.Property(e => e.Key).HasColumnName("key");
+
+			entity.Property(e => e.Attribute).HasColumnName("attribute_value");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.Property(e => e.UpdatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("updated_at");
+
+			entity.HasOne(d => d.User)
+				.WithMany(p => p.Attributes)
+				.HasForeignKey(d => d.UserId)
+				.HasConstraintName("fk_user_attributes_user_user_id");
 		});
 
 		this.OnModelCreatingPartial(modelBuilder);
