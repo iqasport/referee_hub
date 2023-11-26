@@ -67,6 +67,7 @@ public class UserIdentityRepository : IUserIdentityRepository
 
 	private async Task UpdateUser(Action<User> updater, UserIdentity user, CancellationToken cancellationToken)
 	{
+		// TODO: convert this method to do ExecuteUpdatesAsync and not load the data at all
 		var dbUser = await this.GetUser(user, cancellationToken);
 		updater(dbUser);
 		dbUser.UpdatedAt = DateTime.UtcNow;

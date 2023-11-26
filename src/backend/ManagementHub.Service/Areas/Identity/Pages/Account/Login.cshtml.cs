@@ -106,6 +106,7 @@ public class LoginModel : PageModel
 
 		if (this.ModelState.IsValid)
 		{
+			// The actions in this method should correspond with actions in Identity/IdentityController
 			await this.userIdMigrationCommand.TryMigrateUserIdAsync(this.Input.Email, this.HttpContext.RequestAborted);
 
 			// This doesn't count login failures towards account lockout

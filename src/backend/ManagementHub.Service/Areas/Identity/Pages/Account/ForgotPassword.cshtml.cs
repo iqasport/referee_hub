@@ -60,6 +60,7 @@ public class ForgotPasswordModel : PageModel
 			var user = await this.userManager.FindByEmailAsync(this.Input.Email);
 			if (user == null || !await this.userManager.IsEmailConfirmedAsync(user))
 			{
+				this.logger.LogInformation(-0x2c526c00, "User not found or their email hasn't been confirmed. Skipping sending password reset.");
 				// Don't reveal that the user does not exist or is not confirmed
 				return this.RedirectToPage("./ForgotPasswordConfirmation");
 			}
