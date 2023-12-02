@@ -216,6 +216,29 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				CreatedAt = DateTime.UtcNow,
 			});
 
+		dbContext.UserAttributes.AddRange(
+			new UserAttribute
+			{
+				User = referee,
+				Prefix = string.Empty,
+				Key = "accessibility",
+				Attribute = """{ "timeExtension": 20 }""",
+			},
+			new UserAttribute
+			{
+				User = referee,
+				Prefix = "USA",
+				Key = "usqid",
+				Attribute = """ "deadbeef" """,
+			},
+			new UserAttribute
+			{
+				User = referee,
+				Prefix = "POL",
+				Key = "international",
+				Attribute = """true""",
+			});
+
 		dbContext.NationalGoverningBodyAdmins.Add(new NationalGoverningBodyAdmin
 		{
 			CreatedAt = DateTime.UtcNow,

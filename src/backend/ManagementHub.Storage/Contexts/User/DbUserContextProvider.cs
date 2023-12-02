@@ -44,6 +44,11 @@ public class DbUserContextProvider : IUserContextProvider
 			loggerFactory.CreateLogger<DbUserAvatarContextFactory>());
 	}
 
+	public async Task<UserAttributes> GetUserAttributesAsync(UserIdentifier userId, CancellationToken cancellationToken)
+	{
+		return await this.userContextFactory.GetUserAttributesAsync(userId, cancellationToken);
+	}
+
 	public async Task<IUserAvatarContext> GetUserAvatarContextAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		return await this.userAvatarContextFactory.LoadAsync(userId, cancellationToken);

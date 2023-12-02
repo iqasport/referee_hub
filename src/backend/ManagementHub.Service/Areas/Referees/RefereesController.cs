@@ -53,8 +53,9 @@ public class RefereesController : ControllerBase
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<RefereeViewModel> GetCurrentReferee()
 	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var context = await this.refereeContextAccessor.GetRefereeViewContextForCurrentUserAsync();
-		return MapRefereeViewContextToViewModel(context);
+		return MapRefereeViewContextToViewModel(context, GetViewerPerimissionConstraint(userContext));
 	}
 
 	[HttpGet("{userId}")]
@@ -67,8 +68,9 @@ public class RefereesController : ControllerBase
 			throw new ArgumentException("User identifier has not been provided.", nameof(userId));
 		}
 
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var context = await this.refereeContextAccessor.GetRefereeViewContextAsync(userId);
-		return MapRefereeViewContextToViewModel(context);
+		return MapRefereeViewContextToViewModel(context, GetViewerPerimissionConstraint(userContext));
 	}
 
 	[HttpGet]
@@ -76,8 +78,10 @@ public class RefereesController : ControllerBase
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task<Filtered<RefereeViewModel>> GetReferees([FromQuery] FilteringParameters filtering)
 	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync();
-		return collection.Select(MapRefereeViewContextToViewModel).AsFiltered();
+		var viewerPermissionConstraint = GetViewerPerimissionConstraint(userContext);
+		return collection.Select(x => MapRefereeViewContextToViewModel(x, viewerPermissionConstraint)).AsFiltered();
 	}
 
 	[HttpGet("/api/v2/Ngbs/{ngb}/referees")]
@@ -85,11 +89,16 @@ public class RefereesController : ControllerBase
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
 	public async Task<Filtered<RefereeViewModel>> GetNgbReferees([FromRoute] NgbIdentifier ngb, [FromQuery] FilteringParameters filtering)
 	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync(ngb);
-		return collection.Select(MapRefereeViewContextToViewModel).AsFiltered();
+		var viewerPermissionConstraint = GetViewerPerimissionConstraint(userContext);
+		return collection.Select(x => MapRefereeViewContextToViewModel(x, viewerPermissionConstraint)).AsFiltered();
 	}
 
-	private static RefereeViewModel MapRefereeViewContextToViewModel(IRefereeViewContext context)
+	private static NgbConstraint GetViewerPerimissionConstraint(IUserContext userContext) =>
+		userContext.Roles.OfType<RefereeViewerRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
+
+	private static RefereeViewModel MapRefereeViewContextToViewModel(IRefereeViewContext context, NgbConstraint viewerPermissionSet)
 	{
 		return new RefereeViewModel
 		{
@@ -108,6 +117,7 @@ public class RefereesController : ControllerBase
 			PrimaryNgb = context.PrimaryNgb,
 			SecondaryNgb = context.SecondaryNgb,
 			UserId = context.UserId,
+			Attributes = context.Attributes.GetPrefixedByConstraint(viewerPermissionSet),
 		};
 	}
 }

@@ -8,14 +8,14 @@ namespace ManagementHub.Service.Areas.User;
 
 public class CurrentUserViewModel
 {
-	public CurrentUserViewModel(IUserContext userContext)
+	public CurrentUserViewModel(IUserContext userContext, UserAttributes attributes)
 	{
 		this.UserId = userContext.UserId;
 		this.FirstName = userContext.UserData.FirstName;
 		this.LastName = userContext.UserData.LastName;
 		this.LanguageId = userContext.UserData.UserLang;
 		this.Roles = userContext.Roles.ToList();
-		this.Attributes = userContext.Attributes.AsReadOnly();
+		this.Attributes = attributes.RootAttributes;
 	}
 
 	public UserIdentifier UserId { get; set; }

@@ -1,4 +1,5 @@
-﻿using ManagementHub.Models.Domain.Ngb;
+﻿using System.Text.Json;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
@@ -41,6 +42,11 @@ public class RefereeViewModel
 	/// Certifications acquired by this referee.
 	/// </summary>
 	public HashSet<Certification> AcquiredCertifications { get; set; } = new HashSet<Certification>();
+
+	/// <summary>
+	/// User attributes of this referee.
+	/// </summary>
+	public IReadOnlyDictionary<string, JsonDocument>? Attributes { get; set; }
 }
 
 public class TeamIndicator

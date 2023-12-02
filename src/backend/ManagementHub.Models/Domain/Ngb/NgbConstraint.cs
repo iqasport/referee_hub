@@ -18,6 +18,8 @@ public abstract class NgbConstraint
 	public static NgbConstraint Single(NgbIdentifier ngbId) => Set(new[] { ngbId });
 
 	public static NgbConstraint Set(IEnumerable<NgbIdentifier> ngbIds) => new SetNgbConstraint(ngbIds);
+	
+	public static NgbConstraint Empty() => new SetNgbConstraint(Array.Empty<NgbIdentifier>());
 
 	public static bool TryParse(string value, [NotNullWhen(true)] out NgbConstraint? constraint)
 	{

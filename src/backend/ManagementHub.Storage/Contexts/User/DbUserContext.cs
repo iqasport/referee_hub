@@ -22,12 +22,13 @@ using Microsoft.Extensions.Logging;
 namespace ManagementHub.Storage.Contexts.User;
 using User = ManagementHub.Models.Data.User;
 
-public record class DbUserContext(UserIdentifier UserId, UserData UserData, IEnumerable<IUserRole> Roles, IDictionary<string, JsonDocument> Attributes) : IUserContext
+public record class DbUserContext(UserIdentifier UserId, UserData UserData, IEnumerable<IUserRole> Roles) : IUserContext
 {
 }
 
 public class DbUserContextFactory
 {
+	internal static JsonDocumentOptions UserAttributesParseOptions = new JsonDocumentOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip, MaxDepth = 4 };
 	private readonly IQueryable<User> users;
 	private readonly IQueryable<Role> roles;
 	private readonly IQueryable<NationalGoverningBodyAdmin> nationalGoverningBodyAdmins;
@@ -81,14 +82,9 @@ public class DbUserContextFactory
 			roles.AddRange(await this.ConvertFromDbRoleAsync(userId, dbRole, cancellationToken));
 		}
 
-		var attributes = await this.users.WithIdentifier(userId)
-			.Include(u => u.Attributes)
-			.Select(u => u.Attributes.ToDictionary(ua => ua.Key, ua => JsonDocument.Parse(ua.Attribute, new JsonDocumentOptions())))
-			.SingleAsync(cancellationToken);
-
 		this.logger.LogInformation(-0x58e192ff, "Returning user context with roles: {roles}.", string.Join(", ", roles));
 
-		return new DbUserContext(userId, userData, roles, attributes);
+		return new DbUserContext(userId, userData, roles);
 	}
 
 	// TODO: (before db integration) move this out into separate role providers? so that it's more testable
@@ -162,5 +158,16 @@ public class DbUserContextFactory
 		}
 
 		return Array.Empty<IUserRole>();
+	}
+
+	public async Task<UserAttributes> GetUserAttributesAsync(UserIdentifier userId, CancellationToken cancellationToken)
+	{
+		var attributes = await this.users.WithIdentifier(userId)
+			.Include(u => u.Attributes)
+			.SelectMany(u => u.Attributes)
+			.Select(ua => new Models.Domain.User.UserAttribute(ua.Prefix, ua.Key, JsonDocument.Parse(ua.Attribute, UserAttributesParseOptions)))
+			.ToListAsync(cancellationToken);
+
+		return new UserAttributes(attributes);
 	}
 }

@@ -1381,6 +1381,8 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
 
+			entity.Property(e => e.Prefix).HasColumnName("prefix");
+
 			entity.Property(e => e.Key).HasColumnName("key");
 
 			entity.Property(e => e.Attribute).HasColumnName("attribute_value");

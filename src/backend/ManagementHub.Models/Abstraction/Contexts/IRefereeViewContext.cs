@@ -43,4 +43,9 @@ public interface IRefereeViewContext
 	HashSet<Certification> AcquiredCertifications { get; }
 
 	IDictionary<TeamIdentifier, ITeamContext> TeamContext { get; }
+
+	/// <summary>
+	/// Attributes of the user.
+	/// </summary>
+	UserAttributes Attributes { get; }
 }

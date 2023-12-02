@@ -20,4 +20,9 @@ public interface IUserContextProvider
 	/// Gets a user avatar context instance for the specified <paramref name="userId"/>.
 	/// </summary>
 	Task<IUserAvatarContext> GetUserAvatarContextAsync(UserIdentifier userId, CancellationToken cancellationToken);
+
+	/// <summary>
+	/// Gets user attributes for the specified <paramref name="userId"/>.
+	/// </summary>
+	Task<UserAttributes> GetUserAttributesAsync(UserIdentifier userId, CancellationToken cancellationToken);
 }

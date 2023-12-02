@@ -15,6 +15,4 @@ public interface IUserContext
 	UserData UserData { get; }
 
 	IEnumerable<IUserRole> Roles { get; }
-
-	IDictionary<string, JsonDocument> Attributes { get; }
 }

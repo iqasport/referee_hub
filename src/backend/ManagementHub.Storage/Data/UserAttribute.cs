@@ -4,10 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Models.Data;
 
-[PrimaryKey(nameof(UserId), nameof(Key))]
+[PrimaryKey(nameof(UserId), nameof(Prefix), nameof(Key))]
 public partial class UserAttribute
 {
 	public long UserId { get; set; }
+
+	[MaxLength(16)]
+	public required string Prefix { get; set; }
 
 	[MaxLength(128)]
 	public required string Key { get; set; }
