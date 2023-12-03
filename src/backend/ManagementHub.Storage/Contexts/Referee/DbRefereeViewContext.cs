@@ -63,7 +63,7 @@ public class DbRefereeViewContext : IRefereeViewContext
 	public required List<ITeamContext> TeamContextList { get; set; }
 	public IDictionary<TeamIdentifier, ITeamContext> TeamContext => this.TeamContextList.DistinctBy(t => t.TeamId).ToDictionary(t => t.TeamId);
 
-	public UserAttributes Attributes { get; set; }
+	public required UserAttributes Attributes { get; set; }
 }
 
 public class DbRefereeViewContextFactory
@@ -89,7 +89,7 @@ public class DbRefereeViewContextFactory
 			.AsSplitQuery()
 			.Include(u => u.Roles).Where(u => u.Roles.Any(r => r.AccessType == UserAccessType.Referee))
 			.Include(u => u.RefereeLocations).ThenInclude(rl => rl.NationalGoverningBody)
-			.Include(u => u.RefereeTeams).ThenInclude(rl => rl.Team).ThenInclude(t => t.NationalGoverningBody)
+			.Include(u => u.RefereeTeams).ThenInclude(rl => rl.Team).ThenInclude(t => t!.NationalGoverningBody)
 			.Include(u => u.RefereeCertifications).ThenInclude(rc => rc.Certification)
 			.Include(u => u.Attributes.Where(ua => ngbs.AppliesToAny || ((IEnumerable<NgbIdentifier>)ngbs).Select(i => i.NgbCode).Contains(ua.Prefix)));
 
