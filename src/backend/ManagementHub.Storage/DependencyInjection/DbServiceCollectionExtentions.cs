@@ -115,6 +115,7 @@ public static class DbServiceCollectionExtentions
 
 		services.AddScoped<IUpdateUserDataCommand, UpdateUserDataCommand>();
 		services.AddScoped<IUpdateUserAvatarCommand, UpdateUserAvatarCommand>();
+		services.AddScoped<ISetUserAttributeCommand, SetUserAttributeCommand>();
 		services.AddScoped<IUpdateRefereeRoleCommand, UpdateRefereeRoleCommand>();
 		services.AddScoped<ISaveSubmittedTestCommand, SaveSubmittedTestCommand>();
 		services.AddScoped<IProcessCertificationPaymentCommand, ProcessCertificationPaymentCommand>();

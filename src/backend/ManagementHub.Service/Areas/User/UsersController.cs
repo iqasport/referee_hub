@@ -1,5 +1,10 @@
-﻿using ManagementHub.Models.Abstraction.Commands;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Domain.User.Roles;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
@@ -19,12 +24,14 @@ public class UsersController : ControllerBase
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly IUpdateUserDataCommand updateUserDataCommand;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
+	private readonly ISetUserAttributeCommand setUserAttributeCommand;
 
-	public UsersController(IUserContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand, IUpdateUserAvatarCommand updateUserAvatarCommand)
+	public UsersController(IUserContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand, IUpdateUserAvatarCommand updateUserAvatarCommand, ISetUserAttributeCommand setUserAttributeCommand)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateUserDataCommand = updateUserDataCommand;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
+		this.setUserAttributeCommand = setUserAttributeCommand;
 	}
 
 	/// <summary>
@@ -141,5 +148,45 @@ public class UsersController : ControllerBase
 			avatarBlob.OpenReadStream(),
 			this.HttpContext.RequestAborted);
 		return avatarUri;
+	}
+
+	/// <summary>
+	/// Sets a root attribute on the users account.
+	/// Those can be used by the Management Hub to make decisions about showing the user certain experiences or not.
+	/// </summary>
+	[HttpPut("{userId}/attributes/root/{key}")]
+	[Tags("User")]
+	[Authorize(AuthorizationPolicies.TechAdminPolicy)] // TODO: IQA admin?
+	public async Task PutRootUserAttribute(
+		[FromRoute] UserIdentifier userId,
+		[FromRoute] string key,
+		[FromBody] JsonDocument attribute)
+	{
+		await this.setUserAttributeCommand.SetRootUserAttributeAsync(userId, key, attribute, this.HttpContext.RequestAborted);
+	}
+
+	/// <summary>
+	/// Sets an NGB owned attribute on the users account.
+	/// Those attributes can be used by NGB to correlate data from their own systems, or to aid managing referees.
+	/// Attribute value has 4kB limit (any valid JSON object).
+	/// </summary>
+	[HttpPut("{userId}/attributes/{ngb}/{key}")]
+	[Tags("User")]
+	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)] // TODO: require higher permissions here
+	public async Task PutUserAttribute(
+		[FromRoute] UserIdentifier userId, 
+		[FromRoute] NgbIdentifier ngb, 
+		[FromRoute][MaxLength(128)] string key, 
+		[FromBody] JsonDocument attribute)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		var refereeViewerRole = userContext.Roles.OfType<RefereeViewerRole>().First();
+		if (!refereeViewerRole.Ngb.AppliesTo(ngb))
+		{
+			throw new AccessDeniedException(ngb.ToString());
+		}
+
+		await this.setUserAttributeCommand.SetUserAttributeAsync(userId, ngb, key, attribute, this.HttpContext.RequestAborted);
 	}
 }
