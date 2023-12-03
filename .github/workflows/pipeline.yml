@@ -201,6 +201,7 @@ jobs:
     - name: Upload docker-compose file to S3
       working-directory: docker/prod-https
       run: |
+        sed -i "s%iqasport/management-hub:latest%iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion)%g" docker-compose.yml
         cp docker-compose.yml ${{ github.sha }}-docker-compose.yml
         aws s3 cp ${{ github.sha }}-docker-compose.yml s3://${{ env.EB_PACKAGE_S3_BUCKET_NAME }}/
 
