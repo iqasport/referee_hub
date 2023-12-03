@@ -198,10 +198,14 @@ jobs:
         docker push $ECR_REPOSITORY/$IMAGE_NAME:$(dotnet gitversion -showvariable NuGetVersion)
         echo -e "Pushed docker image \`$ECR_REPOSITORY/$IMAGE_NAME\` with tags:\n\n- \`latest\`\n- \`$(dotnet gitversion -showvariable NuGetVersion)\`\n" >> $GITHUB_STEP_SUMMARY
 
+    - name: Update docker-compose file to point at a specific version image
+      working-directory: src/backend
+      run: |
+        sed -i "s%iqasport/management-hub:latest%iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion)%g" ../../docker/prod-https/docker-compose.yml
+
     - name: Upload docker-compose file to S3
       working-directory: docker/prod-https
       run: |
-        sed -i "s%iqasport/management-hub:latest%iqasport/management-hub:$(dotnet gitversion -showvariable NuGetVersion)%g" docker-compose.yml
         cp docker-compose.yml ${{ github.sha }}-docker-compose.yml
         aws s3 cp ${{ github.sha }}-docker-compose.yml s3://${{ env.EB_PACKAGE_S3_BUCKET_NAME }}/
 
@@ -212,3 +216,9 @@ jobs:
     - name: "Deploy Application Version to EB Environment"
       working-directory: src/backend
       run: aws elasticbeanstalk update-environment --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "$(dotnet gitversion -showvariable NuGetVersion)-prod-${{ github.run_attempt }}"
+
+    - name: "Wait for deployment status"
+      working-directory: src/backend
+      run: |
+        aws elasticbeanstalk wait environment-updated --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "$(dotnet gitversion -showvariable NuGetVersion)-prod-${{ github.run_attempt }}"
+        grep -q "Ok" <(aws elasticbeanstalk describe-environment-health --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --attribute-names HealthStatus)
