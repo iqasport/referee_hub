@@ -31,6 +31,9 @@ public class RefereesController : ControllerBase
 		this.refereeContextAccessor = refereeContextAccessor;
 	}
 
+	/// <summary>
+	/// Updates the referees metadata (Ngb, Team).
+	/// </summary>
 	[HttpPatch("me")]
 	[Tags("Referee", "User")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
@@ -48,6 +51,9 @@ public class RefereesController : ControllerBase
 		}, this.HttpContext.RequestAborted);
 	}
 
+	/// <summary>
+	/// Get the referee profile for the current user.
+	/// </summary>
 	[HttpGet("me")]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
@@ -58,6 +64,9 @@ public class RefereesController : ControllerBase
 		return MapRefereeViewContextToViewModel(context, GetViewerPerimissionConstraint(userContext));
 	}
 
+	/// <summary>
+	/// Get the referee profile for another user.
+	/// </summary>
 	[HttpGet("{userId}")]
 	[Tags("Referee")]
 	[Authorize]
@@ -73,6 +82,9 @@ public class RefereesController : ControllerBase
 		return MapRefereeViewContextToViewModel(context, GetViewerPerimissionConstraint(userContext));
 	}
 
+	/// <summary>
+	/// Gets the referee profiles for all users (limited by viewer permissions).
+	/// </summary>
 	[HttpGet]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]
@@ -84,6 +96,9 @@ public class RefereesController : ControllerBase
 		return collection.Select(x => MapRefereeViewContextToViewModel(x, viewerPermissionConstraint)).AsFiltered();
 	}
 
+	/// <summary>
+	/// Gets the referee profiles for all users from a given NGB (limited by viewer permissions).
+	/// </summary>
 	[HttpGet("/api/v2/Ngbs/{ngb}/referees")]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)]

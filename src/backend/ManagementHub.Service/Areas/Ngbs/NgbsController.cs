@@ -30,6 +30,9 @@ public class NgbsController : ControllerBase
 		this.socialAccountsProvider = socialAccountsProvider;
 	}
 
+	/// <summary>
+	/// List NGBs registered in the Hub.
+	/// </summary>
 	[HttpGet]
 	[Tags("Ngb")]
 	public Filtered<NgbViewModel> GetNgbs([FromQuery] FilteringParameters filtering)
@@ -47,6 +50,9 @@ public class NgbsController : ControllerBase
 		}).AsFiltered();
 	}
 
+	/// <summary>
+	/// Get NGB profile information.
+	/// </summary>
 	[HttpGet("{ngb}")]
 	[Tags("Ngb")]
 	public async Task<NgbInfoViewModel> GetNgbInfo([FromRoute] NgbIdentifier ngb)
@@ -79,6 +85,9 @@ public class NgbsController : ControllerBase
 		};
 	}
 
+	/// <summary>
+	/// List the teams registered under the NGB.
+	/// </summary>
 	[HttpGet("{ngb}/teams")]
 	[Tags("Team")]
 	public async Task<Filtered<NgbTeamViewModel>> GetNgbTeams([FromRoute] NgbIdentifier ngb, [FromQuery] FilteringParameters filtering)
@@ -87,17 +96,16 @@ public class NgbsController : ControllerBase
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
 		return this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb))
 			.Select(team => new NgbTeamViewModel
-		{
-			TeamId = team.TeamId,
-			City = team.TeamData.City,
-			GroupAffiliation = team.TeamData.GroupAffiliation,
-			Name = team.TeamData.Name,
-			Status = team.TeamData.Status,
-			State = team.TeamData.State,
-			Country = team.TeamData.Country,
-			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
-		}).AsFiltered();
+			{
+				TeamId = team.TeamId,
+				City = team.TeamData.City,
+				GroupAffiliation = team.TeamData.GroupAffiliation,
+				Name = team.TeamData.Name,
+				Status = team.TeamData.Status,
+				State = team.TeamData.State,
+				Country = team.TeamData.Country,
+				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
+				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+			}).AsFiltered();
 	}
-
 }

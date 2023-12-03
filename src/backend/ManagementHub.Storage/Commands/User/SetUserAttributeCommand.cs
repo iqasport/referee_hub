@@ -31,7 +31,7 @@ public class SetUserAttributeCommand : ISetUserAttributeCommand
 	private async Task SetUserAttributeAsync(UserIdentifier userId, string prefix, string key, string attributeValue, CancellationToken cancellationToken)
 	{
 		this.logger.LogInformation(0x5017fc00, "Setting attribute {prefix}.{key} on user ({userId})", prefix, key, userId);
-	
+
 		await using var transaction = await this.transactionProvider.BeginAsync();
 
 		var userDbId = await this.dbContext.Users.AsNoTracking().WithIdentifier(userId).Select(u => (long?)u.Id).SingleOrDefaultAsync(cancellationToken);
@@ -40,7 +40,7 @@ public class SetUserAttributeCommand : ISetUserAttributeCommand
 			throw new NotFoundException(userId.ToString());
 		}
 
-		var attribute = await this.dbContext.UserAttributes.SingleOrDefaultAsync(ua => 
+		var attribute = await this.dbContext.UserAttributes.SingleOrDefaultAsync(ua =>
 			ua.UserId == userDbId &&
 			ua.Prefix == prefix &&
 			ua.Key == key,
@@ -51,7 +51,7 @@ public class SetUserAttributeCommand : ISetUserAttributeCommand
 			attribute.Attribute = attributeValue;
 			attribute.UpdatedAt = this.clock.UtcNow.UtcDateTime;
 		}
-		else 
+		else
 		{
 			attribute = new Models.Data.UserAttribute
 			{

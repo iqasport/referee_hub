@@ -172,7 +172,8 @@ public class RegisterModel : PageModel
 			}
 
 			return IdentityResult.Success;
-		} catch (Exception ex)
+		}
+		catch (Exception ex)
 		{
 			this.logger.LogError(-0x2ac59700, ex, "Error while creating the user.");
 			return IdentityResult.Failed(new IdentityError { Description = ex.Message });

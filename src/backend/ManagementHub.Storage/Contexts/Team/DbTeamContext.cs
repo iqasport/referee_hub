@@ -27,7 +27,7 @@ public class DbTeamContextFactory
 	{
 		IQueryable<Models.Data.Team> t = this.dbContext.Teams.AsNoTracking()
 				.Include(t => t.NationalGoverningBody);
-		
+
 		if (!ngbs.AppliesToAny)
 		{
 			t = t.Join(this.dbContext.NationalGoverningBodies.WithConstraint(ngbs), tt => tt.NationalGoverningBodyId, n => n.Id, (tt, n) => tt);

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using DotNetEd.CoreAdmin;
 using Hangfire;
@@ -194,6 +195,9 @@ public static class Program
 			options.CustomOperationIds(endpoint => endpoint.ActionDescriptor.RouteValues["action"]);
 			options.OperationFilter<ExternalParameterInBodyFilter>();
 			DefaultJsonSerialization.MapSwaggerTypes(options);
+
+			var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+			options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 
 			options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 			{

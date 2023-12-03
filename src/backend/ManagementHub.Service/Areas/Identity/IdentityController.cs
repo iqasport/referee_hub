@@ -49,7 +49,7 @@ public class IdentityController : ControllerBase
 		{
 			// The actions in this method should correspond with actions in Identity/Pages/Account/Login
 			await this.userIdMigrationCommand.TryMigrateUserIdAsync(input.Email, this.HttpContext.RequestAborted);
-			
+
 			var result = await this.signInManager.PasswordSignInAsync(input.Email, input.Password, isPersistent: false, lockoutOnFailure: false);
 			if (result.Succeeded)
 			{
@@ -60,13 +60,13 @@ public class IdentityController : ControllerBase
 			if (result.RequiresTwoFactor)
 			{
 				if (!string.IsNullOrEmpty(input.TwoFactorCode))
-                {
-                    result = await this.signInManager.TwoFactorAuthenticatorSignInAsync(input.TwoFactorCode, isPersistent: false, rememberClient: false);
-                }
-                else if (!string.IsNullOrEmpty(input.TwoFactorRecoveryCode))
-                {
-                    result = await this.signInManager.TwoFactorRecoveryCodeSignInAsync(input.TwoFactorRecoveryCode);
-                }
+				{
+					result = await this.signInManager.TwoFactorAuthenticatorSignInAsync(input.TwoFactorCode, isPersistent: false, rememberClient: false);
+				}
+				else if (!string.IsNullOrEmpty(input.TwoFactorRecoveryCode))
+				{
+					result = await this.signInManager.TwoFactorRecoveryCodeSignInAsync(input.TwoFactorRecoveryCode);
+				}
 
 				if (result.Succeeded)
 				{
@@ -74,7 +74,7 @@ public class IdentityController : ControllerBase
 				}
 			}
 		}
-		
+
 		throw new InvalidOperationException();
 	}
 }

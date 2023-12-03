@@ -174,9 +174,9 @@ public class UsersController : ControllerBase
 	[Tags("User")]
 	[Authorize(AuthorizationPolicies.RefereeViewerPolicy)] // TODO: require higher permissions here
 	public async Task PutUserAttribute(
-		[FromRoute] UserIdentifier userId, 
-		[FromRoute] NgbIdentifier ngb, 
-		[FromRoute][MaxLength(128)] string key, 
+		[FromRoute] UserIdentifier userId,
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute][MaxLength(128)] string key,
 		[FromBody] JsonDocument attribute)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();

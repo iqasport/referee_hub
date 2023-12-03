@@ -31,6 +31,9 @@ public class CertificationPaymentsController : ControllerBase
 		this.logger = logger;
 	}
 
+	/// <summary>
+	/// Gets available payments that can be made by this user from the Stripe account.
+	/// </summary>
 	[HttpGet("")]
 	[Tags("Referee")]
 	public async Task<IEnumerable<Product<Certification>>> GetAvailablePayments()
@@ -38,6 +41,10 @@ public class CertificationPaymentsController : ControllerBase
 		return await this.paymentsService.GetProductsAsync();
 	}
 
+	/// <summary>
+	/// Creates a new payment session with Stripe.
+	/// The session will contain user details, such that when a payment is made the Hub will be notified to complete the transaction.
+	/// </summary>
 	[HttpPost("create")]
 	public async Task<CheckoutSession> CreatePaymentSession([FromQuery] Certification certification)
 	{
@@ -56,6 +63,9 @@ public class CertificationPaymentsController : ControllerBase
 			cancelUrl: GetReturnUri("cancelled"));
 	}
 
+	/// <summary>
+	/// Stripe callback to submit the result of the payment session.
+	/// </summary>
 	[HttpPost("submit")]
 	[AllowAnonymous]
 	[ExternalParameterInBody("stripeEvent", MediaType = "application/json")]

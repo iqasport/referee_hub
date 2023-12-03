@@ -54,6 +54,9 @@ public class RefereeTestsController : ControllerBase
 		this.backgroundJob = backgroundJob;
 	}
 
+	/// <summary>
+	/// Gets a list of available test with the information if the user is eligible to attempt them.
+	/// </summary>
 	[HttpGet("available")]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
@@ -84,6 +87,9 @@ public class RefereeTestsController : ControllerBase
 		return response;
 	}
 
+	/// <summary>
+	/// Gets the historical test attempts for the user.
+	/// </summary>
 	[HttpGet("attempts")]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
@@ -94,6 +100,9 @@ public class RefereeTestsController : ControllerBase
 		return refereeTestCtx.TestAttempts.Select(TestAttemptViewModel.FromTestAttempt);
 	}
 
+	/// <summary>
+	/// Gets the details of a test.
+	/// </summary>
 	[HttpGet("{testId}/details")]
 	[Tags("Tests")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
@@ -117,6 +126,9 @@ public class RefereeTestsController : ControllerBase
 		};
 	}
 
+	/// <summary>
+	/// Starts a new test and returns the list of questions and answers.
+	/// </summary>
 	[HttpPost("{testId}/start")]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
@@ -156,6 +168,9 @@ public class RefereeTestsController : ControllerBase
 		return startModel;
 	}
 
+	/// <summary>
+	/// Submits a completed test with user answers.
+	/// </summary>
 	[HttpPost("{testId}/submit")]
 	[Tags("Referee")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
