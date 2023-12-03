@@ -5,6 +5,7 @@ services:
             - "443:443"
         volumes:
             - certs:/certs
+        user: root
         depends_on:
             redis:
                 condition: service_healthy
