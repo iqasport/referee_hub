@@ -23,5 +23,5 @@ public class FilteringParameters
 	/// <summary>
 	/// if true, paging is skipped.
 	/// </summary>
-	public bool SkipPaging { get; set; }
+	public bool? SkipPaging { get; set; }
 }

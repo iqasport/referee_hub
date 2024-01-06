@@ -22,6 +22,11 @@ public class CollectionFilteringActionFilter : IAsyncActionFilter
 		{
 			this.collectionFilteringContext.FilteringParameters = filtering;
 			this.collectionFilteringContext.FilteringMetadata = new();
+
+			// if skipPaging is not set, we consider it false by default for API calls which have filtering capability
+			// but for other entry points if it's not set we should assume we don't want paging
+			this.collectionFilteringContext.FilteringParameters.SkipPaging ??= false;
+
 			this.logger.LogInformation(0x6fe63600, "Applying filtering: Filter='{filter}', Page={page}, PageSize={pageSize}", filtering.Filter, filtering.Page, filtering.PageSize);
 			appliesFilter = true;
 		}
