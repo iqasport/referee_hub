@@ -132,7 +132,7 @@ public class DbRefereeViewContextFactory
 		return referees.Select(u => new DbRefereeViewContext
 		{
 			UserId = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id),
-			DisplayName = u.ExportName != false ? $"{u.FirstName} {u.LastName}" : "Anonymous referee",
+			DisplayName = u.ExportName != false || !string.IsNullOrWhiteSpace(u.FirstName + u.LastName) ? $"{u.FirstName} {u.LastName}" : "Anonymous referee",
 			AcquiredCertifications = u.RefereeCertifications.Select(rc => DomainCertification.New(rc.Certification.Level, rc.Certification.Version)).ToHashSet(),
 			CoachingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Coach).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
 			PlayingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Player).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),

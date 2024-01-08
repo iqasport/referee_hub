@@ -194,7 +194,16 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			LastName = "IqaAdmin",
 		};
 
-		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin);
+		var refereeWithEmptyName = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "empty@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = null,
+			LastName = null,
+		};
+
+		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName);
 
 		dbContext.Roles.AddRange(
 			new Role
@@ -213,6 +222,12 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			{
 				AccessType = UserAccessType.IqaAdmin,
 				User = iqaAdmin,
+				CreatedAt = DateTime.UtcNow,
+			},
+			new Role
+			{
+				AccessType = UserAccessType.Referee,
+				User = refereeWithEmptyName,
 				CreatedAt = DateTime.UtcNow,
 			});
 

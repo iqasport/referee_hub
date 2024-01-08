@@ -12,7 +12,7 @@ import React from "react";
 
 import DataLabel from "../../components/DataLabel";
 import UploadedImage from "../../components/UploadedImage";
-import { NgbInfoViewModel, SocialAccount } from "../../store/serviceApi";
+import { NgbInfoViewModelRead, SocialAccount } from "../../store/serviceApi";
 
 type SocialConfig = {
   [key: string]: {
@@ -45,7 +45,7 @@ const socialConfig: SocialConfig = {
 };
 
 type SidebarProps = {
-  ngb: NgbInfoViewModel;
+  ngb: NgbInfoViewModelRead;
 };
 
 const Sidebar = (props: SidebarProps) => {

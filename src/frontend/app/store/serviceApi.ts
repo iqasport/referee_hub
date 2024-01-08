@@ -3,13 +3,14 @@ export const addTagTypes = [
   "CertificationPayments",
   "Debug",
   "Export",
+  "Identity",
   "Ngb",
   "Referee",
   "User",
+  "UserInfo",
   "Team",
   "Tests",
   "UserAvatar",
-  "UserInfo",
 ] as const;
 const injectedRtkApi = api
   .enhanceEndpoints({
@@ -35,7 +36,7 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: `/api/v2/certifications/payments/submit`,
           method: "POST",
-          body: queryArg.body,
+          body: queryArg.stripeEvent,
         }),
         invalidatesTags: ["CertificationPayments"],
       }),
@@ -45,6 +46,14 @@ const injectedRtkApi = api
       >({
         query: (queryArg) => ({ url: `/api/debug/blob/${queryArg.fileKey}` }),
         providesTags: ["Debug"],
+      }),
+      runStatsJob: build.mutation<RunStatsJobApiResponse, RunStatsJobApiArg>({
+        query: (queryArg) => ({ url: `/api/debug/statsjob/run/${queryArg.ngb}`, method: "POST" }),
+        invalidatesTags: ["Debug"],
+      }),
+      scheduleStatsJob: build.mutation<ScheduleStatsJobApiResponse, ScheduleStatsJobApiArg>({
+        query: () => ({ url: `/api/debug/statsjob/schedule`, method: "POST" }),
+        invalidatesTags: ["Debug"],
       }),
       exportRefereesForNgb: build.mutation<
         ExportRefereesForNgbApiResponse,
@@ -59,6 +68,14 @@ const injectedRtkApi = api
       exportTeamsForNgb: build.mutation<ExportTeamsForNgbApiResponse, ExportTeamsForNgbApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}/teams/export`, method: "POST" }),
         invalidatesTags: ["Export"],
+      }),
+      login: build.mutation<LoginApiResponse, LoginApiArg>({
+        query: (queryArg) => ({
+          url: `/api/auth/login`,
+          method: "POST",
+          body: queryArg.loginRequest,
+        }),
+        invalidatesTags: ["Identity"],
       }),
       getNgbs: build.query<GetNgbsApiResponse, GetNgbsApiArg>({
         query: (queryArg) => ({
@@ -112,11 +129,11 @@ const injectedRtkApi = api
       }),
       getCurrentReferee: build.query<GetCurrentRefereeApiResponse, GetCurrentRefereeApiArg>({
         query: () => ({ url: `/api/v2/Referees/me` }),
-        providesTags: ["Referee"],
+        providesTags: ["Referee", "UserInfo"],
       }),
       getReferee: build.query<GetRefereeApiResponse, GetRefereeApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Referees/${queryArg.userId}` }),
-        providesTags: ["Referee"],
+        providesTags: ["Referee", "UserInfo"],
       }),
       getReferees: build.query<GetRefereesApiResponse, GetRefereesApiArg>({
         query: (queryArg) => ({
@@ -168,6 +185,25 @@ const injectedRtkApi = api
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
+      }),
+      putRootUserAttribute: build.mutation<
+        PutRootUserAttributeApiResponse,
+        PutRootUserAttributeApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Users/${queryArg.userId}/attributes/root/${queryArg.key}`,
+          method: "PUT",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["User"],
+      }),
+      putUserAttribute: build.mutation<PutUserAttributeApiResponse, PutUserAttributeApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Users/${queryArg.userId}/attributes/${queryArg.ngb}/${queryArg.key}`,
+          method: "PUT",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["User"],
       }),
       getCurrentUserAvatar: build.query<
         GetCurrentUserAvatarApiResponse,
@@ -221,12 +257,18 @@ export type CreatePaymentSessionApiArg = {
 };
 export type SubmitPaymentSessionApiResponse = unknown;
 export type SubmitPaymentSessionApiArg = {
-  body: object;
+  stripeEvent: object;
 };
 export type GetDataFromLocalBlobApiResponse = unknown;
 export type GetDataFromLocalBlobApiArg = {
   fileKey: string;
 };
+export type RunStatsJobApiResponse = unknown;
+export type RunStatsJobApiArg = {
+  ngb: NgbConstraint;
+};
+export type ScheduleStatsJobApiResponse = unknown;
+export type ScheduleStatsJobApiArg = void;
 export type ExportRefereesForNgbApiResponse = /** status 200 Success */ ExportResponse;
 export type ExportRefereesForNgbApiArg = {
   ngb: string;
@@ -235,6 +277,10 @@ export type ExportTeamsForNgbApiResponse = /** status 200 Success */ ExportRespo
 export type ExportTeamsForNgbApiArg = {
   ngb: string;
 };
+export type LoginApiResponse = /** status 200 Success */ AccessTokenResponseRead;
+export type LoginApiArg = {
+  loginRequest: LoginRequest;
+};
 export type GetNgbsApiResponse = /** status 200 Success */ NgbViewModelFiltered;
 export type GetNgbsApiArg = {
   filter?: string;
@@ -242,14 +288,14 @@ export type GetNgbsApiArg = {
   pageSize?: number;
   skipPaging?: boolean;
 };
-export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModel;
+export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModelRead;
 export type GetNgbInfoApiArg = {
   ngb: string;
 };
 export type GetAvailableTestsApiResponse =
   /** status 200 Success */ RefereeTestAvailableViewModel[];
 export type GetAvailableTestsApiArg = void;
-export type GetTestAttemptsApiResponse = /** status 200 Success */ TestAttemptViewModel[];
+export type GetTestAttemptsApiResponse = /** status 200 Success */ TestAttemptViewModelRead[];
 export type GetTestAttemptsApiArg = void;
 export type StartTestApiResponse = /** status 200 Success */ RefereeTestStartModel;
 export type StartTestApiArg = {
@@ -301,6 +347,19 @@ export type GetTestDetailsApiArg = {
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
+export type PutRootUserAttributeApiResponse = unknown;
+export type PutRootUserAttributeApiArg = {
+  userId: string;
+  key: string;
+  body: any;
+};
+export type PutUserAttributeApiResponse = unknown;
+export type PutUserAttributeApiArg = {
+  userId: string;
+  ngb: string;
+  key: string;
+  body: any;
+};
 export type GetCurrentUserAvatarApiResponse = unknown;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
@@ -311,7 +370,7 @@ export type UpdateCurrentUserAvatarApiArg = {
 };
 export type GetUserAvatarApiResponse = /** status 200 Success */
   | string
-  | /** status 204 No Content */ undefined;
+  | /** status 204 No Content */ void;
 export type GetUserAvatarApiArg = {
   userId: string;
 };
@@ -319,6 +378,7 @@ export type GetCurrentUserDataApiResponse = /** status 200 Success */ UserDataVi
 export type GetCurrentUserDataApiArg = void;
 export type UpdateCurrentUserDataApiResponse = unknown;
 export type UpdateCurrentUserDataApiArg = {
+  /** A partial model of user data. */
   userDataViewModel: UserDataViewModel;
 };
 export type GetUserDataApiResponse = /** status 200 Success */ UserDataViewModel;
@@ -330,8 +390,29 @@ export type CheckoutSession = {
 };
 export type CertificationLevel = "snitch" | "assistant" | "head" | "field" | "scorekeeper";
 export type CertificationVersion = "eighteen" | "twenty" | "twentytwo";
+export type NgbConstraint = {};
+export type NgbConstraintRead = {
+  appliesToAny?: boolean;
+};
 export type ExportResponse = {
   jobId?: string | null;
+};
+export type AccessTokenResponse = {
+  accessToken?: string | null;
+  expiresIn?: number;
+  refreshToken?: string | null;
+};
+export type AccessTokenResponseRead = {
+  tokenType?: string | null;
+  accessToken?: string | null;
+  expiresIn?: number;
+  refreshToken?: string | null;
+};
+export type LoginRequest = {
+  email?: string | null;
+  password?: string | null;
+  twoFactorCode?: string | null;
+  twoFactorRecoveryCode?: string | null;
 };
 export type FilteringMetadata = {
   totalCount?: number | null;
@@ -352,7 +433,8 @@ export type NgbViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: NgbViewModel[] | null;
 };
-export type INgbStatsContext = {
+export type INgbStatsContext = {};
+export type INgbStatsContextRead = {
   totalRefereesCount?: number;
   headRefereesCount?: number;
   assistantRefereesCount?: number;
@@ -387,6 +469,20 @@ export type NgbInfoViewModel = {
   socialAccounts?: SocialAccount[] | null;
   avatarUri?: string | null;
 };
+export type NgbInfoViewModelRead = {
+  countryCode?: string | null;
+  name?: string | null;
+  country?: string | null;
+  acronym?: string | null;
+  region?: NgbRegion;
+  membershipStatus?: NgbMembershipStatus;
+  website?: string | null;
+  playerCount?: number;
+  currentStats?: INgbStatsContextRead;
+  historicalStats?: INgbStatsContextRead[] | null;
+  socialAccounts?: SocialAccount[] | null;
+  avatarUri?: string | null;
+};
 export type Certification = {
   level?: CertificationLevel;
   version?: CertificationVersion;
@@ -412,6 +508,18 @@ export type RefereeTestAvailableViewModel = {
 };
 export type TestAttemptFinishMethod = "Timeout" | "Submission";
 export type TestAttemptViewModel = {
+  attemptId?: string;
+  testId?: string;
+  level?: CertificationLevel;
+  startedAt?: string;
+  finishedAt?: string | null;
+  finishMethod?: TestAttemptFinishMethod;
+  score?: number | null;
+  passPercentage?: number | null;
+  passed?: boolean | null;
+  awardedCertifications?: Certification[] | null;
+};
+export type TestAttemptViewModelRead = {
   attemptId?: string;
   testId?: string;
   level?: CertificationLevel;
@@ -472,6 +580,9 @@ export type RefereeViewModel = {
   playingTeam?: TeamIndicator;
   coachingTeam?: TeamIndicator;
   acquiredCertifications?: Certification[] | null;
+  attributes?: {
+    [key: string]: any;
+  } | null;
 };
 export type RefereeViewModelFiltered = {
   metadata?: FilteringMetadata;
@@ -529,6 +640,9 @@ export type CurrentUserViewModel = {
         roleType?: string;
       }[]
     | null;
+  attributes?: {
+    [key: string]: any;
+  } | null;
 };
 export type UserDataViewModel = {
   firstName?: string | null;
@@ -544,8 +658,11 @@ export const {
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
   useGetDataFromLocalBlobQuery,
+  useRunStatsJobMutation,
+  useScheduleStatsJobMutation,
   useExportRefereesForNgbMutation,
   useExportTeamsForNgbMutation,
+  useLoginMutation,
   useGetNgbsQuery,
   useGetNgbInfoQuery,
   useGetAvailableTestsQuery,
@@ -561,6 +678,8 @@ export const {
   useGetNgbTeamsQuery,
   useGetTestDetailsQuery,
   useGetCurrentUserQuery,
+  usePutRootUserAttributeMutation,
+  usePutUserAttributeMutation,
   useGetCurrentUserAvatarQuery,
   useUpdateCurrentUserAvatarMutation,
   useGetUserAvatarQuery,

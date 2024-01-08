@@ -35,7 +35,7 @@ public class HistoricalStatsJobController
 
 	[HttpPost("schedule")]
 	[Tags("Debug")]
-	public Task RunStatsJob()
+	public Task ScheduleStatsJob()
 	{
 		RecurringJob.AddOrUpdate<ICreateNgbStatsSnapshotCommand>(
 			"CreateNgbStatsSnapshot",

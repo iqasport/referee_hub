@@ -55,7 +55,7 @@ public class RefereesController : ControllerBase
 	/// Get the referee profile for the current user.
 	/// </summary>
 	[HttpGet("me")]
-	[Tags("Referee")]
+	[Tags("Referee", "UserInfo")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task<RefereeViewModel> GetCurrentReferee()
 	{
@@ -68,7 +68,7 @@ public class RefereesController : ControllerBase
 	/// Get the referee profile for another user.
 	/// </summary>
 	[HttpGet("{userId}")]
-	[Tags("Referee")]
+	[Tags("Referee", "UserInfo")]
 	[Authorize]
 	public async Task<RefereeViewModel> GetReferee([FromRoute] UserIdentifier userId)
 	{
