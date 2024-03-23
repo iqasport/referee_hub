@@ -46,12 +46,7 @@ public class SetUserAttributeCommand : ISetUserAttributeCommand
 			ua.Key == key,
 			cancellationToken);
 
-		if (attribute != null)
-		{
-			attribute.Attribute = attributeValue;
-			attribute.UpdatedAt = this.clock.UtcNow.UtcDateTime;
-		}
-		else
+		if (attribute == null)
 		{
 			attribute = new Models.Data.UserAttribute
 			{
@@ -63,6 +58,12 @@ public class SetUserAttributeCommand : ISetUserAttributeCommand
 				UpdatedAt = this.clock.UtcNow.UtcDateTime,
 			};
 			this.dbContext.Add(attribute);
+		}
+		else if (!string.Equals(attributeValue, attribute.Attribute, System.StringComparison.Ordinal))
+		{
+			// only update if there's a change
+			attribute.Attribute = attributeValue;
+			attribute.UpdatedAt = this.clock.UtcNow.UtcDateTime;
 		}
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);

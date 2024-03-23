@@ -19,7 +19,7 @@ public class UserIdMigrationCommand : IUserIdMigrationCommand
 		this.logger = logger;
 	}
 
-	public async Task TryMigrateUserIdAsync(string email, CancellationToken cancellationToken)
+	public async Task<UserIdentifier?> TryMigrateUserIdAsync(string email, CancellationToken cancellationToken)
 	{
 		var userIdAndStatus = await this.dbContext.Users
 			.Where(u => u.Email == email)
@@ -29,12 +29,12 @@ public class UserIdMigrationCommand : IUserIdMigrationCommand
 		if (userIdAndStatus == null)
 		{
 			this.logger.LogInformation(0x1eb9ea00, "Attempted user ID migration but user has not been found.");
-			return;
+			return null;
 		}
 		else if (userIdAndStatus.UniqueId != null)
 		{
 			this.logger.LogInformation(0x1eb9ea01, "User already has unique ID - no migration needed.");
-			return;
+			return UserIdentifier.Parse(userIdAndStatus.UniqueId);
 		}
 
 		var newUserId = UserIdentifier.NewUserId();
@@ -50,5 +50,7 @@ public class UserIdMigrationCommand : IUserIdMigrationCommand
 			.ExecuteUpdateAsync(update => update.SetProperty(u => u.UniqueId, newUserId.ToString()).SetProperty(u => u.UpdatedAt, DateTime.UtcNow));
 
 		this.logger.LogInformation(0x1eb9ea03, "Migration completed.");
+
+		return newUserId;
 	}
 }

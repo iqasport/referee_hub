@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Models.Abstraction.Commands.Migrations;
 
@@ -10,5 +11,5 @@ public interface IUserIdMigrationCommand
 	/// </summary>
 	/// <param name="email">User email.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task TryMigrateUserIdAsync(string email, CancellationToken cancellationToken);
+	Task<UserIdentifier?> TryMigrateUserIdAsync(string email, CancellationToken cancellationToken);
 }

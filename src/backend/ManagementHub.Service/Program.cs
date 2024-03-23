@@ -16,6 +16,7 @@ using ManagementHub.Service.Areas.Payments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Experimentation;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Service.Jobs;
 using ManagementHub.Service.Swagger;
@@ -102,6 +103,8 @@ public static class Program
 
 		services.AddTestPolicies();
 		services.AddExportProcessors();
+
+		services.ConfigureExperiments();
 
 		services.AddScoped<IAuthorizationHandler, UserRoleAuthorizationHandler>();
 		services.AddAuthorization(options =>

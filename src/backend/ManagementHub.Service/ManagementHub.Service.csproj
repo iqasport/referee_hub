@@ -5,13 +5,18 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Do not warn about contextual being an experimental API -->
+    <NoWarn>EXTEXP0017</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CoreAdmin" Version="2.7.0" />
+    <PackageReference Include="Excos.Options" Version="1.0.0-alpha1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Telemetry" Version="8.0.0-preview.4.23273.7" />
+    <PackageReference Include="Microsoft.Extensions.Options.Contextual" Version="8.0.0-rtm.23558.11" />
     <PackageReference Include="OpenTelemetry.Contrib.Instrumentation.AWS" Version="1.0.2" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.5.0-rc.1" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol.Logs" Version="1.5.0-rc.1" />

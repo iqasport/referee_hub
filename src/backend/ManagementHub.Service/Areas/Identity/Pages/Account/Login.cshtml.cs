@@ -5,6 +5,7 @@
 using System.ComponentModel.DataAnnotations;
 using ManagementHub.Models.Abstraction.Commands.Migrations;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Experimentation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +17,14 @@ public class LoginModel : PageModel
 {
 	private readonly SignInManager<UserIdentity> signInManager;
 	private readonly IUserIdMigrationCommand userIdMigrationCommand;
+	private readonly UxExperimentVariantAssigner uxExperimentVariantAssigner;
 	private readonly ILogger<LoginModel> logger;
 
-	public LoginModel(SignInManager<UserIdentity> signInManager, IUserIdMigrationCommand userIdMigrationCommand, ILogger<LoginModel> logger)
+	public LoginModel(SignInManager<UserIdentity> signInManager, IUserIdMigrationCommand userIdMigrationCommand, UxExperimentVariantAssigner uxExperimentVariantAssigner, ILogger<LoginModel> logger)
 	{
 		this.signInManager = signInManager;
 		this.userIdMigrationCommand = userIdMigrationCommand;
+		this.uxExperimentVariantAssigner = uxExperimentVariantAssigner;
 		this.logger = logger;
 	}
 
@@ -107,7 +110,7 @@ public class LoginModel : PageModel
 		if (this.ModelState.IsValid)
 		{
 			// The actions in this method should correspond with actions in Identity/IdentityController
-			await this.userIdMigrationCommand.TryMigrateUserIdAsync(this.Input.Email, this.HttpContext.RequestAborted);
+			var userId = await this.userIdMigrationCommand.TryMigrateUserIdAsync(this.Input.Email, this.HttpContext.RequestAborted);
 
 			// This doesn't count login failures towards account lockout
 			// To enable password failures to trigger account lockout, set lockoutOnFailure: true
@@ -115,6 +118,19 @@ public class LoginModel : PageModel
 			if (result.Succeeded)
 			{
 				this.logger.LogInformation("User logged in.");
+
+				try
+				{
+					// only assign experiment in browser login - skipping this for IdentityController
+					await this.uxExperimentVariantAssigner.SaveUxExperimentAssignmentsAsync(
+						new ExperimentContext(userId.Value, ExperimentAssignmentContext.SignIn), default
+					);
+				}
+				catch(Exception ex)
+				{
+					this.logger.LogError(ex, "Failed to assign experiments at login.");
+				}
+				
 				return this.LocalRedirect(returnUrl);
 			}
 			if (result.RequiresTwoFactor)
