@@ -24,8 +24,8 @@ const FinishStep = (props: FinishStepProps) => {
         <h3 className="text-2xl font-bold my-8">Uh oh! There was an error importing your data</h3>
         <p>
           Please check your file and retry or reach out to
-          <a href="mailto:tech@iqasport.org" className="text-blue-darker underline ml-1">
-            tech@iqasport.org
+          <a href="mailto:refhub@iqasport.org" className="text-blue-darker underline ml-1">
+            rfehub@iqasport.org
           </a>
         </p>
       </>
