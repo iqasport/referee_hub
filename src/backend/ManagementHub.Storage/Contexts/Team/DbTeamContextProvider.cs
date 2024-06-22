@@ -9,7 +9,7 @@ namespace ManagementHub.Storage.Contexts.Team;
 public class DbTeamContextProvider : ITeamContextProvider
 {
 	private readonly DbTeamContextFactory dbTeamContextFactory;
-	
+
 	public DbTeamContextProvider(ManagementHubDbContext dbContext, CollectionFilteringContext filteringContext)
 	{
 		this.dbTeamContextFactory = new DbTeamContextFactory(

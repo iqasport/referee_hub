@@ -19,7 +19,7 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 	private readonly IRefereeContextAccessor refereeContextAccessor;
 
 	public CertificationPaymentsService(
-		IStripeClient stripeClient, 
+		IStripeClient stripeClient,
 		ILogger<CertificationPaymentsService> logger,
 		IBackgroundJobClient backgroundJobClient,
 		IRefereeContextAccessor refereeContextAccessor)
@@ -39,9 +39,9 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 		{
 			if (referee.HeadCertificationsPaid.Contains(i.Version))
 			{
-				return ProductStatus.AlreadyPurchased; 
+				return ProductStatus.AlreadyPurchased;
 			}
-			
+
 			return ProductStatus.Available;
 		}
 

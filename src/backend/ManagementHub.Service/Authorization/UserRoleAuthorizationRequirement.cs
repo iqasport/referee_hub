@@ -9,7 +9,7 @@ namespace ManagementHub.Service.Authorization;
 public abstract class UserRoleAuthorizationRequirement : IAuthorizationRequirement
 {
 	/// <summary>
-	/// Checks if the role object satisfier further requirements. This method takes an object of the <see cref="UserRoleType"/>.
+	/// Checks if the role object satisfier further requirements.
 	/// </summary>
 	/// <remarks>Expected to be overridden in <see cref="UserRoleAuthorizationRequirement{TUserRole}"/>.</remarks>
 	public abstract bool Satisfies(IUserRole role);

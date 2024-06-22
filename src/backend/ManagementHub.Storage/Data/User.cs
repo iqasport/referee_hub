@@ -19,6 +19,7 @@ public partial class User : IIdentifiable
 		this.Roles = new HashSet<Role>();
 		this.TestAttempts = new HashSet<TestAttempt>();
 		this.TestResults = new HashSet<TestResult>();
+		this.Attributes = new HashSet<UserAttribute>();
 	}
 
 	public long Id { get; set; }
@@ -72,4 +73,5 @@ public partial class User : IIdentifiable
 	public virtual ICollection<Role> Roles { get; set; }
 	public virtual ICollection<TestAttempt> TestAttempts { get; set; }
 	public virtual ICollection<TestResult> TestResults { get; set; }
+	public virtual ICollection<UserAttribute> Attributes { get; set; }
 }

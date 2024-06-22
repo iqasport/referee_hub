@@ -65,7 +65,7 @@ public class ExportTeamsToCsv : IExportTeamsToCsv
 		[Name("National Governing Body")]
 		public required string NationalGoverningBody { get; set; }
 
-		public required string City{ get; set; }
+		public required string City { get; set; }
 
 		[Name("State/Provence")]
 		public required string State { get; set; }

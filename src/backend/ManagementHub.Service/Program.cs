@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using DotNetEd.CoreAdmin;
 using Hangfire;
@@ -10,6 +11,7 @@ using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
 using ManagementHub.Processing.Export;
 using ManagementHub.Serialization;
 using ManagementHub.Service.Areas.Export;
+using ManagementHub.Service.Areas.Identity;
 using ManagementHub.Service.Areas.Payments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Configuration;
@@ -22,6 +24,7 @@ using ManagementHub.Storage.BlobStorage.LocalFilesystem;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
@@ -31,6 +34,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Telemetry.Enrichment;
 using Microsoft.Extensions.Telemetry.Logging;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
@@ -131,7 +135,25 @@ public static class Program
 			})
 			.AddJsonOptions(options => DefaultJsonSerialization.ConfigureOptions(options.JsonSerializerOptions));
 		services.AddRazorPages();
-		services.AddDefaultIdentity<UserIdentity>(options => options.SignIn.RequireConfirmedAccount = Environment == Environments.Production);
+
+		// Configures default authentication to use a composite handler
+		// which first checks if the Bearer token authentication can be used
+		// and if not then falls back to using the cookie auth
+		services.AddAuthentication("Identity.Composite")
+			.AddScheme<AuthenticationSchemeOptions, CompositeIdentityHandler>("Identity.Composite", o =>
+			{
+				o.ForwardAuthenticate = "Identity.Composite";
+			})
+			.AddBearerToken(IdentityConstants.BearerScheme)
+			.AddIdentityCookies();
+		// calling AddIdentityCore directly, because AddDefaultIdentity was modifying the auth scheme
+		services.AddIdentityCore<UserIdentity>(options =>
+		{
+			options.Stores.MaxLengthForKeys = 128; // copied from ASP.NET sources for compat
+
+			options.SignIn.RequireConfirmedAccount = Environment == Environments.Production;
+		}).AddDefaultUI().AddDefaultTokenProviders();
+
 		services.Configure<IdentityOptions>(options =>
 		{
 			// Password settings.
@@ -155,6 +177,10 @@ public static class Program
 			// Cookie settings
 			options.Cookie.HttpOnly = true;
 			options.ExpireTimeSpan = TimeSpan.FromDays(1);
+			// Enforce authentication cookie to use SameSite=Strict
+			// it will ensure cross-origin requests aren't authenticated, including redirects
+			// Redirects should only load the SPA, which later makes API requests with the cookie without issues
+			options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
 
 			options.LoginPath = "/sign_in";
 			options.LogoutPath = "/sign_out";
@@ -169,6 +195,28 @@ public static class Program
 			options.CustomOperationIds(endpoint => endpoint.ActionDescriptor.RouteValues["action"]);
 			options.OperationFilter<ExternalParameterInBodyFilter>();
 			DefaultJsonSerialization.MapSwaggerTypes(options);
+
+			var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+			options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
+			options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+			{
+				Name = "Authorization", // header name
+				In = ParameterLocation.Header,
+				Type = SecuritySchemeType.Http,
+				Scheme = "Bearer", // authorization header scheme
+			});
+			options.AddSecurityRequirement(new OpenApiSecurityRequirement
+			{
+				[new OpenApiSecurityScheme
+				{
+					Reference = new OpenApiReference
+					{
+						Type = ReferenceType.SecurityScheme,
+						Id = "Bearer"
+					}
+				}] = Array.Empty<string>(),
+			});
 		});
 
 		services.AddSingleton<DistributedContextPropagator, CookieTraceContextPropagator>();

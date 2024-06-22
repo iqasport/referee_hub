@@ -4,7 +4,7 @@ import React from "react";
 import { getMonths, toDateTime } from "../../utils/dateUtils";
 import HistoricChart from "../HistoricChart";
 import StatBarChart from "../StatBarChart";
-import { INgbStatsContext } from "../../store/serviceApi";
+import { INgbStatsContextRead } from "../../store/serviceApi";
 
 interface RefereeStatsProps {
   assistantCount: number;
@@ -14,7 +14,7 @@ interface RefereeStatsProps {
   uncertifiedCount: number;
   onClick: () => void;
   showFull: boolean;
-  stats: INgbStatsContext[];
+  stats: INgbStatsContextRead[];
 }
 
 const RefereeStats = (props: RefereeStatsProps) => {

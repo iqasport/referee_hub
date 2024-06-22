@@ -4,12 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Misc;
 using ManagementHub.Storage.Extensions;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using ManagementHub.Models.Data;
+using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Commands.Ngb;
 public class CreateNgbStatsSnapshotCommand : ICreateNgbStatsSnapshotCommand
@@ -31,7 +31,7 @@ public class CreateNgbStatsSnapshotCommand : ICreateNgbStatsSnapshotCommand
 
 		var ngbIds = this.dbContext.NationalGoverningBodies.AsNoTracking().WithConstraint(ngbs).Select(ngb => ValueTuple.Create(NgbIdentifier.Parse(ngb.CountryCode), ngb.Id)).ToList();
 
-		this.logger.LogInformation(-0x9faad00, "Creating stats snapshot for ngbs: ", ngbIds.Select(x => x.Item1));
+		this.logger.LogInformation(-0x9faad00, "Creating stats snapshot for ngbs: {ngbs}", ngbIds.Select(x => x.Item1));
 
 		foreach (var (ngbId, ngbDbId) in ngbIds)
 		{

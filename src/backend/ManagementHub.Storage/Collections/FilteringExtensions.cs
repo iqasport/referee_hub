@@ -6,7 +6,8 @@ public static class FilteringExtensions
 {
 	public static IQueryable<T> Page<T>(this IQueryable<T> query, FilteringParameters parameters)
 	{
-		if (parameters.SkipPaging)
+		// if skip paging is null it means it wasn't set through the request middleware - assume we don't want to page
+		if (parameters.SkipPaging ?? true)
 		{
 			return query;
 		}

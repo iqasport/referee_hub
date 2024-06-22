@@ -9,7 +9,7 @@ public class TeamData
 	public required string City { get; set; }
 	public string? State { get; set; }
 	public required string Country { get; set; }
-	public required TeamStatus Status { get; set; } 
-	public required TeamGroupAffiliation GroupAffiliation { get; set; } 
+	public required TeamStatus Status { get; set; }
+	public required TeamGroupAffiliation GroupAffiliation { get; set; }
 	public required DateTime JoinedAt { get; set; }
 }

@@ -6,6 +6,7 @@ using ManagementHub.Models.Abstraction.Commands.Export;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Processing.Export;
@@ -50,8 +51,10 @@ public class ExportRefereesToCsv : IExportRefereesToCsv
 			return new CsvRow
 			{
 				Name = referee.DisplayName,
-				Certifications = string.Join(", ", referee.AcquiredCertifications.Select(c => c.Level).Distinct().Order()), // TODO: make this more useful to ngbs after consulting
 				Teams = string.Join(", ", refereeTeams),
+				RB18 = string.Join(", ", referee.AcquiredCertifications.Where(c => c.Version == CertificationVersion.Eighteen).Select(c => c.Level).Order()),
+				RB20 = string.Join(", ", referee.AcquiredCertifications.Where(c => c.Version == CertificationVersion.Twenty).Select(c => c.Level).Order()),
+				RB22 = string.Join(", ", referee.AcquiredCertifications.Where(c => c.Version == CertificationVersion.TwentyTwo).Select(c => c.Level).Order()),
 			};
 		}, cancellationToken, this.logger);
 	}
@@ -60,6 +63,10 @@ public class ExportRefereesToCsv : IExportRefereesToCsv
 	{
 		public required string Name { get; set; }
 		public required string Teams { get; set; }
-		public required string Certifications { get; set; }
+		
+		// rulebook grouped, comma separated certifications, latest first
+		public required string RB22 { get; set; }
+		public required string RB20 { get; set; }
+		public required string RB18 { get; set; }
 	}
 }

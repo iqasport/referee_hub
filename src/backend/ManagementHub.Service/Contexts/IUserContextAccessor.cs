@@ -11,4 +11,6 @@ public interface IUserContextAccessor
 	Task<IUserDataContext> GetUserDataContextAsync(UserIdentifier userId);
 
 	Task<IUserAvatarContext> GetUserAvatarContextAsync(UserIdentifier userId);
+
+	Task<UserAttributes> GetUserAttributesAsync(UserIdentifier userId);
 }

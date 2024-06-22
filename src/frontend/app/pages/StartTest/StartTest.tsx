@@ -209,9 +209,9 @@ const StartTest = () => {
       </h4>
       <h4 className="font-bold my-4">
         If you do not see the results for this test attempt after an hour please reach out to
-        <a className="text-blue-darker hover:text-blue" href="mailto:tech@iqasport.org">
+        <a className="text-blue-darker hover:text-blue" href="mailto:refhub@iqasport.org">
           {" "}
-          tech@iqasport.org
+          refhub@iqasport.org
         </a>
       </h4>
     </div>
@@ -232,9 +232,9 @@ const StartTest = () => {
       <h4 className="font-bold my-4">
         If you need more time to complete this test due to documented test taking challenges please
         contact
-        <a className="text-blue-darker hover:text-blue" href="mailto:referees@iqasport.org">
+        <a className="text-blue-darker hover:text-blue" href="mailto:refhub@iqasport.org">
           {" "}
-          referees@iqasport.org
+          refhub@iqasport.org
         </a>
       </h4>
     </div>

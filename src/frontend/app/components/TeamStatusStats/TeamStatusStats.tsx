@@ -4,7 +4,7 @@ import React from "react";
 import { getMonths, toDateTime } from "../../utils/dateUtils";
 import HistoricChart from "../HistoricChart";
 import StatBarChart from "../StatBarChart";
-import { INgbStatsContext } from "../../store/serviceApi";
+import { INgbStatsContextRead } from "../../store/serviceApi";
 
 interface TeamStatusProps {
   competitiveCount: number;
@@ -13,7 +13,7 @@ interface TeamStatusProps {
   total: number;
   onClick: () => void;
   showFull: boolean;
-  stats: INgbStatsContext[];
+  stats: INgbStatsContextRead[];
 }
 
 const TeamStatusStats = (props: TeamStatusProps) => {

@@ -34,7 +34,7 @@ public sealed class NgbConstraintJsonConverter : JsonConverter<NgbConstraint>
 			else
 			{
 				writer.WriteStartArray();
-				foreach(var ngbId in ngbIdsList)
+				foreach (var ngbId in ngbIdsList)
 				{
 					writer.WriteStringValue(ngbId.ToString());
 				}

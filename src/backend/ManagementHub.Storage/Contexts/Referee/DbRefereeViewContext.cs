@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
@@ -16,6 +17,7 @@ using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Contexts.Team;
+using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -60,6 +62,8 @@ public class DbRefereeViewContext : IRefereeViewContext
 
 	public required List<ITeamContext> TeamContextList { get; set; }
 	public IDictionary<TeamIdentifier, ITeamContext> TeamContext => this.TeamContextList.DistinctBy(t => t.TeamId).ToDictionary(t => t.TeamId);
+
+	public required UserAttributes Attributes { get; set; }
 }
 
 public class DbRefereeViewContextFactory
@@ -82,10 +86,12 @@ public class DbRefereeViewContextFactory
 	{
 		// select users who are referees
 		IQueryable<User> referees = users
+			.AsSplitQuery()
 			.Include(u => u.Roles).Where(u => u.Roles.Any(r => r.AccessType == UserAccessType.Referee))
 			.Include(u => u.RefereeLocations).ThenInclude(rl => rl.NationalGoverningBody)
-			.Include(u => u.RefereeTeams).ThenInclude(rl => rl.Team).ThenInclude(t => t.NationalGoverningBody)
-			.Include(u => u.RefereeCertifications).ThenInclude(rc => rc.Certification);
+			.Include(u => u.RefereeTeams).ThenInclude(rl => rl.Team).ThenInclude(t => t!.NationalGoverningBody)
+			.Include(u => u.RefereeCertifications).ThenInclude(rc => rc.Certification)
+			.Include(u => u.Attributes.Where(ua => ngbs.AppliesToAny || ((IEnumerable<NgbIdentifier>)ngbs).Select(i => i.NgbCode).Contains(ua.Prefix)));
 
 		if (!ngbs.AppliesToAny)
 		{
@@ -126,7 +132,7 @@ public class DbRefereeViewContextFactory
 		return referees.Select(u => new DbRefereeViewContext
 		{
 			UserId = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id),
-			DisplayName = u.ExportName != false ? $"{u.FirstName} {u.LastName}" : "Anonymous referee",
+			DisplayName = u.ExportName != false || !string.IsNullOrWhiteSpace(u.FirstName + u.LastName) ? $"{u.FirstName} {u.LastName}" : "Anonymous referee",
 			AcquiredCertifications = u.RefereeCertifications.Select(rc => DomainCertification.New(rc.Certification.Level, rc.Certification.Version)).ToHashSet(),
 			CoachingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Coach).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
 			PlayingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Player).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
@@ -142,6 +148,7 @@ public class DbRefereeViewContextFactory
 				Status = tt.Status!.Value,
 				JoinedAt = tt.JoinedAt ?? new DateTime(),
 			})).Cast<ITeamContext>().ToList(),
+			Attributes = new UserAttributes(u.Attributes.Select(ua => new Models.Domain.User.UserAttribute(ua.Prefix, ua.Key, JsonDocument.Parse(ua.Attribute, DbUserContextFactory.UserAttributesParseOptions))).ToList())
 		});
 	}
 

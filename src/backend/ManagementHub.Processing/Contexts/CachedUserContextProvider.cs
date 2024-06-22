@@ -15,11 +15,23 @@ public class CachedUserContextProvider : IUserContextProvider
 	private readonly ConcurrentDictionary<UserIdentifier, IUserContext> userContextCache = new();
 	private readonly ConcurrentDictionary<UserIdentifier, IUserDataContext> userDataContextCache = new();
 	private readonly ConcurrentDictionary<UserIdentifier, IUserAvatarContext> userAvatarContextCache = new();
+	private readonly ConcurrentDictionary<UserIdentifier, UserAttributes> userAtrributesCache = new();
 	private readonly IUserContextProvider innerProvider;
 
 	public CachedUserContextProvider(IUserContextProvider innerProvider)
 	{
 		this.innerProvider = innerProvider;
+	}
+
+	public async Task<UserAttributes> GetUserAttributesAsync(UserIdentifier userId, CancellationToken cancellationToken)
+	{
+		if (!this.userAtrributesCache.TryGetValue(userId, out UserAttributes? attributes))
+		{
+			attributes = await this.innerProvider.GetUserAttributesAsync(userId, cancellationToken);
+			this.userAtrributesCache.TryAdd(userId, attributes);
+		}
+
+		return attributes;
 	}
 
 	public async Task<IUserAvatarContext> GetUserAvatarContextAsync(UserIdentifier userId, CancellationToken cancellationToken)

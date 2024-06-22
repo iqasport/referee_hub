@@ -62,7 +62,7 @@ public class DbRefereeTestContextFactory
 						: new HashSet<Certification>(),
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
-					Level = tr.Test != null ? tr.Test.Certification!.Level : tr.TestLevel.Value.ToCertificationLevel(),
+					Level = tr.Test != null ? tr.Test.Certification!.Level : tr.TestLevel!.Value.ToCertificationLevel(),
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,

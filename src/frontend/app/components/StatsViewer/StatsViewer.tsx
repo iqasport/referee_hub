@@ -3,10 +3,10 @@ import React, { useState } from "react";
 import RefereeStats from "../RefereeStats";
 import TeamStatusStats from "../TeamStatusStats";
 import TeamTypeStats from "../TeamTypeStats";
-import { INgbStatsContext } from "../../store/serviceApi";
+import { INgbStatsContextRead } from "../../store/serviceApi";
 
 interface StatsViewerProps {
-  stats: INgbStatsContext[];
+  stats: INgbStatsContextRead[];
 }
 
 enum SelectedStat {

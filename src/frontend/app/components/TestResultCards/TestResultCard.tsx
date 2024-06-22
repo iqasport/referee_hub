@@ -12,10 +12,10 @@ import React from "react";
 import { toDateTime } from "../../utils/dateUtils";
 
 import ResultChart from "./ResultChart";
-import { TestAttemptViewModel } from "../../store/serviceApi";
+import { TestAttemptViewModelRead } from "../../store/serviceApi";
 
 type CardProps = {
-  testResult: TestAttemptViewModel;
+  testResult: TestAttemptViewModelRead;
   isExpanded: boolean;
   onExpandClick: (id: string) => void;
   isDisabled: boolean;

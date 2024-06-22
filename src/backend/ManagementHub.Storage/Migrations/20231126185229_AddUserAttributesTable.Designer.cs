@@ -4,6 +4,7 @@ using System.Net;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231126185229_AddUserAttributesTable")]
+    partial class AddUserAttributesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1610,11 +1613,6 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
-                    b.Property<string>("Prefix")
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("prefix");
-
                     b.Property<string>("Key")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)")
@@ -1634,7 +1632,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("UserId", "Prefix", "Key");
+                    b.HasKey("UserId", "Key");
 
                     b.ToTable("user_attributes", (string)null);
                 });

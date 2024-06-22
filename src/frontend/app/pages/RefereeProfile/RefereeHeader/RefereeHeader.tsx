@@ -93,6 +93,7 @@ const RefereeHeader = (props: HeaderProps) => {
             type="text"
             value={editableUser.pronouns ?? ""}
             onChange={handleStringChange("pronouns")}
+            placeholder="Pronouns"
           />
         </div>
       );
@@ -124,6 +125,7 @@ const RefereeHeader = (props: HeaderProps) => {
           style={{ resize: "none" }}
           onChange={handleStringChange("bio")}
           value={editableUser.bio ?? ""}
+          placeholder="Bio"
         />
       );
     }
@@ -134,7 +136,7 @@ const RefereeHeader = (props: HeaderProps) => {
   // TODO: render errors
   return (
     <div className="flex flex-col lg:flex-row xl:flex-row">
-      <HeaderImage avatarUrl={userAvatar} id={refereeId} isEditable={isEditable} />
+      <HeaderImage avatarUrl={userAvatar as string} id={refereeId} isEditable={isEditable} />
       <div className="w-5/6 ml-8">
         <div className="flex flex-col items-center my-8 md:flex-row lg:flex-row xl:flex-row">
           <div className="flex-shrink w-full lg:mr-5 xl:mr-5 md:w-2/3 lg:w-2/3 xl:w-2/3">
@@ -144,6 +146,7 @@ const RefereeHeader = (props: HeaderProps) => {
                 onChange={handleStringChange}
                 onToggleChange={handleToggleChange}
                 updatedValues={editableUser}
+                originalValues={user}
                 name={name}
               />
             }

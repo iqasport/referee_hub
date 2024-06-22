@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction;
@@ -27,6 +28,7 @@ public record class DbUserContext(UserIdentifier UserId, UserData UserData, IEnu
 
 public class DbUserContextFactory
 {
+	internal static JsonDocumentOptions UserAttributesParseOptions = new JsonDocumentOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip, MaxDepth = 4 };
 	private readonly IQueryable<User> users;
 	private readonly IQueryable<Role> roles;
 	private readonly IQueryable<NationalGoverningBodyAdmin> nationalGoverningBodyAdmins;
@@ -156,5 +158,16 @@ public class DbUserContextFactory
 		}
 
 		return Array.Empty<IUserRole>();
+	}
+
+	public async Task<UserAttributes> GetUserAttributesAsync(UserIdentifier userId, CancellationToken cancellationToken)
+	{
+		var attributes = await this.users.WithIdentifier(userId)
+			.Include(u => u.Attributes)
+			.SelectMany(u => u.Attributes)
+			.Select(ua => new Models.Domain.User.UserAttribute(ua.Prefix, ua.Key, JsonDocument.Parse(ua.Attribute, UserAttributesParseOptions)))
+			.ToListAsync(cancellationToken);
+
+		return new UserAttributes(attributes);
 	}
 }
