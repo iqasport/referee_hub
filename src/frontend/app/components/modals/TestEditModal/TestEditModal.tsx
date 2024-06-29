@@ -257,7 +257,6 @@ const TestEditModal = (props: TestEditModalProps) => {
               className={classnames("form-select mt-1 block w-full", {
                 "border border-red-500": hasError("level"),
               })}
-              placeholder="Select the level"
               name="level"
               onChange={handleChange}
               value={newCert.level || ""}
@@ -276,7 +275,6 @@ const TestEditModal = (props: TestEditModalProps) => {
               name="version"
               onChange={handleChange}
               value={newCert.version}
-              placeholder="Select rulebook version"
             >
               <option value="">Select rulebook version</option>
               {VERSION_OPTIONS.map(renderOption)}

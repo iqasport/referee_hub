@@ -34,7 +34,6 @@ const LanguageDropdown = (props: LanguageDropdownProps) => {
         "border border-red-500": hasError,
       })}
       name={name}
-      placeholder="Select the language"
       onChange={onChange}
       value={value}
     >
