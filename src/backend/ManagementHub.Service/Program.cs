@@ -1,12 +1,15 @@
 using System.Diagnostics;
 using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
+using Excos.Options.Contextual;
+using Excos.Options.Providers.Configuration;
 using DotNetEd.CoreAdmin;
 using Hangfire;
 using ManagementHub.Mailers;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Models.Misc;
+using ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
 using ManagementHub.Processing.Export;
 using ManagementHub.Serialization;
@@ -124,6 +127,9 @@ public static class Program
 		services.AddSingleton<ILocalFileSystemBlobUriBaseProvider, LocalFileSystemBlobUriBaseProvider>();
 
 		services.AddHostedService<EnsureMonthlyStatsSnapshot>();
+
+		services.ConfigureExcos<TestPolicyOverride>("TestPolicy");
+		services.ConfigureExcosFeatures("Features");
 	}
 
 	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
