@@ -181,12 +181,11 @@ const TeamEditModal = (props: TeamEditModalProps) => {
               className={classnames("form-select mt-1 block w-full", {
                 "border border-red-500": hasError("groupAffiliation"),
               })}
-              placeholder="Select the age group"
               name="groupAffiliation"
               onChange={handleInputChange}
               value={newTeam.groupAffiliation || ""}
             >
-              <option value="" />
+              <option value="">Select the age group</option>
               {TYPE_OPTIONS.map(renderOption)}
             </select>
             {hasError("groupAffiliation") && (
@@ -199,12 +198,11 @@ const TeamEditModal = (props: TeamEditModalProps) => {
               className={classnames("form-select mt-1 block w-full", {
                 "border border-red-500": hasError("status"),
               })}
-              placeholder="Select the playing status"
               name="status"
               onChange={handleInputChange}
               value={newTeam.status || ""}
             >
-              <option value="" />
+              <option value="">Select the playing status</option>
               {STATUS_OPTIONS.map(renderOption)}
             </select>
             {hasError("status") && <span className="text-red-500">Status cannot be blank</span>}
