@@ -30,10 +30,10 @@ public partial class User : IIdentifiable
 	public DateTime? ResetPasswordSentAt { get; set; }
 	public DateTime? RememberCreatedAt { get; set; }
 	public int SignInCount { get; set; }
-	public DateTime? CurrentSignInAt { get; set; }
+	public DateTime? CurrentSignInAt { get; set; } // deprecate
 	public DateTime? LastSignInAt { get; set; }
-	public IPAddress? CurrentSignInIp { get; set; }
-	public IPAddress? LastSignInIp { get; set; }
+	public IPAddress? CurrentSignInIp { get; set; } // deprecate
+	public IPAddress? LastSignInIp { get; set; } // deprecate
 	public string? FirstName { get; set; }
 	public string? LastName { get; set; }
 	public string? Bio { get; set; }

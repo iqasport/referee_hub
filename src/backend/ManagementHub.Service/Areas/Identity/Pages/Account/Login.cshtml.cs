@@ -4,7 +4,10 @@
 
 using System.ComponentModel.DataAnnotations;
 using ManagementHub.Models.Abstraction.Commands.Migrations;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Service.Contexts;
+using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,12 +20,16 @@ public class LoginModel : PageModel
 	private readonly SignInManager<UserIdentity> signInManager;
 	private readonly IUserIdMigrationCommand userIdMigrationCommand;
 	private readonly ILogger<LoginModel> logger;
+	private readonly IUserIdentityRepository userIdentityRepository;
+	private readonly ICurrentUserGetter currentUserGetter;
 
-	public LoginModel(SignInManager<UserIdentity> signInManager, IUserIdMigrationCommand userIdMigrationCommand, ILogger<LoginModel> logger)
+	public LoginModel(SignInManager<UserIdentity> signInManager, IUserIdMigrationCommand userIdMigrationCommand, ILogger<LoginModel> logger, IUserIdentityRepository userIdentityRepository, ICurrentUserGetter currentUserGetter)
 	{
 		this.signInManager = signInManager;
 		this.userIdMigrationCommand = userIdMigrationCommand;
 		this.logger = logger;
+		this.userIdentityRepository = userIdentityRepository;
+		this.currentUserGetter = currentUserGetter;
 	}
 
 	/// <summary>
@@ -114,6 +121,8 @@ public class LoginModel : PageModel
 			var result = await this.signInManager.PasswordSignInAsync(this.Input.Email, this.Input.Password, this.Input.RememberMe, lockoutOnFailure: false);
 			if (result.Succeeded)
 			{
+				await this.userIdentityRepository.SetLastLoginTime(new UserIdentity(this.currentUserGetter.CurrentUser, new Email(this.Input.Email)), default);
+
 				this.logger.LogInformation("User logged in.");
 				return this.LocalRedirect(returnUrl);
 			}

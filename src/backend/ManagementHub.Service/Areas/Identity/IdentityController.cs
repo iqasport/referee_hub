@@ -1,15 +1,9 @@
-using Hangfire;
-using ManagementHub.Models.Abstraction.Commands.Mailers;
 using ManagementHub.Models.Abstraction.Commands.Migrations;
-using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
-using ManagementHub.Models.Domain.User.Roles;
-using ManagementHub.Models.Exceptions;
-using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
-using ManagementHub.Service.Extensions;
+using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore.Authentication.BearerToken;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -27,12 +21,16 @@ public class IdentityController : ControllerBase
 	private readonly SignInManager<UserIdentity> signInManager;
 	private readonly IUserIdMigrationCommand userIdMigrationCommand;
 	private readonly ILogger logger;
+	private readonly IUserIdentityRepository userIdentityRepository;
+	private readonly ICurrentUserGetter currentUserGetter;
 
-	public IdentityController(SignInManager<UserIdentity> signInManager, IUserIdMigrationCommand userIdMigrationCommand, ILogger<IdentityController> logger)
+	public IdentityController(SignInManager<UserIdentity> signInManager, IUserIdMigrationCommand userIdMigrationCommand, ILogger<IdentityController> logger, IUserIdentityRepository userIdentityRepository, ICurrentUserGetter currentUserGetter)
 	{
 		this.signInManager = signInManager;
 		this.userIdMigrationCommand = userIdMigrationCommand;
 		this.logger = logger;
+		this.userIdentityRepository = userIdentityRepository;
+		this.currentUserGetter = currentUserGetter;
 	}
 
 	/// <summary>
@@ -53,6 +51,8 @@ public class IdentityController : ControllerBase
 			var result = await this.signInManager.PasswordSignInAsync(input.Email, input.Password, isPersistent: false, lockoutOnFailure: false);
 			if (result.Succeeded)
 			{
+				await this.userIdentityRepository.SetLastLoginTime(new UserIdentity(this.currentUserGetter.CurrentUser, new Email(input.Email)), default);
+
 				// This method returns a Task, because SignInManager is actually writing the contents of the HTTP response.
 				return;
 			}

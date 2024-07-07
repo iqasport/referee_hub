@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Storage.Commands;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace ManagementHub.Storage.Identity;
 
@@ -54,28 +57,23 @@ public class UserIdentityRepository : IUserIdentityRepository
 	}
 
 	public Task SetEmailConfirmationToken(UserIdentity user, string token, CancellationToken cancellationToken) =>
-		this.UpdateUser(dbUser => dbUser.ConfirmationToken = token, user, cancellationToken);
+		this.UpdateUser(u => u.SetProperty(dbUser => dbUser.ConfirmationToken, token), user, cancellationToken);
 
 	public Task UpdateEmailAsync(UserIdentity user, Email newEmail, CancellationToken cancellationToken) =>
-		this.UpdateUser(dbUser => dbUser.Email = newEmail.Value, user, cancellationToken);
+		this.UpdateUser(u => u.SetProperty(dbUser => dbUser.Email, newEmail.Value), user, cancellationToken);
 
 	public Task UpdatePasswordAsync(UserIdentity user, UserPassword password, CancellationToken cancellationToken) =>
-		this.UpdateUser(dbUser => dbUser.EncryptedPassword = password.PasswordHash, user, cancellationToken);
+		this.UpdateUser(u => u.SetProperty(dbUser => dbUser.EncryptedPassword, password.PasswordHash), user, cancellationToken);
 
 	public Task SetEmailConfirmedAsync(UserIdentity user, CancellationToken cancellationToken) =>
-		this.UpdateUser(dbUser => dbUser.ConfirmedAt = DateTime.UtcNow, user, cancellationToken);
+		this.UpdateUser(u => u.SetProperty(dbUser => dbUser.ConfirmedAt, DateTime.UtcNow), user, cancellationToken);
 
-	private async Task UpdateUser(Action<User> updater, UserIdentity user, CancellationToken cancellationToken)
-	{
-		// TODO: convert this method to do ExecuteUpdatesAsync and not load the data at all
-		var dbUser = await this.GetUser(user, cancellationToken);
-		updater(dbUser);
-		dbUser.UpdatedAt = DateTime.UtcNow;
-		await this.dbContext.SaveChangesAsync(cancellationToken);
-	}
+	public Task SetLastLoginTime(UserIdentity user, CancellationToken cancellationToken) =>
+		this.UpdateUser(u => u.SetProperty(dbUser => dbUser.LastSignInAt, DateTime.UtcNow), user, cancellationToken);
 
-	private Task<User> GetUser(UserIdentity user, CancellationToken cancellationToken)
+	private async Task UpdateUser(Expression<Func<SetPropertyCalls<User>, SetPropertyCalls<User>>> updater, UserIdentity user, CancellationToken cancellationToken)
 	{
-		return this.dbContext.Users.SingleAsync(u => u.Email == user.UserEmail.Value, cancellationToken);
+		await this.dbContext.Users.Where(u => u.Email == user.UserEmail.Value)
+			.ExecuteUpdateAsync([updater, u => u.SetProperty(x => x.UpdatedAt, DateTime.UtcNow)], cancellationToken);
 	}
 }

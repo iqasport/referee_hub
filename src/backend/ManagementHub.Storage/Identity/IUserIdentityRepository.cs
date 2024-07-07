@@ -47,5 +47,10 @@ public interface IUserIdentityRepository
 	/// Confirms user had a valid email address at one point.
 	/// </summary>
 	Task SetEmailConfirmedAsync(UserIdentity user, CancellationToken cancellationToken);
+
+	/// <summary>
+	/// Sets the last login time of the user to the current time.
+	/// </summary>
+	Task SetLastLoginTime(UserIdentity user, CancellationToken cancellationToken);
 }
 
