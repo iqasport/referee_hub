@@ -26,15 +26,19 @@ const findHighestCert = (referee: RefereeViewModel): string => {
   });
   if (!Object.keys(certHashMap).length) return "Uncertified";
 
-  const highestTwenty = certHashMap.twenty?.sort(sortByLength)[0];
-  const highestTwentyTwo = certHashMap.twentytwo?.sort(sortByLength)[0];
-  const highestEighteen = certHashMap.eighteen?.sort(sortByLength)[0];
+  // TODO: use correct comparison between cert levels
+  const snitchAsFlag = (level?: string) => level === "snitch" ? "flag" : level;
+  const highestTwenty = snitchAsFlag(certHashMap.twenty?.sort(sortByLength)[0]);
+  const highestTwentyTwo = snitchAsFlag(certHashMap.twentytwo?.sort(sortByLength)[0]);
+  const highestEighteen = snitchAsFlag(certHashMap.eighteen?.sort(sortByLength)[0]);
 
-  if (highestTwentyTwo?.length > 0 && highestTwentyTwo?.length < highestTwenty?.length) {
+  // We will promote current certification first and foremost
+  // We don't care if someone was a HR in 2020 if they only have AR in 2022
+  if (highestTwentyTwo) {
     return `${capitalize(highestTwentyTwo)} ${getVersion("twentytwo")}`;
   }
 
-  if (highestTwenty?.length > 0 && highestTwenty?.length < highestEighteen?.length) {
+  if (highestTwenty) {
     return `${capitalize(highestTwenty)} ${getVersion("twenty")}`;
   }
 

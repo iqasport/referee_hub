@@ -12,6 +12,7 @@ namespace ManagementHub.Storage.Contexts.Ngbs;
 
 using System.Collections.Generic;
 using ManagementHub.Models.Data;
+using Microsoft.Extensions.Internal;
 
 public class DbNgbStatsContext : INgbStatsContext
 {
@@ -61,7 +62,9 @@ public class DbNgbStatsContextFactory
 		IQueryable<NationalGoverningBody> ngbs = this.dbContext.NationalGoverningBodies.AsNoTracking().WithIdentifier(ngb);
 		IQueryable<RefereeLocation> locationsInNgb = this.dbContext.RefereeLocations.AsNoTracking()
 			.Join(ngbs, loc => loc.NationalGoverningBodyId, ngb => ngb.Id, (loc, _) => loc);
-		IQueryable<long> refereeIds = locationsInNgb.Select(l => l.RefereeId);
+		IQueryable<long> refereeIds = this.dbContext.ActiveUsers(new SystemClock(), CurrentVersion)
+			.Join(locationsInNgb, u => u.Id, l => l.RefereeId, (u, l) => u)
+			.Select(u => u.Id);
 		var refereeCount = await refereeIds.CountAsync();
 
 		IQueryable<Certification> currentCertifications = this.dbContext.Certifications.AsNoTracking().Where(c => c.Version == CurrentVersion);

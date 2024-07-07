@@ -41,7 +41,7 @@ const StatBarChart = (props: StatBarChartProps) => {
             style={{display: (entry[bar.dataKey] === 0 || entry[bar.dataKey] > 0) ? '' : 'none'}}/>
         })
       }
-      <LabelList dataKey="type" position="center" angle={270} />
+      <LabelList dataKey="type" position="centerTop" angle={270} />
     </Bar>
   );
 

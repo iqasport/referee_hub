@@ -2,9 +2,8 @@ import { DateTime, Info } from "luxon";
 
 export function toDateTime(timestamp: string): DateTime {
   if (!timestamp) return DateTime.local();
-  const parseTime = timestamp.match(/ UTC$/) ? timestamp.slice(0, -3).trim() : timestamp;
 
-  return DateTime.fromISO(parseTime);
+  return DateTime.fromISO(timestamp, {zone: "utc"});
 }
 
 export function getMonths(): string[] {

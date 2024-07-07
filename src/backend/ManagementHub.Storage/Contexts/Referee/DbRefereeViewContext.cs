@@ -20,6 +20,7 @@ using ManagementHub.Storage.Contexts.Team;
 using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using DomainCertification = ManagementHub.Models.Domain.Tests.Certification;
 
@@ -170,6 +171,6 @@ public class DbRefereeViewContextFactory
 	{
 		this.logger.LogInformation(0x42d8be01, "Creating referee profile query with constraint [{ngbConstraint}]", ngbs);
 
-		return this.QueryRefereesByNgb(this.dbContext.Users, ngbs);
+		return this.QueryRefereesByNgb(this.dbContext.ActiveUsers(new SystemClock(), CertificationVersion.TwentyTwo), ngbs);
 	}
 }
