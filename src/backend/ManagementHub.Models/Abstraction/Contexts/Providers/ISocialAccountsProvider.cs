@@ -10,4 +10,7 @@ public interface ISocialAccountsProvider
 	Task<Dictionary<TeamIdentifier, IEnumerable<SocialAccount>>> QueryTeamSocialAccounts(NgbConstraint ngbConstraint);
 
 	Task<Dictionary<NgbIdentifier, IEnumerable<SocialAccount>>> QueryNgbSocialAccounts(NgbConstraint ngbConstraint);
+
+	Task<IEnumerable<SocialAccount>> UpdateTeamSocialAccounts(TeamIdentifier teamId, IEnumerable<SocialAccount> socialAccounts);
+	Task<IEnumerable<SocialAccount>> GetTeamSocialAccounts(TeamIdentifier teamId);
 }

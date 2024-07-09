@@ -6,6 +6,6 @@ namespace ManagementHub.Models.Domain.User.Roles;
 /// <summary>
 /// Role that allows a person to view referees that match the NgbConstraint.
 /// </summary>
-public record RefereeViewerRole(NgbConstraint Ngb) : IUserRole
+public record RefereeViewerRole(NgbConstraint Ngb) : INgbUserRole
 {
 }

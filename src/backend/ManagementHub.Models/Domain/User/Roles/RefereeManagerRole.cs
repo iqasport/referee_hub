@@ -7,6 +7,6 @@ namespace ManagementHub.Models.Domain.User.Roles;
 /// Role that allows a person to manage referees that match the NgbConstraint.
 /// Allows disactivating referees, approve verification requests.
 /// </summary>
-public record RefereeManagerRole(NgbConstraint Ngb) : IUserRole
+public record RefereeManagerRole(NgbConstraint Ngb) : INgbUserRole
 {
 }

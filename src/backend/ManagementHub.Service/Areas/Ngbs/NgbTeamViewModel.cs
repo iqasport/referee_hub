@@ -29,7 +29,7 @@ public class NgbTeamViewModel
 	/// <summary>
 	/// The country the team is based in (for multi country Ngbs).
 	/// </summary>
-	public string? Country { get; set; }
+	public required string Country { get; set; }
 
 	/// <summary>
 	/// Team status.

@@ -29,7 +29,7 @@ public static class AuthorizationPolicies
 	public static void AddNgbAdminPolicy(this AuthorizationOptions options) =>
 		options.AddPolicy(NgbAdminPolicy, policy =>
 		{
-			policy.AddRequirements(new UserRoleAuthorizationRequirement<NgbAdminRole>());
+			policy.AddRequirements(new NgbUserRoleAuthorizationRequirement<NgbAdminRole>());
 		});
 
 	public const string TechAdminPolicy = nameof(TechAdminPolicy);

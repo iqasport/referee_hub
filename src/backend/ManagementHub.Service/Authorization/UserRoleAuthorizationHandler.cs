@@ -12,11 +12,13 @@ public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthori
 {
 	private readonly IUserContextAccessor currentContextAccessor;
 	private readonly ILogger<UserRoleAuthorizationHandler> logger;
+	private readonly IHttpContextAccessor httpContextAccessor;
 
-	public UserRoleAuthorizationHandler(IUserContextAccessor currentContextAccessor, ILogger<UserRoleAuthorizationHandler> logger)
+	public UserRoleAuthorizationHandler(IUserContextAccessor currentContextAccessor, ILogger<UserRoleAuthorizationHandler> logger, IHttpContextAccessor httpContextAccessor)
 	{
 		this.currentContextAccessor = currentContextAccessor;
 		this.logger = logger;
+		this.httpContextAccessor = httpContextAccessor;
 	}
 
 	protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, UserRoleAuthorizationRequirement requirement)
@@ -33,9 +35,14 @@ public class UserRoleAuthorizationHandler : AuthorizationHandler<UserRoleAuthori
 			return;
 		}
 
+		var authContext = new AuthorizationContext
+		{
+			RouteParameters = this.httpContextAccessor.HttpContext!.GetRouteData().Values,
+		};
+
 		foreach (var userRole in userContext.Roles)
 		{
-			if (requirement.Satisfies(userRole))
+			if (requirement.Satisfies(userRole, authContext))
 			{
 				this.logger.LogInformation(0x25719400, "{requirement} has been satisfied.", requirement);
 				context.Succeed(requirement);
