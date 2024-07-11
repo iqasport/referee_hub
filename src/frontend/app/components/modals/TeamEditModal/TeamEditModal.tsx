@@ -1,37 +1,35 @@
 import classnames from "classnames";
 import { capitalize } from "lodash";
 import { DateTime } from "luxon";
-import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useMemo, useState } from "react";
 
-import { UpdateTeamRequest } from "../../../apis/team";
-import { createTeam, getTeam, updateTeam } from "../../../modules/team/team";
-import { RootState } from "../../../rootReducer";
 import { toDateTime } from "../../../utils/dateUtils";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
-import { AppDispatch } from "../../../store";
+import { NgbTeamViewModel, SocialAccount, TeamGroupAffiliation, TeamStatus, useCreateNgbTeamMutation, useUpdateNgbTeamMutation } from "../../../store/serviceApi";
+import { urlType } from "../../../utils/socialUtils";
 
-const STATUS_OPTIONS = ["competitive", "developing", "inactive"];
-const TYPE_OPTIONS = ["community", "university", "youth"];
-const REQUIRED_FIELDS = ["name", "city", "country", "groupAffiliation", "status"];
-const DATE_FORMAT = "yyyy-LL-dd";
-const initialNewTeam: UpdateTeamRequest = {
+const STATUS_OPTIONS: TeamStatus[] = ["competitive", "developing", "inactive"];
+const TYPE_OPTIONS: TeamGroupAffiliation[] = ["community", "university", "youth"];
+const REQUIRED_FIELDS: (keyof NgbTeamViewModel)[] = ["name", "city", "country", "groupAffiliation", "status"];
+const DATE_FORMAT = "yyyy-MM-dd";
+
+const currentDay = DateTime.local().toFormat(DATE_FORMAT);
+const initialNewTeam: NgbTeamViewModel = {
   city: "",
   country: "",
   groupAffiliation: null,
-  joinedAt: "",
+  joinedAt: currentDay,
   name: "",
-  nationalGoverningBodyId: "",
   state: "",
   status: null,
-  urls: [],
+  socialAccounts: [],
 };
 
-const validateInput = (team: UpdateTeamRequest): string[] => {
+const validateInput = (team: NgbTeamViewModel): string[] => {
   return Object.keys(team).filter((dataKey: string) => {
-    if (REQUIRED_FIELDS.includes(dataKey) && !team[dataKey]) {
+    if (REQUIRED_FIELDS.includes(dataKey as keyof NgbTeamViewModel) && !team[dataKey]) {
       return true;
     }
     return false;
@@ -41,36 +39,35 @@ const validateInput = (team: UpdateTeamRequest): string[] => {
 interface TeamEditModalProps extends Omit<ModalProps, "size"> {
   teamId?: string;
   ngbId: string;
+  team?: NgbTeamViewModel;
 }
 
 const TeamEditModal = (props: TeamEditModalProps) => {
-  const { teamId, onClose, ngbId } = props;
+  const { team, teamId, onClose, ngbId } = props;
+
+  // original urls are used as input to the url editor which needs a constant initial value
+  const originalUrls = useMemo(() => team?.socialAccounts.map(sa => sa.url) || [], [team]);
 
   const [errors, setErrors] = useState<string[]>();
   const [hasChangedTeam, setHasChangedTeam] = useState(false);
-  const [newTeam, setNewTeam] = useState<UpdateTeamRequest>(initialNewTeam);
+  const [newTeam, setNewTeam] = useState<NgbTeamViewModel>(initialNewTeam);
   const [urls, setUrls] = useState<string[]>();
-  const { team, socialAccounts } = useSelector((state: RootState) => state.team, shallowEqual);
-  const dispatch = useDispatch<AppDispatch>();
 
   const formType = teamId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
-  const currentDay = DateTime.local().toFormat(DATE_FORMAT);
 
-  useEffect(() => {
-    if (teamId) {
-      dispatch(getTeam(teamId, ngbId));
-    }
-  }, [teamId, dispatch]);
+  const [createTeam, {data: createTeamData, error: createTeamError, isLoading: isCreateTeamLoading}] = useCreateNgbTeamMutation();
+  const [updateTeam, {data: updateTeamData, error: updateTeamError, isLoading: isUpdateTeamLoading}] = useUpdateNgbTeamMutation();
+  // TODO: handle errors and show loading spinner
+  // upon submit it should wait until *Data is not undefined before closing the modal
 
   useEffect(() => {
     if (team && teamId) {
-      const existingUrls = socialAccounts.length
-        ? socialAccounts.map((account) => account.url)
-        : [];
-      setNewTeam({ ...team, urls: existingUrls, nationalGoverningBodyId: ngbId });
+      // copy data over to the local state for mutation
+      setUrls(team.socialAccounts.map(sa => sa.url))
+      setNewTeam({ ...team});
     }
-  }, [team, socialAccounts]);
+  }, [team]);
 
   const handleSubmit = () => {
     const validationErrors = validateInput(newTeam);
@@ -79,11 +76,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       return null;
     }
 
-    const teamToSend = { ...newTeam, urls, nationalGoverningBodyId: ngbId };
+    const accounts: SocialAccount[] = urls.map(url => ({url, type: urlType(url) }))
+    const teamObject: NgbTeamViewModel = {...newTeam, socialAccounts: accounts};
     if (teamId) {
-      dispatch(updateTeam(teamId, teamToSend));
+      updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
     } else {
-      dispatch(createTeam(teamToSend));
+      createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
     }
 
     setHasChangedTeam(false);
@@ -97,10 +95,6 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     let { value } = event.target;
     const { name } = event.target;
-
-    if (name === "joinedAt") {
-      value = DateTime.fromFormat(value, DATE_FORMAT).toSQL().toString();
-    }
 
     setHasChangedTeam(true);
     handleDataChange(name, value);
@@ -185,7 +179,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
               onChange={handleInputChange}
               value={newTeam.groupAffiliation || ""}
             >
-              <option value="">Select the age group</option>
+              <option value="">Select the team type</option>
               {TYPE_OPTIONS.map(renderOption)}
             </select>
             {hasError("groupAffiliation") && (
@@ -224,7 +218,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         <div className="w-full my-8">
           <label>
             <span className="text-gray-700">Social Media</span>
-            <MultiInput onChange={handleUrlChange} values={newTeam.urls || []} />
+            <MultiInput onChange={handleUrlChange} values={originalUrls} />
           </label>
         </div>
         <div className="w-full text-center">

@@ -9,7 +9,7 @@ public class NgbTeamViewModel
 	/// <summary>
 	/// Team identifier.
 	/// </summary>
-	public required TeamIdentifier TeamId { get; set; }
+	public TeamIdentifier TeamId { get; set; }
 
 	/// <summary>
 	/// Team name.

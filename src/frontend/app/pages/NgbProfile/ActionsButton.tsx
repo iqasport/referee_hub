@@ -27,12 +27,12 @@ const ActionsButton = (props: ActionsButtonProps) => {
     /*{
       content: "Edit",
       onClick: onEditClick,
-    },
+    },*/
     {
       content: "Create Team",
       onClick: onTeamClick,
     },
-    {
+    /*{
       content: "Import",
       onClick: onImportClick,
     },*/ // TODO: unblock functionality once implemented

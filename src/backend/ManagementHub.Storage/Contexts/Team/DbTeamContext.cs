@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
@@ -23,14 +25,19 @@ public class DbTeamContextFactory
 		this.filteringContext = filteringContext;
 	}
 
-	public IQueryable<ITeamContext> QueryTeams(NgbConstraint ngbs)
+	public IQueryable<Models.Data.Team> QueryTeamsInternal(NgbConstraint ngbs, Func<IQueryable<Models.Data.Team>, IQueryable<Models.Data.Team>>? extraQuery = null)
 	{
-		IQueryable<Models.Data.Team> t = this.dbContext.Teams.AsNoTracking()
+		IQueryable<Models.Data.Team> t = this.dbContext.Teams
 				.Include(t => t.NationalGoverningBody);
 
 		if (!ngbs.AppliesToAny)
 		{
 			t = t.Join(this.dbContext.NationalGoverningBodies.WithConstraint(ngbs), tt => tt.NationalGoverningBodyId, n => n.Id, (tt, n) => tt);
+		}
+
+		if (extraQuery != null)
+		{
+			t = extraQuery(t);
 		}
 
 		t = t.OrderBy(x => x.Name);
@@ -63,8 +70,106 @@ public class DbTeamContextFactory
 
 		t = t.Page(this.filteringContext.FilteringParameters);
 
-		return t.Select(Selector);
+		return t;
 	}
+
+	public IQueryable<ITeamContext> QueryTeams(NgbConstraint ngbs) => this.QueryTeamsInternal(ngbs).AsNoTracking().Select(Selector);
+
+	public async Task<ITeamContext> CreateTeamAsync(NgbIdentifier ngb, TeamData teamData)
+	{
+		var ngbDbId = await this.dbContext.NationalGoverningBodies.WithIdentifier(ngb).Select(n => n.Id).SingleOrDefaultAsync();
+		if (ngbDbId == default)
+		{
+			throw new ArgumentException($"NGB {ngb} not found", nameof(ngb));
+		}
+
+		var team = new Models.Data.Team
+		{
+			NationalGoverningBodyId = ngbDbId,
+			Name = teamData.Name,
+			City = teamData.City,
+			State = teamData.State,
+			Country = teamData.Country,
+			GroupAffiliation = teamData.GroupAffiliation,
+			Status = teamData.Status,
+			JoinedAt = teamData.JoinedAt,
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
+		};
+
+		this.dbContext.Teams.Add(team);
+		var written = await this.dbContext.SaveChangesAsync();
+		if (written == 0)
+		{
+			throw new InvalidOperationException("Failed to create team");
+		}
+
+		Debug.Assert(team.Id != default);
+		return FromDatabase(team, ngb);
+	}
+
+	public async Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)
+	{
+		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
+		var team = this.QueryTeamsInternal(NgbConstraint.Single(ngb), q => q.Where(t => t.Id == teamId.Id)).SingleOrDefault();
+		if (team == null)
+		{
+			throw new ArgumentException($"Team {teamId} was not found in NGB {ngb}");
+		}
+
+		var previousStatus = team.Status!.Value;
+
+		team.Name = teamData.Name;
+		team.City = teamData.City;
+		team.State = teamData.State;
+		team.Country = teamData.Country;
+		team.GroupAffiliation = teamData.GroupAffiliation;
+		team.Status = teamData.Status;
+		team.JoinedAt = teamData.JoinedAt;
+		team.UpdatedAt = DateTime.UtcNow;
+
+		if (previousStatus != teamData.Status)
+		{
+			team.TeamStatusChangesets.Add(new Models.Data.TeamStatusChangeset
+			{
+				TeamId = team.Id,
+				PreviousStatus = previousStatus.ToString(),
+				NewStatus = teamData.Status.ToString(),
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			});
+		}
+
+		await this.dbContext.SaveChangesAsync();
+		await transaction.CommitAsync();
+
+		return FromDatabase(team, ngb);
+	}
+
+	public async Task DeleteTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId)
+	{
+		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
+		
+		// TODO: remove referee team links
+
+		await this.dbContext.TeamStatusChangesets.Where(tsc => tsc.TeamId == teamId.Id).ExecuteDeleteAsync();
+		// TODO: rewrite this to be simpler
+		var deleted = await this.QueryTeamsInternal(NgbConstraint.Single(ngb), q => q.Where(t => t.Id == teamId.Id)).ExecuteDeleteAsync();
+		
+		Debug.Assert(deleted == 1);
+		await transaction.CommitAsync();
+	}
+
+	public static DbTeamContext FromDatabase(Models.Data.Team tt, NgbIdentifier ngb) => new DbTeamContext(new TeamIdentifier(tt.Id), ngb, new TeamData
+	{
+		Name = tt.Name,
+		City = tt.City,
+		State = tt.State,
+		Country = tt.Country,
+		GroupAffiliation = tt.GroupAffiliation!.Value,
+		Status = tt.Status!.Value,
+		JoinedAt = tt.JoinedAt ?? new DateTime(),
+	});
 
 	public static Expression<Func<Models.Data.Team, DbTeamContext>> Selector = tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
 	{

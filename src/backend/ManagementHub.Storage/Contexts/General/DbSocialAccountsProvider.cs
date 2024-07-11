@@ -19,6 +19,12 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 		this.dbContext = dbContext;
 	}
 
+	public async Task<IEnumerable<SocialAccount>> GetTeamSocialAccounts(TeamIdentifier teamId)
+	{
+		return await this.dbContext.SocialAccounts.AsNoTracking().Where(sa => sa.OwnableType == "Team" && sa.OwnableId == teamId.Id)
+			.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)).ToListAsync();
+	}
+
 	public Task<Dictionary<NgbIdentifier, IEnumerable<SocialAccount>>> QueryNgbSocialAccounts(NgbConstraint ngbConstraint)
 	{
 		return this.dbContext.SocialAccounts.AsNoTracking().Where(sa => sa.OwnableType == "NationalGoverningBody")
@@ -34,5 +40,27 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 			.Join(teams, sa => sa.OwnableId, t => t.Id, (sa, t) => new { TeamId = t.Id, sa.Url, sa.AccountType })
 			.GroupBy(sa => sa.TeamId)
 			.ToDictionaryAsync(g => new TeamIdentifier(g.Key), g => g.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)));
+	}
+
+	public async Task<IEnumerable<SocialAccount>> UpdateTeamSocialAccounts(TeamIdentifier teamId, IEnumerable<SocialAccount> socialAccounts)
+	{
+		var socialAccountsList = socialAccounts.ToList();
+		var existingSocialAccounts = await this.dbContext.SocialAccounts.Where(sa => sa.OwnableType == "Team" && sa.OwnableId == teamId.Id).ToListAsync();
+		var socialAccountsToRemove = existingSocialAccounts.Where(sa => !socialAccountsList.Any(s => s.Url.OriginalString == sa.Url && s.Type == sa.AccountType)).ToList();
+		var socialAccountsToAdd = socialAccountsList.Where(s => !existingSocialAccounts.Any(sa => sa.Url == s.Url.OriginalString && sa.AccountType == s.Type)).ToList();
+
+		this.dbContext.SocialAccounts.RemoveRange(socialAccountsToRemove);
+		this.dbContext.SocialAccounts.AddRange(socialAccountsToAdd.Select(s => new Models.Data.SocialAccount
+		{
+			OwnableType = "Team",
+			OwnableId = teamId.Id,
+			Url = s.Url.OriginalString,
+			AccountType = s.Type
+		}));
+
+		await this.dbContext.SaveChangesAsync();
+
+		return await this.dbContext.SocialAccounts.Where(sa => sa.OwnableType == "Team" && sa.OwnableId == teamId.Id)
+			.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)).ToListAsync();
 	}
 }

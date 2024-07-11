@@ -115,30 +115,10 @@ public class NgbsController : ControllerBase
 			}).AsFiltered();
 	}
 
-	[HttpGet("{ngb}/teams/{teamId}")]
-	[Tags("Team")]
-	public async Task<IActionResult> GetTeam([FromRoute] NgbIdentifier ngb, [FromRoute] TeamIdentifier teamId)
-	{
-		var team = await this.teamContextProvider.GetTeamAsync(ngb, teamId);
-		var socialAccounts = await this.socialAccountsProvider.GetTeamSocialAccounts(team.TeamId);
-		return this.Ok(new NgbTeamViewModel
-		{
-			TeamId = team.TeamId,
-			City = team.TeamData.City,
-			GroupAffiliation = team.TeamData.GroupAffiliation,
-			Name = team.TeamData.Name,
-			Status = team.TeamData.Status,
-			State = team.TeamData.State,
-			Country = team.TeamData.Country,
-			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-			SocialAccounts = socialAccounts,
-		});
-	}
-
 	[HttpPost("{ngb}/teams")]
 	[Tags("Team")]
 	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
-	public async Task<IActionResult> CreateTeam([FromRoute] NgbIdentifier ngb, [FromBody] NgbTeamViewModel viewModel)
+	public async Task<NgbTeamViewModel> CreateNgbTeam([FromRoute] NgbIdentifier ngb, [FromBody] NgbTeamViewModel viewModel)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var permissionConstraint = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
@@ -150,7 +130,7 @@ public class NgbsController : ControllerBase
 
 		if (viewModel.TeamId != default)
 		{
-			return this.BadRequest("TeamId must not be specified when creating a team. Did you mean to use PUT method to update a team?");
+			throw new ArgumentException("TeamId must not be specified when creating a team. Did you mean to use PUT method to update a team?");
 		}
 
 		var teamData = new TeamData
@@ -165,7 +145,7 @@ public class NgbsController : ControllerBase
 		};
 		var team = await this.teamContextProvider.CreateTeamAsync(ngb, teamData);
 		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
-		return this.Ok(new NgbTeamViewModel
+		return new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,
 			City = team.TeamData.City,
@@ -176,13 +156,13 @@ public class NgbsController : ControllerBase
 			Country = team.TeamData.Country,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts,
-		});
+		};
 	}
 
 	[HttpPut("{ngb}/teams/{teamId}")]
 	[Tags("Team")]
 	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
-	public async Task<IActionResult> UpdateTeam([FromRoute] NgbIdentifier ngb, [FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
+	public async Task<NgbTeamViewModel> UpdateNgbTeam([FromRoute] NgbIdentifier ngb, [FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var permissionConstraint = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
@@ -194,7 +174,7 @@ public class NgbsController : ControllerBase
 
 		if (viewModel.TeamId != teamId)
 		{
-			return this.BadRequest("Team id mismatch between URL and request body.");
+			throw new ArgumentException("Team id mismatch between URL and request body.");
 		}
 
 		var teamData = new TeamData
@@ -209,7 +189,7 @@ public class NgbsController : ControllerBase
 		};
 		var team = await this.teamContextProvider.UpdateTeamAsync(ngb, teamId, teamData);
 		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
-		return this.Ok(new NgbTeamViewModel
+		return new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,
 			City = team.TeamData.City,
@@ -220,13 +200,14 @@ public class NgbsController : ControllerBase
 			Country = team.TeamData.Country,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts,
-		});
+		};
 	}
 
 	[HttpDelete("{ngb}/teams/{teamId}")]
 	[Tags("Team")]
 	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
-	public async Task<IActionResult> DeleteTeam([FromRoute] NgbIdentifier ngb, [FromRoute] TeamIdentifier teamId)
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	public async Task<IActionResult> DeleteNgbTeam([FromRoute] NgbIdentifier ngb, [FromRoute] TeamIdentifier teamId)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var permissionConstraint = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
@@ -237,9 +218,12 @@ public class NgbsController : ControllerBase
 		}
 
 		// we have to first get the team to validate it belongs to the NGB
-		var team = await this.teamContextProvider.GetTeamAsync(ngb, teamId);
+		if(!await this.teamContextProvider.CheckTeamExistsInNgbAsync(ngb, teamId))
+		{
+			throw new AccessDeniedException(teamId.ToString());
+		}
 
-		_ = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, []);
+		_ = await this.socialAccountsProvider.UpdateTeamSocialAccounts(teamId, []);
 		await this.teamContextProvider.DeleteTeamAsync(ngb, teamId);
 		return this.NoContent();
 	}

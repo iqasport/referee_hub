@@ -7,7 +7,8 @@ import WarningModal from "../../../components/modals/WarningModal";
 import Table, { CellConfig } from "../../../components/tables/Table/Table";
 
 import ActionDropdown from "./ActionDropdown";
-import { NgbTeamViewModel, useGetNgbTeamsQuery } from "../../../store/serviceApi";
+import { NgbTeamViewModel, useDeleteNgbTeamMutation, useGetNgbTeamsQuery } from "../../../store/serviceApi";
+import { getErrorString } from "../../../utils/errorUtils";
 
 enum ModalType {
   Edit = "edit",
@@ -26,6 +27,7 @@ const TeamTable = (props: TeamTableProps) => {
   const [page, setPage] = useState(1);
 
   const { data: teams, isLoading } = useGetNgbTeamsQuery({ngb: ngbId, filter, page, pageSize: 25})
+  const [deleteTeam, {error: deleteTeamError}] = useDeleteNgbTeamMutation();
 
   const handleCloseModal = () => setOpenModal(null);
   const handleEditClick = (teamId: string) => {
@@ -37,7 +39,7 @@ const TeamTable = (props: TeamTableProps) => {
     setOpenModal(ModalType.Delete);
   };
   const handleDeleteConfirm = () => {
-    //dispatch(deleteTeam(activeTeamId, ngbId)); TODO
+    deleteTeam({ngb: ngbId, teamId: activeTeamId});
     handleCloseModal();
   };
 
@@ -61,6 +63,7 @@ const TeamTable = (props: TeamTableProps) => {
             onClose={handleCloseModal}
             showClose={true}
             ngbId={ngbId}
+            team={teams.items.filter(t => t.teamId === activeTeamId)[0]}
           />
         );
       case ModalType.Delete:
@@ -80,7 +83,7 @@ const TeamTable = (props: TeamTableProps) => {
 
   const renderEmpty = () => <h2>No teams found</h2>;
 
-  const HEADER_CELLS = ["name", "city", "joined date", "type", "status"/*, "actions"*/];
+  const HEADER_CELLS = ["name", "city", "joined date", "type", "status", "actions"];
   const rowConfig: CellConfig<NgbTeamViewModel>[] = [
     {
       cellRenderer: (item: NgbTeamViewModel) => {
@@ -113,11 +116,11 @@ const TeamTable = (props: TeamTableProps) => {
       },
       dataKey: "status",
     },
-    /*{
+    {
       cellRenderer: (item: NgbTeamViewModel) => {
         return (
           <ActionDropdown
-            teamId={item.teamId.id.toString()}
+            teamId={item.teamId.toString()}
             onEditClick={handleEditClick}
             onDeleteClick={handleDeleteClick}
           />
@@ -125,11 +128,12 @@ const TeamTable = (props: TeamTableProps) => {
       },
       customStyle: "text-right",
       dataKey: "actions",
-    },*/
+    },
   ];
 
   return (
     <div className="w-full">
+      {deleteTeamError && <span style={{color: "red"}}>{getErrorString(deleteTeamError)}</span>}
       {teams?.items?.length > 0 && (
         <FilterToolbar
           currentPage={page}

@@ -178,6 +178,29 @@ const injectedRtkApi = api
         }),
         providesTags: ["Team"],
       }),
+      createNgbTeam: build.mutation<CreateNgbTeamApiResponse, CreateNgbTeamApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
+          method: "POST",
+          body: queryArg.ngbTeamViewModel,
+        }),
+        invalidatesTags: ["Team"],
+      }),
+      updateNgbTeam: build.mutation<UpdateNgbTeamApiResponse, UpdateNgbTeamApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}`,
+          method: "PUT",
+          body: queryArg.ngbTeamViewModel,
+        }),
+        invalidatesTags: ["Team"],
+      }),
+      deleteNgbTeam: build.mutation<DeleteNgbTeamApiResponse, DeleteNgbTeamApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Team"],
+      }),
       getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
         query: (queryArg) => ({ url: `/api/v2/referees/me/tests/${queryArg.testId}/details` }),
         providesTags: ["Tests"],
@@ -341,6 +364,22 @@ export type GetNgbTeamsApiArg = {
   pageSize?: number;
   skipPaging?: boolean;
 };
+export type CreateNgbTeamApiResponse = /** status 200 Success */ NgbTeamViewModel;
+export type CreateNgbTeamApiArg = {
+  ngb: string;
+  ngbTeamViewModel: NgbTeamViewModel;
+};
+export type UpdateNgbTeamApiResponse = /** status 200 Success */ NgbTeamViewModel;
+export type UpdateNgbTeamApiArg = {
+  ngb: string;
+  teamId: string;
+  ngbTeamViewModel: NgbTeamViewModel;
+};
+export type DeleteNgbTeamApiResponse = unknown;
+export type DeleteNgbTeamApiArg = {
+  ngb: string;
+  teamId: string;
+};
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
   testId: string;
@@ -395,6 +434,7 @@ export type NgbConstraintRead = {
   appliesToAny?: boolean;
 };
 export type ExportResponse = {
+  /** Id of the background job scheduled to process this task. */
   jobId?: string | null;
 };
 export type AccessTokenResponse = {
@@ -420,13 +460,19 @@ export type FilteringMetadata = {
 export type NgbRegion = "north_america" | "south_america" | "europe" | "africa" | "asia";
 export type NgbMembershipStatus = "area_of_interest" | "emerging" | "developing" | "full";
 export type NgbViewModel = {
+  /** The identifier of the NGB. */
   countryCode?: string | null;
+  /** Official name of the NGB. */
   name?: string | null;
+  /** Country name where NGB is located. */
   country?: string | null;
+  /** 3 letter country acronym. */
   acronym?: string | null;
   region?: NgbRegion;
   membershipStatus?: NgbMembershipStatus;
+  /** Website of the NGB. */
   website?: string | null;
+  /** Number of players as declared by the NGB. */
   playerCount?: number;
 };
 export type NgbViewModelFiltered = {
@@ -456,13 +502,19 @@ export type SocialAccount = {
   type?: SocialAccountType;
 };
 export type NgbInfoViewModel = {
+  /** The identifier of the NGB. */
   countryCode?: string | null;
+  /** Official name of the NGB. */
   name?: string | null;
+  /** Country name where NGB is located. */
   country?: string | null;
+  /** 3 letter country acronym. */
   acronym?: string | null;
   region?: NgbRegion;
   membershipStatus?: NgbMembershipStatus;
+  /** Website of the NGB. */
   website?: string | null;
+  /** Number of players as declared by the NGB. */
   playerCount?: number;
   currentStats?: INgbStatsContext;
   historicalStats?: INgbStatsContext[] | null;
@@ -470,13 +522,19 @@ export type NgbInfoViewModel = {
   avatarUri?: string | null;
 };
 export type NgbInfoViewModelRead = {
+  /** The identifier of the NGB. */
   countryCode?: string | null;
+  /** Official name of the NGB. */
   name?: string | null;
+  /** Country name where NGB is located. */
   country?: string | null;
+  /** 3 letter country acronym. */
   acronym?: string | null;
   region?: NgbRegion;
   membershipStatus?: NgbMembershipStatus;
+  /** Website of the NGB. */
   website?: string | null;
+  /** Number of players as declared by the NGB. */
   playerCount?: number;
   currentStats?: INgbStatsContextRead;
   historicalStats?: INgbStatsContextRead[] | null;
@@ -508,29 +566,47 @@ export type RefereeTestAvailableViewModel = {
 };
 export type TestAttemptFinishMethod = "Timeout" | "Submission";
 export type TestAttemptViewModel = {
+  /** Id of this attempt. */
   attemptId?: string;
+  /** Identifier of the attempted test. */
   testId?: string;
   level?: CertificationLevel;
+  /** When the attempt was started. */
   startedAt?: string;
+  /** When the attempt was finished (either through submission or timeout). */
   finishedAt?: string | null;
   finishMethod?: TestAttemptFinishMethod;
+  /** Score of the finished attempt. */
   score?: number | null;
+  /** Minimum score required to pass. */
   passPercentage?: number | null;
+  /** Whether the score was enough to pass the test. (saved in case the test was later modified) */
   passed?: boolean | null;
+  /** New certifications the referee was awarded with this attempt if passed. */
   awardedCertifications?: Certification[] | null;
 };
 export type TestAttemptViewModelRead = {
+  /** Id of this attempt. */
   attemptId?: string;
+  /** Identifier of the attempted test. */
   testId?: string;
   level?: CertificationLevel;
+  /** When the attempt was started. */
   startedAt?: string;
+  /** Whether the test attempt is still in progress. */
   isInProgress?: boolean;
+  /** When the attempt was finished (either through submission or timeout). */
   finishedAt?: string | null;
   finishMethod?: TestAttemptFinishMethod;
+  /** Score of the finished attempt. */
   score?: number | null;
+  /** Minimum score required to pass. */
   passPercentage?: number | null;
+  /** Whether the score was enough to pass the test. (saved in case the test was later modified) */
   passed?: boolean | null;
+  /** New certifications the referee was awarded with this attempt if passed. */
   awardedCertifications?: Certification[] | null;
+  /** Duration of the test. */
   duration?: string | null;
 };
 export type Answer = {
@@ -563,7 +639,9 @@ export type RefereeTeamUpdater = {
   id?: string;
 };
 export type RefereeUpdateViewModel = {
+  /** Primary NGB this referee is located in. */
   primaryNgb?: string | null;
+  /** Secondary NGB this referee is located in. */
   secondaryNgb?: string | null;
   playingTeam?: RefereeTeamUpdater;
   coachingTeam?: RefereeTeamUpdater;
@@ -573,13 +651,19 @@ export type TeamIndicator = {
   name?: string | null;
 };
 export type RefereeViewModel = {
+  /** User ID of the referee. */
   userId?: string;
+  /** Name of the referee (or "Anonymous" if they disallow exporting). */
   name?: string | null;
+  /** Primary NGB this referee is located in. */
   primaryNgb?: string | null;
+  /** Secondary NGB this referee is located in. */
   secondaryNgb?: string | null;
   playingTeam?: TeamIndicator;
   coachingTeam?: TeamIndicator;
+  /** Certifications acquired by this referee. */
   acquiredCertifications?: Certification[] | null;
+  /** User attributes of this referee. */
   attributes?: {
     [key: string]: any;
   } | null;
@@ -604,10 +688,15 @@ export type CertificationProduct = {
 export type TeamStatus = "competitive" | "developing" | "inactive" | "other";
 export type TeamGroupAffiliation = "university" | "community" | "youth" | "not_applicable";
 export type NgbTeamViewModel = {
+  /** Team identifier. */
   teamId?: string;
+  /** Team name. */
   name?: string | null;
+  /** The city the team is based in. */
   city?: string | null;
+  /** The state the team is based in. */
   state?: string | null;
+  /** The country the team is based in (for multi country Ngbs). */
   country?: string | null;
   status?: TeamStatus;
   groupAffiliation?: TeamGroupAffiliation;
@@ -676,6 +765,9 @@ export const {
   useGetNgbRefereesQuery,
   useGetAvailablePaymentsQuery,
   useGetNgbTeamsQuery,
+  useCreateNgbTeamMutation,
+  useUpdateNgbTeamMutation,
+  useDeleteNgbTeamMutation,
   useGetTestDetailsQuery,
   useGetCurrentUserQuery,
   usePutRootUserAttributeMutation,

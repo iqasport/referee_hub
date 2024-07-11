@@ -8,7 +8,7 @@ public interface ITeamContextProvider
 {
 	Task<ITeamContext> CreateTeamAsync(NgbIdentifier ngb, TeamData teamData);
 	Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData);
-	Task<ITeamContext> GetTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId);
+	Task<bool> CheckTeamExistsInNgbAsync(NgbIdentifier ngb, TeamIdentifier teamId);
 	Task DeleteTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId);
 	IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs);
 }

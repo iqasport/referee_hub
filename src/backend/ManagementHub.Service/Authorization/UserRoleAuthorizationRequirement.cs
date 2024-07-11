@@ -45,6 +45,6 @@ public class NgbUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthorizat
 	where TUserRole : INgbUserRole
 {
 	override public bool Satisfies(TUserRole role, AuthorizationContext context) =>
-		context.RouteParameters.TryGetValue("ngb", out var ngbIdObject) && ngbIdObject is NgbIdentifier ngbId &&
-		role.Ngb.AppliesTo(ngbId);
+		context.RouteParameters.TryGetValue("ngb", out var ngbIdObject) && ngbIdObject is string ngbId &&
+		role.Ngb.AppliesTo(NgbIdentifier.Parse(ngbId));
 }
