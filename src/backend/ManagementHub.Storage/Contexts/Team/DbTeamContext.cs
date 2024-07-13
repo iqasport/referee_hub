@@ -25,7 +25,7 @@ public class DbTeamContextFactory
 		this.filteringContext = filteringContext;
 	}
 
-	public IQueryable<Models.Data.Team> QueryTeamsInternal(NgbConstraint ngbs, Func<IQueryable<Models.Data.Team>, IQueryable<Models.Data.Team>>? extraQuery = null)
+	public IQueryable<Models.Data.Team> QueryTeamsInternal(NgbConstraint ngbs)
 	{
 		IQueryable<Models.Data.Team> t = this.dbContext.Teams
 				.Include(t => t.NationalGoverningBody);
@@ -33,11 +33,6 @@ public class DbTeamContextFactory
 		if (!ngbs.AppliesToAny)
 		{
 			t = t.Join(this.dbContext.NationalGoverningBodies.WithConstraint(ngbs), tt => tt.NationalGoverningBodyId, n => n.Id, (tt, n) => tt);
-		}
-
-		if (extraQuery != null)
-		{
-			t = extraQuery(t);
 		}
 
 		t = t.OrderBy(x => x.Name);
@@ -111,7 +106,7 @@ public class DbTeamContextFactory
 	public async Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)
 	{
 		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
-		var team = this.QueryTeamsInternal(NgbConstraint.Single(ngb), q => q.Where(t => t.Id == teamId.Id)).SingleOrDefault();
+		var team = this.QueryTeamsInternal(NgbConstraint.Single(ngb)).Where(t => t.Id == teamId.Id).SingleOrDefault();
 		if (team == null)
 		{
 			throw new ArgumentException($"Team {teamId} was not found in NGB {ngb}");
@@ -146,15 +141,15 @@ public class DbTeamContextFactory
 		return FromDatabase(team, ngb);
 	}
 
-	public async Task DeleteTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId)
+	public async Task DeleteTeamAsync(TeamIdentifier teamId)
 	{
 		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
 		
-		// TODO: remove referee team links
+		await this.dbContext.RefereeTeams.Where(rt => rt.TeamId == teamId.Id).ExecuteDeleteAsync();
 
 		await this.dbContext.TeamStatusChangesets.Where(tsc => tsc.TeamId == teamId.Id).ExecuteDeleteAsync();
-		// TODO: rewrite this to be simpler
-		var deleted = await this.QueryTeamsInternal(NgbConstraint.Single(ngb), q => q.Where(t => t.Id == teamId.Id)).ExecuteDeleteAsync();
+
+		var deleted = await this.dbContext.Teams.Where(t => t.Id == teamId.Id).ExecuteDeleteAsync();
 		
 		Debug.Assert(deleted == 1);
 		await transaction.CommitAsync();

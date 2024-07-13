@@ -25,8 +25,7 @@ public class DbTeamContextProvider : ITeamContextProvider
 
 	public async Task<bool> CheckTeamExistsInNgbAsync(NgbIdentifier ngb, TeamIdentifier teamId)
 	{
-		var legacyTeamId = teamId.Id;
-		var count = await this.dbTeamContextFactory.QueryTeamsInternal(NgbConstraint.Single(ngb), q => q.Where(t => t.Id == legacyTeamId)).CountAsync();
+		var count = await this.dbTeamContextFactory.QueryTeamsInternal(NgbConstraint.Single(ngb)).Where(t => t.Id == teamId.Id).CountAsync();
 		Debug.Assert(count >= 0 && count <= 1);
 		return count > 0;
 	}
@@ -38,7 +37,7 @@ public class DbTeamContextProvider : ITeamContextProvider
 
 	public Task DeleteTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId)
 	{
-		return this.dbTeamContextFactory.DeleteTeamAsync(ngb, teamId);
+		return this.dbTeamContextFactory.DeleteTeamAsync(teamId);
 	}
 
 	public IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs)

@@ -77,7 +77,11 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     }
 
     const accounts: SocialAccount[] = urls.map(url => ({url, type: urlType(url) }))
-    const teamObject: NgbTeamViewModel = {...newTeam, socialAccounts: accounts};
+    const teamObject: NgbTeamViewModel = {
+      ...newTeam,
+      socialAccounts: accounts,
+      state: newTeam.state || null // state is nullable but needs to be a string for input value
+    };
     if (teamId) {
       updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
     } else {
@@ -151,7 +155,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
               placeholder="California"
               name="state"
               onChange={handleInputChange}
-              value={newTeam.state}
+              value={newTeam.state || ""}
             />
           </label>
           <label className="w-1/3">
