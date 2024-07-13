@@ -52,7 +52,7 @@ function Table<T>(props: TableProps<T>) {
           return (
             <td
               key={cell.dataKey}
-              className={`w-1/4 py-4 px-8 ${cell.customStyle}`}
+              className={`w-1/4 py-4 px-6 xl:px-8 ${cell.customStyle}`}
               onClick={disabled ? undefined : handleClick}
             >
               {cell.cellRenderer(item)}
@@ -88,7 +88,7 @@ function Table<T>(props: TableProps<T>) {
               {headerCells.map((header) => (
                 <td
                   key={header}
-                  className={classnames("w-1/4 py-4 px-8", { "text-right": header === "actions" })}
+                  className={classnames("w-1/4 py-4 px-6 xl:px-8", { "text-right": header === "actions" })}
                 >
                   {header}
                 </td>

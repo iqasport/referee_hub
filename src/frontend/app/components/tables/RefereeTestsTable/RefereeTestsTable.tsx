@@ -53,10 +53,15 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   const rowConfig: CellConfig<RefereeTestAvailableViewModel>[] = [
     {
       cellRenderer: (item) => {
-        return (<span title={startCase(item.refereeEligibilityResult)}>
-          {renderTestEligibilityIcon(item.refereeEligibilityResult)}
-          {item.title}
-        </span>);
+        return (
+          <div className="flex flex-col">
+            <span>
+              {renderTestEligibilityIcon(item.refereeEligibilityResult)}
+              {item.title}
+            </span>
+            <em className="text-xs text-gray-600">{startCase(item.refereeEligibilityResult)}</em>
+          </div>
+        );
       },
       dataKey: "name",
     },
