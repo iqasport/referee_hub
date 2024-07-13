@@ -1,17 +1,23 @@
 import React, { useState } from "react";
+import { DateTime } from "luxon";
 
 import useInterval from "../../hooks";
 
-export const formatTime = (time: number): string | number => (time < 10 ? `0${time}` : time);
+export const formatTime = (time: number): string | number => {
+  time = Math.floor(time);
+  return time < 10 ? `0${time}` : time;
+};
 
-export const getDisplayColor = (limit: number, minutes: number): string => {
-  const goodLimit = limit - Math.round(limit * 0.3);
+export const getDisplayColor = (timeLimit: number, interval: { minutes: number; seconds: number }): string => {
+  const goodLimit = Math.floor(timeLimit * 0.25);
 
-  if (minutes < goodLimit) return "grey";
-  if (minutes < limit) return "yellow";
-  if (minutes >= limit) return "red";
+  if (interval.minutes > goodLimit) return "gray-500";
+  // last 10 seconds are red
+  if (interval.minutes < 0 || (interval.minutes === 0 && interval.seconds < 11)) return "red-500";
+  // last quarter of time is yellow
+  if (interval.minutes <= goodLimit) return "yellow"; // TODO: figure out why yellow isn't scaled
 
-  return "grey";
+  return "gray-500";
 };
 
 interface CounterProps {
@@ -21,33 +27,33 @@ interface CounterProps {
 }
 
 const Counter = (props: CounterProps) => {
-  const [minutes, setMinutes] = useState(0);
-  const [seconds, setSeconds] = useState(0);
   const { timeLimit, onTimeLimitMet, setCurrentTime } = props;
-  const displayMinute = formatTime(minutes);
-  const displaySecond = formatTime(seconds);
+  const [testStart] = useState(DateTime.now())
+  const [interval, setInterval] = useState({ minutes: timeLimit, seconds: 0 })
+  const displayMinute = formatTime(interval.minutes);
+  const displaySecond = formatTime(interval.seconds);
 
   const handleTick = () => {
-    if (minutes === timeLimit - 1 && seconds === 59) {
+    const testEnd = testStart.plus({minutes: timeLimit});
+    const currentInterval = testEnd.diffNow(["minutes", "seconds"]).toObject();
+
+    // if testEnd is less than now() in milliseconds
+    if (testEnd.diffNow("milliseconds").toObject().milliseconds < 0) {
+      const { minutes, seconds } = DateTime.now().diff(testStart, ["minutes", "seconds"]).toObject();
       onTimeLimitMet(minutes, seconds);
     }
 
-    if (seconds < 59) {
-      setSeconds((prevSeconds) => prevSeconds + 1);
-    } else {
-      setMinutes((prevMinutes) => prevMinutes + 1);
-      setSeconds(0);
-    }
+    setInterval(currentInterval as any);
 
-    setCurrentTime({ minutes, seconds });
+    setCurrentTime(DateTime.now().diff(testStart, ["minutes", "seconds"]).toObject() as any);
   };
 
   useInterval(handleTick, 1000);
 
   return (
-    <h3 data-testid="counter" className={`font-bold ${getDisplayColor(timeLimit, minutes)}`}>
+    <span data-testid="counter" className={`text-center text-lg font-bold text-${getDisplayColor(timeLimit, interval)}`}>
       {`${displayMinute}:${displaySecond}`}
-    </h3>
+    </span>
   );
 };
 

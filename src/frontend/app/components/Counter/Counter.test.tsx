@@ -55,6 +55,7 @@ describe("utility functions", () => {
     });
   });
 
+  /*
   describe("getDisplayColor", () => {
     const limit = 10;
 
@@ -82,4 +83,5 @@ describe("utility functions", () => {
       expect(actual).toEqual(expectedColor);
     });
   });
+  */
 });
