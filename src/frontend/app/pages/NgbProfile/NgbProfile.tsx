@@ -73,7 +73,7 @@ const NgbProfile = () => {
             onEditClick={handleOpenModal(ModalType.Edit)}
             onImportClick={handleImportClick}
             onExportClick={handleOpenModal(ModalType.Export)}
-            onTeamClick={handleOpenModal(ModalType.Team)}
+            onCreateTeamClick={handleOpenModal(ModalType.Team)}
           />
         </div>
         <div className="flex w-full flex-col md:flex-row">

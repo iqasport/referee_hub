@@ -45,7 +45,7 @@ const Test = () => {
     shallowEqual
   );
   const { languages } = useSelector((state: RootState) => state.languages, shallowEqual);
-  if (roles.length && !roles.includes("iqa_admin")) navigate(-1);
+  if (roles.length && !roles.includes("IqaAdmin")) navigate(-1);
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab;
 

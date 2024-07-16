@@ -20,7 +20,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
-  const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery()
+  const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery();
   const roles = currentUser?.roles?.map(r => r.roleType);
 
   const ownedNgbIds = currentUser ? (() => {

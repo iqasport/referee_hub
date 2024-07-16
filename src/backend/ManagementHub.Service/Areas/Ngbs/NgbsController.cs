@@ -91,6 +91,42 @@ public class NgbsController : ControllerBase
 		};
 	}
 
+	[HttpPut("{ngb}")]
+	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	public async Task UpdateNgb([FromRoute] NgbIdentifier ngb, [FromBody] NgbUpdateModel model)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var permissionConstraint = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
+
+		if (!permissionConstraint.AppliesTo(ngb))
+		{
+			throw new AccessDeniedException(ngb.ToString());
+		}
+
+		// TODO: Update NGB
+	}
+
+	[HttpPut("api/v2/admin/[controller]/{ngb}")]
+	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)]
+	public async Task AdminUpdateNgb([FromRoute] NgbIdentifier ngb, [FromBody] AdminNgbUpdateModel model)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// TODO: Update NGB
+	}
+
+	[HttpPost("api/v2/admin/[controller]/{ngb}")]
+	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)]
+	public async Task AdminCreateNgb([FromRoute] NgbIdentifier ngb, [FromBody] AdminNgbUpdateModel model)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// TODO: Create NGB
+	}
+
 	/// <summary>
 	/// List the teams registered under the NGB.
 	/// </summary>

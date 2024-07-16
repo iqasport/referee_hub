@@ -8,11 +8,11 @@ interface ActionsButtonProps {
   onEditClick: () => void;
   onImportClick: () => void;
   onExportClick: () => void;
-  onTeamClick: () => void;
+  onCreateTeamClick: () => void;
 }
 
 const ActionsButton = (props: ActionsButtonProps) => {
-  const { onEditClick, onImportClick, onExportClick, onTeamClick } = props;
+  const { onEditClick, onImportClick, onExportClick, onCreateTeamClick } = props;
 
   const renderTrigger = (onClick: () => void) => {
     return (
@@ -24,13 +24,13 @@ const ActionsButton = (props: ActionsButtonProps) => {
   };
 
   const items = [
-    /*{
+    {
       content: "Edit",
       onClick: onEditClick,
-    },*/
+    },
     {
       content: "Create Team",
-      onClick: onTeamClick,
+      onClick: onCreateTeamClick,
     },
     /*{
       content: "Import",

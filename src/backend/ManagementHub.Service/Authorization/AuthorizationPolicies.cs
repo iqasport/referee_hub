@@ -39,4 +39,12 @@ public static class AuthorizationPolicies
 		{
 			policy.AddRequirements(new UserRoleAuthorizationRequirement<TechAdminRole>());
 		});
+
+	public const string IqaAdminPolicy = nameof(IqaAdminPolicy);
+
+	public static void AddIqaAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(IqaAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new UserRoleAuthorizationRequirement<IqaAdminRole>());
+		});
 }

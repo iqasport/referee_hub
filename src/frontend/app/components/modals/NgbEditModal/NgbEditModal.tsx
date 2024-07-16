@@ -1,36 +1,29 @@
 import classnames from "classnames";
 import { capitalize, words } from "lodash";
-import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-
-import { UpdateNgbRequest } from "../../../apis/nationalGoverningBody";
-import {
-  getNationalGoverningBody,
-  updateNgb,
-} from "../../../modules/nationalGoverningBody/nationalGoverningBody";
-import { RootState } from "../../../rootReducer";
+import React, { useEffect, useMemo, useState } from "react";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
-import { AppDispatch } from "../../../store";
+import { AdminNgbUpdateModel, NgbMembershipStatus, NgbRegion, NgbUpdateModel, useAdminCreateNgbMutation, useAdminUpdateNgbMutation, useGetCurrentUserQuery, useGetNgbInfoQuery, useUpdateNgbMutation } from "../../../store/serviceApi";
+import { urlType } from "../../../utils/socialUtils";
 
-const REQUIRED_FIELDS = ["name", "region", "membershipStatus"];
-const REGION_OPTIONS = ["north_america", "south_america", "europe", "africa", "asia"];
-const MEMBERSHIP_OPTIONS = ["area_of_interest", "emerging", "developing", "full"];
-const initialNewNgb: UpdateNgbRequest = {
+const REQUIRED_FIELDS: (keyof AdminNgbUpdateModel)[] = ["name", "region", "membershipStatus", "acronym"];
+const REGION_OPTIONS: NgbRegion[] = ["north_america", "south_america", "europe", "africa", "asia"];
+const MEMBERSHIP_OPTIONS: NgbMembershipStatus[] = ["area_of_interest", "emerging", "developing", "full"];
+const initialNewNgb: AdminNgbUpdateModel & NgbUpdateModel = {
   acronym: "",
   country: "",
   membershipStatus: null,
   name: "",
   playerCount: 0,
   region: null,
-  urls: [],
+  socialAccounts: [],
   website: "",
 };
 
-const validateInput = (ngb: UpdateNgbRequest): string[] => {
+const validateInput = (ngb: AdminNgbUpdateModel & NgbUpdateModel): string[] => {
   return Object.keys(ngb).filter((dataKey: string) => {
-    if (REQUIRED_FIELDS.includes(dataKey) && !ngb[dataKey]) {
+    if (REQUIRED_FIELDS.includes(dataKey as keyof AdminNgbUpdateModel) && !ngb[dataKey]) {
       return true;
     }
 
@@ -47,33 +40,36 @@ const NgbEditModal = (props: NgbEditModalProps) => {
 
   const [errors, setErrors] = useState<string[]>();
   const [hasChangedNgb, setHasChangedNgb] = useState(false);
-  const [newNgb, setNewNgb] = useState<UpdateNgbRequest>(initialNewNgb);
-  const [urls, setUrls] = useState<string[]>();
-  const { ngb, socialAccounts } = useSelector(
-    (state: RootState) => state.nationalGoverningBody,
-    shallowEqual
-  );
-  const { roles } = useSelector((state: RootState) => state.currentUser, shallowEqual);
-  const dispatch = useDispatch<AppDispatch>();
+  const [newNgb, setNewNgb] = useState(initialNewNgb);
+  const [urls, setUrls] = useState<string[]>([]);
+
+  const { currentData: currentUser } = useGetCurrentUserQuery();
+  const roles = currentUser?.roles?.map(r => r.roleType);
 
   const formType = ngbId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
-  const isIqaAdmin = roles.includes("iqa_admin");
+  const isIqaAdmin = roles.includes("IqaAdmin");
 
-  useEffect(() => {
-    if (ngbId && !ngb) {
-      //dispatch(getNationalGoverningBody(ngbId));
-    }
-  }, [ngbId, dispatch]);
+  const {data: ngb} = useGetNgbInfoQuery({ ngb: ngbId }, {skip: !ngbId});
+  const existingUrls = useMemo(() => ngb?.socialAccounts.map((account) => account.url) || [], [ngbId]);
+
+  const [updateNgb] = useUpdateNgbMutation();
+  const [adminUpdateNgb] = useAdminUpdateNgbMutation();
+  const [adminCreateNgb] = useAdminCreateNgbMutation();
 
   useEffect(() => {
     if (ngb && ngbId) {
-      const existingUrls = socialAccounts.length
-        ? socialAccounts.map((account) => account.url)
-        : [];
-      setNewNgb({ ...ngb, urls: existingUrls });
+      setNewNgb({
+        acronym: ngb.acronym,
+        country: ngb.country,
+        membershipStatus: ngb.membershipStatus,
+        name: ngb.name,
+        playerCount: ngb.playerCount,
+        region: ngb.region,
+        website: ngb.website,
+      });
     }
-  }, [ngb, socialAccounts]);
+  }, [ngb]);
 
   const handleSubmit = () => {
     const validationErrors = validateInput(newNgb);
@@ -82,9 +78,19 @@ const NgbEditModal = (props: NgbEditModalProps) => {
       return null;
     }
 
-    const ngbToSend = { ...newNgb, urls };
+    const ngbToSend: AdminNgbUpdateModel & NgbUpdateModel = {
+      ...newNgb,
+      socialAccounts: urls.map(url => ({url, type: urlType(url) }))
+    };
     if (ngbId) {
-      //dispatch(updateNgb(ngbId, ngbToSend));
+      if (isIqaAdmin) {
+        adminUpdateNgb({ngb: ngbId, adminNgbUpdateModel: ngbToSend});
+      } else {
+        updateNgb({ngb: ngbId, ngbUpdateModel: ngbToSend});
+      }
+    } else {
+      // TODO: get country code for creating NGB some other way instead of reusing acronym
+      adminCreateNgb({ngb: ngbToSend.acronym, adminNgbUpdateModel: ngbToSend});
     }
 
     setHasChangedNgb(false);
@@ -98,7 +104,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
     if (!hasChangedNgb) setHasChangedNgb(true);
     if (name === "playerCount") newValue = parseInt(value, 10);
 
-    setNewNgb({ ...newNgb, [name]: value });
+    setNewNgb({ ...newNgb, [name]: newValue });
   };
 
   const handleUrlChange = (newUrls: string[]) => {
@@ -129,7 +135,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
             placeholder="US Quidditch"
             name="name"
             onChange={handleInputChange}
-            value={newNgb.name}
+            value={newNgb.name || ""}
           />
           {hasError("name") && <span className="text-red-500">Name cannot be blank</span>}
         </label>
@@ -140,7 +146,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
             placeholder="United States"
             name="country"
             onChange={handleInputChange}
-            value={newNgb.country}
+            value={newNgb.country || ""}
           />
         </label>
         <div className="flex w-full my-8">
@@ -155,7 +161,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
               onChange={handleInputChange}
               value={newNgb.region || ""}
             >
-              <option value="" />
+              <option className="italic" value="">Select region</option>
               {REGION_OPTIONS.map(renderOption)}
             </select>
             {hasError("region") && <span className="text-red-500">Region cannot be blank</span>}
@@ -171,7 +177,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
               onChange={handleInputChange}
               value={newNgb.membershipStatus || ""}
             >
-              <option value="" />
+              <option className="italic" value="">Select status</option>
               {MEMBERSHIP_OPTIONS.map(renderOption)}
             </select>
             {hasError("membershipStatus") && (
@@ -183,12 +189,15 @@ const NgbEditModal = (props: NgbEditModalProps) => {
           <label className="w-1/2 mr-4">
             <span className="text-gray-700">Acronym</span>
             <input
-              className="form-input mt-1 block w-full"
+              className={classnames("form-input mt-1 block w-full", {
+                "border border-red-500": hasError("acronym"),
+              })}
               placeholder="USQ"
               name="acronym"
               onChange={handleInputChange}
-              value={newNgb.acronym}
+              value={newNgb.acronym || ""}
             />
+          {hasError("acronym") && <span className="text-red-500">Acronym cannot be blank</span>}
           </label>
           <label className="w-1/2">
             <span className="text-gray-700">Player Count</span>
@@ -198,7 +207,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
               className="form-input mt-1 block w-full"
               name="playerCount"
               onChange={handleInputChange}
-              value={newNgb.playerCount}
+              value={newNgb.playerCount || 0}
             />
           </label>
         </div>
@@ -210,13 +219,13 @@ const NgbEditModal = (props: NgbEditModalProps) => {
             placeholder="https://www.usquidditch.org"
             name="website"
             onChange={handleInputChange}
-            value={newNgb.website}
+            value={newNgb.website || ""}
           />
         </label>
         <div className="w-full my-8">
           <label>
             <span className="text-gray-700">Social Media</span>
-            <MultiInput onChange={handleUrlChange} values={newNgb.urls || []} />
+            <MultiInput onChange={handleUrlChange} values={existingUrls} />
           </label>
         </div>
         <div className="w-full text-center">

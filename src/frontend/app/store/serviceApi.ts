@@ -93,6 +93,30 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}` }),
         providesTags: ["Ngb"],
       }),
+      updateNgb: build.mutation<UpdateNgbApiResponse, UpdateNgbApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}`,
+          method: "PUT",
+          body: queryArg.ngbUpdateModel,
+        }),
+        invalidatesTags: ["Ngb"],
+      }),
+      adminUpdateNgb: build.mutation<AdminUpdateNgbApiResponse, AdminUpdateNgbApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/api/v2/admin/Ngbs/${queryArg.ngb}`,
+          method: "PUT",
+          body: queryArg.adminNgbUpdateModel,
+        }),
+        invalidatesTags: ["Ngb"],
+      }),
+      adminCreateNgb: build.mutation<AdminCreateNgbApiResponse, AdminCreateNgbApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/api/v2/admin/Ngbs/${queryArg.ngb}`,
+          method: "POST",
+          body: queryArg.adminNgbUpdateModel,
+        }),
+        invalidatesTags: ["Ngb"],
+      }),
       getAvailableTests: build.query<GetAvailableTestsApiResponse, GetAvailableTestsApiArg>({
         query: () => ({ url: `/api/v2/referees/me/tests/available` }),
         providesTags: ["Referee"],
@@ -314,6 +338,21 @@ export type GetNgbsApiArg = {
 export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModelRead;
 export type GetNgbInfoApiArg = {
   ngb: string;
+};
+export type UpdateNgbApiResponse = unknown;
+export type UpdateNgbApiArg = {
+  ngb: string;
+  ngbUpdateModel: NgbUpdateModel;
+};
+export type AdminUpdateNgbApiResponse = unknown;
+export type AdminUpdateNgbApiArg = {
+  ngb: string;
+  adminNgbUpdateModel: AdminNgbUpdateModel;
+};
+export type AdminCreateNgbApiResponse = unknown;
+export type AdminCreateNgbApiArg = {
+  ngb: string;
+  adminNgbUpdateModel: AdminNgbUpdateModel;
 };
 export type GetAvailableTestsApiResponse =
   /** status 200 Success */ RefereeTestAvailableViewModel[];
@@ -541,6 +580,36 @@ export type NgbInfoViewModelRead = {
   socialAccounts?: SocialAccount[] | null;
   avatarUri?: string | null;
 };
+export type NgbUpdateModel = {
+  /** Official name of the NGB. */
+  name?: string | null;
+  /** Country name where NGB is located. */
+  country?: string | null;
+  /** 3 letter country acronym. */
+  acronym?: string | null;
+  /** Website of the NGB. */
+  website?: string | null;
+  /** Number of players as declared by the NGB. */
+  playerCount?: number;
+  /** Social account URLs. */
+  socialAccounts?: SocialAccount[] | null;
+};
+export type AdminNgbUpdateModel = {
+  /** Official name of the NGB. */
+  name?: string | null;
+  /** Country name where NGB is located. */
+  country?: string | null;
+  /** 3 letter country acronym. */
+  acronym?: string | null;
+  /** Website of the NGB. */
+  website?: string | null;
+  /** Number of players as declared by the NGB. */
+  playerCount?: number;
+  /** Social account URLs. */
+  socialAccounts?: SocialAccount[] | null;
+  membershipStatus?: NgbMembershipStatus;
+  region?: NgbRegion;
+};
 export type Certification = {
   level?: CertificationLevel;
   version?: CertificationVersion;
@@ -754,6 +823,9 @@ export const {
   useLoginMutation,
   useGetNgbsQuery,
   useGetNgbInfoQuery,
+  useUpdateNgbMutation,
+  useAdminUpdateNgbMutation,
+  useAdminCreateNgbMutation,
   useGetAvailableTestsQuery,
   useGetTestAttemptsQuery,
   useStartTestMutation,
