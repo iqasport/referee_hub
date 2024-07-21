@@ -7,24 +7,28 @@ using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tests.Policies;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options.Contextual;
 
 namespace ManagementHub.Storage.Contexts.Tests;
 public class DbTestContextProvider : ITestContextProvider
 {
 	private readonly ManagementHubDbContext dbContext;
 	private readonly ILogger<DbTestContextProvider> logger;
+	private readonly IContextualOptions<TestPolicyOverride> overrides;
 
-	public DbTestContextProvider(ManagementHubDbContext dbContext, ILogger<DbTestContextProvider> logger)
+	public DbTestContextProvider(ManagementHubDbContext dbContext, ILogger<DbTestContextProvider> logger, IContextualOptions<TestPolicyOverride> overrides)
 	{
 		this.dbContext = dbContext;
 		this.logger = logger;
+		this.overrides = overrides;
 	}
 
-	public async Task<Test> GetTestAsync(TestIdentifier testId, CancellationToken cancellationToken)
+	public async Task<Test> GetTestAsync(UserIdentifier userId, TestIdentifier testId, CancellationToken cancellationToken)
 	{
 		var test = await Query(this.dbContext.Tests.WithIdentifier(testId), withQuestions: false).SingleOrDefaultAsync(cancellationToken);
 
@@ -33,15 +37,23 @@ public class DbTestContextProvider : ITestContextProvider
 			throw new NotFoundException($"Could not find test ({testId}).");
 		}
 
+		await this.ApplyOverrides(userId, test, cancellationToken);
+
 		return test;
 	}
 
-	public async Task<IEnumerable<Test>> GetTestsAsync(CancellationToken cancellationToken)
+	public async Task<IEnumerable<Test>> GetTestsAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		return await Query(this.dbContext.Tests, withQuestions: false).ToListAsync(cancellationToken);
+		var tests = await Query(this.dbContext.Tests, withQuestions: false).ToListAsync(cancellationToken);
+		foreach (var test in tests)
+		{
+			await this.ApplyOverrides(userId, test, cancellationToken);
+		}
+
+		return tests;
 	}
 
-	public async Task<TestWithQuestions> GetTestWithQuestionsAsync(TestIdentifier testId, CancellationToken cancellationToken)
+	public async Task<TestWithQuestions> GetTestWithQuestionsAsync(UserIdentifier userId, TestIdentifier testId, CancellationToken cancellationToken)
 	{
 		var test = await Query(this.dbContext.Tests.AsNoTracking().WithIdentifier(testId), withQuestions: true).SingleOrDefaultAsync(cancellationToken);
 
@@ -55,7 +67,24 @@ public class DbTestContextProvider : ITestContextProvider
 			throw new InvalidOperationException("Expecting test to have questions - bug?");
 		}
 
+		await this.ApplyOverrides(userId, test, cancellationToken);
+
 		return testWithQuestions;
+	}
+
+	private async Task ApplyOverrides(UserIdentifier userId, Test test, CancellationToken cancellationToken)
+	{
+		var overrides = await this.overrides.GetAsync(new TestPolicyContext { UserId = userId.ToString(), TestId = test.TestId.ToString() }, cancellationToken);
+
+		if (overrides.MaxAttempts.HasValue)
+		{
+			test.MaximumAttempts = overrides.MaxAttempts.Value;
+		}
+
+		if (overrides.ExtraTimePercentage.HasValue)
+		{
+			test.TimeLimit = TimeSpan.FromMinutes(test.TimeLimit.TotalMinutes * (1 + overrides.ExtraTimePercentage.Value / 100.0));
+		}
 	}
 
 	private static IQueryable<Test> Query(IQueryable<Models.Data.Test> dataset, bool withQuestions)

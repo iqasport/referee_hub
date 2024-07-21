@@ -64,7 +64,7 @@ public class RefereeTestsController : ControllerBase
 	{
 		// TODO: move logic to a processor
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
-		var tests = await this.testProvider.GetTestsAsync(this.HttpContext.RequestAborted);
+		var tests = await this.testProvider.GetTestsAsync(user.UserId, this.HttpContext.RequestAborted);
 
 		var activeTests = tests.Where(t => t.IsActive).ToList();
 
@@ -109,7 +109,7 @@ public class RefereeTestsController : ControllerBase
 	public async Task<RefereeTestDetailsViewModel> GetTestDetails([FromRoute] TestIdentifier testId)
 	{
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
-		var test = await this.testProvider.GetTestAsync(testId, this.HttpContext.RequestAborted);
+		var test = await this.testProvider.GetTestAsync(user.UserId, testId, this.HttpContext.RequestAborted);
 		var eligibilityResult = await this.refereeEligibilityChecker.CheckRefereeEligibilityAsync(test, user.UserId, this.HttpContext.RequestAborted);
 
 		return new RefereeTestDetailsViewModel
@@ -136,7 +136,7 @@ public class RefereeTestsController : ControllerBase
 	{
 		// TODO: move logic to a processor
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
-		var test = await this.testProvider.GetTestWithQuestionsAsync(testId, this.HttpContext.RequestAborted);
+		var test = await this.testProvider.GetTestWithQuestionsAsync(user.UserId, testId, this.HttpContext.RequestAborted);
 
 		if (!test.IsActive)
 		{
@@ -184,7 +184,7 @@ public class RefereeTestsController : ControllerBase
 		this.logger.LogInformation(0x30121800, "Submitting test ({testId}) with answers {@answers}.", testId, testSubmitModel.Answers);
 
 		var user = await this.userContextAccessor.GetCurrentUserContextAsync();
-		var test = await this.testProvider.GetTestWithQuestionsAsync(testId, this.HttpContext.RequestAborted);
+		var test = await this.testProvider.GetTestWithQuestionsAsync(user.UserId, testId, this.HttpContext.RequestAborted);
 
 		if (!test.IsActive)
 		{

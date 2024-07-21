@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
@@ -12,7 +11,6 @@ using ManagementHub.Models.Enums;
 using ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options.Contextual;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,7 +38,6 @@ public class RefereeEligibilityUnitTests
 {
 	private readonly Mock<IRefereeContextProvider> refereeContextProvider = new();
 	private readonly Mock<ISystemClock> clock = new();
-	private readonly TestContextualOptions<TestPolicyOverride> mockContextualOptions = new(new());
 
 	private static readonly UserIdentifier TestUserId = UserIdentifier.NewUserId();
 
@@ -54,7 +51,7 @@ public class RefereeEligibilityUnitTests
 			new IRefereeEligibilityPolicy[]
 			{
 				new HasRequiredCertificationEligibilityPolicy(this.refereeContextProvider.Object),
-				new NumberOfAttemptsEligibilityPolicy(this.refereeContextProvider.Object, this.mockContextualOptions),
+				new NumberOfAttemptsEligibilityPolicy(this.refereeContextProvider.Object),
 				new PaymentEligibilityPolicy(this.refereeContextProvider.Object),
 				new RefereeAttemptEligibilityPolicy(this.refereeContextProvider.Object, this.clock.Object),
 				new RefereeCertifiedEligibilityPolicy(this.refereeContextProvider.Object),
@@ -622,52 +619,4 @@ public class RefereeEligibilityUnitTests
 
 		result.Includes(TestData.Assistant18);
 	}
-
-	[Fact]
-	public async Task ReturnsTest_WhenRefereeHasTheMaxAttemptsOverriden()
-	{
-		this.mockContextualOptions.Value.MaxAttempts = 10;
-		// has 8 attempts for AR test and 1 for recert
-		var attempts = Enumerable.Range(1, 8).Select(i => new TestAttempt
-		{
-			TestId = TestData.Assistant18.TestId,
-			Level = CertificationLevel.Assistant,
-			StartedAt = TestCurrentDateTime.AddDays(-i - 1),
-			UserId = TestUserId,
-		}).Concat(new[]
-		{
-			new TestAttempt
-			{
-				TestId = TestData.RecertAssistant22.TestId,
-				Level= CertificationLevel.Assistant,
-				StartedAt = TestCurrentDateTime.AddHours(-5),
-				UserId = TestUserId,
-			}
-		});
-		this.SetupReferee(new[]
-			{
-				new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
-			},
-			Array.Empty<CertificationVersion>(),
-			attempts.ToArray());
-
-		var result = await this.ExecuteChecksAsync(new[]
-		{
-			TestData.Assistant18,
-			TestData.RecertAssistant22,
-		});
-
-		result.Includes(TestData.Assistant18);
-		result.Excludes(TestData.RecertAssistant22);
-	}
-}
-
-class TestContextualOptions<T>: IContextualOptions<T> where T : class
-{
-	public T Value { get; set; }
-	public TestContextualOptions(T value) => Value = value;
-
-	public ValueTask<T> GetAsync<U>(in U ctx, CancellationToken ct)
-		where U : IOptionsContext
-	 => ValueTask.FromResult(this.Value);
 }

@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Options.Contextual;
 
-namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
+namespace ManagementHub.Storage.Contexts.Tests;
 
 public class TestPolicyOverride
 {
 	public int? MaxAttempts { get; set; }
+	public int? ExtraTimePercentage { get; set; }
 }
 
 [OptionsContext]

@@ -79,7 +79,7 @@ public class DbRefereeEmailFeedbackContextFactory
 		var attempt = attemptWrapper.Attempt;
 		var testFeedback = attemptWrapper.TestFeedback;
 
-		var test = await this.testContextProvider.GetTestAsync(attempt.TestId, cancellationToken);
+		var test = await this.testContextProvider.GetTestAsync(attempt.UserId, attempt.TestId, cancellationToken);
 
 		var questionResults = await this.testAttempts.AsNoTracking()
 			.Where(ta => ta.UniqueId == testAttemptId.ToString())
