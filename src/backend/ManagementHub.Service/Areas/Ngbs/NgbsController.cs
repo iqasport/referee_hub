@@ -64,10 +64,6 @@ public class NgbsController : ControllerBase
 	public async Task<NgbInfoViewModel> GetNgbInfo([FromRoute] NgbIdentifier ngb)
 	{
 		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
-		if (context == null)
-		{
-			throw new NotFoundException(ngb.ToString());
-		}
 
 		var socialAccounts = await this.socialAccountsProvider.QueryNgbSocialAccounts(NgbConstraint.Single(ngb));
 		var stats = await this.ngbContextProvider.GetCurrentNgbStatsAsync(ngb);
@@ -104,7 +100,22 @@ public class NgbsController : ControllerBase
 			throw new AccessDeniedException(ngb.ToString());
 		}
 
-		// TODO: Update NGB
+		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
+
+		var ngbData = new NgbData
+		{
+			Name = model.Name,
+			Country = model.Country,
+			Acronym = model.Acronym,
+			Website = model.Website,
+			PlayerCount = model.PlayerCount,
+			Region = context.NgbData.Region,
+			MembershipStatus = context.NgbData.MembershipStatus,
+		};
+
+		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
+
+		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
 	}
 
 	[HttpPut("api/v2/admin/[controller]/{ngb}")]
@@ -114,7 +125,22 @@ public class NgbsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// TODO: Update NGB
+		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
+
+		var ngbData = new NgbData
+		{
+			Name = model.Name,
+			Country = model.Country,
+			Acronym = model.Acronym,
+			Website = model.Website,
+			PlayerCount = model.PlayerCount,
+			Region = model.Region,
+			MembershipStatus = model.MembershipStatus,
+		};
+
+		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
+
+		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
 	}
 
 	[HttpPost("api/v2/admin/[controller]/{ngb}")]
@@ -124,7 +150,27 @@ public class NgbsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// TODO: Create NGB
+		try
+		{
+			_ = await this.ngbContextProvider.GetNgbContextAsync(ngb);
+			throw new InvalidOperationException($"NGB {ngb} already exists!");
+		} catch (NotFoundException)
+		{
+			// expected
+		}
+
+		var ngbData = new NgbData
+		{
+			Name = model.Name,
+			Country = model.Country,
+			Acronym = model.Acronym,
+			Website = model.Website,
+			PlayerCount = model.PlayerCount,
+			Region = model.Region,
+			MembershipStatus = model.MembershipStatus,
+		};
+
+		await this.ngbContextProvider.CreateNgbAsync(ngb, ngbData);
 	}
 
 	/// <summary>

@@ -13,4 +13,5 @@ public interface ISocialAccountsProvider
 
 	Task<IEnumerable<SocialAccount>> UpdateTeamSocialAccounts(TeamIdentifier teamId, IEnumerable<SocialAccount> socialAccounts);
 	Task<IEnumerable<SocialAccount>> GetTeamSocialAccounts(TeamIdentifier teamId);
+	Task<IEnumerable<SocialAccount>> UpdateNgbSocialAccounts(NgbIdentifier ngb, IEnumerable<SocialAccount> socialAccounts);
 }

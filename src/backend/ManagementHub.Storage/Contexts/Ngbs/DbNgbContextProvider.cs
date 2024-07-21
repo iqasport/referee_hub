@@ -59,4 +59,14 @@ public class DbNgbContextProvider : INgbContextProvider
 	{
 		return this.ngbContextFactory.GetMultipleNgbs(ngb);
 	}
+
+	public Task UpdateNgbInfoAsync(NgbIdentifier ngb, NgbData ngbData)
+	{
+		return this.ngbContextFactory.UpdateNgb(ngb, ngbData);
+	}
+
+	public Task CreateNgbAsync(NgbIdentifier ngb, NgbData ngbData)
+	{
+		return this.ngbContextFactory.CreateNgb(ngb, ngbData);
+	}
 }

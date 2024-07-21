@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -54,10 +55,44 @@ public class DbNgbContextFactory
 
 		return this.QueryNgbs(filteredNgbs.Page(this.filteringContext.FilteringParameters));
 	}
-	public async Task<INgbContext> GetSingleNgb(NgbIdentifier ngb) => await this.QueryNgbs(this.dbContext.NationalGoverningBodies.WithIdentifier(ngb)).SingleAsync();
+	public async Task<INgbContext> GetSingleNgb(NgbIdentifier ngb) => (await this.QueryNgbs(this.dbContext.NationalGoverningBodies.WithIdentifier(ngb)).SingleOrDefaultAsync()) ?? throw new NotFoundException(ngb.ToString());
 	public IAsyncEnumerable<INgbContext> GetMultipleNgbs(NgbConstraint ngb) => this.QueryNgbs(this.dbContext.NationalGoverningBodies.WithConstraint(ngb)).AsAsyncEnumerable();
+
+	public async Task UpdateNgb(NgbIdentifier ngb, NgbData data)
+	{
+		var ngbEntity = await this.dbContext.NationalGoverningBodies.WithIdentifier(ngb).SingleAsync();
+		ngbEntity.Name = data.Name;
+		ngbEntity.Acronym = data.Acronym;
+		ngbEntity.Country = data.Country;
+		ngbEntity.MembershipStatus = data.MembershipStatus;
+		ngbEntity.PlayerCount = data.PlayerCount;
+		ngbEntity.Region = data.Region;
+		ngbEntity.Website = data.Website?.ToString();
+		ngbEntity.UpdatedAt = DateTime.UtcNow;
+		await this.dbContext.SaveChangesAsync();
+	}
+
+	public async Task CreateNgb(NgbIdentifier ngb, NgbData data)
+	{
+		this.dbContext.NationalGoverningBodies.Add(new NationalGoverningBody
+		{
+			CountryCode = ngb.ToString(),
+			Name = data.Name,
+			Acronym = data.Acronym,
+			Country = data.Country,
+			MembershipStatus = data.MembershipStatus,
+			PlayerCount = data.PlayerCount,
+			Region = data.Region,
+			Website = data.Website?.ToString(),
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
+		});
+		await this.dbContext.SaveChangesAsync();
+	}
+
 	private IQueryable<INgbContext> QueryNgbs(IQueryable<NationalGoverningBody> ngbs)
 	{
+		Uri? uri;
 		return ngbs.AsNoTracking()
 			.OrderBy(n => n.CountryCode)
 			.Select(n => new DbNgbContext(
@@ -70,7 +105,7 @@ public class DbNgbContextFactory
 					MembershipStatus = n.MembershipStatus,
 					PlayerCount = n.PlayerCount,
 					Region = n.Region,
-					Website = n.Website != null ? new Uri(n.Website) : null,
+					Website = !string.IsNullOrEmpty(n.Website) && Uri.TryCreate(n.Website, UriKind.Absolute, out uri) ? new Uri(n.Website) : null,
 				}));
 	}
 }

@@ -42,6 +42,29 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 			.ToDictionaryAsync(g => new TeamIdentifier(g.Key), g => g.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)));
 	}
 
+	public async Task<IEnumerable<SocialAccount>> UpdateNgbSocialAccounts(NgbIdentifier ngb, IEnumerable<SocialAccount> socialAccounts)
+	{
+		var ngbId = await this.dbContext.NationalGoverningBodies.AsNoTracking().WithIdentifier(ngb).Select(ngb => ngb.Id).SingleAsync();
+		var socialAccountsList = socialAccounts.ToList();
+		var existingSocialAccounts = await this.dbContext.SocialAccounts.Where(sa => sa.OwnableType == "NationalGoverningBody" && sa.OwnableId == ngbId).ToListAsync();
+		var socialAccountsToRemove = existingSocialAccounts.Where(sa => !socialAccountsList.Any(s => s.Url.OriginalString == sa.Url && s.Type == sa.AccountType)).ToList();
+		var socialAccountsToAdd = socialAccountsList.Where(s => !existingSocialAccounts.Any(sa => sa.Url == s.Url.OriginalString && sa.AccountType == s.Type)).ToList();
+
+		this.dbContext.SocialAccounts.RemoveRange(socialAccountsToRemove);
+		this.dbContext.SocialAccounts.AddRange(socialAccountsToAdd.Select(s => new Models.Data.SocialAccount
+		{
+			OwnableType = "NationalGoverningBody",
+			OwnableId = ngbId,
+			Url = s.Url.OriginalString,
+			AccountType = s.Type
+		}));
+
+		await this.dbContext.SaveChangesAsync();
+
+		return await this.dbContext.SocialAccounts.Where(sa => sa.OwnableType == "NationalGoverningBody" && sa.OwnableId == ngbId)
+			.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)).ToListAsync();
+	}
+
 	public async Task<IEnumerable<SocialAccount>> UpdateTeamSocialAccounts(TeamIdentifier teamId, IEnumerable<SocialAccount> socialAccounts)
 	{
 		var socialAccountsList = socialAccounts.ToList();

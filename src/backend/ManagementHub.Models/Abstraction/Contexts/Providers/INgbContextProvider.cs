@@ -16,4 +16,6 @@ public interface INgbContextProvider
 
 	Task<Uri?> GetNgbAvatarUriAsync(NgbIdentifier ngb);
 	Task<IOrderedEnumerable<INgbStatsContext>> GetHistoricalNgbStatsAsync(NgbIdentifier ngb);
+	Task UpdateNgbInfoAsync(NgbIdentifier ngb, NgbData ngbData);
+	Task CreateNgbAsync(NgbIdentifier ngb, NgbData ngbData);
 }

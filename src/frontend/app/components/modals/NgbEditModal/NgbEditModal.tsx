@@ -22,9 +22,18 @@ const initialNewNgb: AdminNgbUpdateModel & NgbUpdateModel = {
 };
 
 const validateInput = (ngb: AdminNgbUpdateModel & NgbUpdateModel): string[] => {
-  return Object.keys(ngb).filter((dataKey: string) => {
+  return Object.keys(ngb).filter((dataKey: string) => {    
     if (REQUIRED_FIELDS.includes(dataKey as keyof AdminNgbUpdateModel) && !ngb[dataKey]) {
       return true;
+    }
+
+    // if website is not empty it needs to be a valid URL
+    if (dataKey as keyof AdminNgbUpdateModel === "website" && ngb[dataKey]) {
+      try {
+        new URL(ngb[dataKey]);
+      } catch {
+        return true;
+      }
     }
 
     return false;
@@ -215,12 +224,17 @@ const NgbEditModal = (props: NgbEditModalProps) => {
           <span className="text-gray-700">Website</span>
           <input
             type="url"
-            className="form-input mt-1 block w-full"
+            className={classnames("form-input mt-1 block w-full", {
+              "border border-red-500": hasError("website"),
+            })}
             placeholder="https://www.usquidditch.org"
             name="website"
             onChange={handleInputChange}
             value={newNgb.website || ""}
           />
+          {hasError("website") && (
+              <span className="text-red-500">Website must be a valid URL (like 'https://...')</span>
+            )}
         </label>
         <div className="w-full my-8">
           <label>
