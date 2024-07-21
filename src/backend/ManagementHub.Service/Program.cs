@@ -76,7 +76,7 @@ public static class Program
 		// WebRoot is relative to content root
 		//    this is where html/js files are read from
 
-		if (Environment == Environments.Development)
+		if (Environments.Development == Environment)
 		{
 			// In development we will use the external folder for quicker dev-loop
 			builder.UseWebRoot("../../frontend/dist");
@@ -157,7 +157,7 @@ public static class Program
 		{
 			options.Stores.MaxLengthForKeys = 128; // copied from ASP.NET sources for compat
 
-			options.SignIn.RequireConfirmedAccount = Environment == Environments.Production;
+			options.SignIn.RequireConfirmedAccount = Environments.Production == Environment;
 		}).AddDefaultUI().AddDefaultTokenProviders();
 
 		services.Configure<IdentityOptions>(options =>
