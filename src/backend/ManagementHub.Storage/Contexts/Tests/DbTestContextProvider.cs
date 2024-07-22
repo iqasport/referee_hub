@@ -83,7 +83,7 @@ public class DbTestContextProvider : ITestContextProvider
 
 		if (overrides.ExtraTimePercentage.HasValue)
 		{
-			test.TimeLimit = TimeSpan.FromMinutes(test.TimeLimit.TotalMinutes * (1 + overrides.ExtraTimePercentage.Value / 100.0));
+			test.TimeLimit = TimeSpan.FromMinutes(Math.Ceiling(test.TimeLimit.TotalMinutes * (1 + overrides.ExtraTimePercentage.Value / 100.0)));
 		}
 	}
 

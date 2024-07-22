@@ -201,6 +201,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = null,
 			LastName = null,
+			UniqueId = "U_abcdefghijklmnopqrstuvwxyy"
 		};
 
 		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName);
