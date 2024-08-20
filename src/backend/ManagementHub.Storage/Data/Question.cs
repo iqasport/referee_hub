@@ -14,11 +14,12 @@ public partial class Question : IIdentifiable
 
 	public long Id { get; set; }
 	public long TestId { get; set; }
-	public string Description { get; set; } = null!;
-	public int PointsAvailable { get; set; }
+	public required long SequenceId { get; set; } // sequence number relevant in import/export for idempotency
+	public required string Description { get; set; } = null!;
+	public required int PointsAvailable { get; set; }
 	public string? Feedback { get; set; }
 	public DateTime CreatedAt { get; set; }
-	public DateTime UpdatedAt { get; set; }
+	public required DateTime UpdatedAt { get; set; }
 
 	public virtual Test Test { get; set; } = null!;
 	public virtual ICollection<Answer> Answers { get; set; }

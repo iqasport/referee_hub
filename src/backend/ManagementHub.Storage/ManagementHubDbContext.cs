@@ -684,6 +684,8 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
+			entity.Property(e => e.SequenceId).HasColumnName("seq_id");
+
 			entity.HasOne(d => d.Test)
 				.WithMany(p => p.Questions)
 				.HasForeignKey(d => d.TestId)

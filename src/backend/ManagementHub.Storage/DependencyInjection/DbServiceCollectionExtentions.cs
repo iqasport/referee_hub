@@ -4,6 +4,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Redis.StackExchange;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Commands.Import;
 using ManagementHub.Models.Abstraction.Commands.Migrations;
 using ManagementHub.Models.Abstraction.Commands.Payments;
 using ManagementHub.Models.Abstraction.Commands.Tests;
@@ -120,6 +121,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<ISaveSubmittedTestCommand, SaveSubmittedTestCommand>();
 		services.AddScoped<IProcessCertificationPaymentCommand, ProcessCertificationPaymentCommand>();
 		services.AddScoped<ICreateNgbStatsSnapshotCommand, CreateNgbStatsSnapshotCommand>();
+		services.AddScoped<IImportTestQuestions, ImportTestQuestions>();
 
 		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
 

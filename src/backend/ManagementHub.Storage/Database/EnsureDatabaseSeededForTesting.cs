@@ -476,6 +476,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Test = test,
 				Description = $"Question {i}",
 				PointsAvailable = 1,
+				SequenceId = i,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
 				Answers = Enumerable.Range(1, 4).Select(j => new Answer
