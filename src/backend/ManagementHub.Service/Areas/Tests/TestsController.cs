@@ -110,13 +110,19 @@ public class TestsController : ControllerBase
 					string.IsNullOrWhiteSpace(record.Answer3) ||
 					string.IsNullOrWhiteSpace(record.Answer4))
 				{
-					throw new ArgumentException("Question and Answers cannot be empty");
+					throw new ArgumentException($"Question and Answers cannot be empty (sequence: {record.SequenceNum})");
 				}
 
 				if ("null".Equals(record.Feedback, StringComparison.OrdinalIgnoreCase))
 				{
 					record.Feedback = null;
 				}
+			}
+
+			if (records.Count != records.Select(r => r.SequenceNum).Distinct().Count())
+			{
+				var duplicates = records.GroupBy(r => r.SequenceNum).Where(g => g.Count() > 1).Select(g => g.Key);
+				throw new ArgumentException($"Sequence numbers must be unique (duplicated {string.Join(", ", duplicates)}");
 			}
 
 			await this.importTestQuestions.ImportTestQuestionsAsync(testId, records);
