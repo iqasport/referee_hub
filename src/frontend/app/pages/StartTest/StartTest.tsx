@@ -68,7 +68,7 @@ const StartTest = () => {
   const [startTest, { data: startedTest, error: startTestError }] = useStartTestMutation();
   const [submitTest, { data: submittedTest, error: submitTestError }] = useSubmitTestMutation();
 
-  const timeLimitInMinutes = test && Duration.fromISOTime(test.timeLimit).minutes;
+  const timeLimitInMinutes = test && Duration.fromISOTime(test.timeLimit).as("minutes");
 
   useEffect(() => {
     if (startedTest) {

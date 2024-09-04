@@ -432,6 +432,23 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
 				TestableQuestionCount = 12,
 			},
+			new Test
+			{
+				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.Scorekeeper),
+				Description = "60min log SK",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.Scorekeeper,
+				MinimumPassPercentage = 80,
+				Name = "SK 2022 - 50",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = false,
+				TimeLimit = 60,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 2,
+			},
 		};
 		dbContext.Tests.AddRange(tests);
 
