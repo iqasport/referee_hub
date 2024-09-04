@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -84,6 +84,11 @@ public class DbTestContextProvider : ITestContextProvider
 		if (overrides.ExtraTimePercentage.HasValue)
 		{
 			test.TimeLimit = TimeSpan.FromMinutes(Math.Ceiling(test.TimeLimit.TotalMinutes * (1 + (overrides.ExtraTimePercentage.Value / 100.0))));
+		}
+
+		if (overrides.ExtraTime.HasValue)
+		{
+			test.TimeLimit += overrides.ExtraTime.Value;
 		}
 	}
 

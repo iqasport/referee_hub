@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Options.Contextual;
 
 namespace ManagementHub.Storage.Contexts.Tests;
@@ -6,6 +7,7 @@ public class TestPolicyOverride
 {
 	public int? MaxAttempts { get; set; }
 	public int? ExtraTimePercentage { get; set; }
+	public TimeSpan? ExtraTime { get; set; }
 }
 
 [OptionsContext]
