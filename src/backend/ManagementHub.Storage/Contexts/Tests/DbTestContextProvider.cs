@@ -30,7 +30,7 @@ public class DbTestContextProvider : ITestContextProvider
 
 	public async Task<Test> GetTestAsync(UserIdentifier userId, TestIdentifier testId, CancellationToken cancellationToken)
 	{
-		var test = await Query(this.dbContext.Tests.WithIdentifier(testId), withQuestions: false).SingleOrDefaultAsync(cancellationToken);
+		var test = await Query(this.dbContext.Tests.AsNoTracking().WithIdentifier(testId), withQuestions: false).SingleOrDefaultAsync(cancellationToken);
 
 		if (test == null)
 		{
@@ -44,7 +44,7 @@ public class DbTestContextProvider : ITestContextProvider
 
 	public async Task<IEnumerable<Test>> GetTestsAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
-		var tests = await Query(this.dbContext.Tests, withQuestions: false).ToListAsync(cancellationToken);
+		var tests = await Query(this.dbContext.Tests.AsNoTracking(), withQuestions: false).ToListAsync(cancellationToken);
 		foreach (var test in tests)
 		{
 			await this.ApplyOverrides(userId, test, cancellationToken);
@@ -90,13 +90,18 @@ public class DbTestContextProvider : ITestContextProvider
 		{
 			test.TimeLimit += overrides.ExtraTime.Value;
 		}
+
+		if (overrides.IsActive.HasValue)
+		{
+			test.IsActive = overrides.IsActive.Value;
+		}
 	}
 
 	private static IQueryable<Test> Query(IQueryable<Models.Data.Test> dataset, bool withQuestions)
 	{
 		dataset = dataset.Include(t => t.Certification).Include(t => t.NewLanguage);
 		if (withQuestions)
-			dataset = dataset.Include(t => t.Questions).ThenInclude(q => q.Answers);
+			dataset = dataset.Include(t => t.Questions).ThenInclude(q => q.Answers).AsSplitQuery();
 		return withQuestions
 			? dataset.Select(t => new TestWithQuestions
 			{

@@ -8,6 +8,7 @@ public class TestPolicyOverride
 	public int? MaxAttempts { get; set; }
 	public int? ExtraTimePercentage { get; set; }
 	public TimeSpan? ExtraTime { get; set; }
+	public bool? IsActive { get; set; }
 }
 
 [OptionsContext]
