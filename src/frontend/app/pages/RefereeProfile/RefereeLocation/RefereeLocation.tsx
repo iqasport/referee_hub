@@ -30,7 +30,7 @@ const RefereeLocation = (props: LocationProps) => {
     const newNGB = event.target.value;
     const isBlank = newNGB === "-1";
 
-    onChange({...locations, [type]: isBlank ? undefined : newNGB})
+    onChange({...locations, [type]: isBlank ? null : newNGB})
   };
 
   const renderOption = (ngb: NgbViewModel) => (

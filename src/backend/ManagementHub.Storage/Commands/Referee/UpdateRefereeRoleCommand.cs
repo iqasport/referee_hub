@@ -217,6 +217,23 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 					var updatedAt = this.clock.UtcNow.UtcDateTime;
 
 					this.logger.LogInformation(0x5fd2070a, "Updating primary NGB ({oldNgbId} -> {newNgbId}) for referee ({userId}).", oldNgbId, newNgbId, userId);
+					if (currentRefereeRole.SecondaryNgb == newRefereeRole.PrimaryNgb)
+					{
+						if (!updateSecondaryNgb)
+						{
+							throw new InvalidOperationException("Referee can't have the same NGB set as both primary and secondary");
+						}
+
+						this.logger.LogInformation(0x5fd20710, "Swapping NGB from secondary to primary. Need to delete secondary first.");
+						await this.dbContext.RefereeLocations
+							.Join(this.dbContext.Users.WithIdentifier(userId), t => t.RefereeId, u => u.Id, (t, _) => t)
+							.Where(t => t.AssociationType == RefereeNgbAssociationType.Secondary)
+							.ExecuteDeleteAsync(cancellationToken);
+						
+						// set as null so that a new record will be added below
+						currentRefereeRole.SecondaryNgb = null;
+					}
+
 					var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.PrimaryNgb.Value, cancellationToken);
 					await ngb.ExecuteUpdateAsync(t => t
 						.SetProperty(x => x.NationalGoverningBodyId, newNgbIdLong)
@@ -272,20 +289,27 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 			}
 			else
 			{
-				var newNgbId = newRefereeRole.SecondaryNgb?.NgbCode ?? throw new InvalidOperationException("Both current and new are null?");
-				var now = this.clock.UtcNow.UtcDateTime;
-
-				this.logger.LogInformation(0x5fd2070e, "Adding secondary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
-				var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.SecondaryNgb.Value, cancellationToken);
-				this.dbContext.RefereeLocations.Add(new RefereeLocation
+				if (newRefereeRole.SecondaryNgb == null)
 				{
-					AssociationType = RefereeNgbAssociationType.Secondary,
-					Referee = referee ??= await this.dbContext.Users.WithIdentifier(userId).SingleAsync(cancellationToken),
-					NationalGoverningBodyId = newNgbIdLong,
-					CreatedAt = now,
-					UpdatedAt = now,
-				});
-				await this.dbContext.SaveChangesAsync(cancellationToken);
+					// secondary has been moved to primary and got removed
+				}
+				else
+				{
+					var newNgbId = newRefereeRole.SecondaryNgb.Value.NgbCode;
+					var now = this.clock.UtcNow.UtcDateTime;
+
+					this.logger.LogInformation(0x5fd2070e, "Adding secondary NGB ({ngbId}) for referee ({userId}).", newNgbId, userId);
+					var newNgbIdLong = await this.GetNgbIdForUpdate(newRefereeRole.SecondaryNgb.Value, cancellationToken);
+					this.dbContext.RefereeLocations.Add(new RefereeLocation
+					{
+						AssociationType = RefereeNgbAssociationType.Secondary,
+						Referee = referee ??= await this.dbContext.Users.WithIdentifier(userId).SingleAsync(cancellationToken),
+						NationalGoverningBodyId = newNgbIdLong,
+						CreatedAt = now,
+						UpdatedAt = now,
+					});
+					await this.dbContext.SaveChangesAsync(cancellationToken);
+				}
 			}
 		}
 

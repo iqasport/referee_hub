@@ -34,7 +34,7 @@ public class RefereesController : ControllerBase
 	/// <summary>
 	/// Updates the referees metadata (Ngb, Team).
 	/// </summary>
-	[HttpPatch("me")]
+	[HttpPut("me")]
 	[Tags("Referee", "User")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
 	public async Task UpdateCurrentReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
@@ -43,11 +43,10 @@ public class RefereesController : ControllerBase
 		await this.updateRefereeRoleCommand.UpdateRefereeRoleAsync(userContext.UserId, refereeRole => new RefereeRole
 		{
 			IsActive = refereeRole.IsActive,
-			// TODO: handle how to detect partial patch vs setting null actually
-			CoachingTeam = refereeUpdate.CoachingTeam?.Id ?? refereeRole.CoachingTeam,
-			PlayingTeam = refereeUpdate.PlayingTeam?.Id ?? refereeRole.PlayingTeam,
-			PrimaryNgb = refereeUpdate.PrimaryNgb ?? refereeRole.PrimaryNgb,
-			SecondaryNgb = refereeUpdate.SecondaryNgb ?? refereeRole.SecondaryNgb,
+			CoachingTeam = refereeUpdate.CoachingTeam?.Id,
+			PlayingTeam = refereeUpdate.PlayingTeam?.Id,
+			PrimaryNgb = refereeUpdate.PrimaryNgb,
+			SecondaryNgb = refereeUpdate.SecondaryNgb,
 		}, this.HttpContext.RequestAborted);
 	}
 

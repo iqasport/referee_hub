@@ -146,7 +146,7 @@ const injectedRtkApi = api
       >({
         query: (queryArg) => ({
           url: `/api/v2/Referees/me`,
-          method: "PATCH",
+          method: "PUT",
           body: queryArg.refereeUpdateViewModel,
         }),
         invalidatesTags: ["Referee", "User"],
@@ -228,6 +228,33 @@ const injectedRtkApi = api
       getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
         query: (queryArg) => ({ url: `/api/v2/referees/me/tests/${queryArg.testId}/details` }),
         providesTags: ["Tests"],
+      }),
+      createNewTest: build.mutation<CreateNewTestApiResponse, CreateNewTestApiArg>({
+        query: (queryArg) => ({
+          url: `/api/admin/Tests/create`,
+          method: "POST",
+          body: queryArg.testViewModel,
+        }),
+        invalidatesTags: ["Tests"],
+      }),
+      setTestActive: build.mutation<SetTestActiveApiResponse, SetTestActiveApiArg>({
+        query: (queryArg) => ({
+          url: `/api/admin/Tests/${queryArg.testId}/active`,
+          method: "POST",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["Tests"],
+      }),
+      importTestQuestions: build.mutation<
+        ImportTestQuestionsApiResponse,
+        ImportTestQuestionsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/admin/Tests/${queryArg.testId}/import`,
+          method: "POST",
+          body: queryArg.testQuestions,
+        }),
+        invalidatesTags: ["Tests"],
       }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
@@ -422,6 +449,20 @@ export type DeleteNgbTeamApiArg = {
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
   testId: string;
+};
+export type CreateNewTestApiResponse = /** status 200 Success */ string;
+export type CreateNewTestApiArg = {
+  testViewModel: TestViewModel;
+};
+export type SetTestActiveApiResponse = unknown;
+export type SetTestActiveApiArg = {
+  testId: string;
+  body: boolean;
+};
+export type ImportTestQuestionsApiResponse = unknown;
+export type ImportTestQuestionsApiArg = {
+  testId: string;
+  testQuestions: object;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -787,6 +828,27 @@ export type RefereeTestDetailsViewModel = {
   maximumAttempts?: number;
   passPercentage?: number;
 };
+export type TestViewModel = {
+  /** Title of the test (how it's displayed to users). */
+  title?: string | null;
+  /** Block of text displayed to the refere before taking the test. */
+  description?: string | null;
+  /** Language of the test. */
+  language?: string;
+  awardedCertification?: Certification;
+  /** Time limit in minutes. */
+  timeLimit?: number;
+  /** Pass percentage. */
+  passPercentage?: number;
+  /** How many questions to given to the referee during the test. */
+  questionsCount?: number;
+  /** If it's a recertification test for the previous rulebook. */
+  recertification?: boolean;
+  /** Feedback to be displayed to the referee after the test if the pass. */
+  positiveFeedback?: string | null;
+  /** Feedback to be displayed to the referee after the test if they fail. */
+  negativeFeedback?: string | null;
+};
 export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
@@ -841,6 +903,9 @@ export const {
   useUpdateNgbTeamMutation,
   useDeleteNgbTeamMutation,
   useGetTestDetailsQuery,
+  useCreateNewTestMutation,
+  useSetTestActiveMutation,
+  useImportTestQuestionsMutation,
   useGetCurrentUserQuery,
   usePutRootUserAttributeMutation,
   usePutUserAttributeMutation,
