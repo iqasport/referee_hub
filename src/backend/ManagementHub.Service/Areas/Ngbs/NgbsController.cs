@@ -223,7 +223,7 @@ public class NgbsController : ControllerBase
 			Country = viewModel.Country,
 			Status = viewModel.Status,
 			GroupAffiliation = viewModel.GroupAffiliation,
-			JoinedAt = viewModel.JoinedAt.ToDateTime(default),
+			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
 		};
 		var team = await this.teamContextProvider.CreateTeamAsync(ngb, teamData);
 		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
@@ -267,7 +267,7 @@ public class NgbsController : ControllerBase
 			Country = viewModel.Country,
 			Status = viewModel.Status,
 			GroupAffiliation = viewModel.GroupAffiliation,
-			JoinedAt = viewModel.JoinedAt.ToDateTime(default),
+			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
 		};
 		var team = await this.teamContextProvider.UpdateTeamAsync(ngb, teamId, teamData);
 		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
