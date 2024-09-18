@@ -3,7 +3,7 @@ import React from "react";
 
 import { getVersion } from "../../../utils/certUtils";
 import Table, { CellConfig } from "../Table/Table";
-import { RefereeEligibilityResult, RefereeTestAvailableViewModel, useGetAvailableTestsQuery } from "../../../store/serviceApi";
+import { Certification, CertificationLevel, RefereeEligibilityResult, RefereeTestAvailableViewModel, useGetAvailableTestsQuery, useGetCurrentRefereeQuery } from "../../../store/serviceApi";
 import { getErrorString } from "../../../utils/errorUtils";
 import { faBan, faCircleCheck, faClock } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -20,20 +20,55 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   const { refId } = props;
   const navigate = useNavigate();
 
+  const { currentData: referee } = useGetCurrentRefereeQuery();
   const { currentData: tests, isLoading, error: getTestsError } = useGetAvailableTestsQuery();
 
-  // sorts first by level and then by eligibility
-  // TODO: improve readability on this and correct sorting by level and add weights to eligibility status
-  const testComparer = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
-    const levelComparison = a.level < b.level ? -1 : a.level === b.level ? 0 : 1;
-    if (a.isRefereeEligible) {
-      if (b.isRefereeEligible) return levelComparison;
-      else return -1;
-    }
-    if (b.isRefereeEligible) return 1;
-    return levelComparison;
+  const compareByLevel = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
+    const levelValue: Record<CertificationLevel, number> = {
+      scorekeeper: 0,
+      assistant: 1,
+      snitch: 2,
+      head: 3,
+      field: 4,
+    };
+    return levelValue[a.level] - levelValue[b.level];
   }
-  const sortedTests = !tests ? undefined : [...tests].sort(testComparer);
+  const compareByEligibility = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
+    // TODO: add weights to eligibility status (e.g. cooldown before others)
+    if (a.isRefereeEligible === b.isRefereeEligible) return 0;
+    if (a.isRefereeEligible) return -1;
+    return 1;
+  }
+  const compareByLanguage = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
+    const primaryLanguage = (() => {
+      switch (referee?.primaryNgb) {
+        case "FRA": return "fr";
+        case "DEU": return "de";
+        case "PRT": return "pt";
+        case "ITA": return "it";
+        case "AQC": return "ca";
+        case "NLD": return "nl";
+        case "TUR": return "tr";
+        default: return "en";
+      }
+    })();
+    const aLang = a.language.indexOf("-") > 0 ? a.language.substring(0, a.language.indexOf("-")) : a.language;
+    const bLang = b.language.indexOf("-") > 0 ? b.language.substring(0, a.language.indexOf("-")) : b.language;
+
+    if (aLang === bLang) return 0;
+    if (aLang === primaryLanguage) return -1;
+    if (bLang === primaryLanguage) return 1;
+    if (aLang === "en") return -1;
+    if (bLang === "en") return 1;
+    return aLang < bLang ? -1 : 1;
+  }
+
+  // We want to have the eligible tests on top, ineligible on bottom
+  // Within that we want tests grouped by language (primary language first, then english, then rest)
+  // Within that we want tests sorted by level
+  const sortedTests = !tests
+    ? undefined
+    : [...tests].sort(compareByLevel).sort(compareByLanguage).sort(compareByEligibility);
 
   const handleRowClick = (id: string) => {
     navigate(`/referees/${refId}/tests/${id}`);
