@@ -96,6 +96,7 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 				case "2018": return new Certification(CertificationLevel.Head, CertificationVersion.Eighteen);
 				case "2020": return new Certification(CertificationLevel.Head, CertificationVersion.Twenty);
 				case "2022": return new Certification(CertificationLevel.Head, CertificationVersion.TwentyTwo);
+				case "2024": return new Certification(CertificationLevel.Head, CertificationVersion.TwentyFour);
 				default:
 					this.logger.LogWarning(-0x2a7092fc, "A new certification product has been added to Stripe without a corresponding rulebook version being added to the service.");
 					return null;

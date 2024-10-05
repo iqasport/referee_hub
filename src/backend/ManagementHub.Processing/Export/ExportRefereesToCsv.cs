@@ -55,6 +55,7 @@ public class ExportRefereesToCsv : IExportRefereesToCsv
 				RB18 = string.Join(", ", referee.AcquiredCertifications.Where(c => c.Version == CertificationVersion.Eighteen).Select(c => c.Level).Order()),
 				RB20 = string.Join(", ", referee.AcquiredCertifications.Where(c => c.Version == CertificationVersion.Twenty).Select(c => c.Level).Order()),
 				RB22 = string.Join(", ", referee.AcquiredCertifications.Where(c => c.Version == CertificationVersion.TwentyTwo).Select(c => c.Level).Order()),
+				RB24 = string.Join(", ", referee.AcquiredCertifications.Where(c => c.Version == CertificationVersion.TwentyFour).Select(c => c.Level).Order()),
 			};
 		}, cancellationToken, this.logger);
 	}
@@ -65,6 +66,7 @@ public class ExportRefereesToCsv : IExportRefereesToCsv
 		public required string Teams { get; set; }
 		
 		// rulebook grouped, comma separated certifications, latest first
+		public required string RB24 { get; set; }
 		public required string RB22 { get; set; }
 		public required string RB20 { get; set; }
 		public required string RB18 { get; set; }
