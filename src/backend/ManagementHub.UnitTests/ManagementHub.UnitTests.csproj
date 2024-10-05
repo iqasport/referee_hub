@@ -26,6 +26,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ManagementHub.Processing\ManagementHub.Processing.csproj" />
+    <ProjectReference Include="..\ManagementHub.Service\ManagementHub.Service.csproj" />
+    <ProjectReference Include="..\ManagementHub.Storage\ManagementHub.Storage.csproj" />
   </ItemGroup>
 
 </Project>

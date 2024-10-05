@@ -89,43 +89,86 @@ public class TestsController : ControllerBase
 	public async Task ImportTestQuestions([FromRoute] TestIdentifier testId)
 	{
 		using (var reader = new StreamReader(this.HttpContext.Request.Body, leaveOpen: true))
-		using (var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
 		{
-			HasHeaderRecord = true,
-			PrepareHeaderForMatch = args => args.Header.ToLower(),
-		}))
+			// this function is applied to both CSV headers and the model properties
+			PrepareHeaderForMatch columnNameUnifier = args =>
+			{
+				var columnAliases = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+				{
+					["Question Description"] = nameof(TestQuestionRecord.Question),
+					["Answer 1"] = nameof(TestQuestionRecord.Answer1),
+					["Answer 2"] = nameof(TestQuestionRecord.Answer2),
+					["Answer 3"] = nameof(TestQuestionRecord.Answer3),
+					["Answer 4"] = nameof(TestQuestionRecord.Answer4),
+					["Correct Answer"] = nameof(TestQuestionRecord.CorrectAnswer),
+					["Answer"] = nameof(TestQuestionRecord.CorrectAnswer),
+				};
+
+				string header = args.Header;
+				if (columnAliases.TryGetValue(header, out var mappedHeader))
+				{
+					header = mappedHeader;
+				}
+
+				return header.ToLower();
+			};
+			using (var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				PrepareHeaderForMatch = columnNameUnifier,
+			}))
+			{
+				csv.Context.RegisterClassMap<TestQuestionRecordMap>();
+
+				var records = await csv.GetRecordsAsync<TestQuestionRecord>().ToListAsync();
+
+				foreach (var record in records)
+				{
+					if (record.Correct < 1 || record.Correct > 4)
+					{
+						throw new ArgumentException("Correct answer must be between 1 and 4");
+					}
+
+					if (string.IsNullOrWhiteSpace(record.Question) ||
+						string.IsNullOrWhiteSpace(record.Answer1) ||
+						string.IsNullOrWhiteSpace(record.Answer2) ||
+						string.IsNullOrWhiteSpace(record.Answer3) ||
+						string.IsNullOrWhiteSpace(record.Answer4))
+					{
+						throw new ArgumentException($"Question and Answers cannot be empty (sequence: {record.SequenceNum})");
+					}
+
+					if ("null".Equals(record.Feedback, StringComparison.OrdinalIgnoreCase))
+					{
+						record.Feedback = null;
+					}
+				}
+
+				if (records.Count != records.Select(r => r.SequenceNum).Distinct().Count())
+				{
+					var duplicates = records.GroupBy(r => r.SequenceNum).Where(g => g.Count() > 1).Select(g => g.Key);
+					throw new ArgumentException($"Sequence numbers must be unique (duplicated {string.Join(", ", duplicates)}");
+				}
+
+				await this.importTestQuestions.ImportTestQuestionsAsync(testId, records);
+			}
+		}
+	}
+
+	public sealed class TestQuestionRecordMap : ClassMap<TestQuestionRecord>
+	{
+		public TestQuestionRecordMap()
 		{
-			var records = await csv.GetRecordsAsync<TestQuestionRecord>().ToListAsync();
-
-			foreach (var record in records)
-			{
-				if (record.Correct < 1 || record.Correct > 4)
-				{
-					throw new ArgumentException("Correct answer must be between 1 and 4");
-				}
-
-				if (string.IsNullOrWhiteSpace(record.Question) ||
-					string.IsNullOrWhiteSpace(record.Answer1) ||
-					string.IsNullOrWhiteSpace(record.Answer2) ||
-					string.IsNullOrWhiteSpace(record.Answer3) ||
-					string.IsNullOrWhiteSpace(record.Answer4))
-				{
-					throw new ArgumentException($"Question and Answers cannot be empty (sequence: {record.SequenceNum})");
-				}
-
-				if ("null".Equals(record.Feedback, StringComparison.OrdinalIgnoreCase))
-				{
-					record.Feedback = null;
-				}
-			}
-
-			if (records.Count != records.Select(r => r.SequenceNum).Distinct().Count())
-			{
-				var duplicates = records.GroupBy(r => r.SequenceNum).Where(g => g.Count() > 1).Select(g => g.Key);
-				throw new ArgumentException($"Sequence numbers must be unique (duplicated {string.Join(", ", duplicates)}");
-			}
-
-			await this.importTestQuestions.ImportTestQuestionsAsync(testId, records);
+			this.Map(m => m.SequenceNum);
+			this.Map(m => m.Question);
+			this.Map(m => m.Feedback).Optional();
+			this.Map(m => m.Answer1);
+			this.Map(m => m.Answer2);
+			this.Map(m => m.Answer3);
+			this.Map(m => m.Answer4);
+			// Either one of the below must be present
+			this.Map(m => m.CorrectAnswer).Optional();
+			this.Map(m => m.Correct).Optional();
 		}
 	}
 }

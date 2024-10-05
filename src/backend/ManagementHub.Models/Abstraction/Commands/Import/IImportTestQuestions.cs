@@ -20,4 +20,14 @@ public class TestQuestionRecord
 	public required string Answer4 { get; set; }
 	// Which answer is correct
 	public required int Correct { get; set; }
+
+	public string CorrectAnswer
+	{
+		get => $"Answer {this.Correct}";
+		set
+		{ 
+			/* Assuming it's "Answer X" */
+			this.Correct = int.Parse(value[(value.LastIndexOf(' ') + 1)..]);
+		}
+	}
 }
