@@ -30,10 +30,15 @@ const findHighestCert = (referee: RefereeViewModel): string => {
   const snitchAsFlag = (level?: string) => level === "snitch" ? "flag" : level;
   const highestTwenty = snitchAsFlag(certHashMap.twenty?.sort(sortByLength)[0]);
   const highestTwentyTwo = snitchAsFlag(certHashMap.twentytwo?.sort(sortByLength)[0]);
+  const highestTwentyFour = snitchAsFlag(certHashMap.twentyfour?.sort(sortByLength)[0]);
   const highestEighteen = snitchAsFlag(certHashMap.eighteen?.sort(sortByLength)[0]);
 
   // We will promote current certification first and foremost
   // We don't care if someone was a HR in 2020 if they only have AR in 2022
+  if (highestTwentyFour) {
+    return `${capitalize(highestTwentyFour)} ${getVersion("twentyfour")}`;
+  }
+
   if (highestTwentyTwo) {
     return `${capitalize(highestTwentyTwo)} ${getVersion("twentytwo")}`;
   }

@@ -32,7 +32,7 @@ const REQUIRED_TEST_FIELDS = [
 ];
 const REQUIRED_CERT_FIELDS = ["version", "level"];
 const LEVEL_OPTIONS = ["snitch", "assistant", "head", "field", "scorekeeper"];
-const VERSION_OPTIONS = ["eighteen", "twenty", "twentytwo"];
+const VERSION_OPTIONS = ["eighteen", "twenty", "twentytwo", "twentyfour"];
 
 const initialNewTest: UpdateTestRequest = {
   certificationId: null,

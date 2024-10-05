@@ -508,7 +508,7 @@ export type CheckoutSession = {
   sessionId?: string | null;
 };
 export type CertificationLevel = "snitch" | "assistant" | "head" | "field" | "scorekeeper";
-export type CertificationVersion = "eighteen" | "twenty" | "twentytwo";
+export type CertificationVersion = "eighteen" | "twenty" | "twentytwo" | "twentyfour";
 export type NgbConstraint = {};
 export type NgbConstraintRead = {
   appliesToAny?: boolean;
