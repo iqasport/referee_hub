@@ -56,8 +56,8 @@ public class TestsController : ControllerBase
 			MinimumPassPercentage = test.PassPercentage,
 			TestableQuestionCount = test.QuestionsCount,
 			Recertification = test.Recertification,
-			NegativeFeedback = test.PositiveFeedback,
-			PositiveFeedback = test.NegativeFeedback,
+			NegativeFeedback = test.NegativeFeedback,
+			PositiveFeedback = test.PositiveFeedback,
 			// A new test should always be inactive until it's ready to be used
 			Active = false,
 
