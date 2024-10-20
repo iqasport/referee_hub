@@ -54,4 +54,14 @@ public class TestViewModel
 	/// Feedback to be displayed to the referee after the test if they fail.
 	/// </summary>
 	public string? NegativeFeedback { get; set; }
+
+	/// <summary>
+	/// Whether the test is active for all users.
+	/// </summary>
+	public bool Active { get; set; } = false;
+
+	/// <summary>
+	/// Identifier of the test.
+	/// </summary>
+	public TestIdentifier TestId { get; set; }
 }

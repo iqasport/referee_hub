@@ -2,6 +2,8 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using ManagementHub.Models.Abstraction.Commands.Import;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
@@ -20,11 +22,13 @@ public class TestsController : ControllerBase
 {
 	private readonly IImportTestQuestions importTestQuestions;
 	private readonly ManagementHubDbContext dbContext; // TODO: should I move this to the Storage project?
+	private readonly ITestContextProvider testContextProvider;
 
-	public TestsController(IImportTestQuestions importTestQuestions, ManagementHubDbContext dbContext)
+	public TestsController(IImportTestQuestions importTestQuestions, ManagementHubDbContext dbContext, ITestContextProvider testContextProvider)
 	{
 		this.importTestQuestions = importTestQuestions;
 		this.dbContext = dbContext;
+		this.testContextProvider = testContextProvider;
 	}
 
 	[HttpPost("create")]
@@ -81,6 +85,28 @@ public class TestsController : ControllerBase
 
 		test.Active = active;
 		await this.dbContext.SaveChangesAsync();
+	}
+
+	[HttpGet]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	public async Task<IEnumerable<TestViewModel>> GetAllTests(CancellationToken cancellation)
+	{
+		var tests = this.dbContext.Tests.AsNoTracking().Include(t => t.Certification).Include(t => t.NewLanguage);
+		return await tests.Select(t => new TestViewModel
+		{
+			Title = t.Name ?? "Unnamed test",
+			Description = t.Description,
+			Language = new LanguageIdentifier(t.NewLanguage!.ShortName, t.NewLanguage.ShortRegion),
+			AwardedCertification = Certification.New(t.Certification!.Level, t.Certification.Version),
+			TimeLimit = t.TimeLimit,
+			PassPercentage = t.MinimumPassPercentage,
+			QuestionsCount = t.TestableQuestionCount,
+			Recertification = t.Recertification.GetValueOrDefault(false),
+			PositiveFeedback = t.PositiveFeedback,
+			NegativeFeedback = t.NegativeFeedback,
+			Active = t.Active,
+			TestId = t.UniqueId != null ? TestIdentifier.Parse(t.UniqueId) : TestIdentifier.FromLegacyTestId(t.Id),
+		}).ToListAsync(cancellation);
 	}
 
 	[HttpPost("{testId}/import")]

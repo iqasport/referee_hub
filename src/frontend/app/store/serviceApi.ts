@@ -4,6 +4,7 @@ export const addTagTypes = [
   "Debug",
   "Export",
   "Identity",
+  "Languages",
   "Ngb",
   "Referee",
   "User",
@@ -76,6 +77,10 @@ const injectedRtkApi = api
           body: queryArg.loginRequest,
         }),
         invalidatesTags: ["Identity"],
+      }),
+      getLanguages: build.query<GetLanguagesApiResponse, GetLanguagesApiArg>({
+        query: () => ({ url: `/api/Languages` }),
+        providesTags: ["Languages"],
       }),
       getNgbs: build.query<GetNgbsApiResponse, GetNgbsApiArg>({
         query: (queryArg) => ({
@@ -245,6 +250,10 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tests"],
       }),
+      getAllTests: build.query<GetAllTestsApiResponse, GetAllTestsApiArg>({
+        query: () => ({ url: `/api/admin/Tests` }),
+        providesTags: ["Tests"],
+      }),
       importTestQuestions: build.mutation<
         ImportTestQuestionsApiResponse,
         ImportTestQuestionsApiArg
@@ -355,6 +364,8 @@ export type LoginApiResponse = /** status 200 Success */ AccessTokenResponseRead
 export type LoginApiArg = {
   loginRequest: LoginRequest;
 };
+export type GetLanguagesApiResponse = /** status 200 Success */ string[];
+export type GetLanguagesApiArg = void;
 export type GetNgbsApiResponse = /** status 200 Success */ NgbViewModelFiltered;
 export type GetNgbsApiArg = {
   filter?: string;
@@ -459,6 +470,8 @@ export type SetTestActiveApiArg = {
   testId: string;
   body: boolean;
 };
+export type GetAllTestsApiResponse = /** status 200 Success */ TestViewModel[];
+export type GetAllTestsApiArg = void;
 export type ImportTestQuestionsApiResponse = unknown;
 export type ImportTestQuestionsApiArg = {
   testId: string;
@@ -848,6 +861,10 @@ export type TestViewModel = {
   positiveFeedback?: string | null;
   /** Feedback to be displayed to the referee after the test if they fail. */
   negativeFeedback?: string | null;
+  /** Whether the test is active for all users. */
+  active?: boolean;
+  /** Identifier of the test. */
+  testId?: string;
 };
 export type CurrentUserViewModel = {
   userId?: string;
@@ -883,6 +900,7 @@ export const {
   useExportRefereesForNgbMutation,
   useExportTeamsForNgbMutation,
   useLoginMutation,
+  useGetLanguagesQuery,
   useGetNgbsQuery,
   useGetNgbInfoQuery,
   useUpdateNgbMutation,
@@ -905,6 +923,7 @@ export const {
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
   useSetTestActiveMutation,
+  useGetAllTestsQuery,
   useImportTestQuestionsMutation,
   useGetCurrentUserQuery,
   usePutRootUserAttributeMutation,

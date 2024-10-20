@@ -1,39 +1,35 @@
 import { isBoolean, kebabCase } from "lodash";
 import React from "react";
-
-import { Datum } from "../../schemas/getLanguagesSchema";
-import { Data } from "../../schemas/getTestSchema";
+import { TestViewModel } from "../../store/serviceApi";
 
 // the language field is excluded because it's a legacy attribute
-const EXCLUDED_ATTRIBUTES = ["active", "updatedAt", "certificationId", "language"];
+const EXCLUDED_ATTRIBUTES = ["active", "updatedAt", "awardedCertification"];
 export interface DetailsProps {
-  test: Data;
-  languages: Datum[];
+  test: TestViewModel;
+  languages: string[];
 }
 
 const Details = (props: DetailsProps) => {
   const { test, languages } = props;
-  const dataToRender = test ? test.attributes : [];
-  const language = languages.find(
-    (lang) => lang.id === test?.attributes?.newLanguageId?.toString()
-  );
+  const dataToRender = test ? test : [];
+  const language = test?.language;
 
   const renderData = (entry: [string, string | boolean]) => {
     if (EXCLUDED_ATTRIBUTES.includes(entry[0])) return null;
     let labelText: string;
     let dataText: string;
 
-    if (language && entry[0] === "newLanguageId") {
+    /*if (language && entry[0] === "newLanguageId") {
       const {
         attributes: { longName, shortRegion },
       } = language;
       const regionText = shortRegion ? ` - ${shortRegion}` : "";
       labelText = "Language";
       dataText = `${longName}${regionText}`;
-    } else {
+    } else {*/
       labelText = kebabCase(entry[0]).split("-").join(" ");
       dataText = isBoolean(entry[1]) ? String(entry[1]) : entry[1];
-    }
+    //}
 
     return (
       <div key={entry[0]} className="my-4">

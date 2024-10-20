@@ -72,6 +72,11 @@ public class DbTestContextProvider : ITestContextProvider
 		return testWithQuestions;
 	}
 
+	public async Task<IEnumerable<Test>> GetTestsForAdminAsync(CancellationToken cancellationToken)
+	{
+		return await Query(this.dbContext.Tests.AsNoTracking(), withQuestions: false).ToListAsync(cancellationToken);
+	}
+
 	private async Task ApplyOverrides(UserIdentifier userId, Test test, CancellationToken cancellationToken)
 	{
 		var overrides = await this.overrides.GetAsync(new TestPolicyContext { UserId = userId.ToString(), TestId = test.TestId.ToString() }, cancellationToken);

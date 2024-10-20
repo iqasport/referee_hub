@@ -35,10 +35,10 @@ const ActionDropdown = (props: ActionDropdownProps) => {
       content: "Edit",
       onClick: handleEditOpen,
     },
-    {
+    /*{
       content: "Delete",
       onClick: handleDeleteOpen,
-    },
+    },*/
   ];
 
   return <DropdownMenu renderTrigger={renderTrigger} items={items} />;

@@ -20,6 +20,7 @@ import Details from "./Details";
 import ExportTestModal from "./ExportTestModal";
 import { AppDispatch } from "../../store";
 import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
+import { useGetAllTestsQuery, useGetCurrentUserQuery, useGetLanguagesQuery, useSetTestActiveMutation } from "../../store/serviceApi";
 
 enum SelectedTab {
   Details = "details",
@@ -37,31 +38,20 @@ const Test = () => {
 
   const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Details);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { test, isLoading } = useSelector((state: RootState) => state.test, shallowEqual);
-  const { roles } = useSelector(
-    (state: RootState): CurrentUserState => state.currentUser,
-    shallowEqual
-  );
-  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual);
-  if (roles.length && !roles.includes("IqaAdmin")) navigate(-1);
+  const { data: tests, isLoading } = useGetAllTestsQuery();
+  var test = tests?.find(t => t.testId === testId);
+  const { currentData: currentUser } = useGetCurrentUserQuery();
+  const roles = currentUser?.roles?.map(r => r.roleType);
+  const { data: languages } = useGetLanguagesQuery();
+  const [updateTestActive] = useSetTestActiveMutation();
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab;
-
-  useEffect(() => {
-    dispatch(getTest(testId));
-  }, [testId]);
-
-  useEffect(() => {
-    dispatch(getLanguages());
-  }, []);
 
   const handleBackClick = () => navigate(-1);
 
   const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newTest = { active: event.currentTarget.checked };
-    dispatch(updateTest(testId, newTest));
+    updateTestActive({ testId, body: event.currentTarget.checked });
   };
 
   const handleImportClick = () => navigate(`/import/test_${testId}`);
@@ -73,12 +63,12 @@ const Test = () => {
   const handleModalClick = (newModal: ActiveModal) => () => setActiveModal(newModal);
   const handleModalClose = () => setActiveModal(null);
   const handleDelete = () => {
-    dispatch(deleteTest(testId));
+    //dispatch(deleteTest(testId));
     handleBackClick();
   };
   const handleExport = () => {
     handleModalClose();
-    dispatch(exportTest(test.id));
+    //dispatch(exportTest(test.id));
   };
 
   const renderContent = () => {
@@ -97,7 +87,7 @@ const Test = () => {
       case ActiveModal.Edit:
         return (
           <TestEditModal
-            testId={test.id}
+            testId={test.testId}
             open={true}
             showClose={true}
             onClose={handleModalClose}
@@ -118,7 +108,7 @@ const Test = () => {
         return (
           <ExportTestModal
             open={true}
-            testName={test.attributes.name}
+            testName={test.title}
             onClose={handleModalClose}
             onExport={handleExport}
           />
@@ -135,11 +125,11 @@ const Test = () => {
         </button>
         <div className="w-full flex justify-end items-center">
           <div className="flex w-1/2 items-center">
-            <h1 className="text-3xl font-extrabold text-right mr-4">{test?.attributes.name}</h1>
+            <h1 className="text-3xl font-extrabold text-right mr-4">{test?.title}</h1>
             <Toggle
               name="active"
               onChange={handleToggle}
-              checked={test?.attributes.active || false}
+              checked={test?.active || false}
             />
           </div>
           <ActionsButton
