@@ -54,7 +54,7 @@ const Test = () => {
     updateTestActive({ testId, body: event.currentTarget.checked });
   };
 
-  const handleImportClick = () => navigate(`/import/test_${testId}`);
+  const handleImportClick = () => navigate(`/import/test/${testId}`);
   const handleTabClick = (newTab: SelectedTab) => () => {
     if (newTab === selectedTab) return null;
 

@@ -20,6 +20,7 @@ import StepDescriptions from "./StepDescriptions";
 import UploadStep from "./UploadStep";
 import { AppDispatch } from "../../store";
 import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
+import { useImportTestQuestionsMutation } from "../../store/serviceApi";
 
 type StepConfig = {
   title: string;
@@ -48,12 +49,11 @@ const defaultHeadersMap = (scope: string): HeadersMap =>
   }, {});
 
 const ImportWizard = () => {
-  const { importScope } = useNavigationParams<"importScope">();
-  const [parsedScope, scopeId] = importScope.split("_");
+  const { importScope, scopeId } = useNavigationParams<"importScope" | "scopeId">();
 
   const [stepCount, setStepCount] = useState(1);
   const [uploadedFile, setUploadedFile] = useState<File>();
-  const [mappedData, setMappedData] = useState<HeadersMap>(defaultHeadersMap(parsedScope));
+  const [mappedData, setMappedData] = useState<HeadersMap>(defaultHeadersMap(importScope));
 
   const { meta, error } = useSelector((state: RootState) => state.teams, shallowEqual);
   const { meta: questionMeta, error: questionError } = useSelector(
@@ -67,11 +67,14 @@ const ImportWizard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
+  const [importTestQuestions, {error: questionError2, isLoading: areQuestionsLoading}] = useImportTestQuestionsMutation();
+  const questionMeta2 = areQuestionsLoading ? null : {total: "All"};
+
   const isFinalStep = stepCount === 3;
   const buttonText = isFinalStep ? "Done" : "Next";
   const isDisabled = stepCount === 1 && !uploadedFile;
   const currentStepConfig = stepTextMap[stepCount];
-  const dataType = parsedScope === "test" ? "questions" : `${parsedScope}s`;
+  const dataType = importScope === "test" ? "questions" : `${importScope}s`;
   const goForward = () => setStepCount(stepCount + 1);
 
   const handleHomeClick = () => navigate(-1);
@@ -79,11 +82,11 @@ const ImportWizard = () => {
     if (isFinalStep) {
       handleHomeClick();
     } else if (stepCount === 2) {
-      if (parsedScope === "team") {
+      if (importScope === "team") {
         dispatch(importTeams(uploadedFile, mappedData, scopeId));
-      } else if (parsedScope === "test") {
-        dispatch(importTestQuestions(uploadedFile, mappedData, scopeId));
-      } else if (parsedScope === "ngb") {
+      } else if (importScope === "test") {
+        importTestQuestions({ testId: scopeId, testQuestions: uploadedFile });
+      } else if (importScope === "ngb") {
         dispatch(importNgbs(uploadedFile, mappedData));
       }
       goForward();
@@ -94,8 +97,8 @@ const ImportWizard = () => {
   const handleFileUpload = (selectedFile: File) => setUploadedFile(selectedFile);
 
   const renderStepContent = (): JSX.Element | null => {
-    const finishedMeta = meta || questionMeta || ngbMeta;
-    const finishedError = error || questionError || ngbError;
+    const finishedMeta = meta || questionMeta || ngbMeta || questionMeta2;
+    const finishedError = error || questionError || ngbError || questionError2;
     switch (stepCount) {
       case 1:
         return <UploadStep onFileUpload={handleFileUpload} uploadedFile={uploadedFile} />;
@@ -105,7 +108,7 @@ const ImportWizard = () => {
             uploadedFile={uploadedFile}
             onMappingUpdate={setMappedData}
             mappedData={mappedData}
-            scope={parsedScope}
+            scope={importScope}
           />
         );
       case 3:
@@ -125,7 +128,7 @@ const ImportWizard = () => {
       </div>
       <h1 className="font-extrabold text-3xl w-full pl-32">Import</h1>
       <div className="lg:block xl:block hidden">
-        <StepDescriptions currentStep={stepCount} scope={parsedScope} />
+        <StepDescriptions currentStep={stepCount} scope={importScope} />
       </div>
       <div className="rounded-lg bg-green w-3/4 flex justify-between py-4 px-12 text-navy-blue mb-4">
         <h3 className="text-xl font-bold flex items-center">

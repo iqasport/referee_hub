@@ -2,6 +2,7 @@ import {
   faCheckCircle,
   faCircleNotch,
   faExclamationCircle,
+
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
@@ -25,7 +26,7 @@ const FinishStep = (props: FinishStepProps) => {
         <p>
           Please check your file and retry or reach out to
           <a href="mailto:refhub@iqasport.org" className="text-blue-darker underline ml-1">
-            rfehub@iqasport.org
+            refhub@iqasport.org
           </a>
         </p>
       </>

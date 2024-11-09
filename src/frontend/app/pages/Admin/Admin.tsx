@@ -34,7 +34,7 @@ const Admin = () => {
 
   const isSelected = (tab: SelectedTab) => selectedTab === tab;
 
-  const handleImportClick = () => navigate("/import/ngb");
+  const handleImportClick = () => navigate("/import/ngb/");
   const handleOpenModal = (modal: SelectedModal) => () => setSelectedModal(modal);
   const handleCloseModal = () => setSelectedModal(null);
   const handleTabClick = (tab: SelectedTab) => () => { setSelectedTab(tab); window.location.hash = tab.toString() }

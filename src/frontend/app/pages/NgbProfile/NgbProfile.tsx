@@ -42,7 +42,7 @@ const NgbProfile = () => {
         break;
     }
   };
-  const handleImportClick = () => navigate(`/import/team_${ngbId}`);
+  const handleImportClick = () => navigate(`/import/team/${ngbId}`);
 
   const renderModals = () => {
     switch (openModal) {

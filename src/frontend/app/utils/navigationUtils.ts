@@ -33,6 +33,7 @@ type NavigationParameters = {
     testId: string;
     ngbId: string;
     importScope: string;
+    scopeId: string;
 }
 
 export const useNavigationParams = <Keys extends keyof NavigationParameters>() : Readonly<Partial<Pick<NavigationParameters, Keys>>> => {
@@ -46,6 +47,7 @@ export const useNavigationParams = <Keys extends keyof NavigationParameters>() :
         testId: params.testId,
         ngbId: params.ngbId,
         importScope: params.importScope,
+        scopeId: params.scopeId,
     };
     return updatedParams;
 }

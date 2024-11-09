@@ -100,7 +100,7 @@ const App = () => {
             element={<NgbProfile />}
           />
           <Route
-            path="/import/:importScope"
+            path="/import/:importScope/:scopeId"
             element={<ImportWizard />}
           />
           <Route
