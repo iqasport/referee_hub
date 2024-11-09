@@ -73,6 +73,41 @@ public class TestsController : ControllerBase
 		return testId;
 	}
 
+	[HttpPatch("{testId}")]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	public async Task<TestIdentifier> EditTest([FromRoute] TestIdentifier testId, [FromBody] TestViewModel test)
+	{
+		var language = await this.dbContext.Languages.Where(l => l.ShortName == test.Language.Lang && l.ShortRegion == test.Language.Region).FirstOrDefaultAsync();
+		if (language == null)
+		{
+			throw new NotFoundException(test.Language.ToString());
+		}
+		var certification = await this.dbContext.Certifications
+			.Where(c => c.Level == test.AwardedCertification.Level && c.Version == test.AwardedCertification.Version)
+			.FirstOrDefaultAsync();
+		if (certification == null)
+		{
+			throw new NotFoundException(test.AwardedCertification.ToString());
+		}
+		var dbTest = await this.dbContext.Tests.WithIdentifier(testId).SingleAsync();
+
+		dbTest.Name = test.Title;
+		dbTest.Description = test.Description;
+		dbTest.NewLanguageId = language.Id;
+		dbTest.CertificationId = certification.Id;
+		dbTest.TimeLimit = test.TimeLimit;
+		dbTest.MinimumPassPercentage = test.PassPercentage;
+		dbTest.TestableQuestionCount = test.QuestionsCount;
+		dbTest.Recertification = test.Recertification;
+		dbTest.NegativeFeedback = test.NegativeFeedback;
+		dbTest.PositiveFeedback = test.PositiveFeedback;
+		dbTest.UpdatedAt = DateTime.UtcNow;
+
+		await this.dbContext.SaveChangesAsync();
+
+		return testId;
+	}
+
 	[HttpPost("{testId}/active")]
 	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
 	public async Task SetTestActive([FromRoute] TestIdentifier testId, [FromBody] bool active)

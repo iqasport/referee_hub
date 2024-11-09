@@ -242,6 +242,14 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tests"],
       }),
+      editTest: build.mutation<EditTestApiResponse, EditTestApiArg>({
+        query: (queryArg) => ({
+          url: `/api/admin/Tests/${queryArg.testId}`,
+          method: "PATCH",
+          body: queryArg.testViewModel,
+        }),
+        invalidatesTags: ["Tests"],
+      }),
       setTestActive: build.mutation<SetTestActiveApiResponse, SetTestActiveApiArg>({
         query: (queryArg) => ({
           url: `/api/admin/Tests/${queryArg.testId}/active`,
@@ -463,6 +471,11 @@ export type GetTestDetailsApiArg = {
 };
 export type CreateNewTestApiResponse = /** status 200 Success */ string;
 export type CreateNewTestApiArg = {
+  testViewModel: TestViewModel;
+};
+export type EditTestApiResponse = /** status 200 Success */ string;
+export type EditTestApiArg = {
+  testId: string;
   testViewModel: TestViewModel;
 };
 export type SetTestActiveApiResponse = unknown;
@@ -922,6 +935,7 @@ export const {
   useDeleteNgbTeamMutation,
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
+  useEditTestMutation,
   useSetTestActiveMutation,
   useGetAllTestsQuery,
   useImportTestQuestionsMutation,

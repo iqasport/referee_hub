@@ -2,10 +2,6 @@ import classnames from "classnames";
 import React from "react";
 
 import Loader from "../../../components/Loader";
-import { Datum as Ngb } from "../../../schemas/getNationalGoverningBodiesSchema";
-import { Datum as Team } from "../../../schemas/getTeamsSchema";
-import { Datum as Test } from "../../../schemas/getTestsSchema";
-import { Referee } from "../../../modules/referee/referees";
 
 export interface CellConfig<T> {
   dataKey: string;

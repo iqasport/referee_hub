@@ -45,6 +45,31 @@ const DropdownMenu = (props: DropdownMenuProps) => {
           type="button"
           tabIndex={-1}
           className="fixed inset-0 h-full w-full cursor-default"
+          // This button covers the whole screen to hide the dropdown menu on click
+          // The dropdown can be obstructed and the container it's hooked to needs to scroll down
+          // This event handler will allow us to apply scroll event underneath the button
+          onWheel={event => {
+            (event.target as HTMLElement).style.pointerEvents = 'none'; // Temporarily disable pointer events
+            
+            // Trigger the wheel event on the element underneath the button
+            const underlyingElement = document.elementFromPoint(event.clientX, event.clientY);
+            if (underlyingElement) {
+              const wheelEvent = new WheelEvent('wheel', {
+                deltaX: event.deltaX,
+                deltaY: event.deltaY,
+                clientX: event.clientX,
+                clientY: event.clientY,
+                bubbles: true,
+                cancelable: true,
+              });
+              underlyingElement.dispatchEvent(wheelEvent);
+            }
+          
+            // Re-enable pointer events on the button after a short delay
+            setTimeout(() => {
+              (event.target as HTMLElement).style.pointerEvents = 'auto';
+            }, 0);
+          }}
         />
       )}
       {isDropdownOpen && (

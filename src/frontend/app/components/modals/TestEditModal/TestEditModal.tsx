@@ -3,56 +3,44 @@ import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import { UpdateTestRequest } from "../../../apis/single_test";
 import LanguageDropdown from "../../../components/LanguageDropdown";
 import Toggle from "../../../components/Toggle";
-import { getCertifications } from "../../../modules/certification/certifications";
-import { getLanguages } from "../../../modules/language/languages";
-import { createTest, getTest, updateTest } from "../../../modules/test/single_test";
-import { RootState } from "../../../rootReducer";
-import { TestLevel } from "../../../schemas/getTestSchema";
 
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
-import { AppDispatch } from "../../../store";
-
-type UpdateCertification = {
-  level: TestLevel;
-  version: string;
-};
+import { Certification, TestViewModel, useCreateNewTestMutation, useEditTestMutation, useGetAllTestsQuery, useGetLanguagesQuery } from "../../../store/serviceApi";
 
 const REQUIRED_TEST_FIELDS = [
-  "name",
+  "title",
   "description",
-  "minimumPassPercentage",
-  "testableQuestionCount",
+  "passPercentage",
+  "questionsCount",
   "timeLimit",
   "positiveFeedback",
   "negativeFeedback",
-  "newLanguageId",
+  "language",
 ];
 const REQUIRED_CERT_FIELDS = ["version", "level"];
 const LEVEL_OPTIONS = ["snitch", "assistant", "head", "field", "scorekeeper"];
 const VERSION_OPTIONS = ["eighteen", "twenty", "twentytwo", "twentyfour"];
 
-const initialNewTest: UpdateTestRequest = {
-  certificationId: null,
+const initialNewTest: TestViewModel = {
+  awardedCertification: null,
   description: "",
-  level: null,
-  minimumPassPercentage: 0,
-  name: "",
+  passPercentage: 0,
+  title: "",
   negativeFeedback: "",
   positiveFeedback: "",
   recertification: false,
-  testableQuestionCount: 0,
+  questionsCount: 0,
   timeLimit: 0,
-  newLanguageId: 0,
+  language: "en-US",
 };
-const initialCertification: UpdateCertification = {
+const initialCertification: Certification = {
   level: null,
-  version: "",
+  version: "twentyfour",
 };
 
-const validateInput = (test: UpdateTestRequest, cert: UpdateCertification): string[] => {
+const validateInput = (test: TestViewModel, cert: Certification): string[] => {
   const testErrors = Object.keys(test).filter((dataKey: string) => {
     if (REQUIRED_TEST_FIELDS.includes(dataKey) && !test[dataKey]) {
       return true;
@@ -79,37 +67,24 @@ const TestEditModal = (props: TestEditModalProps) => {
 
   const [errors, setErrors] = useState<string[]>();
   const [hasChangedTest, setHasChangedTest] = useState(false);
-  const [newTest, setNewTest] = useState<UpdateTestRequest>(initialNewTest);
-  const [newCert, setNewCert] = useState<UpdateCertification>(initialCertification);
-  const { test, certification } = useSelector((state: RootState) => state.test, shallowEqual);
-  const { certifications } = useSelector((state: RootState) => state.certifications, shallowEqual);
-  const { languages } = useSelector((state: RootState) => state.languages, shallowEqual);
-  const dispatch = useDispatch<AppDispatch>();
+  const [newTest, setNewTest] = useState<TestViewModel>(initialNewTest);
+  const [newCert, setNewCert] = useState<Certification>(initialCertification);
 
+  const { data: tests } = useGetAllTestsQuery();
+  const { data: languages } = useGetLanguagesQuery();
+  const [createTest] = useCreateNewTestMutation();
+  const [updateTest] = useEditTestMutation();
+
+  const test = tests.filter(t => t.testId === testId)?.[0];
   const formType = testId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
 
   useEffect(() => {
-    if (testId && testId !== test?.id) {
-      dispatch(getTest(testId));
-    }
-  }, [testId, test, dispatch]);
-
-  useEffect(() => {
     if (test && testId) {
-      setNewTest({ ...test?.attributes });
-      setNewCert({ level: certification?.level, version: certification?.version });
+      setNewTest({ ...test });
+      setNewCert({ level: test.awardedCertification?.level, version: test.awardedCertification?.version });
     }
-  }, [test, certification]);
-
-  useEffect(() => {
-    if (!certifications?.length) {
-      dispatch(getCertifications());
-    }
-    if (!languages?.length) {
-      dispatch(getLanguages());
-    }
-  }, []);
+  }, [test]);
 
   const handleSubmit = () => {
     const validationErrors = validateInput(newTest, newCert);
@@ -118,19 +93,16 @@ const TestEditModal = (props: TestEditModalProps) => {
       return null;
     }
 
-    const matchedCert = certifications.find(
-      ({ attributes: { level, version } }) => level === newCert.level && version === newCert.version
-    );
-    const testToSend: UpdateTestRequest = {
+    const testToSend: TestViewModel = {
       ...newTest,
       ...newCert,
-      certificationId: parseInt(matchedCert?.id, 10),
+      awardedCertification: newCert,
     };
 
     if (testId) {
-      dispatch(updateTest(testId, testToSend, shouldUpdateTests));
+      updateTest({ testId, testViewModel: testToSend });
     } else {
-      dispatch(createTest(testToSend));
+      createTest({ testViewModel: testToSend });
     }
 
     setHasChangedTest(false);
@@ -185,19 +157,19 @@ const TestEditModal = (props: TestEditModalProps) => {
       <h2 className="text-center text-xl font-semibold my-8">{`${formType} Test`}</h2>
       <form>
         <label className="block">
-          <span className="text-gray-700">Name</span>
+          <span className="text-gray-700">Title</span>
           <input
             type="text"
-            aria-label="name"
+            aria-label="title"
             className={classnames("form-input mt-1 block w-full", {
-              "border border-red-500": hasError("name"),
+              "border border-red-500": hasError("title"),
             })}
             placeholder="Snitch Referee Test"
-            name="name"
+            name="title"
             onChange={handleChange}
-            value={newTest.name}
+            value={newTest.title}
           />
-          {renderError("name")}
+          {renderError("title")}
         </label>
         <label className="block mt-8">
           <span className="text-gray-700">Description</span>
@@ -243,11 +215,11 @@ const TestEditModal = (props: TestEditModalProps) => {
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Language</span>
             <LanguageDropdown
-              name="newLanguageId"
-              languages={languages}
-              hasError={hasError("newLanguageId")}
+              name="language"
+              languages={languages || []}
+              hasError={hasError("language")}
               onChange={handleChange}
-              value={newTest?.newLanguageId?.toString() || ""}
+              value={newTest?.language || ""}
             />
             {renderError("newLanguageId")}
           </label>
@@ -290,13 +262,13 @@ const TestEditModal = (props: TestEditModalProps) => {
               min="0"
               max="100"
               className={classnames("form-input mt-1 block w-full", {
-                "border border-red-500": hasError("minimumPassPercentage"),
+                "border border-red-500": hasError("passPercentage"),
               })}
-              name="minimumPassPercentage"
+              name="passPercentage"
               onChange={handleChange}
-              value={newTest.minimumPassPercentage}
+              value={newTest.passPercentage}
             />
-            {renderError("minimumPassPercentage")}
+            {renderError("passPercentage")}
           </label>
           <label className="w-1/3 mr-4">
             <span className="text-gray-700">Question Count</span>
@@ -304,13 +276,13 @@ const TestEditModal = (props: TestEditModalProps) => {
               type="number"
               min="1"
               className={classnames("form-input mt-1 block w-full", {
-                "border border-red-500": hasError("testableQuestionCount"),
+                "border border-red-500": hasError("questionsCount"),
               })}
-              name="testableQuestionCount"
+              name="questionsCount"
               onChange={handleChange}
-              value={newTest.testableQuestionCount}
+              value={newTest.questionsCount}
             />
-            {renderError("testableQuestionCount")}
+            {renderError("questionsCount")}
           </label>
           <label className="w-1/3">
             <span className="text-gray-700">Time Limit</span>
