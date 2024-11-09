@@ -23,8 +23,9 @@ enum SelectedTab {
 }
 
 const Admin = () => {
+  const tabFromFragment = [SelectedTab.Ngbs, SelectedTab.Referees, SelectedTab.Tests].filter(tab => tab.toString() == window.location.hash.substring(1))[0]
   const [selectedModal, setSelectedModal] = useState<SelectedModal>();
-  const [selectedTab, setSelectedTab] = useState<SelectedTab>(SelectedTab.Ngbs);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab>(tabFromFragment || SelectedTab.Ngbs);
   const navigate = useNavigate();
   const { currentData: currentUser } = useGetCurrentUserQuery()
   const roles = currentUser?.roles?.map(r => r.roleType);
@@ -36,7 +37,7 @@ const Admin = () => {
   const handleImportClick = () => navigate("/import/ngb");
   const handleOpenModal = (modal: SelectedModal) => () => setSelectedModal(modal);
   const handleCloseModal = () => setSelectedModal(null);
-  const handleTabClick = (tab: SelectedTab) => () => setSelectedTab(tab);
+  const handleTabClick = (tab: SelectedTab) => () => { setSelectedTab(tab); window.location.hash = tab.toString() }
 
   const renderModals = () => {
     switch (selectedModal) {
