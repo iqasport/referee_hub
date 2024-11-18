@@ -22,13 +22,11 @@ public class TestsController : ControllerBase
 {
 	private readonly IImportTestQuestions importTestQuestions;
 	private readonly ManagementHubDbContext dbContext; // TODO: should I move this to the Storage project?
-	private readonly ITestContextProvider testContextProvider;
 
-	public TestsController(IImportTestQuestions importTestQuestions, ManagementHubDbContext dbContext, ITestContextProvider testContextProvider)
+	public TestsController(IImportTestQuestions importTestQuestions, ManagementHubDbContext dbContext)
 	{
 		this.importTestQuestions = importTestQuestions;
 		this.dbContext = dbContext;
-		this.testContextProvider = testContextProvider;
 	}
 
 	[HttpPost("create")]
