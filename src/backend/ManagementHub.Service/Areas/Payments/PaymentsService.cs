@@ -110,6 +110,8 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 		var sessionOptions = new SessionCreateOptions
 		{
 			PaymentMethodTypes = new List<string> { "card" },
+			// only require card details if the amount due is non-zero to allow for promotion codes
+			PaymentMethodCollection = "if_required",
 			Mode = "payment",
 			LineItems = new List<SessionLineItemOptions>
 			{
