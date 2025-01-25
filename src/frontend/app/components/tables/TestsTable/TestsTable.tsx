@@ -59,7 +59,8 @@ const TestsTable = () => {
     },
     {
       cellRenderer: (item: TestViewModel) => {
-        return capitalize(item.awardedCertification.level);
+        const level = item.awardedCertification.level == 'snitch' ? 'flag' : item.awardedCertification.level;
+        return capitalize(level);
       },
       dataKey: "level",
     },

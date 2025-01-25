@@ -57,7 +57,7 @@ const TestResultCard = (props: CardProps) => {
           </thead>
           <tbody>
             <tr>
-              <td>{capitalize(testLevel)}</td>
+              <td>{capitalize(testLevel == 'snitch' ? 'flag' : testLevel)}</td>
               <td>{formattedDate}</td>
             </tr>
           </tbody>

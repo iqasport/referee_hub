@@ -68,7 +68,7 @@ const AdminCertificationsModal = (props: AdminCertificationsModalProps) => {
         className="w-full rounded bg-white p-2 flex justify-between items-center my-2"
       >
         <div className="w-1/2 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-navy-blue">{capitalize(cert.level)}</h3>
+          <h3 className="text-xl font-bold text-navy-blue">{capitalize(cert.level == 'snitch' ? 'flag' : cert.level)}</h3>
           <h4 className="text-lg text-navy-blue">{`Rulebook ${getVersion(cert.version)}`}</h4>
         </div>
         <div className="w-1/2 flex justify-end">

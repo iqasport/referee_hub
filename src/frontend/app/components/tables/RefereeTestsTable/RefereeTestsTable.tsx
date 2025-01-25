@@ -105,7 +105,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     },
     {
       cellRenderer: (item) => {
-        return capitalize(item.level);
+        return capitalize(item.level == 'snitch' ? 'flag': item.level);
       },
       dataKey: "level",
     },
