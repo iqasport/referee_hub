@@ -21,6 +21,19 @@ public static class TestData
 		TimeLimit = TimeSpan.FromMinutes(20),
 	};
 
+	public static Test Assistant18French = new()
+	{
+		AwardedCertifications = new HashSet<Certification> { new Certification(CertificationLevel.Assistant, CertificationVersion.Eighteen) },
+		Description = "Mock assitant 18 (French)",
+		IsActive = true,
+		Language = new LanguageIdentifier("fr"),
+		Title = "AR18 FR",
+		PassPercentage = 80,
+		QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = 25 },
+		TestId = TestIdentifier.NewTestId(),
+		TimeLimit = TimeSpan.FromMinutes(20),
+	};
+
 	public static Test Assistant20 = new()
 	{
 		AwardedCertifications = new HashSet<Certification> { new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty) },

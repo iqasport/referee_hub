@@ -8,8 +8,8 @@ public static class TestPolicyInjectionExtensions
 	{
 		services.AddScoped<IRefereeEligibilityPolicy, HasRequiredCertificationEligibilityPolicy>();
 		services.AddScoped<IRefereeEligibilityPolicy, RefereeCertifiedEligibilityPolicy>();
-		services.AddScoped<IRefereeEligibilityPolicy, RefereeAttemptEligibilityPolicy>();
 		services.AddScoped<IRefereeEligibilityPolicy, NumberOfAttemptsEligibilityPolicy>();
+		services.AddScoped<IRefereeEligibilityPolicy, RefereeAttemptEligibilityPolicy>();
 		services.AddScoped<IRefereeEligibilityPolicy, PaymentEligibilityPolicy>();
 
 		services.AddScoped<RefereeEligibilityChecker>();

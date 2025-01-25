@@ -59,6 +59,7 @@ public class DbRefereeEmailFeedbackContextFactory
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
 					Level = tr.Test!.Certification!.Level,
+					Version = tr.Test!.Certification!.Version!.Value,
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,

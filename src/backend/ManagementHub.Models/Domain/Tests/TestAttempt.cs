@@ -26,6 +26,11 @@ public class TestAttempt
 	public required CertificationLevel Level { get; set; }
 
 	/// <summary>
+	/// Certification version (rulebook version).
+	/// </summary>
+	public required CertificationVersion Version { get; set; }
+
+	/// <summary>
 	/// When the attempt was started.
 	/// </summary>
 	public required DateTime StartedAt { get; set; }

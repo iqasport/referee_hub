@@ -24,7 +24,8 @@ public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
-		foreach (var attempt in referee.TestAttempts.Where(at => at.TestId == test.TestId))
+		var cert = test.AwardedCertifications.First();
+		foreach (var attempt in referee.TestAttempts.Where(at => at.TestId == test.TestId || (at.Level == cert.Level && at.Version == cert.Version)))
 		{
 			if (this.IsWithinCooldownPeriod(attempt, test))
 			{

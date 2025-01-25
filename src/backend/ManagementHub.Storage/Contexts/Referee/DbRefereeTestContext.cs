@@ -63,6 +63,7 @@ public class DbRefereeTestContextFactory
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
 					Level = tr.Test != null ? tr.Test.Certification!.Level : tr.TestLevel!.Value.ToCertificationLevel(),
+					Version = tr.Test != null ? tr.Test.Certification!.Version!.Value : CertificationVersion.Eighteen,
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,
