@@ -34,4 +34,9 @@ public class TestAttempt
 	/// When the attempt was started.
 	/// </summary>
 	public required DateTime StartedAt { get; set; }
+
+	/// <summary>
+	/// Whether the test was a recertification test from the previous rulebook.
+	/// </summary>
+	public required bool IsRecertification { get; set; }
 }

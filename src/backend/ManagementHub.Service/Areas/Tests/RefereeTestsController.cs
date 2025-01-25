@@ -255,6 +255,7 @@ public class RefereeTestsController : ControllerBase
 			TestId = test.TestId,
 			UserId = user.UserId,
 			AwardedCertifications = passed ? test.AwardedCertifications : null,
+			IsRecertification = test.RecertificationFor != null,
 		};
 
 		await this.saveSubmittedTestCommand.SaveSubmittedTestAsync(

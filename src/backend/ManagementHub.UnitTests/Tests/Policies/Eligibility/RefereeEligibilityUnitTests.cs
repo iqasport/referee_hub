@@ -26,7 +26,7 @@ internal static class RefereeEligibilityUnitTestsExtensions
 	public static void Includes(this Dictionary<Test, RefereeEligibilityResult> result, Test test)
 	{
 		TestOutput?.WriteLine($"{test.Title}: {result[test]}");
-		Assert.True(RefereeEligibilityResult.Eligible == result[test], $"Result should include {test.Title}");
+		Assert.True(RefereeEligibilityResult.Eligible == result[test], $"Result should include {test.Title}, which has result {result[test]}");
 	}
 
 	public static void Excludes(this Dictionary<Test, RefereeEligibilityResult> result, Test test)
@@ -238,6 +238,7 @@ public class RefereeEligibilityUnitTests
 				UserId = TestUserId,
 				Level = CertificationLevel.Assistant,
 				Version = CertificationVersion.TwentyTwo,
+				IsRecertification = false,
 			},
 			new TestAttempt
 			{
@@ -246,6 +247,7 @@ public class RefereeEligibilityUnitTests
 				UserId = TestUserId,
 				Level = CertificationLevel.Flag,
 				Version = CertificationVersion.Eighteen,
+				IsRecertification = false,
 			},
 			new TestAttempt
 			{
@@ -254,6 +256,7 @@ public class RefereeEligibilityUnitTests
 				UserId = TestUserId,
 				Level = CertificationLevel.Head,
 				Version = CertificationVersion.Twenty,
+				IsRecertification = false,
 			},
 		});
 
@@ -289,6 +292,7 @@ public class RefereeEligibilityUnitTests
 				UserId = TestUserId,
 				Level = CertificationLevel.Assistant,
 				Version = CertificationVersion.TwentyTwo,
+				IsRecertification = false,
 			},
 			new TestAttempt
 			{
@@ -297,6 +301,7 @@ public class RefereeEligibilityUnitTests
 				UserId = TestUserId,
 				Level = CertificationLevel.Flag,
 				Version = CertificationVersion.Eighteen,
+				IsRecertification = false,
 			},
 			new TestAttempt
 			{
@@ -305,6 +310,7 @@ public class RefereeEligibilityUnitTests
 				UserId = TestUserId,
 				Level = CertificationLevel.Head,
 				Version = CertificationVersion.Twenty,
+				IsRecertification = false,
 			},
 		});
 
@@ -345,6 +351,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.TwentyTwo,
 				PassPercentage = TestData.Assistant22.PassPercentage,
 				Passed = false,
+				IsRecertification = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -358,6 +365,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.Eighteen,
 				PassPercentage = TestData.Flag18.PassPercentage,
 				Passed = false,
+				IsRecertification = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -371,6 +379,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.Twenty,
 				PassPercentage = TestData.Head20.PassPercentage,
 				Passed = false,
+				IsRecertification = false,
 			},
 		});
 
@@ -411,6 +420,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.TwentyTwo,
 				PassPercentage = TestData.Assistant22.PassPercentage,
 				Passed = false,
+				IsRecertification = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -424,6 +434,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.Eighteen,
 				PassPercentage = TestData.Flag18.PassPercentage,
 				Passed = false,
+				IsRecertification = false,
 			},
 			new FinishedTestAttempt
 			{
@@ -437,6 +448,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.Twenty,
 				PassPercentage = TestData.Head20.PassPercentage,
 				Passed = false,
+				IsRecertification = false,
 			},
 		});
 
@@ -564,6 +576,7 @@ public class RefereeEligibilityUnitTests
 			Version = CertificationVersion.Eighteen,
 			StartedAt = TestCurrentDateTime.AddDays(-i - 1).AddMinutes(-1),
 			UserId = TestUserId,
+			IsRecertification = false,
 		}).Concat(new[]
 		{
 			new TestAttempt
@@ -573,6 +586,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.TwentyTwo,
 				StartedAt = TestCurrentDateTime.AddHours(-5),
 				UserId = TestUserId,
+				IsRecertification = true,
 			}
 		});
 		this.SetupReferee(new[]
@@ -603,6 +617,7 @@ public class RefereeEligibilityUnitTests
 			Version = CertificationVersion.Eighteen,
 			StartedAt = TestCurrentDateTime.AddDays(-i - 1),
 			UserId = TestUserId,
+			IsRecertification = false,
 		});
 		this.SetupReferee(
 			Array.Empty<Certification>(),
@@ -629,6 +644,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.Eighteen,
 				StartedAt = TestCurrentDateTime.AddDays(-0.5),
 				UserId = TestUserId,
+				IsRecertification = false,
 			}
 		});
 
@@ -651,6 +667,7 @@ public class RefereeEligibilityUnitTests
 			Version = CertificationVersion.Eighteen,
 			StartedAt = TestCurrentDateTime.AddDays(-i - 1).AddMinutes(-1),
 			UserId = TestUserId,
+			IsRecertification = false,
 		}).Concat(new[]
 		{
 			new TestAttempt
@@ -660,6 +677,7 @@ public class RefereeEligibilityUnitTests
 				Version = CertificationVersion.Eighteen,
 				StartedAt = TestCurrentDateTime.AddDays(-1).AddHours(-1),
 				UserId = TestUserId,
+				IsRecertification = false,
 			}
 		});
 		this.SetupReferee(
@@ -675,5 +693,79 @@ public class RefereeEligibilityUnitTests
 
 		result.Excludes(TestData.Assistant18);
 		result.Excludes(TestData.Assistant18French);
+	}
+
+	[Fact]
+	public async Task ReturnsInitialTest_WhenRefereeJustFailedRecertification()
+	{
+		this.SetupReferee(new[]
+		{
+			new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+		}, Array.Empty<CertificationVersion>(), new[]
+		{
+			new FinishedTestAttempt
+			{
+				StartedAt = TestCurrentDateTime.Add(-1 * TestData.RecertAssistant22.TimeLimit),
+				TestId = TestData.RecertAssistant22.TestId,
+				UserId = TestUserId,
+				FinishedAt = TestCurrentDateTime,
+				FinishMethod = TestAttemptFinishMethod.Submission,
+				Score = 0,
+				Level = CertificationLevel.Assistant,
+				Version = CertificationVersion.TwentyTwo,
+				Passed = false,
+				PassPercentage = TestData.RecertAssistant22.PassPercentage,
+				AwardedCertifications = new HashSet<Certification>(),
+				IsRecertification = true,
+			}
+		});
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.Assistant22,
+		});
+
+		result.Includes(TestData.Assistant22);
+	}
+
+	[Fact]
+	public async Task ReturnsTest_WhenTheresOneMoreAttemptLeftAndRecertTestHasBeenAttempted()
+	{
+		// has 6 attempts for AR test and 1 for recert
+		var attempts = Enumerable.Range(1, 5).Select(i => new TestAttempt
+		{
+			TestId = TestData.Assistant22.TestId,
+			Level = CertificationLevel.Assistant,
+			Version = CertificationVersion.TwentyTwo,
+			StartedAt = TestCurrentDateTime.AddDays(-i - 1).AddMinutes(-1 * TestData.Assistant22.TimeLimit.TotalMinutes),
+			UserId = TestUserId,
+			IsRecertification = false,
+		}).Concat(new[]
+		{
+			new TestAttempt
+			{
+				TestId = TestData.RecertAssistant22.TestId,
+				Level = CertificationLevel.Assistant,
+				Version = CertificationVersion.TwentyTwo,
+				StartedAt = TestCurrentDateTime.AddHours(-5),
+				UserId = TestUserId,
+				IsRecertification = true,
+			}
+		});
+		this.SetupReferee(new[]
+			{
+				new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+			},
+			Array.Empty<CertificationVersion>(),
+			attempts.ToArray());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+			TestData.Assistant22,
+		});
+
+		result.Excludes(TestData.RecertAssistant22);
+		result.Includes(TestData.Assistant22);
 	}
 }

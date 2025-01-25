@@ -22,7 +22,7 @@ public class NumberOfAttemptsEligibilityPolicy : IRefereeEligibilityPolicy
 
 		// checks if referee has attempted the test less than maximum times
 		var cert = test.AwardedCertifications.First();
-		if (referee.TestAttempts.Count(at => at.TestId == test.TestId || (at.Level == cert.Level && at.Version == cert.Version)) < test.MaximumAttempts)
+		if (referee.TestAttempts.Count(at => at.TestId == test.TestId || (at.Level == cert.Level && at.Version == cert.Version && !at.IsRecertification)) < test.MaximumAttempts)
 		{
 			return RefereeEligibilityResult.Eligible;
 		}

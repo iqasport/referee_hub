@@ -73,6 +73,7 @@ public class DbRefereeTestContextFactory
 						: new TestIdentifier(),
 					UserId = userId,
 					Id = tr.UniqueId != null ? TestAttemptIdentifier.Parse(tr.UniqueId) : TestAttemptIdentifier.FromLegacyId(tr.CreatedAt, tr.Id),
+					IsRecertification = tr.Test != null && tr.Test.Recertification != null ? tr.Test.Recertification.Value : false,
 				})
 			})
 			.SingleOrDefaultAsync(cancellationToken);
