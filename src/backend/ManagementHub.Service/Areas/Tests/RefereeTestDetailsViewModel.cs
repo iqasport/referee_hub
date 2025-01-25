@@ -14,4 +14,5 @@ public class RefereeTestDetailsViewModel
 	public required string Description { get; set; }
 	public required int MaximumAttempts { get; set; }
 	public required Percentage PassPercentage { get; set; }
+	public required int QuestionsCount { get; set; }
 }

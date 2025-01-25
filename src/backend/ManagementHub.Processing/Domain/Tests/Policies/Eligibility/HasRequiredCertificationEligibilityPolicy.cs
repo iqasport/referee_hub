@@ -25,7 +25,7 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 		if (test.RecertificationFor != null)
 		{
 			var previousVersion = test.RecertificationFor.Version;
-			var awardedVersion = test.AwardedCertifications.First().Version;
+			var awardedVersion = test.AwardedCertifications.Max().Version;
 			var previousCertification = referee.AcquiredCertifications
 				.Where(c => c.Version == previousVersion)
 				.Select(c => c.Level)

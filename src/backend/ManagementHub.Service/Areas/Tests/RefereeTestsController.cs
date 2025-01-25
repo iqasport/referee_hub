@@ -123,6 +123,7 @@ public class RefereeTestsController : ControllerBase
 			Description = test.Description,
 			MaximumAttempts = test.MaximumAttempts,
 			PassPercentage = test.PassPercentage,
+			QuestionsCount = ((SubsetCountQuestionChoicePolicy)test.QuestionChoicePolicy).QuestionsCount,
 		};
 	}
 

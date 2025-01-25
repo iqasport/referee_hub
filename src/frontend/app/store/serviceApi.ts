@@ -707,6 +707,7 @@ export type TestAttemptViewModel = {
   /** Identifier of the attempted test. */
   testId?: string;
   level?: CertificationLevel;
+  version?: CertificationVersion;
   /** When the attempt was started. */
   startedAt?: string;
   /** When the attempt was finished (either through submission or timeout). */
@@ -727,6 +728,7 @@ export type TestAttemptViewModelRead = {
   /** Identifier of the attempted test. */
   testId?: string;
   level?: CertificationLevel;
+  version?: CertificationVersion;
   /** When the attempt was started. */
   startedAt?: string;
   /** Whether the test attempt is still in progress. */
@@ -853,6 +855,7 @@ export type RefereeTestDetailsViewModel = {
   description?: string | null;
   maximumAttempts?: number;
   passPercentage?: number;
+  questionsCount?: number;
 };
 export type TestViewModel = {
   /** Title of the test (how it's displayed to users). */

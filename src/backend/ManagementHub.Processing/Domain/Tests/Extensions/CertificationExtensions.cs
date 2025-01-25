@@ -7,8 +7,8 @@ using ManagementHub.Models.Enums;
 namespace ManagementHub.Processing.Domain.Tests.Extensions;
 public static class CertificationExtensions
 {
-	public static Certification? Max(this IEnumerable<Certification> certifications) => certifications.Max(CertificationComparer.Instance);
-	public static Certification? Min(this IEnumerable<Certification> certifications) => certifications.Min(CertificationComparer.Instance);
+	public static Certification Max(this IEnumerable<Certification> certifications) => certifications.Max(CertificationComparer.Instance) ?? certifications.First();
+	public static Certification Min(this IEnumerable<Certification> certifications) => certifications.Min(CertificationComparer.Instance) ?? certifications.First();
 	public static IOrderedEnumerable<Certification> Order(this IEnumerable<Certification> certifications) => certifications.Order(CertificationComparer.Instance);
 	public static CertificationLevel Max(this IEnumerable<CertificationLevel> levels) => levels.Max(CertificationLevelComparer.Instance);
 	public static CertificationLevel Min(this IEnumerable<CertificationLevel> levels) => levels.Min(CertificationLevelComparer.Instance);

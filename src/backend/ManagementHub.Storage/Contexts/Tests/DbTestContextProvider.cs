@@ -174,9 +174,9 @@ public class DbTestContextProvider : ITestContextProvider
 		}).ToList();
 	}
 
-	private static CertificationSet GetCertificationsForTest(Models.Data.Test test)
+	private static HashSet<Certification> GetCertificationsForTest(Models.Data.Test test)
 	{
-		var set = new CertificationSet { Certification.New(test.Certification!.Level, test.Certification.Version) };
+		var set = new HashSet<Certification> { Certification.New(test.Certification!.Level, test.Certification.Version) };
 		if (test.Recertification == true)
 		{
 			switch (test.Certification.Level)
