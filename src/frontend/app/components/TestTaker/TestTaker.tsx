@@ -46,9 +46,11 @@ const TestTaker = (props: TestTakerProps) => {
           className="form-checkbox mx-4"
           onChange={handleAnswerChange(answer.answerId)}
           checked={isSelected}
+          id={`box_${answer.answerId}`}
         />
-        <div
+        <label
           className="text-left"
+          htmlFor={`box_${answer.answerId}`}
           dangerouslySetInnerHTML={{ __html: answer.description }}
         />
       </div>
