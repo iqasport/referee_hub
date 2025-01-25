@@ -562,7 +562,7 @@ public class RefereeEligibilityUnitTests
 			TestId = TestData.Assistant18.TestId,
 			Level = CertificationLevel.Assistant,
 			Version = CertificationVersion.Eighteen,
-			StartedAt = TestCurrentDateTime.AddDays(-i - 1),
+			StartedAt = TestCurrentDateTime.AddDays(-i - 1).AddMinutes(-1),
 			UserId = TestUserId,
 		}).Concat(new[]
 		{
@@ -637,6 +637,43 @@ public class RefereeEligibilityUnitTests
 			TestData.Assistant18French,
 		});
 
+		result.Excludes(TestData.Assistant18French);
+	}
+
+	[Fact]
+	public async Task ReturnsNoTests_WhenRefereeHasPassedAttemptThresholdAcrossLanguages()
+	{
+		// has 6 attempts for AR test
+		var attempts = Enumerable.Range(1, 5).Select(i => new TestAttempt
+		{
+			TestId = TestData.Assistant18.TestId,
+			Level = CertificationLevel.Assistant,
+			Version = CertificationVersion.Eighteen,
+			StartedAt = TestCurrentDateTime.AddDays(-i - 1).AddMinutes(-1),
+			UserId = TestUserId,
+		}).Concat(new[]
+		{
+			new TestAttempt
+			{
+				TestId = TestData.Assistant18French.TestId,
+				Level = CertificationLevel.Assistant,
+				Version = CertificationVersion.Eighteen,
+				StartedAt = TestCurrentDateTime.AddDays(-1).AddHours(-1),
+				UserId = TestUserId,
+			}
+		});
+		this.SetupReferee(
+			Array.Empty<Certification>(),
+			Array.Empty<CertificationVersion>(),
+			attempts.ToArray());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.Assistant18,
+			TestData.Assistant18French,
+		});
+
+		result.Excludes(TestData.Assistant18);
 		result.Excludes(TestData.Assistant18French);
 	}
 }

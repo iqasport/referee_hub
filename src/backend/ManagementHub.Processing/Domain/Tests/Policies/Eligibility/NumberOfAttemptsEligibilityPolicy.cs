@@ -21,7 +21,8 @@ public class NumberOfAttemptsEligibilityPolicy : IRefereeEligibilityPolicy
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
 		// checks if referee has attempted the test less than maximum times
-		if (referee.TestAttempts.Count(at => at.TestId == test.TestId) < test.MaximumAttempts)
+		var cert = test.AwardedCertifications.First();
+		if (referee.TestAttempts.Count(at => at.TestId == test.TestId || (at.Level == cert.Level && at.Version == cert.Version)) < test.MaximumAttempts)
 		{
 			return RefereeEligibilityResult.Eligible;
 		}
