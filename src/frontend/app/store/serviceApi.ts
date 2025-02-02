@@ -273,6 +273,10 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tests"],
       }),
+      getTestQuestions: build.query<GetTestQuestionsApiResponse, GetTestQuestionsApiArg>({
+        query: (queryArg) => ({ url: `/api/admin/Tests/${queryArg.testId}/questions` }),
+        providesTags: ["Tests"],
+      }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
@@ -489,6 +493,10 @@ export type ImportTestQuestionsApiResponse = unknown;
 export type ImportTestQuestionsApiArg = {
   testId: string;
   testQuestions: object;
+};
+export type GetTestQuestionsApiResponse = /** status 200 Success */ TestQuestionRecord[];
+export type GetTestQuestionsApiArg = {
+  testId: string;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -882,6 +890,17 @@ export type TestViewModel = {
   /** Identifier of the test. */
   testId?: string;
 };
+export type TestQuestionRecord = {
+  sequenceNum?: number;
+  question?: string | null;
+  feedback?: string | null;
+  answer1?: string | null;
+  answer2?: string | null;
+  answer3?: string | null;
+  answer4?: string | null;
+  correct?: number;
+  correctAnswer?: string | null;
+};
 export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
@@ -942,6 +961,7 @@ export const {
   useSetTestActiveMutation,
   useGetAllTestsQuery,
   useImportTestQuestionsMutation,
+  useGetTestQuestionsQuery,
   useGetCurrentUserQuery,
   usePutRootUserAttributeMutation,
   usePutUserAttributeMutation,

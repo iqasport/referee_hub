@@ -214,6 +214,26 @@ public class TestsController : ControllerBase
 		}
 	}
 
+	[HttpGet("{testId}/questions")]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	public async Task<IEnumerable<TestQuestionRecord>> GetTestQuestions([FromRoute] TestIdentifier testId)
+	{
+		var test = await this.dbContext.Tests.AsNoTracking().WithIdentifier(testId)
+			.Include(t => t.Questions).ThenInclude(q => q.Answers)
+			.SingleAsync();
+		return test.Questions.Select(q => new TestQuestionRecord
+		{
+			SequenceNum = (int)q.SequenceId,
+			Question = q.Description,
+			Feedback = q.Feedback,
+			Answer1 = q.Answers.ElementAt(0).Description,
+			Answer2 = q.Answers.ElementAt(1).Description,
+			Answer3 = q.Answers.ElementAt(2).Description,
+			Answer4 = q.Answers.ElementAt(3).Description,
+			Correct = q.Answers.Select((a, i) => a.Correct ? (i + 1) : -1).First(i => i > 0),
+		}).OrderBy(q => q.SequenceNum);
+	}
+
 	public sealed class TestQuestionRecordMap : ClassMap<TestQuestionRecord>
 	{
 		public TestQuestionRecordMap()
