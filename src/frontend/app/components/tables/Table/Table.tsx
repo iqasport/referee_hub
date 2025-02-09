@@ -48,7 +48,7 @@ function Table<T>(props: TableProps<T>) {
           return (
             <td
               key={cell.dataKey}
-              className={`w-1/4 py-4 px-6 xl:px-8 ${cell.customStyle}`}
+              className={`w-1/4 py-2 px-4 xl:px-8 ${cell.customStyle}`}
               onClick={disabled ? undefined : handleClick}
             >
               {cell.cellRenderer(item)}
