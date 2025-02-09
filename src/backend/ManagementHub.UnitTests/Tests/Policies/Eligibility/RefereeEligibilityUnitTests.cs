@@ -729,6 +729,43 @@ public class RefereeEligibilityUnitTests
 	}
 
 	[Fact]
+	public async Task ReturnsInitialTest_WhenRefereeFailedRecertificationInAnotherLanguage()
+	{
+		this.SetupReferee(new[]
+		{
+			new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+		}, Array.Empty<CertificationVersion>(), new[]
+		{
+			new FinishedTestAttempt
+			{
+				StartedAt = TestCurrentDateTime.Add(-1 * TestData.RecertAssistant22.TimeLimit),
+				TestId = TestData.RecertAssistant22.TestId,
+				UserId = TestUserId,
+				FinishedAt = TestCurrentDateTime,
+				FinishMethod = TestAttemptFinishMethod.Submission,
+				Score = 0,
+				Level = CertificationLevel.Assistant,
+				Version = CertificationVersion.TwentyTwo,
+				Passed = false,
+				PassPercentage = TestData.RecertAssistant22.PassPercentage,
+				AwardedCertifications = new HashSet<Certification>(),
+				IsRecertification = true,
+			}
+		});
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.Assistant22,
+			TestData.RecertAssistant22,
+			TestData.RecertAssistant22French,
+		});
+
+		result.Includes(TestData.Assistant22);
+		result.Excludes(TestData.RecertAssistant22);
+		result.Excludes(TestData.RecertAssistant22French);
+	}
+
+	[Fact]
 	public async Task ReturnsTest_WhenTheresOneMoreAttemptLeftAndRecertTestHasBeenAttempted()
 	{
 		// has 6 attempts for AR test and 1 for recert

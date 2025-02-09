@@ -192,6 +192,21 @@ public static class TestData
 		RecertificationFor = new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
 	};
 
+	public static Test RecertAssistant22French = new()
+	{
+		AwardedCertifications = new HashSet<Certification> { new Certification(CertificationLevel.Assistant, CertificationVersion.TwentyTwo) },
+		Description = "Mock recert assistant 22 (FR)",
+		IsActive = true,
+		Language = new LanguageIdentifier("fr"),
+		Title = "AR22-r FR",
+		PassPercentage = 80,
+		QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = 25 },
+		TestId = TestIdentifier.NewTestId(),
+		TimeLimit = TimeSpan.FromMinutes(20),
+		MaximumAttempts = 1,
+		RecertificationFor = new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+	};
+
 	public static Test RecertFlag22 = new()
 	{
 		AwardedCertifications = new HashSet<Certification>
