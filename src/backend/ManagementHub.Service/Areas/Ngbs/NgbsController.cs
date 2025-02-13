@@ -61,6 +61,7 @@ public class NgbsController : ControllerBase
 	/// </summary>
 	[HttpGet("{ngb}")]
 	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
 	public async Task<NgbInfoViewModel> GetNgbInfo([FromRoute] NgbIdentifier ngb)
 	{
 		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
@@ -69,6 +70,7 @@ public class NgbsController : ControllerBase
 		var stats = await this.ngbContextProvider.GetCurrentNgbStatsAsync(ngb);
 		var historicalStats = await this.ngbContextProvider.GetHistoricalNgbStatsAsync(ngb);
 		var avatarUri = await this.ngbContextProvider.GetNgbAvatarUriAsync(ngb);
+		var adminEmails = await this.ngbContextProvider.GetNgbAdminEmails(ngb);
 
 		return new NgbInfoViewModel
 		{
@@ -84,6 +86,7 @@ public class NgbsController : ControllerBase
 			HistoricalStats = historicalStats,
 			Website = context.NgbData.Website,
 			AvatarUri = avatarUri,
+			AdminEmails = adminEmails,
 		};
 	}
 

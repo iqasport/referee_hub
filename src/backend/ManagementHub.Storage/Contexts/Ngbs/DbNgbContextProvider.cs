@@ -69,4 +69,9 @@ public class DbNgbContextProvider : INgbContextProvider
 	{
 		return this.ngbContextFactory.CreateNgb(ngb, ngbData);
 	}
+
+	public Task<IEnumerable<string>> GetNgbAdminEmails(NgbIdentifier ngb)
+	{
+		return this.ngbContextFactory.GetNgbAdminEmails(ngb);
+	}
 }

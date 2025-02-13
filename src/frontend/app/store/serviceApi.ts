@@ -634,6 +634,7 @@ export type NgbInfoViewModel = {
   historicalStats?: INgbStatsContext[] | null;
   socialAccounts?: SocialAccount[] | null;
   avatarUri?: string | null;
+  adminEmails?: string[] | null;
 };
 export type NgbInfoViewModelRead = {
   /** The identifier of the NGB. */
@@ -654,6 +655,7 @@ export type NgbInfoViewModelRead = {
   historicalStats?: INgbStatsContextRead[] | null;
   socialAccounts?: SocialAccount[] | null;
   avatarUri?: string | null;
+  adminEmails?: string[] | null;
 };
 export type NgbUpdateModel = {
   /** Official name of the NGB. */

@@ -2,9 +2,9 @@ import {
   faFacebookSquare,
   faInstagramSquare,
   faTwitterSquare,
-  faYoutubeSquare,
+  faYoutubeSquare
 } from "@fortawesome/free-brands-svg-icons";
-import { faComments } from "@fortawesome/free-solid-svg-icons";
+import { faComments, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classnames from "classnames";
 import { capitalize, words } from "lodash";
@@ -71,6 +71,19 @@ const Sidebar = (props: SidebarProps) => {
     );
   };
 
+  const renderAdminEmail = (email: string, index) => {
+    return (
+      <a
+        key={`email-${index}`}
+        href={`mailto:${email}`}
+        className="mr-4"
+      >
+        <FontAwesomeIcon icon={faUser} className="text-xl" />
+        {` ${email}`}
+      </a>
+    );
+  }
+
   return (
     <div className="flex flex-row flex-wrap mb-4 md:m-0 md:flex-col w-full md:w-1/4 md:border-r-2 md:border-gray-700 md:pr-8">
       <div className="flex justify-center">
@@ -122,6 +135,9 @@ const Sidebar = (props: SidebarProps) => {
       </DataLabel>
       <DataLabel label="social media" customClass="w-full">
         <div className="flex w-full mt-2 flex-wrap">{ngb.socialAccounts.map(renderSocialMedia)}</div>
+      </DataLabel>
+      <DataLabel label="admin emails" customClass="w-full">
+        <div className="flex w-full mt-2 flex-wrap">{ngb.adminEmails.map(renderAdminEmail)}</div>
       </DataLabel>
     </div>
   );
