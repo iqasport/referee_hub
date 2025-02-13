@@ -106,6 +106,14 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Ngb"],
       }),
+      updateNgbAvatar: build.mutation<UpdateNgbAvatarApiResponse, UpdateNgbAvatarApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/avatar`,
+          method: "PUT",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["Ngb"],
+      }),
       adminUpdateNgb: build.mutation<AdminUpdateNgbApiResponse, AdminUpdateNgbApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/api/v2/admin/Ngbs/${queryArg.ngb}`,
@@ -393,6 +401,13 @@ export type UpdateNgbApiResponse = unknown;
 export type UpdateNgbApiArg = {
   ngb: string;
   ngbUpdateModel: NgbUpdateModel;
+};
+export type UpdateNgbAvatarApiResponse = /** status 200 Success */ string;
+export type UpdateNgbAvatarApiArg = {
+  ngb: string;
+  body: {
+    avatarBlob?: Blob;
+  };
 };
 export type AdminUpdateNgbApiResponse = unknown;
 export type AdminUpdateNgbApiArg = {
@@ -941,6 +956,7 @@ export const {
   useGetNgbsQuery,
   useGetNgbInfoQuery,
   useUpdateNgbMutation,
+  useUpdateNgbAvatarMutation,
   useAdminUpdateNgbMutation,
   useAdminCreateNgbMutation,
   useGetAvailableTestsQuery,

@@ -1,4 +1,5 @@
 ﻿using Amazon.S3.Model;
+using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
@@ -27,13 +28,15 @@ public class NgbsController : ControllerBase
 	private readonly INgbContextProvider ngbContextProvider;
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly ISocialAccountsProvider socialAccountsProvider;
+	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 
-	public NgbsController(IUserContextAccessor contextAccessor, INgbContextProvider ngbContextProvider, ITeamContextProvider teamContextProvider, ISocialAccountsProvider socialAccountsProvider)
+	public NgbsController(IUserContextAccessor contextAccessor, INgbContextProvider ngbContextProvider, ITeamContextProvider teamContextProvider, ISocialAccountsProvider socialAccountsProvider, IUpdateUserAvatarCommand updateUserAvatarCommand)
 	{
 		this.contextAccessor = contextAccessor;
 		this.ngbContextProvider = ngbContextProvider;
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
+		this.updateUserAvatarCommand = updateUserAvatarCommand;
 	}
 
 	/// <summary>
@@ -119,6 +122,19 @@ public class NgbsController : ControllerBase
 		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
 
 		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
+	}
+
+	[HttpPut("{ngb}/avatar")]
+	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	public async Task<Uri> UpdateNgbAvatar([FromRoute] NgbIdentifier ngb, IFormFile avatarBlob)
+	{
+		var avatarUri = await this.updateUserAvatarCommand.UpdateNgbAvatarAsync(
+			ngb,
+			avatarBlob.ContentType,
+			avatarBlob.OpenReadStream(),
+			this.HttpContext.RequestAborted);
+		return avatarUri;
 	}
 
 	[HttpPut("api/v2/admin/[controller]/{ngb}")]

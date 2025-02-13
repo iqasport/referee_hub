@@ -12,7 +12,7 @@ import React from "react";
 
 import DataLabel from "../../components/DataLabel";
 import UploadedImage from "../../components/UploadedImage";
-import { NgbInfoViewModelRead, SocialAccount } from "../../store/serviceApi";
+import { NgbInfoViewModelRead, SocialAccount, useUpdateNgbAvatarMutation } from "../../store/serviceApi";
 
 type SocialConfig = {
   [key: string]: {
@@ -51,9 +51,20 @@ type SidebarProps = {
 const Sidebar = (props: SidebarProps) => {
   const { ngb } = props;
 
+  const [updateNgbAvatar] = useUpdateNgbAvatarMutation();
+
   const handleLogoUpdate = (file: File) => {
-    // TODO: PATCH Ngb Avatar
-    alert("Not implemented yet.")
+    // at the moment RTK Query code gen doesn't support multipart form requests
+    const payload = new FormData();
+    payload.append("avatarBlob", file);
+    fetch(`/api/v2/Ngbs/${ngb.countryCode}/avatar`, {
+      method: "PUT",
+      // let the browser set Content-Type header based on the payload
+      body: payload,
+    }).then(() => {
+      // invoke a call that results in 415 Media type not supported, but invalidates the cache and will make another call to get uploaded avatar url
+      updateNgbAvatar({body: {}, ngb: ngb.countryCode})
+    });
   };
 
   const renderSocialMedia = (account: SocialAccount, index) => {
@@ -76,7 +87,8 @@ const Sidebar = (props: SidebarProps) => {
       <a
         key={`email-${index}`}
         href={`mailto:${email}`}
-        className="mr-4"
+        className={classnames("mr-4", "hover:underline")}
+        style={{overflow: "hidden"}}
       >
         <FontAwesomeIcon icon={faUser} className="text-xl" />
         {` ${email}`}
@@ -91,7 +103,7 @@ const Sidebar = (props: SidebarProps) => {
           imageAlt="national governing body logo"
           imageUrl={ngb.avatarUri}
           onSubmit={handleLogoUpdate}
-          isEditable={false}
+          isEditable={true}
         />
       </div>
       <div className="w-full flex flex-row justify-between mt-8">
@@ -127,7 +139,7 @@ const Sidebar = (props: SidebarProps) => {
         </DataLabel>
       </div>
       <DataLabel label="website" customClass="w-full">
-        <h3 className="text-navy-blue font-bold pt-2 truncate">
+        <h3 className="text-navy-blue font-bold pt-2 truncate hover:underline">
           <a href={ngb.website} rel="noopener noreferrer" target="_blank">
             {ngb.website}
           </a>
