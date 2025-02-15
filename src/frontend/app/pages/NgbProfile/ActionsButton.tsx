@@ -3,16 +3,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 
 import DropdownMenu from "../../components/DropdownMenu";
+import { ItemConfig } from "../../components/DropdownMenu/DropdownMenu";
 
 interface ActionsButtonProps {
   onEditClick: () => void;
   onImportClick: () => void;
   onExportClick: () => void;
   onCreateTeamClick: () => void;
+  onManageAdminsClick: () => void;
 }
 
 const ActionsButton = (props: ActionsButtonProps) => {
-  const { onEditClick, onImportClick, onExportClick, onCreateTeamClick } = props;
+  const { onEditClick, onImportClick, onExportClick, onCreateTeamClick, onManageAdminsClick } = props;
 
   const renderTrigger = (onClick: () => void) => {
     return (
@@ -23,10 +25,14 @@ const ActionsButton = (props: ActionsButtonProps) => {
     );
   };
 
-  const items = [
+  const items: ItemConfig[] = [
     {
       content: "Edit",
       onClick: onEditClick,
+    },
+    {
+      content: "Manage admins",
+      onClick: onManageAdminsClick,
     },
     {
       content: "Create Team",

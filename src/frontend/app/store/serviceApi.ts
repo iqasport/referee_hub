@@ -114,6 +114,22 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Ngb"],
       }),
+      addNgbAdmin: build.mutation<AddNgbAdminApiResponse, AddNgbAdminApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/admins`,
+          method: "POST",
+          body: queryArg.ngbAdminCreationModel,
+        }),
+        invalidatesTags: ["Ngb"],
+      }),
+      deleteNgbAdmin: build.mutation<DeleteNgbAdminApiResponse, DeleteNgbAdminApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/admins`,
+          method: "DELETE",
+          params: { email: queryArg.email },
+        }),
+        invalidatesTags: ["Ngb"],
+      }),
       adminUpdateNgb: build.mutation<AdminUpdateNgbApiResponse, AdminUpdateNgbApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/api/v2/admin/Ngbs/${queryArg.ngb}`,
@@ -409,6 +425,16 @@ export type UpdateNgbAvatarApiArg = {
     avatarBlob?: Blob;
   };
 };
+export type AddNgbAdminApiResponse = /** status 200 Success */ NgbAdminCreationStatus;
+export type AddNgbAdminApiArg = {
+  ngb: string;
+  ngbAdminCreationModel: NgbAdminCreationModel;
+};
+export type DeleteNgbAdminApiResponse = /** status 200 Success */ any;
+export type DeleteNgbAdminApiArg = {
+  ngb: string;
+  email?: string;
+};
 export type AdminUpdateNgbApiResponse = unknown;
 export type AdminUpdateNgbApiArg = {
   ngb: string;
@@ -686,6 +712,15 @@ export type NgbUpdateModel = {
   /** Social account URLs. */
   socialAccounts?: SocialAccount[] | null;
 };
+export type NgbAdminCreationStatus =
+  | "InvalidEmail"
+  | "UserDoesNotExist"
+  | "AdminRoleAdded"
+  | "AdminUserCreated";
+export type NgbAdminCreationModel = {
+  email?: string | null;
+  createAccountIfNotExists?: boolean;
+};
 export type AdminNgbUpdateModel = {
   /** Official name of the NGB. */
   name?: string | null;
@@ -957,6 +992,8 @@ export const {
   useGetNgbInfoQuery,
   useUpdateNgbMutation,
   useUpdateNgbAvatarMutation,
+  useAddNgbAdminMutation,
+  useDeleteNgbAdminMutation,
   useAdminUpdateNgbMutation,
   useAdminCreateNgbMutation,
   useGetAvailableTestsQuery,

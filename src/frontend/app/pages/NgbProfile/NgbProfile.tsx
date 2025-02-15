@@ -11,11 +11,13 @@ import NgbTables from "./NgbTables";
 import Sidebar from "./Sidebar";
 import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 import { useExportRefereesForNgbMutation, useExportTeamsForNgbMutation, useGetNgbInfoQuery } from "../../store/serviceApi";
+import NgbAdminsModal from "../../components/modals/NgbAdminsModal/NgbAdminsModal";
 
 enum ModalType {
   Export = "export",
   Team = "team",
   Edit = "edit",
+  Admins = "admins",
 }
 
 const NgbProfile = () => {
@@ -59,6 +61,8 @@ const NgbProfile = () => {
             ngbId={ngbId}
           />
         );
+      case ModalType.Admins:
+        return <NgbAdminsModal open={true} onClose={handleCloseModal} showClose={true} ngbId={ngbId} />;
       default:
         return null;
     }
@@ -74,6 +78,7 @@ const NgbProfile = () => {
             onImportClick={handleImportClick}
             onExportClick={handleOpenModal(ModalType.Export)}
             onCreateTeamClick={handleOpenModal(ModalType.Team)}
+            onManageAdminsClick={handleOpenModal(ModalType.Admins)}
           />
         </div>
         <div className="flex w-full flex-col md:flex-row">
