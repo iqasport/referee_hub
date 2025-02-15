@@ -98,6 +98,17 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Website = "https://www.usquadball.org/",
 				CreatedAt = DateTime.UtcNow,
 			},
+			new NationalGoverningBody
+			{
+				CountryCode = "DEU",
+				Name = "QBund",
+				Country = "Germany",
+				Region = NgbRegion.Europe,
+				MembershipStatus = NgbMembershipStatus.Full,
+				PlayerCount = 600,
+				Website = "https://www.usquadball.org/",
+				CreatedAt = DateTime.UtcNow,
+			},
 		};
 		dbContext.NationalGoverningBodies.AddRange(ngbs);
 
@@ -162,8 +173,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			new Language{ ShortName = "es", ShortRegion = "ES"},
 			new Language{ ShortName = "es", ShortRegion = "419"},
 			new Language{ ShortName = "fr" },
-			new Language{ ShortName = "de" },
 			new Language{ ShortName = "it" },
+			new Language{ ShortName = "de" },
 		};
 		dbContext.Languages.AddRange(languages);
 
@@ -319,7 +330,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Active = true,
 				Certification = certifications.Last(c => c.Level == CertificationLevel.Assistant),
 				Description = "Latest AR test",
-				NewLanguage = languages.First(),
+				NewLanguage = languages.Last(),
 				CreatedAt = DateTime.UtcNow,
 				Level = TestLevel.Assistant,
 				MinimumPassPercentage = 80,
@@ -437,7 +448,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Active = true,
 				Certification = certifications.Last(c => c.Level == CertificationLevel.Scorekeeper),
 				Description = "60min log SK",
-				NewLanguage = languages.First(),
+				NewLanguage = languages.Last(),
 				CreatedAt = DateTime.UtcNow,
 				Level = TestLevel.Scorekeeper,
 				MinimumPassPercentage = 80,
