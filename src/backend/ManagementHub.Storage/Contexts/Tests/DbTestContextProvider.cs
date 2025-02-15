@@ -121,7 +121,7 @@ public class DbTestContextProvider : ITestContextProvider
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,
 				QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = t.TestableQuestionCount },
-				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification.Level, t.Certification.Version - 1) : null,
+				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification!.Level, t.Certification.Version - 1) : null,
 				TestId = t.UniqueId != null ? TestIdentifier.Parse(t.UniqueId) : TestIdentifier.FromLegacyTestId(t.Id),
 				TimeLimit = TimeSpan.FromMinutes(t.TimeLimit),
 			})
@@ -135,7 +135,7 @@ public class DbTestContextProvider : ITestContextProvider
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,
 				QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = t.TestableQuestionCount },
-				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification.Level, t.Certification.Version - 1) : null,
+				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification!.Level, t.Certification.Version - 1) : null,
 				TestId = t.UniqueId != null ? TestIdentifier.Parse(t.UniqueId) : TestIdentifier.FromLegacyTestId(t.Id),
 				TimeLimit = TimeSpan.FromMinutes(t.TimeLimit),
 			});
