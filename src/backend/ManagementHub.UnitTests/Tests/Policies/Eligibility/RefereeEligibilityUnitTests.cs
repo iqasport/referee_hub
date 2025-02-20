@@ -805,4 +805,23 @@ public class RefereeEligibilityUnitTests
 		result.Excludes(TestData.RecertAssistant22);
 		result.Includes(TestData.Assistant22);
 	}
+
+	[Fact]
+	public async Task ReturnsRecertTest_WhenTheresScorekeeperCertification()
+	{
+		this.SetupReferee(new[]
+			{
+				new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+				new Certification(CertificationLevel.Scorekeeper, CertificationVersion.TwentyTwo),
+			},
+			Array.Empty<CertificationVersion>(),
+			Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+		});
+
+		result.Includes(TestData.RecertAssistant22);
+	}
 }

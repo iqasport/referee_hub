@@ -34,7 +34,8 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 				? (CertificationLevel?)previousCertification.Max()
 				: null;
 
-			if (referee.AcquiredCertifications.Where(c => c.Version == awardedVersion).Any())
+			// Currently we don't consider scorekeeper test as part of the recertification process
+			if (referee.AcquiredCertifications.Where(c => c.Version == awardedVersion && c.Level != CertificationLevel.Scorekeeper).Any())
 			{
 				// referee has another certification for the version of rulebook this provides
 				return RefereeEligibilityResult.RecertificationNotAllowedDueToInitialCertificationStarted;
