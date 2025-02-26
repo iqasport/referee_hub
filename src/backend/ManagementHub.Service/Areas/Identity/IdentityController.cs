@@ -46,7 +46,7 @@ public class IdentityController : ControllerBase
 		if (this.ModelState.IsValid)
 		{
 			// The actions in this method should correspond with actions in Identity/Pages/Account/Login
-			await this.userIdMigrationCommand.TryMigrateUserIdAsync(input.Email, this.HttpContext.RequestAborted);
+			await this.userIdMigrationCommand.TryMigrateUserIdAsync(new Email(input.Email), this.HttpContext.RequestAborted);
 
 			var result = await this.signInManager.PasswordSignInAsync(input.Email, input.Password, isPersistent: false, lockoutOnFailure: false);
 			if (result.Succeeded)
