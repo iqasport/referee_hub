@@ -63,6 +63,7 @@ public class DbRefereeTestContextFactory
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
 					Level = tr.Test != null ? tr.Test.Certification!.Level : tr.TestLevel!.Value.ToCertificationLevel(),
+					Version = tr.Test != null ? tr.Test.Certification!.Version!.Value : CertificationVersion.Eighteen,
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,
@@ -72,6 +73,7 @@ public class DbRefereeTestContextFactory
 						: new TestIdentifier(),
 					UserId = userId,
 					Id = tr.UniqueId != null ? TestAttemptIdentifier.Parse(tr.UniqueId) : TestAttemptIdentifier.FromLegacyId(tr.CreatedAt, tr.Id),
+					IsRecertification = tr.Test != null && tr.Test.Recertification != null ? tr.Test.Recertification.Value : false,
 				})
 			})
 			.SingleOrDefaultAsync(cancellationToken);

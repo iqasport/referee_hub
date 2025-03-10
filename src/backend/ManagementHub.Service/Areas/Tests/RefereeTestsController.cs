@@ -123,6 +123,7 @@ public class RefereeTestsController : ControllerBase
 			Description = test.Description,
 			MaximumAttempts = test.MaximumAttempts,
 			PassPercentage = test.PassPercentage,
+			QuestionsCount = ((SubsetCountQuestionChoicePolicy)test.QuestionChoicePolicy).QuestionsCount,
 		};
 	}
 
@@ -197,7 +198,7 @@ public class RefereeTestsController : ControllerBase
 			throw new InvalidOperationException($"User is not eligible to submit this test ({eligibilityResult}).");
 		}
 
-		CertificationLevel highestCertificationLevel = test.AwardedCertifications.Select(c => c.Level).Max();
+		Certification highestCertification = test.AwardedCertifications.Max() ?? throw new ArgumentException($"{nameof(test.AwardedCertifications)} for test {test.TestId} was empty");
 
 		var mappedQuestionsWithSelectedAnswers = test.AvailableQuestions.Join(
 			testSubmitModel.Answers,
@@ -247,13 +248,15 @@ public class RefereeTestsController : ControllerBase
 			FinishedAt = now,
 			StartedAt = testSubmitModel.StartedAt,
 			FinishMethod = TestAttemptFinishMethod.Submission,
-			Level = highestCertificationLevel,
+			Level = highestCertification.Level,
+			Version = highestCertification.Version,
 			Passed = passed,
 			PassPercentage = test.PassPercentage,
 			Score = score,
 			TestId = test.TestId,
 			UserId = user.UserId,
 			AwardedCertifications = passed ? test.AwardedCertifications : null,
+			IsRecertification = test.RecertificationFor != null,
 		};
 
 		await this.saveSubmittedTestCommand.SaveSubmittedTestAsync(

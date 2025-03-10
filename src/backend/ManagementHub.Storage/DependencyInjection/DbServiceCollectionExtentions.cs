@@ -122,6 +122,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IProcessCertificationPaymentCommand, ProcessCertificationPaymentCommand>();
 		services.AddScoped<ICreateNgbStatsSnapshotCommand, CreateNgbStatsSnapshotCommand>();
 		services.AddScoped<IImportTestQuestions, ImportTestQuestions>();
+		services.AddScoped<IUpdateNgbAdminRoleCommand, UpdateNgbAdminRoleCommand>();
 
 		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
 

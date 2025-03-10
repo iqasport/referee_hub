@@ -90,6 +90,15 @@ public class DbNgbContextFactory
 		await this.dbContext.SaveChangesAsync();
 	}
 
+	public async Task<IEnumerable<string>> GetNgbAdminEmails(NgbIdentifier ngb)
+	{
+		return await this.dbContext.NationalGoverningBodyAdmins
+			.Where(a => a.NationalGoverningBody.CountryCode == ngb.ToString())
+			.Include(a => a.User)
+			.Select(a => a.User.Email)
+			.ToListAsync();
+	}
+
 	private IQueryable<INgbContext> QueryNgbs(IQueryable<NationalGoverningBody> ngbs)
 	{
 		Uri? uri;

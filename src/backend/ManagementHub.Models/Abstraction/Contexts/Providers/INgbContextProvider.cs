@@ -18,4 +18,5 @@ public interface INgbContextProvider
 	Task<IOrderedEnumerable<INgbStatsContext>> GetHistoricalNgbStatsAsync(NgbIdentifier ngb);
 	Task UpdateNgbInfoAsync(NgbIdentifier ngb, NgbData ngbData);
 	Task CreateNgbAsync(NgbIdentifier ngb, NgbData ngbData);
+	Task<IEnumerable<string>> GetNgbAdminEmails(NgbIdentifier ngb);
 }

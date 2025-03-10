@@ -1,4 +1,4 @@
-import { FetchArgs, createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { FetchArgs, createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
 
 /** if the query URL contains impersonate query we forward it with the API calls */
 const fetchWithImpersonationQuery = (fetchFn: ReturnType<typeof fetchBaseQuery>) => (args: string | FetchArgs, api, extraOptions) => {
@@ -17,9 +17,21 @@ const fetchWithImpersonationQuery = (fetchFn: ReturnType<typeof fetchBaseQuery>)
   return fetchFn(args, api, extraOptions);
 }
 
+const fetchWithRetries = (fetchFn: ReturnType<typeof fetchBaseQuery>) => {
+  return retry(fetchFn, {
+    retryCondition: (error, _, extraArgs) => {
+      // if we failed to execute the fetch call (e.g. due to network error) let's retry up to 3 times
+      if (error.status === "FETCH_ERROR" && extraArgs.attempt <= 3) {
+        return true;
+      }
+      return false;
+    }
+  })
+}
+
 // initialize an empty api service that we'll inject endpoints into later as needed
 export const baseApi = createApi({
-  baseQuery: fetchWithImpersonationQuery(fetchBaseQuery({
+  baseQuery: fetchWithRetries(fetchWithImpersonationQuery(fetchBaseQuery({
     baseUrl: '/',
     prepareHeaders: (headers, api) => {
       if (api.endpoint == "setTestActive") {
@@ -27,6 +39,6 @@ export const baseApi = createApi({
         headers.set("Content-Type", "application/json");
       }
     }
-  })),
+  }))),
   endpoints: () => ({}),
 })

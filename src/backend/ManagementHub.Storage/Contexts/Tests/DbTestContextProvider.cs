@@ -8,7 +8,9 @@ using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tests.Policies;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
+using ManagementHub.Models.Misc;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -111,7 +113,7 @@ public class DbTestContextProvider : ITestContextProvider
 			? dataset.Select(t => new TestWithQuestions
 			{
 				AvailableQuestions = ConvertQuestions(t.Questions),
-				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification!.Level, t.Certification.Version) },
+				AwardedCertifications = GetCertificationsForTest(t),
 				Description = t.Description,
 				IsActive = t.Active,
 				Language = new LanguageIdentifier(t.NewLanguage!.ShortName, t.NewLanguage.ShortRegion),
@@ -119,13 +121,13 @@ public class DbTestContextProvider : ITestContextProvider
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,
 				QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = t.TestableQuestionCount },
-				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification.Level, t.Certification.Version - 1) : null,
+				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification!.Level, t.Certification.Version - 1) : null,
 				TestId = t.UniqueId != null ? TestIdentifier.Parse(t.UniqueId) : TestIdentifier.FromLegacyTestId(t.Id),
 				TimeLimit = TimeSpan.FromMinutes(t.TimeLimit),
 			})
 			: dataset.Select(t => new Test
 			{
-				AwardedCertifications = new HashSet<Certification> { Certification.New(t.Certification!.Level, t.Certification.Version) },
+				AwardedCertifications = GetCertificationsForTest(t),
 				Description = t.Description,
 				IsActive = t.Active,
 				Language = new LanguageIdentifier(t.NewLanguage!.ShortName, t.NewLanguage.ShortRegion),
@@ -133,7 +135,7 @@ public class DbTestContextProvider : ITestContextProvider
 				Title = t.Name ?? "Unnamed test",
 				PassPercentage = t.MinimumPassPercentage,
 				QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = t.TestableQuestionCount },
-				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification.Level, t.Certification.Version - 1) : null,
+				RecertificationFor = (t.Recertification ?? false) ? Certification.New(t.Certification!.Level, t.Certification.Version - 1) : null,
 				TestId = t.UniqueId != null ? TestIdentifier.Parse(t.UniqueId) : TestIdentifier.FromLegacyTestId(t.Id),
 				TimeLimit = TimeSpan.FromMinutes(t.TimeLimit),
 			});
@@ -170,5 +172,25 @@ public class DbTestContextProvider : ITestContextProvider
 				QuestionId = new QuestionId(q.Id),
 			};
 		}).ToList();
+	}
+
+	private static HashSet<Certification> GetCertificationsForTest(Models.Data.Test test)
+	{
+		var set = new HashSet<Certification> { Certification.New(test.Certification!.Level, test.Certification.Version) };
+		if (test.Recertification == true)
+		{
+			switch (test.Certification.Level)
+			{
+				case CertificationLevel.Head:
+					set.Add(Certification.New(CertificationLevel.Flag, test.Certification.Version));
+					set.Add(Certification.New(CertificationLevel.Assistant, test.Certification.Version));
+					break;
+				case CertificationLevel.Flag:
+					set.Add(Certification.New(CertificationLevel.Assistant, test.Certification.Version));
+					break;
+			}
+		}
+
+		return set;
 	}
 }

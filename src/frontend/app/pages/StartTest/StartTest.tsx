@@ -7,6 +7,7 @@ import NewTestTaker from "../../components/TestTaker";
 import { useGetTestDetailsQuery, useStartTestMutation, useSubmitTestMutation, Question, SubmittedTestAnswer } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
 import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
+import Loader from "../../components/Loader";
 
 export type FormattedQuestion = {
   questionId: string;
@@ -226,6 +227,7 @@ const StartTest = () => {
       </div>
       <div className="w-full h-px border-t border-navy-blue" />
       {startTestError && <h4 className="font-bold text-red-500 my-4">{getErrorString(startTestError)}</h4>}
+      <h4 className="font-bold my-4">{`The test has ${test.questionsCount} questions. You will have to answer ${Math.ceil(test.questionsCount * test.passPercentage / 100)} questions correctly to pass.`}</h4>
       <h4 className="font-bold my-4">{`You will have ${timeLimitInMinutes} minutes to complete this test.`}</h4>
       <h4 className="font-bold my-4">Once you begin you may not exit the test.</h4>
       <h4 className="font-bold my-4">If you go over the time limit you will not pass the test.</h4>
@@ -239,6 +241,10 @@ const StartTest = () => {
       </h4>
     </div>
   );
+
+  if (!test) {
+    return <Loader></Loader>
+  }
 
   const renderMainContent = () => {
     if (finishedAt) return renderFinish();

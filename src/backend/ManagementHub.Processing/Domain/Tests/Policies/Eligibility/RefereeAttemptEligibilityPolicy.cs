@@ -1,11 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
-using ManagementHub.Models.Enums;
+using ManagementHub.Processing.Domain.Tests.Extensions;
 using Microsoft.Extensions.Internal;
 
 namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
@@ -24,7 +23,8 @@ public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 	{
 		var referee = await this.refereeContextProvider.GetRefereeTestContextAsync(userId, cancellationToken);
 
-		foreach (var attempt in referee.TestAttempts.Where(at => at.TestId == test.TestId))
+		var cert = test.AwardedCertifications.Max();
+		foreach (var attempt in referee.TestAttempts.Where(at => at.TestId == test.TestId || (at.Level == cert.Level && at.Version == cert.Version && !at.IsRecertification)))
 		{
 			if (this.IsWithinCooldownPeriod(attempt, test))
 			{

@@ -141,12 +141,14 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 	{
 		this.logger.LogInformation(0x62475601, "Session ({sessionId}) has been submitted.", session.Id);
 
-		if (string.IsNullOrWhiteSpace(session.CustomerEmail))
+		var emailAddress = session.CustomerEmail ?? session.CustomerDetails.Email;
+
+		if (string.IsNullOrWhiteSpace(emailAddress))
 		{
 			throw new ArgumentException("Missing user email.");
 		}
 
-		this.ScheduleCompletedSessionProcessing(session.Id, session.CustomerEmail, this.ItemOfMetadata(session.Metadata));
+		this.ScheduleCompletedSessionProcessing(session.Id, emailAddress, this.ItemOfMetadata(session.Metadata));
 	}
 }
 

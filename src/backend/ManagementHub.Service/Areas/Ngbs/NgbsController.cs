@@ -1,4 +1,5 @@
 ﻿using Amazon.S3.Model;
+using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
@@ -27,13 +28,23 @@ public class NgbsController : ControllerBase
 	private readonly INgbContextProvider ngbContextProvider;
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly ISocialAccountsProvider socialAccountsProvider;
+	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
+	private readonly IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand;
 
-	public NgbsController(IUserContextAccessor contextAccessor, INgbContextProvider ngbContextProvider, ITeamContextProvider teamContextProvider, ISocialAccountsProvider socialAccountsProvider)
+	public NgbsController(
+		IUserContextAccessor contextAccessor,
+		INgbContextProvider ngbContextProvider,
+		ITeamContextProvider teamContextProvider,
+		ISocialAccountsProvider socialAccountsProvider,
+		IUpdateUserAvatarCommand updateUserAvatarCommand,
+		IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand)
 	{
 		this.contextAccessor = contextAccessor;
 		this.ngbContextProvider = ngbContextProvider;
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
+		this.updateUserAvatarCommand = updateUserAvatarCommand;
+		this.updateNgbAdminRoleCommand = updateNgbAdminRoleCommand;
 	}
 
 	/// <summary>
@@ -61,6 +72,7 @@ public class NgbsController : ControllerBase
 	/// </summary>
 	[HttpGet("{ngb}")]
 	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
 	public async Task<NgbInfoViewModel> GetNgbInfo([FromRoute] NgbIdentifier ngb)
 	{
 		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
@@ -69,6 +81,7 @@ public class NgbsController : ControllerBase
 		var stats = await this.ngbContextProvider.GetCurrentNgbStatsAsync(ngb);
 		var historicalStats = await this.ngbContextProvider.GetHistoricalNgbStatsAsync(ngb);
 		var avatarUri = await this.ngbContextProvider.GetNgbAvatarUriAsync(ngb);
+		var adminEmails = await this.ngbContextProvider.GetNgbAdminEmails(ngb);
 
 		return new NgbInfoViewModel
 		{
@@ -84,6 +97,7 @@ public class NgbsController : ControllerBase
 			HistoricalStats = historicalStats,
 			Website = context.NgbData.Website,
 			AvatarUri = avatarUri,
+			AdminEmails = adminEmails,
 		};
 	}
 
@@ -116,6 +130,66 @@ public class NgbsController : ControllerBase
 		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
 
 		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
+	}
+
+	[HttpPut("{ngb}/avatar")]
+	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	public async Task<Uri> UpdateNgbAvatar([FromRoute] NgbIdentifier ngb, IFormFile avatarBlob)
+	{
+		var avatarUri = await this.updateUserAvatarCommand.UpdateNgbAvatarAsync(
+			ngb,
+			avatarBlob.ContentType,
+			avatarBlob.OpenReadStream(),
+			this.HttpContext.RequestAborted);
+		return avatarUri;
+	}
+
+	[HttpPost("{ngb}/admins")]
+	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NgbAdminCreationStatus))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(NgbAdminCreationStatus))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NgbAdminCreationStatus))]
+	public async Task<NgbAdminCreationStatus> AddNgbAdmin([FromRoute] NgbIdentifier ngb, [FromBody] NgbAdminCreationModel adminModel)
+	{
+		if (!Email.TryParse(adminModel.Email, out var email))
+		{
+			this.Response.StatusCode = StatusCodes.Status400BadRequest;
+			return NgbAdminCreationStatus.InvalidEmail;
+		}
+
+		var result = await this.updateNgbAdminRoleCommand.AddNgbAdminRoleAsync(ngb, email, adminModel.CreateAccountIfNotExists);
+		switch (result)
+		{
+			case IUpdateNgbAdminRoleCommand.AddRoleResult.UserDoesNotExist:
+				this.Response.StatusCode = StatusCodes.Status404NotFound;
+				return NgbAdminCreationStatus.UserDoesNotExist;
+			case IUpdateNgbAdminRoleCommand.AddRoleResult.RoleAdded:
+				return NgbAdminCreationStatus.AdminRoleAdded;
+			case IUpdateNgbAdminRoleCommand.AddRoleResult.UserCreatedWithRole:
+				return NgbAdminCreationStatus.AdminUserCreated;
+			default: throw new InvalidOperationException($"Unexpected result {result}");
+		}
+	}
+
+	[HttpDelete("{ngb}/admins")]
+	[Tags("Ngb")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(object))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(object))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(object))]
+	public async Task DeleteNgbAdmin([FromRoute] NgbIdentifier ngb, [FromQuery] string email)
+	{
+		if (!Email.TryParse(email, out var email_))
+		{
+			this.Response.StatusCode = StatusCodes.Status400BadRequest;
+			return;
+		}
+
+		var result = await this.updateNgbAdminRoleCommand.DeleteNgbAdminRoleAsync(ngb, email_);
+		this.Response.StatusCode = result ? StatusCodes.Status200OK : StatusCodes.Status404NotFound;
+		return;
 	}
 
 	[HttpPut("api/v2/admin/[controller]/{ngb}")]

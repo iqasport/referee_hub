@@ -1,20 +1,10 @@
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classnames from "classnames";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-
-import { deleteQuestion } from "../../modules/question/question";
-import { GetQuestionsSchemaDatum, Included } from "../../schemas/getQuestionsSchema";
-
-import WarningModal from "../modals/WarningModal";
 import Answer from "./Answer";
-import { AppDispatch } from "../../store";
+import { TestQuestionRecord } from "../../store/serviceApi";
 
 interface QuestionProps {
-  question: GetQuestionsSchemaDatum;
-  index: number;
-  answers: Included[];
+  question: TestQuestionRecord;
 }
 
 enum ActiveTab {
@@ -23,28 +13,28 @@ enum ActiveTab {
 }
 
 const Question = (props: QuestionProps) => {
-  const { question, index, answers } = props;
+  const { question } = props;
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Answers);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
+  // const [confirmOpen, setConfirmOpen] = useState(false);
 
   const isAnswersActive = activeTab === ActiveTab.Answers;
   const isDetailsActive = activeTab === ActiveTab.Details;
 
   const handleTabClick = (newTab: ActiveTab) => () => setActiveTab(newTab);
-  const handleDelete = () => {
-    dispatch(deleteQuestion(question.id));
-  };
-  const handleDeleteClick = () => setConfirmOpen(true);
-  const handleConfirmClose = () => setConfirmOpen(false);
+  // const handleDeleteClick = () => setConfirmOpen(true);
+  // const handleConfirmClose = () => setConfirmOpen(false);
 
-  const renderAnswer = (answer: Included) => <Answer key={answer.id} answer={answer} />;
 
   const renderAnswers = () => {
     return (
       <div>
-        <ol className="list-decimal">{answers.map(renderAnswer)}</ol>
+        <ol className="list-decimal">
+          <Answer key={1} description={question.answer1} correct={question.correct === 1} />
+          <Answer key={2} description={question.answer2} correct={question.correct === 2} />
+          <Answer key={3} description={question.answer3} correct={question.correct === 3} />
+          <Answer key={4} description={question.answer4} correct={question.correct === 4} />
+        </ol>
       </div>
     );
   };
@@ -56,25 +46,25 @@ const Question = (props: QuestionProps) => {
           <label className="uppercase text-md font-hairline text-gray-400">
             post-test explanation
           </label>
-          <p>{question.attributes.feedback}</p>
+          <p>{question.feedback}</p>
         </div>
         <div className="my-4">
           <label className="uppercase text-md font-hairline text-gray-400">total points</label>
-          <p>{question.attributes.pointsAvailable}</p>
+          <p>1</p>
         </div>
       </div>
     );
   };
 
   const renderDescription = () => {
-    return <div dangerouslySetInnerHTML={{ __html: question.attributes.description }} />;
+    return <div dangerouslySetInnerHTML={{ __html: question.question }} />;
   };
 
   return (
     <>
       <div className="flex items-start w-full my-4">
         <div className="question-index">
-          <div>{index}</div>
+          <div>{question.sequenceNum}</div>
         </div>
         <div className="w-11/12 border border-gray-300">
           <h4 className="w-full py-2 px-4 border border-gray-400">{renderDescription()}</h4>
@@ -100,7 +90,7 @@ const Question = (props: QuestionProps) => {
             </div>
           </div>
         </div>
-        <div className="ml-4">
+        {/* <div className="ml-4">
           <button
             type="button"
             className="bg-red-600 text-white rounded h-8 w-8"
@@ -108,15 +98,15 @@ const Question = (props: QuestionProps) => {
           >
             <FontAwesomeIcon icon={faTrash} />
           </button>
-        </div>
+        </div> */}
       </div>
-      <WarningModal
+      {/* <WarningModal
         action="delete"
         dataType="question"
         open={confirmOpen}
         onCancel={handleConfirmClose}
         onConfirm={handleDelete}
-      />
+      /> */}
     </>
   );
 };

@@ -50,7 +50,7 @@ public class DbNgbStatsContextFactory
 	private readonly ManagementHubDbContext dbContext;
 
 	// TODO: this should be sourced from settings or something
-	private const CertificationVersion CurrentVersion = CertificationVersion.TwentyTwo;
+	private const CertificationVersion CurrentVersion = CertificationVersion.TwentyFour;
 
 	public DbNgbStatsContextFactory(ManagementHubDbContext dbContext)
 	{

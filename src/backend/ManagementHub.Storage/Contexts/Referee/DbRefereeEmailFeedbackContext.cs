@@ -59,6 +59,7 @@ public class DbRefereeEmailFeedbackContextFactory
 					FinishedAt = tr.CreatedAt,
 					FinishMethod = TestAttemptFinishMethod.Submission,
 					Level = tr.Test!.Certification!.Level,
+					Version = tr.Test!.Certification!.Version!.Value,
 					PassPercentage = tr.MinimumPassPercentage ?? default,
 					Passed = tr.Passed ?? false,
 					Score = tr.Percentage ?? default,
@@ -66,6 +67,7 @@ public class DbRefereeEmailFeedbackContextFactory
 					TestId = tr.Test.UniqueId != null ? TestIdentifier.Parse(tr.Test.UniqueId) : TestIdentifier.FromLegacyTestId(tr.Test.Id),
 					UserId = tr.Referee.UniqueId != null ? UserIdentifier.Parse(tr.Referee.UniqueId) : UserIdentifier.FromLegacyUserId(tr.Referee.Id),
 					Id = testAttemptId,
+					IsRecertification = tr.Test.Recertification ?? false,
 				},
 				TestFeedback = tr.Passed == true ? tr.Test.PositiveFeedback : tr.Test.NegativeFeedback,
 			})

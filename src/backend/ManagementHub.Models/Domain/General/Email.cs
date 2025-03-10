@@ -37,6 +37,20 @@ public partial struct Email
 
 	public override int GetHashCode() => this.Value.GetHashCode();
 
+	public static bool TryParse(string value, out Email email)
+	{
+		try
+		{
+			email = new Email(value);
+			return true;
+		}
+		catch (ArgumentException)
+		{
+			email = default;
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// Two emails are equal if the underlying string value is equal (ignoring case).
 	/// </summary>

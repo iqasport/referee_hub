@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands.Migrations;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,10 +20,10 @@ public class UserIdMigrationCommand : IUserIdMigrationCommand
 		this.logger = logger;
 	}
 
-	public async Task TryMigrateUserIdAsync(string email, CancellationToken cancellationToken)
+	public async Task TryMigrateUserIdAsync(Email email, CancellationToken cancellationToken)
 	{
 		var userIdAndStatus = await this.dbContext.Users
-			.Where(u => u.Email == email)
+			.Where(u => u.Email == email.Value)
 			.Select(u => new { u.UniqueId, u.Id })
 			.SingleOrDefaultAsync();
 

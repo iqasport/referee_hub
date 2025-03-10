@@ -171,6 +171,6 @@ public class DbRefereeViewContextFactory
 	{
 		this.logger.LogInformation(0x42d8be01, "Creating referee profile query with constraint [{ngbConstraint}]", ngbs);
 
-		return this.QueryRefereesByNgb(this.dbContext.ActiveUsers(new SystemClock(), CertificationVersion.TwentyTwo), ngbs);
+		return this.QueryRefereesByNgb(this.dbContext.ActiveUsers(new SystemClock(), CertificationVersion.TwentyFour), ngbs);
 	}
 }
