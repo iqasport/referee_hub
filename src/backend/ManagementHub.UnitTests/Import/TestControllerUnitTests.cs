@@ -85,4 +85,42 @@ public class TestControllerUnitTests
 		Assert.Equal("answer3", imported[1].Answer3);
 		Assert.Equal("answer4", imported[1].Answer4);
 	}
+
+	[Fact]
+	public async Task GivenFeedbackColumn_WhenImported_DataIsPresent()
+	{
+		// Arrange
+		var dbContext = new ManagementHubDbContext();
+		var importTestQuestions = new Mock<IImportTestQuestions>();
+
+		var imported = new List<TestQuestionRecord>();
+		importTestQuestions.Setup(i => i.ImportTestQuestionsAsync(It.IsAny<TestIdentifier>(), It.IsAny<IEnumerable<TestQuestionRecord>>()))
+			.Callback<TestIdentifier, IEnumerable<TestQuestionRecord>>((testId, questions) => imported.AddRange(questions));
+
+		var testId = new TestIdentifier();
+		var controller = new TestsController(importTestQuestions.Object, dbContext);
+
+		controller.ControllerContext = new ControllerContext
+		{
+			HttpContext = new DefaultHttpContext()
+			{
+				Request =
+				{
+					Body = new MemoryStream(Encoding.UTF8.GetBytes("""
+						sequenceNum,Question,Feedback,Correct,Answer1,Answer2,Answer3,Answer4
+						2,question1,A.B.,2,answer1,answer2,answer3,answer4
+						3,question2,C.D.,3,answer1,answer2,answer3,answer4
+						""")),
+				}
+			}
+		};
+
+		// Act & Assert
+		await controller.ImportTestQuestions(testId);
+
+		// Assert
+		Assert.Equal(2, imported.Count);
+		Assert.Equal("A.B.", imported[0].Feedback);
+		Assert.Equal("C.D.", imported[1].Feedback);
+	}
 }

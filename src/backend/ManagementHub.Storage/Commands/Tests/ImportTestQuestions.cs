@@ -50,6 +50,7 @@ internal class ImportTestQuestions : IImportTestQuestions
 					PointsAvailable = 1,
 					CreatedAt = DateTime.UtcNow,
 					UpdatedAt = DateTime.UtcNow,
+					Feedback = qRecord.Feedback,
 					Answers = new[]
 					{
 						new Answer
@@ -88,6 +89,7 @@ internal class ImportTestQuestions : IImportTestQuestions
 			{
 				// Update
 				dbQuestion.Description = qRecord.Question;
+				dbQuestion.Feedback = qRecord.Feedback;
 				dbQuestion.UpdatedAt = DateTime.UtcNow;
 				var dbAnswers = dbQuestion.Answers.OrderBy(a => a.Id).ToList();
 				if(dbAnswers.Count != 4)
