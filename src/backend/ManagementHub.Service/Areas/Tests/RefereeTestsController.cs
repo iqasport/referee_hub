@@ -266,7 +266,7 @@ public class RefereeTestsController : ControllerBase
 		// if the save to database was successful enqueue the mail
 		var attemptId = testResult.Id;
 		var hostUri = this.GetHostBaseUri();
-		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(this.logger, cmd => cmd.SendTestFeedbackEmailAsync(attemptId, hostUri, CancellationToken.None));
+		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(this.logger, cmd => cmd.SendTestFeedbackEmailAsync(attemptId, hostUri, false, CancellationToken.None));
 
 		return new RefereeTestSubmitResponse
 		{

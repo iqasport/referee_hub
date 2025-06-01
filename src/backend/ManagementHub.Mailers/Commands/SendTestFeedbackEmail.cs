@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FluentEmail.Core;
+using FluentEmail.Core.Models;
 using ManagementHub.Mailers.Configuration;
 using ManagementHub.Mailers.Models;
 using ManagementHub.Mailers.Utils;
@@ -35,7 +36,7 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 		this.emailSenderSettings = emailSenderSettings.Value;
 	}
 
-	public async Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, Uri hostUri, CancellationToken cancellation)
+	public async Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, Uri hostUri, bool ccRefhub, CancellationToken cancellation)
 	{
 		try
 		{
@@ -49,6 +50,7 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 			await this.emailFactory.Create()
 				.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
 				.To(userContext.UserData.Email.Value)
+				.CC(ccRefhub ? [new Address("refhub@iqasport.org")] : Array.Empty<Address>())
 				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
 				.Subject($"{emailFeedbackContext.Test.Title} Results")
 				.UsingEmbeddedTemplate("TestFeedbackEmail", new FeedbackContextWithHostUrl(emailFeedbackContext, hostUri))
