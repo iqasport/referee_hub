@@ -32,7 +32,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
 
   const getTeamName = (type: keyof RefereeTeamOptions): string => {
-    return allTeams.filter(team => team.teamId === teams[type]?.id)[0]?.name;
+    return allTeams.filter(team => team.teamId === teams[type]?.id)[0]?.name || teams[type]?.name;
   };
 
   const getSelectedTeam = (type: keyof RefereeTeamOptions): SelectOption => {
