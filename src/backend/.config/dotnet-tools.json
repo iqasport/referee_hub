@@ -3,19 +3,19 @@
   "isRoot": true,
   "tools": {
     "dotnet-ef": {
-      "version": "7.0.4",
+      "version": "9.0.7",
       "commands": [
         "dotnet-ef"
       ]
     },
     "gitversion.tool": {
-      "version": "5.12.0",
+      "version": "6.3.0",
       "commands": [
         "dotnet-gitversion"
       ]
     },
     "dotnet-coverage": {
-      "version": "17.7.3",
+      "version": "17.14.2",
       "commands": [
         "dotnet-coverage"
       ]
