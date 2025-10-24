@@ -232,9 +232,54 @@ Control dependencies in `appsettings.Development.json` under the `Services` sect
 }
 ```
 
-### Hot Reload for Frontend Changes
+### Frontend Development with Hot Module Replacement
 
-While the backend is running with `dotnet run`, rebuild the frontend in a separate terminal:
+For rapid frontend development with automatic rebuilding and hot reloading:
+
+**First Time Setup:**
+```bash
+cd src/frontend
+yarn install --immutable
+yarn styles && yarn images:copy
+```
+
+**Development Workflow:**
+
+1. **Terminal 1** - Start the backend server:
+   ```bash
+   cd src/backend/ManagementHub.Service
+   dotnet run
+   ```
+   Backend serves at http://localhost:5000
+
+2. **Terminal 2** - Start the frontend dev server:
+   ```bash
+   cd src/frontend
+   yarn start:dev
+   ```
+   Dev server watches files and rebuilds automatically
+
+3. Open your browser to http://localhost:5000
+
+Changes to React components and TypeScript files will automatically rebuild and hot reload in the browser without losing application state.
+
+**What gets auto-reloaded:**
+- ✅ React components (`.tsx`, `.jsx` files)
+- ✅ TypeScript/JavaScript modules (`.ts`, `.js` files)
+- ✅ Application code changes with Hot Module Replacement (HMR)
+
+**What requires manual rebuild:**
+- ⚠️ CSS changes: Run `yarn styles` when modifying stylesheets
+- ⚠️ Image assets: Run `yarn images:copy` when adding/changing images
+
+**Build Times:**
+- Initial build: ~10-15 seconds
+- Incremental rebuilds: ~1-5 seconds
+- HMR updates appear in browser: <1 second
+
+**Alternative (Old Method):**
+
+If you prefer the traditional workflow without HMR:
 
 ```bash
 cd src/frontend
