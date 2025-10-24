@@ -32,11 +32,23 @@ document.addEventListener("DOMContentLoaded", () => {
   
   Bugsnag.leaveBreadcrumb("Starting application...");
 
-  root.render(
-    <Provider store={store}>
-      <ErrorBoundary>
-        <Routes />
-      </ErrorBoundary>
-    </Provider>
-  );
+  const renderApp = () => {
+    root.render(
+      <Provider store={store}>
+        <ErrorBoundary>
+          <Routes />
+        </ErrorBoundary>
+      </Provider>
+    );
+  };
+
+  renderApp();
+
+  // Enable Hot Module Replacement for development
+  if (module.hot) {
+    module.hot.accept('./routes', () => {
+      renderApp();
+    });
+  }
 });
+

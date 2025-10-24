@@ -131,6 +131,7 @@
     "lint": "eslint .",
     "lint:ci": "eslint -f ./node_modules/eslint-junit/index.js .",
     "swaggergen": "rtk-query-codegen-openapi openapi-config.js",
+    "start:dev": "webpack serve --config webpack.config.dev.js",
     "build:dev": "yarn build:app:dev && yarn styles && yarn images:copy",
     "build:prod": "yarn build:app:prod && yarn styles && yarn images:copy",
     "build:app:dev": "webpack --config webpack.config.dev.js",
