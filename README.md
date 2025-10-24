@@ -129,20 +129,6 @@ The IQA Management Hub is a modern web application built with a clear separation
 - **PostgreSQL** database (optional - only needed if not using in-memory database)
 - **Redis** (optional - only needed if not using in-memory cache and job queue)
 
-### Quick Start with Docker
-
-For the fastest development setup, use Docker Compose:
-
-```bash
-# Navigate to the docker dev directory
-cd docker/dev
-
-# Start all services (frontend, backend, database, redis)
-docker compose up -d
-```
-
-The application will be available at `http://localhost:80`.
-
 ### Local Development Setup
 
 #### 1. Clone the Repository
@@ -186,64 +172,53 @@ dotnet build
 
 The backend build automatically includes the frontend assets if they're available in `src/frontend/dist/`.
 
-#### 4. Run the Application
+## Running the Application
 
-**Development Mode (In-Memory Dependencies):**
+### Quick Start Options
+
+**Option 1: In-Memory Mode (Simplest)**
 
 ```bash
 cd src/backend/ManagementHub.Service
-
-# Run with hot reload
 dotnet run
 ```
 
-The service will start on `http://localhost:5000` with in-memory database and cache.
+The service starts at `http://localhost:5000` with:
+- In-memory database (auto-seeded with test data)
+- In-memory cache and job queue
+- Debug email output (emails logged to console)
+- Local filesystem blob storage
 
-**With Docker Compose (Real Dependencies):**
-
-For a more production-like environment with PostgreSQL, Redis, and MailHog:
+**Option 2: Docker Compose with Full Stack**
 
 ```bash
 cd docker/staging
 docker compose up -d
 ```
 
-The service will be available at `http://localhost:80`.
+Available at `http://localhost:80` with PostgreSQL, Redis, and MailHog (at `http://localhost:8025`).
 
-## Running Instructions
-
-### Running the Backend Service
-
-The backend service can be run in different modes depending on your development needs:
-
-**Quick Start (In-Memory Mode):**
-
-The simplest way to run the service is with in-memory dependencies:
+**Option 3: Docker Quick Dev Environment**
 
 ```bash
-cd src/backend/ManagementHub.Service
-dotnet run
+cd docker/dev
+docker compose up -d
 ```
 
-The service will start at `http://localhost:5000` with:
-- In-memory database (auto-seeded with test data)
-- In-memory cache
-- In-memory job queue
-- Debug email output (emails logged to console)
-- Local filesystem blob storage
+Uses the latest published Docker image at `http://localhost:80`.
 
-**Test Users:**
+### Test Users
 
-When running in development mode with `SeedDatabaseWithTestData: true`, the following test users are available (all passwords are `password`):
+When running in development mode, these test users are available (all passwords are `password`):
 
 - **Referee**: `referee@example.com`
 - **NGB Admin**: `ngb_admin@example.com`
 - **IQA Admin**: `iqa_admin@example.com`
 - **Empty Name Referee**: `empty@example.com`
 
-**Configuration Options:**
+### Configuration Options
 
-You can control which dependencies are real vs. in-memory by editing `appsettings.Development.json` in the `Services` section:
+Control dependencies in `appsettings.Development.json` under the `Services` section:
 
 ```json
 {
@@ -257,41 +232,25 @@ You can control which dependencies are real vs. in-memory by editing `appsetting
 }
 ```
 
-**Running with Real Dependencies:**
+### Hot Reload for Frontend Changes
 
-To run with PostgreSQL and Redis, you can use Docker Compose:
-
-```bash
-cd docker/staging
-docker compose up -d
-```
-
-This starts:
-- The Management Hub service
-- PostgreSQL database
-- Redis cache and job queue
-- MailHog (email testing tool at `http://localhost:8025`)
-
-**Hot Reload for Frontend Changes:**
-
-While the backend service is running, you can rebuild the frontend without restarting:
+While the backend is running with `dotnet run`, rebuild the frontend in a separate terminal:
 
 ```bash
-# In a separate terminal
 cd src/frontend
 yarn build:dev
 ```
 
-The backend will automatically pick up the updated frontend files on the next page refresh. Note that this works best when running `dotnet run` directly rather than through Docker.
+The backend automatically picks up updated frontend files on page refresh (works best with `dotnet run`, not Docker).
 
-**Docker Configurations:**
+### Available Docker Configurations
 
-Several Docker Compose configurations are available in the `docker/` directory:
-- `docker/dev/` - Development setup with latest Docker image
-- `docker/dev-https/` - Development with HTTPS
-- `docker/staging/` - Full local stack with all dependencies
-- `docker/staging-https/` - Staging with HTTPS
-- `docker/prod-https/` - Production-like setup with HTTPS
+In the `docker/` directory:
+- `dev/` - Latest Docker image
+- `dev-https/` - With HTTPS
+- `staging/` - Full local stack (PostgreSQL, Redis, MailHog)
+- `staging-https/` - Full stack with HTTPS
+- `prod-https/` - Production-like setup with HTTPS
 
 ### Running Tests
 
