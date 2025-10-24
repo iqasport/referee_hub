@@ -25,13 +25,13 @@ The Management Hub provides essential tools for:
 
 **For National Governing Bodies (NGBs):**
 - **Referee Oversight**: View and manage referees within their jurisdiction
-- **Test Administration**: Create and manage certification tests and questions in multiple languages
 - **Data Export**: Export referee and team data for reporting and analysis
 - **NGB Profile Management**: Maintain organization profiles with branding and media
 - **Statistics and Reporting**: Access referee certification statistics and trends
 
 **For Administrators:**
 - **User Management**: Manage user accounts, roles, and permissions
+- **Test Administration**: Create and manage certification tests and questions in multiple languages
 - **Test Content**: Create, edit, and organize test questions and certifications
 - **Import Tools**: Bulk import data using CSV import wizards
 - **System Configuration**: Configure system settings, languages, and test policies
@@ -55,17 +55,7 @@ The IQA Management Hub is a modern web application built with a clear separation
 - **Stripe** - Payment processing integration
 
 **Module Structure:**
-- `app/modules/` - Feature modules organized by domain:
-  - `certification/` - Certification management
-  - `checkout/` - Payment and checkout flows
-  - `currentUser/` - Current user state and authentication
-  - `job/` - Background job monitoring
-  - `language/` - Multi-language support
-  - `nationalGoverningBody/` - NGB management
-  - `question/` - Test question management
-  - `referee/` - Referee profile and management
-  - `team/` - Team management
-  - `test/` - Test administration and taking
+- `app/modules/` - Feature modules organized by domain
 - `app/pages/` - Top-level page components
 - `app/components/` - Reusable UI components
 - `app/apis/` - API client code (generated from OpenAPI specs)
@@ -136,8 +126,8 @@ The IQA Management Hub is a modern web application built with a clear separation
 - **.NET SDK 8.0** or later ([download](https://dotnet.microsoft.com/download))
 - **Node.js 18.x** or later ([download](https://nodejs.org/))
 - **Yarn** package manager ([install](https://yarnpkg.com/getting-started/install))
-- **PostgreSQL** database (for local development with real database)
-- **Redis** (for background jobs and caching)
+- **PostgreSQL** database (optional - only needed if not using in-memory database)
+- **Redis** (optional - only needed if not using in-memory cache and job queue)
 
 ### Quick Start with Docker
 
@@ -220,6 +210,89 @@ docker compose up -d
 
 The service will be available at `http://localhost:80`.
 
+## Running Instructions
+
+### Running the Backend Service
+
+The backend service can be run in different modes depending on your development needs:
+
+**Quick Start (In-Memory Mode):**
+
+The simplest way to run the service is with in-memory dependencies:
+
+```bash
+cd src/backend/ManagementHub.Service
+dotnet run
+```
+
+The service will start at `http://localhost:5000` with:
+- In-memory database (auto-seeded with test data)
+- In-memory cache
+- In-memory job queue
+- Debug email output (emails logged to console)
+- Local filesystem blob storage
+
+**Test Users:**
+
+When running in development mode with `SeedDatabaseWithTestData: true`, the following test users are available (all passwords are `password`):
+
+- **Referee**: `referee@example.com`
+- **NGB Admin**: `ngb_admin@example.com`
+- **IQA Admin**: `iqa_admin@example.com`
+- **Empty Name Referee**: `empty@example.com`
+
+**Configuration Options:**
+
+You can control which dependencies are real vs. in-memory by editing `appsettings.Development.json` in the `Services` section:
+
+```json
+{
+  "Services": {
+    "UseInMemoryDatabase": true,      // Set to false to use PostgreSQL
+    "SeedDatabaseWithTestData": true, // Auto-seed test data on startup
+    "UseInMemoryJobSystem": true,     // Set to false to use Hangfire with Redis
+    "UseLocalFilesystemBlobStorage": true,
+    "UseDebugMailer": true           // Set to false for real email sending
+  }
+}
+```
+
+**Running with Real Dependencies:**
+
+To run with PostgreSQL and Redis, you can use Docker Compose:
+
+```bash
+cd docker/staging
+docker compose up -d
+```
+
+This starts:
+- The Management Hub service
+- PostgreSQL database
+- Redis cache and job queue
+- MailHog (email testing tool at `http://localhost:8025`)
+
+**Hot Reload for Frontend Changes:**
+
+While the backend service is running, you can rebuild the frontend without restarting:
+
+```bash
+# In a separate terminal
+cd src/frontend
+yarn build:dev
+```
+
+The backend will automatically pick up the updated frontend files on the next page refresh. Note that this works best when running `dotnet run` directly rather than through Docker.
+
+**Docker Configurations:**
+
+Several Docker Compose configurations are available in the `docker/` directory:
+- `docker/dev/` - Development setup with latest Docker image
+- `docker/dev-https/` - Development with HTTPS
+- `docker/staging/` - Full local stack with all dependencies
+- `docker/staging-https/` - Staging with HTTPS
+- `docker/prod-https/` - Production-like setup with HTTPS
+
 ### Running Tests
 
 **Frontend Tests:**
@@ -229,9 +302,6 @@ cd src/frontend
 
 # Run tests with coverage
 yarn test
-
-# Run tests in CI mode
-yarn test:ci
 ```
 
 **Backend Tests:**
@@ -241,9 +311,6 @@ cd src/backend
 
 # Run all unit tests
 dotnet test
-
-# Run with verbose output
-dotnet test --verbosity normal
 ```
 
 ### Linting
@@ -255,9 +322,6 @@ cd src/frontend
 
 # Run ESLint
 yarn lint
-
-# Run ESLint with CI reporting
-yarn lint:ci
 ```
 
 ### Building Docker Image
@@ -287,12 +351,4 @@ The API documentation is automatically generated from the C# code using Swashbuc
 - **API Client**: See [docs/api-client.md](docs/api-client.md) for API client generation
 - **AWS Deployment**: See [docs/aws.md](docs/aws.md) for AWS-specific deployment details
 
-## Open Questions
 
-The following questions should be addressed during PR review:
-
-1. **Database Migrations**: Should we document the database migration process for local development?
-2. **Environment Variables**: Should we provide a template `.env` file with required environment variables?
-3. **SSL/HTTPS**: Should we document local HTTPS setup for testing Stripe integrations?
-4. **Seed Data**: Should we provide instructions for seeding test data for local development?
-5. **Mail Configuration**: Should we document MailHog or other mail testing tools setup?
