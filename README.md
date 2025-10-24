@@ -236,13 +236,6 @@ Control dependencies in `appsettings.Development.json` under the `Services` sect
 
 For rapid frontend development with automatic rebuilding and hot reloading:
 
-**First Time Setup:**
-```bash
-cd src/frontend
-yarn install --immutable
-yarn styles && yarn images:copy
-```
-
 **Development Workflow:**
 
 1. **Terminal 1** - Start the backend server:
@@ -271,11 +264,6 @@ Changes to React components and TypeScript files will automatically rebuild and 
 **What requires manual rebuild:**
 - ⚠️ CSS changes: Run `yarn styles` when modifying stylesheets
 - ⚠️ Image assets: Run `yarn images:copy` when adding/changing images
-
-**Build Times:**
-- Initial build: ~10-15 seconds
-- Incremental rebuilds: ~1-5 seconds
-- HMR updates appear in browser: <1 second
 
 **Alternative (Old Method):**
 
