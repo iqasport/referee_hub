@@ -1,82 +1,298 @@
-# README
+# IQA Management Hub
 
-[![CircleCI](https://circleci.com/gh/iqasport/referee_hub/tree/master.svg?style=svg)](https://circleci.com/gh/iqasport/referee_hub/tree/master)
+[![CI pipeline](https://github.com/iqasport/referee_hub/actions/workflows/pipeline.yml/badge.svg)](https://github.com/iqasport/referee_hub/actions/workflows/pipeline.yml)
 [![codecov](https://codecov.io/gh/iqasport/referee_hub/branch/master/graph/badge.svg)](https://codecov.io/gh/iqasport/referee_hub)
-[![Heroku](https://heroku-badge.herokuapp.com/?app=referee-hub)](https://heroku-badge.herokuapp.com/?app=referee-hub)
 [![CodeFactor](https://www.codefactor.io/repository/github/iqasport/referee_hub/badge)](https://www.codefactor.io/repository/github/iqasport/referee_hub)
 
-## Getting Started
+## Overview
 
-If you want to use docker for development purposes instead of installing tools and services manually, see `docker/README.md`.
+The **IQA Management Hub** is a comprehensive platform designed to support the [International Quadball Association (IQA)](https://iqasport.org/) in managing referee certifications, testing, and operations across its global network of National Governing Bodies (NGBs).
 
----
+### What is the International Quadball Association?
 
-It's highly recommended you use a ruby version manager during development of this app. The locked ruby version is '2.7.1'
-and is required to develop on the application.
+The International Quadball Association (IQA) is the international governing body for the sport of quadball (formerly known as quidditch). The IQA oversees the sport's development worldwide, coordinates international competitions, and establishes rules and standards for play.
 
-- System dependencies
+### What the Hub Offers
 
-  - ruby 2.7.1
-  - bundler
-  - yarn
-  - postgresql
-  - foreman
-  - redis
+The Management Hub provides essential tools for:
 
-- Tips in case of missing system dependencies
+**For Referees:**
+- **Certification Management**: Track and manage referee certifications at various levels
+- **Online Testing**: Complete certification tests with automatic grading and result tracking
+- **Profile Management**: Maintain referee profiles with certification history and achievements
+- **Test History**: View past test attempts, scores, and certification progress
+- **Payment Processing**: Secure payment processing for certification fees via Stripe integration
 
-  - install ruby through either [RVM](https://rvm.io/) or [RBENV](https://github.com/rbenv/rbenv)
-  - install postgresql through brew `brew install postgresql`
-  - install redis through brew `brew install redis`
-  - install yarn `brew install yarn`
-  - install foreman `gem install foreman`
-  - install bundler `gem install bundler`
+**For National Governing Bodies (NGBs):**
+- **Referee Oversight**: View and manage referees within their jurisdiction
+- **Test Administration**: Create and manage certification tests and questions in multiple languages
+- **Data Export**: Export referee and team data for reporting and analysis
+- **NGB Profile Management**: Maintain organization profiles with branding and media
+- **Statistics and Reporting**: Access referee certification statistics and trends
 
-- Setup and running
+**For Administrators:**
+- **User Management**: Manage user accounts, roles, and permissions
+- **Test Content**: Create, edit, and organize test questions and certifications
+- **Import Tools**: Bulk import data using CSV import wizards
+- **System Configuration**: Configure system settings, languages, and test policies
 
-  - After you've cloned the repo and installed ruby, run in the root folder `referee_hub/`:
-    - `bundle install` to install ruby gem dependencies
-    - `yarn install` to install javascript dependencies
-    - `rails db:setup` to create the backend database (postgresql must be running)
-  - To run the application enter `./bin/start` from the root folder. If you're having permission issues running the script make sure you
-    ensure the script is executable by running `chmod +x ./bin/start`
+## Project Structure
 
-* How to run the test suite
+The IQA Management Hub is a modern web application built with a clear separation between frontend and backend.
 
-  - Backend specs can be run like: `be rspec spec/models/referee_spec.rb`
-    - You can also run a subset specs by including a line number like: `be rspec spec/models/referee_spec.rb:37`
+### Frontend (`src/frontend/`)
 
-* Contributing to the codebase
+**Technology Stack:**
+- **React 18** - Modern component-based UI framework
+- **TypeScript** - Type-safe JavaScript for better developer experience
+- **Redux Toolkit** - State management with @reduxjs/toolkit
+- **React Router 6** - Client-side routing
+- **Tailwind CSS** - Utility-first CSS framework
+- **PostCSS** - CSS processing and optimization
+- **Webpack 5** - Module bundling and build tooling
+- **Jest** - Unit testing framework
+- **Axios** - HTTP client for API communication
+- **Stripe** - Payment processing integration
 
-  - Create a branch off of master detailing the work you'll be doing. `git checkout -b testing-framework-backend`
-  - Break up your work with small, iterative, commits that describe the changes that have been made.
-    A typical branch could look like:
-    ```
-      - @AfroDevGirl Adds referee_answer model to store a referee's answers relative to a test ce1a18b
-      - @AfroDevGirl Adds testable question count to test so questions can be randomly selected 46e4dcd
-      - @AfroDevGirl Adds test starting functionality to api 3751d76
-      - @AfroDevGirl Adds test finish functionality 62a4632
-      - @AfroDevGirl Adds test result mailer and fixes webpack version issue 8278148
-      - @AfroDevGirl Adds validation for tests in cool down period 45c2dab
-      - @AfroDevGirl Fixes spec running 7ab56ca
-    ```
-  - Push up your branch by running `git push -u origin testing-framework-backend` and create a new Pull Request.
-    Be as descriptive as possible in the PR comment about the work you've done.
-  - After all checks have passed your code will be able to be merged
+**Module Structure:**
+- `app/modules/` - Feature modules organized by domain:
+  - `certification/` - Certification management
+  - `checkout/` - Payment and checkout flows
+  - `currentUser/` - Current user state and authentication
+  - `job/` - Background job monitoring
+  - `language/` - Multi-language support
+  - `nationalGoverningBody/` - NGB management
+  - `question/` - Test question management
+  - `referee/` - Referee profile and management
+  - `team/` - Team management
+  - `test/` - Test administration and taking
+- `app/pages/` - Top-level page components
+- `app/components/` - Reusable UI components
+- `app/apis/` - API client code (generated from OpenAPI specs)
+- `app/store/` - Redux store configuration
 
-* Deployment instructions
-  - Deploys are automatically managed through Heroku after a branch is successfully merged.
-    Changes to the deploy process should be made in `Procfile`
+### Backend (`src/backend/`)
 
------
+**Technology Stack:**
+- **.NET 8.0** - Modern, cross-platform application framework
+- **C#** - Primary programming language
+- **ASP.NET Core** - Web API framework
+- **Entity Framework Core** - Object-relational mapping (ORM)
+- **PostgreSQL** - Relational database (production)
+- **Redis** - Caching and background job queue
+- **Hangfire** - Background job processing
+- **Stripe.NET** - Payment processing
+- **Swashbuckle** - OpenAPI/Swagger documentation
+- **xUnit** - Unit testing framework
+- **OpenTelemetry** - Distributed tracing and monitoring
 
-## CSS
-CSS is compiled using PostCSS and Tailwind. See configuration in `postcss.config.js` which imports packages defined in `package.json`.
+**Project Structure:**
+- `ManagementHub.Service/` - Main web API service
+  - `Areas/` - Feature areas organized by domain:
+    - `Debug/` - Debugging and development endpoints
+    - `Export/` - Data export functionality
+    - `Identity/` - Authentication and authorization
+    - `Languages/` - Language management
+    - `Ngbs/` - National Governing Body endpoints
+    - `Payments/` - Payment processing
+    - `Referees/` - Referee management
+    - `Tests/` - Test and certification endpoints
+    - `User/` - User management
+  - `Authorization/` - Authorization policies and handlers
+  - `Configuration/` - Application configuration
+  - `Jobs/` - Background job definitions
+  - `Swagger/` - API documentation configuration
+  - `Telemetry/` - Observability and monitoring
+- `ManagementHub.Models/` - Domain models and data structures
+- `ManagementHub.Storage/` - Data access layer and database context
+- `ManagementHub.Processing/` - Business logic and domain services
+- `ManagementHub.Serialization/` - JSON serialization configuration
+- `ManagementHub.Mailers/` - Email notification services
+- `ManagementHub.UnitTests/` - Unit test project
 
-Compiled CSS is included in the core application for single pages (like auth) and for the SPA.
+### Infrastructure
 
-We can use AWS CloudFront to be a CDN on top of our application. The service hosts static files such as CSS/JS in a normal way.
-We have a CF endpoint pointing at our service. We use the CF endpoint when referring to our static assets so that they're cached and geo distributed.
+**Docker:**
+- Multi-stage Docker builds for containerized deployment
+- Docker Compose configurations for local development with dependencies
+- Configurations available in `docker/` directory for dev, staging, and production environments
 
-In rails this was done automatically using these instructions https://devcenter.heroku.com/articles/using-amazon-cloudfront-cdn#adding-cloudfront-to-rails
-and by calling special tags in views.
+**CI/CD:**
+- GitHub Actions pipeline (`.github/workflows/pipeline.yml`)
+- Automated building, testing, linting, and security scanning
+- CodeQL security analysis
+- Docker image publishing to AWS ECR
+- Deployment to AWS Elastic Beanstalk (production)
+
+**Observability:**
+- OpenTelemetry instrumentation for distributed tracing
+- Support for Azure Monitor and OTLP exporters
+- Structured logging with request correlation
+
+## Building Instructions
+
+### Prerequisites
+
+- **.NET SDK 8.0** or later ([download](https://dotnet.microsoft.com/download))
+- **Node.js 18.x** or later ([download](https://nodejs.org/))
+- **Yarn** package manager ([install](https://yarnpkg.com/getting-started/install))
+- **PostgreSQL** database (for local development with real database)
+- **Redis** (for background jobs and caching)
+
+### Quick Start with Docker
+
+For the fastest development setup, use Docker Compose:
+
+```bash
+# Navigate to the docker dev directory
+cd docker/dev
+
+# Start all services (frontend, backend, database, redis)
+docker compose up -d
+```
+
+The application will be available at `http://localhost:80`.
+
+### Local Development Setup
+
+#### 1. Clone the Repository
+
+```bash
+git clone https://github.com/iqasport/referee_hub.git
+cd referee_hub
+```
+
+#### 2. Build the Frontend
+
+```bash
+cd src/frontend
+
+# Install dependencies
+yarn install --immutable
+
+# Build for development
+yarn build:dev
+
+# Or build for production
+yarn build:prod
+```
+
+The frontend build includes:
+- JavaScript bundling with Webpack
+- CSS compilation with PostCSS and Tailwind
+- Image asset copying
+
+#### 3. Build the Backend
+
+```bash
+cd src/backend
+
+# Restore dependencies
+dotnet restore
+
+# Build the solution
+dotnet build
+```
+
+The backend build automatically includes the frontend assets if they're available in `src/frontend/dist/`.
+
+#### 4. Run the Application
+
+**Development Mode (In-Memory Dependencies):**
+
+```bash
+cd src/backend/ManagementHub.Service
+
+# Run with hot reload
+dotnet run
+```
+
+The service will start on `http://localhost:5000` with in-memory database and cache.
+
+**With Docker Compose (Real Dependencies):**
+
+For a more production-like environment with PostgreSQL, Redis, and MailHog:
+
+```bash
+cd docker/staging
+docker compose up -d
+```
+
+The service will be available at `http://localhost:80`.
+
+### Running Tests
+
+**Frontend Tests:**
+
+```bash
+cd src/frontend
+
+# Run tests with coverage
+yarn test
+
+# Run tests in CI mode
+yarn test:ci
+```
+
+**Backend Tests:**
+
+```bash
+cd src/backend
+
+# Run all unit tests
+dotnet test
+
+# Run with verbose output
+dotnet test --verbosity normal
+```
+
+### Linting
+
+**Frontend:**
+
+```bash
+cd src/frontend
+
+# Run ESLint
+yarn lint
+
+# Run ESLint with CI reporting
+yarn lint:ci
+```
+
+### Building Docker Image
+
+To build a production Docker image:
+
+```bash
+cd src/backend
+
+# Publish and build Docker image
+dotnet publish --os linux --arch x64 -c Release -p:PublishProfile=DefaultContainer
+```
+
+The image will be tagged as `iqasport/management-hub:latest`.
+
+### API Documentation
+
+When running the application in Development mode, Swagger UI is available at:
+- `http://localhost:5000/swagger`
+
+The API documentation is automatically generated from the C# code using Swashbuckle.
+
+### Additional Documentation
+
+- **Building Details**: See [docs/building.md](docs/building.md) for detailed build instructions
+- **Testing Guide**: See [docs/testing.md](docs/testing.md) for testing information
+- **API Client**: See [docs/api-client.md](docs/api-client.md) for API client generation
+- **AWS Deployment**: See [docs/aws.md](docs/aws.md) for AWS-specific deployment details
+
+## Open Questions
+
+The following questions should be addressed during PR review:
+
+1. **Database Migrations**: Should we document the database migration process for local development?
+2. **Environment Variables**: Should we provide a template `.env` file with required environment variables?
+3. **SSL/HTTPS**: Should we document local HTTPS setup for testing Stripe integrations?
+4. **Seed Data**: Should we provide instructions for seeding test data for local development?
+5. **Mail Configuration**: Should we document MailHog or other mail testing tools setup?
