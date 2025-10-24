@@ -30,7 +30,7 @@ echo -e "${GREEN}✓ Styles and images built${NC}"
 
 echo ""
 echo "Step 3: Starting webpack dev server..."
-echo -e "${YELLOW}The dev server will start in the background.${NC}"
+echo -e "${YELLOW}The dev server will start and run in the foreground.${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop it.${NC}"
 echo ""
 echo "Expected output:"
