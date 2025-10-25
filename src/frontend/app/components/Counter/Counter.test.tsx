@@ -27,7 +27,7 @@ describe("Counter", () => {
     expect(counterElement).toBeInTheDocument();
     // Counter starts at timeLimit (10 minutes = 10:00 or close to it)
     // May show 09:59 or 10:00 depending on timing
-    expect(counterElement.textContent).toMatch(/^(10:00|09:5\d)$/);
+    expect(counterElement).toHaveTextContent(/^(10:00|09:5\d)$/);
   });
 
   test("it counts down as time progresses", () => {
@@ -40,7 +40,7 @@ describe("Counter", () => {
 
     const counterElement = screen.getByTestId("counter");
     // Should show approximately 9 minutes 59 seconds remaining
-    expect(counterElement.textContent).toMatch(/^09:5[89]$/);
+    expect(counterElement).toHaveTextContent(/^09:5[89]$/);
   });
 
   test("it calls setCurrentTime callback with elapsed time", () => {
