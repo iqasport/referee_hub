@@ -13,35 +13,79 @@ describe("Counter", () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
     jest.clearAllTimers();
   });
 
-  test("it renders a counter", () => {
+  test("it renders a countdown timer starting at time limit", () => {
     render(<Counter {...defaultProps} />);
 
-    // Counter shows remaining time, starting at timeLimit (10 minutes)
     const counterElement = screen.getByTestId("counter");
     expect(counterElement).toBeInTheDocument();
-    // Time format should be MM:SS
-    expect(counterElement.textContent).toMatch(/^\d{2}:\d{2}$/);
+    // Counter starts at timeLimit (10 minutes = 10:00 or close to it)
+    // May show 09:59 or 10:00 depending on timing
+    expect(counterElement.textContent).toMatch(/^(10:00|09:5\d)$/);
   });
 
-  test("it handles a second tick", () => {
+  test("it counts down as time progresses", () => {
     render(<Counter {...defaultProps} />);
 
-    const initialText = screen.getByTestId("counter").textContent;
-
+    // Advance by 1 second
     act(() => {
       jest.advanceTimersByTime(1000);
     });
 
-    const afterTickText = screen.getByTestId("counter").textContent;
-    // After one second, the counter should update (time should decrease)
-    expect(afterTickText).not.toBe(initialText);
-    expect(screen.getByTestId("counter")).toBeInTheDocument();
+    const counterElement = screen.getByTestId("counter");
+    // Should show approximately 9 minutes 59 seconds remaining
+    expect(counterElement.textContent).toMatch(/^09:5[89]$/);
+  });
+
+  test("it calls setCurrentTime callback with elapsed time", () => {
+    render(<Counter {...defaultProps} />);
+
+    // Advance by 1 second
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    // setCurrentTime should be called with elapsed time (not remaining time)
+    expect(defaultProps.setCurrentTime).toHaveBeenCalled();
+    const callArg = defaultProps.setCurrentTime.mock.calls[0][0];
+    // Elapsed time should be close to 0 minutes, 1 second
+    expect(callArg.minutes).toBeCloseTo(0, 0);
+    expect(callArg.seconds).toBeGreaterThanOrEqual(0);
+  });
+
+  test("it calls onTimeLimitMet when countdown reaches zero", () => {
+    const shortTimeProps = {
+      ...defaultProps,
+      timeLimit: 0.02, // 0.02 minutes = ~1 second
+    };
+    
+    render(<Counter {...shortTimeProps} />);
+
+    // Advance past the time limit
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    // onTimeLimitMet should be called with total elapsed time
+    expect(shortTimeProps.onTimeLimitMet).toHaveBeenCalled();
+  });
+
+  test("it updates every second via interval", () => {
+    render(<Counter {...defaultProps} />);
+
+    // Advance by 3 seconds - should trigger 3 interval ticks
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+
+    // Should have been called 3 times (once per second)
+    expect(defaultProps.setCurrentTime).toHaveBeenCalledTimes(3);
   });
 });
 

@@ -1,23 +1,21 @@
 import classnames from "classnames";
 import React from "react";
-import { Datum } from "../../schemas/getLanguagesSchema";
-import { formatLanguage } from "../../utils/langUtils";
 
 interface LanguageDropdownProps {
   name: string;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   value: string;
-  languages: Datum[];
+  languages: string[];
   hasError: boolean;
 }
 
 const LanguageDropdown = (props: LanguageDropdownProps) => {
   const { name, onChange, value, languages, hasError } = props;
 
-  const renderOption = (language: Datum) => {
+  const renderOption = (language: string) => {
     return (
-      <option key={language.id} value={language.id}>
-        {formatLanguage(language)}
+      <option key={language} value={language}>
+        {language}
       </option>
     );
   };

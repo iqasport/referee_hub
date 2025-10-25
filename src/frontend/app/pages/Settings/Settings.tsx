@@ -3,7 +3,6 @@ import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 
 import { UpdatedUserRequest } from "../../apis/user";
-import LanguageDropdown from "../../components/LanguageDropdown";
 import { CurrentUserState, updateUser } from "../../modules/currentUser/currentUser";
 import { getLanguages, LanguagesState } from "../../modules/language/languages";
 import { RootState } from "../../rootReducer";
@@ -44,26 +43,40 @@ const Settings = () => {
     handleEditCancel();
   };
 
-  const renderDropdown = () => (
-    <div>
-      <LanguageDropdown
-        name="languageId"
-        value={updatedUser?.languageId?.toString() ?? ""}
-        languages={languages}
-        hasError={false}
-        onChange={handleChange}
-      />
+  const renderDropdown = () => {
+    // Transform language objects to formatted strings for the dropdown
+    const languageOptions = languages.map((lang) => ({
+      id: lang.id,
+      label: formatLanguage(lang),
+    }));
+
+    return (
       <div>
-        <p className="my-2">
-          Don't see your desired language? Email{" "}
-          <a className="text-blue-darker" href="mailto:translation@iqasport.org">
-            translation@iqasport.org
-          </a>{" "}
-          to add your language to the IQA.
-        </p>
+        <select
+          className="form-select mt-1 block w-full"
+          name="languageId"
+          onChange={handleChange}
+          value={updatedUser?.languageId?.toString() ?? ""}
+        >
+          <option value="">Select the language</option>
+          {languageOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <div>
+          <p className="my-2">
+            Don't see your desired language? Email{" "}
+            <a className="text-blue-darker" href="mailto:translation@iqasport.org">
+              translation@iqasport.org
+            </a>{" "}
+            to add your language to the IQA.
+          </p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderLanguage = () => {
     if (!language) {
