@@ -1,107 +1,94 @@
 import React from "react";
-import { fireEvent, render, screen } from "../../../utils/test-utils";
+import { fireEvent, render, screen } from "../../../utils/test-utils-rtk";
+import { createQuerySuccess, createMutation } from "../../../utils/test-rtk-helpers";
 
-import { UpdateRefereeRequest } from "../../../apis/referee";
-import { DataAttributes, IncludedAttributes } from "../../../schemas/getRefereeSchema";
 import RefereeHeader from "./RefereeHeader";
 
-/** TODO: rewrite tests
+// Mock the navigation params
+jest.mock("../../../utils/navigationUtils", () => ({
+  useNavigationParams: () => ({ refereeId: "test-user-123" }),
+}));
+
+// Mock RTK Query hooks
+jest.mock("../../../store/serviceApi", () => ({
+  ...jest.requireActual("../../../store/serviceApi"),
+  useGetUserDataQuery: jest.fn(),
+  useGetUserAvatarQuery: jest.fn(),
+  useUpdateCurrentUserDataMutation: jest.fn(),
+}));
+
+import {
+  useGetUserDataQuery,
+  useGetUserAvatarQuery,
+  useUpdateCurrentUserDataMutation,
+} from "../../../store/serviceApi";
+
 describe("RefereeHeader", () => {
-  const referee: DataAttributes = {
-    avatarUrl: null,
-    bio: "words",
-    createdAt: new Date().toString(),
-    exportName: false,
-    firstName: "Build",
-    hasPendingPolicies: false,
-    isEditable: true,
-    lastName: "Stuff",
-    pronouns: "she/her",
+  const mockUserData = {
+    firstName: "Test",
+    lastName: "User",
+    bio: "Test bio",
+    pronouns: "they/them",
     showPronouns: true,
-    submittedPaymentAt: new Date(),
+    exportName: true,
+    language: "en-US",
+    createdAt: "2023-01-01T00:00:00Z",
   };
-  const certifications: IncludedAttributes[] = [
-    {
-      level: "snitch",
-    },
-    {
-      level: "assistant",
-    },
+
+  const mockCertifications = [
+    { level: "snitch" as const, version: "twentyfour" as const },
+    { level: "assistant" as const, version: "twentyfour" as const },
   ];
-  const updatedValues: UpdateRefereeRequest = {
-    bio: referee.bio,
-    exportName: referee.exportName,
-    firstName: referee.firstName,
-    lastName: referee.lastName,
-    ngbData: {},
-    pronouns: referee.pronouns,
-    showPronouns: referee.showPronouns,
-    submittedPaymentAt: referee.submittedPaymentAt,
-    teamsData: {},
-  };
+
   const defaultProps = {
-    certifications,
-    id: "123",
-    isEditing: false,
-    onCancel: jest.fn(),
-    onChange: jest.fn(),
-    onEditClick: jest.fn(),
-    onSubmit: jest.fn(),
-    referee,
-    updatedValues,
+    name: "Test User",
+    certifications: mockCertifications,
+    isEditable: true,
   };
+
+  beforeEach(() => {
+    (useGetUserDataQuery as jest.Mock).mockReturnValue(createQuerySuccess(mockUserData));
+    (useGetUserAvatarQuery as jest.Mock).mockReturnValue(createQuerySuccess("http://example.com/avatar.jpg"));
+    (useUpdateCurrentUserDataMutation as jest.Mock).mockReturnValue(createMutation());
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   test("it renders the referee name", () => {
     render(<RefereeHeader {...defaultProps} />);
-    const fullName = `${referee.firstName} ${referee.lastName}`;
-    screen.getByText(fullName);
+    
+    expect(screen.getByText("Test User")).toBeInTheDocument();
   });
 
-  test("it renders a default name if names not present", () => {
-    const noName: DataAttributes = {
-      ...referee,
-      firstName: null,
-      lastName: null,
-    };
-    const noNameProps = {
-      ...defaultProps,
-      referee: noName,
-    };
-    render(<RefereeHeader {...noNameProps} />);
-
-    screen.getByText("Anonymous Referee");
-  });
-
-  test("it renders pronouns", () => {
+  test("it renders pronouns when showPronouns is true", () => {
     render(<RefereeHeader {...defaultProps} />);
 
-    screen.getByText(referee.bio);
+    expect(screen.getByText(mockUserData.pronouns)).toBeInTheDocument();
   });
 
-  test("it doesn't render pronouns when show pronouns is false", () => {
-    const noPronounsProps = {
-      ...defaultProps,
-      referee: {
-        ...referee,
-        showPronouns: false,
-      },
-    };
-    render(<RefereeHeader {...noPronounsProps} />);
+  test("it doesn't render pronouns when showPronouns is false", () => {
+    const userData = { ...mockUserData, showPronouns: false };
+    (useGetUserDataQuery as jest.Mock).mockReturnValue(createQuerySuccess(userData));
 
-    expect(screen.queryByText(referee.pronouns)).toBeNull();
+    render(<RefereeHeader {...defaultProps} />);
+
+    expect(screen.queryByText(mockUserData.pronouns)).not.toBeInTheDocument();
   });
 
   test("it renders certifications", () => {
     render(<RefereeHeader {...defaultProps} />);
 
-    screen.getByText("Snitch (Unknown)");
-    screen.getByText("Assistant (Unknown)");
+    // Snitch level is displayed as "Flag"
+    expect(screen.getByText(/Flag/i)).toBeInTheDocument();
+    expect(screen.getByText(/Assistant/i)).toBeInTheDocument();
   });
 
   test("it renders the bio", () => {
     render(<RefereeHeader {...defaultProps} />);
 
-    screen.getByText(referee.bio);
+    expect(screen.getByText(mockUserData.bio)).toBeInTheDocument();
   });
 
   test("it calls the edit function on edit button click", () => {
@@ -110,83 +97,52 @@ describe("RefereeHeader", () => {
     const editButton = screen.getByText("Edit");
     fireEvent.click(editButton);
 
-    expect(defaultProps.onEditClick).toHaveBeenCalled();
+    // Should show save button when editing
+    expect(screen.getByText("Save Changes")).toBeInTheDocument();
   });
 
   describe("while editing", () => {
-    const editProps = {
-      ...defaultProps,
-      isEditing: true,
-    };
-
     test("it renders a save button", () => {
-      render(<RefereeHeader {...editProps} />);
+      render(<RefereeHeader {...defaultProps} />);
 
-      screen.getByText("Save Changes");
+      fireEvent.click(screen.getByText("Edit"));
+
+      expect(screen.getByText("Save Changes")).toBeInTheDocument();
     });
 
-    test("it does not render certifications", () => {
-      render(<RefereeHeader {...editProps} />);
+    test("it renders form fields for editing", () => {
+      render(<RefereeHeader {...defaultProps} />);
 
-      expect(screen.queryByText("Snitch")).toBeNull();
-      expect(screen.queryByText("Assistant")).toBeNull();
+      fireEvent.click(screen.getByText("Edit"));
+
+      // Check for some form elements
+      expect(screen.getByLabelText(/show pronouns/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/export name/i)).toBeInTheDocument();
     });
 
-    test("it renders an export name toggle", () => {
-      render(<RefereeHeader {...editProps} />);
+    test("it can cancel editing", () => {
+      render(<RefereeHeader {...defaultProps} />);
 
-      expect(screen.getByLabelText("Export Name?")).toBeDefined();
+      fireEvent.click(screen.getByText("Edit"));
+      expect(screen.getByText("Save Changes")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText("Cancel"));
+      expect(screen.queryByText("Save Changes")).not.toBeInTheDocument();
     });
+  });
 
-    test("it renders pronoun editing", () => {
-      render(<RefereeHeader {...editProps} />);
-
-      expect(screen.getByLabelText("Show Pronouns?")).toBeDefined();
-      expect(screen.getAllByRole("textbox")[0].getAttribute("value")).toEqual(referee.pronouns);
-    });
-
-    test("it renders bio editing", () => {
-      render(<RefereeHeader {...editProps} />);
-
-      const bio = screen.getAllByRole("textbox")[1];
-
-      expect(bio.innerHTML).toEqual(referee.bio);
-    });
-
-    test("it fires the change event when a value has changed", () => {
-      render(<RefereeHeader {...editProps} />);
-
-      fireEvent.click(screen.getByLabelText("Show Pronouns?"));
-
-      expect(defaultProps.onChange).toHaveBeenCalledWith(false, "showPronouns");
-    });
-
-    describe("without a name", () => {
-      const noNameProps = {
-        ...editProps,
-        referee: {
-          ...referee,
-          firstName: null,
-          lastName: null,
-        },
-        updatedValues: {
-          ...updatedValues,
-          firstName: null,
-          lastName: null,
-        },
-      };
-
-      test("it renders name inputs", () => {
-        render(<RefereeHeader {...noNameProps} />);
-
-        const allInputs = screen.getAllByRole("textbox");
-        const firstName = allInputs[0];
-        const lastName = allInputs[1];
-
-        expect(firstName.getAttribute("value")).toEqual("");
-        expect(lastName.getAttribute("value")).toEqual("");
+  describe("when data is loading", () => {
+    test("it renders empty content when data is loading", () => {
+      (useGetUserDataQuery as jest.Mock).mockReturnValue({
+        data: undefined,
+        isLoading: true,
+        error: undefined,
       });
+
+      const { container } = render(<RefereeHeader {...defaultProps} />);
+
+      // Component returns empty fragment when user data is not available (line 134: if (!user) return <></>)
+      expect(container.querySelector('div')).toBeNull();
     });
   });
 });
-*/
