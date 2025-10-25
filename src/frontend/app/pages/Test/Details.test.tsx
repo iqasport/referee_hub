@@ -1,34 +1,50 @@
 import React from "react";
-import { render, screen } from "../../utils/test-utils";
+import { render, screen } from "../../utils/test-utils-rtk";
 
-import languageFactory from "../../factories/language";
-import singleTestFactory from "../../factories/singleTest";
+import factories from "../../factories";
 
 import Details, { DetailsProps } from "./Details";
 
-/*describe("Details", () => {
-  const test = singleTestFactory.build();
-  const languages = languageFactory.buildList(5);
+describe("Details", () => {
+  const test = factories.testViewModel.build({
+    title: "Test Title",
+    description: "Test description for the test",
+    language: "en-US",
+  });
+  const languages = ["en-US", "es-ES", "fr-FR"];
   const defaultProps: DetailsProps = {
     languages,
     test,
   };
 
-  it("renders the details", () => {
+  it("renders the test details", () => {
     render(<Details {...defaultProps} />);
-    screen.getByText(test.attributes.description);
+    
+    // Should render title
+    expect(screen.getByText(test.title)).toBeInTheDocument();
+    // Should render description
+    expect(screen.getByText(test.description)).toBeInTheDocument();
   });
 
-  describe("with an associated language", () => {
-    const language = languageFactory.build({ id: "1" });
-    const langProps = {
+  it("renders the language", () => {
+    render(<Details {...defaultProps} />);
+    
+    // Language should be displayed
+    expect(screen.getByText(test.language)).toBeInTheDocument();
+  });
+
+  it("handles test with minimal data", () => {
+    const minimalTest = factories.testViewModel.build({
+      title: "Minimal Test",
+      description: "",
+    });
+    const minimalProps = {
       ...defaultProps,
-      languages: [language],
+      test: minimalTest,
     };
 
-    it("renders the correct language", () => {
-      render(<Details {...langProps} />);
-      screen.getByText(`${language.attributes.longName} - ${language.attributes.shortRegion}`);
-    });
+    render(<Details {...minimalProps} />);
+    
+    expect(screen.getByText("Minimal Test")).toBeInTheDocument();
   });
-});*/
+});
