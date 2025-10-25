@@ -17,6 +17,6 @@ describe("Avatar", () => {
   test("it is rendered", () => {
     render(<Avatar {...defaultProps} />);
 
-    screen.getByText("QR");
+    expect(screen.getByText("QR")).toBeInTheDocument();
   });
 });

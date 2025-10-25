@@ -1,5 +1,5 @@
 import React from "react";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 import Counter from ".";
 import { render, screen } from "../../utils/test-utils";
 import { formatTime, getDisplayColor } from "./Counter";
@@ -22,7 +22,7 @@ describe("Counter", () => {
   test("it renders a counter", () => {
     render(<Counter {...defaultProps} />);
 
-    expect(screen.getByText("00:00")).toBeDefined();
+    expect(screen.getByText("10:00")).toBeInTheDocument();
   });
 
   test("it handles a second tick", () => {
@@ -32,7 +32,7 @@ describe("Counter", () => {
       jest.advanceTimersByTime(1000);
     });
 
-    expect(screen.getByText("00:01")).toBeDefined();
+    expect(screen.getByText("09:59")).toBeInTheDocument();
   });
 });
 
@@ -55,33 +55,31 @@ describe("utility functions", () => {
     });
   });
 
-  /*
   describe("getDisplayColor", () => {
     const limit = 10;
 
-    test("it returns grey when in the goodLimit", () => {
-      const minutes = 5;
-      const expectedColor = "grey";
-      const actual = getDisplayColor(limit, minutes);
+    test("it returns gray-500 when well within time limit", () => {
+      const interval = { minutes: 5, seconds: 0 };
+      const expectedColor = "gray-500";
+      const actual = getDisplayColor(limit, interval);
 
       expect(actual).toEqual(expectedColor);
     });
 
     test("it returns yellow when in the warning limit", () => {
-      const minutes = 8;
+      const interval = { minutes: 2, seconds: 0 };
       const expectedColor = "yellow";
-      const actual = getDisplayColor(limit, minutes);
+      const actual = getDisplayColor(limit, interval);
 
       expect(actual).toEqual(expectedColor);
     });
 
-    test("it returns red when at the limit", () => {
-      const minutes = 10;
-      const expectedColor = "red";
-      const actual = getDisplayColor(limit, minutes);
+    test("it returns red-500 when at final seconds", () => {
+      const interval = { minutes: 0, seconds: 5 };
+      const expectedColor = "red-500";
+      const actual = getDisplayColor(limit, interval);
 
       expect(actual).toEqual(expectedColor);
     });
   });
-  */
 });
