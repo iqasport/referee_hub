@@ -3,10 +3,10 @@ import { capitalize } from "lodash";
 import React from "react";
 
 import factories from "../../../factories";
-import { mockedStore, render, screen } from "../../../utils/test-utils";
+import { render, screen } from "../../../utils/test-utils-rtk";
+import { createQuerySuccess, createMutation } from "../../../utils/test-rtk-helpers";
 
 import { toDateTime } from "../../../utils/dateUtils";
-import { formatLanguage } from "../../../utils/langUtils";
 
 import TestsTable from "./TestsTable";
 
@@ -17,80 +17,82 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockHistoryPush,
 }));
 
-describe("TestsTable", () => {
-  const tests = factories.test.buildList(5);
-  const languages = factories.language.buildList(5);
-  const certifications = factories.certification.buildList(3);
-  const defaultStore = {
-    languages: {
-      languages,
-    },
-    tests: {
-      certifications,
-      isLoading: false,
-      tests,
-    },
-  };
+// Mock the RTK Query hooks
+jest.mock("../../../store/serviceApi", () => ({
+  ...jest.requireActual("../../../store/serviceApi"),
+  useGetAllTestsQuery: jest.fn(),
+  useGetLanguagesQuery: jest.fn(),
+  useSetTestActiveMutation: jest.fn(),
+}));
 
-  const mockStore = mockedStore(defaultStore);
+import {
+  useGetAllTestsQuery,
+  useGetLanguagesQuery,
+  useSetTestActiveMutation,
+} from "../../../store/serviceApi";
+
+describe("TestsTable", () => {
+  const tests = factories.testViewModel.buildList(5);
+  const languages = ["en-US", "es-ES", "fr-FR"];
+
+  beforeEach(() => {
+    // Setup default mock responses
+    (useGetAllTestsQuery as jest.Mock).mockReturnValue(createQuerySuccess(tests));
+    (useGetLanguagesQuery as jest.Mock).mockReturnValue(createQuerySuccess(languages));
+    (useSetTestActiveMutation as jest.Mock).mockReturnValue(createMutation());
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it("renders all of the tests", () => {
-    render(<TestsTable />, mockStore);
+    render(<TestsTable />);
 
     tests.forEach((test) => {
-      screen.getAllByText(test.attributes.name);
+      expect(screen.getAllByText(test.title).length).toBeGreaterThan(0);
     });
   });
 
-  it("renders the expected text rows", () => {
-    render(<TestsTable />, mockStore);
+  it("renders the expected text in the first row", () => {
+    render(<TestsTable />);
 
-    screen.getAllByText(tests[0].attributes.name);
-    screen.getAllByText(capitalize(tests[0].attributes.level));
-    screen.getAllByText("Unknown");
-    screen.getAllByText(
-      formatLanguage(
-        languages.find((lang) => lang.id === tests[0].attributes.newLanguageId.toString())
-      )
-    );
-    screen.getAllByText(toDateTime(tests[0].attributes.updatedAt).toFormat("D"));
+    const firstTest = tests[0];
+    expect(screen.getAllByText(firstTest.title).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(capitalize(firstTest.awardedCertification.level)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(firstTest.language).length).toBeGreaterThan(0);
   });
 
-  it("goes to the test view on row click", () => {
-    render(<TestsTable />, mockStore);
+  it("goes to the test view on row click", async () => {
+    render(<TestsTable />);
 
-    const firstTestRow = screen.getAllByText(tests[0].attributes.name)[0];
+    const firstTestRow = screen.getAllByText(tests[0].title)[0];
 
-    userEvent.click(firstTestRow);
+    await userEvent.click(firstTestRow);
 
-    expect(mockHistoryPush).toHaveBeenCalledWith(`/admin/tests/${tests[0].id}`);
+    expect(mockHistoryPush).toHaveBeenCalledWith(`/admin/tests/${tests[0].testId}`, expect.anything());
   });
 
-  it("dispatches getLanguages call", () => {
-    const emptyLangs = { ...defaultStore, languages: { languages: [] } };
-    const emptyLangStore = mockedStore(emptyLangs);
+  it("handles empty tests array", () => {
+    (useGetAllTestsQuery as jest.Mock).mockReturnValue(createQuerySuccess([]));
 
-    render(<TestsTable />, emptyLangStore);
+    render(<TestsTable />);
 
-    expect(emptyLangStore.getActions()).toEqual([
-      {
-        payload: undefined,
-        type: "languages/getLanguagesStart",
-      },
-    ]);
+    // Table should render even with no tests
+    expect(screen.getByRole("table")).toBeInTheDocument();
   });
 
-  it("dispatches getTests call", () => {
-    const emptyTests = { ...defaultStore, tests: { tests: [] } };
-    const emptyTestsStore = mockedStore(emptyTests);
+  it("handles loading state", () => {
+    (useGetAllTestsQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      isSuccess: false,
+    });
 
-    render(<TestsTable />, emptyTestsStore);
+    render(<TestsTable />);
 
-    expect(emptyTestsStore.getActions()).toEqual([
-      {
-        payload: undefined,
-        type: "tests/getTestsStart",
-      },
-    ]);
+    // Component should handle loading gracefully
+    expect(screen.getByRole("table")).toBeInTheDocument();
   });
 });
