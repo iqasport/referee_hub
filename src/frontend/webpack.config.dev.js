@@ -11,7 +11,7 @@ module.exports = merge(common, {
       config: [__filename],
     },
   },
-  devtool: 'inline-source-map',
+  devtool: 'eval-cheap-module-source-map',
   mode: 'development',
   plugins: [
     new Dotenv(),
