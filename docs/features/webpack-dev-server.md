@@ -161,8 +161,14 @@ module.exports = merge(common, {
         errors: true,
         warnings: false,
       },
-      // Inject HMR client into the bundle
-      webSocketURL: 'auto://0.0.0.0:0/ws',
+      // WebSocket URL configuration
+      // Explicitly set to webpack dev server port (8080) so browser connects to the right WebSocket
+      webSocketURL: {
+        hostname: 'localhost',
+        pathname: '/ws',
+        port: 8080,
+        protocol: 'ws',
+      },
     },
     // Disable host check for easier development
     allowedHosts: 'all',
@@ -244,6 +250,10 @@ Add a new script for running the dev server:
 5. HMR client in browser receives update notification via WebSocket
 6. HMR runtime applies the update without full page reload
 7. React component updates in place, preserving state where possible
+
+**Important Note on WebSocket Configuration:**
+
+Since the browser accesses the application through the backend at `http://localhost:5000`, but webpack dev server runs on `http://localhost:8080`, we must explicitly configure the WebSocket URL. The `client.webSocketURL` setting in webpack config ensures the HMR client connects to `ws://localhost:8080/ws` (where webpack dev server is listening) rather than trying to connect to `ws://localhost:5000/ws` (which would fail). This is critical for HMR to work correctly in this architecture where the backend serves the frontend files.
 
 ### File Watching Considerations
 

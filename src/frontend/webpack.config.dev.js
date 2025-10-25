@@ -31,8 +31,13 @@ module.exports = merge(common, {
         errors: true,
         warnings: false,
       },
-      // WebSocket URL configuration
-      webSocketURL: 'auto://0.0.0.0:0/ws',
+      // WebSocket URL configuration - explicitly point to webpack dev server port
+      webSocketURL: {
+        hostname: 'localhost',
+        pathname: '/ws',
+        port: 8080,
+        protocol: 'ws',
+      },
     },
     // Allow access from any host (useful for development)
     allowedHosts: 'all',
