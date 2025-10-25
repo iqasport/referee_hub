@@ -13,6 +13,10 @@ module.exports = merge(common, {
   },
   devtool: 'eval-cheap-module-source-map',
   mode: 'development',
+  output: {
+    filename: '[name].js',
+    chunkFilename: '[name].js',
+  },
   plugins: [
     new Dotenv(),
   ],
