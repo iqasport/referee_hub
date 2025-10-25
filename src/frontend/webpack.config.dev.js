@@ -4,6 +4,13 @@ const { merge } = require('webpack-merge');
 const common = require('./webpack.config.common.js');
 
 module.exports = merge(common, {
+  // Enable filesystem cache for faster rebuilds
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
   devtool: 'inline-source-map',
   mode: 'development',
   plugins: [
