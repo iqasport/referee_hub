@@ -57,7 +57,6 @@ module.exports = function(api) {
     ].filter(Boolean),
     plugins: [
       'babel-plugin-macros',
-      'lodash',
       '@babel/plugin-syntax-dynamic-import',
       isTestEnv && 'babel-plugin-dynamic-import-node',
       '@babel/plugin-transform-destructuring',
@@ -67,6 +66,18 @@ module.exports = function(api) {
       '@babel/plugin-proposal-optional-chaining',
       [
         '@babel/plugin-proposal-class-properties',
+        {
+          loose: true
+        }
+      ],
+      [
+        '@babel/plugin-transform-private-methods',
+        {
+          loose: true
+        }
+      ],
+      [
+        '@babel/plugin-transform-private-property-in-object',
         {
           loose: true
         }

@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
   entry: './app/index.tsx',
@@ -7,7 +8,12 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+          },
+        },
         exclude: /node_modules/,
       },
     ],
@@ -20,7 +26,12 @@ module.exports = {
       title: 'IQA Management Hub',
       template: 'app/index.html',
       inject: false,
-    })
+    }),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        configFile: 'tsconfig.json',
+      },
+    }),
   ],
   output: {
     chunkFilename: "[name]-[contenthash:12].js",
