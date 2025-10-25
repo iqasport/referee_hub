@@ -26,13 +26,13 @@ describe("Settings", () => {
   it("renders the settings page", () => {
     render(<Settings />, mockStore);
 
-    screen.getByText("Settings");
+    expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 
   it("shows cta to change language when user has no language", () => {
     render(<Settings />, mockStore);
 
-    screen.getByText("Set your application language by editing your settings");
+    expect(screen.getByText("Set your application language by editing your settings")).toBeInTheDocument();
   });
 
   describe("while editing", () => {
@@ -42,7 +42,7 @@ describe("Settings", () => {
 
       await user.click(screen.getByText("Edit"));
 
-      await screen.findByText("Don't see your desired language?", { exact: false });
+      expect(await screen.findByText("Don't see your desired language?", { exact: false })).toBeInTheDocument();
     });
 
     it("allows for language selection", async () => {
@@ -64,10 +64,10 @@ describe("Settings", () => {
       render(<Settings />, mockStore);
 
       await user.click(screen.getByText("Edit"));
-      await screen.findByText("Don't see your desired language?", { exact: false });
+      expect(await screen.findByText("Don't see your desired language?", { exact: false })).toBeInTheDocument();
 
       await user.click(screen.getByText("Cancel"));
-      await screen.findByText("Set your application language by editing your settings");
+      expect(await screen.findByText("Set your application language by editing your settings")).toBeInTheDocument();
     });
 
     // Legacy redux action dispatch test - component will be migrated to RTK Query
@@ -105,7 +105,7 @@ describe("Settings", () => {
     it("shows the current langauge", () => {
       render(<Settings />, langMockStore);
 
-      screen.getByText(formatLanguage(languages[3]));
+      expect(screen.getByText(formatLanguage(languages[3]))).toBeInTheDocument();
     });
   });
 
@@ -143,7 +143,7 @@ describe("Settings", () => {
     it("does not render the settings page", () => {
       render(<Settings />, disabledFeatureMock);
 
-      expect(screen.queryByText("Settings")).toBeNull();
+      expect(screen.queryByText("Settings")).not.toBeInTheDocument();
     });
   });
 });
