@@ -124,14 +124,14 @@ The Settings component has a mismatch between its old Redux language data format
 - LanguageDropdown expects `string[]` from RTK Query
 - 4 edit mode tests are disabled until Settings is migrated to RTK Query
 
-### Production Code Linting Issues
-The following linting issues exist in production code (not test files):
+### Production Code Linting Issues (Out of Scope)
+While improving tests, we identified linting issues in production code. These are documented for future cleanup but were not addressed in this PR to keep changes focused on test improvements:
 - 40 errors: Unnecessary try/catch wrappers in API files
-- 6 warnings: TypeScript `any` types
+- 6 warnings: TypeScript `any` types  
 - 2 warnings: Unused variables
 - 6 errors: Unescaped apostrophes in JSX
 
-These are documented in `docs/fixup/tests_linting.md` and should be addressed separately.
+See `docs/fixup/tests_linting.md` for details. These should be addressed in a separate PR focused on code quality.
 
 ## Recommendations
 
