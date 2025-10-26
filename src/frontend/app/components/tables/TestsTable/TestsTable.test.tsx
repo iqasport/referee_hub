@@ -1,96 +1,161 @@
 import userEvent from "@testing-library/user-event";
-import { capitalize } from "lodash";
 import React from "react";
 
-import factories from "../../../factories";
-import { mockedStore, render, screen } from "../../../utils/test-utils";
-
-import { toDateTime } from "../../../utils/dateUtils";
-import { formatLanguage } from "../../../utils/langUtils";
+import { render, screen } from "../../../utils/test-utils";
+import { TestViewModel } from "../../../store/serviceApi";
 
 import TestsTable from "./TestsTable";
 
 const mockHistoryPush = jest.fn();
+const mockUseGetAllTestsQuery = jest.fn();
+const mockUseSetTestActiveMutation = jest.fn();
+const mockUpdateTestActive = jest.fn();
 
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockHistoryPush,
 }));
 
+// Mock RTK Query hooks
+jest.mock("../../../store/serviceApi", () => ({
+  ...jest.requireActual("../../../store/serviceApi"),
+  useGetAllTestsQuery: () => mockUseGetAllTestsQuery(),
+  useSetTestActiveMutation: () => mockUseSetTestActiveMutation(),
+}));
+
+// Helper to create test data
+const createTestData = (overrides: Partial<TestViewModel> = {}): TestViewModel => ({
+  testId: "test-1",
+  title: "Assistant Referee Test",
+  description: "Test for assistant referees",
+  language: "en-US",
+  awardedCertification: {
+    level: "assistant",
+    version: "twentyfour",
+  },
+  timeLimit: 18,
+  passPercentage: 80,
+  questionsCount: 10,
+  recertification: false,
+  positiveFeedback: "Great job!",
+  negativeFeedback: "Keep studying",
+  active: true,
+  ...overrides,
+});
+
 describe("TestsTable", () => {
-  const tests = factories.test.buildList(5);
-  const languages = factories.language.buildList(5);
-  const certifications = factories.certification.buildList(3);
-  const defaultStore = {
-    languages: {
-      languages,
-    },
-    tests: {
-      certifications,
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHistoryPush.mockClear();
+    mockUpdateTestActive.mockClear();
+    
+    // Default mock implementation
+    mockUseSetTestActiveMutation.mockReturnValue([mockUpdateTestActive, { isLoading: false }]);
+  });
+
+  it("renders empty state when no tests are available", () => {
+    mockUseGetAllTestsQuery.mockReturnValue({
+      data: [],
       isLoading: false,
-      tests,
-    },
-  };
-
-  const mockStore = mockedStore(defaultStore);
-
-  it("renders all of the tests", () => {
-    render(<TestsTable />, mockStore);
-
-    tests.forEach((test) => {
-      screen.getAllByText(test.attributes.name);
+      error: null,
     });
+
+    render(<TestsTable />);
+    
+    expect(screen.getByText("No tests found")).toBeInTheDocument();
   });
 
-  it("renders the expected text rows", () => {
-    render(<TestsTable />, mockStore);
+  it("renders table with test data in correct structure", () => {
+    const tests: TestViewModel[] = [
+      createTestData({
+        testId: "1",
+        title: "Assistant Test",
+        awardedCertification: { level: "assistant", version: "twentyfour" },
+        language: "en-US",
+        active: true,
+      }),
+      createTestData({
+        testId: "2",
+        title: "Head Referee Test",
+        awardedCertification: { level: "head", version: "twentytwo" },
+        language: "es-ES",
+        active: false,
+      }),
+    ];
 
-    screen.getAllByText(tests[0].attributes.name);
-    screen.getAllByText(capitalize(tests[0].attributes.level));
-    screen.getAllByText("Unknown");
-    screen.getAllByText(
-      formatLanguage(
-        languages.find((lang) => lang.id === tests[0].attributes.newLanguageId.toString())
-      )
-    );
-    screen.getAllByText(toDateTime(tests[0].attributes.updatedAt).toFormat("D"));
+    mockUseGetAllTestsQuery.mockReturnValue({ data: tests, isLoading: false });
+
+    render(<TestsTable />);
+
+    // Verify the table renders both test titles
+    expect(screen.getByText("Assistant Test")).toBeInTheDocument();
+    expect(screen.getByText("Head Referee Test")).toBeInTheDocument();
+
+    // Verify certification levels are properly capitalized in the table
+    // Using getAllByText because levels could appear in multiple contexts
+    const assistantElements = screen.getAllByText("Assistant");
+    const headElements = screen.getAllByText("Head");
+    
+    // Should have at least one instance of each level text
+    expect(assistantElements.length).toBeGreaterThanOrEqual(1);
+    expect(headElements.length).toBeGreaterThanOrEqual(1);
+    
+    // Verify languages are displayed
+    expect(screen.getByText("en-US")).toBeInTheDocument();
+    expect(screen.getByText("es-ES")).toBeInTheDocument();
   });
 
-  it("goes to the test view on row click", () => {
-    render(<TestsTable />, mockStore);
+  it("navigates to test detail on row click", async () => {
+    const tests: TestViewModel[] = [
+      createTestData({ testId: "test-123", title: "Test Item" }),
+    ];
 
-    const firstTestRow = screen.getAllByText(tests[0].attributes.name)[0];
+    mockUseGetAllTestsQuery.mockReturnValue({ data: tests, isLoading: false });
 
-    userEvent.click(firstTestRow);
+    const user = userEvent.setup();
+    render(<TestsTable />);
 
-    expect(mockHistoryPush).toHaveBeenCalledWith(`/admin/tests/${tests[0].id}`);
+    const testTitle = screen.getByText("Test Item");
+    await user.click(testTitle);
+
+    expect(mockHistoryPush).toHaveBeenCalledWith("/admin/tests/test-123", expect.anything());
   });
 
-  it("dispatches getLanguages call", () => {
-    const emptyLangs = { ...defaultStore, languages: { languages: [] } };
-    const emptyLangStore = mockedStore(emptyLangs);
+  it("displays active status correctly for different tests", () => {
+    const tests: TestViewModel[] = [
+      createTestData({ testId: "1", title: "Active Test", active: true }),
+      createTestData({ testId: "2", title: "Inactive Test", active: false }),
+    ];
 
-    render(<TestsTable />, emptyLangStore);
+    mockUseGetAllTestsQuery.mockReturnValue({ data: tests, isLoading: false });
 
-    expect(emptyLangStore.getActions()).toEqual([
-      {
-        payload: undefined,
-        type: "languages/getLanguagesStart",
-      },
-    ]);
+    const { container } = render(<TestsTable />);
+
+    // Count the number of active (green) icons - should be exactly 1
+    const greenIcons = container.querySelectorAll('.text-green');
+    expect(greenIcons.length).toBe(1);
+    
+    // Count gray icons that are specifically for inactive status
+    // The component uses both text-gray-500 for all icons, then adds text-green for active
+    const allIcons = container.querySelectorAll('.fa-circle');
+    expect(allIcons.length).toBe(2); // One for each test
   });
 
-  it("dispatches getTests call", () => {
-    const emptyTests = { ...defaultStore, tests: { tests: [] } };
-    const emptyTestsStore = mockedStore(emptyTests);
+  it("renders snitch level as 'Flag'", () => {
+    const tests: TestViewModel[] = [
+      createTestData({
+        testId: "1",
+        title: "Snitch Test",
+        awardedCertification: { level: "snitch", version: "twentyfour" },
+      }),
+    ];
 
-    render(<TestsTable />, emptyTestsStore);
+    mockUseGetAllTestsQuery.mockReturnValue({ data: tests, isLoading: false });
 
-    expect(emptyTestsStore.getActions()).toEqual([
-      {
-        payload: undefined,
-        type: "tests/getTestsStart",
-      },
-    ]);
+    render(<TestsTable />);
+
+    // Snitch level should be displayed as "Flag"
+    expect(screen.getByText("Flag")).toBeInTheDocument();
   });
 });
+
