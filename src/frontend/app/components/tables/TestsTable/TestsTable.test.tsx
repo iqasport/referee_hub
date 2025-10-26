@@ -26,7 +26,7 @@ jest.mock("../../../store/serviceApi", () => ({
 }));
 
 describe("TestsTable", () => {
-  it("renders the tests table component", () => {
+  it("renders the tests table component with empty state", () => {
     render(<TestsTable />);
     
     // Component should render without crashing
@@ -34,35 +34,14 @@ describe("TestsTable", () => {
     expect(screen.getByText("No tests found")).toBeInTheDocument();
   });
 
-  // Note: These tests require RTK Query testing infrastructure to properly mock API responses
-  // They should be rewritten once proper test utilities are set up
-  
-  it.skip("renders all of the tests - requires RTK Query mock setup", () => {
-    // TODO: Set up RTK Query testing utilities
-    // Mock useGetAllTestsQuery to return test data
-    // Verify tests are rendered in the table
-  });
-
-  it.skip("renders the expected text rows - requires RTK Query mock setup", () => {
-    // TODO: Mock API response with test data
-    // Verify table cells contain expected formatted data
-  });
-
-  it.skip("goes to the test view on row click - requires RTK Query mock setup", () => {
-    // TODO: Mock API response, simulate row click
-    // Verify navigation is called with correct test ID
-  });
-
-  // Legacy redux action dispatch tests - not applicable after RTK Query migration
-  it.skip("dispatches getLanguages call - LEGACY", () => {
-    // This test checked for redux action dispatch
-    // RTK Query handles data fetching automatically
-    // Not applicable after migration
-  });
-
-  it.skip("dispatches getTests call - LEGACY", () => {
-    // This test checked for redux action dispatch
-    // RTK Query handles data fetching automatically
-    // Not applicable after migration
-  });
+  // Note: Additional tests for this RTK Query component require proper test infrastructure
+  // for mocking API responses. The component uses useGetAllTestsQuery and useSetTestActiveMutation.
+  // 
+  // Future test considerations:
+  // - Test rendering with actual test data
+  // - Test row click navigation
+  // - Test active/inactive toggle functionality
+  // - Test loading and error states
+  //
+  // Legacy redux action dispatch tests are not applicable after RTK Query migration.
 });

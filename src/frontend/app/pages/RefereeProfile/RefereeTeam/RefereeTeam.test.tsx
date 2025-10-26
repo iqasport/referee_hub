@@ -1,5 +1,5 @@
 // Tests commented out - component status needs investigation
-// TODO: Check if component migrated to RTK Query and rewrite tests
+// Check if component uses RTK Query and rewrite tests accordingly
 // See docs/fixup/tests_commented_out.md for rewrite plan
 
 describe.skip("RefereeTeam", () => {
