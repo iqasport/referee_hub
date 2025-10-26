@@ -584,7 +584,7 @@ export type CheckoutSession = {
 };
 export type CertificationLevel = "snitch" | "assistant" | "head" | "field" | "scorekeeper";
 export type CertificationVersion = "eighteen" | "twenty" | "twentytwo" | "twentyfour";
-export type NgbConstraint = Record<string, never>;
+export type NgbConstraint = {};
 export type NgbConstraintRead = {
   appliesToAny?: boolean;
 };
@@ -634,7 +634,7 @@ export type NgbViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: NgbViewModel[] | null;
 };
-export type INgbStatsContext = Record<string, never>;
+export type INgbStatsContext = {};
 export type INgbStatsContextRead = {
   totalRefereesCount?: number;
   headRefereesCount?: number;

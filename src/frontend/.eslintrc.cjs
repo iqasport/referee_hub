@@ -26,6 +26,13 @@ module.exports = {
       }
     },
     {
+      "files": ["app/store/serviceApi.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/ban-types": "off"
+      }
+    },
+    {
       "files": ["**/*.test.ts", "**/*.test.tsx"],
       "rules": {
         "testing-library/no-node-access": "warn",
