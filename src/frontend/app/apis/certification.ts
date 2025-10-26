@@ -25,15 +25,11 @@ export interface UpdateCertificationRequest {
 export async function getCertifications(): Promise<CertificationsResponse> {
   const url = "certifications";
 
-  try {
-    const certResponse = await baseAxios.get<GetCertificationsSchema>(url);
+  const certResponse = await baseAxios.get<GetCertificationsSchema>(url);
 
-    return {
-      certifications: certResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
+  return {
+    certifications: certResponse.data.data,
+  };
 }
 
 export async function createCertification(
@@ -41,17 +37,13 @@ export async function createCertification(
 ): Promise<RefereeCertificationResponse> {
   const url = "referee_certifications";
 
-  try {
-    const refCertResponse = await baseAxios.post<GetRefereeCertificationSchema>(url, {
-      ...certification,
-    });
+  const refCertResponse = await baseAxios.post<GetRefereeCertificationSchema>(url, {
+    ...certification,
+  });
 
-    return {
-      certification: refCertResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
+  return {
+    certification: refCertResponse.data.data,
+  };
 }
 
 export async function revokeCertification(
@@ -60,15 +52,11 @@ export async function revokeCertification(
 ): Promise<RefereeCertificationResponse> {
   const url = `referee_certifications/${certificationId}`;
 
-  try {
-    const refCertResponse = await baseAxios.patch<GetRefereeCertificationSchema>(url, {
-      ...certification,
-    });
+  const refCertResponse = await baseAxios.patch<GetRefereeCertificationSchema>(url, {
+    ...certification,
+  });
 
-    return {
-      certification: refCertResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
+  return {
+    certification: refCertResponse.data.data,
+  };
 }

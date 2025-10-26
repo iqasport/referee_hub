@@ -45,47 +45,31 @@ const formatUserResponse = (response: AxiosResponse<CurrentUserSchema>): UserRes
 
 export async function getCurrentUser(): Promise<UserResponse> {
   const url = "users/current_user";
+  const userResponse = await baseAxios.get<CurrentUserSchema>(url);
+  return formatUserResponse(userResponse);
 
-  try {
-    const userResponse = await baseAxios.get<CurrentUserSchema>(url);
-    return formatUserResponse(userResponse);
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function updatePolicyAcceptance(userId: string, type: string): Promise<UserResponse> {
   const url = `users/${userId}/${type}_policies`;
+  const userResponse = await baseAxios.post(url, { id: userId });
+  return formatUserResponse(userResponse);
 
-  try {
-    const userResponse = await baseAxios.post(url, { id: userId });
-    return formatUserResponse(userResponse);
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function updateAvatar(userId: string, avatar: File): Promise<UserResponse> {
   const url = `/api/v1/users/${userId}/update_avatar`;
+  const data = new FormData();
+  data.append("avatar", avatar);
 
-  try {
-    const data = new FormData();
-    data.append("avatar", avatar);
+  const userResponse = await axios.post(url, data);
+  return formatUserResponse(userResponse);
 
-    const userResponse = await axios.post(url, data);
-    return formatUserResponse(userResponse);
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function updateUser(userId: string, user: UpdatedUserRequest): Promise<UserResponse> {
   const url = `users/${userId}`;
+  const userResponse = await baseAxios.patch(url, { ...user });
+  return formatUserResponse(userResponse);
 
-  try {
-    const userResponse = await baseAxios.patch(url, { ...user });
-    return formatUserResponse(userResponse);
-  } catch (err) {
-    throw err;
-  }
 }

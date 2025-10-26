@@ -22,18 +22,14 @@ export type UpdateQuestionRequest = Omit<DatumAttributes, "testId">
 
 export async function getQuestions(testId: string): Promise<QuestionsResponse> {
   const url = `tests/${testId}/questions`;
+  const questionsResponse = await baseAxios.get<GetQuestionsSchema>(url);
 
-  try {
-    const questionsResponse = await baseAxios.get<GetQuestionsSchema>(url);
+  return {
+    answers: questionsResponse.data.included,
+    meta: questionsResponse.data.meta,
+    questions: questionsResponse.data.data,
+  };
 
-    return {
-      answers: questionsResponse.data.included,
-      meta: questionsResponse.data.meta,
-      questions: questionsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function updateQuestion(
@@ -41,28 +37,20 @@ export async function updateQuestion(
   newQuestion: UpdateQuestionRequest
 ): Promise<QuestionResponse> {
   const url = `questions/${questionId}`;
+  const questionResponse = await baseAxios.patch<GetQuestionSchema>(url, newQuestion);
 
-  try {
-    const questionResponse = await baseAxios.patch<GetQuestionSchema>(url, newQuestion);
+  return {
+    question: questionResponse.data.data,
+  };
 
-    return {
-      question: questionResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function deleteQuestion(questionId): Promise<QuestionResponse> {
   const url = `questions/${questionId}`;
+  const questionResponse = await baseAxios.delete<GetQuestionSchema>(url);
 
-  try {
-    const questionResponse = await baseAxios.delete<GetQuestionSchema>(url);
+  return {
+    question: questionResponse.data.data,
+  };
 
-    return {
-      question: questionResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }

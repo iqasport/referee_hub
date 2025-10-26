@@ -136,20 +136,16 @@ const formatRefereeResponse = (
 
 export async function getReferee(refereeId: string | number): Promise<RefereeResponse> {
   const url = `referees/${refereeId}`;
+  const refereeResponse = await baseAxios.get<GetRefereeSchema>(url);
+  const formattedResponse = formatRefereeResponse(
+    refereeResponse.data.included,
+    refereeResponse.data.data.attributes,
+    refereeResponse.data.data.relationships,
+    refereeResponse.data.data.id
+  );
 
-  try {
-    const refereeResponse = await baseAxios.get<GetRefereeSchema>(url);
-    const formattedResponse = formatRefereeResponse(
-      refereeResponse.data.included,
-      refereeResponse.data.data.attributes,
-      refereeResponse.data.data.relationships,
-      refereeResponse.data.data.id
-    );
+  return formattedResponse;
 
-    return formattedResponse;
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function updateReferee(
@@ -157,38 +153,30 @@ export async function updateReferee(
   refereeId: string | number
 ): Promise<RefereeResponse> {
   const url = `/referees/${refereeId}`;
+  const refereeResponse = await baseAxios.patch<GetRefereeSchema>(url, updatedReferee);
+  return formatRefereeResponse(
+    refereeResponse.data.included,
+    refereeResponse.data.data.attributes,
+    refereeResponse.data.data.relationships,
+    refereeResponse.data.data.id
+  );
 
-  try {
-    const refereeResponse = await baseAxios.patch<GetRefereeSchema>(url, updatedReferee);
-    return formatRefereeResponse(
-      refereeResponse.data.included,
-      refereeResponse.data.data.attributes,
-      refereeResponse.data.data.relationships,
-      refereeResponse.data.data.id
-    );
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function getReferees(filter: GetRefereesFilter): Promise<RefereesResponse> {
   const url = "referees";
   const transformedFilter = camelToSnake(filter);
+  const refereeResponse = await baseAxios.get<GetRefereesSchema>(url, {
+    params: transformedFilter,
+  });
+  const included = refereeResponse.data.included;
+  const referees = refereeResponse.data.data.map((ref) => {
+    return formatRefereeResponse(included, ref.attributes, ref.relationships, ref.id);
+  });
 
-  try {
-    const refereeResponse = await baseAxios.get<GetRefereesSchema>(url, {
-      params: transformedFilter,
-    });
-    const included = refereeResponse.data.included;
-    const referees = refereeResponse.data.data.map((ref) => {
-      return formatRefereeResponse(included, ref.attributes, ref.relationships, ref.id);
-    });
+  return {
+    meta: refereeResponse.data.meta,
+    referees,
+  };
 
-    return {
-      meta: refereeResponse.data.meta,
-      referees,
-    };
-  } catch (err) {
-    throw err;
-  }
 }

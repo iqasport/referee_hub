@@ -44,33 +44,25 @@ export interface UpdateTeamRequest extends Attributes {
 export async function getTeams(filter: GetTeamsFilter) {
   const url = "teams";
   const transformedFilter = camelToSnake(filter);
+  const teamsResponse = await baseAxios.get<GetTeamsSchema>(url, { params: transformedFilter });
 
-  try {
-    const teamsResponse = await baseAxios.get<GetTeamsSchema>(url, { params: transformedFilter });
+  return {
+    meta: teamsResponse.data.meta,
+    teams: teamsResponse.data.data,
+  };
 
-    return {
-      meta: teamsResponse.data.meta,
-      teams: teamsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function getNgbTeams(filter?: GetTeamsFilter) {
   const url = "ngb-admin/teams";
   const transformedFilter = camelToSnake(filter);
+  const teamsResponse = await baseAxios.get<GetTeamsSchema>(url, { params: transformedFilter });
 
-  try {
-    const teamsResponse = await baseAxios.get<GetTeamsSchema>(url, { params: transformedFilter });
+  return {
+    meta: teamsResponse.data.meta,
+    teams: teamsResponse.data.data,
+  };
 
-    return {
-      meta: teamsResponse.data.meta,
-      teams: teamsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function importNgbTeams(file: File, mappedData: HeadersMap, ngbId: string) {
@@ -83,39 +75,31 @@ export async function importNgbTeams(file: File, mappedData: HeadersMap, ngbId: 
     },
     {}
   );
+  const data = new FormData();
+  data.append("file", file);
+  data.append("mapped_headers", JSON.stringify(reversedMap));
+  data.append(NGB_ID, ngbId);
 
-  try {
-    const data = new FormData();
-    data.append("file", file);
-    data.append("mapped_headers", JSON.stringify(reversedMap));
-    data.append(NGB_ID, ngbId);
+  const teamsResponse = await axios.post<GetTeamsSchema>(url, data);
 
-    const teamsResponse = await axios.post<GetTeamsSchema>(url, data);
+  return {
+    meta: teamsResponse.data.meta,
+    teams: teamsResponse.data.data,
+  };
 
-    return {
-      meta: teamsResponse.data.meta,
-      teams: teamsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function createTeam(team: UpdateTeamRequest): Promise<TeamResponse> {
   const url = "ngb-admin/teams";
+  const teamResponse = await baseAxios.post<GetTeamSchema>(url, { ...team });
+  const socialAccounts = teamResponse.data.included.map((account) => account.attributes);
 
-  try {
-    const teamResponse = await baseAxios.post<GetTeamSchema>(url, { ...team });
-    const socialAccounts = teamResponse.data.included.map((account) => account.attributes);
+  return {
+    id: teamResponse.data.data.id,
+    socialAccounts,
+    team: teamResponse.data.data.attributes,
+  };
 
-    return {
-      id: teamResponse.data.data.id,
-      socialAccounts,
-      team: teamResponse.data.data.attributes,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function getTeam(id: string, ngbId: string): Promise<TeamResponse> {
@@ -123,36 +107,28 @@ export async function getTeam(id: string, ngbId: string): Promise<TeamResponse> 
   const params: { [key: string]: string } = {
     [NGB_ID]: ngbId,
   };
+  const teamResponse = await baseAxios.get<GetTeamSchema>(url, { params });
+  const socialAccounts = teamResponse.data.included.map((account) => account.attributes);
 
-  try {
-    const teamResponse = await baseAxios.get<GetTeamSchema>(url, { params });
-    const socialAccounts = teamResponse.data.included.map((account) => account.attributes);
+  return {
+    id: teamResponse.data.data.id,
+    socialAccounts,
+    team: teamResponse.data.data.attributes,
+  };
 
-    return {
-      id: teamResponse.data.data.id,
-      socialAccounts,
-      team: teamResponse.data.data.attributes,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function updateTeam(id: string, team: UpdateTeamRequest): Promise<TeamResponse> {
   const url = `ngb-admin/teams/${id}`;
+  const teamResponse = await baseAxios.put<GetTeamSchema>(url, { ...team });
+  const socialAccounts = teamResponse.data.included.map((account) => account.attributes);
 
-  try {
-    const teamResponse = await baseAxios.put<GetTeamSchema>(url, { ...team });
-    const socialAccounts = teamResponse.data.included.map((account) => account.attributes);
+  return {
+    id: teamResponse.data.data.id,
+    socialAccounts,
+    team: teamResponse.data.data.attributes,
+  };
 
-    return {
-      id: teamResponse.data.data.id,
-      socialAccounts,
-      team: teamResponse.data.data.attributes,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function deleteTeam(id: string, ngbId: string): Promise<TeamResponse> {
@@ -160,16 +136,12 @@ export async function deleteTeam(id: string, ngbId: string): Promise<TeamRespons
   const params: { [key: string]: string } = {
     [NGB_ID]: ngbId,
   };
+  const teamResponse = await baseAxios.delete<GetTeamSchema>(url, { params });
 
-  try {
-    const teamResponse = await baseAxios.delete<GetTeamSchema>(url, { params });
+  return {
+    id: teamResponse.data.data.id,
+    socialAccounts: [],
+    team: teamResponse.data.data.attributes,
+  };
 
-    return {
-      id: teamResponse.data.data.id,
-      socialAccounts: [],
-      team: teamResponse.data.data.attributes,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
