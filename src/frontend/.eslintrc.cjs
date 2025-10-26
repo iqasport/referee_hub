@@ -24,6 +24,14 @@ module.exports = {
       "rules": {
         "@typescript-eslint/no-explicit-any": "off"
       }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "testing-library/no-node-access": "warn",
+        "testing-library/no-container": "warn",
+        "testing-library/no-wait-for-multiple-assertions": "warn"
+      }
     }
   ]
 };
