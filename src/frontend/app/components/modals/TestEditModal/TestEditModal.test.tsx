@@ -80,18 +80,9 @@ describe("TestEditModal", () => {
       expect(screen.getByText("Done")).toBeInTheDocument();
     });
 
-    it("handles input changes for title field", async () => {
-      const user = userEvent.setup();
-      render(<TestEditModal {...defaultProps} />);
-
-      const titleInput = screen.getByLabelText("title");
-      await user.type(titleInput, "New Test Title");
-
-      expect(titleInput).toHaveValue("New Test Title");
-    });
-
     it.skip("shows validation errors when submitting with missing required fields", async () => {
-      // Skip: Complex form validation test - requires exact error message matching
+      // Skip: The form doesn't show validation errors until after first submission attempt
+      // This would require more complex interaction flow to test properly
       const user = userEvent.setup();
       render(<TestEditModal {...defaultProps} />);
 
@@ -100,42 +91,53 @@ describe("TestEditModal", () => {
 
       // Should show error messages for required fields
       await waitFor(() => {
-        expect(screen.queryByText(/Cannot be blank/i)).toBeInTheDocument();
+        expect(screen.getByText("Title Cannot be blank")).toBeInTheDocument();
+        expect(screen.getByText("Description Cannot be blank")).toBeInTheDocument();
+        expect(screen.getByText("Level Cannot be blank")).toBeInTheDocument();
       });
     });
 
-    it.skip("calls createTest mutation when valid form is submitted", async () => {
-      // Skip: Complex form filling test - requires all form fields to be filled correctly
+    it("calls createTest mutation with correct data when valid form is submitted", async () => {
       const user = userEvent.setup();
       render(<TestEditModal {...defaultProps} />);
 
-      // Fill in the required title and description fields
+      // Fill in all required fields
       await user.type(screen.getByLabelText("title"), "New Test");
       await user.type(screen.getByLabelText("description"), "Test description");
-      
-      // Fill in other required text fields by placeholder
-      const positiveFeedbackField = screen.getByPlaceholderText("Provide feedback after a passed test");
-      await user.type(positiveFeedbackField, "Good job");
-      
-      const negativeFeedbackField = screen.getByPlaceholderText("Provide feedback after a failed test");
-      await user.type(negativeFeedbackField, "Try again");
+      await user.type(screen.getByPlaceholderText("Provide feedback after a passed test"), "Good job");
+      await user.type(screen.getByPlaceholderText("Provide feedback after a failed test"), "Try again");
       
       // Fill in number fields
       const inputs = screen.getAllByRole("spinbutton");
-      if (inputs.length >= 3) {
-        await user.type(inputs[0], "80"); // passPercentage
-        await user.type(inputs[1], "10"); // questionsCount  
-        await user.type(inputs[2], "18"); // timeLimit
-      }
+      await user.clear(inputs[0]);
+      await user.type(inputs[0], "80"); // passPercentage
+      await user.clear(inputs[1]);
+      await user.type(inputs[1], "10"); // questionsCount  
+      await user.clear(inputs[2]);
+      await user.type(inputs[2], "18"); // timeLimit
 
-      // Select level
-      const levelSelect = screen.getByPlaceholderText("Select the level");
-      await user.selectOptions(levelSelect, "assistant");
+      // Select level - find by the option text
+      const levelSelects = screen.getAllByRole("combobox");
+      const levelSelect = levelSelects.find(select => 
+        select.querySelector('option[value=""]')?.textContent === "Select the level"
+      );
+      await user.selectOptions(levelSelect as HTMLElement, "assistant");
       
       const doneButton = screen.getByText("Done");
       await user.click(doneButton);
 
-      expect(mockCreateTest).toHaveBeenCalled();
+      // Verify mutation was called with correct data
+      expect(mockCreateTest).toHaveBeenCalledTimes(1);
+      const callArgs = mockCreateTest.mock.calls[0][0];
+      expect(callArgs.testViewModel.title).toBe("New Test");
+      expect(callArgs.testViewModel.description).toBe("Test description");
+      expect(callArgs.testViewModel.positiveFeedback).toBe("Good job");
+      expect(callArgs.testViewModel.negativeFeedback).toBe("Try again");
+      // Number fields are submitted as numbers (component converts them)
+      expect(Number(callArgs.testViewModel.passPercentage)).toBe(80);
+      expect(Number(callArgs.testViewModel.questionsCount)).toBe(10);
+      expect(Number(callArgs.testViewModel.timeLimit)).toBe(18);
+      expect(callArgs.testViewModel.awardedCertification.level).toBe("assistant");
     });
   });
 
@@ -191,6 +193,18 @@ describe("TestEditModal", () => {
       expect(screen.getByDisplayValue("Existing description")).toBeInTheDocument();
       expect(screen.getByDisplayValue("You passed!")).toBeInTheDocument();
       expect(screen.getByDisplayValue("Try harder!")).toBeInTheDocument();
+      
+      // Verify dropdown values are populated
+      const levelSelects = screen.getAllByRole("combobox");
+      const levelSelect = levelSelects.find(select => 
+        select.querySelector('option[value=""]')?.textContent === "Select the level"
+      ) as HTMLSelectElement;
+      expect(levelSelect.value).toBe("assistant");
+      
+      const versionSelect = levelSelects.find(select => 
+        select.querySelector('option[value="twentyfour"]')
+      ) as HTMLSelectElement;
+      expect(versionSelect.value).toBe("twentyfour");
     });
   });
 });

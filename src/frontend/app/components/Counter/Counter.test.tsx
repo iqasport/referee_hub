@@ -54,9 +54,9 @@ describe("Counter", () => {
     // setCurrentTime should be called with elapsed time (not remaining time)
     expect(defaultProps.setCurrentTime).toHaveBeenCalled();
     const callArg = defaultProps.setCurrentTime.mock.calls[0][0];
-    // Elapsed time should be close to 0 minutes, 1 second
-    expect(callArg.minutes).toBeCloseTo(0, 0);
-    expect(callArg.seconds).toBeGreaterThanOrEqual(0);
+    // After 1 second, elapsed time should be 0 minutes, 1 second
+    expect(callArg.minutes).toBe(0);
+    expect(callArg.seconds).toBe(1);
   });
 
   test("it calls onTimeLimitMet when countdown reaches zero", () => {
@@ -72,8 +72,13 @@ describe("Counter", () => {
       jest.advanceTimersByTime(2000);
     });
 
-    // onTimeLimitMet should be called with total elapsed time
+    // onTimeLimitMet should be called with minutes and seconds as separate arguments
     expect(shortTimeProps.onTimeLimitMet).toHaveBeenCalled();
+    const call = shortTimeProps.onTimeLimitMet.mock.calls[0];
+    // Should be called with elapsed minutes and seconds when timer reaches zero
+    // After 2 seconds: 0 minutes, 2 seconds
+    expect(call[0]).toBe(0); // minutes
+    expect(call[1]).toBe(2); // seconds
   });
 
   test("it updates every second via interval", () => {
