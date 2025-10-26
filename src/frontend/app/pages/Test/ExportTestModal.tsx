@@ -20,8 +20,8 @@ const ExportTestModal = (props: ExportModalProps) => {
       </div>
       <div className="flex w-full mt-8 items-center">
         <p className="w-3/4 mr-4 text-sm text-gray-600 italic">
-          We will send you an email with the attached file once your export is done. If you don't
-          get the email within 30 minutes, something's up! Email refhub@iqasport.org for help.
+          We will send you an email with the attached file once your export is done. If you don&apos;t
+          get the email within 30 minutes, something&apos;s up! Email refhub@iqasport.org for help.
         </p>
         <button className="green-button-outline h-12" onClick={onExport}>
           Submit

@@ -67,7 +67,7 @@ const Settings = () => {
         </select>
         <div>
           <p className="my-2">
-            Don't see your desired language? Email{" "}
+            Don&apos;t see your desired language? Email{" "}
             <a className="text-blue-darker" href="mailto:translation@iqasport.org">
               translation@iqasport.org
             </a>{" "}

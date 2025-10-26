@@ -233,7 +233,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
             value={newNgb.website || ""}
           />
           {hasError("website") && (
-              <span className="text-red-500">Website must be a valid URL (like 'https://...')</span>
+              <span className="text-red-500">Website must be a valid URL (like &apos;https://...&apos;)</span>
             )}
         </label>
         <div className="w-full my-8">
