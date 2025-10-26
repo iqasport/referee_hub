@@ -1,0 +1,479 @@
+<testsuites name="ES Lint">
+  <testsuite errors="0" failures="0" name="/app/apis/utils.ts" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 7:36 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/Avatar/Avatar.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 1:8 &apos;axios&apos; is defined but never used." time="1">
+      <skipped>&apos;axios&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 68:9 &apos;invite&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;invite&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/Counter/Counter.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 46:36 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 48:89 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/modals/TeamEditModal/TeamEditModal.tsx" skipped="6" tests="6" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 59:29 &apos;createTeamData&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;createTeamData&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 59:52 &apos;createTeamError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;createTeamError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 59:80 &apos;isCreateTeamLoading&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;isCreateTeamLoading&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 60:29 &apos;updateTeamData&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;updateTeamData&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 60:52 &apos;updateTeamError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;updateTeamError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 60:80 &apos;isUpdateTeamLoading&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;isUpdateTeamLoading&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/modals/TestEditModal/TestEditModal.test.tsx" skipped="13" tests="13" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="testing-library/no-wait-for-multiple-assertions" name=" 99:9 Avoid using multiple assertions within `waitFor` callback" time="1">
+      <skipped>Avoid using multiple assertions within `waitFor` callback</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-wait-for-multiple-assertions" name=" 100:9 Avoid using multiple assertions within `waitFor` callback" time="1">
+      <skipped>Avoid using multiple assertions within `waitFor` callback</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-wait-for-multiple-assertions" name=" 101:9 Avoid using multiple assertions within `waitFor` callback" time="1">
+      <skipped>Avoid using multiple assertions within `waitFor` callback</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-wait-for-multiple-assertions" name=" 102:9 Avoid using multiple assertions within `waitFor` callback" time="1">
+      <skipped>Avoid using multiple assertions within `waitFor` callback</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-wait-for-multiple-assertions" name=" 103:9 Avoid using multiple assertions within `waitFor` callback" time="1">
+      <skipped>Avoid using multiple assertions within `waitFor` callback</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-wait-for-multiple-assertions" name=" 104:9 Avoid using multiple assertions within `waitFor` callback" time="1">
+      <skipped>Avoid using multiple assertions within `waitFor` callback</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-wait-for-multiple-assertions" name=" 105:9 Avoid using multiple assertions within `waitFor` callback" time="1">
+      <skipped>Avoid using multiple assertions within `waitFor` callback</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 131:16 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 131:16 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 209:16 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 209:16 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 214:16 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 214:16 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/modals/TestEditModal/TestEditModal.tsx" skipped="4" tests="4" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 4:10 &apos;shallowEqual&apos; is defined but never used." time="1">
+      <skipped>&apos;shallowEqual&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 4:24 &apos;useDispatch&apos; is defined but never used." time="1">
+      <skipped>&apos;useDispatch&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 4:37 &apos;useSelector&apos; is defined but never used." time="1">
+      <skipped>&apos;useSelector&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 66:28 &apos;shouldUpdateTests&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;shouldUpdateTests&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/tables/NgbTable/NgbTable.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 2:17 &apos;useEffect&apos; is defined but never used." time="1">
+      <skipped>&apos;useEffect&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/tables/RefereeTestsTable/RefereeTestsTable.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 6:10 &apos;Certification&apos; is defined but never used." time="1">
+      <skipped>&apos;Certification&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/tables/TestsTable/ActionDropdown.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 26:9 &apos;handleDeleteOpen&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;handleDeleteOpen&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/tables/TestsTable/TestsTable.test.tsx" skipped="6" tests="6" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="testing-library/no-container" name=" 135:24 Avoid using container methods. Prefer using the methods from Testing Library, such as &quot;getByRole()&quot;" time="1">
+      <skipped>Avoid using container methods. Prefer using the methods from Testing Library, such as &quot;getByRole()&quot;</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 135:34 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 135:34 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-container" name=" 140:22 Avoid using container methods. Prefer using the methods from Testing Library, such as &quot;getByRole()&quot;" time="1">
+      <skipped>Avoid using container methods. Prefer using the methods from Testing Library, such as &quot;getByRole()&quot;</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 140:32 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+    <testcase classname="testing-library/no-node-access" name=" 140:32 Avoid direct Node access. Prefer using the methods from Testing Library." time="1">
+      <skipped>Avoid direct Node access. Prefer using the methods from Testing Library.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/components/tables/TestsTable/TestsTable.tsx" skipped="5" tests="5" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 7:10 &apos;getTestCertVersion&apos; is defined but never used." time="1">
+      <skipped>&apos;getTestCertVersion&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 8:10 &apos;toDateTime&apos; is defined but never used." time="1">
+      <skipped>&apos;toDateTime&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 9:10 &apos;formatLanguage&apos; is defined but never used." time="1">
+      <skipped>&apos;formatLanguage&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 11:8 &apos;WarningModal&apos; is defined but never used." time="1">
+      <skipped>&apos;WarningModal&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 16:46 &apos;useGetLanguagesQuery&apos; is defined but never used." time="1">
+      <skipped>&apos;useGetLanguagesQuery&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/modules/test/single_test.ts" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 54:7 &apos;state&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;state&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/ImportWizard/FinishStep.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 10:10 &apos;Datum&apos; is defined but never used." time="1">
+      <skipped>&apos;Datum&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/ImportWizard/ImportWizard.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 13:10 &apos;importTestQuestions&apos; is defined but never used." time="1">
+      <skipped>&apos;importTestQuestions&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/NgbProfile/ActionsButton.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 17:24 &apos;onImportClick&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;onImportClick&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/NgbProfile/NgbProfile.tsx" skipped="4" tests="4" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 28:36 &apos;exportRefereesData&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;exportRefereesData&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 28:63 &apos;exportRefereesError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;exportRefereesError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 29:33 &apos;exportTeamsData&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;exportTeamsData&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 29:57 &apos;exportTeamsError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;exportTeamsError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeProfile/RefereeHeader/HeaderImage.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 13:22 &apos;id&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;id&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 14:37 &apos;updateUserAvatarError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;updateUserAvatarError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeProfile/RefereeHeader/RefereeHeader.test.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 13:33 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 14:35 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeProfile/RefereeHeader/RefereeHeader.tsx" skipped="3" tests="3" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 27:30 &apos;getUserError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;getUserError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 28:36 &apos;getUserAvatarError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;getUserAvatarError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 29:31 &apos;updateUserError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;updateUserError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeProfile/RefereeLocation/RefereeLocation.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 15:33 &apos;getNgbsError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;getNgbsError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeProfile/RefereeProfile.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 8:10 &apos;IdParams&apos; is defined but never used." time="1">
+      <skipped>&apos;IdParams&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 81:38 &apos;testAttemptsError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;testAttemptsError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeProfile/RefereeTeam/RefereeTeam.test.tsx" skipped="6" tests="6" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 11:33 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 11:47 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 46:57 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 46:71 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 90:57 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 90:71 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeProfile/RefereeTeam/RefereeTeam.tsx" skipped="3" tests="3" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 6:28 &apos;NgbViewModel&apos; is defined but never used." time="1">
+      <skipped>&apos;NgbViewModel&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 21:41 &apos;getPrimaryNgbTeamsError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;getPrimaryNgbTeamsError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 22:43 &apos;getSecondaryNgbTeamsError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;getSecondaryNgbTeamsError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/RefereeTests/RefereeTests.tsx" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 8:6 &apos;IdParams&apos; is defined but never used." time="1">
+      <skipped>&apos;IdParams&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/Settings/Settings.test.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="jest/no-disabled-tests" name=" 74:5 Disabled test" time="1">
+      <skipped>Disabled test</skipped>
+    </testcase>
+    <testcase classname="jest/no-disabled-tests" name=" 122:5 Disabled test" time="1">
+      <skipped>Disabled test</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/StartTest/StartTest.tsx" skipped="4" tests="4" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 46:6 &apos;TestParams&apos; is defined but never used." time="1">
+      <skipped>&apos;TestParams&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 67:41 &apos;testDetailsLoading&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;testDetailsLoading&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 67:68 &apos;getTestError&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;getTestError&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 70:30 &apos;submittedTest&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;submittedTest&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/Test/Details.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 13:17 &apos;languages&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;languages&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 15:9 &apos;language&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;language&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/pages/Test/Test.tsx" skipped="13" tests="13" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 4:17 &apos;useEffect&apos; is defined but never used." time="1">
+      <skipped>&apos;useEffect&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 5:10 &apos;shallowEqual&apos; is defined but never used." time="1">
+      <skipped>&apos;shallowEqual&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 5:24 &apos;useDispatch&apos; is defined but never used." time="1">
+      <skipped>&apos;useDispatch&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 5:37 &apos;useSelector&apos; is defined but never used." time="1">
+      <skipped>&apos;useSelector&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 12:10 &apos;CurrentUserState&apos; is defined but never used." time="1">
+      <skipped>&apos;CurrentUserState&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 13:10 &apos;exportTest&apos; is defined but never used." time="1">
+      <skipped>&apos;exportTest&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 14:10 &apos;getLanguages&apos; is defined but never used." time="1">
+      <skipped>&apos;getLanguages&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 15:10 &apos;deleteTest&apos; is defined but never used." time="1">
+      <skipped>&apos;deleteTest&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 15:22 &apos;getTest&apos; is defined but never used." time="1">
+      <skipped>&apos;getTest&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 15:31 &apos;updateTest&apos; is defined but never used." time="1">
+      <skipped>&apos;updateTest&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 16:10 &apos;RootState&apos; is defined but never used." time="1">
+      <skipped>&apos;RootState&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 21:10 &apos;AppDispatch&apos; is defined but never used." time="1">
+      <skipped>&apos;AppDispatch&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 45:9 &apos;roles&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;roles&apos; is assigned a value but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/routes.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 19:7 &apos;Settings&apos; is assigned a value but never used." time="1">
+      <skipped>&apos;Settings&apos; is assigned a value but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 27:82 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/currentUserSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 193:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 201:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getAnswersSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 156:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 164:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getJobSchema.ts" skipped="3" tests="3" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 144:10 &apos;a&apos; is defined but never used." time="1">
+      <skipped>&apos;a&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 148:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 156:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getNationalGoverningBodySchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 222:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 230:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getProductsSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 153:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 161:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getQuestionSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 191:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 199:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getQuestionsSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 198:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 206:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getRefereeCertificationSchema.ts" skipped="3" tests="3" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 156:10 &apos;a&apos; is defined but never used." time="1">
+      <skipped>&apos;a&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 160:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 168:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getRefereeSchema.ts" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 234:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getRefereesSchema.ts" skipped="1" tests="1" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 257:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getTeamSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 193:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 201:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getTeamsSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 200:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 208:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getTestSchema.ts" skipped="3" tests="3" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 181:10 &apos;a&apos; is defined but never used." time="1">
+      <skipped>&apos;a&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 185:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 193:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/schemas/getTestsSchema.ts" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 181:10 &apos;u&apos; is defined but never used." time="1">
+      <skipped>&apos;u&apos; is defined but never used.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-unused-vars" name=" 189:10 &apos;m&apos; is defined but never used." time="1">
+      <skipped>&apos;m&apos; is defined but never used.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/store/serviceApi.ts" skipped="5" tests="5" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 433:67 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 548:9 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 555:9 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 866:20 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 968:20 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" name="/app/utils/test-utils.tsx" skipped="2" tests="2" time="1" timestamp="2025-10-26T11:33:50">
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 16:15 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+    <testcase classname="@typescript-eslint/no-explicit-any" name=" 31:15 Unexpected any. Specify a different type." time="1">
+      <skipped>Unexpected any. Specify a different type.</skipped>
+    </testcase>
+  </testsuite>
+</testsuites>
