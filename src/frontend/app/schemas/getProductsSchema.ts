@@ -67,7 +67,9 @@ function transform(val: any, typ: any, getProps: any): any {
       const typ = typs[i];
       try {
         return transform(val, typ, getProps);
-      } catch (_) {}
+      } catch (_) {
+        // Ignore error and try next type
+      }
     }
     return invalidValue(typs, val);
   }
