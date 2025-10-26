@@ -97,7 +97,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    let { value } = event.target;
+    const { value } = event.target;
     const { name } = event.target;
 
     setHasChangedTeam(true);
