@@ -46,10 +46,10 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
         case "DEU": return "de";
         case "BRA": return "pt"; // we have mainly Brazilian Portuguese
         case "ITA": return "it";
+        case "AQC": return "ca";
         case "NLD": return "nl";
         case "TUR": return "tr";
         case "AQE": return "es";
-        case "AQC": return "es";
         case "ARG": return "es";
         default: return "en";
       }
