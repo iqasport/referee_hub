@@ -80,12 +80,16 @@ describe("TestEditModal", () => {
       expect(screen.getByText("Done")).toBeInTheDocument();
     });
 
-    it.skip("shows validation errors when submitting with missing required fields", async () => {
-      // Skip: The form doesn't show validation errors until after first submission attempt
-      // This would require more complex interaction flow to test properly
+    it("shows validation errors when submitting with missing required fields", async () => {
       const user = userEvent.setup();
       render(<TestEditModal {...defaultProps} />);
 
+      // Type something to enable the submit button, then clear it to trigger validation
+      const titleInput = screen.getByLabelText("title");
+      await user.type(titleInput, "T");
+      await user.clear(titleInput);
+
+      // Now click submit - button is enabled but fields are empty
       const doneButton = screen.getByText("Done");
       await user.click(doneButton);
 
@@ -94,6 +98,11 @@ describe("TestEditModal", () => {
         expect(screen.getByText("Title Cannot be blank")).toBeInTheDocument();
         expect(screen.getByText("Description Cannot be blank")).toBeInTheDocument();
         expect(screen.getByText("Level Cannot be blank")).toBeInTheDocument();
+        expect(screen.getByText("Passpercentage Cannot be blank")).toBeInTheDocument();
+        expect(screen.getByText("Questionscount Cannot be blank")).toBeInTheDocument();
+        expect(screen.getByText("Timelimit Cannot be blank")).toBeInTheDocument();
+        expect(screen.getByText("Positivefeedback Cannot be blank")).toBeInTheDocument();
+        expect(screen.getByText("Negativefeedback Cannot be blank")).toBeInTheDocument();
       });
     });
 
