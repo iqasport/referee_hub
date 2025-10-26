@@ -65,7 +65,7 @@ describe("TestsTable", () => {
     expect(screen.getByText("No tests found")).toBeInTheDocument();
   });
 
-  it("renders table with test data", () => {
+  it("renders table with test data in correct structure", () => {
     const tests: TestViewModel[] = [
       createTestData({
         testId: "1",
@@ -87,13 +87,22 @@ describe("TestsTable", () => {
 
     render(<TestsTable />);
 
-    // Check that test titles are rendered
+    // Verify the table renders both test titles
     expect(screen.getByText("Assistant Test")).toBeInTheDocument();
     expect(screen.getByText("Head Referee Test")).toBeInTheDocument();
 
-    // Check that certification levels are displayed
-    expect(screen.getByText("Assistant")).toBeInTheDocument();
-    expect(screen.getByText("Head")).toBeInTheDocument();
+    // Verify certification levels are properly capitalized in the table
+    // Using getAllByText because levels could appear in multiple contexts
+    const assistantElements = screen.getAllByText("Assistant");
+    const headElements = screen.getAllByText("Head");
+    
+    // Should have at least one instance of each level text
+    expect(assistantElements.length).toBeGreaterThanOrEqual(1);
+    expect(headElements.length).toBeGreaterThanOrEqual(1);
+    
+    // Verify languages are displayed
+    expect(screen.getByText("en-US")).toBeInTheDocument();
+    expect(screen.getByText("es-ES")).toBeInTheDocument();
   });
 
   it("navigates to test detail on row click", async () => {
@@ -112,18 +121,24 @@ describe("TestsTable", () => {
     expect(mockHistoryPush).toHaveBeenCalledWith("/admin/tests/test-123", expect.anything());
   });
 
-  it("displays active status with green icon for active tests", () => {
+  it("displays active status correctly for different tests", () => {
     const tests: TestViewModel[] = [
       createTestData({ testId: "1", title: "Active Test", active: true }),
+      createTestData({ testId: "2", title: "Inactive Test", active: false }),
     ];
 
     mockUseGetAllTestsQuery.mockReturnValue({ data: tests, isLoading: false });
 
-    render(<TestsTable />);
+    const { container } = render(<TestsTable />);
 
-    // Check for green icon indicating active status
-    const activeIcon = document.querySelector('.text-green');
-    expect(activeIcon).toBeInTheDocument();
+    // Count the number of active (green) icons - should be exactly 1
+    const greenIcons = container.querySelectorAll('.text-green');
+    expect(greenIcons.length).toBe(1);
+    
+    // Count gray icons that are specifically for inactive status
+    // The component uses both text-gray-500 for all icons, then adds text-green for active
+    const allIcons = container.querySelectorAll('.fa-circle');
+    expect(allIcons.length).toBe(2); // One for each test
   });
 
   it("renders snitch level as 'Flag'", () => {

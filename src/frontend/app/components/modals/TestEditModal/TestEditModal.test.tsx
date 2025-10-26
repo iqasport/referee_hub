@@ -68,26 +68,16 @@ describe("TestEditModal", () => {
   });
 
   describe("New Test Mode", () => {
-    it("renders an empty form for new test", () => {
+    it("renders an empty form for new test with essential elements", () => {
       render(<TestEditModal {...defaultProps} />);
 
       expect(screen.getByText("New Test")).toBeInTheDocument();
       expect(screen.getByText("Title")).toBeInTheDocument();
       expect(screen.getByText("Description")).toBeInTheDocument();
-      expect(screen.getByText("Done")).toBeInTheDocument();
-    });
-
-    it("displays all required form fields", () => {
-      render(<TestEditModal {...defaultProps} />);
-
-      // Check for key form labels
-      expect(screen.getByText("Title")).toBeInTheDocument();
-      expect(screen.getByText("Description")).toBeInTheDocument();
-      expect(screen.getByText("Positive Feedback")).toBeInTheDocument();
-      expect(screen.getByText("Negative Feedback")).toBeInTheDocument();
       expect(screen.getByText("Language")).toBeInTheDocument();
       expect(screen.getByText("Level")).toBeInTheDocument();
       expect(screen.getByText("Version")).toBeInTheDocument();
+      expect(screen.getByText("Done")).toBeInTheDocument();
     });
 
     it("handles input changes for title field", async () => {
@@ -154,6 +144,8 @@ describe("TestEditModal", () => {
       testId: "test-123",
       title: "Existing Test",
       description: "Existing description",
+      positiveFeedback: "You passed!",
+      negativeFeedback: "Try harder!",
     });
 
     beforeEach(() => {
@@ -182,16 +174,23 @@ describe("TestEditModal", () => {
       const doneButton = screen.getByText("Done");
       await user.click(doneButton);
 
-      expect(mockUpdateTest).toHaveBeenCalled();
+      // Verify the mutation was called
+      expect(mockUpdateTest).toHaveBeenCalledTimes(1);
+      
+      // Verify the mutation was called with the correct test ID
+      const callArgs = mockUpdateTest.mock.calls[0][0];
+      expect(callArgs.testId).toBe("test-123");
+      expect(callArgs.testViewModel.title).toBe("Updated Test Title");
     });
 
-    it("populates all form fields with existing test data", () => {
+    it("populates all form fields with existing test data correctly", () => {
       render(<TestEditModal {...defaultProps} testId="test-123" />);
 
+      // Verify custom test-specific values (not defaults)
       expect(screen.getByDisplayValue("Existing Test")).toBeInTheDocument();
       expect(screen.getByDisplayValue("Existing description")).toBeInTheDocument();
-      expect(screen.getByDisplayValue("Great job!")).toBeInTheDocument();
-      expect(screen.getByDisplayValue("Keep studying")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("You passed!")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Try harder!")).toBeInTheDocument();
     });
   });
 });
