@@ -77,42 +77,30 @@ const formatNgbs = (data: Datum[]): AnnotatedNgb[] => {
 export async function getNationalGoverningBodies(): Promise<NgbsResponse> {
   const url = "national_governing_bodies";
 
-  try {
-    const ngbResponse = await baseAxios.get<GetNationalGoverningBodiesSchema>(url);
-    const formattedNgbs = formatNgbs(ngbResponse.data.data);
+  const ngbResponse = await baseAxios.get<GetNationalGoverningBodiesSchema>(url);
+  const formattedNgbs = formatNgbs(ngbResponse.data.data);
 
-    return {
-      meta: ngbResponse.data.meta,
-      nationalGoverningBodies: formattedNgbs,
-    };
-  } catch (err) {
-    throw err;
-  }
+  return {
+    meta: ngbResponse.data.meta,
+    nationalGoverningBodies: formattedNgbs,
+  };
 }
 
 export async function getNationalGoverningBody(id: number): Promise<NgbResponse> {
   const url = `national_governing_bodies/${id}`;
 
-  try {
-    const ngbResponse = await baseAxios.get<GetNationalGoverningBodySchema>(url);
-    return formatNgbResponse(ngbResponse);
-  } catch (err) {
-    throw err;
-  }
+  const ngbResponse = await baseAxios.get<GetNationalGoverningBodySchema>(url);
+  return formatNgbResponse(ngbResponse);
 }
 
 export async function updateLogo(ngbId: string, logo: File): Promise<NgbResponse> {
   const url = `/api/v1/national_governing_bodies/${ngbId}/update_logo`;
 
-  try {
-    const data = new FormData();
-    data.append("logo", logo);
+  const data = new FormData();
+  data.append("logo", logo);
 
-    const ngbResponse = await axios.post(url, data);
-    return formatNgbResponse(ngbResponse);
-  } catch (err) {
-    throw err;
-  }
+  const ngbResponse = await axios.post(url, data);
+  return formatNgbResponse(ngbResponse);
 }
 
 export async function updateNationalGoverningBody(
@@ -121,12 +109,8 @@ export async function updateNationalGoverningBody(
 ): Promise<NgbResponse> {
   const url = `national_governing_bodies/${id}`;
 
-  try {
-    const ngbResponse = await baseAxios.put<GetNationalGoverningBodySchema>(url, { ...ngb });
-    return formatNgbResponse(ngbResponse);
-  } catch (err) {
-    throw err;
-  }
+  const ngbResponse = await baseAxios.put<GetNationalGoverningBodySchema>(url, { ...ngb });
+  return formatNgbResponse(ngbResponse);
 }
 
 export async function importNgbs(file: File, mappedData: HeadersMap): Promise<NgbsResponse> {
@@ -140,18 +124,14 @@ export async function importNgbs(file: File, mappedData: HeadersMap): Promise<Ng
     {}
   );
 
-  try {
-    const data = new FormData();
-    data.append("file", file);
-    data.append("mapped_headers", JSON.stringify(reversedMap));
+  const data = new FormData();
+  data.append("file", file);
+  data.append("mapped_headers", JSON.stringify(reversedMap));
 
-    const ngbsResponse = await axios.post<GetNationalGoverningBodiesSchema>(url, data);
+  const ngbsResponse = await axios.post<GetNationalGoverningBodiesSchema>(url, data);
 
-    return {
-      meta: ngbsResponse.data.meta,
-      nationalGoverningBodies: formatNgbs(ngbsResponse.data.data),
-    };
-  } catch (err) {
-    throw err;
-  }
+  return {
+    meta: ngbsResponse.data.meta,
+    nationalGoverningBodies: formatNgbs(ngbsResponse.data.data),
+  };
 }

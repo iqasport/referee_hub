@@ -99,7 +99,9 @@ function transform(val: any, typ: any, getProps: any): any {
       const typ = typs[i];
       try {
         return transform(val, typ, getProps);
-      } catch (_) {}
+      } catch (_) {
+        // Ignore error and try next type
+      }
     }
     return invalidValue(typs, val);
   }
@@ -155,11 +157,11 @@ function transform(val: any, typ: any, getProps: any): any {
   }
   if (Array.isArray(typ)) return transformEnum(typ, val);
   if (typeof typ === "object") {
-    return typ.hasOwnProperty("unionMembers")
+    return Object.prototype.hasOwnProperty.call(typ, "unionMembers")
       ? transformUnion(typ.unionMembers, val)
-      : typ.hasOwnProperty("arrayItems")
+      : Object.prototype.hasOwnProperty.call(typ, "arrayItems")
       ? transformArray(typ.arrayItems, val)
-      : typ.hasOwnProperty("props")
+      : Object.prototype.hasOwnProperty.call(typ, "props")
       ? transformObject(getProps(typ), typ.additional, val)
       : invalidValue(typ, val);
   }

@@ -16,6 +16,7 @@ type WrappedProps = {
   mockStore?: any;
 };
 
+// eslint-disable-next-line react/prop-types
 const Wrapped: React.ComponentType<WrappedProps> = ({ children, mockStore = store }) => {
   return (
     <Provider store={mockStore}>

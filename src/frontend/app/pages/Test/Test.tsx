@@ -40,7 +40,7 @@ const Test = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const navigate = useNavigate();
   const { data: tests, isLoading } = useGetAllTestsQuery();
-  var test = tests?.find(t => t.testId === testId);
+  const test = tests?.find(t => t.testId === testId);
   const { currentData: currentUser } = useGetCurrentUserQuery();
   const roles = currentUser?.roles?.map(r => r.roleType);
   const { data: languages } = useGetLanguagesQuery();

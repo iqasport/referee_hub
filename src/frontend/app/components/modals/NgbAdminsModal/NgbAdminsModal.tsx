@@ -29,7 +29,7 @@ const NgbAdminsModal = (props: NgbAdminsModalProps) => {
         <input className="block mx-2 border-b border-gray-400" type="email" placeholder="Email" value={addEmail} onChange={e => setAddEmail(e.target.value)} />
         <label htmlFor="createIfNotExists">
           <input className="mx-2 mt-2" type="checkbox" checked={createIfNotExists} onChange={e => setCreateIfNotExists(e.target.checked)}/>
-          Create user if they don't have an account already.
+          Create user if they don&apos;t have an account already.
         </label>
         <p className="text-red-600">{getErrorString(addError)}</p>
         <p className="text-green">{addData}</p>

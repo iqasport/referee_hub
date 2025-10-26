@@ -49,6 +49,7 @@ dist
 
 # data dump file to convert api responses to typescript. It should never be checked in.
 junit.xml
+eslint-junit.xml
 dump.rdb
 stats.json
 

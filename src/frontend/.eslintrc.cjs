@@ -13,4 +13,32 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   root: true,
   "ignorePatterns": ["*.js"],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "overrides": [
+    {
+      "files": ["app/schemas/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["app/store/serviceApi.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/ban-types": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "testing-library/no-node-access": "warn",
+        "testing-library/no-container": "warn",
+        "testing-library/no-wait-for-multiple-assertions": "warn"
+      }
+    }
+  ]
 };

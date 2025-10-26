@@ -9,13 +9,9 @@ export interface LanguagesResponse {
 export async function getLanguages(): Promise<LanguagesResponse> {
   const url = "languages";
 
-  try {
-    const languagesResponse = await baseAxios.get<GetLanguagesSchema>(url);
+  const languagesResponse = await baseAxios.get<GetLanguagesSchema>(url);
 
-    return {
-      languages: languagesResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
+  return {
+    languages: languagesResponse.data.data,
+  };
 }

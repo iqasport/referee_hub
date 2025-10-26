@@ -29,7 +29,7 @@ const DragNDrop = (props: DragNDropProps) => {
       {isDragActive ? (
         <p>Drop the csv file here ...</p>
       ) : (
-        <p>Drag 'n' drop a csv file here, or click to select a file</p>
+        <p>Drag &apos;n&apos; drop a csv file here, or click to select a file</p>
       )}
     </div>
   );

@@ -133,12 +133,12 @@ describe("TestsTable", () => {
 
     // Count the number of active (green) icons - should be exactly 1
     const greenIcons = container.querySelectorAll('.text-green');
-    expect(greenIcons.length).toBe(1);
+    expect(greenIcons).toHaveLength(1);
     
     // Count gray icons that are specifically for inactive status
     // The component uses both text-gray-500 for all icons, then adds text-green for active
     const allIcons = container.querySelectorAll('.fa-circle');
-    expect(allIcons.length).toBe(2); // One for each test
+    expect(allIcons).toHaveLength(2); // One for each test
   });
 
   it("renders snitch level as 'Flag'", () => {

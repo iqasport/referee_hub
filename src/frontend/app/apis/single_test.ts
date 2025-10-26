@@ -27,40 +27,32 @@ export type UpdateTestRequest = Omit<Attributes, "updatedAt">
 
 export async function getTests(): Promise<TestsResponse> {
   const url = "tests";
+  const testsResponse = await baseAxios.get<GetTestsSchema>(url);
+  const certifications = testsResponse?.data?.included?.map((cert) => ({
+    id: cert.id,
+    ...cert.attributes,
+  }));
 
-  try {
-    const testsResponse = await baseAxios.get<GetTestsSchema>(url);
-    const certifications = testsResponse?.data?.included?.map((cert) => ({
-      id: cert.id,
-      ...cert.attributes,
-    }));
+  return {
+    certifications,
+    tests: testsResponse.data.data,
+  };
 
-    return {
-      certifications,
-      tests: testsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function getTest(id: string): Promise<TestResponse> {
   const url = `tests/${id}`;
+  const testResponse = await baseAxios.get<GetTestSchema>(url);
+  const certification = testResponse?.data?.included?.map((cert) => ({
+    id: cert.id,
+    ...cert.attributes,
+  }))[0];
 
-  try {
-    const testResponse = await baseAxios.get<GetTestSchema>(url);
-    const certification = testResponse?.data?.included?.map((cert) => ({
-      id: cert.id,
-      ...cert.attributes,
-    }))[0];
+  return {
+    certification,
+    test: testResponse.data.data,
+  };
 
-    return {
-      certification,
-      test: testResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function updateTest(
@@ -68,40 +60,32 @@ export async function updateTest(
   updatedTest: UpdateTestRequest
 ): Promise<TestResponse> {
   const url = `tests/${id}`;
+  const testResponse = await baseAxios.patch<GetTestSchema>(url, { ...updatedTest });
+  const certification = testResponse?.data?.included?.map((cert) => ({
+    id: cert.id,
+    ...cert.attributes,
+  }))[0];
 
-  try {
-    const testResponse = await baseAxios.patch<GetTestSchema>(url, { ...updatedTest });
-    const certification = testResponse?.data?.included?.map((cert) => ({
-      id: cert.id,
-      ...cert.attributes,
-    }))[0];
+  return {
+    certification,
+    test: testResponse.data.data,
+  };
 
-    return {
-      certification,
-      test: testResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function createTest(newTest: UpdateTestRequest): Promise<TestResponse> {
   const url = "tests";
+  const testResponse = await baseAxios.post<GetTestSchema>(url, { ...newTest });
+  const certification = testResponse?.data?.included?.map((cert) => ({
+    id: cert.id,
+    ...cert.attributes,
+  }))[0];
 
-  try {
-    const testResponse = await baseAxios.post<GetTestSchema>(url, { ...newTest });
-    const certification = testResponse?.data?.included?.map((cert) => ({
-      id: cert.id,
-      ...cert.attributes,
-    }))[0];
+  return {
+    certification,
+    test: testResponse.data.data,
+  };
 
-    return {
-      certification,
-      test: testResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function importTests(
@@ -118,70 +102,54 @@ export async function importTests(
     },
     {}
   );
+  const data = new FormData();
+  data.append("file", file);
+  data.append("mapped_headers", JSON.stringify(reversedMap));
 
-  try {
-    const data = new FormData();
-    data.append("file", file);
-    data.append("mapped_headers", JSON.stringify(reversedMap));
+  const questionsResponse = await axios.post<GetQuestionsSchema>(url, data);
 
-    const questionsResponse = await axios.post<GetQuestionsSchema>(url, data);
+  return {
+    answers: questionsResponse.data.included,
+    meta: questionsResponse.data.meta,
+    questions: questionsResponse.data.data,
+  };
 
-    return {
-      answers: questionsResponse.data.included,
-      meta: questionsResponse.data.meta,
-      questions: questionsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function deleteTest(id: string): Promise<TestResponse> {
   const url = `tests/${id}`;
+  const testResponse = await baseAxios.delete<GetTestSchema>(url);
 
-  try {
-    const testResponse = await baseAxios.delete<GetTestSchema>(url);
+  return {
+    certification: null,
+    test: testResponse.data.data,
+  };
 
-    return {
-      certification: null,
-      test: testResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function getRefereeTests(refId: string): Promise<TestsResponse> {
   const url = `referees/${refId}/tests`;
+  const testsResponse = await baseAxios.get<GetTestsSchema>(url);
+  const certifications = testsResponse?.data?.included?.map((cert) => ({
+    id: cert.id,
+    ...cert.attributes,
+  }));
 
-  try {
-    const testsResponse = await baseAxios.get<GetTestsSchema>(url);
-    const certifications = testsResponse?.data?.included?.map((cert) => ({
-      id: cert.id,
-      ...cert.attributes,
-    }));
+  return {
+    certifications,
+    tests: testsResponse.data.data,
+  };
 
-    return {
-      certifications,
-      tests: testsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
 
 export async function startTest(testId: string): Promise<QuestionsResponse> {
   const url = `tests/${testId}/start`;
+  const questionsResponse = await baseAxios.get<GetQuestionsSchema>(url);
 
-  try {
-    const questionsResponse = await baseAxios.get<GetQuestionsSchema>(url);
+  return {
+    answers: questionsResponse.data.included,
+    meta: questionsResponse.data.meta,
+    questions: questionsResponse.data.data,
+  };
 
-    return {
-      answers: questionsResponse.data.included,
-      meta: questionsResponse.data.meta,
-      questions: questionsResponse.data.data,
-    };
-  } catch (err) {
-    throw err;
-  }
 }
