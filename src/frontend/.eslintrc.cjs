@@ -13,4 +13,17 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   root: true,
   "ignorePatterns": ["*.js"],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "overrides": [
+    {
+      "files": ["app/schemas/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ]
 };
