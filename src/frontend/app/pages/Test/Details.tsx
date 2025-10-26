@@ -16,8 +16,6 @@ const Details = (props: DetailsProps) => {
 
   const renderData = (entry: [string, string | boolean]) => {
     if (EXCLUDED_ATTRIBUTES.includes(entry[0])) return null;
-    let labelText: string;
-    let dataText: string;
 
     /*if (language && entry[0] === "newLanguageId") {
       const {
@@ -27,8 +25,8 @@ const Details = (props: DetailsProps) => {
       labelText = "Language";
       dataText = `${longName}${regionText}`;
     } else {*/
-      labelText = kebabCase(entry[0]).split("-").join(" ");
-      dataText = isBoolean(entry[1]) ? String(entry[1]) : entry[1];
+      const labelText = kebabCase(entry[0]).split("-").join(" ");
+      const dataText = isBoolean(entry[1]) ? String(entry[1]) : entry[1];
     //}
 
     return (
