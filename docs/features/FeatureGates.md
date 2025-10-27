@@ -63,9 +63,9 @@ After adding or modifying feature flags in the backend:
 
 This will update `src/frontend/app/store/serviceApi.ts` with the new feature gate definitions.
 
-3. Update the default values in `src/frontend/app/utils/featureGateUtils.ts`:
+3. Update the `defaultFeatureGates` object in `src/frontend/app/utils/featureGateUtils.ts`:
    ```typescript
-   const gates: FeatureGates = {
+   const defaultFeatureGates: FeatureGates = {
      isTestFlag: false,
      isMyNewFeature: false,  // Add default value for new flag
    };

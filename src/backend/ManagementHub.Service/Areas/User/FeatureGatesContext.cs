@@ -8,5 +8,5 @@ namespace ManagementHub.Service.Areas.User;
 [OptionsContext]
 public partial class FeatureGatesContext : IOptionsContext
 {
-	public string? UserId { get; set; }
+	public required string UserId { get; set; }
 }

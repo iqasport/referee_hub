@@ -3,6 +3,14 @@ import { useGetCurrentUserFeatureGatesQuery } from '../store/serviceApi';
 import type { FeatureGates } from '../store/serviceApi';
 
 /**
+ * Default values for all feature gates.
+ * Update this when adding new feature flags.
+ */
+const defaultFeatureGates: FeatureGates = {
+  isTestFlag: false,
+};
+
+/**
  * Hook to get feature gates with query parameter overrides.
  * 
  * Query parameter format: ?features=isTestFlag,!isAnotherFlag
@@ -19,9 +27,7 @@ export function useFeatureGates(): FeatureGates {
 
   return useMemo(() => {
     // Start with default values for all known feature gates
-    const gates: FeatureGates = {
-      isTestFlag: false,
-    };
+    const gates: FeatureGates = { ...defaultFeatureGates };
     
     // Apply backend values if available
     if (backendGates) {
@@ -34,7 +40,7 @@ export function useFeatureGates(): FeatureGates {
 
     if (featuresParam) {
       // Split by comma and process each feature
-      const features = featuresParam.split(',').map(f => f.trim()).filter(f => f);
+      const features = featuresParam.split(',').map(f => f.trim()).filter(f => !!f);
 
       features.forEach(feature => {
         const isNegated = feature.startsWith('!');

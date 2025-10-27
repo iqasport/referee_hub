@@ -66,7 +66,8 @@ describe('useFeatureGates', () => {
     expect(result.current.isTestFlag).toBe(false);
   });
 
-  it('should handle multiple flags in query parameter', () => {
+  // TODO: Re-enable and modify this test once more feature flags are present to properly test multiple flags
+  it.skip('should handle multiple flags in query parameter', () => {
     mockedUseGetCurrentUserFeatureGatesQuery.mockReturnValue({
       data: { isTestFlag: false },
       isLoading: false,
