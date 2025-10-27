@@ -30,7 +30,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const { currentData: currentUser } = useGetCurrentUserQuery()
   const roles = currentUser?.roles?.map(r => r.roleType);
-  const { featureGates: { isTestFlag } } = useFeatureGates();
+  const { isTestFlag } = useFeatureGates();
 
   if (roles.length && !roles.includes("IqaAdmin")) navigate(-1);
 

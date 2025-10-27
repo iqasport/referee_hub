@@ -4,22 +4,21 @@ import { useGetCurrentUserFeatureGatesQuery } from '../store/serviceApi';
 /**
  * Hook to get feature gates with query parameter overrides.
  * 
- * Query parameter format: ?features=flag1,!flag2,flag3
- * - flag1: sets flag1 to true
- * - !flag2: sets flag2 to false
- * - flag3: sets flag3 to true
+ * Query parameter format: ?features=isTestFlag,!isAnotherFlag
+ * - Use full field names (case insensitive)
+ * - Prefix with ! to disable a flag
  * 
  * If a feature is not in the query string, the backend value is used.
  * If the backend doesn't provide a value, it defaults to false.
  * 
- * @returns FeatureGates object with flags from backend and query parameter overrides
+ * @returns Feature flags object with properties directly accessible
  */
 export function useFeatureGates() {
-  const { data: backendGates, isLoading, error } = useGetCurrentUserFeatureGatesQuery();
+  const { data: backendGates } = useGetCurrentUserFeatureGatesQuery();
 
-  const featureGates = useMemo(() => {
+  return useMemo(() => {
     // Start with backend values or empty object
-    const gates = { ...backendGates };
+    const gates: Record<string, boolean> = backendGates ? { ...backendGates } : {};
 
     // Parse query parameters
     const params = new URLSearchParams(window.location.search);
@@ -30,38 +29,23 @@ export function useFeatureGates() {
       const features = featuresParam.split(',').map(f => f.trim()).filter(f => f);
 
       features.forEach(feature => {
-        if (feature.startsWith('!')) {
-          // Feature with ! prefix should be false
-          const flagName = feature.substring(1);
-          // Convert to property name (e.g., "testFlag" or "isTestFlag")
-          const propertyName = getPropertyName(flagName);
-          if (propertyName) {
-            gates[propertyName] = false;
-          }
+        const isNegated = feature.startsWith('!');
+        const flagName = isNegated ? feature.substring(1) : feature;
+        
+        // Find matching property (case insensitive) or add the property
+        const matchingKey = Object.keys(gates).find(
+          key => key.toLowerCase() === flagName.toLowerCase()
+        );
+        
+        if (matchingKey) {
+          gates[matchingKey] = !isNegated;
         } else {
-          // Feature without ! should be true
-          const propertyName = getPropertyName(feature);
-          if (propertyName) {
-            gates[propertyName] = true;
-          }
+          // If no matching key, add it with the provided name
+          gates[flagName] = !isNegated;
         }
       });
     }
 
-    // Ensure all properties default to false if not set
     return gates;
   }, [backendGates]);
-
-  return { featureGates, isLoading, error };
-}
-
-/**
- * Convert feature name to property name, handling both camelCase and with/without "is" prefix
- */
-function getPropertyName(featureName: string): string | null {
-  if (!featureName) return null;
-
-  // Convert to property name with "is" prefix
-  // e.g., "testFlag" -> "isTestFlag"
-  return 'is' + featureName.charAt(0).toUpperCase() + featureName.slice(1);
 }

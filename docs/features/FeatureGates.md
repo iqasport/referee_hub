@@ -70,7 +70,7 @@ import { useFeatureGates } from '../../utils/featureGateUtils';
 
 function MyComponent() {
   // Destructure only the flags you need
-  const { featureGates: { isTestFlag, isMyNewFeature } } = useFeatureGates();
+  const { isTestFlag, isMyNewFeature } = useFeatureGates();
 
   return (
     <div>
@@ -88,13 +88,13 @@ function MyComponent() {
 Feature flags can be overridden using the `features` query parameter in the URL:
 
 ```
-?features=testFlag,myNewFeature      # Enable both flags
-?features=!testFlag                  # Disable testFlag
-?features=testFlag,!myNewFeature     # Enable testFlag, disable myNewFeature
+?features=isTestFlag,isMyNewFeature      # Enable both flags
+?features=!isTestFlag                     # Disable isTestFlag
+?features=isTestFlag,!isMyNewFeature      # Enable isTestFlag, disable isMyNewFeature
 ```
 
 **Override Rules:**
-- Flag names in the query parameter are converted to property names (e.g., `testFlag` → `isTestFlag`)
+- Use full property names (e.g., `isTestFlag`) - case insensitive
 - Flags prefixed with `!` are set to `false`
 - Flags without `!` are set to `true`
 - Query parameter values override backend values
@@ -106,8 +106,9 @@ Feature flags can be overridden using the `features` query parameter in the URL:
 Visit the Admin page with different query parameters:
 
 - Default: `/admin` (uses backend values)
-- With test flag enabled: `/admin?features=testFlag`
-- With test flag disabled: `/admin?features=!testFlag`
+- With test flag enabled: `/admin?features=isTestFlag`
+- With test flag disabled: `/admin?features=!isTestFlag`
+- Case insensitive: `/admin?features=ISTESTFLAG` or `/admin?features=istestflag`
 
 ## Testing
 

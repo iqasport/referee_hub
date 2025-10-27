@@ -35,9 +35,7 @@ describe('useFeatureGates', () => {
 
     const { result } = renderHook(() => useFeatureGates());
 
-    expect(result.current.featureGates.isTestFlag).toBe(true);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBeUndefined();
+    expect(result.current.isTestFlag).toBe(true);
   });
 
   it('should override backend value with query parameter', () => {
@@ -47,11 +45,11 @@ describe('useFeatureGates', () => {
       error: undefined,
     } as any);
 
-    window.location.search = '?features=testFlag';
+    window.location.search = '?features=isTestFlag';
 
     const { result } = renderHook(() => useFeatureGates());
 
-    expect(result.current.featureGates.isTestFlag).toBe(true);
+    expect(result.current.isTestFlag).toBe(true);
   });
 
   it('should set flag to false with ! prefix', () => {
@@ -61,11 +59,11 @@ describe('useFeatureGates', () => {
       error: undefined,
     } as any);
 
-    window.location.search = '?features=!testFlag';
+    window.location.search = '?features=!isTestFlag';
 
     const { result } = renderHook(() => useFeatureGates());
 
-    expect(result.current.featureGates.isTestFlag).toBe(false);
+    expect(result.current.isTestFlag).toBe(false);
   });
 
   it('should handle multiple flags in query parameter', () => {
@@ -75,12 +73,12 @@ describe('useFeatureGates', () => {
       error: undefined,
     } as any);
 
-    window.location.search = '?features=testFlag,!anotherFlag';
+    window.location.search = '?features=isTestFlag,!isAnotherFlag';
 
     const { result } = renderHook(() => useFeatureGates());
 
-    expect(result.current.featureGates.isTestFlag).toBe(true);
-    expect(result.current.featureGates.isAnotherFlag).toBe(false);
+    expect(result.current.isTestFlag).toBe(true);
+    expect(result.current.isAnotherFlag).toBe(false);
   });
 
   it('should handle empty backend data', () => {
@@ -90,24 +88,38 @@ describe('useFeatureGates', () => {
       error: undefined,
     } as any);
 
-    window.location.search = '?features=testFlag';
+    window.location.search = '?features=isTestFlag';
 
     const { result } = renderHook(() => useFeatureGates());
 
-    expect(result.current.featureGates.isTestFlag).toBe(true);
+    expect(result.current.isTestFlag).toBe(true);
   });
 
-  it('should pass through loading and error states', () => {
+  it('should be case insensitive for query parameters', () => {
+    mockedUseGetCurrentUserFeatureGatesQuery.mockReturnValue({
+      data: { isTestFlag: false },
+      isLoading: false,
+      error: undefined,
+    } as any);
+
+    window.location.search = '?features=ISTESTFLAG';
+
+    const { result } = renderHook(() => useFeatureGates());
+
+    expect(result.current.isTestFlag).toBe(true);
+  });
+
+  it('should handle backend errors gracefully', () => {
     const mockError = { message: 'Test error' };
     mockedUseGetCurrentUserFeatureGatesQuery.mockReturnValue({
       data: undefined,
-      isLoading: true,
+      isLoading: false,
       error: mockError,
     } as any);
 
     const { result } = renderHook(() => useFeatureGates());
 
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.error).toEqual(mockError);
+    // Should return empty object on error (properties won't exist unless in query param)
+    expect(result.current.isTestFlag).toBeUndefined();
   });
 });
