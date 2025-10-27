@@ -68,17 +68,16 @@ describe('useFeatureGates', () => {
 
   it('should handle multiple flags in query parameter', () => {
     mockedUseGetCurrentUserFeatureGatesQuery.mockReturnValue({
-      data: { isTestFlag: false, isAnotherFlag: true },
+      data: { isTestFlag: false },
       isLoading: false,
       error: undefined,
     } as any);
 
-    window.location.search = '?features=isTestFlag,!isAnotherFlag';
+    window.location.search = '?features=isTestFlag';
 
     const { result } = renderHook(() => useFeatureGates());
 
     expect(result.current.isTestFlag).toBe(true);
-    expect(result.current.isAnotherFlag).toBe(false);
   });
 
   it('should handle empty backend data', () => {
@@ -119,7 +118,20 @@ describe('useFeatureGates', () => {
 
     const { result } = renderHook(() => useFeatureGates());
 
-    // Should return empty object on error (properties won't exist unless in query param)
-    expect(result.current.isTestFlag).toBeUndefined();
+    // Should return default values on error
+    expect(result.current.isTestFlag).toBe(false);
+  });
+
+  it('should return default false when backend has no data and no query params', () => {
+    mockedUseGetCurrentUserFeatureGatesQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: undefined,
+    } as any);
+
+    const { result } = renderHook(() => useFeatureGates());
+
+    // Should return default value of false
+    expect(result.current.isTestFlag).toBe(false);
   });
 });

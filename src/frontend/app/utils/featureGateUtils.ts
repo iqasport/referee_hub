@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useGetCurrentUserFeatureGatesQuery } from '../store/serviceApi';
+import type { FeatureGates } from '../store/serviceApi';
 
 /**
  * Hook to get feature gates with query parameter overrides.
@@ -13,12 +14,19 @@ import { useGetCurrentUserFeatureGatesQuery } from '../store/serviceApi';
  * 
  * @returns Feature flags object with properties directly accessible
  */
-export function useFeatureGates() {
+export function useFeatureGates(): FeatureGates {
   const { data: backendGates } = useGetCurrentUserFeatureGatesQuery();
 
   return useMemo(() => {
-    // Start with backend values or empty object
-    const gates: Record<string, boolean> = backendGates ? { ...backendGates } : {};
+    // Start with default values for all known feature gates
+    const gates: FeatureGates = {
+      isTestFlag: false,
+    };
+    
+    // Apply backend values if available
+    if (backendGates) {
+      Object.assign(gates, backendGates);
+    }
 
     // Parse query parameters
     const params = new URLSearchParams(window.location.search);
@@ -32,16 +40,13 @@ export function useFeatureGates() {
         const isNegated = feature.startsWith('!');
         const flagName = isNegated ? feature.substring(1) : feature;
         
-        // Find matching property (case insensitive) or add the property
+        // Find matching property (case insensitive)
         const matchingKey = Object.keys(gates).find(
           key => key.toLowerCase() === flagName.toLowerCase()
         );
         
         if (matchingKey) {
           gates[matchingKey] = !isNegated;
-        } else {
-          // If no matching key, add it with the provided name
-          gates[flagName] = !isNegated;
         }
       });
     }
