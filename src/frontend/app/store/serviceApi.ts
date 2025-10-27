@@ -48,6 +48,16 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/debug/blob/${queryArg.fileKey}` }),
         providesTags: ["Debug"],
       }),
+      resendTestFeedbackEmail: build.mutation<
+        ResendTestFeedbackEmailApiResponse,
+        ResendTestFeedbackEmailApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/debug/attempts/${queryArg.attemptId}/resend`,
+          method: "POST",
+        }),
+        invalidatesTags: ["Debug"],
+      }),
       runStatsJob: build.mutation<RunStatsJobApiResponse, RunStatsJobApiArg>({
         query: (queryArg) => ({ url: `/api/debug/statsjob/run/${queryArg.ngb}`, method: "POST" }),
         invalidatesTags: ["Debug"],
@@ -305,6 +315,13 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
       }),
+      getCurrentUserFeatureGates: build.query<
+        GetCurrentUserFeatureGatesApiResponse,
+        GetCurrentUserFeatureGatesApiArg
+      >({
+        query: () => ({ url: `/api/v2/Users/me/featuregates` }),
+        providesTags: ["User"],
+      }),
       putRootUserAttribute: build.mutation<
         PutRootUserAttributeApiResponse,
         PutRootUserAttributeApiArg
@@ -381,6 +398,10 @@ export type SubmitPaymentSessionApiArg = {
 export type GetDataFromLocalBlobApiResponse = unknown;
 export type GetDataFromLocalBlobApiArg = {
   fileKey: string;
+};
+export type ResendTestFeedbackEmailApiResponse = /** status 200 Success */ string;
+export type ResendTestFeedbackEmailApiArg = {
+  attemptId: string;
 };
 export type RunStatsJobApiResponse = unknown;
 export type RunStatsJobApiArg = {
@@ -541,6 +562,8 @@ export type GetTestQuestionsApiArg = {
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
+export type GetCurrentUserFeatureGatesApiResponse = /** status 200 Success */ FeatureGates;
+export type GetCurrentUserFeatureGatesApiArg = void;
 export type PutRootUserAttributeApiResponse = unknown;
 export type PutRootUserAttributeApiArg = {
   userId: string;
@@ -968,6 +991,9 @@ export type CurrentUserViewModel = {
     [key: string]: any;
   } | null;
 };
+export type FeatureGates = {
+  isTestFlag?: boolean;
+};
 export type UserDataViewModel = {
   firstName?: string | null;
   lastName?: string | null;
@@ -982,6 +1008,7 @@ export const {
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
   useGetDataFromLocalBlobQuery,
+  useResendTestFeedbackEmailMutation,
   useRunStatsJobMutation,
   useScheduleStatsJobMutation,
   useExportRefereesForNgbMutation,
@@ -1018,6 +1045,7 @@ export const {
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
   useGetCurrentUserQuery,
+  useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,
   usePutUserAttributeMutation,
   useGetCurrentUserAvatarQuery,

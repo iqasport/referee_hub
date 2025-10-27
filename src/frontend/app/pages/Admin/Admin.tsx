@@ -10,6 +10,7 @@ import TestsTable from "../../components/tables/TestsTable";
 import ActionsButton from "./ActionsButton";
 import { useGetCurrentUserQuery } from "../../store/serviceApi";
 import { useNavigate } from "../../utils/navigationUtils";
+import { useFeatureGates } from "../../utils/featureGateUtils";
 
 enum SelectedModal {
   Test = "test",
@@ -29,6 +30,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const { currentData: currentUser } = useGetCurrentUserQuery()
   const roles = currentUser?.roles?.map(r => r.roleType);
+  const { featureGates: { isTestFlag } } = useFeatureGates();
 
   if (roles.length && !roles.includes("IqaAdmin")) navigate(-1);
 
@@ -91,6 +93,13 @@ const Admin = () => {
           </button>
         </div>
         <div className="border border-t-0 p-4">{renderContent()}</div>
+        {isTestFlag && (
+          <div className="mt-4 p-4 bg-blue-100 border border-blue-400 rounded">
+            <p className="text-sm text-blue-800">
+              🚀 Test feature flag is enabled! This is a demonstration of the feature gates system.
+            </p>
+          </div>
+        )}
       </div>
       {renderModals()}
     </>
