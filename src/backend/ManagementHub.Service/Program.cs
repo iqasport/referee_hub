@@ -129,6 +129,7 @@ public static class Program
 		services.AddHostedService<EnsureMonthlyStatsSnapshot>();
 
 		services.ConfigureExcos<TestPolicyOverride>("TestPolicy");
+		services.ConfigureExcos<FeatureGates>("FeatureGates");
 		services.ConfigureExcosFeatures("Features");
 	}
 

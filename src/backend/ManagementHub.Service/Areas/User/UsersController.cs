@@ -9,6 +9,7 @@ using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options.Contextual;
 
 namespace ManagementHub.Service.Areas.User;
 
@@ -25,13 +26,15 @@ public class UsersController : ControllerBase
 	private readonly IUpdateUserDataCommand updateUserDataCommand;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly ISetUserAttributeCommand setUserAttributeCommand;
+	private readonly IContextualOptions<FeatureGates> featureGatesOptions;
 
-	public UsersController(IUserContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand, IUpdateUserAvatarCommand updateUserAvatarCommand, ISetUserAttributeCommand setUserAttributeCommand)
+	public UsersController(IUserContextAccessor contextAccessor, IUpdateUserDataCommand updateUserDataCommand, IUpdateUserAvatarCommand updateUserAvatarCommand, ISetUserAttributeCommand setUserAttributeCommand, IContextualOptions<FeatureGates> featureGatesOptions)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateUserDataCommand = updateUserDataCommand;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.setUserAttributeCommand = setUserAttributeCommand;
+		this.featureGatesOptions = featureGatesOptions;
 	}
 
 	/// <summary>
@@ -45,6 +48,21 @@ public class UsersController : ControllerBase
 		var userAttributes = await this.contextAccessor.GetUserAttributesAsync(userContext.UserId);
 
 		return new CurrentUserViewModel(userContext, userAttributes);
+	}
+
+	/// <summary>
+	/// Retrieves feature gates for the currently signed-in user.
+	/// </summary>
+	[HttpGet("me/featuregates")]
+	[Tags("User")]
+	public async Task<FeatureGates> GetCurrentUserFeatureGates()
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var featureGates = await this.featureGatesOptions.GetAsync(
+			new FeatureGatesContext { UserId = userContext.UserId.ToString() },
+			this.HttpContext.RequestAborted);
+		
+		return featureGates;
 	}
 
 	/// <summary>
