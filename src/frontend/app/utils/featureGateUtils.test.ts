@@ -10,13 +10,20 @@ jest.mock('../store/serviceApi', () => ({
 const mockedUseGetCurrentUserFeatureGatesQuery = useGetCurrentUserFeatureGatesQuery as jest.MockedFunction<typeof useGetCurrentUserFeatureGatesQuery>;
 
 describe('useFeatureGates', () => {
+  const originalLocation = window.location;
+
   beforeEach(() => {
     // Clear the mock before each test
     mockedUseGetCurrentUserFeatureGatesQuery.mockClear();
     
-    // Reset window.location
+    // Reset window.location using Object.defineProperty
     delete (window as any).location;
-    window.location = { search: '' } as Location;
+    window.location = { ...originalLocation, search: '' };
+  });
+
+  afterEach(() => {
+    // Restore original location
+    window.location = originalLocation;
   });
 
   it('should return backend values when no query parameters', () => {
