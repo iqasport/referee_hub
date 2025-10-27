@@ -61,11 +61,7 @@ export function useFeatureGates() {
 function getPropertyName(featureName: string): string | null {
   if (!featureName) return null;
 
-  // Try both with and without "is" prefix
-  const withIs = 'is' + featureName.charAt(0).toUpperCase() + featureName.slice(1);
-  const withoutIs = featureName.charAt(0).toLowerCase() + featureName.slice(1);
-
-  // Return the name as-is for now, the actual property matching will happen in the object
-  // For extensibility, we prefer the "is" prefix version
-  return withIs;
+  // Convert to property name with "is" prefix
+  // e.g., "testFlag" -> "isTestFlag"
+  return 'is' + featureName.charAt(0).toUpperCase() + featureName.slice(1);
 }
