@@ -8,16 +8,31 @@ export const useNavigate: typeof routerUseNavigate = () => {
     const customNavigate: NavigateFunction = React.useCallback(
         (to: To | number, options: NavigateOptions = {}) => {
             if (typeof to !== "number") {
+                const urlParams = new URLSearchParams(location.search);
                 const impersonateKey = "impersonate";
-                const impersonate = new URLSearchParams(location.search).get(impersonateKey);
+                const featuresKey = "features";
+                const impersonate = urlParams.get(impersonateKey);
+                const features = urlParams.get(featuresKey);
+                
+                // Build query params to append
+                const paramsToAppend: string[] = [];
                 if (impersonate) {
+                    paramsToAppend.push(`${impersonateKey}=${impersonate}`);
+                }
+                if (features) {
+                    paramsToAppend.push(`${featuresKey}=${features}`);
+                }
+                
+                if (paramsToAppend.length > 0) {
+                    const queryString = paramsToAppend.join('&');
+                    
                     if (typeof to === "string") {
                         const startingChar = to.includes('?') ? '&' : '?';
-                        to = `${to}${startingChar}${impersonateKey}=${impersonate}`;
+                        to = `${to}${startingChar}${queryString}`;
                     } else {
                         to.search = to.search || "?";
-                        to.search += to.search.includes('&') ? "&" : "";
-                        to.search += `${impersonateKey}=${impersonate}`;
+                        const separator = to.search.endsWith('?') ? '' : '&';
+                        to.search += separator + queryString;
                     }
                 }
             }
