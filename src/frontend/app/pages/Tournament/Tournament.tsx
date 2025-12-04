@@ -1,7 +1,7 @@
 import React from "react";
-import TournementCard from "./TournementCard";
+import TournamentCard from "./TournamentCard";
 
-const Tournement = () => {
+const Tournament = () => {
   const tournaments = Array.from({ length: 8 }, (_, i) => ({
     id: i + 1,
     title: `Tournament ${i + 1}`,
@@ -11,7 +11,7 @@ const Tournement = () => {
   return (
     <section className="p-4 grid grid-cols-3 gap-6 mx-auto max-w-[80%]">
       {tournaments.map((tournament) => (
-        <TournementCard
+        <TournamentCard
           key={tournament.id}
           title={tournament.title}
           description={tournament.description}
@@ -21,4 +21,4 @@ const Tournement = () => {
   );
 };
 
-export default Tournement;
+export default Tournament;

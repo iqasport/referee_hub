@@ -1,11 +1,11 @@
 import React from "react";
 
-interface TournementCardProps {
+interface TournamentCardProps {
   title: string;
   description: string;
 }
 
-const TournementCard: React.FC<TournementCardProps> = ({ title, description }) => {
+const TournamentCard: React.FC<TournamentCardProps> = ({ title, description }) => {
   return (
     <div className="rounded-lg bg-white shadow-lg overflow-hidden">
       <figure className="w-full h-64 bg-gray-300"></figure>
@@ -15,4 +15,4 @@ const TournementCard: React.FC<TournementCardProps> = ({ title, description }) =
   );
 };
 
-export default TournementCard;
+export default TournamentCard;
