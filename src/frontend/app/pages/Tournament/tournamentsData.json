@@ -1,0 +1,330 @@
+[
+  {
+    "id": 1,
+    "title": "Spring Championship 2025",
+    "description": "Annual spring tournament featuring top teams from across the region",
+    "date": "2025-12-12",
+    "type": "Championship",
+    "location": "Central Sports Arena",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-001",
+    "teams": [
+      {
+        "teamId": "team-001",
+        "teamName": "Thunder Hawks",
+        "teamPlayers": [
+          {
+            "playerId": 1,
+            "playerName": "John Smith"
+          },
+          {
+            "playerId": 2,
+            "playerName": "Sarah Johnson"
+          }
+        ]
+      },
+      {
+        "teamId": "team-002",
+        "teamName": "Lightning Bolts",
+        "teamPlayers": [
+          {
+            "playerId": 3,
+            "playerName": "Mike Wilson"
+          },
+          {
+            "playerId": 4,
+            "playerName": "Emma Davis"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["John Smith", "Sarah Johnson"]
+      },
+      "team2": {
+        "playerNames": ["Mike Wilson", "Emma Davis"]
+      }
+    }
+  },
+  {
+    "id": 2,
+    "title": "Summer League Finals",
+    "description": "Exciting finals match between the season's top performers",
+    "date": "2025-12-15",
+    "type": "Finals",
+    "location": "Olympic Stadium",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-002",
+    "teams": [
+      {
+        "teamId": "team-003",
+        "teamName": "Phoenix Rising",
+        "teamPlayers": [
+          {
+            "playerId": 5,
+            "playerName": "Chris Anderson"
+          }
+        ]
+      },
+      {
+        "teamId": "team-004",
+        "teamName": "Storm Chasers",
+        "teamPlayers": [
+          {
+            "playerId": 6,
+            "playerName": "Lisa Martinez"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["Chris Anderson"]
+      },
+      "team2": {
+        "playerNames": ["Lisa Martinez"]
+      }
+    }
+  },
+  {
+    "id": 3,
+    "title": "Youth Development Cup",
+    "description": "Tournament focused on developing young talent and skills",
+    "date": "2025-12-18",
+    "type": "Youth Cup",
+    "location": "Community Sports Complex",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-003",
+    "teams": [
+      {
+        "teamId": "team-005",
+        "teamName": "Junior Eagles",
+        "teamPlayers": [
+          {
+            "playerId": 7,
+            "playerName": "Tom Brown"
+          }
+        ]
+      },
+      {
+        "teamId": "team-006",
+        "teamName": "Young Lions",
+        "teamPlayers": [
+          {
+            "playerId": 8,
+            "playerName": "Amy White"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["Tom Brown"]
+      },
+      "team2": {
+        "playerNames": ["Amy White"]
+      }
+    }
+  },
+  {
+    "id": 4,
+    "title": "Winter Invitational",
+    "description": "Prestigious invitational tournament with international teams",
+    "date": "2025-12-20",
+    "type": "Invitational",
+    "location": "Grand Arena",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-004",
+    "teams": [
+      {
+        "teamId": "team-007",
+        "teamName": "Arctic Wolves",
+        "teamPlayers": [
+          {
+            "playerId": 9,
+            "playerName": "David Lee"
+          }
+        ]
+      },
+      {
+        "teamId": "team-008",
+        "teamName": "Polar Bears",
+        "teamPlayers": [
+          {
+            "playerId": 10,
+            "playerName": "Jessica Taylor"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["David Lee"]
+      },
+      "team2": {
+        "playerNames": ["Jessica Taylor"]
+      }
+    }
+  },
+  {
+    "id": 5,
+    "title": "Regional Qualifiers",
+    "description": "Qualification matches for the national championship",
+    "date": "2025-12-22",
+    "type": "Qualifiers",
+    "location": "Regional Sports Center",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-005",
+    "teams": [
+      {
+        "teamId": "team-009",
+        "teamName": "Mountain Tigers",
+        "teamPlayers": [
+          {
+            "playerId": 11,
+            "playerName": "Robert Garcia"
+          }
+        ]
+      },
+      {
+        "teamId": "team-010",
+        "teamName": "Valley Rangers",
+        "teamPlayers": [
+          {
+            "playerId": 12,
+            "playerName": "Maria Rodriguez"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["Robert Garcia"]
+      },
+      "team2": {
+        "playerNames": ["Maria Rodriguez"]
+      }
+    }
+  },
+  {
+    "id": 6,
+    "title": "All-Star Showcase",
+    "description": "Exhibition matches featuring the league's best players",
+    "date": "2025-12-25",
+    "type": "Exhibition",
+    "location": "Premier Stadium",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-006",
+    "teams": [
+      {
+        "teamId": "team-011",
+        "teamName": "All-Stars East",
+        "teamPlayers": [
+          {
+            "playerId": 13,
+            "playerName": "Kevin Thomas"
+          }
+        ]
+      },
+      {
+        "teamId": "team-012",
+        "teamName": "All-Stars West",
+        "teamPlayers": [
+          {
+            "playerId": 14,
+            "playerName": "Laura Martinez"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["Kevin Thomas"]
+      },
+      "team2": {
+        "playerNames": ["Laura Martinez"]
+      }
+    }
+  },
+  {
+    "id": 7,
+    "title": "Charity Challenge",
+    "description": "Fundraising tournament supporting local sports programs",
+    "date": "2025-12-28",
+    "type": "Charity",
+    "location": "Charity Sports Grounds",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-007",
+    "teams": [
+      {
+        "teamId": "team-013",
+        "teamName": "Hope Heroes",
+        "teamPlayers": [
+          {
+            "playerId": 15,
+            "playerName": "Daniel Moore"
+          }
+        ]
+      },
+      {
+        "teamId": "team-014",
+        "teamName": "Unity United",
+        "teamPlayers": [
+          {
+            "playerId": 16,
+            "playerName": "Sophia Anderson"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["Daniel Moore"]
+      },
+      "team2": {
+        "playerNames": ["Sophia Anderson"]
+      }
+    }
+  },
+  {
+    "id": 8,
+    "title": "New Year Classic",
+    "description": "Traditional end-of-year tournament celebrating the season",
+    "date": "2025-12-31",
+    "type": "Classic",
+    "location": "Heritage Stadium",
+    "cover_img": "https://via.placeholder.com/400x300",
+    "manager": "referee-008",
+    "teams": [
+      {
+        "teamId": "team-015",
+        "teamName": "Midnight Stars",
+        "teamPlayers": [
+          {
+            "playerId": 17,
+            "playerName": "James Wilson"
+          }
+        ]
+      },
+      {
+        "teamId": "team-016",
+        "teamName": "Countdown Crew",
+        "teamPlayers": [
+          {
+            "playerId": 18,
+            "playerName": "Olivia Brown"
+          }
+        ]
+      }
+    ],
+    "participants": {
+      "team1": {
+        "playerNames": ["James Wilson"]
+      },
+      "team2": {
+        "playerNames": ["Olivia Brown"]
+      }
+    }
+  }
+]
