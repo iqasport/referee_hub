@@ -18,7 +18,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   coverImg,
 }) => {
   return (
-    <div className="rounded-lg bg-white shadow-lg overflow-hidden">
+    <div className="rounded-lg bg-white shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
       <figure className="w-full h-64 bg-gray-300 overflow-hidden">
         <img
           src={`https://placehold.co/600x400?text=${encodeURIComponent(title)}`}
