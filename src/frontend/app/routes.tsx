@@ -17,6 +17,7 @@ const NgbProfile = lazy(() => import("./pages/NgbProfile"));
 const ImportWizard = lazy(() => import("./pages/ImportWizard"));
 const RefereeTests = lazy(() => import("./pages/RefereeTests"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Tournement = lazy(() => import("./pages/Tournement"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
@@ -106,6 +107,18 @@ const App = () => {
           <Route
             path="/referees/:refereeId/tests"
             element={<RefereeTests />}
+          />
+          <Route
+            path="/referees/:refereeId/tests"
+            element={<RefereeTests />}
+          />
+          <Route
+            path="/referees/:refereeId/tests"
+            element={<RefereeTests />}
+          />
+          <Route
+          path="/tournement"
+          element={<Tournement/>}
           />
           {/* TODO {currentUser?.enabledFeatures.includes("i18n") ? (
             <Route
