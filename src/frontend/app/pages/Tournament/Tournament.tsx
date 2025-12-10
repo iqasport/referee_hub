@@ -2,8 +2,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import tournamentsData from "./tournamentsData.json";
 import AddTournamentModal from "./components/AddTournamentModal";
-import Search from "./Search";
-import TournamentSection, { TournamentData } from "./TournamentSection";
+import Search from "./components/Search";
+import TournamentSection, { TournamentData } from "./components/TournamentSection";
 
 const getTournamentTypeName = (type: number): string => {
   const typeMap: { [key: number]: string } = {
