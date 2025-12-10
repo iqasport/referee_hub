@@ -1,0 +1,99 @@
+[
+  {
+    "id": 1,
+    "title": "Spring Championship 2025",
+    "description": "Annual spring tournament featuring top teams from across the region",
+    "startDate": "2025-12-12",
+    "endDate": "2025-12-14",
+    "type": 1,
+    "country": "Belgium",
+    "location": "Central Sports Arena, Brussels",
+    "bannerImageUrl": "https://placehold.co/600x400?text=Spring%20Championship%202025",
+    "organizers": [{ "id": "org-001", "name": "Tournament Committee" }],
+    "isPrivate": false
+  },
+  {
+    "id": 2,
+    "title": "Summer League Finals",
+    "description": "Exciting finals match between the season's top performers",
+    "startDate": "2025-12-15",
+    "endDate": "2025-12-15",
+    "type": 0,
+    "location": "Olympic Stadium, London",
+    "bannerImageUrl": "https://placehold.co/600x400?text=Summer%20League%20Finals",
+    "organizers": [{ "id": "org-002", "name": "League Ops" }],
+    "isPrivate": true
+  },
+  {
+    "id": 3,
+    "title": "Youth Development Cup",
+    "description": "Tournament focused on developing young talent and skills",
+    "startDate": "2025-12-18",
+    "endDate": "2025-12-19",
+    "type": 2,
+    "location": "Community Sports Complex, Rotterdam",
+    "bannerImageUrl": "https://placehold.co/600x400?text=Youth%20Development%20Cup",
+    "organizers": [{ "id": "org-003", "name": "Youth Programs" }],
+    "isPrivate": false
+  },
+  {
+    "id": 4,
+    "title": "Winter Invitational",
+    "description": "Prestigious invitational tournament with international teams",
+    "startDate": "2025-12-20",
+    "endDate": "2025-12-22",
+    "type": 1,
+    "location": "Grand Arena, Oslo",
+    "bannerImageUrl": "https://placehold.co/600x400?text=Winter%20Invitational",
+    "organizers": [{ "id": "org-004", "name": "Nordic Sports Council" }],
+    "isPrivate": true
+  },
+  {
+    "id": 5,
+    "title": "Regional Qualifiers",
+    "description": "Qualification matches for the national championship",
+    "startDate": "2025-12-22",
+    "endDate": "2025-12-23",
+    "type": 1,
+    "location": "Regional Sports Center, Lyon",
+    "bannerImageUrl": "https://placehold.co/600x400?text=Regional%20Qualifiers",
+    "organizers": [{ "id": "org-005", "name": "French Federation" }],
+    "isPrivate": false
+  },
+  {
+    "id": 6,
+    "title": "All-Star Showcase",
+    "description": "Exhibition matches featuring the league's best players",
+    "startDate": "2025-12-25",
+    "endDate": "2025-12-25",
+    "type": 3,
+    "location": "Premier Stadium, Madrid",
+    "bannerImageUrl": "https://placehold.co/600x400?text=All-Star%20Showcase",
+    "organizers": [{ "id": "org-006", "name": "Liga All-Stars" }],
+    "isPrivate": false
+  },
+  {
+    "id": 7,
+    "title": "Charity Challenge",
+    "description": "Fundraising tournament supporting local sports programs",
+    "startDate": "2025-12-28",
+    "endDate": "2025-12-29",
+    "type": 0,
+    "location": "Charity Sports Grounds, Dublin",
+    "bannerImageUrl": "https://placehold.co/600x400?text=Charity%20Challenge",
+    "organizers": [{ "id": "org-007", "name": "Community Fund" }],
+    "isPrivate": true
+  },
+  {
+    "id": 8,
+    "title": "New Year Classic",
+    "description": "Traditional end-of-year tournament celebrating the season",
+    "startDate": "2025-12-31",
+    "endDate": "2026-01-02",
+    "type": 0,
+    "location": "Heritage Stadium, New York",
+    "bannerImageUrl": "https://placehold.co/600x400?text=New%20Year%20Classic",
+    "organizers": [{ "id": "org-008", "name": "Heritage Sports" }],
+    "isPrivate": false
+  }
+]
