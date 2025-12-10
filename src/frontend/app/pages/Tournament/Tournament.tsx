@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import tournamentsData from "./tournamentsData.json";
+import AddTournamentModal from "./components/AddTournamentModal";
 import Search from "./Search";
 import TournamentSection, { TournamentData } from "./TournamentSection";
 
@@ -80,6 +81,7 @@ const Tournament = () => {
     <>
       <div className="max-w-[80%] mx-auto px-4 py-2">
         <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
+        <AddTournamentModal />
       </div>
       <div className="max-w-[80%] mx-auto px-4 space-y-10">
         <TournamentSection tournaments={privateTournaments} visibility="private" />
