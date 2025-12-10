@@ -1,6 +1,7 @@
 import React from "react";
 import TournamentCard from "./TournamentCard";
 import tournamentsData from "./tournamentsData.json";
+import AddTournamentModal from "./components/AddTournamentModal";
 import Search from "./Search";
 
 type TournamentData = {
@@ -25,6 +26,7 @@ const Tournament = () => {
   return (
     <>
       <Search />
+      <AddTournamentModal />
       <section className="p-4 grid grid-cols-3 gap-6 mx-auto max-w-[80%]">
         {tournaments.map((tournament) => (
           <TournamentCard
