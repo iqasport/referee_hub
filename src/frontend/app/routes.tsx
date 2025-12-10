@@ -109,14 +109,6 @@ const App = () => {
             element={<RefereeTests />}
           />
           <Route
-            path="/referees/:refereeId/tests"
-            element={<RefereeTests />}
-          />
-          <Route
-            path="/referees/:refereeId/tests"
-            element={<RefereeTests />}
-          />
-          <Route
           path="/tournament"
           element={<Tournament/>}
           />

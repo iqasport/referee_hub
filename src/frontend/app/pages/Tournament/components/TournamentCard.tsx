@@ -14,7 +14,6 @@ interface TournamentCardProps {
   organizers: Organizer[];
 }
 
-// types normaly would use the enum not hard coded
 const getTournamentTypeName = (type: number): string => {
   const typeMap: { [key: number]: string } = {
     0: "Club",
