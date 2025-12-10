@@ -1,28 +1,36 @@
 import React from "react";
 
 interface TournamentCardProps {
-  title: string;
+  name: string;
   description: string;
-  date: string;
+  startDate: string;
+  endDate: string;
   type: string;
-  location: string;
-  coverImg: string;
+  country: string;
+  city: string;
+  place: string | null;
+  isPrivate: boolean;
 }
 
 const TournamentCard: React.FC<TournamentCardProps> = ({
-  title,
+  name,
   description,
-  date,
+  startDate,
+  endDate,
   type,
-  location,
-  coverImg,
+  country,
+  city,
+  place,
+  isPrivate,
 }) => {
+  const locationText = [place || undefined, city, country].filter(Boolean).join(", ");
+
   return (
     <div className="rounded-lg bg-white shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
       <figure className="w-full h-64 bg-gray-300 overflow-hidden">
         <img
-          src={`https://placehold.co/600x400?text=${encodeURIComponent(title)}`}
-          alt={title}
+          src={`https://placehold.co/600x400?text=${encodeURIComponent(name)}`}
+          alt={name}
           className="w-full h-full object-cover"
         />
       </figure>
@@ -31,9 +39,18 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
           <span className="text-sm font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">
             {type}
           </span>
-          <span className="text-sm text-gray-500">{date}</span>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span>
+              {startDate} - {endDate}
+            </span>
+            {isPrivate && (
+              <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded">
+                Private
+              </span>
+            )}
+          </div>
         </div>
-        <h2 className="text-2xl font-bold text-navy-blue mb-2">{title}</h2>
+        <h2 className="text-2xl font-bold text-navy-blue mb-2">{name}</h2>
         <p className="text-gray-600 mb-3">{description}</p>
         <div className="flex items-center text-sm text-gray-500">
           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -43,7 +60,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
               clipRule="evenodd"
             />
           </svg>
-          {location}
+          {locationText}
         </div>
       </div>
     </div>

@@ -1,330 +1,122 @@
 [
   {
-    "id": 1,
-    "title": "Spring Championship 2025",
-    "description": "Annual spring tournament featuring top teams from across the region",
-    "date": "2025-12-12",
-    "type": "Championship",
-    "location": "Central Sports Arena",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-001",
-    "teams": [
-      {
-        "teamId": "team-001",
-        "teamName": "Thunder Hawks",
-        "teamPlayers": [
-          {
-            "playerId": 1,
-            "playerName": "John Smith"
-          },
-          {
-            "playerId": 2,
-            "playerName": "Sarah Johnson"
-          }
-        ]
-      },
-      {
-        "teamId": "team-002",
-        "teamName": "Lightning Bolts",
-        "teamPlayers": [
-          {
-            "playerId": 3,
-            "playerName": "Mike Wilson"
-          },
-          {
-            "playerId": 4,
-            "playerName": "Emma Davis"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["John Smith", "Sarah Johnson"]
-      },
-      "team2": {
-        "playerNames": ["Mike Wilson", "Emma Davis"]
-      }
-    }
+    "Id": 1,
+    "UniqueId": "01JH0A7Z6KQJ8X9W7VQ3CN9B2P",
+    "Name": "Spring Championship 2025",
+    "Description": "Annual spring tournament featuring top teams from across the region",
+    "StartDate": "2025-12-12",
+    "EndDate": "2025-12-14",
+    "Type": "Championship",
+    "Country": "Belgium",
+    "City": "Brussels",
+    "Place": "Central Sports Arena",
+    "IsPrivate": false,
+    "CreatedAt": "2024-11-01T09:30:00Z",
+    "UpdatedAt": "2024-12-01T12:00:00Z"
   },
   {
-    "id": 2,
-    "title": "Summer League Finals",
-    "description": "Exciting finals match between the season's top performers",
-    "date": "2025-12-15",
-    "type": "Finals",
-    "location": "Olympic Stadium",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-002",
-    "teams": [
-      {
-        "teamId": "team-003",
-        "teamName": "Phoenix Rising",
-        "teamPlayers": [
-          {
-            "playerId": 5,
-            "playerName": "Chris Anderson"
-          }
-        ]
-      },
-      {
-        "teamId": "team-004",
-        "teamName": "Storm Chasers",
-        "teamPlayers": [
-          {
-            "playerId": 6,
-            "playerName": "Lisa Martinez"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["Chris Anderson"]
-      },
-      "team2": {
-        "playerNames": ["Lisa Martinez"]
-      }
-    }
+    "Id": 2,
+    "UniqueId": "01JH0A80D24Z9Q1NQ1T6R3K7QS",
+    "Name": "Summer League Finals",
+    "Description": "Exciting finals match between the season's top performers",
+    "StartDate": "2025-12-15",
+    "EndDate": "2025-12-15",
+    "Type": "Finals",
+    "Country": "United Kingdom",
+    "City": "London",
+    "Place": "Olympic Stadium",
+    "IsPrivate": true,
+    "CreatedAt": "2024-11-03T10:00:00Z",
+    "UpdatedAt": "2024-12-02T14:30:00Z"
   },
   {
-    "id": 3,
-    "title": "Youth Development Cup",
-    "description": "Tournament focused on developing young talent and skills",
-    "date": "2025-12-18",
-    "type": "Youth Cup",
-    "location": "Community Sports Complex",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-003",
-    "teams": [
-      {
-        "teamId": "team-005",
-        "teamName": "Junior Eagles",
-        "teamPlayers": [
-          {
-            "playerId": 7,
-            "playerName": "Tom Brown"
-          }
-        ]
-      },
-      {
-        "teamId": "team-006",
-        "teamName": "Young Lions",
-        "teamPlayers": [
-          {
-            "playerId": 8,
-            "playerName": "Amy White"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["Tom Brown"]
-      },
-      "team2": {
-        "playerNames": ["Amy White"]
-      }
-    }
+    "Id": 3,
+    "UniqueId": "01JH0A81MY7E5M6R8F4VXN9N9G",
+    "Name": "Youth Development Cup",
+    "Description": "Tournament focused on developing young talent and skills",
+    "StartDate": "2025-12-18",
+    "EndDate": "2025-12-19",
+    "Type": "YouthCup",
+    "Country": "Netherlands",
+    "City": "Rotterdam",
+    "Place": "Community Sports Complex",
+    "IsPrivate": false,
+    "CreatedAt": "2024-11-05T08:15:00Z",
+    "UpdatedAt": "2024-12-03T16:45:00Z"
   },
   {
-    "id": 4,
-    "title": "Winter Invitational",
-    "description": "Prestigious invitational tournament with international teams",
-    "date": "2025-12-20",
-    "type": "Invitational",
-    "location": "Grand Arena",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-004",
-    "teams": [
-      {
-        "teamId": "team-007",
-        "teamName": "Arctic Wolves",
-        "teamPlayers": [
-          {
-            "playerId": 9,
-            "playerName": "David Lee"
-          }
-        ]
-      },
-      {
-        "teamId": "team-008",
-        "teamName": "Polar Bears",
-        "teamPlayers": [
-          {
-            "playerId": 10,
-            "playerName": "Jessica Taylor"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["David Lee"]
-      },
-      "team2": {
-        "playerNames": ["Jessica Taylor"]
-      }
-    }
+    "Id": 4,
+    "UniqueId": "01JH0A82R0Q6S2Q7BRC2K2K6QZ",
+    "Name": "Winter Invitational",
+    "Description": "Prestigious invitational tournament with international teams",
+    "StartDate": "2025-12-20",
+    "EndDate": "2025-12-22",
+    "Type": "Invitational",
+    "Country": "Norway",
+    "City": "Oslo",
+    "Place": "Grand Arena",
+    "IsPrivate": true,
+    "CreatedAt": "2024-11-07T11:20:00Z",
+    "UpdatedAt": "2024-12-04T10:10:00Z"
   },
   {
-    "id": 5,
-    "title": "Regional Qualifiers",
-    "description": "Qualification matches for the national championship",
-    "date": "2025-12-22",
-    "type": "Qualifiers",
-    "location": "Regional Sports Center",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-005",
-    "teams": [
-      {
-        "teamId": "team-009",
-        "teamName": "Mountain Tigers",
-        "teamPlayers": [
-          {
-            "playerId": 11,
-            "playerName": "Robert Garcia"
-          }
-        ]
-      },
-      {
-        "teamId": "team-010",
-        "teamName": "Valley Rangers",
-        "teamPlayers": [
-          {
-            "playerId": 12,
-            "playerName": "Maria Rodriguez"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["Robert Garcia"]
-      },
-      "team2": {
-        "playerNames": ["Maria Rodriguez"]
-      }
-    }
+    "Id": 5,
+    "UniqueId": "01JH0A83X9H7B4W3M1Y2P6D4TB",
+    "Name": "Regional Qualifiers",
+    "Description": "Qualification matches for the national championship",
+    "StartDate": "2025-12-22",
+    "EndDate": "2025-12-23",
+    "Type": "Qualifiers",
+    "Country": "France",
+    "City": "Lyon",
+    "Place": "Regional Sports Center",
+    "IsPrivate": false,
+    "CreatedAt": "2024-11-09T13:00:00Z",
+    "UpdatedAt": "2024-12-05T09:25:00Z"
   },
   {
-    "id": 6,
-    "title": "All-Star Showcase",
-    "description": "Exhibition matches featuring the league's best players",
-    "date": "2025-12-25",
-    "type": "Exhibition",
-    "location": "Premier Stadium",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-006",
-    "teams": [
-      {
-        "teamId": "team-011",
-        "teamName": "All-Stars East",
-        "teamPlayers": [
-          {
-            "playerId": 13,
-            "playerName": "Kevin Thomas"
-          }
-        ]
-      },
-      {
-        "teamId": "team-012",
-        "teamName": "All-Stars West",
-        "teamPlayers": [
-          {
-            "playerId": 14,
-            "playerName": "Laura Martinez"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["Kevin Thomas"]
-      },
-      "team2": {
-        "playerNames": ["Laura Martinez"]
-      }
-    }
+    "Id": 6,
+    "UniqueId": "01JH0A84VZQ2W6Y9K5C7M3J8RF",
+    "Name": "All-Star Showcase",
+    "Description": "Exhibition matches featuring the league's best players",
+    "StartDate": "2025-12-25",
+    "EndDate": "2025-12-25",
+    "Type": "Exhibition",
+    "Country": "Spain",
+    "City": "Madrid",
+    "Place": "Premier Stadium",
+    "IsPrivate": false,
+    "CreatedAt": "2024-11-11T15:45:00Z",
+    "UpdatedAt": "2024-12-06T11:40:00Z"
   },
   {
-    "id": 7,
-    "title": "Charity Challenge",
-    "description": "Fundraising tournament supporting local sports programs",
-    "date": "2025-12-28",
-    "type": "Charity",
-    "location": "Charity Sports Grounds",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-007",
-    "teams": [
-      {
-        "teamId": "team-013",
-        "teamName": "Hope Heroes",
-        "teamPlayers": [
-          {
-            "playerId": 15,
-            "playerName": "Daniel Moore"
-          }
-        ]
-      },
-      {
-        "teamId": "team-014",
-        "teamName": "Unity United",
-        "teamPlayers": [
-          {
-            "playerId": 16,
-            "playerName": "Sophia Anderson"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["Daniel Moore"]
-      },
-      "team2": {
-        "playerNames": ["Sophia Anderson"]
-      }
-    }
+    "Id": 7,
+    "UniqueId": "01JH0A85YMC3D8T4P9R6S1L2VW",
+    "Name": "Charity Challenge",
+    "Description": "Fundraising tournament supporting local sports programs",
+    "StartDate": "2025-12-28",
+    "EndDate": "2025-12-29",
+    "Type": "Charity",
+    "Country": "Ireland",
+    "City": "Dublin",
+    "Place": "Charity Sports Grounds",
+    "IsPrivate": true,
+    "CreatedAt": "2024-11-13T09:05:00Z",
+    "UpdatedAt": "2024-12-07T12:55:00Z"
   },
   {
-    "id": 8,
-    "title": "New Year Classic",
-    "description": "Traditional end-of-year tournament celebrating the season",
-    "date": "2025-12-31",
-    "type": "Classic",
-    "location": "Heritage Stadium",
-    "cover_img": "https://via.placeholder.com/400x300",
-    "manager": "referee-008",
-    "teams": [
-      {
-        "teamId": "team-015",
-        "teamName": "Midnight Stars",
-        "teamPlayers": [
-          {
-            "playerId": 17,
-            "playerName": "James Wilson"
-          }
-        ]
-      },
-      {
-        "teamId": "team-016",
-        "teamName": "Countdown Crew",
-        "teamPlayers": [
-          {
-            "playerId": 18,
-            "playerName": "Olivia Brown"
-          }
-        ]
-      }
-    ],
-    "participants": {
-      "team1": {
-        "playerNames": ["James Wilson"]
-      },
-      "team2": {
-        "playerNames": ["Olivia Brown"]
-      }
-    }
+    "Id": 8,
+    "UniqueId": "01JH0A86TND5Z7X2V4H8Q5R0CP",
+    "Name": "New Year Classic",
+    "Description": "Traditional end-of-year tournament celebrating the season",
+    "StartDate": "2025-12-31",
+    "EndDate": "2026-01-02",
+    "Type": "Classic",
+    "Country": "United States",
+    "City": "New York",
+    "Place": "Heritage Stadium",
+    "IsPrivate": false,
+    "CreatedAt": "2024-11-15T10:30:00Z",
+    "UpdatedAt": "2024-12-08T14:05:00Z"
   }
 ]
