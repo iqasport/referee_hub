@@ -1,46 +1,56 @@
-import React from "react";
-import TournamentCard from "./TournamentCard";
+import React, { useMemo, useState } from "react";
 import tournamentsData from "./tournamentsData.json";
 import Search from "./Search";
+import TournamentSection, { TournamentData } from "./TournamentSection";
 
-type TournamentData = {
-  Id: number;
-  UniqueId: string;
-  Name: string;
-  Description: string;
-  StartDate: string;
-  EndDate: string;
-  Type: string;
-  Country: string;
-  City: string;
-  Place: string | null;
-  IsPrivate: boolean;
-  CreatedAt: string;
-  UpdatedAt: string;
+const getTournamentTypeName = (type: number): string => {
+  const typeMap: { [key: number]: string } = {
+    0: "Club",
+    1: "National",
+    2: "Youth",
+    3: "Fantasy",
+  };
+  return typeMap[type] || "Unknown";
 };
 
 const Tournament = () => {
-  const tournaments = tournamentsData as TournamentData[];
+  const [searchTerm, setSearchTerm] = useState("");
+  const tournaments = useMemo(() => tournamentsData as TournamentData[], []);
+
+  const filteredTournaments = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return tournaments;
+    }
+
+    const lowerTerm = searchTerm.toLowerCase();
+    return tournaments.filter((t) => {
+      const typeName = getTournamentTypeName(t.type);
+      return (
+        t.title.toLowerCase().includes(lowerTerm) ||
+        t.location.toLowerCase().includes(lowerTerm) ||
+        typeName.toLowerCase().includes(lowerTerm)
+      );
+    });
+  }, [tournaments, searchTerm]);
+
+  const { publicTournaments, privateTournaments } = useMemo(() => {
+    const withFlags = filteredTournaments.map((t) => ({ ...t, isPrivate: Boolean(t.isPrivate) }));
+    return {
+      publicTournaments: withFlags.filter((t) => !t.isPrivate),
+      privateTournaments: withFlags.filter((t) => t.isPrivate),
+    };
+  }, [filteredTournaments]);
 
   return (
     <>
-      <Search />
-      <section className="p-4 grid grid-cols-3 gap-6 mx-auto max-w-[80%]">
-        {tournaments.map((tournament) => (
-          <TournamentCard
-            key={tournament.UniqueId}
-            name={tournament.Name}
-            description={tournament.Description}
-            startDate={tournament.StartDate}
-            endDate={tournament.EndDate}
-            type={tournament.Type}
-            country={tournament.Country}
-            city={tournament.City}
-            place={tournament.Place}
-            isPrivate={tournament.IsPrivate}
-          />
-        ))}
-      </section>
+      <div className="max-w-[80%] mx-auto px-4 py-2">
+        <Search onSearch={setSearchTerm} />
+      </div>
+      <div className="max-w-[80%] mx-auto px-4 space-y-10">
+        <TournamentSection tournaments={privateTournaments} visibility="private" />
+
+        <TournamentSection tournaments={publicTournaments} visibility="public" />
+      </div>
     </>
   );
 };
