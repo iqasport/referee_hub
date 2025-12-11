@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import tournamentsData from "./tournamentsData.json";
 import AddTournamentModal from "./components/AddTournamentModal";
@@ -19,22 +19,11 @@ const getTournamentTypeName = (type: number | string): string => {
 
 const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const querySearch = searchParams.get("q") || "";
-  const queryType = searchParams.get("type") || "";
-  const [searchTerm, setSearchTerm] = useState(querySearch);
-  const [typeFilter, setTypeFilter] = useState(queryType);
+  const searchTerm = searchParams.get("q") || "";
+  const typeFilter = searchParams.get("type") || "";
   const tournaments = useMemo(() => tournamentsData as TournamentData[], []);
 
-  useEffect(() => {
-    setSearchTerm(querySearch);
-  }, [querySearch]);
-
-  useEffect(() => {
-    setTypeFilter(queryType);
-  }, [queryType]);
-
   const handleSearch = (term: string) => {
-    setSearchTerm(term);
     const params: Record<string, string> = {};
     if (term.trim()) params.q = term;
     if (typeFilter) params.type = typeFilter;
@@ -42,7 +31,6 @@ const Tournament = () => {
   };
 
   const handleTypeFilter = (type: string) => {
-    setTypeFilter(type);
     const params: Record<string, string> = {};
     if (searchTerm.trim()) params.q = searchTerm;
     if (type) params.type = type;
