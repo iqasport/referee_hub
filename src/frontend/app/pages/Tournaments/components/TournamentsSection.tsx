@@ -1,7 +1,7 @@
 import React from "react";
 import TournamentCard from "./TournamentCard";
 
-export type Organizer = { id: string; name: string };
+export type Manager = { id: string; name: string };
 
 export type TournamentData = {
   id: number;
@@ -13,16 +13,22 @@ export type TournamentData = {
   country: string;
   location: string;
   bannerImageUrl?: string;
-  organizers: Organizer[];
+  organizer?: string;
+  managers?: Manager[];
   isPrivate: boolean;
 };
 
 type TournamentSectionProps = {
   tournaments: TournamentData[];
   visibility?: "public" | "private";
+  onEdit?: (tournament: TournamentData) => void;
 };
 
-const TournamentSection: React.FC<TournamentSectionProps> = ({ tournaments, visibility }) => {
+const TournamentSection: React.FC<TournamentSectionProps> = ({
+  tournaments,
+  visibility,
+  onEdit,
+}) => {
   if (tournaments.length === 0) {
     return (
       <section className="max-w-[80%] mx-auto p-4 text-gray-600">No tournaments available.</section>
@@ -48,7 +54,8 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({ tournaments, visi
             country={tournament.country}
             location={tournament.location}
             bannerImageUrl={tournament.bannerImageUrl}
-            organizers={tournament.organizers}
+            organizer={tournament.organizer}
+            onEdit={onEdit ? () => onEdit(tournament) : undefined}
           />
         ))}
       </div>
