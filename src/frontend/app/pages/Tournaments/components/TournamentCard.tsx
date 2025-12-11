@@ -1,7 +1,5 @@
 import React from "react";
 
-type Organizer = { id: string; name: string };
-
 interface TournamentCardProps {
   title: string;
   description: string;
@@ -35,6 +33,17 @@ const LocationIcon = () => (
   </svg>
 );
 
+const EditIcon = () => (
+  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+    />
+  </svg>
+);
+
 const TournamentCard: React.FC<TournamentCardProps> = ({
   title,
   description,
@@ -59,16 +68,9 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
             e.stopPropagation();
             onEdit();
           }}
-          className="absolute top-4 right-4 z-10 bg-white text-gray-700 px-3 py-1.5 rounded-md shadow-md hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 text-sm font-medium"
+          className="absolute top-0 right-0 mt-4 mr-4 z-50 bg-white text-gray-700 px-3 py-1 rounded shadow hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition flex items-center text-sm font-medium"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
+          <EditIcon />
           Edit
         </button>
       )}
@@ -93,7 +95,6 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
           {locationText}
         </div>
         {organizer && <div className="text-xs text-gray-500 mt-2">Organized by: {organizer}</div>}
-
       </div>
     </div>
   );
