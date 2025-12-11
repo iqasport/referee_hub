@@ -25,14 +25,14 @@ const Tournament = () => {
 
   const handleSearch = (term: string) => {
     const params: Record<string, string> = {};
-    if (term.trim()) params.q = term;
+    if (term.trim()) params.q = term.trim();
     if (typeFilter) params.type = typeFilter;
     setSearchParams(params);
   };
 
   const handleTypeFilter = (type: string) => {
     const params: Record<string, string> = {};
-    if (searchTerm.trim()) params.q = searchTerm;
+    if (searchTerm.trim()) params.q = searchTerm.trim();
     if (type) params.type = type;
     setSearchParams(params);
   };
