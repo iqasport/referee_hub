@@ -68,7 +68,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
             e.stopPropagation();
             onEdit();
           }}
-          className="absolute top-0 right-0 mt-4 mr-4 z-50 bg-white text-gray-700 px-3 py-1 rounded shadow hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition flex items-center text-sm font-medium"
+         
         >
           <EditIcon />
           Edit
