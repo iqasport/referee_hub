@@ -9,7 +9,7 @@
     "country": "Belgium",
     "location": "Central Sports Arena, Brussels",
     "bannerImageUrl": "https://placehold.co/600x400?text=Spring%20Championship%202025",
-    "organizers": [{ "id": "org-001", "name": "Tournament Committee" }],
+    "organizer": "Belgian Football Association",
     "isPrivate": false
   },
   {
@@ -21,7 +21,7 @@
     "type": 0,
     "location": "Olympic Stadium, London",
     "bannerImageUrl": "https://placehold.co/600x400?text=Summer%20League%20Finals",
-    "organizers": [{ "id": "org-002", "name": "League Ops" }],
+    "organizer": "Premier League Operations",
     "isPrivate": true
   },
   {
@@ -33,7 +33,7 @@
     "type": 2,
     "location": "Community Sports Complex, Rotterdam",
     "bannerImageUrl": "https://placehold.co/600x400?text=Youth%20Development%20Cup",
-    "organizers": [{ "id": "org-003", "name": "Youth Programs" }],
+    "organizer": "Dutch Youth Sports Foundation",
     "isPrivate": false
   },
   {
@@ -45,7 +45,7 @@
     "type": 1,
     "location": "Grand Arena, Oslo",
     "bannerImageUrl": "https://placehold.co/600x400?text=Winter%20Invitational",
-    "organizers": [{ "id": "org-004", "name": "Nordic Sports Council" }],
+    "organizer": "Nordic Sports Council",
     "isPrivate": true
   },
   {
@@ -57,7 +57,7 @@
     "type": 1,
     "location": "Regional Sports Center, Lyon",
     "bannerImageUrl": "https://placehold.co/600x400?text=Regional%20Qualifiers",
-    "organizers": [{ "id": "org-005", "name": "French Federation" }],
+    "organizer": "French Football Federation",
     "isPrivate": false
   },
   {
@@ -69,7 +69,7 @@
     "type": 3,
     "location": "Premier Stadium, Madrid",
     "bannerImageUrl": "https://placehold.co/600x400?text=All-Star%20Showcase",
-    "organizers": [{ "id": "org-006", "name": "Liga All-Stars" }],
+    "organizer": "La Liga All-Stars Committee",
     "isPrivate": false
   },
   {
@@ -81,7 +81,7 @@
     "type": 0,
     "location": "Charity Sports Grounds, Dublin",
     "bannerImageUrl": "https://placehold.co/600x400?text=Charity%20Challenge",
-    "organizers": [{ "id": "org-007", "name": "Community Fund" }],
+    "organizer": "Community Sports Fund Ireland",
     "isPrivate": true
   },
   {
@@ -93,7 +93,7 @@
     "type": 0,
     "location": "Heritage Stadium, New York",
     "bannerImageUrl": "https://placehold.co/600x400?text=New%20Year%20Classic",
-    "organizers": [{ "id": "org-008", "name": "Heritage Sports" }],
+    "organizer": "Heritage Sports Association",
     "isPrivate": false
   }
 ]

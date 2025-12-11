@@ -18,22 +18,22 @@ interface Tournament {
   isPrivate: boolean;
 }
 
-const getTournamentTypeName = (type: number): string => {
-  const typeMap: { [key: number]: string } = {
+//This is a placeholder until we get the api output, that's why its both string and number for the moment
+const getTournamentTypeName = (type: number | string): string => {
+  const typeMap: Record<number, string> = {
     0: "Club",
     1: "National",
     2: "Youth",
     3: "Fantasy",
   };
-  return typeMap[type] || "Unknown";
+  const key = typeof type === "string" ? parseInt(type, 10) : type;
+  return typeMap[key] || "Unknown";
 };
 
 const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const querySearch = searchParams.get("q") || "";
-  const queryType = searchParams.get("type") || "";
-  const [searchTerm, setSearchTerm] = useState(querySearch);
-  const [typeFilter, setTypeFilter] = useState(queryType);
+  const searchTerm = searchParams.get("q") || "";
+  const typeFilter = searchParams.get("type") || "";
   const tournaments = useMemo(() => tournamentsData as TournamentData[], []);
   const modalRef = useRef<AddTournamentModalRef>(null);
 
@@ -73,26 +73,16 @@ const Tournament = () => {
     modalRef.current?.openEdit(modalData);
   }
 
-  useEffect(() => {
-    setSearchTerm(querySearch);
-  }, [querySearch]);
-
-  useEffect(() => {
-    setTypeFilter(queryType);
-  }, [queryType]);
-
   const handleSearch = (term: string) => {
-    setSearchTerm(term);
     const params: Record<string, string> = {};
-    if (term.trim()) params.q = term;
+    if (term.trim()) params.q = term.trim();
     if (typeFilter) params.type = typeFilter;
     setSearchParams(params);
   };
 
   const handleTypeFilter = (type: string) => {
-    setTypeFilter(type);
     const params: Record<string, string> = {};
-    if (searchTerm.trim()) params.q = searchTerm;
+    if (searchTerm.trim()) params.q = searchTerm.trim();
     if (type) params.type = type;
     setSearchParams(params);
   };
@@ -139,17 +129,17 @@ const Tournament = () => {
 
       </div>
       <div className="max-w-[80%] mx-auto px-4 space-y-10">
-        <TournamentSection 
-          tournaments={privateTournaments} 
-          visibility="private"
-          onEdit={handleEdit}
-        />
+        {privateTournaments.length > 0 && (
+          <TournamentSection tournaments={privateTournaments} visibility="private" />
+        )}
 
-        <TournamentSection 
-          tournaments={publicTournaments} 
-          visibility="public"
-          onEdit={handleEdit}
-        />
+        {publicTournaments.length > 0 && (
+          <TournamentSection tournaments={publicTournaments} visibility="public" />
+        )}
+
+        {privateTournaments.length === 0 && publicTournaments.length === 0 && (
+          <div className="text-center text-gray-600 py-8">No tournaments available.</div>
+        )}
       </div>
     </>
   );
