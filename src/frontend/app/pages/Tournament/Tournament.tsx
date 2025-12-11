@@ -1,9 +1,22 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useRef, useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import tournamentsData from "./tournamentsData.json";
-import AddTournamentModal from "./components/AddTournamentModal";
+import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
 import TournamentSection, { TournamentData } from "./components/TournamentSection";
+
+interface Tournament {
+  id?: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  type: string;
+  country: string;
+  city: string;
+  place: string;
+  isPrivate: boolean;
+}
 
 const getTournamentTypeName = (type: number): string => {
   const typeMap: { [key: number]: string } = {
@@ -22,6 +35,43 @@ const Tournament = () => {
   const [searchTerm, setSearchTerm] = useState(querySearch);
   const [typeFilter, setTypeFilter] = useState(queryType);
   const tournaments = useMemo(() => tournamentsData as TournamentData[], []);
+  const modalRef = useRef<AddTournamentModalRef>(null);
+
+  // Convert TournamentData to Modal format
+  const convertToModalFormat = (tournament: TournamentData) => {
+    // Parse location to extract city and place
+    const locationParts = tournament.location.split(',').map(s => s.trim());
+    const place = locationParts[0] || '';
+    const city = locationParts[1] || '';
+    
+    return {
+      id: tournament.id.toString(),
+      name: tournament.title,
+      description: tournament.description,
+      startDate: tournament.startDate,
+      endDate: tournament.endDate,
+      type: getTournamentTypeName(tournament.type),
+      country: tournament.country,
+      city: city,
+      place: place,
+      isPrivate: tournament.isPrivate,
+    };
+  };
+
+  function handleSubmit(tournamentData: Tournament, isEdit: boolean) {
+    if (isEdit) {
+      console.log('Updating tournament:', tournamentData.id, tournamentData);
+      // TODO: Call API - PUT /api/tournaments/{id}
+    } else {
+      console.log('Creating tournament:', tournamentData);
+      // TODO: Call API - POST /api/tournaments
+    }
+  }
+
+  function handleEdit(tournament: TournamentData) {
+    const modalData = convertToModalFormat(tournament);
+    modalRef.current?.openEdit(modalData);
+  }
 
   useEffect(() => {
     setSearchTerm(querySearch);
@@ -81,12 +131,25 @@ const Tournament = () => {
     <>
       <div className="max-w-[80%] mx-auto px-4 py-2">
         <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
-        <AddTournamentModal />
+      <button onClick={() => modalRef.current?.openAdd()}>
+        Add Tournament
+      </button>
+
+      <AddTournamentModal ref={modalRef} onSubmit={handleSubmit} />
+
       </div>
       <div className="max-w-[80%] mx-auto px-4 space-y-10">
-        <TournamentSection tournaments={privateTournaments} visibility="private" />
+        <TournamentSection 
+          tournaments={privateTournaments} 
+          visibility="private"
+          onEdit={handleEdit}
+        />
 
-        <TournamentSection tournaments={publicTournaments} visibility="public" />
+        <TournamentSection 
+          tournaments={publicTournaments} 
+          visibility="public"
+          onEdit={handleEdit}
+        />
       </div>
     </>
   );
