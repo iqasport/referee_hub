@@ -5,7 +5,7 @@ import AddTournamentModal from "./components/AddTournamentModal";
 import Search from "./Search";
 import TournamentSection, { TournamentData } from "./TournamentSection";
 
-const getTournamentTypeName = (type: number): string => {
+const getTournamentTypeName = (type: string): string => {
   const typeMap: { [key: number]: string } = {
     0: "Club",
     1: "National",
