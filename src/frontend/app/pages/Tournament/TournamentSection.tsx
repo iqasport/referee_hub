@@ -1,7 +1,7 @@
 import React from "react";
 import TournamentCard from "./TournamentCard";
 
-export type Organizer = { id: string; name: string };
+export type Manager = { id: string; name: string };
 
 export type TournamentData = {
   id: number;
@@ -13,7 +13,8 @@ export type TournamentData = {
   country: string;
   location: string;
   bannerImageUrl?: string;
-  organizers: Organizer[];
+  organizer?: string;
+  managers?: Manager[];
   isPrivate: boolean;
 };
 
@@ -48,7 +49,7 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({ tournaments, visi
             country={tournament.country}
             location={tournament.location}
             bannerImageUrl={tournament.bannerImageUrl}
-            organizers={tournament.organizers}
+            organizer={tournament.organizer}
           />
         ))}
       </div>

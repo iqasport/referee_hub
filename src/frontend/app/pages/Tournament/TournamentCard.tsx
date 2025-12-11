@@ -1,7 +1,5 @@
 import React from "react";
 
-type Organizer = { id: string; name: string };
-
 interface TournamentCardProps {
   title: string;
   description: string;
@@ -11,7 +9,7 @@ interface TournamentCardProps {
   country: string;
   location: string;
   bannerImageUrl?: string;
-  organizers: Organizer[];
+  organizer?: string;
 }
 
 // types normaly would use the enum not hard coded
@@ -34,10 +32,9 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   country,
   location,
   bannerImageUrl,
-  organizers,
+  organizer,
 }) => {
   const locationText = [location, country].filter(Boolean).join(", ");
-  const organizerNames = organizers.map((o) => o.name).join(", ");
   const typeName = getTournamentTypeName(type);
 
   return (
@@ -70,9 +67,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
           </svg>
           {locationText}
         </div>
-        {organizers.length > 0 && (
-          <div className="text-xs text-gray-500 mt-2">Organizers: {organizerNames}</div>
-        )}
+        {organizer && <div className="text-xs text-gray-500 mt-2">Organized by: {organizer}</div>}
       </div>
     </div>
   );
