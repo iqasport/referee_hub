@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import tournamentsData from "./tournamentsData.json";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
-import TournamentSection, { TournamentData } from "./components/TournamentSection";
+import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
 interface Tournament {
   id?: string;
@@ -40,10 +40,10 @@ const Tournament = () => {
   // Convert TournamentData to Modal format
   const convertToModalFormat = (tournament: TournamentData) => {
     // Parse location to extract city and place
-    const locationParts = tournament.location.split(',').map(s => s.trim());
-    const place = locationParts[0] || '';
-    const city = locationParts[1] || '';
-    
+    const locationParts = tournament.location.split(",").map((s) => s.trim());
+    const place = locationParts[0] || "";
+    const city = locationParts[1] || "";
+
     return {
       id: tournament.id.toString(),
       name: tournament.title,
@@ -60,10 +60,10 @@ const Tournament = () => {
 
   function handleSubmit(tournamentData: Tournament, isEdit: boolean) {
     if (isEdit) {
-      console.log('Updating tournament:', tournamentData.id, tournamentData);
+      console.log("Updating tournament:", tournamentData.id, tournamentData);
       // TODO: Call API - PUT /api/tournaments/{id}
     } else {
-      console.log('Creating tournament:', tournamentData);
+      console.log("Creating tournament:", tournamentData);
       // TODO: Call API - POST /api/tournaments
     }
   }
@@ -121,20 +121,25 @@ const Tournament = () => {
     <>
       <div className="max-w-[80%] mx-auto px-4 py-2">
         <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
-      <button onClick={() => modalRef.current?.openAdd()}>
-        Add Tournament
-      </button>
+        <button onClick={() => modalRef.current?.openAdd()}>Add Tournament</button>
 
-      <AddTournamentModal ref={modalRef} onSubmit={handleSubmit} />
-
+        <AddTournamentModal ref={modalRef} onSubmit={handleSubmit} />
       </div>
       <div className="max-w-[80%] mx-auto px-4 space-y-10">
         {privateTournaments.length > 0 && (
-          <TournamentSection tournaments={privateTournaments} visibility="private" />
+          <TournamentSection
+            tournaments={privateTournaments}
+            visibility="private"
+            onEdit={handleEdit}
+          />
         )}
 
         {publicTournaments.length > 0 && (
-          <TournamentSection tournaments={publicTournaments} visibility="public" />
+          <TournamentSection
+            tournaments={publicTournaments}
+            visibility="public"
+            onEdit={handleEdit}
+          />
         )}
 
         {privateTournaments.length === 0 && publicTournaments.length === 0 && (

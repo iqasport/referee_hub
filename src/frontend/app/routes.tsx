@@ -17,7 +17,7 @@ const NgbProfile = lazy(() => import("./pages/NgbProfile"));
 const ImportWizard = lazy(() => import("./pages/ImportWizard"));
 const RefereeTests = lazy(() => import("./pages/RefereeTests"));
 const Settings = lazy(() => import("./pages/Settings"));
-const Tournament = lazy(() => import("./pages/Tournament"));
+const Tournament = lazy(() => import("./pages/Tournaments"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
