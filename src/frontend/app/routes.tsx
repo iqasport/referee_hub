@@ -117,7 +117,7 @@ const App = () => {
             element={<RefereeTests />}
           />
           <Route
-          path="/tournament"
+          path="/tournaments"
           element={<Tournament/>}
           />
           {/* TODO {currentUser?.enabledFeatures.includes("i18n") ? (

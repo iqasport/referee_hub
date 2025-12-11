@@ -2,8 +2,8 @@ import React, { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import tournamentsData from "./tournamentsData.json";
 import AddTournamentModal from "./components/AddTournamentModal";
-import Search from "./Search";
-import TournamentSection, { TournamentData } from "./TournamentSection";
+import Search from "./components/Search";
+import TournamentSection, { TournamentData } from "./components/TournamentSection";
 
 //This is a placeholder until we get the api output, that's why its both string and number for the moment
 const getTournamentTypeName = (type: number | string): string => {
