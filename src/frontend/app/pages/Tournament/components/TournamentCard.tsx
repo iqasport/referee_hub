@@ -1,5 +1,7 @@
 import React from "react";
 
+type Organizer = { id: string; name: string };
+
 interface TournamentCardProps {
   title: string;
   description: string;
@@ -10,9 +12,9 @@ interface TournamentCardProps {
   location: string;
   bannerImageUrl?: string;
   organizer?: string;
+  onEdit?: () => void;
 }
 
-// types normaly would use the enum not hard coded
 const getTournamentTypeName = (type: number): string => {
   const typeMap: { [key: number]: string } = {
     0: "Club",
@@ -43,13 +45,33 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   location,
   bannerImageUrl,
   organizer,
+  onEdit,
 }) => {
   const locationText = [location, country].filter(Boolean).join(", ");
   const typeName = getTournamentTypeName(type);
   const dateText = startDate === endDate ? startDate : `${startDate} - ${endDate}`;
 
   return (
-    <div className="rounded-lg bg-white shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
+    <div className="rounded-lg bg-green-100 shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer relative group">
+      {onEdit && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="absolute top-4 right-4 z-10 bg-white text-gray-700 px-3 py-1.5 rounded-md shadow-md hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 text-sm font-medium"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
+          </svg>
+          Edit
+        </button>
+      )}
       <figure className="w-full h-64 bg-gray-300 overflow-hidden">
         <img
           src={bannerImageUrl || `https://placehold.co/600x400?text=${encodeURIComponent(title)}`}
@@ -71,6 +93,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
           {locationText}
         </div>
         {organizer && <div className="text-xs text-gray-500 mt-2">Organized by: {organizer}</div>}
+
       </div>
     </div>
   );
