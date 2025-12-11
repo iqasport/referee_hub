@@ -5,14 +5,16 @@ import AddTournamentModal from "./components/AddTournamentModal";
 import Search from "./Search";
 import TournamentSection, { TournamentData } from "./TournamentSection";
 
-const getTournamentTypeName = (type: string): string => {
-  const typeMap: { [key: number]: string } = {
+//This is a placeholder until we get the api output, that's why its both string and number for the moment
+const getTournamentTypeName = (type: number | string): string => {
+  const typeMap: Record<number, string> = {
     0: "Club",
     1: "National",
     2: "Youth",
     3: "Fantasy",
   };
-  return typeMap[type] || "Unknown";
+  const key = typeof type === "string" ? parseInt(type, 10) : type;
+  return typeMap[key] || "Unknown";
 };
 
 const Tournament = () => {
