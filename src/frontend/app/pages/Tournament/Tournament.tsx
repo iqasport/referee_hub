@@ -74,9 +74,17 @@ const Tournament = () => {
         <AddTournamentModal />
       </div>
       <div className="max-w-[80%] mx-auto px-4 space-y-10">
-        <TournamentSection tournaments={privateTournaments} visibility="private" />
+        {privateTournaments.length > 0 && (
+          <TournamentSection tournaments={privateTournaments} visibility="private" />
+        )}
 
-        <TournamentSection tournaments={publicTournaments} visibility="public" />
+        {publicTournaments.length > 0 && (
+          <TournamentSection tournaments={publicTournaments} visibility="public" />
+        )}
+
+        {privateTournaments.length === 0 && publicTournaments.length === 0 && (
+          <div className="text-center text-gray-600 py-8">No tournaments available.</div>
+        )}
       </div>
     </>
   );
