@@ -37,16 +37,27 @@ See `src/backend/ManagementHub.Models/Domain/Tests/TestAttemptIdentifier.cs` for
 **Location:** `src/backend/ManagementHub.Models/Enums/TournamentType.cs`
 
 ```csharp
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TournamentType
 {
+    [EnumMember(Value = "club")]
     Club = 0,
+    
+    [EnumMember(Value = "national")]
     National = 1,
+    
+    [EnumMember(Value = "youth")]
     Youth = 2,
+    
+    [EnumMember(Value = "fantasy")]
     Fantasy = 3
 }
 ```
 
-**Pattern reference:** See other enums in `src/backend/ManagementHub.Models/Enums/` directory.
+**Pattern reference:** See other enums in `src/backend/ManagementHub.Models/Enums/` directory for EnumMember attribute usage.
 
 ### 3. Create Tournament Entity
 **Location:** `src/backend/ManagementHub.Storage/Data/Tournament.cs`
@@ -64,6 +75,7 @@ Properties needed:
 - `string Country` - country location
 - `string City` - city location
 - `string? Place` - specific place/venue
+- `string Organizer` - name of organizing entity
 - `bool IsPrivate` - visibility flag
 - `DateTime CreatedAt`
 - `DateTime UpdatedAt`
@@ -239,39 +251,16 @@ Add logic to load TournamentManagerRole from TournamentManager table.
 **Pattern reference:** `src/backend/ManagementHub.Models/Domain/Team/TeamData.cs`
 
 Properties matching the entity (without IDs and timestamps):
-- Name, Description, StartDate, EndDate, Type, Country, City, Place, IsPrivate
+- Name, Description, StartDate, EndDate, Type, Country, City, Place, Organizer, IsPrivate
 
 ### 2. Create View Models
 **Location:** `src/backend/ManagementHub.Service/Areas/Tournaments/` (new directory)
 
-Create these view models:
+Create unified view models using inheritance:
 
-**TournamentViewModel.cs:**
+**TournamentModel.cs** (base model for mutations):
 ```csharp
-public class TournamentViewModel
-{
-    public string Id { get; set; }  // formatted TournamentIdentifier
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public DateOnly StartDate { get; set; }
-    public DateOnly EndDate { get; set; }
-    public string Type { get; set; }
-    public string Country { get; set; }
-    public string Location { get; set; }  // City + Place
-    public string? BannerImageUrl { get; set; }
-    public List<ManagerViewModel> Organizers { get; set; }
-}
-
-public class ManagerViewModel
-{
-    public string Id { get; set; }  // formatted UserIdentifier
-    public string Name { get; set; }
-}
-```
-
-**TournamentCreateModel.cs:**
-```csharp
-public class TournamentCreateModel
+public class TournamentModel
 {
     public string Name { get; set; }
     public string Description { get; set; }
@@ -281,9 +270,22 @@ public class TournamentCreateModel
     public string Country { get; set; }
     public string City { get; set; }
     public string? Place { get; set; }
+    public string Organizer { get; set; }
     public bool IsPrivate { get; set; }
 }
 ```
+
+**TournamentViewModel.cs** (extended model for GET responses):
+```csharp
+public class TournamentViewModel : TournamentModel
+{
+    public string Id { get; set; }  // formatted TournamentIdentifier
+    public string? BannerImageUrl { get; set; }
+    public bool IsCurrentUserInvolved { get; set; }
+}
+```
+
+**Note:** The `Type` property uses the `TournamentType` enum which has `JsonStringEnumConverter` attribute, so it will be serialized as lowercase string ("club", "national", "youth", "fantasy") in API responses.
 
 **Pattern reference:** See view models in `src/backend/ManagementHub.Service/Areas/Ngbs/`
 
@@ -291,12 +293,13 @@ public class TournamentCreateModel
 **Location:** `src/backend/ManagementHub.Models/Abstraction/Contexts/Providers/ITournamentContextProvider.cs`
 
 Define methods:
-- `QueryTournaments()` - returns IQueryable<TournamentContext>
+- `QueryTournaments()` - returns IQueryable<TournamentContext> and applies filtering using FilteringParameters from FilteringContext
 - `GetTournamentContextAsync(TournamentIdentifier)` - get single tournament
 - `CreateTournamentAsync(TournamentData, UserIdentifier)` - create tournament and assign creator as manager
 - `UpdateTournamentAsync(TournamentIdentifier, TournamentData)` - update existing tournament
 - `GetTournamentBannerUriAsync(TournamentIdentifier)` - get banner image URL (retrieves from attachment system)
 - `GetTournamentManagerIds(TournamentIdentifier)` - get list of manager user IDs
+- `GetUserInvolvedTournamentIdsAsync(IEnumerable<TournamentIdentifier>, UserIdentifier)` - returns set of tournament IDs where user is involved (manager, team manager, or roster member)
 
 **Pattern reference:** See `INgbContextProvider` pattern.
 
@@ -308,68 +311,255 @@ Use `IAttachmentRepository.GetAttachmentAsync(tournamentId, "banner", cancellati
 
 Implement the interface defined above.
 
-**Pattern reference:** Look for NgbContextProvider implementation.
+**Special implementation for `GetUserInvolvedTournamentIdsAsync`:**
+```csharp
+public async Task<HashSet<TournamentIdentifier>> GetUserInvolvedTournamentIdsAsync(
+    IEnumerable<TournamentIdentifier> tournamentIds,
+    UserIdentifier userId)
+{
+    var tournamentIdsList = tournamentIds.Select(t => t.UniqueId).ToList();
+    
+    // Get the user's database ID
+    var user = await this.context.Users
+        .WithIdentifier(userId)
+        .Select(u => new { u.Id })
+        .FirstOrDefaultAsync();
+    
+    if (user == null)
+    {
+        return new HashSet<TournamentIdentifier>();
+    }
+    
+    // Check if user is tournament manager
+    var managerTournamentIds = await this.context.TournamentManagers
+        .Where(tm => tm.UserId == user.Id && 
+                     tournamentIdsList.Contains(tm.Tournament.UniqueId))
+        .Select(tm => tm.Tournament.UniqueId)
+        .ToListAsync();
+    
+    // Check if user is team manager for participating teams (Phase 3)
+    // Check if user is on roster (Phase 4)
+    // For Phase 1, only tournament managers are checked
+    
+    return managerTournamentIds
+        .Select(id => TournamentIdentifier.Parse(id))
+        .ToHashSet();
+}
+```
+
+**Note:** This method will be extended in Phase 3 to check team managers and Phase 4 to check roster entries.
+
+**Pattern reference:** Use `WithIdentifier` extension method from `UserCollectionExtensions` to resolve UserIdentifier to database User entity, then use `user.Id` for foreign key queries.
 
 ### 5. Create Tournaments Controller
 **Location:** `src/backend/ManagementHub.Service/Areas/Tournaments/TournamentsController.cs`
 
 **Pattern reference:** `src/backend/ManagementHub.Service/Areas/Ngbs/NgbsController.cs`
 
-Implement three endpoints:
+Implement four endpoints:
 
 **a) GET `/api/v2/tournaments`** - List tournaments
 - Use `[FromQuery] FilteringParameters filtering` for pagination
 - Return `Filtered<TournamentViewModel>`
 - Filter private tournaments: only show if user is participant or manager
 - Use `.AsFiltered()` extension method
+- Calculate `isCurrentUserInvolved` for all tournaments in the result using `GetUserInvolvedTournamentIdsAsync`
+
+**Implementation pattern:**
+```csharp
+[HttpGet]
+[Authorize]
+public async Task<Filtered<TournamentViewModel>> GetTournaments(
+    [FromQuery] FilteringParameters filtering)
+{
+    var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+    
+    var query = this.tournamentContextProvider.QueryTournaments();
+    
+    // Filter private tournaments - show only if user is manager
+    // (Phase 3 will extend to check participants)
+    var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>().Any();
+    if (!isTournamentManager)
+    {
+        query = query.Where(t => !t.IsPrivate);
+    }
+    
+    var tournaments = await query.AsFiltered(filtering);
+    
+    // Get involved tournament IDs for isCurrentUserInvolved flag
+    var tournamentIds = tournaments.Items.Select(t => t.Id).ToList();
+    var involvedIds = await this.tournamentContextProvider
+        .GetUserInvolvedTournamentIdsAsync(tournamentIds, userContext.UserId);
+    
+    var viewModels = tournaments.Items.Select(t => new TournamentViewModel
+    {
+        Id = t.Id.ToString(),
+        Name = t.Name,
+        Description = t.Description,
+        StartDate = t.StartDate,
+        EndDate = t.EndDate,
+        Type = t.Type,
+        Country = t.Country,
+        City = t.City,
+        Place = t.Place,
+        Organizer = t.Organizer,
+        IsPrivate = t.IsPrivate,
+        BannerImageUrl = t.BannerUri?.ToString(),
+        IsCurrentUserInvolved = involvedIds.Contains(t.Id)
+    }).ToList();
+    
+    return new Filtered<TournamentViewModel>(viewModels, tournaments.Total);
+}
+```
 
 **b) GET `/api/v2/tournaments/{tournamentId}`** - Get single tournament
 - Route parameter: `[FromRoute] TournamentIdentifier tournamentId`
 - Return 404 if tournament is private and user shouldn't have access
-- Load tournament with managers
-- Return `TournamentViewModel`
+- Return `TournamentViewModel` with `isCurrentUserInvolved` calculated
+
+**Implementation pattern:**
+```csharp
+[HttpGet("{tournamentId}")]
+[Authorize]
+public async Task<ActionResult<TournamentViewModel>> GetTournament(
+    [FromRoute] TournamentIdentifier tournamentId)
+{
+    var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+    var tournament = await this.tournamentContextProvider
+        .GetTournamentContextAsync(tournamentId);
+    
+    // Check access to private tournament
+    if (tournament.IsPrivate)
+    {
+        var isManager = userContext.Roles.OfType<TournamentManagerRole>()
+            .Any(r => r.Tournament.AppliesTo(tournamentId));
+        
+        if (!isManager)
+        {
+            // Phase 3: Also check if user is participant
+            return NotFound();
+        }
+    }
+    
+    // Calculate isCurrentUserInvolved
+    var involvedIds = await this.tournamentContextProvider
+        .GetUserInvolvedTournamentIdsAsync(
+            new[] { tournamentId }, userContext.UserId);
+    
+    var bannerUri = await this.tournamentContextProvider
+        .GetTournamentBannerUriAsync(tournamentId);
+    
+    return new TournamentViewModel
+    {
+        Id = tournament.Id.ToString(),
+        Name = tournament.Name,
+        Description = tournament.Description,
+        StartDate = tournament.StartDate,
+        EndDate = tournament.EndDate,
+        Type = tournament.Type,
+        Country = tournament.Country,
+        City = tournament.City,
+        Place = tournament.Place,
+        Organizer = tournament.Organizer,
+        IsPrivate = tournament.IsPrivate,
+        BannerImageUrl = bannerUri?.ToString(),
+        IsCurrentUserInvolved = involvedIds.Contains(tournamentId)
+    };
+}
+```
 
 **c) POST `/api/v2/tournaments`** - Create tournament
-- Body: `[FromBody] TournamentCreateModel model`
+- Body: `[FromBody] TournamentModel model`
 - Create tournament via context provider
 - Automatically add creating user as manager
-- Return created `TournamentIdentifier` or full `TournamentViewModel`
+- Return created tournament ID with 200 OK response
+
+**Implementation pattern:**
+```csharp
+[HttpPost]
+[Authorize]
+[ProducesResponseType(StatusCodes.Status200OK)]
+public async Task<ActionResult<TournamentIdResponse>> CreateTournament(
+    [FromBody] TournamentModel model)
+{
+    var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+    
+    var tournamentData = new TournamentData
+    {
+        Name = model.Name,
+        Description = model.Description,
+        StartDate = model.StartDate,
+        EndDate = model.EndDate,
+        Type = model.Type,
+        Country = model.Country,
+        City = model.City,
+        Place = model.Place,
+        Organizer = model.Organizer,
+        IsPrivate = model.IsPrivate
+    };
+    
+    var tournamentId = await this.tournamentContextProvider
+        .CreateTournamentAsync(tournamentData, userContext.UserId);
+    
+    return Ok(new TournamentIdResponse { Id = tournamentId.ToString() });
+}
+```
 
 **d) PUT `/api/v2/tournaments/{tournamentId}`** - Update tournament
 - Route parameter: `[FromRoute] TournamentIdentifier tournamentId`
-- Body: `[FromBody] TournamentCreateModel model` (reuse same model)
+- Body: `[FromBody] TournamentModel model`
 - Authorization: `[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]`
 - Updates entire tournament object (full replacement)
-- Verify user is a manager of this tournament (policy handles this)
-- Return updated `TournamentViewModel`
+- Return tournament ID with 200 OK response
+
+**Implementation pattern:**
+```csharp
+[HttpPut("{tournamentId}")]
+[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+[ProducesResponseType(StatusCodes.Status200OK)]
+public async Task<ActionResult<TournamentIdResponse>> UpdateTournament(
+    [FromRoute] TournamentIdentifier tournamentId,
+    [FromBody] TournamentModel model)
+{
+    var tournamentData = new TournamentData
+    {
+        Name = model.Name,
+        Description = model.Description,
+        StartDate = model.StartDate,
+        EndDate = model.EndDate,
+        Type = model.Type,
+        Country = model.Country,
+        City = model.City,
+        Place = model.Place,
+        Organizer = model.Organizer,
+        IsPrivate = model.IsPrivate
+    };
+    
+    await this.tournamentContextProvider
+        .UpdateTournamentAsync(tournamentId, tournamentData);
+    
+    return Ok(new TournamentIdResponse { Id = tournamentId.ToString() });
+}
+```
+
+**Response Model:**
+```csharp
+public class TournamentIdResponse
+{
+    public string Id { get; set; }
+}
+```
 
 **Authorization:**
 - GET endpoints: `[Authorize]` (any authenticated user)
 - POST endpoint: `[Authorize]` (any authenticated user can create)
 - PUT endpoint: `[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]` (only managers can update)
 
-**Pattern for checking private tournament access:**
-```csharp
-// For Phase 1: Check if user is a manager
-// For Phase 3: Also check if user is a participant
-var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-
-// Check if user is tournament manager
-var isManager = userContext.Roles.OfType<TournamentManagerRole>()
-    .Any(r => r.Tournament.AppliesTo(tournamentId));
-
-if (!isManager)
-{
-    // Phase 3: Add check for participant here
-    // For now, deny access to private tournaments if not a manager
-    return NotFound(); // Return 404 for private tournaments user shouldn't see
-}
-```
-
 **Implementation notes:**
 - In GET list endpoint: Filter out private tournaments where user is not a manager
 - In GET single endpoint: Return 404 if tournament is private and user is not a manager
 - This will be extended in Phase 3 to also check participant status
+- Frontend calls GET endpoint after POST/PUT to retrieve full tournament details
 
 ### 6. Create Upload Banner Command
 **Location:** `src/backend/ManagementHub.Models/Abstraction/Commands/IUpdateTournamentBannerCommand.cs`

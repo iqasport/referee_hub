@@ -72,15 +72,17 @@ public class ManagerInfo
 - `GetTournamentManagersAsync`: Join TournamentManager with User to get user details
 - `AddTournamentManagerAsync`: 
   - Verify tournament exists
-  - Verify user exists  
+  - Verify user exists using `context.Users.WithIdentifier(userId)` extension method
   - Check if already a manager (idempotent - don't error if already manager)
-  - Insert TournamentManager record with `AddedByUserId` set to current user
+  - Get user's database ID: `var user = await context.Users.WithIdentifier(userId).FirstOrDefaultAsync(); var userDbId = user.Id;`
+  - Insert TournamentManager record with `UserId = userDbId` and `AddedByUserId = addedByUser.Id`
   - Set `CreatedAt` and `UpdatedAt` to current time
 - `RemoveTournamentManagerAsync`:
   - Check manager count first - if only 1 manager exists, throw `InvalidOperationException`
+  - Use `WithIdentifier(userId)` to get user's database ID for query
   - Return true if removed, false if user wasn't a manager
 
-**Pattern reference:** Look at NGB admin management in `src/backend/ManagementHub.Storage/` for similar patterns.
+**Pattern reference:** Use `WithIdentifier` extension from `UserCollectionExtensions` to resolve UserIdentifier to database User entity. This handles both new ULID-based identifiers and legacy numeric IDs.
 
 ### 2. Add View Model for Manager List Response
 **Location:** `src/backend/ManagementHub.Service/Areas/Tournaments/TournamentManagerViewModel.cs`

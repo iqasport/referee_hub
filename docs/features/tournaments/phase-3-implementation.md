@@ -256,6 +256,170 @@ var invite = new TournamentInvite
 };
 ```
 
+## Extensions to Phase 1
+
+### 1. Extend GetUserInvolvedTournamentIdsAsync Method
+**Location:** `src/backend/ManagementHub.Storage/Contexts/TournamentContextProvider.cs`
+
+This method from Phase 1 needs to be extended to also check if the user is a team manager of a participating team.
+
+Add query for team manager involvement:
+```csharp
+public async Task<HashSet<TournamentIdentifier>> GetUserInvolvedTournamentIdsAsync(
+    UserIdentifier userId,
+    List<TournamentIdentifier> tournamentIds)
+{
+    var tournamentIdsList = tournamentIds.Select(id => id.ToString()).ToList();
+    
+    // Get user's database ID using WithIdentifier extension
+    var user = await context.Users
+        .WithIdentifier(userId)
+        .Select(u => new { u.Id })
+        .FirstOrDefaultAsync();
+    
+    if (user == null)
+    {
+        return new HashSet<TournamentIdentifier>();
+    }
+    
+    // Check tournament manager (from Phase 1)
+    var managerTournamentIds = await context.TournamentManagers
+        .Where(tm => tm.UserId == user.Id && 
+                     tournamentIdsList.Contains(tm.Tournament.UniqueId))
+        .Select(tm => tm.Tournament.UniqueId)
+        .ToListAsync();
+    
+    // NEW IN PHASE 3: Check if user is team manager for participating teams
+    var teamManagerTournamentIds = await context.TeamManagers
+        .Where(teamMgr => teamMgr.UserId == user.Id)
+        .Join(
+            context.TournamentTeamParticipants,
+            teamMgr => teamMgr.TeamId,
+            participant => participant.TeamId,
+            (teamMgr, participant) => new { participant.Tournament.UniqueId })
+        .Where(p => tournamentIdsList.Contains(p.UniqueId))
+        .Select(p => p.UniqueId)
+        .Distinct()
+        .ToListAsync();
+    
+    // Combine both lists
+    var allInvolvedIds = managerTournamentIds
+        .Concat(teamManagerTournamentIds)
+        .Select(id => TournamentIdentifier.Parse(id))
+        .ToHashSet();
+    
+    return allInvolvedIds;
+}
+```
+
+**Note:** This will be further extended in Phase 4 to also check roster entries.
+
+### 2. Extend Private Tournament Filtering (GET List)
+**Location:** `src/backend/ManagementHub.Service/Areas/Tournaments/TournamentsController.cs`
+
+Update the GET list endpoint to allow participants to see private tournaments:
+
+```csharp
+[HttpGet]
+[Tags("Tournament")]
+[Authorize]
+public async Task<IEnumerable<TournamentViewModel>> GetTournaments()
+{
+    var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+    
+    var query = this.tournamentContextProvider.QueryTournaments();
+    
+    // Filter private tournaments - show if user is manager OR participant
+    var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>().Any();
+    var isTeamManager = userContext.Roles.OfType<TeamManagerRole>().Any();
+    
+    if (!isTournamentManager && !isTeamManager)
+    {
+        // User has no management roles - only show public tournaments
+        query = query.Where(t => !t.IsPrivate);
+    }
+    else if (!isTournamentManager && isTeamManager)
+    {
+        // User is only a team manager - show public tournaments and those their teams participate in
+        var managedTeamIds = userContext.Roles
+            .OfType<TeamManagerRole>()
+            .Select(r => r.Team)
+            .ToList();
+        
+        // Need to get database IDs for teams
+        var teamDbIds = new List<long>();
+        foreach (var teamConstraint in managedTeamIds)
+        {
+            // Handle team constraint - may need to query for actual team IDs
+            // Implementation depends on TeamConstraint structure
+        }
+        
+        query = query.Where(t => !t.IsPrivate || 
+            t.TournamentTeamParticipants.Any(p => teamDbIds.Contains(p.TeamId)));
+    }
+    // If user is tournament manager, show all (private check happens in involved calculation)
+    
+    // Rest of implementation...
+}
+```
+
+**Note:** The exact implementation may vary based on how you want to handle filtering. Consider pre-calculating involved tournament IDs for better performance.
+
+### 3. Extend Private Tournament Access Check (GET Single)
+**Location:** `src/backend/ManagementHub.Service/Areas/Tournaments/TournamentsController.cs`
+
+Update the GET single endpoint to allow participants to access private tournaments:
+
+```csharp
+[HttpGet("{tournamentId}")]
+[Tags("Tournament")]
+[Authorize]
+public async Task<ActionResult<TournamentViewModel>> GetTournament(
+    [FromRoute] TournamentIdentifier tournamentId)
+{
+    // ... fetch tournament ...
+    
+    // Check access to private tournament
+    if (tournament.IsPrivate)
+    {
+        var isManager = userContext.Roles.OfType<TournamentManagerRole>()
+            .Any(r => r.Tournament.AppliesTo(tournamentId));
+        
+        // NEW IN PHASE 3: Also check if user's team is a participant
+        var isParticipant = false;
+        var teamManagerRole = userContext.Roles.OfType<TeamManagerRole>().FirstOrDefault();
+        if (teamManagerRole != null)
+        {
+            // Check if any managed team is a participant
+            var user = await context.Users
+                .WithIdentifier(userContext.UserId)
+                .FirstOrDefaultAsync();
+            
+            if (user != null)
+            {
+                isParticipant = await context.TeamManagers
+                    .Where(tm => tm.UserId == user.Id)
+                    .Join(
+                        context.TournamentTeamParticipants.Where(p => p.Tournament.UniqueId == tournamentId.ToString()),
+                        tm => tm.TeamId,
+                        p => p.TeamId,
+                        (tm, p) => p)
+                    .AnyAsync();
+            }
+        }
+        
+        if (!isManager && !isParticipant)
+        {
+            return NotFound();
+        }
+    }
+    
+    // Rest of implementation...
+}
+```
+
+**Note:** This will be further extended in Phase 4 to also check if user is on a roster.
+
 ## API Implementation
 
 ### 1. Create View Models

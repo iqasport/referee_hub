@@ -1,6 +1,6 @@
 # Tournament Management Implementation - Overview
 
-This directory contains detailed implementation guidelines for the tournament management feature, broken down into four deliverable phases.
+This directory contains detailed implementation guidelines for the tournament management feature, broken down into five deliverable phases.
 
 ## Phase Documents
 
@@ -30,6 +30,19 @@ This directory contains detailed implementation guidelines for the tournament ma
    - Sensitive gender data handling
    - Privacy controls and scheduled deletion
    - Archived tournament restrictions
+
+5. **[Phase 5: Team Manager Bootstrap (NGB Admin Access)](./phase-5-implementation.md)**
+   - NGB Admins can add/remove team managers
+   - Solves bootstrap problem for initial team setup
+   - Team manager listing endpoints
+   - NGB jurisdiction validation
+   - Combined authorization policy for TeamManager or NgbAdmin
+
+6. **[Phase 6: List Team Members](./phase-6-implementation.md)**
+   - Team members endpoint for roster selection
+   - Search by name and pagination support
+   - Returns users associated with team (players/coaches)
+   - Team manager and NGB admin access
 
 ## How to Use These Guidelines
 

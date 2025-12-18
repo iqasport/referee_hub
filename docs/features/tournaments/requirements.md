@@ -28,6 +28,7 @@ Let's start by describing what a Tournament entity holds.
 * EndDate - date, when the tournament ends (could be same as StartDate for single day events)
 * Type - enum, tournament type (Club, National, Youth, Fantasy)
 * Location - struct { Country, City, Place }
+* Organizer - string, entity organizing the tournament
 * Private - bool, if a tournament is private it should only be visible to organizers and participants, new participants are by invitation only
 
 The Tournament will have a collection of TournamentParticipant entities, which is an abstract concept. Right now we will only implement one possible participant - an existing team, while in the future we will enable individual participants and creating virtual teams composed of those.
@@ -91,23 +92,25 @@ This would be configured with new classes is the Data folder in the Storage proj
     * should adhere to the following view model schema:
     ```json
     {
-        "id": 1,
-        "title": "Lorum ipsum",
+        "id": "TR_XXX",
+        "name": "Lorum ipsum",
         "description": "Longer lorum ipsum",
         "startDate": "2025-12-12",
         "endDate": "2025-12-13",
         "type": "lorum ipsum",
         "country": "Belgium",
-        "location": "lorum ipsum",
+        "city": "lorum ipsum",
+        "place": "lorem ipsum",
         "bannerImageUrl": "https://...",
-        "organizers": [
-            {
-                "id": "user-001",
-                "name": "Jane Smith"
-            }
-        ]
+        "organizer": "Name",
+        "isPrivate": false,
+        "isCurrentUserInvolved": false
     }
     ```
+    * The `isCurrentUserInvolved` field should be true if user is one of:
+        * tournament manager
+        * participating team manager
+        * participating team player/coach/staff
 3. POST `/api/v2/tournaments` - create new tournament and become its manager - returns new tournamentId
 4. PUT `/api/v2/tournaments/{tournamentId}` - update tournament details (manager only) - updates the entire tournament object
 5. PUT `/api/v2/tournaments/{tournamentId}/banner` - upload/update tournament banner image (manager only)

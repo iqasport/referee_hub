@@ -132,9 +132,17 @@ public interface IUserDelicateInfoService
 **Location:** `src/backend/ManagementHub.Storage/Services/UserDelicateInfoService.cs`
 
 Implementation notes:
-- `GetUserGenderAsync`: Query UserDelicateInfo by UserId (read-only, does not modify UpdatedAt)
-- `SetUserGenderAsync`: Upsert record, update UpdatedAt timestamp
-- `GetMultipleUserGendersAsync`: Batch query for efficiency (read-only, does not modify UpdatedAt)
+- `GetUserGenderAsync`: 
+  - Use `context.Users.WithIdentifier(userId)` to get user's database ID
+  - Query UserDelicateInfo by `UserId == user.Id` (read-only, does not modify UpdatedAt)
+- `SetUserGenderAsync`: 
+  - Use `context.Users.WithIdentifier(userId)` to get user's database ID
+  - Upsert record using `user.Id`, update UpdatedAt timestamp
+- `GetMultipleUserGendersAsync`: 
+  - For each UserIdentifier, use `WithIdentifier` to get database ID
+  - Batch query UserDelicateInfo for efficiency (read-only, does not modify UpdatedAt)
+
+**Pattern reference:** Use `WithIdentifier` extension from `UserCollectionExtensions` to resolve UserIdentifier to database User entity.
 
 ### 3. Gender Access Control
 
@@ -237,6 +245,149 @@ public class RosterStaffModel
 }
 ```
 
+## Extensions to Phase 1 and Phase 3
+
+### 1. Extend GetUserInvolvedTournamentIdsAsync Method
+**Location:** `src/backend/ManagementHub.Storage/Contexts/TournamentContextProvider.cs`
+
+This method from Phase 1 (extended in Phase 3) needs to be further extended to also check if the user is on a tournament roster.
+
+Add query for roster involvement:
+```csharp
+public async Task<HashSet<TournamentIdentifier>> GetUserInvolvedTournamentIdsAsync(
+    UserIdentifier userId,
+    List<TournamentIdentifier> tournamentIds)
+{
+    var tournamentIdsList = tournamentIds.Select(id => id.ToString()).ToList();
+    
+    // Get user's database ID using WithIdentifier extension
+    var user = await context.Users
+        .WithIdentifier(userId)
+        .Select(u => new { u.Id })
+        .FirstOrDefaultAsync();
+    
+    if (user == null)
+    {
+        return new HashSet<TournamentIdentifier>();
+    }
+    
+    // Check tournament manager (from Phase 1)
+    var managerTournamentIds = await context.TournamentManagers
+        .Where(tm => tm.UserId == user.Id && 
+                     tournamentIdsList.Contains(tm.Tournament.UniqueId))
+        .Select(tm => tm.Tournament.UniqueId)
+        .ToListAsync();
+    
+    // Check if user is team manager for participating teams (from Phase 3)
+    var teamManagerTournamentIds = await context.TeamManagers
+        .Where(teamMgr => teamMgr.UserId == user.Id)
+        .Join(
+            context.TournamentTeamParticipants,
+            teamMgr => teamMgr.TeamId,
+            participant => participant.TeamId,
+            (teamMgr, participant) => new { participant.Tournament.UniqueId })
+        .Where(p => tournamentIdsList.Contains(p.UniqueId))
+        .Select(p => p.UniqueId)
+        .Distinct()
+        .ToListAsync();
+    
+    // NEW IN PHASE 4: Check if user is on any tournament roster
+    var rosterTournamentIds = await context.TournamentTeamRosterEntries
+        .Where(entry => entry.UserId == user.Id)
+        .Join(
+            context.TournamentTeamParticipants,
+            entry => entry.TournamentTeamParticipantId,
+            participant => participant.Id,
+            (entry, participant) => new { participant.Tournament.UniqueId })
+        .Where(p => tournamentIdsList.Contains(p.UniqueId))
+        .Select(p => p.UniqueId)
+        .Distinct()
+        .ToListAsync();
+    
+    // Combine all lists
+    var allInvolvedIds = managerTournamentIds
+        .Concat(teamManagerTournamentIds)
+        .Concat(rosterTournamentIds)
+        .Select(id => TournamentIdentifier.Parse(id))
+        .ToHashSet();
+    
+    return allInvolvedIds;
+}
+```
+
+### 2. Extend Private Tournament Access Check (GET Single)
+**Location:** `src/backend/ManagementHub.Service/Areas/Tournaments/TournamentsController.cs`
+
+Update the GET single endpoint (from Phase 3) to also allow roster members to access private tournaments:
+
+```csharp
+[HttpGet("{tournamentId}")]
+[Tags("Tournament")]
+[Authorize]
+public async Task<ActionResult<TournamentViewModel>> GetTournament(
+    [FromRoute] TournamentIdentifier tournamentId)
+{
+    // ... fetch tournament ...
+    
+    // Check access to private tournament
+    if (tournament.IsPrivate)
+    {
+        var isManager = userContext.Roles.OfType<TournamentManagerRole>()
+            .Any(r => r.Tournament.AppliesTo(tournamentId));
+        
+        // Check if user's team is a participant (from Phase 3)
+        var isParticipant = false;
+        var teamManagerRole = userContext.Roles.OfType<TeamManagerRole>().FirstOrDefault();
+        if (teamManagerRole != null)
+        {
+            var user = await context.Users
+                .WithIdentifier(userContext.UserId)
+                .FirstOrDefaultAsync();
+            
+            if (user != null)
+            {
+                isParticipant = await context.TeamManagers
+                    .Where(tm => tm.UserId == user.Id)
+                    .Join(
+                        context.TournamentTeamParticipants.Where(p => p.Tournament.UniqueId == tournamentId.ToString()),
+                        tm => tm.TeamId,
+                        p => p.TeamId,
+                        (tm, p) => p)
+                    .AnyAsync();
+            }
+        }
+        
+        // NEW IN PHASE 4: Also check if user is on a tournament roster
+        var isOnRoster = false;
+        if (!isManager && !isParticipant)
+        {
+            var user = await context.Users
+                .WithIdentifier(userContext.UserId)
+                .FirstOrDefaultAsync();
+            
+            if (user != null)
+            {
+                isOnRoster = await context.TournamentTeamRosterEntries
+                    .Where(entry => entry.UserId == user.Id)
+                    .Join(
+                        context.TournamentTeamParticipants.Where(p => p.Tournament.UniqueId == tournamentId.ToString()),
+                        entry => entry.TournamentTeamParticipantId,
+                        p => p.Id,
+                        (entry, p) => p)
+                    .AnyAsync();
+            }
+        }
+        
+        if (!isManager && !isParticipant && !isOnRoster)
+        {
+            return NotFound();
+        }
+    }
+    
+    // Rest of implementation...
+}
+```
+
 ### 3. Extend Context Provider
 
 Add to Tournament context provider:
@@ -302,12 +453,27 @@ public async Task UpdateParticipantRosterAsync(
     // Clear existing roster
     context.TournamentTeamRosterEntries.RemoveRange(participant.RosterEntries);
     
+    // Resolve all user identifiers to database IDs upfront
+    var userIdMap = new Dictionary<UserIdentifier, long>();
+    foreach (var userId in allUserIds)
+    {
+        var user = await context.Users
+            .WithIdentifier(userId)
+            .Select(u => new { u.Id })
+            .FirstOrDefaultAsync();
+        
+        if (user == null)
+            throw new NotFoundException($"User {userId} not found");
+        
+        userIdMap[userId] = user.Id;
+    }
+    
     // Add players
     foreach (var player in rosterData.Players)
     {
         participant.RosterEntries.Add(new TournamentTeamRosterEntry
         {
-            UserId = player.UserId.Id,
+            UserId = userIdMap[player.UserId],
             Role = RosterRole.Player,
             JerseyNumber = player.JerseyNumber,
             CreatedAt = DateTime.UtcNow,
@@ -327,7 +493,7 @@ public async Task UpdateParticipantRosterAsync(
     {
         participant.RosterEntries.Add(new TournamentTeamRosterEntry
         {
-            UserId = coach.UserId.Id,
+            UserId = userIdMap[coach.UserId],
             Role = RosterRole.Coach,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -339,7 +505,7 @@ public async Task UpdateParticipantRosterAsync(
     {
         participant.RosterEntries.Add(new TournamentTeamRosterEntry
         {
-            UserId = staff.UserId.Id,
+            UserId = userIdMap[staff.UserId],
             Role = RosterRole.Staff,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -363,24 +529,39 @@ private async Task ValidateUsersAreTeamMembers(
     // This depends on how team membership is tracked in your system
     // May need to check RefereeTeam or similar table
     
+    // First, resolve all UserIdentifiers to database IDs
+    var userDbIds = new HashSet<long>();
+    foreach (var userId in userIds)
+    {
+        var user = await context.Users
+            .WithIdentifier(userId)
+            .Select(u => new { u.Id })
+            .FirstOrDefaultAsync();
+        
+        if (user != null)
+        {
+            userDbIds.Add(user.Id);
+        }
+    }
+    
     var teamMembers = await context.RefereeTeams
         .Where(rt => rt.TeamId == teamId.Id)
         .Select(rt => rt.RefereeId)
         .ToListAsync();
     
-    var invalidUsers = userIds
-        .Where(uid => !teamMembers.Contains(uid.Id))
+    var invalidUserDbIds = userDbIds
+        .Where(uid => !teamMembers.Contains(uid))
         .ToList();
     
-    if (invalidUsers.Any())
+    if (invalidUserDbIds.Any())
     {
         throw new ValidationException(
-            $"Users not on team: {string.Join(", ", invalidUsers)}");
+            $"Some users are not on team");
     }
 }
 ```
 
-**Note:** The exact implementation depends on how team membership is tracked. Check existing team-user relationship tables.
+**Note:** The exact implementation depends on how team membership is tracked. Check existing team-user relationship tables. Use `WithIdentifier` extension to resolve UserIdentifier to database ID.
 
 ### 6. Update GET Participants Endpoint
 
@@ -569,9 +750,24 @@ public async Task<UserGenderViewModel> GetMyGender()
     var gender = await this.userDelicateInfoService
         .GetUserGenderAsync(currentUser.UserId);
     
+    // Get user's database ID
+    var user = await this.context.Users
+        .WithIdentifier(currentUser.UserId)
+        .Select(u => new { u.Id })
+        .FirstOrDefaultAsync();
+    
+    if (user == null)
+    {
+        return new UserGenderViewModel
+        {
+            Gender = gender,
+            ReferencedInTournaments = new List<TournamentReferenceViewModel>()
+        };
+    }
+    
     // Get tournaments where this gender is referenced
     var tournaments = await this.context.TournamentTeamRosterEntries
-        .Where(entry => entry.UserId == currentUser.UserId.Id && 
+        .Where(entry => entry.UserId == user.Id && 
                         entry.Role == RosterRole.Player)
         .Join(
             this.context.TournamentTeamParticipants,
@@ -605,13 +801,22 @@ public async Task<IActionResult> DeleteMyGender()
 {
     var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
     
-    await this.context.UserDelicateInfos
-        .Where(udi => udi.UserId == currentUser.UserId.Id)
-        .ExecuteDeleteAsync();
+    // Get user's database ID
+    var user = await this.context.Users
+        .WithIdentifier(currentUser.UserId)
+        .Select(u => new { u.Id })
+        .FirstOrDefaultAsync();
     
-    this.logger.LogInformation(
-        "User {UserId} explicitly deleted their gender data",
-        currentUser.UserId);
+    if (user != null)
+    {
+        await this.context.UserDelicateInfos
+            .Where(udi => udi.UserId == user.Id)
+            .ExecuteDeleteAsync();
+        
+        this.logger.LogInformation(
+            "User {UserId} explicitly deleted their gender data",
+            currentUser.UserId);
+    }
     
     return Ok();
 }
