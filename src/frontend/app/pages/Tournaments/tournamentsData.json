@@ -95,5 +95,17 @@
     "bannerImageUrl": "https://placehold.co/600x400?text=New%20Year%20Classic",
     "organizer": "Heritage Sports Association",
     "isPrivate": false
+  },
+  {
+    "id": 9,
+    "title": "New Year Finals",
+    "description": "Traditional end-of-year tournament celebrating the season",
+    "startDate": "2025-12-31",
+    "endDate": "2026-01-02",
+    "type": 0,
+    "location": "Heritage Stadium, New York",
+    "bannerImageUrl": "https://placehold.co/600x400?text=New%20Year%20Classic",
+    "organizer": "Heritage Sports Association",
+    "isPrivate": false
   }
 ]
