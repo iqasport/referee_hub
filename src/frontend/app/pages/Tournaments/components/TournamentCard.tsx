@@ -11,6 +11,7 @@ interface TournamentCardProps {
   bannerImageUrl?: string;
   organizer?: string;
   onEdit?: () => void;
+  onClick?: () => void;
 }
 
 const getTournamentTypeName = (type: number): string => {
@@ -55,13 +56,17 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   bannerImageUrl,
   organizer,
   onEdit,
+  onClick,
 }) => {
   const locationText = [location, country].filter(Boolean).join(", ");
   const typeName = getTournamentTypeName(type);
   const dateText = startDate === endDate ? startDate : `${startDate} - ${endDate}`;
 
   return (
-    <div className="rounded-lg bg-green-100 shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer relative group">
+    <div 
+      className="rounded-lg bg-green-100 shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer relative group"
+      onClick={onClick}
+    >
       {onEdit && (
         <button
           onClick={(e) => {

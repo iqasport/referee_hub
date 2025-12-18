@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import TournamentCard from "./TournamentCard";
 
 export type Manager = { id: string; name: string };
@@ -29,6 +30,8 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
   visibility,
   onEdit,
 }) => {
+  const navigate = useNavigate();
+
   if (tournaments.length === 0) {
     return (
       <section className="max-w-[80%] mx-auto p-4 text-gray-600">No tournaments available.</section>
@@ -56,6 +59,9 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
             bannerImageUrl={tournament.bannerImageUrl}
             organizer={tournament.organizer}
             onEdit={onEdit ? () => onEdit(tournament) : undefined}
+            onClick={() => {
+              navigate(`/tournaments/${tournament.id}`);
+            }}
           />
         ))}
       </div>
