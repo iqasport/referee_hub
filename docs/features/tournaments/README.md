@@ -125,6 +125,22 @@ dotnet ef migrations add <MigrationName> --project ../ManagementHub.Storage
 dotnet ef database update
 ```
 
+### Regenerate Frontend Types
+After completing each phase's backend implementation, regenerate the frontend TypeScript types from the updated Swagger/OpenAPI definitions:
+
+```bash
+# From repository root
+bash scripts/refresh_swagger.sh
+```
+
+This script:
+1. Starts the backend service
+2. Waits for it to be ready
+3. Generates TypeScript client code from Swagger
+4. Shuts down the backend
+
+The generated types will be available in `src/frontend/app/store/serviceApi.ts` for use in the frontend.
+
 ### Rollback Considerations
 - Phase 1: Can rollback independently
 - Phase 2: Depends on Phase 1 tables
