@@ -35,6 +35,7 @@ const Tournament = () => {
   const typeFilter = searchParams.get("type") || "";
   const [tournaments, setTournaments] = useState<TournamentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const modalRef = useRef<AddTournamentModalRef>(null);
 
   // Fetch tournaments from API
@@ -78,14 +79,63 @@ const Tournament = () => {
       isPrivate: tournament.isPrivate,
     };
   };
-
-  function handleSubmit(tournamentData: Tournament, isEdit: boolean) {
-    if (isEdit) {
-      console.log("Updating tournament:", tournamentData.id, tournamentData);
-      // TODO: Call API - PUT /api/tournaments/{id} 
-    } else {
-      console.log("Creating tournament:", tournamentData);
-      // TODO: Call API - POST /api/tournaments
+//currently not working due to missing api endpoint for add/edit
+  async function handleSubmit(tournamentData: Tournament, isEdit: boolean) {
+    setIsSaving(true);
+    try {
+      if (isEdit) {
+        console.log("Updating tournament:", tournamentData.id, tournamentData);
+        const response = await fetch(`/api/tournaments/${tournamentData.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(tournamentData),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to update tournament: ${response.statusText}`);
+        }
+        
+        setTournaments(tournaments.map(t => 
+          t.id.toString() === tournamentData.id 
+            ? {
+                ...t,
+                title: tournamentData.name,
+                description: tournamentData.description,
+                startDate: tournamentData.startDate,
+                endDate: tournamentData.endDate,
+                type: parseInt(Object.keys({0: "Club", 1: "National", 2: "Youth", 3: "Fantasy"}).find(k => Object.values({0: "Club", 1: "National", 2: "Youth", 3: "Fantasy"})[k as any] === tournamentData.type) || "0"),
+                country: tournamentData.country,
+                location: `${tournamentData.place}, ${tournamentData.city}`,
+                isPrivate: tournamentData.isPrivate,
+              }
+            : t
+        ));
+        console.log("Tournament updated successfully");
+      } else {
+        console.log("Creating tournament:", tournamentData);
+        const response = await fetch('/api/tournaments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(tournamentData),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create tournament: ${response.statusText}`);
+        }
+        
+        const newTournament = await response.json();
+        setTournaments([...tournaments, newTournament]);
+        console.log("Tournament created successfully");
+      }
+    } catch (error) {
+      console.error('Error saving tournament:', error);
+      alert('Failed to save tournament. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   }
 
