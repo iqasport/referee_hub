@@ -1,9 +1,9 @@
 using System;
 using ManagementHub.Models.Enums;
 
-namespace ManagementHub.Models.Domain.Tournament;
+namespace ManagementHub.Service.Areas.Tournaments;
 
-public class TournamentData
+public class TournamentModel
 {
 	public string Name { get; set; } = null!;
 	public string Description { get; set; } = null!;
