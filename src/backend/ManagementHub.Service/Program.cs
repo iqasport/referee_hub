@@ -113,6 +113,7 @@ public static class Program
 			options.AddTechAdminPolicy();
 			options.AddNgbAdminPolicy();
 			options.AddIqaAdminPolicy();
+			options.AddTournamentManagerPolicy();
 		});
 
 		services.AddCoreAdmin(new CoreAdminOptions
