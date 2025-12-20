@@ -17,5 +17,4 @@ public interface ITournamentContext
 	string? Place { get; }
 	string Organizer { get; }
 	bool IsPrivate { get; }
-	Uri? BannerUri { get; }
 }

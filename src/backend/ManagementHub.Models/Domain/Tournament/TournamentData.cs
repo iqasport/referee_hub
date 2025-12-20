@@ -5,14 +5,14 @@ namespace ManagementHub.Models.Domain.Tournament;
 
 public class TournamentData
 {
-	public string Name { get; set; } = null!;
-	public string Description { get; set; } = null!;
+	public required string Name { get; set; }
+	public required string Description { get; set; }
 	public DateOnly StartDate { get; set; }
 	public DateOnly EndDate { get; set; }
 	public TournamentType Type { get; set; }
-	public string Country { get; set; } = null!;
-	public string City { get; set; } = null!;
+	public required string Country { get; set; }
+	public required string City { get; set; }
 	public string? Place { get; set; }
-	public string Organizer { get; set; } = null!;
+	public required string Organizer { get; set; }
 	public bool IsPrivate { get; set; }
 }

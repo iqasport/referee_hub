@@ -66,7 +66,7 @@ public class TournamentsController : ControllerBase
 
 		var viewModels = tournaments.Items.Select(t => new TournamentViewModel
 		{
-			Id = t.Id.ToString(),
+			Id = t.Id,
 			Name = t.Name,
 			Description = t.Description,
 			StartDate = t.StartDate,
@@ -77,7 +77,7 @@ public class TournamentsController : ControllerBase
 			Place = t.Place,
 			Organizer = t.Organizer,
 			IsPrivate = t.IsPrivate,
-			BannerImageUrl = t.BannerUri?.ToString(),
+			BannerImageUrl = null, // Banner URI fetched separately for each tournament if needed
 			IsCurrentUserInvolved = involvedIds.Contains(t.Id)
 		});
 
@@ -118,7 +118,7 @@ public class TournamentsController : ControllerBase
 
 		return new TournamentViewModel
 		{
-			Id = tournament.Id.ToString(),
+			Id = tournament.Id,
 			Name = tournament.Name,
 			Description = tournament.Description,
 			StartDate = tournament.StartDate,

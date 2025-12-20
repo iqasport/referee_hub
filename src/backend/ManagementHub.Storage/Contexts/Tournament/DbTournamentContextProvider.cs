@@ -30,8 +30,7 @@ public record DbTournamentContext(
 	string City,
 	string? Place,
 	string Organizer,
-	bool IsPrivate,
-	Uri? BannerUri) : ITournamentContext;
+	bool IsPrivate) : ITournamentContext;
 
 public class DbTournamentContextProvider : ITournamentContextProvider
 {
@@ -183,14 +182,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		return await this.accessFileCommand.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromSeconds(20), cancellationToken);
 	}
 
-	public async Task<IEnumerable<long>> GetTournamentManagerIdsAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
-	{
-		return await this.dbContext.TournamentManagers
-			.Where(tm => tm.Tournament.UniqueId == tournamentId.ToString())
-			.Select(tm => tm.UserId)
-			.ToListAsync(cancellationToken);
-	}
-
 	public async Task<HashSet<TournamentIdentifier>> GetUserInvolvedTournamentIdsAsync(IEnumerable<TournamentIdentifier> tournamentIds, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
 		var tournamentIdsList = tournamentIds.Select(t => t.ToString()).ToList();
@@ -235,7 +226,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.City,
 				t.Place,
 				t.Organizer,
-				t.IsPrivate,
-				null)); // BannerUri needs to be fetched separately
+				t.IsPrivate));
 	}
 }

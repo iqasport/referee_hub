@@ -1469,8 +1469,6 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 		{
 			entity.ToTable("tournament_managers");
 
-			entity.HasIndex(e => e.TournamentId, "index_tournament_managers_on_tournament_id");
-
 			entity.HasIndex(e => new { e.TournamentId, e.UserId }, "index_tournament_managers_on_tournament_id_and_user_id")
 				.IsUnique();
 

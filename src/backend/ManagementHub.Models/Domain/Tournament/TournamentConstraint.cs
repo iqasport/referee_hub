@@ -52,24 +52,17 @@ public abstract class TournamentConstraint
 
 	private sealed class SetTournamentConstraint : TournamentConstraint, IEnumerable<TournamentIdentifier>
 	{
-		private readonly HashSet<TournamentIdentifier>? tournaments;
+		private readonly HashSet<TournamentIdentifier> tournaments;
 
 		public SetTournamentConstraint(IEnumerable<TournamentIdentifier> tournaments)
 			=> this.tournaments = new HashSet<TournamentIdentifier>(tournaments);
 
 		public override bool AppliesToAny => false;
-		public override bool AppliesTo(TournamentIdentifier tournamentId) => this.tournaments!.Contains(tournamentId);
+		public override bool AppliesTo(TournamentIdentifier tournamentId) => this.tournaments.Contains(tournamentId);
 
 		public override bool Equals(object? obj)
 		{
-			return obj is SetTournamentConstraint other &&
-				(
-					(
-						this.tournaments != null && other.tournaments != null &&
-						this.tournaments.SetEquals(other.tournaments)
-					) ||
-					this.tournaments == other.tournaments
-				);
+			return obj is SetTournamentConstraint other && this.tournaments.SetEquals(other.tournaments);
 		}
 
 		public override int GetHashCode()

@@ -1059,7 +1059,7 @@ export type TournamentViewModel = {
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
-  id?: string | null;
+  id?: string;
   bannerImageUrl?: string | null;
   isCurrentUserInvolved?: boolean;
 };
