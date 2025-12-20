@@ -30,7 +30,8 @@ public record DbTournamentContext(
 	string City,
 	string? Place,
 	string Organizer,
-	bool IsPrivate) : ITournamentContext;
+	bool IsPrivate,
+	bool IsCurrentUserInvolved) : ITournamentContext;
 
 public class DbTournamentContextProvider : ITournamentContextProvider
 {
@@ -54,7 +55,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.logger = logger;
 	}
 
-	public IQueryable<ITournamentContext> QueryTournaments(bool includePrivate = false)
+	public IQueryable<ITournamentContext> QueryTournaments(IEnumerable<TournamentIdentifier>? userManagedTournamentIds = null)
 	{
 		var filter = this.filteringContext.FilteringParameters.Filter;
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
@@ -75,9 +76,18 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 					.Where(t => EF.Functions.Like(t.Name, filter) || EF.Functions.Like(t.Description, filter));
 		}
 
-		// Filter out private tournaments unless explicitly requested
-		if (!includePrivate)
+		// Filter private tournaments: only show private tournaments that the user manages
+		// Public tournaments are visible to everyone
+		// Phase 3 will extend this to also check if user is a participant
+		// Phase 4 will extend this to also check if user is on a roster
+		if (userManagedTournamentIds != null)
 		{
+			var managedIds = userManagedTournamentIds.Select(id => id.ToString()).ToList();
+			filteredTournaments = filteredTournaments.Where(t => !t.IsPrivate || managedIds.Contains(t.UniqueId));
+		}
+		else
+		{
+			// No user context provided, only show public tournaments
 			filteredTournaments = filteredTournaments.Where(t => !t.IsPrivate);
 		}
 
@@ -86,7 +96,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			this.filteringContext.FilteringMetadata.TotalCount = filteredTournaments.Count();
 		}
 
-		return this.QueryTournamentsInternal(filteredTournaments.Page(this.filteringContext.FilteringParameters));
+		return this.QueryTournamentsInternal(filteredTournaments.Page(this.filteringContext.FilteringParameters), userManagedTournamentIds);
 	}
 
 	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
@@ -217,8 +227,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			.ToHashSet();
 	}
 
-	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments)
+	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, IEnumerable<TournamentIdentifier>? userManagedTournamentIds = null)
 	{
+		var managedIdsSet = userManagedTournamentIds?.Select(id => id.ToString()).ToHashSet() ?? new HashSet<string>();
+		
 		return tournaments.AsNoTracking()
 			.OrderByDescending(t => t.StartDate)
 			.Select(t => new DbTournamentContext(
@@ -232,6 +244,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.City,
 				t.Place,
 				t.Organizer,
-				t.IsPrivate));
+				t.IsPrivate,
+				// IsCurrentUserInvolved: user is involved if they are a manager of this tournament
+				// Phase 3 will extend: || user is a team manager for participating teams
+				// Phase 4 will extend: || user is on a roster
+				managedIdsSet.Contains(t.UniqueId)));
 	}
 }

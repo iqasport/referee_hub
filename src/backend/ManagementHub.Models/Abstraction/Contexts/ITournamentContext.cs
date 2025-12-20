@@ -17,4 +17,5 @@ public interface ITournamentContext
 	string? Place { get; }
 	string Organizer { get; }
 	bool IsPrivate { get; }
+	bool IsCurrentUserInvolved { get; }
 }

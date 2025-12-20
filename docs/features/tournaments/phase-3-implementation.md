@@ -11,6 +11,8 @@ This phase implements the tournament invitation/join system and team participant
 - Adding email notifications
 - Extending TeamGroupAffiliation enum for tournament type validation
 
+**Note from Phase 1:** The private tournament filtering and `IsCurrentUserInvolved` computation is done at the database level in `DbTournamentContextProvider.QueryTournaments()`. This phase will extend the filtering logic to also check if the user is a team manager for participating teams.
+
 ## Prerequisites
 - Phase 1 and 2 must be complete
 - Tournament and TournamentManager entities exist

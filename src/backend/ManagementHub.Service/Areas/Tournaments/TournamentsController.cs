@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
@@ -8,10 +9,13 @@ using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Tournaments;
 
@@ -27,19 +31,23 @@ public class TournamentsController : ControllerBase
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly IUpdateTournamentBannerCommand updateTournamentBannerCommand;
+	private readonly ManagementHubDbContext dbContext;
 
 	public TournamentsController(
 		IUserContextAccessor contextAccessor,
 		ITournamentContextProvider tournamentContextProvider,
-		IUpdateTournamentBannerCommand updateTournamentBannerCommand)
+		IUpdateTournamentBannerCommand updateTournamentBannerCommand,
+		ManagementHubDbContext dbContext)
 	{
 		this.contextAccessor = contextAccessor;
 		this.tournamentContextProvider = tournamentContextProvider;
 		this.updateTournamentBannerCommand = updateTournamentBannerCommand;
+		this.dbContext = dbContext;
 	}
 
 	/// <summary>
 	/// List tournaments in the Hub.
+	/// Private tournament filtering is done at the database level in the storage layer.
 	/// </summary>
 	[HttpGet]
 	[Tags("Tournament")]
@@ -47,18 +55,28 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Filter private tournaments - show only if user is manager
-		// (Phase 3 will extend to check participants)
-		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>().Any();
-		var query = this.tournamentContextProvider.QueryTournaments(includePrivate: isTournamentManager);
+		// Get tournament IDs that the user manages
+		// The storage layer will use these IDs to:
+		// 1. Filter out private tournaments that the user doesn't manage
+		// 2. Compute IsCurrentUserInvolved flag at the database level
+		var userManagedTournamentIds = await this.dbContext.Users
+			.WithIdentifier(userContext.UserId)
+			.SelectMany(u => u.TournamentManagers)
+			.Select(tm => tm.Tournament.UniqueId)
+			.ToListAsync(this.HttpContext.RequestAborted);
+		
+		var managedIds = userManagedTournamentIds.Select(id => TournamentIdentifier.Parse(id)).ToList();
+
+		// QueryTournaments performs filtering and computation at the database level:
+		// - Filters private tournaments (only shows those the user manages)
+		// - Computes IsCurrentUserInvolved based on tournament manager status
+		// Phase 3 will extend: also check if user is a participant
+		// Phase 4 will extend: also check if user is on a roster
+		var query = this.tournamentContextProvider.QueryTournaments(userManagedTournamentIds: managedIds);
 
 		var tournaments = query.AsFiltered();
 
-		// Get involved tournament IDs for isCurrentUserInvolved flag
-		var tournamentIds = tournaments.Items.Select(t => t.Id).ToList();
-		var involvedIds = await this.tournamentContextProvider
-			.GetUserInvolvedTournamentIdsAsync(tournamentIds, userContext.UserId);
-
+		// Map to view models - IsCurrentUserInvolved is already computed at DB level
 		var viewModels = tournaments.Items.Select(t => new TournamentViewModel
 		{
 			Id = t.Id,
@@ -73,7 +91,7 @@ public class TournamentsController : ControllerBase
 			Organizer = t.Organizer,
 			IsPrivate = t.IsPrivate,
 			BannerImageUrl = null, // Banner URI fetched separately for each tournament if needed
-			IsCurrentUserInvolved = involvedIds.Contains(t.Id)
+			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		});
 
 		return viewModels.AsFiltered();
