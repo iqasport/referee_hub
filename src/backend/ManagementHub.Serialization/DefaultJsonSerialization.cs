@@ -7,6 +7,7 @@ using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tests;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Serialization.Identifiers;
 using ManagementHub.Serialization.Roles;
@@ -25,6 +26,7 @@ public static class DefaultJsonSerialization
 		options.Converters.Add(new LanguageIdentifierJsonConverter());
 		options.Converters.Add(new NgbConstraintJsonConverter());
 		options.Converters.Add(new NgbIdentifierJsonConverter());
+		options.Converters.Add(new TournamentIdentifierJsonConverter());
 		options.Converters.Add(new UserRoleJsonConverter());
 		options.Converters.Add(new PercentageJsonConverter());
 		options.Converters.Add(JsonMetadataServices.TimeSpanConverter);
@@ -49,6 +51,7 @@ public static class DefaultJsonSerialization
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(LanguageIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(NgbIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TeamIdentifier), () => new OpenApiSchema { Type = "string" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TournamentIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(IUserRole), () =>
 		{
 			return new OpenApiSchema

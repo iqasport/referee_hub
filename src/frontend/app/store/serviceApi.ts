@@ -617,16 +617,16 @@ export type CreateTournamentApiArg = {
 };
 export type GetTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
 export type GetTournamentApiArg = {
-  tournamentId: TournamentIdentifier;
+  tournamentId: string;
 };
 export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
 export type UpdateTournamentApiArg = {
-  tournamentId: TournamentIdentifier;
+  tournamentId: string;
   tournamentModel: TournamentModel;
 };
 export type UpdateTournamentBannerApiResponse = /** status 200 Success */ string;
 export type UpdateTournamentBannerApiArg = {
-  tournamentId: TournamentIdentifier;
+  tournamentId: string;
   body: {
     bannerBlob?: Blob;
   };
@@ -1081,17 +1081,6 @@ export type TournamentModel = {
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
-};
-export type Ulid = {};
-export type UlidRead = {
-  random?: string | null;
-  time?: string;
-};
-export type TournamentIdentifier = {
-  uniqueId?: Ulid;
-};
-export type TournamentIdentifierRead = {
-  uniqueId?: UlidRead;
 };
 export type CurrentUserViewModel = {
   userId?: string;
