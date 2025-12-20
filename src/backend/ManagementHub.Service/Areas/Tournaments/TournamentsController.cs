@@ -76,6 +76,16 @@ public class TournamentsController : ControllerBase
 
 		var tournaments = query.AsFiltered();
 
+		// Fetch banner URLs for all tournaments
+		var tournamentIds = tournaments.Items.Select(t => t.Id).ToList();
+		var bannerUrls = new Dictionary<TournamentIdentifier, Uri?>();
+		foreach (var tournamentId in tournamentIds)
+		{
+			var bannerUri = await this.tournamentContextProvider
+				.GetTournamentBannerUriAsync(tournamentId, this.HttpContext.RequestAborted);
+			bannerUrls[tournamentId] = bannerUri;
+		}
+
 		// Map to view models - IsCurrentUserInvolved is already computed at DB level
 		var viewModels = tournaments.Items.Select(t => new TournamentViewModel
 		{
@@ -90,7 +100,7 @@ public class TournamentsController : ControllerBase
 			Place = t.Place,
 			Organizer = t.Organizer,
 			IsPrivate = t.IsPrivate,
-			BannerImageUrl = null, // Banner URI fetched separately for each tournament if needed
+			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		});
 
