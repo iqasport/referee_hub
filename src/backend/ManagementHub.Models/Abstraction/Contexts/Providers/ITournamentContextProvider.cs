@@ -17,7 +17,7 @@ public interface ITournamentContextProvider
 	/// <param name="userId">Current user ID. Used to filter private tournaments and compute IsCurrentUserInvolved via database joins.</param>
 	IQueryable<ITournamentContext> QueryTournaments(UserIdentifier userId);
 
-	Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
+	Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default);
 
 	Task<TournamentIdentifier> CreateTournamentAsync(TournamentData tournamentData, UserIdentifier creatorUserId, CancellationToken cancellationToken = default);
 

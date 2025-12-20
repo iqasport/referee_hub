@@ -31,18 +31,15 @@ public class TournamentsController : ControllerBase
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly IUpdateTournamentBannerCommand updateTournamentBannerCommand;
-	private readonly ManagementHubDbContext dbContext;
 
 	public TournamentsController(
 		IUserContextAccessor contextAccessor,
 		ITournamentContextProvider tournamentContextProvider,
-		IUpdateTournamentBannerCommand updateTournamentBannerCommand,
-		ManagementHubDbContext dbContext)
+		IUpdateTournamentBannerCommand updateTournamentBannerCommand)
 	{
 		this.contextAccessor = contextAccessor;
 		this.tournamentContextProvider = tournamentContextProvider;
 		this.updateTournamentBannerCommand = updateTournamentBannerCommand;
-		this.dbContext = dbContext;
 	}
 
 	/// <summary>
@@ -102,27 +99,16 @@ public class TournamentsController : ControllerBase
 	[Tags("Tournament")]
 	public async Task<ActionResult<TournamentViewModel>> GetTournament([FromRoute] TournamentIdentifier tournamentId)
 	{
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var currentUserId = this.contextAccessor.GetUserId();
 		var tournament = await this.tournamentContextProvider
-			.GetTournamentContextAsync(tournamentId, this.HttpContext.RequestAborted);
+			.GetTournamentContextAsync(tournamentId, currentUserId, this.HttpContext.RequestAborted);
 
-		// Check access to private tournament
-		if (tournament.IsPrivate)
+		// Check access to private tournament - this is enforced at database level
+		// GetTournamentContextAsync already filters private tournaments based on IsCurrentUserInvolved
+		if (tournament.IsPrivate && !tournament.IsCurrentUserInvolved)
 		{
-			var isManager = userContext.Roles.OfType<TournamentManagerRole>()
-				.Any(r => r.Tournament.AppliesTo(tournamentId));
-
-			if (!isManager)
-			{
-				// Phase 3: Also check if user is participant
-				return this.NotFound();
-			}
+			return this.NotFound();
 		}
-
-		// Calculate isCurrentUserInvolved
-		var involvedIds = await this.tournamentContextProvider
-			.GetUserInvolvedTournamentIdsAsync(
-				new[] { tournamentId }, userContext.UserId, this.HttpContext.RequestAborted);
 
 		var bannerUri = await this.tournamentContextProvider
 			.GetTournamentBannerUriAsync(tournamentId, this.HttpContext.RequestAborted);
@@ -141,7 +127,7 @@ public class TournamentsController : ControllerBase
 			Organizer = tournament.Organizer,
 			IsPrivate = tournament.IsPrivate,
 			BannerImageUrl = bannerUri?.ToString(),
-			IsCurrentUserInvolved = involvedIds.Contains(tournamentId)
+			IsCurrentUserInvolved = tournament.IsCurrentUserInvolved
 		};
 	}
 

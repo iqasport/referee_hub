@@ -84,8 +84,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		return this.QueryTournamentsInternal(filteredTournaments.Page(this.filteringContext.FilteringParameters), userId);
 	}
 
-	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
+	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
+		var userUniqueId = userId.ToString();
+		
 		var tournament = await this.dbContext.Tournaments
 			.AsNoTracking()
 			.Where(t => t.UniqueId == tournamentId.ToString())
@@ -101,7 +103,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Place,
 				t.Organizer,
 				t.IsPrivate,
-				false)) // IsCurrentUserInvolved will be calculated by the controller
+				// IsCurrentUserInvolved: computed via database join (same logic as QueryTournamentsInternal)
+				// User is involved if they manage this tournament
+				// Phase 3 will extend: || user is a team manager for participating teams
+				// Phase 4 will extend: || user is on a roster
+				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId)))
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
