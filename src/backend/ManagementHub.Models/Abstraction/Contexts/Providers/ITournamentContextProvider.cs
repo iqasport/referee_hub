@@ -10,7 +10,7 @@ namespace ManagementHub.Models.Abstraction.Contexts.Providers;
 
 public interface ITournamentContextProvider
 {
-	IQueryable<ITournamentContext> QueryTournaments();
+	IQueryable<ITournamentContext> QueryTournaments(bool includePrivate = false);
 
 	Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
 

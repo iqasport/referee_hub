@@ -47,15 +47,10 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var query = this.tournamentContextProvider.QueryTournaments();
-
 		// Filter private tournaments - show only if user is manager
 		// (Phase 3 will extend to check participants)
 		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>().Any();
-		if (!isTournamentManager)
-		{
-			query = query.Where(t => !t.IsPrivate);
-		}
+		var query = this.tournamentContextProvider.QueryTournaments(includePrivate: isTournamentManager);
 
 		var tournaments = query.AsFiltered();
 

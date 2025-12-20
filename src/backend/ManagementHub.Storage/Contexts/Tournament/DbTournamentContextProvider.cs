@@ -54,7 +54,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.logger = logger;
 	}
 
-	public IQueryable<ITournamentContext> QueryTournaments()
+	public IQueryable<ITournamentContext> QueryTournaments(bool includePrivate = false)
 	{
 		var filter = this.filteringContext.FilteringParameters.Filter;
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
@@ -73,6 +73,12 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				? this.dbContext.Tournaments
 				: this.dbContext.Tournaments
 					.Where(t => EF.Functions.Like(t.Name, filter) || EF.Functions.Like(t.Description, filter));
+		}
+
+		// Filter out private tournaments unless explicitly requested
+		if (!includePrivate)
+		{
+			filteredTournaments = filteredTournaments.Where(t => !t.IsPrivate);
 		}
 
 		if (this.filteringContext.FilteringMetadata != null)
