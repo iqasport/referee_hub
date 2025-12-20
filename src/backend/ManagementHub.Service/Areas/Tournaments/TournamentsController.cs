@@ -47,7 +47,7 @@ public class TournamentsController : ControllerBase
 
 	/// <summary>
 	/// List tournaments in the Hub.
-	/// Private tournament filtering is done at the database level in the storage layer.
+	/// Private tournament filtering and IsCurrentUserInvolved computation is done at the database level via joins.
 	/// </summary>
 	[HttpGet]
 	[Tags("Tournament")]
@@ -55,24 +55,12 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Get tournament IDs that the user manages
-		// The storage layer will use these IDs to:
-		// 1. Filter out private tournaments that the user doesn't manage
-		// 2. Compute IsCurrentUserInvolved flag at the database level
-		var userManagedTournamentIds = await this.dbContext.Users
-			.WithIdentifier(userContext.UserId)
-			.SelectMany(u => u.TournamentManagers)
-			.Select(tm => tm.Tournament.UniqueId)
-			.ToListAsync(this.HttpContext.RequestAborted);
-		
-		var managedIds = userManagedTournamentIds.Select(id => TournamentIdentifier.Parse(id)).ToList();
-
-		// QueryTournaments performs filtering and computation at the database level:
+		// QueryTournaments performs all filtering and computation at the database level via joins:
 		// - Filters private tournaments (only shows those the user manages)
 		// - Computes IsCurrentUserInvolved based on tournament manager status
-		// Phase 3 will extend: also check if user is a participant
+		// Phase 3 will extend: also check if user is a participant via team manager role
 		// Phase 4 will extend: also check if user is on a roster
-		var query = this.tournamentContextProvider.QueryTournaments(userManagedTournamentIds: managedIds);
+		var query = this.tournamentContextProvider.QueryTournaments(userContext.UserId);
 
 		var tournaments = query.AsFiltered();
 

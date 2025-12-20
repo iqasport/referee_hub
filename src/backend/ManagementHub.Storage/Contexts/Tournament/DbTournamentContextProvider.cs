@@ -55,7 +55,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.logger = logger;
 	}
 
-	public IQueryable<ITournamentContext> QueryTournaments(IEnumerable<TournamentIdentifier>? userManagedTournamentIds = null)
+	public IQueryable<ITournamentContext> QueryTournaments(UserIdentifier userId)
 	{
 		var filter = this.filteringContext.FilteringParameters.Filter;
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
@@ -76,32 +76,32 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 					.Where(t => EF.Functions.Like(t.Name, filter) || EF.Functions.Like(t.Description, filter));
 		}
 
-		// Filter private tournaments: only show private tournaments that the user manages
-		// Public tournaments are visible to everyone
-		// Phase 3 will extend this to also check if user is a participant
-		// Phase 4 will extend this to also check if user is on a roster
-		if (userManagedTournamentIds != null)
-		{
-			var managedIds = userManagedTournamentIds.Select(id => id.ToString()).ToList();
-			filteredTournaments = filteredTournaments.Where(t => !t.IsPrivate || managedIds.Contains(t.UniqueId));
-		}
-		else
-		{
-			// No user context provided, only show public tournaments
-			filteredTournaments = filteredTournaments.Where(t => !t.IsPrivate);
-		}
-
 		if (this.filteringContext.FilteringMetadata != null)
 		{
 			this.filteringContext.FilteringMetadata.TotalCount = filteredTournaments.Count();
 		}
 
-		return this.QueryTournamentsInternal(filteredTournaments.Page(this.filteringContext.FilteringParameters), userManagedTournamentIds);
+		return this.QueryTournamentsInternal(filteredTournaments.Page(this.filteringContext.FilteringParameters), userId);
 	}
 
 	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
 	{
-		var tournament = await this.QueryTournamentsInternal(this.dbContext.Tournaments.Where(t => t.UniqueId == tournamentId.ToString()))
+		var tournament = await this.dbContext.Tournaments
+			.AsNoTracking()
+			.Where(t => t.UniqueId == tournamentId.ToString())
+			.Select(t => new DbTournamentContext(
+				TournamentIdentifier.Parse(t.UniqueId),
+				t.Name,
+				t.Description,
+				t.StartDate,
+				t.EndDate,
+				t.Type,
+				t.Country,
+				t.City,
+				t.Place,
+				t.Organizer,
+				t.IsPrivate,
+				false)) // IsCurrentUserInvolved will be calculated by the controller
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
@@ -227,9 +227,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			.ToHashSet();
 	}
 
-	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, IEnumerable<TournamentIdentifier>? userManagedTournamentIds = null)
+	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
 	{
-		var managedIdsSet = userManagedTournamentIds?.Select(id => id.ToString()).ToHashSet() ?? new HashSet<string>();
+		// Get the user's database ID for joins
+		// This will be used in the select projection for database-level joins
+		var userUniqueId = userId.ToString();
 		
 		return tournaments.AsNoTracking()
 			.OrderByDescending(t => t.StartDate)
@@ -245,9 +247,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Place,
 				t.Organizer,
 				t.IsPrivate,
-				// IsCurrentUserInvolved: user is involved if they are a manager of this tournament
+				// IsCurrentUserInvolved: computed via database join
+				// User is involved if they manage this tournament
 				// Phase 3 will extend: || user is a team manager for participating teams
 				// Phase 4 will extend: || user is on a roster
-				managedIdsSet.Contains(t.UniqueId)));
+				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId)))
+			// Filter private tournaments at the query level after projection
+			// Only show private tournaments where the user is involved
+			// Public tournaments are visible to everyone
+			.Where(tc => !tc.IsPrivate || tc.IsCurrentUserInvolved);
 	}
 }

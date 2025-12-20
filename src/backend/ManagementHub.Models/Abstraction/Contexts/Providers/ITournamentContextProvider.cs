@@ -11,10 +11,11 @@ namespace ManagementHub.Models.Abstraction.Contexts.Providers;
 public interface ITournamentContextProvider
 {
 	/// <summary>
-	/// Query tournaments with optional filtering for private tournaments.
+	/// Query tournaments with filtering for private tournaments and IsCurrentUserInvolved computation.
+	/// All filtering and computation is done at the database level via joins.
 	/// </summary>
-	/// <param name="userManagedTournamentIds">Tournament IDs that the current user manages. Used to filter private tournaments - only shows private tournaments that the user manages.</param>
-	IQueryable<ITournamentContext> QueryTournaments(IEnumerable<TournamentIdentifier>? userManagedTournamentIds = null);
+	/// <param name="userId">Current user ID. Used to filter private tournaments and compute IsCurrentUserInvolved via database joins.</param>
+	IQueryable<ITournamentContext> QueryTournaments(UserIdentifier userId);
 
 	Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
 
