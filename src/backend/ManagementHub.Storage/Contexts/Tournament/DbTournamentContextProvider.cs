@@ -86,28 +86,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
-		var userUniqueId = userId.ToString();
-		
-		var tournament = await this.dbContext.Tournaments
-			.AsNoTracking()
-			.Where(t => t.UniqueId == tournamentId.ToString())
-			.Select(t => new DbTournamentContext(
-				TournamentIdentifier.Parse(t.UniqueId),
-				t.Name,
-				t.Description,
-				t.StartDate,
-				t.EndDate,
-				t.Type,
-				t.Country,
-				t.City,
-				t.Place,
-				t.Organizer,
-				t.IsPrivate,
-				// IsCurrentUserInvolved: computed via database join (same logic as QueryTournamentsInternal)
-				// User is involved if they manage this tournament
-				// Phase 3 will extend: || user is a team manager for participating teams
-				// Phase 4 will extend: || user is on a roster
-				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId)))
+		var constrainedQuery = this.dbContext.Tournaments
+			.Where(t => t.UniqueId == tournamentId.ToString());
+
+		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userId)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
@@ -235,12 +217,28 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
 	{
-		// Get the user's database ID for joins
+		return this.BuildTournamentContextQuery(tournaments, userId)
+			.OrderByDescending(tc => tc.StartDate)
+			// Filter private tournaments at the query level after projection
+			// Only show private tournaments where the user is involved
+			// Public tournaments are visible to everyone
+			.Where(tc => !tc.IsPrivate || tc.IsCurrentUserInvolved);
+	}
+
+	/// <summary>
+	/// Builds a tournament context query with joins to related tables and IsCurrentUserInvolved computation.
+	/// This shared function is used by both single and batch tournament queries to ensure consistent logic.
+	/// </summary>
+	/// <param name="tournaments">Constrained IQueryable of tournaments (can be filtered by ID, search terms, etc.)</param>
+	/// <param name="userId">The user identifier for computing IsCurrentUserInvolved</param>
+	/// <returns>IQueryable of ITournamentContext with all joins and computations applied</returns>
+	private IQueryable<ITournamentContext> BuildTournamentContextQuery(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
+	{
+		// Get the user's unique ID for joins
 		// This will be used in the select projection for database-level joins
 		var userUniqueId = userId.ToString();
 		
 		return tournaments.AsNoTracking()
-			.OrderByDescending(t => t.StartDate)
 			.Select(t => new DbTournamentContext(
 				TournamentIdentifier.Parse(t.UniqueId),
 				t.Name,
@@ -257,10 +255,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				// User is involved if they manage this tournament
 				// Phase 3 will extend: || user is a team manager for participating teams
 				// Phase 4 will extend: || user is on a roster
-				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId)))
-			// Filter private tournaments at the query level after projection
-			// Only show private tournaments where the user is involved
-			// Public tournaments are visible to everyone
-			.Where(tc => !tc.IsPrivate || tc.IsCurrentUserInvolved);
+				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId)));
 	}
 }
