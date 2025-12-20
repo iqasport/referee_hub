@@ -92,7 +92,7 @@ internal class ImportTestQuestions : IImportTestQuestions
 				dbQuestion.Feedback = qRecord.Feedback;
 				dbQuestion.UpdatedAt = DateTime.UtcNow;
 				var dbAnswers = dbQuestion.Answers.OrderBy(a => a.Id).ToList();
-				if(dbAnswers.Count != 4)
+				if (dbAnswers.Count != 4)
 				{
 					throw new InvalidOperationException("Expected 4 answers");
 				}

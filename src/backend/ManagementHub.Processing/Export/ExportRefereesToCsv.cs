@@ -64,7 +64,7 @@ public class ExportRefereesToCsv : IExportRefereesToCsv
 	{
 		public required string Name { get; set; }
 		public required string Teams { get; set; }
-		
+
 		// rulebook grouped, comma separated certifications, latest first
 		public required string RB24 { get; set; }
 		public required string RB22 { get; set; }

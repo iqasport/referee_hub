@@ -229,7 +229,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 							.Join(this.dbContext.Users.WithIdentifier(userId), t => t.RefereeId, u => u.Id, (t, _) => t)
 							.Where(t => t.AssociationType == RefereeNgbAssociationType.Secondary)
 							.ExecuteDeleteAsync(cancellationToken);
-						
+
 						// set as null so that a new record will be added below
 						currentRefereeRole.SecondaryNgb = null;
 					}

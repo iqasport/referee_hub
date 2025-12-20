@@ -90,7 +90,7 @@ public class DbUserContextFactory
 		var tournamentIds = await this.users.WithIdentifier(userId)
 			.Join(this.tournamentManagers, u => u.Id, tm => tm.UserId, (_, tm) => tm.Tournament.UniqueId)
 			.ToListAsync(cancellationToken);
-		
+
 		if (tournamentIds.Any())
 		{
 			var tournamentConstraint = TournamentConstraint.Set(tournamentIds.Select(TournamentIdentifier.Parse));

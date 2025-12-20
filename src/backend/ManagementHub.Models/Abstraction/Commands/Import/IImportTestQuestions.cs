@@ -25,7 +25,7 @@ public class TestQuestionRecord
 	{
 		get => $"Answer {this.Correct}";
 		set
-		{ 
+		{
 			/* Assuming it's "Answer X" */
 			this.Correct = int.Parse(value[(value.LastIndexOf(' ') + 1)..]);
 		}

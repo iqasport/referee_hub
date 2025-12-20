@@ -55,7 +55,7 @@ public class TournamentUserRoleAuthorizationRequirement<TUserRole> : UserRoleAut
 	where TUserRole : ITournamentUserRole
 {
 	override public bool Satisfies(TUserRole role, AuthorizationContext context) =>
-		context.RouteParameters.TryGetValue("tournamentId", out var tournamentIdObject) && 
+		context.RouteParameters.TryGetValue("tournamentId", out var tournamentIdObject) &&
 		tournamentIdObject is string tournamentId &&
 		role.Tournament.AppliesTo(TournamentIdentifier.Parse(tournamentId));
 }
