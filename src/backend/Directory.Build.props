@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <UpdateVersionProperties>false</UpdateVersionProperties>
+    <UpdateVersionProperties>true</UpdateVersionProperties>
     <GitVersionUseSolutionDir>true</GitVersionUseSolutionDir>
     <GitVersion_CommandLineArguments>-config ../GitVersion.yml</GitVersion_CommandLineArguments>
     <GitVersion_NoFetchEnabled>true</GitVersion_NoFetchEnabled>
@@ -10,13 +10,11 @@
     <NoWarn>EXTEXP0017</NoWarn>
   </PropertyGroup>
 
-  <!-- Temporarily disable GitVersion due to build issues
   <ItemGroup>
     <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  -->
 
 </Project>

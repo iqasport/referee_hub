@@ -31,7 +31,10 @@ public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory
 
 	public TournamentApiIntegrationTests(WebApplicationFactory<Program> factory)
 	{
-		_factory = factory;
+		_factory = factory.WithWebHostBuilder(builder =>
+		{
+			builder.UseEnvironment("Development");
+		});
 		_client = _factory.CreateClient();
 	}
 
