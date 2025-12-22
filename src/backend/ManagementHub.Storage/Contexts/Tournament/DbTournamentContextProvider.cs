@@ -66,14 +66,22 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			filteredTournaments = string.IsNullOrEmpty(filter)
 				? this.dbContext.Tournaments
 				: this.dbContext.Tournaments
-					.Where(t => EF.Functions.ILike(t.Name, filter) || EF.Functions.ILike(t.Description, filter));
+					.Where(t => EF.Functions.ILike(t.Name, filter) 
+						|| EF.Functions.ILike(t.Description, filter)
+						|| (t.Country != null && EF.Functions.ILike(t.Country, filter))
+						|| (t.City != null && EF.Functions.ILike(t.City, filter))
+						|| (t.Place != null && EF.Functions.ILike(t.Place, filter)));
 		}
 		else
 		{
 			filteredTournaments = string.IsNullOrEmpty(filter)
 				? this.dbContext.Tournaments
 				: this.dbContext.Tournaments
-					.Where(t => EF.Functions.Like(t.Name, filter) || EF.Functions.Like(t.Description, filter));
+					.Where(t => EF.Functions.Like(t.Name, filter) 
+						|| EF.Functions.Like(t.Description, filter)
+						|| (t.Country != null && EF.Functions.Like(t.Country, filter))
+						|| (t.City != null && EF.Functions.Like(t.City, filter))
+						|| (t.Place != null && EF.Functions.Like(t.Place, filter)));
 		}
 
 		if (this.filteringContext.FilteringMetadata != null)

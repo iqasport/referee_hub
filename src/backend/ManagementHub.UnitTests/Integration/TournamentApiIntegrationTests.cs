@@ -31,25 +31,7 @@ public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory
 
 	public TournamentApiIntegrationTests(WebApplicationFactory<Program> factory)
 	{
-		_factory = factory.WithWebHostBuilder(builder =>
-		{
-			builder.ConfigureTestServices(services =>
-			{
-				// Use SQLite database for testing (default for ManagementHubDbContext)
-				var descriptor = services.SingleOrDefault(
-					d => d.ServiceType == typeof(ManagementHubDbContext));
-				if (descriptor != null)
-				{
-					services.Remove(descriptor);
-				}
-				
-				services.AddScoped(_ => new ManagementHubDbContext());
-			});
-			
-			// Ensure hosted services are running
-			builder.UseEnvironment("Development");
-		});
-		
+		_factory = factory;
 		_client = _factory.CreateClient();
 	}
 
