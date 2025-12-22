@@ -47,7 +47,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace ManagementHub.Service;
 
-public static class Program
+public partial class Program
 {
 	private static readonly string Environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Environments.Development;
 

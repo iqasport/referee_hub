@@ -99,9 +99,9 @@ public class TournamentsController : ControllerBase
 	[Tags("Tournament")]
 	public async Task<ActionResult<TournamentViewModel>> GetTournament([FromRoute] TournamentIdentifier tournamentId)
 	{
-		var currentUserId = this.contextAccessor.GetUserId();
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var tournament = await this.tournamentContextProvider
-			.GetTournamentContextAsync(tournamentId, currentUserId, this.HttpContext.RequestAborted);
+			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
 
 		// Check access to private tournament - this is enforced at database level
 		// GetTournamentContextAsync already filters private tournaments based on IsCurrentUserInvolved
