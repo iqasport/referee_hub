@@ -53,10 +53,10 @@ public partial class Program
 
 	public static void Main(string[] args)
 	{
-		CreateHostBuilder(args).Build().Run();
+		CreateWebHostBuilder(args).Build().Run();
 	}
 
-	public static IWebHostBuilder CreateHostBuilder(string[] args)
+	public static IWebHostBuilder CreateWebHostBuilder(string[] args)
 	{
 		var builder = WebHost.CreateDefaultBuilder(args)
 			.ConfigureAppConfiguration(c => c.AddJsonFile("appsettings.Sensitive.json", optional: true)) // for local sensitive data
