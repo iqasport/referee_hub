@@ -11,6 +11,7 @@ using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service;
 using ManagementHub.Service.Areas.Tournaments;
+using ManagementHub.Service.Filtering;
 using ManagementHub.Storage;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -22,20 +23,79 @@ using Xunit;
 namespace ManagementHub.UnitTests.Integration;
 
 /// <summary>
+/// Test DTO for deserializing tournament ID response with string ID.
+/// </summary>
+public class TournamentIdResponseDto
+{
+	public required string Id { get; set; }
+}
+
+/// <summary>
+/// Test DTO for deserializing tournament view models with string ID (since JSON serializer converts TournamentIdentifier to string).
+/// </summary>
+public class TournamentViewModelDto
+{
+	public required string Id { get; set; }
+	public required string Name { get; set; }
+	public required string Description { get; set; }
+	public required DateOnly StartDate { get; set; }
+	public required DateOnly EndDate { get; set; }
+	public required TournamentType Type { get; set; }
+	public required string Country { get; set; }
+	public required string City { get; set; }
+	public string? Place { get; set; }
+	public required string Organizer { get; set; }
+	public required bool IsPrivate { get; set; }
+	public string? BannerImageUrl { get; set; }
+	public bool IsCurrentUserInvolved { get; set; }
+}
+
+/// <summary>
+/// Custom WebApplicationFactory that explicitly calls Program's CreateWebHostBuilder.
+/// </summary>
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+{
+	protected override IWebHostBuilder CreateWebHostBuilder()
+	{
+		// Explicitly call your Program's CreateWebHostBuilder with empty args
+		return Program.CreateWebHostBuilder(Array.Empty<string>());
+	}
+
+	protected override void ConfigureWebHost(IWebHostBuilder builder)
+	{
+		builder.UseEnvironment("Development");
+		
+		// Add any test-specific configuration overrides here
+		builder.ConfigureServices(services =>
+		{
+			// Override services for testing if needed
+		});
+	}
+	
+	/// <summary>
+	/// Create an HttpClient configured with the same JSON serialization options as the server.
+	/// </summary>
+	public HttpClient CreateClientWithJsonOptions()
+	{
+		var client = CreateClient();
+		// The server automatically uses the registered JSON converters when serializing responses.
+		// The default HttpClient will handle this correctly.
+		return client;
+	}
+}
+
+/// <summary>
 /// Integration tests for Tournament API endpoints to verify EF Core dynamic logic.
 /// Tests the full flow: sign in, create tournament, list tournaments, update tournament, get by ID.
 /// </summary>
-public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
-	private readonly WebApplicationFactory<Program> _factory;
+	private readonly CustomWebApplicationFactory _factory;
 	private readonly HttpClient _client;
 
-	public TournamentApiIntegrationTests(WebApplicationFactory<Program> factory)
+	public TournamentApiIntegrationTests(CustomWebApplicationFactory factory)
 	{
-		_factory = factory.WithWebHostBuilder(builder =>
-		{
-			builder.UseEnvironment("Development");
-		});
+		_factory = factory;
 		_client = _factory.CreateClient();
 	}
 
@@ -53,7 +113,7 @@ public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory
 			"authentication should succeed with valid credentials");
 		
 		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-		var token = loginContent.GetProperty("token").GetString();
+		var token = loginContent.GetProperty("accessToken").GetString();
 		token.Should().NotBeNullOrEmpty("login should return a bearer token");
 		
 		// Add bearer token to client for subsequent requests
@@ -79,20 +139,28 @@ public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory
 		createResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
 			"tournament creation should succeed");
 		
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponse>();
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		createResult.Should().NotBeNull();
 		createResult!.Id.Should().NotBeNull("created tournament should have an ID");
 		
-		var tournamentId = createResult.Id.ToString();
+		var tournamentId = createResult.Id;
 		tournamentId.Should().StartWith("TR_", "tournament ID should have TR_ prefix");
 
 		// Step 3: Get tournaments and check the tournament is there
 		var listResponse = await _client.GetAsync("/api/v2/tournaments");
+		
+		if (listResponse.StatusCode != HttpStatusCode.OK)
+		{
+			var errorContent = await listResponse.Content.ReadAsStringAsync();
+			throw new Exception($"List tournaments returned {listResponse.StatusCode}: {errorContent}");
+		}
+		
 		listResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
 			"listing tournaments should succeed");
 		
-		var tournaments = await listResponse.Content.ReadFromJsonAsync<List<TournamentViewModel>>();
-		tournaments.Should().NotBeNull();
+		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
+		tournamentsResponse.Should().NotBeNull();
+		var tournaments = tournamentsResponse!.Items.ToList();
 		tournaments.Should().ContainSingle(t => t.Name == "Test Tournament",
 			"the created tournament should appear in the list");
 		
@@ -125,7 +193,7 @@ public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory
 		getResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
 			"getting tournament by ID should succeed");
 		
-		var updatedTournament = await getResponse.Content.ReadFromJsonAsync<TournamentViewModel>();
+		var updatedTournament = await getResponse.Content.ReadFromJsonAsync<TournamentViewModelDto>();
 		updatedTournament.Should().NotBeNull();
 		updatedTournament!.Name.Should().Be("Updated Test Tournament", 
 			"tournament name should be updated");
@@ -154,7 +222,7 @@ public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory
 		});
 		
 		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-		var token = loginContent.GetProperty("token").GetString();
+		var token = loginContent.GetProperty("accessToken").GetString();
 		_client.DefaultRequestHeaders.Authorization = 
 			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -174,13 +242,14 @@ public class TournamentApiIntegrationTests : IClassFixture<WebApplicationFactory
 		};
 
 		var createResponse = await _client.PostAsJsonAsync("/api/v2/tournaments", createModel);
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponse>();
-		var tournamentId = createResult!.Id.ToString();
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
+		var tournamentId = createResult!.Id;
 
 		// Verify it appears in the list (since creator is a manager)
 		var listResponse = await _client.GetAsync("/api/v2/tournaments");
-		var tournaments = await listResponse.Content.ReadFromJsonAsync<List<TournamentViewModel>>();
-		tournaments.Should().Contain(t => t.Id.ToString() == tournamentId,
+		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
+		var tournaments = tournamentsResponse!.Items.ToList();
+		tournaments.Should().Contain(t => t.Id == tournamentId,
 			"private tournament should be visible to its manager");
 
 		// Verify it can be accessed by ID (since creator is a manager)

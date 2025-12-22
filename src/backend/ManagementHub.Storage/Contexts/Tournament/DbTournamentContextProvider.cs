@@ -225,12 +225,18 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
 	{
-		return this.BuildTournamentContextQuery(tournaments, userId)
-			.OrderByDescending(tc => tc.StartDate)
-			// Filter private tournaments at the query level after projection
-			// Only show private tournaments where the user is involved
+		// Get the user's unique ID for the Where clause
+		var userUniqueId = userId.ToString();
+		
+		// Order and filter the tournaments BEFORE projection to allow EF Core to translate the query
+		var filteredTournaments = tournaments
+			.OrderByDescending(t => t.StartDate)
+			// Filter private tournaments at the entity level BEFORE projection
+			// Only show private tournaments where the user is involved (is a tournament manager)
 			// Public tournaments are visible to everyone
-			.Where(tc => !tc.IsPrivate || tc.IsCurrentUserInvolved);
+			.Where(t => !t.IsPrivate || t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId));
+		
+		return this.BuildTournamentContextQuery(filteredTournaments, userId);
 	}
 
 	/// <summary>
