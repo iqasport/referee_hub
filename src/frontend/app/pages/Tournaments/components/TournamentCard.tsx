@@ -73,10 +73,10 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
             e.stopPropagation();
             onEdit();
           }}
-         
+          className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 transition-colors z-10"
+          title="Edit tournament"
         >
           <EditIcon />
-          Edit
         </button>
       )}
       <figure className="w-full h-64 bg-gray-300 overflow-hidden">
