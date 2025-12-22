@@ -230,7 +230,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		
 		// Order and filter the tournaments BEFORE projection to allow EF Core to translate the query
 		var filteredTournaments = tournaments
-			.OrderByDescending(t => t.StartDate)
+			// Sort by whether user is involved (tournaments where user is manager appear first)
+			// This is computed as a subquery that EF Core can translate to SQL
+			.OrderByDescending(t => t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId))
+			// Then sort by start date (most recent first)
+			.ThenByDescending(t => t.StartDate)
 			// Filter private tournaments at the entity level BEFORE projection
 			// Only show private tournaments where the user is involved (is a tournament manager)
 			// Public tournaments are visible to everyone
