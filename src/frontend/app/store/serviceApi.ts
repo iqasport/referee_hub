@@ -355,6 +355,35 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
+      getTournamentManagers: build.query<
+        GetTournamentManagersApiResponse,
+        GetTournamentManagersApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers` }),
+        providesTags: ["Tournament"],
+      }),
+      addTournamentManager: build.mutation<
+        AddTournamentManagerApiResponse,
+        AddTournamentManagerApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers`,
+          method: "POST",
+          body: queryArg.addTournamentManagerModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      removeTournamentManager: build.mutation<
+        RemoveTournamentManagerApiResponse,
+        RemoveTournamentManagerApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers`,
+          method: "DELETE",
+          params: { email: queryArg.email },
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
@@ -630,6 +659,21 @@ export type UpdateTournamentBannerApiArg = {
   body: {
     bannerBlob?: Blob;
   };
+};
+export type GetTournamentManagersApiResponse =
+  /** status 200 Success */ TournamentManagerViewModel[];
+export type GetTournamentManagersApiArg = {
+  tournamentId: string;
+};
+export type AddTournamentManagerApiResponse = /** status 200 Success */ void;
+export type AddTournamentManagerApiArg = {
+  tournamentId: string;
+  addTournamentManagerModel: AddTournamentManagerModel;
+};
+export type RemoveTournamentManagerApiResponse = /** status 200 Success */ void;
+export type RemoveTournamentManagerApiArg = {
+  tournamentId: string;
+  email?: string;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -1082,6 +1126,22 @@ export type TournamentModel = {
   organizer?: string | null;
   isPrivate?: boolean;
 };
+export type TournamentManagerViewModel = {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+};
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type AddTournamentManagerModel = {
+  email?: string | null;
+};
 export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
@@ -1155,6 +1215,9 @@ export const {
   useGetTournamentQuery,
   useUpdateTournamentMutation,
   useUpdateTournamentBannerMutation,
+  useGetTournamentManagersQuery,
+  useAddTournamentManagerMutation,
+  useRemoveTournamentManagerMutation,
   useGetCurrentUserQuery,
   useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,
