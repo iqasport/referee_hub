@@ -2,6 +2,7 @@
 using Stripe.Checkout;
 
 namespace ManagementHub.Service.Areas.Payments;
+
 public interface IPaymentsService<TItem> where TItem : class
 {
 	/// <summary>

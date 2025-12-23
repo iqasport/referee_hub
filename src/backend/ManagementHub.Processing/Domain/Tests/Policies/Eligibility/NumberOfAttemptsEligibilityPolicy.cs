@@ -7,6 +7,7 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Processing.Domain.Tests.Extensions;
 
 namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
+
 public class NumberOfAttemptsEligibilityPolicy : IRefereeEligibilityPolicy
 {
 	private readonly IRefereeContextProvider refereeContextProvider;

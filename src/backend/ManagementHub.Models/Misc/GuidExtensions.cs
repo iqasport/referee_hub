@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 
 namespace ManagementHub.Models.Misc;
+
 public static class GuidExtensions
 {
 	public static string ToBase32String(this Guid id)

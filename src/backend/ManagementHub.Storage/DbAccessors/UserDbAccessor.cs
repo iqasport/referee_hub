@@ -4,6 +4,7 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Extensions;
 
 namespace ManagementHub.Storage.DbAccessors;
+
 public class UserDbAccessor : IDbAccessor<UserIdentifier>
 {
 	private readonly ManagementHubDbContext dbContext;

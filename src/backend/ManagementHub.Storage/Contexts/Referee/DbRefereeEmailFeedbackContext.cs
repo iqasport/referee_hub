@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.Referee;
+
 public class DbRefereeEmailFeedbackContext : IRefereeEmailFeedbackContext
 {
 	public required Models.Domain.Tests.Test Test { get; set; }

@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.Ngbs;
+
 public record DbNgbContext(NgbIdentifier NgbId, NgbData NgbData) : INgbContext;
 
 public class DbNgbContextFactory

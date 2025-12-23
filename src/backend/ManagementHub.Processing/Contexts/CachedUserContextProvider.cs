@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Processing.Contexts;
@@ -65,5 +66,11 @@ public class CachedUserContextProvider : IUserContextProvider
 		}
 
 		return userDataContext;
+	}
+
+	public async Task<UserIdentifier?> GetUserIdByEmailAsync(Email email, CancellationToken cancellationToken = default)
+	{
+		// Don't cache this - it's not a frequent operation and email lookups are relatively fast
+		return await this.innerProvider.GetUserIdByEmailAsync(email, cancellationToken);
 	}
 }

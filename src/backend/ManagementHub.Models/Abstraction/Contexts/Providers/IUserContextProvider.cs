@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Models.Abstraction.Contexts.Providers;
@@ -25,4 +26,9 @@ public interface IUserContextProvider
 	/// Gets user attributes for the specified <paramref name="userId"/>.
 	/// </summary>
 	Task<UserAttributes> GetUserAttributesAsync(UserIdentifier userId, CancellationToken cancellationToken);
+
+	/// <summary>
+	/// Gets a user identifier by email address.
+	/// </summary>
+	Task<UserIdentifier?> GetUserIdByEmailAsync(Email email, CancellationToken cancellationToken = default);
 }

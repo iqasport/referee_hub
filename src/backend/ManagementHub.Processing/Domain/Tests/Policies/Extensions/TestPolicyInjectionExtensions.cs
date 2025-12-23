@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ManagementHub.Processing.Domain.Tests.Policies.Extensions;
+
 public static class TestPolicyInjectionExtensions
 {
 	public static IServiceCollection AddTestPolicies(this IServiceCollection services)

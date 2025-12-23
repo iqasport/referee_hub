@@ -10,6 +10,7 @@ using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Storage.Contexts.General;
+
 public class DbSocialAccountsProvider : ISocialAccountsProvider
 {
 	private readonly ManagementHubDbContext dbContext;

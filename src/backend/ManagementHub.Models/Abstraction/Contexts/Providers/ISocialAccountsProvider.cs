@@ -5,6 +5,7 @@ using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 
 namespace ManagementHub.Models.Abstraction.Contexts.Providers;
+
 public interface ISocialAccountsProvider
 {
 	Task<Dictionary<TeamIdentifier, IEnumerable<SocialAccount>>> QueryTeamSocialAccounts(NgbConstraint ngbConstraint);

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
@@ -30,15 +32,18 @@ namespace ManagementHub.Service.Areas.Tournaments;
 public class TournamentsController : ControllerBase
 {
 	private readonly IUserContextAccessor contextAccessor;
+	private readonly IUserContextProvider userContextProvider;
 	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly IUpdateTournamentBannerCommand updateTournamentBannerCommand;
 
 	public TournamentsController(
 		IUserContextAccessor contextAccessor,
+		IUserContextProvider userContextProvider,
 		ITournamentContextProvider tournamentContextProvider,
 		IUpdateTournamentBannerCommand updateTournamentBannerCommand)
 	{
 		this.contextAccessor = contextAccessor;
+		this.userContextProvider = userContextProvider;
 		this.tournamentContextProvider = tournamentContextProvider;
 		this.updateTournamentBannerCommand = updateTournamentBannerCommand;
 	}
@@ -210,5 +215,93 @@ public class TournamentsController : ControllerBase
 			bannerBlob.OpenReadStream(),
 			this.HttpContext.RequestAborted);
 		return bannerUri;
+	}
+
+	/// <summary>
+	/// Get tournament managers.
+	/// </summary>
+	[HttpGet("{tournamentId}/managers")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+	public async Task<IEnumerable<TournamentManagerViewModel>> GetTournamentManagers(
+		[FromRoute] TournamentIdentifier tournamentId)
+	{
+		var managers = await this.tournamentContextProvider.GetTournamentManagersAsync(
+			tournamentId, this.HttpContext.RequestAborted);
+
+		return managers.Select(m => new TournamentManagerViewModel
+		{
+			Id = m.UserId,
+			Name = m.Name,
+			Email = m.Email
+		});
+	}
+
+	/// <summary>
+	/// Add a tournament manager.
+	/// </summary>
+	[HttpPost("{tournamentId}/managers")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> AddTournamentManager(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromBody] AddTournamentManagerModel model)
+	{
+		// Validate email is provided
+		if (string.IsNullOrWhiteSpace(model.Email))
+		{
+			return this.BadRequest(new { error = "Email is required" });
+		}
+
+		// Parse and validate email
+		if (!Email.TryParse(model.Email, out var email))
+		{
+			return this.BadRequest(new { error = "Invalid email format" });
+		}
+
+		// Look up user by email
+		var userId = await this.userContextProvider.GetUserIdByEmailAsync(email, this.HttpContext.RequestAborted);
+		if (!userId.HasValue)
+		{
+			return this.NotFound(new { error = "User not found" });
+		}
+
+		// Get current user for audit trail
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Add manager
+		await this.tournamentContextProvider.AddTournamentManagerAsync(
+			tournamentId, userId.Value, currentUser.UserId, this.HttpContext.RequestAborted);
+
+		return this.Ok();
+	}
+
+	/// <summary>
+	/// Remove a tournament manager.
+	/// </summary>
+	[HttpDelete("{tournamentId}/managers/{userId}")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> RemoveTournamentManager(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromRoute] UserIdentifier userId)
+	{
+		try
+		{
+			var removed = await this.tournamentContextProvider.RemoveTournamentManagerAsync(
+				tournamentId, userId, this.HttpContext.RequestAborted);
+
+			return removed ? this.Ok() : this.NotFound(new { error = "User is not a manager" });
+		}
+		catch (InvalidOperationException ex) when (ex.Message.Contains("last manager"))
+		{
+			return this.BadRequest(new { error = "Cannot remove the last manager of a tournament" });
+		}
 	}
 }

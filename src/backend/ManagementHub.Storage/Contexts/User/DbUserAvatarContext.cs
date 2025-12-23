@@ -8,6 +8,7 @@ using ManagementHub.Storage.Attachments;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.User;
+
 public record DbUserAvatarContext(Uri? AvatarUri) : IUserAvatarContext
 {
 }

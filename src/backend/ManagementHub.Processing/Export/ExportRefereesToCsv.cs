@@ -10,6 +10,7 @@ using ManagementHub.Models.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Processing.Export;
+
 public class ExportRefereesToCsv : IExportRefereesToCsv
 {
 	private readonly IRefereeContextProvider refereeContextProvider;
