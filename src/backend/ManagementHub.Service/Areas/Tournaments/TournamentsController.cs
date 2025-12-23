@@ -249,6 +249,12 @@ public class TournamentsController : ControllerBase
 		[FromRoute] TournamentIdentifier tournamentId,
 		[FromBody] AddTournamentManagerModel model)
 	{
+		// Validate email is provided
+		if (string.IsNullOrWhiteSpace(model.Email))
+		{
+			return this.BadRequest(new { error = "Email is required" });
+		}
+
 		// Parse and validate email
 		if (!Email.TryParse(model.Email, out var email))
 		{
@@ -283,8 +289,14 @@ public class TournamentsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public async Task<IActionResult> RemoveTournamentManager(
 		[FromRoute] TournamentIdentifier tournamentId,
-		[FromQuery] string email)
+		[FromQuery] string? email)
 	{
+		// Validate email is provided
+		if (string.IsNullOrWhiteSpace(email))
+		{
+			return this.BadRequest(new { error = "Email is required" });
+		}
+
 		// Parse and validate email
 		if (!Email.TryParse(email, out var email_))
 		{
