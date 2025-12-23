@@ -468,7 +468,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// Get team IDs where user is a team manager
 			var userTeamIds = await this.dbContext.TeamManagers
 				.Where(tm => tm.User.UniqueId == userUniqueId)
-				.Select(tm => $"TM_{tm.TeamId}")
+				.Select(tm => new TeamIdentifier(tm.TeamId).ToString())
 				.ToListAsync(cancellationToken);
 
 			query = query.Where(i => userTeamIds.Contains(i.ParticipantId));
@@ -482,7 +482,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				ParticipantType = i.ParticipantType,
 				ParticipantId = i.ParticipantId,
 				ParticipantName = i.ParticipantType == "team"
-					? this.dbContext.Teams.Where(t => i.ParticipantId == $"TM_{t.Id}").Select(t => t.Name).FirstOrDefault() ?? "Unknown"
+					? this.dbContext.Teams.Where(t => new TeamIdentifier(t.Id).ToString() == i.ParticipantId).Select(t => t.Name).FirstOrDefault() ?? "Unknown"
 					: "Unknown",
 				InitiatorUserId = i.Initiator.UniqueId != null
 					? UserIdentifier.Parse(i.Initiator.UniqueId)
@@ -593,7 +593,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			ParticipantId = invite.ParticipantId,
 			ParticipantName = invite.ParticipantType == "team"
 				? await this.dbContext.Teams
-					.Where(t => invite.ParticipantId == $"TM_{t.Id}")
+					.Where(t => new TeamIdentifier(t.Id).ToString() == invite.ParticipantId)
 					.Select(t => t.Name)
 					.FirstOrDefaultAsync(cancellationToken) ?? "Unknown"
 				: "Unknown",
