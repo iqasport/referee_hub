@@ -152,7 +152,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		tournamentsResponse.Should().NotBeNull();
 		var tournaments = tournamentsResponse!.Items.ToList();
 		tournaments.Should().Contain(t => t.Id == tournamentId,
-			"the created tournament should appear in the list");
+			"the created tournament with ID {0} should appear in the list", tournamentId);
 
 		var listedTournament = tournaments!.First(t => t.Id == tournamentId);
 		listedTournament.Name.Should().Be("Test Tournament");
