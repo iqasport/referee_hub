@@ -58,15 +58,10 @@ public class TournamentsController : ControllerBase
 		// - Computes IsCurrentUserInvolved based on tournament manager status
 		// Phase 3 will extend: also check if user is a participant via team manager role
 		// Phase 4 will extend: also check if user is on a roster
-		var query = this.tournamentContextProvider.QueryTournaments(userContext.UserId);
-
-		// AsFiltered wraps the IEnumerable in a Filtered<T> container for the MVC filtering system
-		// The first call converts the query results (IEnumerable) to Filtered<ITournamentContext>
-		// This allows pagination and filtering metadata to be applied if needed by MVC filters
-		var tournaments = query.AsFiltered();
+		var tournaments = this.tournamentContextProvider.QueryTournaments(userContext.UserId).ToList();
 
 		// Fetch banner URLs for all tournaments
-		var tournamentIds = tournaments.Items.Select(t => t.Id).ToList();
+		var tournamentIds = tournaments.Select(t => t.Id).ToList();
 		var bannerUrls = new Dictionary<TournamentIdentifier, Uri?>();
 		foreach (var tournamentId in tournamentIds)
 		{
@@ -76,7 +71,7 @@ public class TournamentsController : ControllerBase
 		}
 
 		// Map to view models - IsCurrentUserInvolved is already computed at DB level
-		var viewModels = tournaments.Items.Select(t => new TournamentViewModel
+		var viewModels = tournaments.Select(t => new TournamentViewModel
 		{
 			Id = t.Id,
 			Name = t.Name,
@@ -91,8 +86,10 @@ public class TournamentsController : ControllerBase
 			IsPrivate = t.IsPrivate,
 			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
-		});
+		}).ToList();
 
+		// AsFiltered wraps the list in a Filtered<T> container once, allowing the MVC filtering
+		// system to apply pagination metadata. This ensures correct pagination behavior.
 		return viewModels.AsFiltered();
 	}
 
