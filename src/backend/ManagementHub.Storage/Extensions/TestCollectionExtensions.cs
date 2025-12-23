@@ -4,6 +4,7 @@ using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Storage.Extensions;
+
 public static class TestCollectionExtensions
 {
 	public static IQueryable<Models.Data.Test> WithIdentifier(this IQueryable<Models.Data.Test> tests, TestIdentifier testId) =>

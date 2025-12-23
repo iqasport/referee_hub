@@ -66,7 +66,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			filteredTournaments = string.IsNullOrEmpty(filter)
 				? this.dbContext.Tournaments
 				: this.dbContext.Tournaments
-					.Where(t => EF.Functions.ILike(t.Name, filter) 
+					.Where(t => EF.Functions.ILike(t.Name, filter)
 						|| EF.Functions.ILike(t.Description, filter)
 						|| (t.Country != null && EF.Functions.ILike(t.Country, filter))
 						|| (t.City != null && EF.Functions.ILike(t.City, filter))
@@ -77,7 +77,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			filteredTournaments = string.IsNullOrEmpty(filter)
 				? this.dbContext.Tournaments
 				: this.dbContext.Tournaments
-					.Where(t => EF.Functions.Like(t.Name, filter) 
+					.Where(t => EF.Functions.Like(t.Name, filter)
 						|| EF.Functions.Like(t.Description, filter)
 						|| (t.Country != null && EF.Functions.Like(t.Country, filter))
 						|| (t.City != null && EF.Functions.Like(t.City, filter))
@@ -227,13 +227,13 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	public async Task<IEnumerable<ManagerInfo>> GetTournamentManagersAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
 	{
 		var tournamentIdString = tournamentId.ToString();
-		
+
 		var managers = await this.dbContext.TournamentManagers
 			.Where(tm => tm.Tournament.UniqueId == tournamentIdString)
 			.Select(tm => new ManagerInfo
 			{
-				UserId = tm.User.UniqueId != null 
-					? UserIdentifier.Parse(tm.User.UniqueId) 
+				UserId = tm.User.UniqueId != null
+					? UserIdentifier.Parse(tm.User.UniqueId)
 					: UserIdentifier.FromLegacyUserId(tm.User.Id),
 				Name = $"{tm.User.FirstName} {tm.User.LastName}",
 				Email = tm.User.Email
@@ -244,13 +244,13 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	}
 
 	public async Task AddTournamentManagerAsync(
-		TournamentIdentifier tournamentId, 
-		UserIdentifier userId, 
-		UserIdentifier addedByUserId, 
+		TournamentIdentifier tournamentId,
+		UserIdentifier userId,
+		UserIdentifier addedByUserId,
 		CancellationToken cancellationToken = default)
 	{
 		var tournamentIdString = tournamentId.ToString();
-		
+
 		// Verify tournament exists
 		var tournament = await this.dbContext.Tournaments
 			.Where(t => t.UniqueId == tournamentIdString)
@@ -309,17 +309,17 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.dbContext.TournamentManagers.Add(tournamentManager);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
-		this.logger.LogInformation("Added manager {UserId} to tournament {TournamentId} by {AddedByUserId}", 
+		this.logger.LogInformation("Added manager {UserId} to tournament {TournamentId} by {AddedByUserId}",
 			userId, tournamentId, addedByUserId);
 	}
 
 	public async Task<bool> RemoveTournamentManagerAsync(
-		TournamentIdentifier tournamentId, 
-		UserIdentifier userId, 
+		TournamentIdentifier tournamentId,
+		UserIdentifier userId,
 		CancellationToken cancellationToken = default)
 	{
 		var tournamentIdString = tournamentId.ToString();
-		
+
 		// Get tournament database ID
 		var tournament = await this.dbContext.Tournaments
 			.Where(t => t.UniqueId == tournamentIdString)
@@ -374,7 +374,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	{
 		// Get the user's unique ID for the Where clause
 		var userUniqueId = userId.ToString();
-		
+
 		// Order and filter the tournaments BEFORE projection to allow EF Core to translate the query
 		var filteredTournaments = tournaments
 			// Sort by whether user is involved (tournaments where user is manager appear first)
@@ -386,7 +386,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// Only show private tournaments where the user is involved (is a tournament manager)
 			// Public tournaments are visible to everyone
 			.Where(t => !t.IsPrivate || t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId));
-		
+
 		return this.BuildTournamentContextQuery(filteredTournaments, userId);
 	}
 
@@ -402,7 +402,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		// Get the user's unique ID for joins
 		// This will be used in the select projection for database-level joins
 		var userUniqueId = userId.ToString();
-		
+
 		return tournaments.AsNoTracking()
 			.Select(t => new DbTournamentContext(
 				TournamentIdentifier.Parse(t.UniqueId),

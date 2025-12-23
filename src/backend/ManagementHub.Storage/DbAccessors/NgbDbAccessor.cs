@@ -4,6 +4,7 @@ using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Storage.Extensions;
 
 namespace ManagementHub.Storage.DbAccessors;
+
 public class NgbDbAccessor : IDbAccessor<NgbIdentifier>
 {
 	private readonly ManagementHubDbContext dbContext;

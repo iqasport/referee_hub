@@ -5,6 +5,7 @@ using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
 
 namespace ManagementHub.Storage.Extensions;
+
 public static class NgbCollectionExtensions
 {
 	public static IQueryable<NationalGoverningBody> WithConstraint(this IQueryable<NationalGoverningBody> ngbs, NgbConstraint constraint)

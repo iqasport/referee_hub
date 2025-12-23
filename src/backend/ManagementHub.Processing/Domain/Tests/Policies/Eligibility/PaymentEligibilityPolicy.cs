@@ -8,6 +8,7 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
+
 public class PaymentEligibilityPolicy : IRefereeEligibilityPolicy
 {
 	private readonly IRefereeContextProvider refereeContextProvider;

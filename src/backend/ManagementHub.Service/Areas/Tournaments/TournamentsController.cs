@@ -227,7 +227,7 @@ public class TournamentsController : ControllerBase
 	{
 		var managers = await this.tournamentContextProvider.GetTournamentManagersAsync(
 			tournamentId, this.HttpContext.RequestAborted);
-		
+
 		return managers.Select(m => new TournamentManagerViewModel
 		{
 			Id = m.UserId.ToString(),
@@ -268,7 +268,7 @@ public class TournamentsController : ControllerBase
 		// Add manager
 		await this.tournamentContextProvider.AddTournamentManagerAsync(
 			tournamentId, userId.Value, currentUser.UserId, this.HttpContext.RequestAborted);
-		
+
 		return this.Ok();
 	}
 
@@ -303,7 +303,7 @@ public class TournamentsController : ControllerBase
 		{
 			var removed = await this.tournamentContextProvider.RemoveTournamentManagerAsync(
 				tournamentId, userId.Value, this.HttpContext.RequestAborted);
-			
+
 			return removed ? this.Ok() : this.NotFound(new { error = "User is not a manager" });
 		}
 		catch (InvalidOperationException ex) when (ex.Message.Contains("last manager"))

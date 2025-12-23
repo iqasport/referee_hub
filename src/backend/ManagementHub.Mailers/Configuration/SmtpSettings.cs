@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace ManagementHub.Mailers.Configuration;
+
 internal class SmtpSettings
 {
 	/// <summary>

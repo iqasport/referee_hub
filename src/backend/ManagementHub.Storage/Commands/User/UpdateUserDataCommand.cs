@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Expr = System.Linq.Expressions.Expression<System.Func<Microsoft.EntityFrameworkCore.Query.SetPropertyCalls<ManagementHub.Models.Data.User>, Microsoft.EntityFrameworkCore.Query.SetPropertyCalls<ManagementHub.Models.Data.User>>>;
 
 namespace ManagementHub.Storage.Commands.User;
+
 using User = ManagementHub.Models.Data.User;
 
 public class UpdateUserDataCommand : IUpdateUserDataCommand

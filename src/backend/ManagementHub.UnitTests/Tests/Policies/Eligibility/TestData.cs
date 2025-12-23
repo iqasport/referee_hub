@@ -6,6 +6,7 @@ using ManagementHub.Models.Domain.Tests.Policies;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.UnitTests.Tests.Policies.Eligibility;
+
 public static class TestData
 {
 	public static Test Assistant18 = new()

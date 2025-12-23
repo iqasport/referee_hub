@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Identity;
+
 public class EmailTokenProvider : IUserTwoFactorTokenProvider<UserIdentity>
 {
 	private readonly IUserIdentityRepository userRepository;

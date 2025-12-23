@@ -1,4 +1,5 @@
 ﻿namespace ManagementHub.Storage.DbAccessors;
+
 public interface IDbAccessorProvider
 {
 	/// <summary>

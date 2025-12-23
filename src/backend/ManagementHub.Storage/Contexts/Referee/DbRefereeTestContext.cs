@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.Referee;
+
 using User = Models.Data.User;
 
 public class DbRefereeTestContext : IRefereeTestContext

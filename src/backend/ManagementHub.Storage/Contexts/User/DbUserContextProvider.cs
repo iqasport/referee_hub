@@ -76,10 +76,10 @@ public class DbUserContextProvider : IUserContextProvider
 			.Where(u => u.Email == email.Value)
 			.Select(u => new { u.Id, u.UniqueId })
 			.FirstOrDefaultAsync(cancellationToken);
-		
+
 		if (user == null)
 			return null;
-		
+
 		if (user.UniqueId != null)
 			return UserIdentifier.Parse(user.UniqueId);
 		return UserIdentifier.FromLegacyUserId(user.Id);

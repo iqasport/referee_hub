@@ -2,6 +2,7 @@
 using ManagementHub.Models.Abstraction;
 
 namespace ManagementHub.Storage.DbAccessors;
+
 public interface IDbAccessor<TIdentifier>
 {
 	/// <summary>

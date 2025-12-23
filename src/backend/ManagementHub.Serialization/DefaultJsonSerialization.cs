@@ -15,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace ManagementHub.Serialization;
+
 public static class DefaultJsonSerialization
 {
 	public static JsonSerializerOptions ConfigureOptions(JsonSerializerOptions options)

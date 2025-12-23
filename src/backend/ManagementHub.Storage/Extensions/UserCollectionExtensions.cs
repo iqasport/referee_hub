@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
 
 namespace ManagementHub.Storage.Extensions;
+
 public static class UserCollectionExtensions
 {
 	public static IQueryable<User> WithIdentifier(this IQueryable<User> users, UserIdentifier userId) =>
