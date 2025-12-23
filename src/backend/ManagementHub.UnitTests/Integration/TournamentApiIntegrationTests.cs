@@ -71,7 +71,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 			// Override services for testing if needed
 		});
 	}
-	
 }
 
 /// <summary>
