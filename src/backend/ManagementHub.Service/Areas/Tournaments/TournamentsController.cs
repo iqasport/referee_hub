@@ -231,7 +231,7 @@ public class TournamentsController : ControllerBase
 
 		return managers.Select(m => new TournamentManagerViewModel
 		{
-			Id = m.UserId.ToString(),
+			Id = m.UserId,
 			Name = m.Name,
 			Email = m.Email
 		});
@@ -292,7 +292,6 @@ public class TournamentsController : ControllerBase
 		[FromRoute] TournamentIdentifier tournamentId,
 		[FromRoute] UserIdentifier userId)
 	{
-		// Remove manager
 		try
 		{
 			var removed = await this.tournamentContextProvider.RemoveTournamentManagerAsync(

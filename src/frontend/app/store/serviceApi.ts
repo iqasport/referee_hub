@@ -1126,7 +1126,7 @@ export type TournamentModel = {
   isPrivate?: boolean;
 };
 export type TournamentManagerViewModel = {
-  id?: string | null;
+  id?: string;
   name?: string | null;
   email?: string | null;
 };

@@ -13,6 +13,7 @@ using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -39,6 +40,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	private readonly IAttachmentRepository attachmentRepository;
 	private readonly IAccessFileCommand accessFileCommand;
 	private readonly CollectionFilteringContext filteringContext;
+	private readonly IDatabaseTransactionProvider transactionProvider;
 	private readonly ILogger<DbTournamentContextProvider> logger;
 
 	public DbTournamentContextProvider(
@@ -46,12 +48,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		IAttachmentRepository attachmentRepository,
 		IAccessFileCommand accessFileCommand,
 		CollectionFilteringContext filteringContext,
+		IDatabaseTransactionProvider transactionProvider,
 		ILogger<DbTournamentContextProvider> logger)
 	{
 		this.dbContext = dbContext;
 		this.attachmentRepository = attachmentRepository;
 		this.accessFileCommand = accessFileCommand;
 		this.filteringContext = filteringContext;
+		this.transactionProvider = transactionProvider;
 		this.logger = logger;
 	}
 
@@ -291,7 +295,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 		if (existingManager != null)
 		{
-			// Already a manager, nothing to do
+			this.logger.LogInformation("User {UserId} is already a manager of tournament {TournamentId}",
+				userId, tournamentId);
 			return;
 		}
 
@@ -318,6 +323,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		UserIdentifier userId,
 		CancellationToken cancellationToken = default)
 	{
+		await using var transaction = await this.transactionProvider.BeginAsync();
+
 		var tournamentIdString = tournamentId.ToString();
 
 		// Get tournament database ID
@@ -364,6 +371,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 		this.dbContext.TournamentManagers.Remove(manager);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		await transaction.CommitAsync(cancellationToken);
 
 		this.logger.LogInformation("Removed manager {UserId} from tournament {TournamentId}", userId, tournamentId);
 
