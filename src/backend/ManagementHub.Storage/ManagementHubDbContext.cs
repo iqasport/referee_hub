@@ -1495,7 +1495,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasConstraintName("fk_tournament_managers_tournament");
 
 			entity.HasOne(d => d.User)
-				.WithMany()
+				.WithMany(p => p.TournamentManagers)
 				.HasForeignKey(d => d.UserId)
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("fk_tournament_managers_user");
