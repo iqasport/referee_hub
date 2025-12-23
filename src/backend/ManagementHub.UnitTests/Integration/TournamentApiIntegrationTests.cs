@@ -151,10 +151,11 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		tournamentsResponse.Should().NotBeNull();
 		var tournaments = tournamentsResponse!.Items.ToList();
-		tournaments.Should().ContainSingle(t => t.Name == "Test Tournament",
+		tournaments.Should().Contain(t => t.Id == tournamentId,
 			"the created tournament should appear in the list");
 
-		var listedTournament = tournaments!.First(t => t.Name == "Test Tournament");
+		var listedTournament = tournaments!.First(t => t.Id == tournamentId);
+		listedTournament.Name.Should().Be("Test Tournament");
 		listedTournament.Description.Should().Be("Integration test tournament");
 		listedTournament.Type.Should().Be(TournamentType.Club);
 		listedTournament.City.Should().Be("Test City");
