@@ -55,4 +55,12 @@ public static class AuthorizationPolicies
 		{
 			policy.AddRequirements(new TournamentUserRoleAuthorizationRequirement<TournamentManagerRole>());
 		});
+
+	public const string TeamManagerPolicy = nameof(TeamManagerPolicy);
+
+	public static void AddTeamManagerPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(TeamManagerPolicy, policy =>
+		{
+			policy.AddRequirements(new TeamUserRoleAuthorizationRequirement<TeamManagerRole>());
+		});
 }
