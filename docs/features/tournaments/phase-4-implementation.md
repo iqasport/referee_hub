@@ -8,6 +8,8 @@ This phase implements tournament roster management, allowing team managers to sp
 - Managing sensitive gender data with privacy and deletion requirements
 - Enforcing roster modification restrictions for archived tournaments
 
+**Note from Phase 1:** The private tournament filtering and `IsCurrentUserInvolved` computation is done at the database level in `DbTournamentContextProvider.QueryTournaments()`. This phase will further extend the filtering logic to also check if the user is on a tournament roster.
+
 ## Prerequisites
 - Phase 3 must be complete
 - TournamentTeamParticipant entity exists

@@ -28,6 +28,7 @@ public class DbUserContextProvider : IUserContextProvider
 			dbContext.Users,
 			dbContext.Roles,
 			dbContext.NationalGoverningBodyAdmins,
+			dbContext.TournamentManagers,
 			dbContext.RefereeTeams,
 			dbContext.RefereeLocations,
 			dbContext.Languages,

@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
+using DotNetEd.CoreAdmin;
 using Excos.Options.Contextual;
 using Excos.Options.Providers.Configuration;
-using DotNetEd.CoreAdmin;
 using Hangfire;
 using ManagementHub.Mailers;
 using ManagementHub.Models.Domain.User;
@@ -23,6 +23,7 @@ using ManagementHub.Service.Jobs;
 using ManagementHub.Service.Swagger;
 using ManagementHub.Service.Telemetry;
 using ManagementHub.Storage.BlobStorage.LocalFilesystem;
+using ManagementHub.Storage.Contexts.Tests;
 using ManagementHub.Storage.DependencyInjection;
 using ManagementHub.Storage.Identity;
 using Microsoft.AspNetCore;
@@ -43,15 +44,19 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using static System.Net.Mime.MediaTypeNames;
-using ManagementHub.Storage.Contexts.Tests;
 
 namespace ManagementHub.Service;
 
-public static class Program
+public partial class Program
 {
 	private static readonly string Environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Environments.Development;
 
 	public static void Main(string[] args)
+	{
+		CreateWebHostBuilder(args).Build().Run();
+	}
+
+	public static IWebHostBuilder CreateWebHostBuilder(string[] args)
 	{
 		var builder = WebHost.CreateDefaultBuilder(args)
 			.ConfigureAppConfiguration(c => c.AddJsonFile("appsettings.Sensitive.json", optional: true)) // for local sensitive data
@@ -63,9 +68,7 @@ public static class Program
 
 		ConfigureDevelopmentTimeWebRoot(builder);
 
-		var app = builder.Build();
-
-		app.Run();
+		return builder;
 	}
 
 	[Conditional("DEBUG")]
@@ -113,6 +116,7 @@ public static class Program
 			options.AddTechAdminPolicy();
 			options.AddNgbAdminPolicy();
 			options.AddIqaAdminPolicy();
+			options.AddTournamentManagerPolicy();
 		});
 
 		services.AddCoreAdmin(new CoreAdminOptions

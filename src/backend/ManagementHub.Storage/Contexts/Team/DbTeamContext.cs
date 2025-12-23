@@ -144,13 +144,13 @@ public class DbTeamContextFactory
 	public async Task DeleteTeamAsync(TeamIdentifier teamId)
 	{
 		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
-		
+
 		await this.dbContext.RefereeTeams.Where(rt => rt.TeamId == teamId.Id).ExecuteDeleteAsync();
 
 		await this.dbContext.TeamStatusChangesets.Where(tsc => tsc.TeamId == teamId.Id).ExecuteDeleteAsync();
 
 		var deleted = await this.dbContext.Teams.Where(t => t.Id == teamId.Id).ExecuteDeleteAsync();
-		
+
 		Debug.Assert(deleted == 1);
 		await transaction.CommitAsync();
 	}

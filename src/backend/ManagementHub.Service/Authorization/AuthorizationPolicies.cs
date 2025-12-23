@@ -47,4 +47,12 @@ public static class AuthorizationPolicies
 		{
 			policy.AddRequirements(new UserRoleAuthorizationRequirement<IqaAdminRole>());
 		});
+
+	public const string TournamentManagerPolicy = nameof(TournamentManagerPolicy);
+
+	public static void AddTournamentManagerPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(TournamentManagerPolicy, policy =>
+		{
+			policy.AddRequirements(new TournamentUserRoleAuthorizationRequirement<TournamentManagerRole>());
+		});
 }

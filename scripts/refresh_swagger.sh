@@ -22,7 +22,8 @@ echo "Starting backend service..."
 cd "$BACKEND_DIR"
 
 # Start the backend service in the background, capturing its output
-dotnet run > "$LOG_FILE" 2>&1 &
+# Use BuildFrontend=false to avoid frontend build issues
+dotnet run --no-build /p:BuildFrontend=false > "$LOG_FILE" 2>&1 &
 BACKEND_PID=$!
 
 echo "Backend started with PID: $BACKEND_PID"

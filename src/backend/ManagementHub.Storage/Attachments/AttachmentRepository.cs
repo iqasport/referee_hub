@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.DbAccessors;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		[typeof(UserIdentifier)] = "User",
 		[typeof(NgbIdentifier)] = "NationalGoverningBody",
+		[typeof(TournamentIdentifier)] = "Tournament",
 	};
 
 	private readonly ManagementHubDbContext dbContext;

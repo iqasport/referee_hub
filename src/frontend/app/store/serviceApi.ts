@@ -11,6 +11,7 @@ export const addTagTypes = [
   "UserInfo",
   "Team",
   "Tests",
+  "Tournament",
   "UserAvatar",
 ] as const;
 const injectedRtkApi = api
@@ -311,6 +312,49 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/admin/Tests/${queryArg.testId}/questions` }),
         providesTags: ["Tests"],
       }),
+      getTournaments: build.query<GetTournamentsApiResponse, GetTournamentsApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments`,
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
+        }),
+        providesTags: ["Tournament"],
+      }),
+      createTournament: build.mutation<CreateTournamentApiResponse, CreateTournamentApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments`,
+          method: "POST",
+          body: queryArg.tournamentModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      getTournament: build.query<GetTournamentApiResponse, GetTournamentApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}` }),
+        providesTags: ["Tournament"],
+      }),
+      updateTournament: build.mutation<UpdateTournamentApiResponse, UpdateTournamentApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}`,
+          method: "PUT",
+          body: queryArg.tournamentModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      updateTournamentBanner: build.mutation<
+        UpdateTournamentBannerApiResponse,
+        UpdateTournamentBannerApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/banner`,
+          method: "PUT",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
@@ -559,6 +603,33 @@ export type ImportTestQuestionsApiArg = {
 export type GetTestQuestionsApiResponse = /** status 200 Success */ TestQuestionRecord[];
 export type GetTestQuestionsApiArg = {
   testId: string;
+};
+export type GetTournamentsApiResponse = /** status 200 Success */ TournamentViewModelFiltered;
+export type GetTournamentsApiArg = {
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+  skipPaging?: boolean;
+};
+export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
+export type CreateTournamentApiArg = {
+  tournamentModel: TournamentModel;
+};
+export type GetTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
+export type GetTournamentApiArg = {
+  tournamentId: string;
+};
+export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
+export type UpdateTournamentApiArg = {
+  tournamentId: string;
+  tournamentModel: TournamentModel;
+};
+export type UpdateTournamentBannerApiResponse = /** status 200 Success */ string;
+export type UpdateTournamentBannerApiArg = {
+  tournamentId: string;
+  body: {
+    bannerBlob?: Blob;
+  };
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -976,6 +1047,41 @@ export type TestQuestionRecord = {
   correct?: number;
   correctAnswer?: string | null;
 };
+export type TournamentType = "Club" | "National" | "Youth" | "Fantasy";
+export type TournamentViewModel = {
+  name?: string | null;
+  description?: string | null;
+  startDate?: string;
+  endDate?: string;
+  type?: TournamentType;
+  country?: string | null;
+  city?: string | null;
+  place?: string | null;
+  organizer?: string | null;
+  isPrivate?: boolean;
+  id?: string;
+  bannerImageUrl?: string | null;
+  isCurrentUserInvolved?: boolean;
+};
+export type TournamentViewModelFiltered = {
+  metadata?: FilteringMetadata;
+  items?: TournamentViewModel[] | null;
+};
+export type TournamentIdResponse = {
+  id?: string | null;
+};
+export type TournamentModel = {
+  name?: string | null;
+  description?: string | null;
+  startDate?: string;
+  endDate?: string;
+  type?: TournamentType;
+  country?: string | null;
+  city?: string | null;
+  place?: string | null;
+  organizer?: string | null;
+  isPrivate?: boolean;
+};
 export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
@@ -1044,6 +1150,11 @@ export const {
   useGetAllTestsQuery,
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
+  useGetTournamentsQuery,
+  useCreateTournamentMutation,
+  useGetTournamentQuery,
+  useUpdateTournamentMutation,
+  useUpdateTournamentBannerMutation,
   useGetCurrentUserQuery,
   useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,
