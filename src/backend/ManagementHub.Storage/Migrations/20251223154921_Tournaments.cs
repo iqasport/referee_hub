@@ -1,12 +1,13 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace ManagementHub.Storage.Migrations;
 
 /// <inheritdoc />
-public partial class AddTournamentTables : Migration
+public partial class Tournaments : Migration
 {
 	/// <inheritdoc />
 	protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,7 +17,7 @@ public partial class AddTournamentTables : Migration
 			columns: table => new
 			{
 				id = table.Column<long>(type: "bigint", nullable: false)
-					.Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+					.Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
 				unique_id = table.Column<string>(type: "character varying", nullable: false),
 				name = table.Column<string>(type: "character varying", nullable: false),
 				description = table.Column<string>(type: "text", nullable: false),
@@ -41,15 +42,22 @@ public partial class AddTournamentTables : Migration
 			columns: table => new
 			{
 				id = table.Column<long>(type: "bigint", nullable: false)
-					.Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+					.Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
 				tournament_id = table.Column<long>(type: "bigint", nullable: false),
 				user_id = table.Column<long>(type: "bigint", nullable: false),
+				added_by_user_id = table.Column<long>(type: "bigint", nullable: false),
 				created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
 				updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
 			},
 			constraints: table =>
 			{
 				table.PrimaryKey("PK_tournament_managers", x => x.id);
+				table.ForeignKey(
+					name: "fk_tournament_managers_added_by_user",
+					column: x => x.added_by_user_id,
+					principalTable: "users",
+					principalColumn: "id",
+					onDelete: ReferentialAction.Restrict);
 				table.ForeignKey(
 					name: "fk_tournament_managers_tournament",
 					column: x => x.tournament_id,
@@ -65,15 +73,25 @@ public partial class AddTournamentTables : Migration
 			});
 
 		migrationBuilder.CreateIndex(
-			name: "index_tournaments_on_unique_id",
-			table: "tournaments",
-			column: "unique_id",
-			unique: true);
-
-		migrationBuilder.CreateIndex(
 			name: "index_tournament_managers_on_tournament_id_and_user_id",
 			table: "tournament_managers",
 			columns: new[] { "tournament_id", "user_id" },
+			unique: true);
+
+		migrationBuilder.CreateIndex(
+			name: "IX_tournament_managers_added_by_user_id",
+			table: "tournament_managers",
+			column: "added_by_user_id");
+
+		migrationBuilder.CreateIndex(
+			name: "IX_tournament_managers_user_id",
+			table: "tournament_managers",
+			column: "user_id");
+
+		migrationBuilder.CreateIndex(
+			name: "index_tournaments_on_unique_id",
+			table: "tournaments",
+			column: "unique_id",
 			unique: true);
 	}
 
