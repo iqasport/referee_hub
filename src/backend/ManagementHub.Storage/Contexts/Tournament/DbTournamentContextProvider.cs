@@ -143,6 +143,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		{
 			TournamentId = tournament.Id,
 			UserId = user.Id,
+			AddedByUserId = user.Id,
 			CreatedAt = now,
 			UpdatedAt = now,
 		};
@@ -221,6 +222,152 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		return managerTournamentIds
 			.Select(id => TournamentIdentifier.Parse(id))
 			.ToHashSet();
+	}
+
+	public async Task<IEnumerable<ManagerInfo>> GetTournamentManagersAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		
+		var managers = await this.dbContext.TournamentManagers
+			.Where(tm => tm.Tournament.UniqueId == tournamentIdString)
+			.Select(tm => new ManagerInfo
+			{
+				UserId = tm.User.UniqueId != null 
+					? UserIdentifier.Parse(tm.User.UniqueId) 
+					: UserIdentifier.FromLegacyUserId(tm.User.Id),
+				Name = $"{tm.User.FirstName} {tm.User.LastName}",
+				Email = tm.User.Email
+			})
+			.ToListAsync(cancellationToken);
+
+		return managers;
+	}
+
+	public async Task AddTournamentManagerAsync(
+		TournamentIdentifier tournamentId, 
+		UserIdentifier userId, 
+		UserIdentifier addedByUserId, 
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		
+		// Verify tournament exists
+		var tournament = await this.dbContext.Tournaments
+			.Where(t => t.UniqueId == tournamentIdString)
+			.Select(t => new { t.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		// Get user's database ID
+		var user = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => new { u.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (user == null)
+		{
+			throw new NotFoundException(userId.ToString());
+		}
+
+		// Get addedBy user's database ID
+		var addedByUser = await this.dbContext.Users
+			.WithIdentifier(addedByUserId)
+			.Select(u => new { u.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (addedByUser == null)
+		{
+			throw new NotFoundException(addedByUserId.ToString());
+		}
+
+		// Check if already a manager (idempotent - don't error if already manager)
+		var existingManager = await this.dbContext.TournamentManagers
+			.Where(tm => tm.TournamentId == tournament.Id && tm.UserId == user.Id)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (existingManager != null)
+		{
+			// Already a manager, nothing to do
+			return;
+		}
+
+		// Add manager
+		var now = DateTime.UtcNow;
+		var tournamentManager = new TournamentManager
+		{
+			TournamentId = tournament.Id,
+			UserId = user.Id,
+			AddedByUserId = addedByUser.Id,
+			CreatedAt = now,
+			UpdatedAt = now,
+		};
+
+		this.dbContext.TournamentManagers.Add(tournamentManager);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Added manager {UserId} to tournament {TournamentId} by {AddedByUserId}", 
+			userId, tournamentId, addedByUserId);
+	}
+
+	public async Task<bool> RemoveTournamentManagerAsync(
+		TournamentIdentifier tournamentId, 
+		UserIdentifier userId, 
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		
+		// Get tournament database ID
+		var tournament = await this.dbContext.Tournaments
+			.Where(t => t.UniqueId == tournamentIdString)
+			.Select(t => new { t.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		// Check manager count first - if only 1 manager exists, throw exception
+		var managerCount = await this.dbContext.TournamentManagers
+			.Where(tm => tm.TournamentId == tournament.Id)
+			.CountAsync(cancellationToken);
+
+		if (managerCount <= 1)
+		{
+			throw new InvalidOperationException("Cannot remove the last manager of a tournament");
+		}
+
+		// Get user's database ID
+		var user = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => new { u.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (user == null)
+		{
+			return false; // User doesn't exist, can't be a manager
+		}
+
+		// Find and remove the manager
+		var manager = await this.dbContext.TournamentManagers
+			.Where(tm => tm.TournamentId == tournament.Id && tm.UserId == user.Id)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (manager == null)
+		{
+			return false; // User is not a manager
+		}
+
+		this.dbContext.TournamentManagers.Remove(manager);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Removed manager {UserId} from tournament {TournamentId}", userId, tournamentId);
+
+		return true;
 	}
 
 	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
