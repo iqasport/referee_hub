@@ -352,12 +352,17 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
 		listManagersResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"new manager should be able to list managers");
+		managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 
 		// Step 7: Remove a manager (sign back in as original creator)
 		this._client.DefaultRequestHeaders.Authorization =
 			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-		var removeManagerResponse = await this._client.DeleteAsync($"/api/v2/tournaments/{tournamentId}/managers?email=ngb_admin@example.com");
+		// Get the ngb_admin userId from the managers list
+		var ngbAdminManager = managers!.First(m => m.GetProperty("email").GetString() == "ngb_admin@example.com");
+		var ngbAdminUserId = ngbAdminManager.GetProperty("id").GetString();
+
+		var removeManagerResponse = await this._client.DeleteAsync($"/api/v2/tournaments/{tournamentId}/managers/{ngbAdminUserId}");
 		removeManagerResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"removing a manager should succeed");
 
@@ -487,8 +492,13 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = createResult!.Id;
 
+		// Get the current user's userId from the managers list
+		var listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
+		var managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
+		var currentUserId = managers![0].GetProperty("id").GetString();
+
 		// Try to remove the only manager
-		var removeResponse = await this._client.DeleteAsync($"/api/v2/tournaments/{tournamentId}/managers?email=referee@example.com");
+		var removeResponse = await this._client.DeleteAsync($"/api/v2/tournaments/{tournamentId}/managers/{currentUserId}");
 
 		removeResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
 			"removing the last manager should return BadRequest");

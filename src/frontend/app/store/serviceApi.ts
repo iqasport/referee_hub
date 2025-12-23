@@ -378,9 +378,8 @@ const injectedRtkApi = api
         RemoveTournamentManagerApiArg
       >({
         query: (queryArg) => ({
-          url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers`,
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers/${queryArg.userId}`,
           method: "DELETE",
-          params: { email: queryArg.email },
         }),
         invalidatesTags: ["Tournament"],
       }),
@@ -673,7 +672,7 @@ export type AddTournamentManagerApiArg = {
 export type RemoveTournamentManagerApiResponse = /** status 200 Success */ void;
 export type RemoveTournamentManagerApiArg = {
   tournamentId: string;
-  email?: string;
+  userId: string;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;

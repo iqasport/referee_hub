@@ -6,6 +6,7 @@ using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
@@ -281,7 +282,7 @@ public class TournamentsController : ControllerBase
 	/// <summary>
 	/// Remove a tournament manager.
 	/// </summary>
-	[HttpDelete("{tournamentId}/managers")]
+	[HttpDelete("{tournamentId}/managers/{userId}")]
 	[Tags("Tournament")]
 	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
@@ -289,32 +290,13 @@ public class TournamentsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public async Task<IActionResult> RemoveTournamentManager(
 		[FromRoute] TournamentIdentifier tournamentId,
-		[FromQuery] string? email)
+		[FromRoute] UserIdentifier userId)
 	{
-		// Validate email is provided
-		if (string.IsNullOrWhiteSpace(email))
-		{
-			return this.BadRequest(new { error = "Email is required" });
-		}
-
-		// Parse and validate email
-		if (!Email.TryParse(email, out var email_))
-		{
-			return this.BadRequest(new { error = "Invalid email format" });
-		}
-
-		// Look up user by email
-		var userId = await this.userContextProvider.GetUserIdByEmailAsync(email_, this.HttpContext.RequestAborted);
-		if (!userId.HasValue)
-		{
-			return this.NotFound(new { error = "User not found" });
-		}
-
 		// Remove manager
 		try
 		{
 			var removed = await this.tournamentContextProvider.RemoveTournamentManagerAsync(
-				tournamentId, userId.Value, this.HttpContext.RequestAborted);
+				tournamentId, userId, this.HttpContext.RequestAborted);
 
 			return removed ? this.Ok() : this.NotFound(new { error = "User is not a manager" });
 		}
