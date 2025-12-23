@@ -71,11 +71,6 @@ public partial class AddTournamentTables : Migration
 			unique: true);
 
 		migrationBuilder.CreateIndex(
-			name: "index_tournament_managers_on_tournament_id",
-			table: "tournament_managers",
-			column: "tournament_id");
-
-		migrationBuilder.CreateIndex(
 			name: "index_tournament_managers_on_tournament_id_and_user_id",
 			table: "tournament_managers",
 			columns: new[] { "tournament_id", "user_id" },

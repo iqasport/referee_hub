@@ -72,16 +72,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 		});
 	}
 	
-	/// <summary>
-	/// Create an HttpClient configured with the same JSON serialization options as the server.
-	/// </summary>
-	public HttpClient CreateClientWithJsonOptions()
-	{
-		var client = CreateClient();
-		// The server automatically uses the registered JSON converters when serializing responses.
-		// The default HttpClient will handle this correctly.
-		return client;
-	}
 }
 
 /// <summary>
@@ -214,7 +204,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	[Fact]
 	public async Task PrivateTournament_ShouldOnlyBeVisibleToManager()
 	{
-		// Sign in
+		// Sign in as referee (who will create the tournament)
 		var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new
 		{
 			email = "referee@example.com",
@@ -226,7 +216,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		_client.DefaultRequestHeaders.Authorization = 
 			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-		// Create a private tournament
+		// Create a private tournament as referee user
 		var createModel = new TournamentModel
 		{
 			Name = "Private Tournament",
@@ -256,5 +246,29 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var getResponse = await _client.GetAsync($"/api/v2/tournaments/{tournamentId}");
 		getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"private tournament should be accessible to its manager");
+		
+		// Sign in as a different user (ngb_admin)
+		var otherLoginResponse = await _client.PostAsJsonAsync("/api/auth/login", new
+		{
+			email = "ngb_admin@example.com",
+			password = "password"
+		});
+		
+		var otherLoginContent = await otherLoginResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var otherToken = otherLoginContent.GetProperty("accessToken").GetString();
+		_client.DefaultRequestHeaders.Authorization = 
+			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", otherToken);
+		
+		// Verify private tournament is NOT in the list for other user
+		var otherListResponse = await _client.GetAsync("/api/v2/tournaments");
+		var otherTournamentsResponse = await otherListResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
+		var otherTournaments = otherTournamentsResponse!.Items.ToList();
+		otherTournaments.Should().NotContain(t => t.Id == tournamentId,
+			"private tournament should NOT be visible to non-managers");
+		
+		// Verify other user cannot access by ID (should get 404)
+		var otherGetResponse = await _client.GetAsync($"/api/v2/tournaments/{tournamentId}");
+		otherGetResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
+			"private tournament should NOT be accessible to non-managers");
 	}
 }

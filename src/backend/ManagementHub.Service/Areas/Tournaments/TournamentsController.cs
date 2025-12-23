@@ -6,6 +6,7 @@ using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User.Roles;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
@@ -59,6 +60,9 @@ public class TournamentsController : ControllerBase
 		// Phase 4 will extend: also check if user is on a roster
 		var query = this.tournamentContextProvider.QueryTournaments(userContext.UserId);
 
+		// AsFiltered wraps the IEnumerable in a Filtered<T> container for the MVC filtering system
+		// The first call converts the query results (IEnumerable) to Filtered<ITournamentContext>
+		// This allows pagination and filtering metadata to be applied if needed by MVC filters
 		var tournaments = query.AsFiltered();
 
 		// Fetch banner URLs for all tournaments
@@ -103,11 +107,11 @@ public class TournamentsController : ControllerBase
 		var tournament = await this.tournamentContextProvider
 			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
 
-		// Check access to private tournament - this is enforced at database level
-		// GetTournamentContextAsync already filters private tournaments based on IsCurrentUserInvolved
+		// Check access to private tournament - database layer already enforces this
+		// but we keep this check for consistency and to provide proper NotFound response
 		if (tournament.IsPrivate && !tournament.IsCurrentUserInvolved)
 		{
-			return this.NotFound();
+			throw new NotFoundException(tournamentId.ToString());
 		}
 
 		var bannerUri = await this.tournamentContextProvider
