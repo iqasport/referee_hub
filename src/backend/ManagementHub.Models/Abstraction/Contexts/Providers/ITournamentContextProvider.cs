@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 
@@ -32,4 +33,20 @@ public interface ITournamentContextProvider
 	Task AddTournamentManagerAsync(TournamentIdentifier tournamentId, UserIdentifier userId, UserIdentifier addedByUserId, CancellationToken cancellationToken = default);
 
 	Task<bool> RemoveTournamentManagerAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default);
+
+	// Phase 3: Invite management
+	Task<IEnumerable<InviteInfo>> GetTournamentInvitesAsync(TournamentIdentifier tournamentId, UserIdentifier? filterByParticipant = null, CancellationToken cancellationToken = default);
+
+	Task<InviteInfo> CreateInviteAsync(TournamentIdentifier tournamentId, string participantType, string participantId, UserIdentifier initiatorUserId, CancellationToken cancellationToken = default);
+
+	Task<InviteInfo?> GetInviteByParticipantIdAsync(TournamentIdentifier tournamentId, string participantId, CancellationToken cancellationToken = default);
+
+	Task UpdateInviteApprovalAsync(long inviteId, bool isTournamentManager, bool approved, CancellationToken cancellationToken = default);
+
+	// Phase 3: Participant management
+	Task<IEnumerable<ParticipantInfo>> GetTournamentParticipantsAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
+
+	Task AddParticipantAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
+
+	Task RemoveParticipantAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
 }
