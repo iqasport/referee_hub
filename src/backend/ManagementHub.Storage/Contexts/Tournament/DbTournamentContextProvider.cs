@@ -471,6 +471,12 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				.Select(tm => new TeamIdentifier(tm.TeamId).ToString())
 				.ToListAsync(cancellationToken);
 
+			// If user is not a team manager of any team, return empty list
+			if (!userTeamIds.Any())
+			{
+				return Enumerable.Empty<InviteInfo>();
+			}
+
 			query = query.Where(i => userTeamIds.Contains(i.ParticipantId));
 		}
 
