@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Team;
@@ -371,38 +372,101 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Validate participant type
+		// Validate and parse participant
+		var (validationError, teamId) = this.ValidateInviteParticipant(model);
+		if (validationError != null)
+		{
+			return validationError;
+		}
+
+		// Check authorization
+		if (!this.IsAuthorizedToCreateInvite(userContext, tournamentId, teamId))
+		{
+			return this.Forbid();
+		}
+
+		// Get tournament and validate
+		var tournament = await this.tournamentContextProvider
+			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+
+		var tournamentValidation = this.ValidateTournamentForInvite(tournament);
+		if (tournamentValidation != null)
+		{
+			return tournamentValidation;
+		}
+
+		// Check for existing participant or invite
+		var existingCheck = await this.CheckExistingParticipantOrInvite(tournamentId, teamId);
+		if (existingCheck != null)
+		{
+			return existingCheck;
+		}
+
+		// Validate team existence and compatibility
+		var teamValidation = await this.ValidateTeamCompatibility(teamId, tournament);
+		if (teamValidation != null)
+		{
+			return teamValidation;
+		}
+
+		// Create invite and handle auto-approval
+		var invite = await this.tournamentContextProvider.CreateTeamInviteAsync(
+			tournamentId,
+			teamId,
+			userContext.UserId,
+			this.HttpContext.RequestAborted);
+
+		await this.HandleAutoApproval(invite, tournamentId, teamId);
+
+		var viewModel = MapInviteToViewModel(invite);
+
+		return this.CreatedAtAction(nameof(GetTournamentInvites),
+			new { tournamentId = tournamentId.ToString() },
+			viewModel);
+	}
+
+	private (ActionResult?, TeamIdentifier) ValidateInviteParticipant(CreateInviteModel model)
+	{
 		if (model.ParticipantType != ParticipantType.Team)
 		{
-			return this.BadRequest(new { error = "Only team participants supported" });
+			return (this.BadRequest(new { error = "Only team participants supported" }), default!);
 		}
 
-		// Parse team ID
 		if (!TeamIdentifier.TryParse(model.ParticipantId, out var teamId))
 		{
-			return this.BadRequest(new { error = "Invalid participant ID" });
+			return (this.BadRequest(new { error = "Invalid participant ID" }), default!);
 		}
 
-		// Check authorization: must be tournament manager OR team manager
+		return (null, teamId);
+	}
+
+	private bool IsAuthorizedToCreateInvite(
+		IUserContext userContext,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId)
+	{
 		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
 			.Any(r => r.Tournament.AppliesTo(tournamentId));
 		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>()
 			.Any(r => r.Team.AppliesTo(teamId));
 
-		if (!isTournamentManager && !isTeamManager)
-		{
-			return this.Forbid();
-		}
+		return isTournamentManager || isTeamManager;
+	}
 
-		// Get tournament to check if archived
-		var tournament = await this.tournamentContextProvider
-			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+	private ActionResult? ValidateTournamentForInvite(ITournamentContext tournament)
+	{
 		if (tournament.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
 		{
 			return this.BadRequest(new { error = "Cannot modify archived tournament" });
 		}
 
-		// Check if team is already a participant
+		return null;
+	}
+
+	private async Task<ActionResult?> CheckExistingParticipantOrInvite(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId)
+	{
 		var participants = await this.tournamentContextProvider
 			.GetTournamentTeamParticipantsAsync(tournamentId, this.HttpContext.RequestAborted);
 		if (participants.Any(p => p.TeamId.Equals(teamId)))
@@ -410,7 +474,6 @@ public class TournamentsController : ControllerBase
 			return this.BadRequest(new { error = "Team is already a participant" });
 		}
 
-		// Check if pending invite already exists
 		var existingInvite = await this.tournamentContextProvider
 			.GetTeamInviteAsync(tournamentId, teamId, this.HttpContext.RequestAborted);
 		if (existingInvite != null && existingInvite.GetStatus() == InviteStatus.Pending)
@@ -418,14 +481,19 @@ public class TournamentsController : ControllerBase
 			return this.BadRequest(new { error = "Pending invite already exists" });
 		}
 
-		// Validate tournament-team type compatibility
+		return null;
+	}
+
+	private async Task<ActionResult?> ValidateTeamCompatibility(
+		TeamIdentifier teamId,
+		ITournamentContext tournament)
+	{
 		var team = await this.teamContextProvider.CheckTeamExistsInNgbAsync(default, teamId);
 		if (!team)
 		{
 			return this.BadRequest(new { error = "Team not found" });
 		}
 
-		// Get team details for validation
 		var teamContext = await this.dbContext.Teams
 			.Where(t => t.Id == teamId.Id)
 			.Select(t => new { t.GroupAffiliation })
@@ -441,22 +509,22 @@ public class TournamentsController : ControllerBase
 			return this.BadRequest(new { error = "Team type incompatible with tournament" });
 		}
 
-		// Create invite
-		var invite = await this.tournamentContextProvider.CreateTeamInviteAsync(
-			tournamentId,
-			teamId,
-			userContext.UserId,
-			this.HttpContext.RequestAborted);
+		return null;
+	}
 
-		// Check if both approvals are approved (auto-approval case)
+	private async Task HandleAutoApproval(InviteInfo invite, TournamentIdentifier tournamentId, TeamIdentifier teamId)
+	{
 		if (invite.TournamentManagerApproval == ApprovalStatus.Approved &&
 			invite.ParticipantApproval == ApprovalStatus.Approved)
 		{
-			// Create participant immediately
-			await this.tournamentContextProvider.AddTeamParticipantAsync(tournamentId, teamId, this.HttpContext.RequestAborted);
+			await this.tournamentContextProvider.AddTeamParticipantAsync(
+				tournamentId, teamId, this.HttpContext.RequestAborted);
 		}
+	}
 
-		var viewModel = new TournamentInviteViewModel
+	private static TournamentInviteViewModel MapInviteToViewModel(InviteInfo invite)
+	{
+		return new TournamentInviteViewModel
 		{
 			ParticipantType = invite.ParticipantType,
 			ParticipantId = invite.ParticipantId,
@@ -475,10 +543,6 @@ public class TournamentsController : ControllerBase
 				Date = invite.ParticipantApprovalDate
 			}
 		};
-
-		return this.CreatedAtAction(nameof(GetTournamentInvites),
-			new { tournamentId = tournamentId.ToString() },
-			viewModel);
 	}
 
 	/// <summary>
