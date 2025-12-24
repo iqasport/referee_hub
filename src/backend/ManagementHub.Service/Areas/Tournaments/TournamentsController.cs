@@ -335,7 +335,7 @@ public class TournamentsController : ControllerBase
 		// Only tournament managers or team managers can view invites
 		if (!isTournamentManager && !isTeamManager)
 		{
-			return Enumerable.Empty<TournamentInviteViewModel>();
+			return Array.Empty<TournamentInviteViewModel>();
 		}
 
 		// Managers see all invites, team managers see only their own

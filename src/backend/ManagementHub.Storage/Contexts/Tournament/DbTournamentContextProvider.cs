@@ -474,33 +474,58 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// If user is not a team manager of any team, return empty list
 			if (!userTeamIds.Any())
 			{
-				return Enumerable.Empty<InviteInfo>();
+				return new List<InviteInfo>();
 			}
 
 			query = query.Where(i => userTeamIds.Contains(i.ParticipantId));
 		}
 
-		var invites = await query
-			.Select(i => new InviteInfo
-			{
-				TournamentId = TournamentIdentifier.Parse(i.Tournament.UniqueId),
-				ParticipantType = i.ParticipantType == "team" ? ParticipantType.Team : ParticipantType.Team,
-				ParticipantId = i.ParticipantId,
-				ParticipantName = i.ParticipantType == "team"
-					? this.dbContext.Teams.Where(t => new TeamIdentifier(t.Id).ToString() == i.ParticipantId).Select(t => t.Name).FirstOrDefault() ?? "Unknown"
-					: "Unknown",
-				InitiatorUserId = i.Initiator.UniqueId != null
-					? UserIdentifier.Parse(i.Initiator.UniqueId)
-					: UserIdentifier.FromLegacyUserId(i.Initiator.Id),
-				CreatedAt = i.CreatedAt,
-				TournamentManagerApproval = i.TournamentManagerApproval,
-				TournamentManagerApprovalDate = i.TournamentManagerApprovalDate,
-				ParticipantApproval = i.ParticipantApproval,
-				ParticipantApprovalDate = i.ParticipantApprovalDate
-			})
-			.ToListAsync(cancellationToken);
+		// Fetch invites from database
+		var dbInvites = await query.ToListAsync(cancellationToken);
 
-		return invites;
+		// If there are no invites, return empty list
+		if (!dbInvites.Any())
+		{
+			return new List<InviteInfo>();
+		}
+
+		// Get unique participant IDs for teams
+		var teamParticipantIds = dbInvites
+			.Where(i => i.ParticipantType == "team")
+			.Select(i => i.ParticipantId)
+			.Distinct()
+			.ToList();
+
+		// Fetch team names in a separate query if there are any team participants
+		Dictionary<string, string> teamNames = new Dictionary<string, string>();
+		if (teamParticipantIds.Any())
+		{
+			var teams = await this.dbContext.Teams
+				.Where(t => teamParticipantIds.Contains(new TeamIdentifier(t.Id).ToString()))
+				.Select(t => new { Id = new TeamIdentifier(t.Id).ToString(), t.Name })
+				.ToListAsync(cancellationToken);
+
+			teamNames = teams.ToDictionary(t => t.Id, t => t.Name);
+		}
+
+		// Map to InviteInfo
+		return dbInvites.Select(i => new InviteInfo
+		{
+			TournamentId = TournamentIdentifier.Parse(i.Tournament.UniqueId),
+			ParticipantType = i.ParticipantType == "team" ? ParticipantType.Team : ParticipantType.Team,
+			ParticipantId = i.ParticipantId,
+			ParticipantName = i.ParticipantType == "team" && teamNames.TryGetValue(i.ParticipantId, out var name)
+				? name
+				: "Unknown",
+			InitiatorUserId = i.Initiator.UniqueId != null
+				? UserIdentifier.Parse(i.Initiator.UniqueId)
+				: UserIdentifier.FromLegacyUserId(i.Initiator.Id),
+			CreatedAt = i.CreatedAt,
+			TournamentManagerApproval = i.TournamentManagerApproval,
+			TournamentManagerApprovalDate = i.TournamentManagerApprovalDate,
+			ParticipantApproval = i.ParticipantApproval,
+			ParticipantApprovalDate = i.ParticipantApprovalDate
+		}).ToList();
 	}
 
 	public async Task<InviteInfo> CreateTeamInviteAsync(
