@@ -1,30 +1,30 @@
 using System;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Service.Areas.Tournaments;
 
 public class TournamentInviteViewModel
 {
-	public long Id { get; set; }
-	public string ParticipantType { get; set; } = null!;
-	public string ParticipantId { get; set; } = null!;
-	public string ParticipantName { get; set; } = null!;
-	public string Status { get; set; } = null!;
-	public string InitiatorUserId { get; set; } = null!;
-	public DateTime CreatedAt { get; set; }
-	public ApprovalStatusViewModel TournamentManagerApproval { get; set; } = null!;
-	public ApprovalStatusViewModel ParticipantApproval { get; set; } = null!;
+	public required ParticipantType ParticipantType { get; set; }
+	public required string ParticipantId { get; set; }
+	public required string ParticipantName { get; set; }
+	public required InviteStatus Status { get; set; }
+	public required string InitiatorUserId { get; set; }
+	public required DateTime CreatedAt { get; set; }
+	public required ApprovalStatusViewModel TournamentManagerApproval { get; set; }
+	public required ApprovalStatusViewModel ParticipantApproval { get; set; }
 }
 
 public class ApprovalStatusViewModel
 {
-	public string Status { get; set; } = null!;
+	public required ApprovalStatus Status { get; set; }
 	public DateTime? Date { get; set; }
 }
 
 public class CreateInviteModel
 {
-	public string ParticipantType { get; set; } = null!;
-	public string ParticipantId { get; set; } = null!;
+	public required ParticipantType ParticipantType { get; set; }
+	public required string ParticipantId { get; set; }
 }
 
 public class InviteResponseModel
@@ -34,7 +34,7 @@ public class InviteResponseModel
 
 public class TournamentParticipantViewModel
 {
-	public string TeamId { get; set; } = null!;
-	public string TeamName { get; set; } = null!;
-	public string Type { get; set; } = null!;
+	public required string TeamId { get; set; }
+	public required string TeamName { get; set; }
 }
+
