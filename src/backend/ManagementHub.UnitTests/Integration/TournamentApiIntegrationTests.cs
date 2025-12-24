@@ -602,7 +602,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Step 4: Get invites - should work since tournament is public and user is manager
 		var invitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
-		
+
 		if (invitesResponse.StatusCode != HttpStatusCode.OK)
 		{
 			var errorContent = await invitesResponse.Content.ReadAsStringAsync();
@@ -611,7 +611,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 			// Just skip the invite check if it fails
 			return;
 		}
-		
+
 		var invites = await invitesResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		invites.Should().BeEmpty("new tournament should have no invites");
 

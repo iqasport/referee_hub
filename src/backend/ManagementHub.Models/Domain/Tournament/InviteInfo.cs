@@ -19,10 +19,10 @@ public class InviteInfo
 
 	public InviteStatus GetStatus()
 	{
-		if (TournamentManagerApproval == ApprovalStatus.Rejected || ParticipantApproval == ApprovalStatus.Rejected)
+		if (this.TournamentManagerApproval == ApprovalStatus.Rejected || this.ParticipantApproval == ApprovalStatus.Rejected)
 			return InviteStatus.Rejected;
 
-		if (TournamentManagerApproval == ApprovalStatus.Approved && ParticipantApproval == ApprovalStatus.Approved)
+		if (this.TournamentManagerApproval == ApprovalStatus.Approved && this.ParticipantApproval == ApprovalStatus.Approved)
 			return InviteStatus.Approved;
 
 		return InviteStatus.Pending;
