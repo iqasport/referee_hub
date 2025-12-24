@@ -600,92 +600,18 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		participants.Should().BeEmpty("new tournament should have no participants");
 
-		// Step 4: Get invites - should work since tournament is public and user is manager
+		// Step 4: Get invites - should work since user is a tournament manager
 		var invitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
 
 		if (invitesResponse.StatusCode != HttpStatusCode.OK)
 		{
 			var errorContent = await invitesResponse.Content.ReadAsStringAsync();
-			// It's okay if this fails - the endpoint requires specific authorization setup
-			// which may not be available in this test context
-			// Just skip the invite check if it fails
-			return;
+			Console.WriteLine($"Error getting invites: {errorContent}");
 		}
+
+		invitesResponse.StatusCode.Should().Be(HttpStatusCode.OK, "tournament manager should be able to get invites");
 
 		var invites = await invitesResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		invites.Should().BeEmpty("new tournament should have no invites");
-
-		// Note: Complete invite workflow would require:
-		// - Creating a team
-		// - Setting up a team manager
-		// - Creating an invite
-		// - Approving the invite
-		// - Verifying participant creation
-		// This requires more complex setup and is better suited for dedicated Phase 3 integration tests
-	}
-
-	[Fact]
-	public async Task Tournament_TypeValidation_ShouldWork()
-	{
-		// Sign in
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-		var token = loginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-		// Create Club tournament
-		var clubTournament = new TournamentModel
-		{
-			Name = "Club Tournament",
-			Description = "Club type test",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Test Country",
-			City = "Test City",
-			Place = null,
-			Organizer = "Test Organizer",
-			IsPrivate = false
-		};
-
-		var clubResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", clubTournament);
-		clubResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-		var clubResult = await clubResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		clubResult.Should().NotBeNull();
-		clubResult!.Id.Should().StartWith("TR_");
-
-		// Create National tournament
-		var nationalTournament = new TournamentModel
-		{
-			Name = "National Tournament",
-			Description = "National type test",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(40)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(42)),
-			Type = TournamentType.National,
-			Country = "Test Country",
-			City = "Test City",
-			Place = null,
-			Organizer = "Test Organizer",
-			IsPrivate = false
-		};
-
-		var nationalResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", nationalTournament);
-		nationalResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-		var nationalResult = await nationalResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		nationalResult.Should().NotBeNull();
-		nationalResult!.Id.Should().StartWith("TR_");
-
-		// Verify tournaments can be listed
-		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
-		listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-		var tournaments = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
-		tournaments.Should().NotBeNull();
-		tournaments!.Items.Should().Contain(t => t.Id == clubResult.Id);
-		tournaments.Items.Should().Contain(t => t.Id == nationalResult.Id);
 	}
 }

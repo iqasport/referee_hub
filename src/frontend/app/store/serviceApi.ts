@@ -1216,7 +1216,7 @@ export type TournamentInviteViewModel = {
   participantId?: string | null;
   participantName?: string | null;
   status?: InviteStatus;
-  initiatorUserId?: string | null;
+  initiatorUserId?: string;
   createdAt?: string;
   tournamentManagerApproval?: ApprovalStatusViewModel;
   participantApproval?: ApprovalStatusViewModel;
@@ -1229,7 +1229,7 @@ export type InviteResponseModel = {
   approved?: boolean;
 };
 export type TournamentParticipantViewModel = {
-  teamId?: string | null;
+  teamId?: string;
   teamName?: string | null;
 };
 export type CurrentUserViewModel = {

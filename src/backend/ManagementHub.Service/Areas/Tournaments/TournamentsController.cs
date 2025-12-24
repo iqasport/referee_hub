@@ -342,7 +342,7 @@ public class TournamentsController : ControllerBase
 			ParticipantId = i.ParticipantId,
 			ParticipantName = i.ParticipantName,
 			Status = i.GetStatus(),
-			InitiatorUserId = i.InitiatorUserId.ToString(),
+			InitiatorUserId = i.InitiatorUserId,
 			CreatedAt = i.CreatedAt,
 			TournamentManagerApproval = new ApprovalStatusViewModel
 			{
@@ -373,7 +373,7 @@ public class TournamentsController : ControllerBase
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
 		// Validate and parse participant
-		var (validationError, teamId) = this.ValidateInviteParticipant(model);
+		var validationError = this.ValidateInviteParticipant(model, out var teamId);
 		if (validationError != null)
 		{
 			return validationError;
@@ -425,19 +425,21 @@ public class TournamentsController : ControllerBase
 			viewModel);
 	}
 
-	private (ActionResult?, TeamIdentifier) ValidateInviteParticipant(CreateInviteModel model)
+	private ActionResult? ValidateInviteParticipant(CreateInviteModel model, out TeamIdentifier teamId)
 	{
+		teamId = default!;
+
 		if (model.ParticipantType != ParticipantType.Team)
 		{
-			return (this.BadRequest(new { error = "Only team participants supported" }), default!);
+			return this.BadRequest(new { error = "Only team participants supported" });
 		}
 
-		if (!TeamIdentifier.TryParse(model.ParticipantId, out var teamId))
+		if (!TeamIdentifier.TryParse(model.ParticipantId, out teamId))
 		{
-			return (this.BadRequest(new { error = "Invalid participant ID" }), default!);
+			return this.BadRequest(new { error = "Invalid participant ID" });
 		}
 
-		return (null, teamId);
+		return null;
 	}
 
 	private bool IsAuthorizedToCreateInvite(
@@ -530,7 +532,7 @@ public class TournamentsController : ControllerBase
 			ParticipantId = invite.ParticipantId,
 			ParticipantName = invite.ParticipantName,
 			Status = invite.GetStatus(),
-			InitiatorUserId = invite.InitiatorUserId.ToString(),
+			InitiatorUserId = invite.InitiatorUserId,
 			CreatedAt = invite.CreatedAt,
 			TournamentManagerApproval = new ApprovalStatusViewModel
 			{
@@ -652,7 +654,7 @@ public class TournamentsController : ControllerBase
 
 		return participants.Select(p => new TournamentParticipantViewModel
 		{
-			TeamId = p.TeamId.ToString(),
+			TeamId = p.TeamId,
 			TeamName = p.TeamName
 		});
 	}
