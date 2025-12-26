@@ -35,6 +35,7 @@ public class DbUserContextFactory
 	private readonly IQueryable<Role> roles;
 	private readonly IQueryable<NationalGoverningBodyAdmin> nationalGoverningBodyAdmins;
 	private readonly IQueryable<TournamentManager> tournamentManagers;
+	private readonly IQueryable<TeamManager> teamManagers;
 	private readonly IQueryable<RefereeTeam> refereeTeams;
 	private readonly IQueryable<RefereeLocation> refereeLocations;
 	private readonly IQueryable<Language> languages;
@@ -45,6 +46,7 @@ public class DbUserContextFactory
 		IQueryable<Role> roles,
 		IQueryable<NationalGoverningBodyAdmin> nationalGoverningBodyAdmins,
 		IQueryable<TournamentManager> tournamentManagers,
+		IQueryable<TeamManager> teamManagers,
 		IQueryable<RefereeTeam> refereeTeams,
 		IQueryable<RefereeLocation> refereeLocations,
 		IQueryable<Language> languages,
@@ -54,6 +56,7 @@ public class DbUserContextFactory
 		this.roles = roles;
 		this.nationalGoverningBodyAdmins = nationalGoverningBodyAdmins;
 		this.tournamentManagers = tournamentManagers;
+		this.teamManagers = teamManagers;
 		this.refereeTeams = refereeTeams;
 		this.refereeLocations = refereeLocations;
 		this.languages = languages;
@@ -96,6 +99,17 @@ public class DbUserContextFactory
 		{
 			var tournamentConstraint = TournamentConstraint.Set(tournamentIds.Select(TournamentIdentifier.Parse));
 			roles.Add(new TournamentManagerRole(tournamentConstraint));
+		}
+
+		// Load TeamManager roles
+		var teamIds = await this.users.WithIdentifier(userId)
+			.Join(this.teamManagers, u => u.Id, tm => tm.UserId, (_, tm) => tm.TeamId)
+			.ToListAsync(cancellationToken);
+
+		if (teamIds.Any())
+		{
+			var teamConstraint = TeamConstraint.Set(teamIds.Select(id => new TeamIdentifier(id)));
+			roles.Add(new TeamManagerRole(teamConstraint));
 		}
 
 		this.logger.LogInformation(-0x58e192ff, "Returning user context with roles: {roles}.", string.Join(", ", roles));

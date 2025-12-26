@@ -11,6 +11,8 @@ public partial class Team : IIdentifiable
 	{
 		this.RefereeTeams = new HashSet<RefereeTeam>();
 		this.TeamStatusChangesets = new HashSet<TeamStatusChangeset>();
+		this.TeamManagers = new HashSet<TeamManager>();
+		this.TournamentTeamParticipants = new HashSet<TournamentTeamParticipant>();
 	}
 
 	public long Id { get; set; }
@@ -28,4 +30,6 @@ public partial class Team : IIdentifiable
 	public virtual NationalGoverningBody? NationalGoverningBody { get; set; }
 	public virtual ICollection<RefereeTeam> RefereeTeams { get; set; }
 	public virtual ICollection<TeamStatusChangeset> TeamStatusChangesets { get; set; }
+	public virtual ICollection<TeamManager> TeamManagers { get; set; }
+	public virtual ICollection<TournamentTeamParticipant> TournamentTeamParticipants { get; set; }
 }

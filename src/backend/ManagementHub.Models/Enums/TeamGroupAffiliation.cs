@@ -17,4 +17,7 @@ public enum TeamGroupAffiliation
 
 	[EnumMember(Value = "not_applicable")]
 	NotApplicable = 3,
+
+	[EnumMember(Value = "national")]
+	National = 4,
 }

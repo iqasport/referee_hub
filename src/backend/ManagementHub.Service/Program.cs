@@ -117,6 +117,7 @@ public partial class Program
 			options.AddNgbAdminPolicy();
 			options.AddIqaAdminPolicy();
 			options.AddTournamentManagerPolicy();
+			options.AddTeamManagerPolicy();
 		});
 
 		services.AddCoreAdmin(new CoreAdminOptions
