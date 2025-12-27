@@ -12,15 +12,12 @@
     "sourceMap": true,
     "target": "es6",
     "jsx": "react",
+    "resolveJsonModule": true,
     "paths": {
       "test-utils": ["./app/utils/test-utils"]
     }
   },
   "include": ["./app/**/*"],
-  "exclude": [
-    "./node_modules",
-    "./vendor",
-    "./assets/**/*"
-  ],
+  "exclude": ["./node_modules", "./vendor", "./assets/**/*"],
   "compileOnSave": true
 }
