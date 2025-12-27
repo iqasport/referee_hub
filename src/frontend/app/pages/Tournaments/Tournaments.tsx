@@ -1,6 +1,5 @@
 import React, { useRef, useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import tournamentsData from "./tournamentsData.json";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
@@ -34,8 +33,31 @@ const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("q") || "";
   const typeFilter = searchParams.get("type") || "";
-  const tournaments = useMemo(() => tournamentsData as TournamentData[], []);
+  const [tournaments, setTournaments] = useState<TournamentData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const modalRef = useRef<AddTournamentModalRef>(null);
+
+  // Fetch tournaments from API
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('https://1d79a83c-1977-4c9f-9794-8230b8d6fd86.mock.pstmn.io/tournaments');
+        const data = await response.json();
+        console.log('Fetched tournaments:', data);
+        setTournaments(data as TournamentData[]);
+      } catch (error) {
+        console.error('Error fetching tournaments:', error);
+        setTournaments([]);
+      } finally {
+        setIsLoading(false);
+        console.log('Fetch attempt finished');
+      }
+    };
+    
+    fetchTournaments();
+  }, []);
 
   // Convert TournamentData to Modal format
   const convertToModalFormat = (tournament: TournamentData) => {
@@ -57,14 +79,63 @@ const Tournament = () => {
       isPrivate: tournament.isPrivate,
     };
   };
-
-  function handleSubmit(tournamentData: Tournament, isEdit: boolean) {
-    if (isEdit) {
-      console.log("Updating tournament:", tournamentData.id, tournamentData);
-      // TODO: Call API - PUT /api/tournaments/{id}
-    } else {
-      console.log("Creating tournament:", tournamentData);
-      // TODO: Call API - POST /api/tournaments
+//currently not working due to missing api endpoint for add/edit
+  async function handleSubmit(tournamentData: Tournament, isEdit: boolean) {
+    setIsSaving(true);
+    try {
+      if (isEdit) {
+        console.log("Updating tournament:", tournamentData.id, tournamentData);
+        const response = await fetch(`/api/tournaments/${tournamentData.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(tournamentData),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to update tournament: ${response.statusText}`);
+        }
+        
+        setTournaments(tournaments.map(t => 
+          t.id.toString() === tournamentData.id 
+            ? {
+                ...t,
+                title: tournamentData.name,
+                description: tournamentData.description,
+                startDate: tournamentData.startDate,
+                endDate: tournamentData.endDate,
+                type: parseInt(Object.keys({0: "Club", 1: "National", 2: "Youth", 3: "Fantasy"}).find(k => Object.values({0: "Club", 1: "National", 2: "Youth", 3: "Fantasy"})[k as any] === tournamentData.type) || "0"),
+                country: tournamentData.country,
+                location: `${tournamentData.place}, ${tournamentData.city}`,
+                isPrivate: tournamentData.isPrivate,
+              }
+            : t
+        ));
+        console.log("Tournament updated successfully");
+      } else {
+        console.log("Creating tournament:", tournamentData);
+        const response = await fetch('/api/tournaments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(tournamentData),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create tournament: ${response.statusText}`);
+        }
+        
+        const newTournament = await response.json();
+        setTournaments([...tournaments, newTournament]);
+        console.log("Tournament created successfully");
+      }
+    } catch (error) {
+      console.error('Error saving tournament:', error);
+      alert('Failed to save tournament. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -125,27 +196,32 @@ const Tournament = () => {
 
         <AddTournamentModal ref={modalRef} onSubmit={handleSubmit} />
       </div>
-      <div className="max-w-[80%] mx-auto px-4 space-y-10">
-        {privateTournaments.length > 0 && (
-          <TournamentSection
-            tournaments={privateTournaments}
-            visibility="private"
-            onEdit={handleEdit}
-          />
-        )}
+      
+      {isLoading ? (
+        <div className="text-center text-gray-600 py-8">Loading tournaments...</div>
+      ) : (
+        <div className="max-w-[80%] mx-auto px-4 space-y-10">
+          {privateTournaments.length > 0 && (
+            <TournamentSection
+              tournaments={privateTournaments}
+              visibility="private"
+              onEdit={handleEdit}
+            />
+          )}
 
-        {publicTournaments.length > 0 && (
-          <TournamentSection
-            tournaments={publicTournaments}
-            visibility="public"
-            onEdit={handleEdit}
-          />
-        )}
+          {publicTournaments.length > 0 && (
+            <TournamentSection
+              tournaments={publicTournaments}
+              visibility="public"
+              onEdit={handleEdit}
+            />
+          )}
 
-        {privateTournaments.length === 0 && publicTournaments.length === 0 && (
-          <div className="text-center text-gray-600 py-8">No tournaments available.</div>
-        )}
-      </div>
+          {privateTournaments.length === 0 && publicTournaments.length === 0 && (
+            <div className="text-center text-gray-600 py-8">No tournaments available.</div>
+          )}
+        </div>
+      )}
     </>
   );
 };

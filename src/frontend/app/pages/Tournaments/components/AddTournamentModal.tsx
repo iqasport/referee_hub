@@ -44,21 +44,20 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalP
 
     useImperativeHandle(ref, () => ({
       openAdd: () => {
-        setMode("add");
         setFormData(initialFormData);
+        setMode("add");
         setIsOpen(true);
       },
       openEdit: (tournament: Tournament) => {
-        setMode("edit");
         setFormData(tournament);
+        setMode("edit");
         setIsOpen(true);
       },
     }));
 
     function close() {
       setIsOpen(false);
-      setTimeout(() => setFormData(initialFormData), 300);
-    }
+      }
 
     function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
