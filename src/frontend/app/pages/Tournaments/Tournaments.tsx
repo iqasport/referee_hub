@@ -1,147 +1,49 @@
-import React, { useRef, useMemo, useState, useEffect } from "react";
+import React, { useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
+import { useGetTournamentsQuery, TournamentType, TournamentViewModel } from "../../store/serviceApi";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
-interface Tournament {
-  id?: string;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  type: string;
-  country: string;
-  city: string;
-  place: string;
-  isPrivate: boolean;
-}
-
-//This is a placeholder until we get the api output, that's why its both string and number for the moment
-const getTournamentTypeName = (type: number | string): string => {
-  const typeMap: Record<number, string> = {
-    0: "Club",
-    1: "National",
-    2: "Youth",
-    3: "Fantasy",
-  };
-  const key = typeof type === "string" ? parseInt(type, 10) : type;
-  return typeMap[key] || "Unknown";
+const getTournamentTypeName = (type?: TournamentType): string => {
+  if (!type) return "Unknown";
+  return type;
 };
 
 const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("q") || "";
   const typeFilter = searchParams.get("type") || "";
-  const [tournaments, setTournaments] = useState<TournamentData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const modalRef = useRef<AddTournamentModalRef>(null);
 
-  // Fetch tournaments from API
-  useEffect(() => {
-    const fetchTournaments = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('https://1d79a83c-1977-4c9f-9794-8230b8d6fd86.mock.pstmn.io/tournaments');
-        const data = await response.json();
-        console.log('Fetched tournaments:', data);
-        setTournaments(data as TournamentData[]);
-      } catch (error) {
-        console.error('Error fetching tournaments:', error);
-        setTournaments([]);
-      } finally {
-        setIsLoading(false);
-        console.log('Fetch attempt finished');
-      }
-    };
-    
-    fetchTournaments();
-  }, []);
+  //RTK Query hooks
+  const { data, isLoading, isError } = useGetTournamentsQuery({});
+  const tournaments = data?.items || [];
 
-  // Convert TournamentData to Modal format
-  const convertToModalFormat = (tournament: TournamentData) => {
-    // Parse location to extract city and place
-    const locationParts = tournament.location.split(",").map((s) => s.trim());
-    const place = locationParts[0] || "";
-    const city = locationParts[1] || "";
-
+  // Convert TournamentViewModel to modal format
+  const convertToModalFormat = (tournament: TournamentViewModel) => {
     return {
-      id: tournament.id.toString(),
-      name: tournament.title,
-      description: tournament.description,
-      startDate: tournament.startDate,
-      endDate: tournament.endDate,
-      type: getTournamentTypeName(tournament.type),
-      country: tournament.country,
-      city: city,
-      place: place,
-      isPrivate: tournament.isPrivate,
+      id: tournament.id || "",
+      name: tournament.name || "",
+      description: tournament.description || "",
+      startDate: tournament.startDate || "",
+      endDate: tournament.endDate || "",
+      type: tournament.type || ("" as const),
+      country: tournament.country || "",
+      city: tournament.city || "",
+      place: tournament.place || "",
+      organizer: tournament.organizer || "",
+      isPrivate: tournament.isPrivate || false,
     };
   };
-//currently not working due to missing api endpoint for add/edit
-  async function handleSubmit(tournamentData: Tournament, isEdit: boolean) {
-    setIsSaving(true);
-    try {
-      if (isEdit) {
-        console.log("Updating tournament:", tournamentData.id, tournamentData);
-        const response = await fetch(`/api/tournaments/${tournamentData.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(tournamentData),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to update tournament: ${response.statusText}`);
-        }
-        
-        setTournaments(tournaments.map(t => 
-          t.id.toString() === tournamentData.id 
-            ? {
-                ...t,
-                title: tournamentData.name,
-                description: tournamentData.description,
-                startDate: tournamentData.startDate,
-                endDate: tournamentData.endDate,
-                type: parseInt(Object.keys({0: "Club", 1: "National", 2: "Youth", 3: "Fantasy"}).find(k => Object.values({0: "Club", 1: "National", 2: "Youth", 3: "Fantasy"})[k as any] === tournamentData.type) || "0"),
-                country: tournamentData.country,
-                location: `${tournamentData.place}, ${tournamentData.city}`,
-                isPrivate: tournamentData.isPrivate,
-              }
-            : t
-        ));
-        console.log("Tournament updated successfully");
-      } else {
-        console.log("Creating tournament:", tournamentData);
-        const response = await fetch('/api/tournaments', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(tournamentData),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to create tournament: ${response.statusText}`);
-        }
-        
-        const newTournament = await response.json();
-        setTournaments([...tournaments, newTournament]);
-        console.log("Tournament created successfully");
-      }
-    } catch (error) {
-      console.error('Error saving tournament:', error);
-      alert('Failed to save tournament. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
+  
   function handleEdit(tournament: TournamentData) {
-    const modalData = convertToModalFormat(tournament);
-    modalRef.current?.openEdit(modalData);
+    // Find the original TournamentViewModel from the tournaments array
+    const originalTournament = tournaments.find(t => t.id === tournament.id.toString());
+    if (originalTournament) {
+      const modalData = convertToModalFormat(originalTournament);
+      modalRef.current?.openEdit(modalData);
+    }
   }
 
   const handleSearch = (term: string) => {
@@ -162,16 +64,17 @@ const Tournament = () => {
     let result = tournaments;
 
     if (typeFilter) {
-      result = result.filter((t) => t.type === parseInt(typeFilter));
+      result = result.filter((t) => t.type === typeFilter);
     }
 
     if (searchTerm.trim()) {
       const lowerTerm = searchTerm.toLowerCase();
       result = result.filter((t) => {
         const typeName = getTournamentTypeName(t.type);
+        const location = [t.place, t.city, t.country].filter(Boolean).join(", ");
         return (
-          t.title.toLowerCase().includes(lowerTerm) ||
-          t.location.toLowerCase().includes(lowerTerm) ||
+          (t.name || "").toLowerCase().includes(lowerTerm) ||
+          location.toLowerCase().includes(lowerTerm) ||
           typeName.toLowerCase().includes(lowerTerm)
         );
       });
@@ -181,7 +84,21 @@ const Tournament = () => {
   }, [tournaments, searchTerm, typeFilter]);
 
   const { publicTournaments, privateTournaments } = useMemo(() => {
-    const withFlags = filteredTournaments.map((t) => ({ ...t, isPrivate: Boolean(t.isPrivate) }));
+    const convertToDisplayFormat = (t: TournamentViewModel): TournamentData => ({
+      id: parseInt(t.id || "0"),
+      title: t.name || "",
+      description: t.description || "",
+      startDate: t.startDate || "",
+      endDate: t.endDate || "",
+      type: t.type,
+      country: t.country || "",
+      location: [t.place, t.city].filter(Boolean).join(", "),
+      bannerImageUrl: t.bannerImageUrl || undefined,
+      organizer: t.organizer || undefined,
+      isPrivate: Boolean(t.isPrivate),
+    });
+
+    const withFlags = filteredTournaments.map(convertToDisplayFormat);
     return {
       publicTournaments: withFlags.filter((t) => !t.isPrivate),
       privateTournaments: withFlags.filter((t) => t.isPrivate),
@@ -192,13 +109,17 @@ const Tournament = () => {
     <>
       <div className="max-w-[80%] mx-auto px-4 py-2">
         <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
-        <button onClick={() => modalRef.current?.openAdd()}>Add Tournament</button>
+        <button onClick={() => modalRef.current?.openAdd()}>
+          Add Tournament
+        </button>
 
-        <AddTournamentModal ref={modalRef} onSubmit={handleSubmit} />
+        <AddTournamentModal ref={modalRef} />
       </div>
       
       {isLoading ? (
         <div className="text-center text-gray-600 py-8">Loading tournaments...</div>
+      ) : isError ? (
+        <div className="text-center text-red-600 py-8">Error loading tournaments. Please try again.</div>
       ) : (
         <div className="max-w-[80%] mx-auto px-4 space-y-10">
           {privateTournaments.length > 0 && (

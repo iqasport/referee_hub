@@ -14,6 +14,7 @@ using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Commands.Tests;
+
 public class SaveSubmittedTestCommand : ISaveSubmittedTestCommand
 {
 	private readonly ManagementHubDbContext dbContext;

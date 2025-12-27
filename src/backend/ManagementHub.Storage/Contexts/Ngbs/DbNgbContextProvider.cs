@@ -12,6 +12,7 @@ using ManagementHub.Storage.Contexts.User;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.Ngbs;
+
 public class DbNgbContextProvider : INgbContextProvider
 {
 	private readonly DbNgbContextFactory ngbContextFactory;

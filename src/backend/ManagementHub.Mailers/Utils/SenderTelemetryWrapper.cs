@@ -8,6 +8,7 @@ using FluentEmail.Core.Interfaces;
 using FluentEmail.Core.Models;
 
 namespace ManagementHub.Mailers.Utils;
+
 internal class SenderTelemetryWrapper : ISender
 {
 	public static readonly ActivitySource ActivitySource = new ActivitySource("ManagementHub.Mailers");

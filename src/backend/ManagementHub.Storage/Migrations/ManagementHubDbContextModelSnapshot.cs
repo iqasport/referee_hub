@@ -1409,6 +1409,122 @@ namespace ManagementHub.Storage.Migrations
                     b.ToTable("test_results", (string)null);
                 });
 
+            modelBuilder.Entity("ManagementHub.Models.Data.Tournament", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("country");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_private");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Organizer")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("organizer");
+
+                    b.Property<string>("Place")
+                        .HasColumnType("character varying")
+                        .HasColumnName("place");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<string>("UniqueId")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("unique_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "UniqueId" }, "index_tournaments_on_unique_id")
+                        .IsUnique();
+
+                    b.ToTable("tournaments", (string)null);
+                });
+
+            modelBuilder.Entity("ManagementHub.Models.Data.TournamentManager", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AddedByUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("added_by_user_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("TournamentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("tournament_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddedByUserId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "TournamentId", "UserId" }, "index_tournament_managers_on_tournament_id_and_user_id")
+                        .IsUnique();
+
+                    b.ToTable("tournament_managers", (string)null);
+                });
+
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.Property<long>("Id")
@@ -1950,6 +2066,36 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("Test");
                 });
 
+            modelBuilder.Entity("ManagementHub.Models.Data.TournamentManager", b =>
+                {
+                    b.HasOne("ManagementHub.Models.Data.User", "AddedBy")
+                        .WithMany()
+                        .HasForeignKey("AddedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournament_managers_added_by_user");
+
+                    b.HasOne("ManagementHub.Models.Data.Tournament", "Tournament")
+                        .WithMany("TournamentManagers")
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournament_managers_tournament");
+
+                    b.HasOne("ManagementHub.Models.Data.User", "User")
+                        .WithMany("TournamentManagers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournament_managers_user");
+
+                    b.Navigation("AddedBy");
+
+                    b.Navigation("Tournament");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.HasOne("ManagementHub.Models.Data.Language", "Language")
@@ -2044,6 +2190,11 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("RefereeAnswers");
                 });
 
+            modelBuilder.Entity("ManagementHub.Models.Data.Tournament", b =>
+                {
+                    b.Navigation("TournamentManagers");
+                });
+
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.Navigation("Attributes");
@@ -2070,6 +2221,8 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("TestAttempts");
 
                     b.Navigation("TestResults");
+
+                    b.Navigation("TournamentManagers");
                 });
 #pragma warning restore 612, 618
         }

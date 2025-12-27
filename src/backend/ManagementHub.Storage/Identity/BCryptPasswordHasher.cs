@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 
 namespace ManagementHub.Storage.Identity;
+
 public class BCryptPasswordHasher<TUser> : IPasswordHasher<TUser>
 	where TUser : class
 {

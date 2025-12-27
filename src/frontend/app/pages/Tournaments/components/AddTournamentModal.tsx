@@ -1,6 +1,7 @@
 import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import React from "react";
+import { useCreateTournamentMutation, useUpdateTournamentMutation, TournamentType } from "../../../store/serviceApi";
 
 interface Tournament {
   id?: string;
@@ -8,15 +9,12 @@ interface Tournament {
   description: string;
   startDate: string;
   endDate: string;
-  type: string;
+  type: TournamentType | "";
   country: string;
   city: string;
   place: string;
+  organizer?: string;
   isPrivate: boolean;
-}
-
-interface AddTournamentModalProps {
-  onSubmit: (tournament: Tournament, isEdit: boolean) => void;
 }
 
 export interface AddTournamentModalRef {
@@ -24,11 +22,13 @@ export interface AddTournamentModalRef {
   openEdit: (tournament: Tournament) => void;
 }
 
-const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalProps>(
-  ({ onSubmit }, ref) => {
+const AddTournamentModal = forwardRef<AddTournamentModalRef>(
+  (_props, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [mode, setMode] = useState<"add" | "edit">("add");
-    const initialFormData = {
+    const [createTournament, { isLoading: isCreating }] = useCreateTournamentMutation();
+    const [updateTournament, { isLoading: isUpdating }] = useUpdateTournamentMutation();
+    const initialFormData: Tournament = {
       name: "",
       description: "",
       startDate: "",
@@ -37,8 +37,8 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalP
       country: "",
       city: "",
       place: "",
+      organizer: "",
       isPrivate: false,
-
     };
     const [formData, setFormData] = useState<Tournament>(initialFormData);
 
@@ -57,12 +57,52 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalP
 
     function close() {
       setIsOpen(false);
-      }
+    }
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
-      onSubmit(formData, isEditMode);
-      close();
+      try {
+        if (isEditMode) {
+          if (!formData.id) {
+            alert('Tournament ID is missing');
+            return;
+          }
+          await updateTournament({
+            tournamentId: formData.id,
+            tournamentModel: {
+              name: formData.name,
+              description: formData.description,
+              startDate: formData.startDate,
+              endDate: formData.endDate,
+              type: formData.type || undefined,
+              country: formData.country,
+              city: formData.city,
+              place: formData.place,
+              organizer: formData.organizer,
+              isPrivate: formData.isPrivate,
+            },
+          }).unwrap();
+        } else {
+          await createTournament({
+            tournamentModel: {
+              name: formData.name,
+              description: formData.description,
+              startDate: formData.startDate,
+              endDate: formData.endDate,
+              type: formData.type || undefined,
+              country: formData.country,
+              city: formData.city,
+              place: formData.place,
+              organizer: formData.organizer,
+              isPrivate: formData.isPrivate,
+            },
+          }).unwrap();
+        }
+        close();
+      } catch (error) {
+        console.error('Failed to save tournament:', error);
+        alert('Failed to save tournament. Please try again.');
+      }
     }
 
     function handleChange(
@@ -80,8 +120,8 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalP
     return (
       <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
+          <DialogPanel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl my-8 max-h-full overflow-y-auto">
             <DialogTitle as="h3" className="text-xl font-semibold text-gray-900 mb-4">
               {isEditMode ? "Edit Tournament" : "Add New Tournament"}
             </DialogTitle>
@@ -169,14 +209,10 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalP
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select type...</option>
-                  <option value="Championship">Championship</option>
-                  <option value="Finals">Finals</option>
-                  <option value="YouthCup">Youth Cup</option>
-                  <option value="Invitational">Invitational</option>
-                  <option value="Qualifiers">Qualifiers</option>
-                  <option value="Exhibition">Exhibition</option>
-                  <option value="Charity">Charity</option>
-                  <option value="Classic">Classic</option>
+                  <option value="Club">Club</option>
+                  <option value="National">National</option>
+                  <option value="Youth">Youth</option>
+                  <option value="Fantasy">Fantasy</option>
                 </select>
               </div>
 
@@ -230,6 +266,21 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalP
                 </div>
               </div>
 
+              <div>
+                <label htmlFor="organizer" className="block text-sm font-medium text-gray-700 mb-1">
+                  Organizer
+                </label>
+                <input
+                  type="text"
+                  id="organizer"
+                  name="organizer"
+                  value={formData.organizer || ""}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Regional Sports Association"
+                />
+              </div>
+
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -254,9 +305,14 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef, AddTournamentModalP
                 </Button>
                 <Button
                   type="submit"
-                  
+                  disabled={isCreating || isUpdating}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isEditMode ? "Update Tournament" : "Create Tournament"}
+                  {isCreating || isUpdating
+                    ? "Saving..."
+                    : isEditMode
+                    ? "Update Tournament"
+                    : "Create Tournament"}
                 </Button>
               </div>
             </form>

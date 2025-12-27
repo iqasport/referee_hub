@@ -5,6 +5,7 @@ using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Models.Abstraction.Contexts.Providers;
+
 public interface ITestContextProvider
 {
 	Task<IEnumerable<Test>> GetTestsAsync(UserIdentifier userId, CancellationToken cancellationToken);

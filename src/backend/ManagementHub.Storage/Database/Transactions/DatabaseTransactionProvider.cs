@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ManagementHub.Storage.Database.Transactions;
+
 internal class DatabaseTransactionProvider : IDatabaseTransactionProvider
 {
 	private readonly ManagementHubDbContext dbContext;

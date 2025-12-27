@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
 namespace ManagementHub.Models.Misc;
+
 public static class StringExtensions
 {
 	public static string AsDisplayName(this string input)

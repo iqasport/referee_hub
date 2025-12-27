@@ -2,6 +2,7 @@
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Storage.Extensions;
+
 public static class EnumExtensions
 {
 	public static TestLevel ToTestLevel(this CertificationLevel certificationLevel) => certificationLevel switch

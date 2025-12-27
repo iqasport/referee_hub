@@ -1,10 +1,13 @@
-﻿using System.Threading;
+﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Attachments;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.User;
@@ -14,6 +17,7 @@ namespace ManagementHub.Storage.Contexts.User;
 /// </summary>
 public class DbUserContextProvider : IUserContextProvider
 {
+	private readonly ManagementHubDbContext dbContext;
 	private readonly DbUserContextFactory userContextFactory;
 	private readonly DbUserDataContextFactory userDataContextFactory;
 	private readonly DbUserAvatarContextFactory userAvatarContextFactory;
@@ -24,10 +28,12 @@ public class DbUserContextProvider : IUserContextProvider
 		IAccessFileCommand accessFile,
 		ILoggerFactory loggerFactory)
 	{
+		this.dbContext = dbContext;
 		this.userContextFactory = new DbUserContextFactory(
 			dbContext.Users,
 			dbContext.Roles,
 			dbContext.NationalGoverningBodyAdmins,
+			dbContext.TournamentManagers,
 			dbContext.RefereeTeams,
 			dbContext.RefereeLocations,
 			dbContext.Languages,
@@ -62,5 +68,20 @@ public class DbUserContextProvider : IUserContextProvider
 	public async Task<IUserDataContext> GetUserDataContextAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		return await this.userDataContextFactory.LoadAsync(userId, cancellationToken);
+	}
+
+	public async Task<UserIdentifier?> GetUserIdByEmailAsync(Email email, CancellationToken cancellationToken = default)
+	{
+		var user = await this.dbContext.Users
+			.Where(u => u.Email == email.Value)
+			.Select(u => new { u.Id, u.UniqueId })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (user == null)
+			return null;
+
+		if (user.UniqueId != null)
+			return UserIdentifier.Parse(user.UniqueId);
+		return UserIdentifier.FromLegacyUserId(user.Id);
 	}
 }

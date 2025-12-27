@@ -5,6 +5,7 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 
 namespace ManagementHub.Models.Abstraction.Commands;
+
 public interface IUpdateRefereeRoleCommand
 {
 	/// <summary>

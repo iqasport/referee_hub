@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Data;
 
 namespace ManagementHub.Storage.Attachments;
+
 public interface IAttachmentRepository
 {
 	/// <summary>

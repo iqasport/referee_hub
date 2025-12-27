@@ -11,6 +11,7 @@ using ManagementHub.Models.Abstraction.Commands.Tests;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Processing.Contexts;
 using ManagementHub.Service.Areas.Identity;
@@ -23,12 +24,14 @@ using ManagementHub.Storage.Commands.Ngb;
 using ManagementHub.Storage.Commands.Payments;
 using ManagementHub.Storage.Commands.Referee;
 using ManagementHub.Storage.Commands.Tests;
+using ManagementHub.Storage.Commands.Tournament;
 using ManagementHub.Storage.Commands.User;
 using ManagementHub.Storage.Contexts.General;
 using ManagementHub.Storage.Contexts.Ngbs;
 using ManagementHub.Storage.Contexts.Referee;
 using ManagementHub.Storage.Contexts.Team;
 using ManagementHub.Storage.Contexts.Tests;
+using ManagementHub.Storage.Contexts.Tournament;
 using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Database;
 using ManagementHub.Storage.Database.Transactions;
@@ -109,6 +112,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<ITestContextProvider, DbTestContextProvider>();
 		services.AddScoped<ITeamContextProvider, DbTeamContextProvider>();
 		services.AddScoped<INgbContextProvider, DbNgbContextProvider>();
+		services.AddScoped<ITournamentContextProvider, DbTournamentContextProvider>();
 		services.AddScoped<ISocialAccountsProvider, DbSocialAccountsProvider>();
 
 		services.AddTransient<IQueryable<User>>(sp => sp.GetRequiredService<ManagementHubDbContext>().Set<User>());
@@ -116,6 +120,7 @@ public static class DbServiceCollectionExtentions
 
 		services.AddScoped<IUpdateUserDataCommand, UpdateUserDataCommand>();
 		services.AddScoped<IUpdateUserAvatarCommand, UpdateUserAvatarCommand>();
+		services.AddScoped<IUpdateTournamentBannerCommand, UpdateTournamentBannerCommand>();
 		services.AddScoped<ISetUserAttributeCommand, SetUserAttributeCommand>();
 		services.AddScoped<IUpdateRefereeRoleCommand, UpdateRefereeRoleCommand>();
 		services.AddScoped<ISaveSubmittedTestCommand, SaveSubmittedTestCommand>();
@@ -130,6 +135,7 @@ public static class DbServiceCollectionExtentions
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();
 		services.AddTransient<IDbAccessor<UserIdentifier>, UserDbAccessor>();
 		services.AddTransient<IDbAccessor<NgbIdentifier>, NgbDbAccessor>();
+		services.AddTransient<IDbAccessor<TournamentIdentifier>, TournamentDbAccessor>();
 
 		services.AddScoped<CollectionFilteringContext>();
 

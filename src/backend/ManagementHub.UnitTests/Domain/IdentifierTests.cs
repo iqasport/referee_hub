@@ -4,6 +4,7 @@ using ManagementHub.Models.Domain.User;
 using Xunit;
 
 namespace ManagementHub.UnitTests.Domain;
+
 public class IdentifierTests
 {
 	[Theory]
