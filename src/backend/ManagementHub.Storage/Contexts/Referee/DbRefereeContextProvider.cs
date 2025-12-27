@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Contexts.Referee;
+
 public class DbRefereeContextProvider : IRefereeContextProvider
 {
 	private readonly DbRefereeViewContextFactory dbRefereeViewContextFactory;

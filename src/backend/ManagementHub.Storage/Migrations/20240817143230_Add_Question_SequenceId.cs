@@ -2,22 +2,22 @@
 
 #nullable disable
 
-namespace ManagementHub.Storage.Migrations
-{
-    /// <inheritdoc />
-    public partial class Add_Question_SequenceId : Migration
-    {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<long>(
-                name: "seq_id",
-                table: "questions",
-                type: "bigint",
-                nullable: false,
-                defaultValue: 0L);
+namespace ManagementHub.Storage.Migrations;
 
-			migrationBuilder.Sql(@"
+/// <inheritdoc />
+public partial class Add_Question_SequenceId : Migration
+{
+	/// <inheritdoc />
+	protected override void Up(MigrationBuilder migrationBuilder)
+	{
+		migrationBuilder.AddColumn<long>(
+			name: "seq_id",
+			table: "questions",
+			type: "bigint",
+			nullable: false,
+			defaultValue: 0L);
+
+		migrationBuilder.Sql(@"
                 WITH SeqIdWithinTest AS (
                     SELECT
                         id,
@@ -30,14 +30,13 @@ namespace ManagementHub.Storage.Migrations
                 FROM SeqIdWithinTest s
                 WHERE q.id = s.id;
 			");
-		}
+	}
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "seq_id",
-                table: "questions");
-        }
-    }
+	/// <inheritdoc />
+	protected override void Down(MigrationBuilder migrationBuilder)
+	{
+		migrationBuilder.DropColumn(
+			name: "seq_id",
+			table: "questions");
+	}
 }

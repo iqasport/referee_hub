@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Models.Abstraction.Commands;
+
 public interface IUpdateUserDataCommand
 {
 	/// <summary>

@@ -3,6 +3,7 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Domain.Tests;
+
 public class TestAttempt
 {
 	/// <summary>

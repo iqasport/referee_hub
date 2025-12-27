@@ -3,6 +3,7 @@ using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
 
 namespace ManagementHub.Models.Abstraction.Commands;
+
 public interface IUpdateNgbAdminRoleCommand
 {
 	public enum AddRoleResult

@@ -9,6 +9,7 @@ using ManagementHub.Models.Enums;
 using ManagementHub.Processing.Domain.Tests.Extensions;
 
 namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
+
 public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPolicy
 {
 	private readonly IRefereeContextProvider refereeContextProvider;

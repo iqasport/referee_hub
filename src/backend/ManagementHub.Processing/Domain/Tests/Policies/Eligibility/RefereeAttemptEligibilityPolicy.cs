@@ -8,6 +8,7 @@ using ManagementHub.Processing.Domain.Tests.Extensions;
 using Microsoft.Extensions.Internal;
 
 namespace ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
+
 public class RefereeAttemptEligibilityPolicy : IRefereeEligibilityPolicy
 {
 	private readonly IRefereeContextProvider refereeContextProvider;

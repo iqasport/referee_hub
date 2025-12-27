@@ -61,7 +61,7 @@ public class UsersController : ControllerBase
 		var featureGates = await this.featureGatesOptions.GetAsync(
 			new FeatureGatesContext { UserId = userContext.UserId.ToString() },
 			this.HttpContext.RequestAborted);
-		
+
 		return featureGates;
 	}
 
