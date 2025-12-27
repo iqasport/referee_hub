@@ -1,16 +1,21 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
-import tournamentsData from "../tournamentsData.json";
-import { TournamentData } from "../components/TournamentsSection";
+import { useGetTournamentQuery } from "../../../store/serviceApi";
 
 const TournamentDetails = () => {
   const { id } = useParams<{ id: string }>();
 
-  const tournament = (tournamentsData as TournamentData[]).find(
-    (t) => t.id === parseInt(id || "0")
-  );
+  const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: id || "" });
 
-  if (!tournament) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading tournament...</p>
+      </div>
+    );
+  }
+
+  if (isError || !tournament) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Tournament not found</p>
@@ -18,8 +23,8 @@ const TournamentDetails = () => {
     );
   }
 
-  const startDate = new Date(tournament.startDate);
-  const endDate = new Date(tournament.endDate);
+  const startDate = new Date(tournament.startDate || "");
+  const endDate = new Date(tournament.endDate || "");
   const formattedDateRange = `${startDate.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -60,7 +65,7 @@ const TournamentDetails = () => {
 
         {/* Title overlay on image */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-8 text-white">
-          <h1 className="text-4xl font-bold">{tournament.title}</h1>
+          <h1 className="text-4xl font-bold">{tournament.name}</h1>
           <div className="flex items-center gap-2 mt-2 text-sm opacity-90">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -97,9 +102,7 @@ const TournamentDetails = () => {
                 </svg>
                 <p className="text-xs text-gray-600 font-semibold">Participants</p>
               </div>
-              <p className="text-sm font-semibold text-gray-900">
-                {tournament.managers?.length || 0}
-              </p>
+              <p className="text-sm font-semibold text-gray-900">TBD</p>
             </div>
 
             {/* Organizer Card */}

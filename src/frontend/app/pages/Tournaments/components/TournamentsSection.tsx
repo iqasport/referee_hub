@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import TournamentCard from "./TournamentCard";
+import { TournamentType } from "../../../store/serviceApi";
 
 export type Manager = { id: string; name: string };
 
@@ -10,7 +11,7 @@ export type TournamentData = {
   description: string;
   startDate: string;
   endDate: string;
-  type: number;
+  type: TournamentType | undefined;
   country: string;
   location: string;
   bannerImageUrl?: string;

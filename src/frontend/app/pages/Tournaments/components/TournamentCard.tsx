@@ -1,11 +1,12 @@
 import React from "react";
+import { TournamentType } from "../../../store/serviceApi";
 
 interface TournamentCardProps {
   title: string;
   description: string;
   startDate: string;
   endDate: string;
-  type: number;
+  type: TournamentType | undefined;
   country: string;
   location: string;
   bannerImageUrl?: string;
@@ -14,14 +15,8 @@ interface TournamentCardProps {
   onClick?: () => void;
 }
 
-const getTournamentTypeName = (type: number): string => {
-  const typeMap: { [key: number]: string } = {
-    0: "Club",
-    1: "National",
-    2: "Youth",
-    3: "Fantasy",
-  };
-  return typeMap[type] || "Unknown";
+const getTournamentTypeName = (type?: TournamentType): string => {
+  return type || "Unknown";
 };
 
 const LocationIcon = () => (
