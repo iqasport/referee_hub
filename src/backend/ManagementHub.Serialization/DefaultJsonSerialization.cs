@@ -27,6 +27,7 @@ public static class DefaultJsonSerialization
 		options.Converters.Add(new LanguageIdentifierJsonConverter());
 		options.Converters.Add(new NgbConstraintJsonConverter());
 		options.Converters.Add(new NgbIdentifierJsonConverter());
+		options.Converters.Add(new TournamentConstraintJsonConverter());
 		options.Converters.Add(new TournamentIdentifierJsonConverter());
 		options.Converters.Add(new UserRoleJsonConverter());
 		options.Converters.Add(new PercentageJsonConverter());

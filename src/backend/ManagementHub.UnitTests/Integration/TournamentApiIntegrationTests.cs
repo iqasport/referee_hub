@@ -558,4 +558,80 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var managers = await listResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		managers.Should().HaveCount(2, "should still have only 2 managers after duplicate add");
 	}
+
+	[Fact]
+	public async Task CreateTournament_ThenGetCurrentUser_ShouldSucceed()
+	{
+		// This test reproduces the issue where creating a tournament adds a TournamentManagerRole
+		// to the user, but then fetching the user fails because TournamentManagerRole cannot be serialized
+
+		// Step 1: Sign in to get bearer token
+		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
+		{
+			email = "referee@example.com",
+			password = "password"
+		});
+
+		loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"authentication should succeed with valid credentials");
+
+		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var token = loginContent.GetProperty("accessToken").GetString();
+		token.Should().NotBeNullOrEmpty("login should return a bearer token");
+
+		// Add bearer token to client for subsequent requests
+		this._client.DefaultRequestHeaders.Authorization =
+			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+		// Step 2: Verify we can get current user before creating a tournament
+		var userResponseBefore = await this._client.GetAsync("/api/v2/users/me");
+		userResponseBefore.StatusCode.Should().Be(HttpStatusCode.OK,
+			"getting current user should succeed before creating tournament");
+
+		var userBefore = await userResponseBefore.Content.ReadFromJsonAsync<JsonElement>();
+		userBefore.GetProperty("userId").GetString().Should().NotBeNullOrEmpty();
+
+		// Step 3: Create a tournament (this adds TournamentManagerRole to the user)
+		var createModel = new TournamentModel
+		{
+			Name = "Test Tournament",
+			Description = "Integration test tournament",
+			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
+			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
+			Type = TournamentType.Club,
+			Country = "Test Country",
+			City = "Test City",
+			Place = "Test Place",
+			Organizer = "Test Organizer",
+			IsPrivate = false
+		};
+
+		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
+		createResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"tournament creation should succeed");
+
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
+		createResult.Should().NotBeNull();
+		createResult!.Id.Should().NotBeNull("created tournament should have an ID");
+
+		// Step 4: Try to get current user again after creating tournament
+		// This should succeed, but before the fix it fails because TournamentManagerRole cannot be serialized
+		var userResponseAfter = await this._client.GetAsync("/api/v2/users/me");
+
+		userResponseAfter.StatusCode.Should().Be(HttpStatusCode.OK,
+			"getting current user should succeed after creating tournament (this is the bug we're fixing)");
+
+		var userAfter = await userResponseAfter.Content.ReadFromJsonAsync<JsonElement>();
+		userAfter.GetProperty("userId").GetString().Should().NotBeNullOrEmpty();
+
+		// Verify the user now has roles including TournamentManager
+		var roles = userAfter.GetProperty("roles").EnumerateArray().ToList();
+		roles.Should().NotBeEmpty("user should have roles");
+
+		// At least one role should be TournamentManager
+		var hasTournamentManagerRole = roles.Any(r =>
+			r.GetProperty("roleType").GetString() == "TournamentManager");
+		hasTournamentManagerRole.Should().BeTrue(
+			"user should have TournamentManager role after creating a tournament");
+	}
 }
