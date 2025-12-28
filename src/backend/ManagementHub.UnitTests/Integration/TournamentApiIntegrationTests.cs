@@ -618,12 +618,6 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// This should succeed, but before the fix it fails because TournamentManagerRole cannot be serialized
 		var userResponseAfter = await this._client.GetAsync("/api/v2/users/me");
 
-		if (userResponseAfter.StatusCode != HttpStatusCode.OK)
-		{
-			var errorContent = await userResponseAfter.Content.ReadAsStringAsync();
-			throw new Exception($"Getting current user after tournament creation failed with {userResponseAfter.StatusCode}: {errorContent}");
-		}
-
 		userResponseAfter.StatusCode.Should().Be(HttpStatusCode.OK,
 			"getting current user should succeed after creating tournament (this is the bug we're fixing)");
 
