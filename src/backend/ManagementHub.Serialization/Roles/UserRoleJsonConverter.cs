@@ -28,6 +28,7 @@ public sealed class UserRoleJsonConverter : JsonConverter<IUserRole>
 		["RefereeViewer"] = typeof(RefereeViewerRole),
 		["TechAdmin"] = typeof(TechAdminRole),
 		["TestAdmin"] = typeof(TestAdminRole),
+		["TournamentManager"] = typeof(TournamentManagerRole),
 	};
 
 	public override bool HandleNull => true;
