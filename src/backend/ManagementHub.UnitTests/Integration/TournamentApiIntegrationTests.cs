@@ -594,12 +594,12 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// Step 3: Get the Yankees team ID from the USA NGB teams list
 		var teamsResponse = await this._client.GetAsync("/api/v2/ngbs/USA/teams");
 		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to list teams");
-		
+
 		var teamsJson = await teamsResponse.Content.ReadFromJsonAsync<JsonElement>();
 		var teamsArray = teamsJson.GetProperty("items").EnumerateArray();
 		var yankeesTeam = teamsArray.FirstOrDefault(t => t.GetProperty("name").GetString() == "Yankees");
 		yankeesTeam.ValueKind.Should().NotBe(JsonValueKind.Undefined, "Yankees team should exist in seed data");
-		
+
 		var yankeesTeamId = yankeesTeam.GetProperty("id").GetString();
 		yankeesTeamId.Should().NotBeNullOrEmpty();
 
@@ -612,23 +612,23 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		};
 
 		var createInviteResponse = await this._client.PostAsJsonAsync(
-			$"/api/v2/tournaments/{tournamentId}/invites", 
+			$"/api/v2/tournaments/{tournamentId}/invites",
 			createInviteModel);
-		
+
 		if (createInviteResponse.StatusCode != HttpStatusCode.Created)
 		{
 			var errorContent = await createInviteResponse.Content.ReadAsStringAsync();
-			createInviteResponse.StatusCode.Should().Be(HttpStatusCode.Created, 
+			createInviteResponse.StatusCode.Should().Be(HttpStatusCode.Created,
 				$"tournament manager should be able to create invite. Error: {errorContent}");
 		}
 
 		var createdInvite = await createInviteResponse.Content.ReadFromJsonAsync<TournamentInviteViewModel>();
 		createdInvite.Should().NotBeNull();
-		createdInvite!.Status.Should().Be(InviteStatus.Pending, 
+		createdInvite!.Status.Should().Be(InviteStatus.Pending,
 			"invite should be pending because team manager hasn't approved yet");
-		createdInvite.TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Approved, 
+		createdInvite.TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Approved,
 			"tournament manager auto-approves when they create the invite");
-		createdInvite.ParticipantApproval.Status.Should().Be(ApprovalStatus.Pending, 
+		createdInvite.ParticipantApproval.Status.Should().Be(ApprovalStatus.Pending,
 			"participant approval should be pending");
 
 		// Step 4: Verify invites list shows the pending invite
@@ -647,7 +647,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var acceptResponse = await this._client.PostAsJsonAsync(
 			$"/api/v2/tournaments/{tournamentId}/invites/TM_1",
 			acceptModel);
-		acceptResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
+		acceptResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"team manager should be able to accept invite");
 
 		// Step 6: Verify the team is now a participant
@@ -712,16 +712,16 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var joinRequestResponse = await this._client.PostAsJsonAsync(
 			$"/api/v2/tournaments/{tournamentId}/invites",
 			joinRequestModel);
-		joinRequestResponse.StatusCode.Should().Be(HttpStatusCode.Created, 
+		joinRequestResponse.StatusCode.Should().Be(HttpStatusCode.Created,
 			"team manager should be able to request to join");
 
 		var createdInvite = await joinRequestResponse.Content.ReadFromJsonAsync<TournamentInviteViewModel>();
 		createdInvite.Should().NotBeNull();
-		createdInvite!.Status.Should().Be(InviteStatus.Pending, 
+		createdInvite!.Status.Should().Be(InviteStatus.Pending,
 			"invite should be pending because tournament manager hasn't approved yet");
-		createdInvite.TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Pending, 
+		createdInvite.TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Pending,
 			"tournament manager approval should be pending");
-		createdInvite.ParticipantApproval.Status.Should().Be(ApprovalStatus.Approved, 
+		createdInvite.ParticipantApproval.Status.Should().Be(ApprovalStatus.Approved,
 			"team manager auto-approves when they create the join request");
 
 		// Step 3: Team manager can see their own pending invite
@@ -739,7 +739,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var approveResponse = await this._client.PostAsJsonAsync(
 			$"/api/v2/tournaments/{tournamentId}/invites/TM_1",
 			approveModel);
-		approveResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
+		approveResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"tournament manager should be able to approve join request");
 
 		// Step 5: Verify the team is now a participant
