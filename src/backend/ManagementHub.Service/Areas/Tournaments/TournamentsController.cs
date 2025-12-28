@@ -498,12 +498,6 @@ public class TournamentsController : ControllerBase
 		TeamIdentifier teamId,
 		ITournamentContext tournament)
 	{
-		var team = await this.teamContextProvider.CheckTeamExistsInNgbAsync(default, teamId);
-		if (!team)
-		{
-			return this.BadRequest(new { error = "Team not found" });
-		}
-
 		var teamContext = await this.dbContext.Teams
 			.Where(t => t.Id == teamId.Id)
 			.Select(t => new { t.GroupAffiliation })

@@ -600,7 +600,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var yankeesTeam = teamsArray.FirstOrDefault(t => t.GetProperty("name").GetString() == "Yankees");
 		yankeesTeam.ValueKind.Should().NotBe(JsonValueKind.Undefined, "Yankees team should exist in seed data");
 
-		var yankeesTeamId = yankeesTeam.GetProperty("id").GetString();
+		var yankeesTeamId = yankeesTeam.GetProperty("teamId").GetString();
 		yankeesTeamId.Should().NotBeNullOrEmpty();
 
 		// Step 4: As tournament manager, create invite for Yankees team
@@ -637,15 +637,16 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		var invites = await invitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		invites.Should().NotBeNull();
-		invites!.Should().HaveCount(1, "there should be one pending invite");
-		invites[0].ParticipantId.Should().Be("TM_1");
+		var invitesList = invites!;
+		invitesList.Should().HaveCount(1, "there should be one pending invite");
+		invitesList[0].ParticipantId.Should().Be(yankeesTeamId);
 
 		// Step 5: Switch to team manager user and accept the invite
 		await this.AuthenticateAsAsync("team_manager@example.com", "password");
 
 		var acceptModel = new InviteResponseModel { Approved = true };
 		var acceptResponse = await this._client.PostAsJsonAsync(
-			$"/api/v2/tournaments/{tournamentId}/invites/TM_1",
+			$"/api/v2/tournaments/{tournamentId}/invites/{yankeesTeamId}",
 			acceptModel);
 		acceptResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"team manager should be able to accept invite");
@@ -656,18 +657,20 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<TournamentParticipantViewModel>>();
 		participants.Should().NotBeNull();
-		participants!.Should().HaveCount(1, "Yankees team should now be a participant");
-		participants[0].TeamId.ToString().Should().Be("TM_1");
-		participants[0].TeamName.Should().Be("Yankees");
+		var participantsList = participants!;
+		participantsList.Should().HaveCount(1, "Yankees team should now be a participant");
+		participantsList[0].TeamId.ToString().Should().Be(yankeesTeamId);
+		participantsList[0].TeamName.Should().Be("Yankees");
 
 		// Step 7: Verify the invite status is now approved
 		var updatedInvitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
 		var updatedInvites = await updatedInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		updatedInvites.Should().NotBeNull();
-		updatedInvites!.Should().HaveCount(1);
-		updatedInvites[0].Status.Should().Be(InviteStatus.Approved, "both approvals are done");
-		updatedInvites[0].TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Approved);
-		updatedInvites[0].ParticipantApproval.Status.Should().Be(ApprovalStatus.Approved);
+		var updatedInvitesList = updatedInvites!;
+		updatedInvitesList.Should().HaveCount(1);
+		updatedInvitesList[0].Status.Should().Be(InviteStatus.Approved, "both approvals are done");
+		updatedInvitesList[0].TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Approved);
+		updatedInvitesList[0].ParticipantApproval.Status.Should().Be(ApprovalStatus.Approved);
 	}
 
 	[Fact]
@@ -700,13 +703,25 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var tournamentIdResponse = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = tournamentIdResponse!.Id;
 
-		// Step 2: Switch to team manager and request to join (create invite from team side)
+		// Step 2: Switch to team manager and get Yankees team ID
 		await this.AuthenticateAsAsync("team_manager@example.com", "password");
 
+		var teamsResponse = await this._client.GetAsync("/api/v2/ngbs/USA/teams");
+		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to list teams");
+
+		var teamsJson = await teamsResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var teamsArray = teamsJson.GetProperty("items").EnumerateArray();
+		var yankeesTeam = teamsArray.FirstOrDefault(t => t.GetProperty("name").GetString() == "Yankees");
+		yankeesTeam.ValueKind.Should().NotBe(JsonValueKind.Undefined, "Yankees team should exist in seed data");
+
+		var yankeesTeamId = yankeesTeam.GetProperty("teamId").GetString();
+		yankeesTeamId.Should().NotBeNullOrEmpty();
+
+		// Step 3: Team manager requests to join (create invite from team side)
 		var joinRequestModel = new CreateInviteModel
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = "TM_1"  // Team manager manages Yankees (ID 1)
+			ParticipantId = yankeesTeamId!  // Team manager manages Yankees
 		};
 
 		var joinRequestResponse = await this._client.PostAsJsonAsync(
@@ -730,14 +745,15 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		var teamManagerInvites = await teamManagerInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		teamManagerInvites.Should().NotBeNull();
-		teamManagerInvites!.Should().HaveCount(1, "team manager should see their own invite");
+		var teamManagerInvitesList = teamManagerInvites!;
+		teamManagerInvitesList.Should().HaveCount(1, "team manager should see their own invite");
 
 		// Step 4: Switch to tournament manager and accept the request
 		await this.AuthenticateAsAsync("referee@example.com", "password");
 
 		var approveModel = new InviteResponseModel { Approved = true };
 		var approveResponse = await this._client.PostAsJsonAsync(
-			$"/api/v2/tournaments/{tournamentId}/invites/TM_1",
+			$"/api/v2/tournaments/{tournamentId}/invites/{yankeesTeamId}",
 			approveModel);
 		approveResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"tournament manager should be able to approve join request");
@@ -748,17 +764,19 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<TournamentParticipantViewModel>>();
 		participants.Should().NotBeNull();
-		participants!.Should().HaveCount(1, "Yankees team should now be a participant");
-		participants[0].TeamId.ToString().Should().Be("TM_1");
+		var participantsList = participants!;
+		participantsList.Should().HaveCount(1, "Yankees team should now be a participant");
+		participantsList[0].TeamId.ToString().Should().Be(yankeesTeamId);
 
 		// Step 6: Verify the invite status is now approved
 		var updatedInvitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
 		var updatedInvites = await updatedInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		updatedInvites.Should().NotBeNull();
-		updatedInvites!.Should().HaveCount(1);
-		updatedInvites[0].Status.Should().Be(InviteStatus.Approved, "both approvals are complete");
-		updatedInvites[0].TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Approved);
-		updatedInvites[0].ParticipantApproval.Status.Should().Be(ApprovalStatus.Approved);
+		var updatedInvitesList = updatedInvites!;
+		updatedInvitesList.Should().HaveCount(1);
+		updatedInvitesList[0].Status.Should().Be(InviteStatus.Approved, "both approvals are complete");
+		updatedInvitesList[0].TournamentManagerApproval.Status.Should().Be(ApprovalStatus.Approved);
+		updatedInvitesList[0].ParticipantApproval.Status.Should().Be(ApprovalStatus.Approved);
 	}
 
 	[Fact]

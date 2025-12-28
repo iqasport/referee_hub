@@ -120,7 +120,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				City = "New York",
 				Country = "USA",
 				Name = "Yankees",
-				NationalGoverningBody = ngbs.Last(),
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 				GroupAffiliation = TeamGroupAffiliation.Community,
 				CreatedAt = DateTime.UtcNow,
 				JoinedAt = DateTime.UtcNow,
@@ -132,7 +132,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				City = "Los Angeles",
 				Country = "USA",
 				Name = "LA Bisons",
-				NationalGoverningBody = ngbs.Last(),
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 				GroupAffiliation = TeamGroupAffiliation.University,
 				CreatedAt = DateTime.UtcNow,
 				JoinedAt = DateTime.UtcNow,
@@ -285,7 +285,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		dbContext.NationalGoverningBodyAdmins.Add(new NationalGoverningBodyAdmin
 		{
 			CreatedAt = DateTime.UtcNow,
-			NationalGoverningBody = ngbs.Last(),
+			NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 			UpdatedAt = DateTime.UtcNow,
 			User = ngbAdmin,
 		});
@@ -294,7 +294,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		{
 			Referee = referee,
 			AssociationType = RefereeNgbAssociationType.Primary,
-			NationalGoverningBody = ngbs.Last(),
+			NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		});

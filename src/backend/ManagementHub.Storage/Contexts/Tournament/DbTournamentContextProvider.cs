@@ -603,6 +603,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var participantId = teamId.ToString();
 
 		var invite = await this.dbContext.TournamentInvites
+			.Include(i => i.Tournament)
+			.Include(i => i.Initiator)
 			.Where(i => i.Tournament.UniqueId == tournamentIdString && i.ParticipantId == participantId)
 			.OrderByDescending(i => i.CreatedAt)
 			.FirstOrDefaultAsync(cancellationToken);
@@ -617,10 +619,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			TournamentId = TournamentIdentifier.Parse(invite.Tournament.UniqueId),
 			ParticipantType = ParticipantType.Team,
 			ParticipantId = invite.ParticipantId,
-			ParticipantName = await this.dbContext.Teams
-				.Where(t => new TeamIdentifier(t.Id).ToString() == invite.ParticipantId)
-				.Select(t => t.Name)
-				.FirstOrDefaultAsync(cancellationToken) ?? "Unknown",
+			ParticipantName = await this.GetTeamNameAsync(invite.ParticipantId, cancellationToken),
 			InitiatorUserId = invite.Initiator.UniqueId != null
 				? UserIdentifier.Parse(invite.Initiator.UniqueId)
 				: UserIdentifier.FromLegacyUserId(invite.Initiator.Id),
@@ -630,6 +629,21 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			ParticipantApproval = invite.ParticipantApproval,
 			ParticipantApprovalDate = invite.ParticipantApprovalDate
 		};
+	}
+
+	private async Task<string> GetTeamNameAsync(string participantId, CancellationToken cancellationToken)
+	{
+		if (!TeamIdentifier.TryParse(participantId, out var teamId))
+		{
+			return "Unknown";
+		}
+
+		var teamName = await this.dbContext.Teams
+			.Where(t => t.Id == teamId.Id)
+			.Select(t => t.Name)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		return teamName ?? "Unknown";
 	}
 
 	public async Task UpdateInviteApprovalAsync(
