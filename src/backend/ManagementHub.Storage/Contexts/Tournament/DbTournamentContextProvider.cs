@@ -459,6 +459,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var tournamentIdString = tournamentId.ToString();
 
 		var query = this.dbContext.TournamentInvites
+			.Include(i => i.Tournament)
+			.Include(i => i.Initiator)
 			.Where(i => i.Tournament.UniqueId == tournamentIdString);
 
 		// If filtering by participant, filter by user's teams
