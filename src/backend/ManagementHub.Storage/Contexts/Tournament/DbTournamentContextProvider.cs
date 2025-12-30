@@ -464,17 +464,31 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		// If filtering by participant, filter by user's teams
 		if (filterByParticipant != null)
 		{
-			// Get team IDs where user is a team manager - use WithIdentifier to support both UniqueId and legacy IDs
-			var userTeamIds = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, filterByParticipant.Value)
-				.SelectMany(u => u.TeamManagers)
-				.Select(tm => new TeamIdentifier(tm.TeamId).ToString())
+			// First, get the user's database ID using WithIdentifier (supports both UniqueId and legacy IDs)
+			var userId = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, filterByParticipant.Value)
+				.Select(u => u.Id)
+				.FirstOrDefaultAsync(cancellationToken);
+
+			if (userId == 0)
+			{
+				// User not found
+				return new List<InviteInfo>();
+			}
+
+			// Get team IDs where user is a team manager
+			var userTeamLongIds = await this.dbContext.TeamManagers
+				.Where(tm => tm.UserId == userId)
+				.Select(tm => tm.TeamId)
 				.ToListAsync(cancellationToken);
 
 			// If user is not a team manager of any team, return empty list
-			if (!userTeamIds.Any())
+			if (!userTeamLongIds.Any())
 			{
 				return new List<InviteInfo>();
 			}
+
+			// Convert long IDs to TeamIdentifier strings
+			var userTeamIds = userTeamLongIds.Select(id => new TeamIdentifier(id).ToString()).ToList();
 
 			query = query.Where(i => userTeamIds.Contains(i.ParticipantId));
 		}
@@ -499,12 +513,21 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		Dictionary<string, string> teamNames = new Dictionary<string, string>();
 		if (teamParticipantIds.Any())
 		{
+			// Parse team participant IDs to get the long IDs for database query
+			var teamLongIds = teamParticipantIds
+				.Select(id => TeamIdentifier.Parse(id).Id)
+				.ToList();
+
+			// Query teams by long IDs
 			var teams = await this.dbContext.Teams
-				.Where(t => teamParticipantIds.Contains(new TeamIdentifier(t.Id).ToString()))
-				.Select(t => new { Id = new TeamIdentifier(t.Id).ToString(), t.Name })
+				.Where(t => teamLongIds.Contains(t.Id))
+				.Select(t => new { t.Id, t.Name })
 				.ToListAsync(cancellationToken);
 
-			teamNames = teams.ToDictionary(t => t.Id, t => t.Name);
+			// Convert back to TeamIdentifier strings for the dictionary
+			teamNames = teams.ToDictionary(
+				t => new TeamIdentifier(t.Id).ToString(),
+				t => t.Name);
 		}
 
 		// Map to InviteInfo
