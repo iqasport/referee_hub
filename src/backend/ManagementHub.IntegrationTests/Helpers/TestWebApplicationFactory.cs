@@ -20,6 +20,9 @@ namespace ManagementHub.IntegrationTests.Helpers;
 public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
 	private PostgreSqlContainer? _postgresContainer;
+	private const string DatabaseName = "managementhub_test";
+	private const string Username = "postgres";
+	private const string Password = "postgres";
 
 	protected override IWebHostBuilder CreateWebHostBuilder()
 	{
@@ -53,11 +56,11 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 					new System.Collections.Generic.KeyValuePair<string, string?>(
 						"DatabaseConnection:Port", this._postgresContainer.GetMappedPublicPort(5432).ToString()),
 					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Database", this._postgresContainer.Database),
+						"DatabaseConnection:Database", DatabaseName),
 					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Username", this._postgresContainer.Username),
+						"DatabaseConnection:Username", Username),
 					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Password", this._postgresContainer.Password),
+						"DatabaseConnection:Password", Password),
 				});
 			}
 		});
@@ -76,9 +79,9 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 	{
 		this._postgresContainer = new PostgreSqlBuilder()
 			.WithImage("postgres:16-alpine")
-			.WithDatabase("managementhub_test")
-			.WithUsername("postgres")
-			.WithPassword("postgres")
+			.WithDatabase(DatabaseName)
+			.WithUsername(Username)
+			.WithPassword(Password)
 			.Build();
 
 		await this._postgresContainer.StartAsync();

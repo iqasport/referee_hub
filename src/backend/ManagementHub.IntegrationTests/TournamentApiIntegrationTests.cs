@@ -346,7 +346,6 @@ var yankeesTeamId = yankeesTeam.GetProperty("teamId").GetString();
 yankeesTeamId.Should().NotBeNullOrEmpty();
 return yankeesTeamId!;
 }
-}
 
 [Fact]
 public async Task Tournament_TournamentManagerInvitesTeam_TeamManagerAccepts_ShouldCreateParticipant()

@@ -154,14 +154,33 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: Setup Node.js
+      # Skip setup if PR with no backend changes
+      if: github.ref == 'refs/heads/main' || steps.backend-changes.outputs.backend == 'true'
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: yarn
+        cache-dependency-path: src/frontend/yarn.lock
+
+    - name: Restore frontend dependencies
+      if: github.ref == 'refs/heads/main' || steps.backend-changes.outputs.backend == 'true'
+      run: yarn install --immutable
+      working-directory: src/frontend
+
     - name: Restore backend dependencies
       if: github.ref == 'refs/heads/main' || steps.backend-changes.outputs.backend == 'true'
       run: dotnet restore
       working-directory: src/backend
 
-    - name: Build backend (without GitVersion and frontend)
+    - name: Build frontend
       if: github.ref == 'refs/heads/main' || steps.backend-changes.outputs.backend == 'true'
-      run: dotnet build --no-restore -c Debug /p:DisableGitVersion=true
+      run: yarn build:dev
+      working-directory: src/frontend
+
+    - name: Build backend
+      if: github.ref == 'refs/heads/main' || steps.backend-changes.outputs.backend == 'true'
+      run: dotnet build --no-restore -c Debug
       working-directory: src/backend
 
     - name: Run integration tests
