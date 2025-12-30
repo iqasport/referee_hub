@@ -314,6 +314,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			User = teamManager,
 			Team = teams.First(), // Yankees team
 			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
 		});
 
 		var tests = new[]
