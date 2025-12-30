@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Enums;
-using ManagementHub.Serialization;
 using ManagementHub.Service;
 using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Filtering;
@@ -83,36 +82,18 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 {
 	private readonly CustomWebApplicationFactory _factory;
 	private readonly HttpClient _client;
-	private readonly JsonSerializerOptions _jsonOptions;
 
 	public TournamentApiIntegrationTests(CustomWebApplicationFactory factory)
 	{
 		this._factory = factory;
 		this._client = this._factory.CreateClient();
-		// Use the same JSON serialization options as the service for proper identifier deserialization
-		this._jsonOptions = DefaultJsonSerialization.Options;
 	}
 
 	[Fact]
 	public async Task Tournament_FullWorkflow_ShouldSucceed()
 	{
 		// Step 1: Sign in to get bearer token
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-			"authentication should succeed with valid credentials");
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		token.Should().NotBeNullOrEmpty("login should return a bearer token");
-
-		// Add bearer token to client for subsequent requests
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		// Step 2: Create a tournament with mock data
 		var createModel = new TournamentModel
@@ -133,7 +114,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		createResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"tournament creation should succeed");
 
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		createResult.Should().NotBeNull();
 		createResult!.Id.Should().NotBeNull("created tournament should have an ID");
 
@@ -152,7 +133,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		listResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"listing tournaments should succeed");
 
-		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>(this._jsonOptions);
+		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		tournamentsResponse.Should().NotBeNull();
 		var tournaments = tournamentsResponse!.Items.ToList();
 		tournaments.Should().Contain(t => t.Id == tournamentId,
@@ -188,7 +169,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"getting tournament by ID should succeed");
 
-		var updatedTournament = await getResponse.Content.ReadFromJsonAsync<TournamentViewModelDto>(this._jsonOptions);
+		var updatedTournament = await getResponse.Content.ReadFromJsonAsync<TournamentViewModelDto>();
 		updatedTournament.Should().NotBeNull();
 		updatedTournament!.Name.Should().Be("Updated Test Tournament",
 			"tournament name should be updated");
@@ -210,16 +191,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	public async Task PrivateTournament_ShouldOnlyBeVisibleToManager()
 	{
 		// Sign in as referee (who will create the tournament)
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		// Create a private tournament as referee user
 		var createModel = new TournamentModel
@@ -237,12 +209,12 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		};
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = createResult!.Id;
 
 		// Verify it appears in the list (since creator is a manager)
 		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
-		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>(this._jsonOptions);
+		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		var tournaments = tournamentsResponse!.Items.ToList();
 		tournaments.Should().Contain(t => t.Id == tournamentId,
 			"private tournament should be visible to its manager");
@@ -253,20 +225,11 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 			"private tournament should be accessible to its manager");
 
 		// Sign in as a different user (ngb_admin)
-		var otherLoginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "ngb_admin@example.com",
-			password = "password"
-		});
-
-		var otherLoginContent = await otherLoginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var otherToken = otherLoginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", otherToken);
+		await AuthenticateAsAsync("ngb_admin@example.com", "password");
 
 		// Verify private tournament is NOT in the list for other user
 		var otherListResponse = await this._client.GetAsync("/api/v2/tournaments");
-		var otherTournamentsResponse = await otherListResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>(this._jsonOptions);
+		var otherTournamentsResponse = await otherListResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		var otherTournaments = otherTournamentsResponse!.Items.ToList();
 		otherTournaments.Should().NotContain(t => t.Id == tournamentId,
 			"private tournament should NOT be visible to non-managers");
@@ -281,16 +244,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	public async Task TournamentManagers_FullWorkflow_ShouldSucceed()
 	{
 		// Step 1: Sign in as referee (who will create the tournament)
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		// Step 2: Create a tournament
 		var createModel = new TournamentModel
@@ -308,7 +262,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		};
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = createResult!.Id;
 
 		// Step 3: List managers - should only show the creator
@@ -316,7 +270,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		listManagersResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"listing managers should succeed");
 
-		var managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>(this._jsonOptions);
+		var managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		managers.Should().HaveCount(1, "should have exactly one manager (the creator)");
 		managers![0].GetProperty("email").GetString().Should().Be("referee@example.com",
 			"creator should be the first manager");
@@ -332,7 +286,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Step 5: List managers again - should show both
 		listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
-		managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>(this._jsonOptions);
+		managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		managers.Should().HaveCount(2, "should have two managers after adding one");
 
 		var managerEmails = managers!.Select(m => m.GetProperty("email").GetString()).ToList();
@@ -341,26 +295,16 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Step 6: Verify new manager can access manager endpoints
 		// Sign in as ngb_admin
-		var ngbLoginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "ngb_admin@example.com",
-			password = "password"
-		});
-
-		var ngbLoginContent = await ngbLoginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var ngbToken = ngbLoginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ngbToken);
+		await AuthenticateAsAsync("ngb_admin@example.com", "password");
 
 		// New manager should be able to list managers
 		listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
 		listManagersResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"new manager should be able to list managers");
-		managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>(this._jsonOptions);
+		managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 
 		// Step 7: Remove a manager (sign back in as original creator)
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		// Get the ngb_admin userId from the managers list
 		var ngbAdminManager = managers!.First(m => m.GetProperty("email").GetString() == "ngb_admin@example.com");
@@ -372,14 +316,13 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Step 8: Verify manager was removed
 		listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
-		managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>(this._jsonOptions);
+		managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		managers.Should().HaveCount(1, "should have one manager after removing one");
 		managers![0].GetProperty("email").GetString().Should().Be("referee@example.com",
 			"only the original manager should remain");
 
 		// Step 9: Verify removed manager cannot access manager endpoints
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ngbToken);
+		await AuthenticateAsAsync("ngb_admin@example.com", "password");
 
 		listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
 		listManagersResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden,
@@ -390,16 +333,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	public async Task AddTournamentManager_WithInvalidEmail_ShouldReturnBadRequest()
 	{
 		// Sign in and create a tournament
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
 		{
@@ -413,7 +347,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 			Organizer = "Test",
 			IsPrivate = false
 		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = createResult!.Id;
 
 		// Try to add manager with invalid email
@@ -430,16 +364,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	public async Task AddTournamentManager_WithNonexistentUser_ShouldReturnNotFound()
 	{
 		// Sign in and create a tournament
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
 		{
@@ -453,7 +378,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 			Organizer = "Test",
 			IsPrivate = false
 		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = createResult!.Id;
 
 		// Try to add manager with nonexistent user email
@@ -470,16 +395,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	public async Task RemoveTournamentManager_LastManager_ShouldReturnBadRequest()
 	{
 		// Sign in and create a tournament
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
 		{
@@ -493,12 +409,12 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 			Organizer = "Test",
 			IsPrivate = false
 		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = createResult!.Id;
 
 		// Get the current user's userId from the managers list
 		var listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
-		var managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>(this._jsonOptions);
+		var managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		var currentUserId = managers![0].GetProperty("id").GetString();
 
 		// Try to remove the only manager
@@ -507,7 +423,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		removeResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
 			"removing the last manager should return BadRequest");
 
-		var errorContent = await removeResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
+		var errorContent = await removeResponse.Content.ReadFromJsonAsync<JsonElement>();
 		errorContent.GetProperty("error").GetString().Should().Contain("last manager",
 			"error message should indicate cannot remove last manager");
 	}
@@ -516,16 +432,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	public async Task AddTournamentManager_Idempotent_ShouldNotError()
 	{
 		// Sign in and create a tournament
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
 		{
@@ -539,7 +446,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 			Organizer = "Test",
 			IsPrivate = false
 		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = createResult!.Id;
 
 		// Add a manager
@@ -559,7 +466,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Verify still only 2 managers (not 3)
 		var listResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
-		var managers = await listResponse.Content.ReadFromJsonAsync<List<JsonElement>>(this._jsonOptions);
+		var managers = await listResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		managers.Should().HaveCount(2, "should still have only 2 managers after duplicate add");
 	}
 
@@ -591,7 +498,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
 		createResponse.StatusCode.Should().Be(HttpStatusCode.OK, "tournament creation should succeed");
 
-		var tournamentIdResponse = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var tournamentIdResponse = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		tournamentIdResponse.Should().NotBeNull();
 		var tournamentId = tournamentIdResponse!.Id;
 
@@ -599,7 +506,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var teamsResponse = await this._client.GetAsync("/api/v2/ngbs/USA/teams");
 		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to list teams");
 
-		var teamsJson = await teamsResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
+		var teamsJson = await teamsResponse.Content.ReadFromJsonAsync<JsonElement>();
 		var teamsArray = teamsJson.GetProperty("items").EnumerateArray();
 		var yankeesTeam = teamsArray.FirstOrDefault(t => t.GetProperty("name").GetString() == "Yankees");
 		yankeesTeam.ValueKind.Should().NotBe(JsonValueKind.Undefined, "Yankees team should exist in seed data");
@@ -626,7 +533,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 				$"tournament manager should be able to create invite. Error: {errorContent}");
 		}
 
-		var createdInvite = await createInviteResponse.Content.ReadFromJsonAsync<TournamentInviteViewModel>(this._jsonOptions);
+		var createdInvite = await createInviteResponse.Content.ReadFromJsonAsync<TournamentInviteViewModel>();
 		createdInvite.Should().NotBeNull();
 		createdInvite!.Status.Should().Be(InviteStatus.Pending,
 			"invite should be pending because team manager hasn't approved yet");
@@ -639,7 +546,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var invitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
 		invitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var invites = await invitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>(this._jsonOptions);
+		var invites = await invitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		invites.Should().NotBeNull();
 		var invitesList = invites!;
 		invitesList.Should().HaveCount(1, "there should be one pending invite");
@@ -659,7 +566,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var participantsResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/participants");
 		participantsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<TournamentParticipantViewModel>>(this._jsonOptions);
+		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<TournamentParticipantViewModel>>();
 		participants.Should().NotBeNull();
 		var participantsList = participants!;
 		participantsList.Should().HaveCount(1, "Yankees team should now be a participant");
@@ -668,7 +575,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Step 7: Verify the invite status is now approved
 		var updatedInvitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
-		var updatedInvites = await updatedInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>(this._jsonOptions);
+		var updatedInvites = await updatedInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		updatedInvites.Should().NotBeNull();
 		var updatedInvitesList = updatedInvites!;
 		updatedInvitesList.Should().HaveCount(1);
@@ -704,7 +611,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
 		createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var tournamentIdResponse = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var tournamentIdResponse = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		var tournamentId = tournamentIdResponse!.Id;
 
 		// Step 2: Switch to team manager and get Yankees team ID
@@ -713,7 +620,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var teamsResponse = await this._client.GetAsync("/api/v2/ngbs/USA/teams");
 		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to list teams");
 
-		var teamsJson = await teamsResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
+		var teamsJson = await teamsResponse.Content.ReadFromJsonAsync<JsonElement>();
 		var teamsArray = teamsJson.GetProperty("items").EnumerateArray();
 		var yankeesTeam = teamsArray.FirstOrDefault(t => t.GetProperty("name").GetString() == "Yankees");
 		yankeesTeam.ValueKind.Should().NotBe(JsonValueKind.Undefined, "Yankees team should exist in seed data");
@@ -734,7 +641,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		joinRequestResponse.StatusCode.Should().Be(HttpStatusCode.Created,
 			"team manager should be able to request to join");
 
-		var createdInvite = await joinRequestResponse.Content.ReadFromJsonAsync<TournamentInviteViewModel>(this._jsonOptions);
+		var createdInvite = await joinRequestResponse.Content.ReadFromJsonAsync<TournamentInviteViewModel>();
 		createdInvite.Should().NotBeNull();
 		createdInvite!.Status.Should().Be(InviteStatus.Pending,
 			"invite should be pending because tournament manager hasn't approved yet");
@@ -752,7 +659,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		}
 		teamManagerInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var teamManagerInvites = await teamManagerInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>(this._jsonOptions);
+		var teamManagerInvites = await teamManagerInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		teamManagerInvites.Should().NotBeNull();
 		var teamManagerInvitesList = teamManagerInvites!;
 		teamManagerInvitesList.Should().HaveCount(1, "team manager should see their own invite");
@@ -771,7 +678,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var participantsResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/participants");
 		participantsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<TournamentParticipantViewModel>>(this._jsonOptions);
+		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<TournamentParticipantViewModel>>();
 		participants.Should().NotBeNull();
 		var participantsList = participants!;
 		participantsList.Should().HaveCount(1, "Yankees team should now be a participant");
@@ -779,7 +686,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Step 6: Verify the invite status is now approved
 		var updatedInvitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
-		var updatedInvites = await updatedInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>(this._jsonOptions);
+		var updatedInvites = await updatedInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>();
 		updatedInvites.Should().NotBeNull();
 		var updatedInvitesList = updatedInvites!;
 		updatedInvitesList.Should().HaveCount(1);
@@ -795,29 +702,14 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// to the user, but then fetching the user fails because TournamentManagerRole cannot be serialized
 
 		// Step 1: Sign in to get bearer token
-		var loginResponse = await this._client.PostAsJsonAsync("/api/auth/login", new
-		{
-			email = "referee@example.com",
-			password = "password"
-		});
-
-		loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-			"authentication should succeed with valid credentials");
-
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
-		var token = loginContent.GetProperty("accessToken").GetString();
-		token.Should().NotBeNullOrEmpty("login should return a bearer token");
-
-		// Add bearer token to client for subsequent requests
-		this._client.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		await AuthenticateAsAsync("referee@example.com", "password");
 
 		// Step 2: Verify we can get current user before creating a tournament
 		var userResponseBefore = await this._client.GetAsync("/api/v2/users/me");
 		userResponseBefore.StatusCode.Should().Be(HttpStatusCode.OK,
 			"getting current user should succeed before creating tournament");
 
-		var userBefore = await userResponseBefore.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
+		var userBefore = await userResponseBefore.Content.ReadFromJsonAsync<JsonElement>();
 		userBefore.GetProperty("userId").GetString().Should().NotBeNullOrEmpty();
 
 		// Step 3: Create a tournament (this adds TournamentManagerRole to the user)
@@ -839,7 +731,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		createResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"tournament creation should succeed");
 
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>(this._jsonOptions);
+		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		createResult.Should().NotBeNull();
 		createResult!.Id.Should().NotBeNull("created tournament should have an ID");
 
@@ -850,7 +742,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		userResponseAfter.StatusCode.Should().Be(HttpStatusCode.OK,
 			"getting current user should succeed after creating tournament (this is the bug we're fixing)");
 
-		var userAfter = await userResponseAfter.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
+		var userAfter = await userResponseAfter.Content.ReadFromJsonAsync<JsonElement>();
 		userAfter.GetProperty("userId").GetString().Should().NotBeNullOrEmpty();
 
 		// Verify the user now has roles including TournamentManager
@@ -873,7 +765,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		});
 		loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, $"login for {email} should succeed");
 
-		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>(this._jsonOptions);
+		var loginContent = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
 		var token = loginContent.GetProperty("accessToken").GetString();
 		this._client.DefaultRequestHeaders.Authorization =
 			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
