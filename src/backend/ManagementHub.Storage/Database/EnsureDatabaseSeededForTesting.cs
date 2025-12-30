@@ -16,22 +16,25 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 	{
 	}
 
-	protected override async Task ExecuteAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
+	protected override Task ExecuteAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
 	{
 		try
 		{
-			var ngbCount = await dbContext.NationalGoverningBodies.CountAsync(stoppingToken);
+			// Use synchronous operations to ensure seeding completes before host starts
+			// This is important for testing and dev environments
+			var ngbCount = dbContext.NationalGoverningBodies.Count();
 			if (ngbCount > 0)
 			{
 				this.logger.LogInformation(-0x48302e00, "Database not empty. Skipping seeding.");
-				return;
+				return Task.CompletedTask;
 			}
 
 			this.logger.LogInformation(-0x48302dff, "Ensuring database is seeded...");
 
-			await this.SeedDatabaseAsync(dbContext, stoppingToken);
+			this.SeedDatabase(dbContext);
 
 			this.logger.LogInformation(-0x48302dfe, "Ensuring database is seeded completed.");
+			return Task.CompletedTask;
 		}
 		catch (Exception ex)
 		{
@@ -40,7 +43,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		}
 	}
 
-	private async Task SeedDatabaseAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
+	private void SeedDatabase(ManagementHubDbContext dbContext)
 	{
 		var ngbs = new[]
 		{
@@ -314,6 +317,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			User = teamManager,
 			Team = teams.First(), // Yankees team
 			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
 		});
 
 		var tests = new[]
@@ -542,6 +546,6 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			dbContext.Questions.AddRange(questions);
 		}
 
-		await dbContext.SaveChangesAsync(stoppingToken);
+		dbContext.SaveChanges();
 	}
 }
