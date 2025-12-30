@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -64,8 +65,13 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 
 		builder.ConfigureServices(services =>
 		{
-			// No additional service overrides needed
-			// The database configuration is handled by appsettings.Testing.json and container config
+			// Increase startup timeout for HostedServices to allow database seeding to complete
+			services.Configure<Microsoft.Extensions.Hosting.HostOptions>(options =>
+			{
+				options.ShutdownTimeout = TimeSpan.FromSeconds(30);
+				// Set a longer startup timeout to allow seeding to complete
+				options.StartupTimeout = TimeSpan.FromMinutes(2);
+			});
 		});
 	}
 
