@@ -1,5 +1,5 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ManagementHub.Service;
 using Microsoft.AspNetCore.Hosting;
@@ -32,45 +32,46 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 	{
 		builder.UseEnvironment("Testing");
 
-		// Load test-specific configuration
 		builder.ConfigureAppConfiguration((context, config) =>
 		{
-			var testConfigPath = Path.Combine(
-				Directory.GetCurrentDirectory(),
-				"appsettings.Testing.json");
-
-			if (File.Exists(testConfigPath))
+			// Configure all test settings in code
+			var settings = new Dictionary<string, string?>
 			{
-				config.AddJsonFile(testConfigPath, optional: false, reloadOnChange: false);
-			}
+				// Logging settings
+				["Logging:LogLevel:Default"] = "Information",
+				["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
+				["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
+				
+				// Service configuration
+				["Services:UseInMemoryDatabase"] = "false",
+				["Services:SeedDatabaseWithTestData"] = "true",
+				["Services:UseInMemoryJobSystem"] = "true",
+				["Services:UseLocalFilesystemBlobStorage"] = "true",
+				["Services:UseDebugMailer"] = "true",
+			};
 
-			// Override database connection with container settings
+			// Add database connection settings from container
 			if (this._postgresContainer != null)
 			{
-				config.AddInMemoryCollection(new[]
-				{
-					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Host", this._postgresContainer.Hostname),
-					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Port", this._postgresContainer.GetMappedPublicPort(5432).ToString()),
-					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Database", DatabaseName),
-					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Username", Username),
-					new System.Collections.Generic.KeyValuePair<string, string?>(
-						"DatabaseConnection:Password", Password),
-				});
+				settings["DatabaseConnection:Host"] = this._postgresContainer.Hostname;
+				settings["DatabaseConnection:Port"] = this._postgresContainer.GetMappedPublicPort(5432).ToString();
+				settings["DatabaseConnection:Database"] = DatabaseName;
+				settings["DatabaseConnection:Username"] = Username;
+				settings["DatabaseConnection:Password"] = Password;
+				settings["DatabaseConnection:TrustServerCertificate"] = "true";
 			}
+
+			config.AddInMemoryCollection(settings);
 		});
 
 		builder.ConfigureServices(services =>
 		{
-			// Increase startup timeout for HostedServices to allow database seeding to complete
+			// Seeding is now synchronous, so default timeout should be sufficient
+			// Keeping a reasonable timeout for safety
 			services.Configure<Microsoft.Extensions.Hosting.HostOptions>(options =>
 			{
 				options.ShutdownTimeout = TimeSpan.FromSeconds(30);
-				// Set a longer startup timeout to allow seeding to complete
-				options.StartupTimeout = TimeSpan.FromMinutes(2);
+				options.StartupTimeout = TimeSpan.FromSeconds(30);
 			});
 		});
 	}
