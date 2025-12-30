@@ -4,6 +4,7 @@ using System.Net;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251224130138_AddTournamentInvitesAndParticipants")]
+    partial class AddTournamentInvitesAndParticipants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1606,11 +1609,16 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
+                    b.Property<long?>("UserId1")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AddedByUserId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.HasIndex(new[] { "TournamentId", "UserId" }, "index_tournament_managers_on_tournament_id_and_user_id")
                         .IsUnique();
@@ -2258,11 +2266,15 @@ namespace ManagementHub.Storage.Migrations
                         .HasConstraintName("fk_tournament_managers_tournament");
 
                     b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithMany("TournamentManagers")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tournament_managers_user");
+
+                    b.HasOne("ManagementHub.Models.Data.User", null)
+                        .WithMany("TournamentManagers")
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("AddedBy");
 
