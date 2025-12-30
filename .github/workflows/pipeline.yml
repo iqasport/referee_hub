@@ -18,8 +18,6 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
   workflow_dispatch: # Allow manual trigger on any branch
-  schedule:
-    - cron: '30 5 15 * *' # run every month on the 15th
 
 env:
   AWS_REGION: us-east-1
@@ -177,7 +175,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: 'ubuntu-latest'
-    needs: [build, check-integration-tests]
+    needs: check-integration-tests
     if: needs.check-integration-tests.outputs.should-run == 'true'
     timeout-minutes: 30
     permissions:
