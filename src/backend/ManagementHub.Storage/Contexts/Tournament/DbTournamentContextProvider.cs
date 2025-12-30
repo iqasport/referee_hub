@@ -100,14 +100,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
 		// Get the user's database ID using WithIdentifier (supports both UniqueId and legacy IDs)
-		var userDatabaseId = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
-			.Select(u => u.Id)
-			.FirstOrDefaultAsync(cancellationToken);
+		// Keep as IQueryable to allow EF Core to translate to SQL join
+		var userDatabaseIds = UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
+			.Select(u => u.Id);
 
 		var constrainedQuery = this.dbContext.Tournaments
 			.Where(t => t.UniqueId == tournamentId.ToString());
 
-		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userDatabaseId)
+		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userDatabaseIds)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
@@ -449,9 +449,9 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	/// This shared function is used by both single and batch tournament queries to ensure consistent logic.
 	/// </summary>
 	/// <param name="tournaments">Constrained IQueryable of tournaments (can be filtered by ID, search terms, etc.)</param>
-	/// <param name="userId">The user identifier for computing IsCurrentUserInvolved</param>
+	/// <param name="userDatabaseIds">IQueryable of user database IDs (supports both UniqueId and legacy IDs via WithIdentifier)</param>
 	/// <returns>IQueryable of ITournamentContext with all joins and computations applied</returns>
-	private IQueryable<ITournamentContext> BuildTournamentContextQuery(IQueryable<Models.Data.Tournament> tournaments, long userDatabaseId)
+	private IQueryable<ITournamentContext> BuildTournamentContextQuery(IQueryable<Models.Data.Tournament> tournaments, IQueryable<long> userDatabaseIds)
 	{
 		return tournaments.AsNoTracking()
 			.Select(t => new DbTournamentContext(
@@ -469,8 +469,9 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				// IsCurrentUserInvolved: computed via database join
 				// User is involved if they manage this tournament OR manage a participating team
 				// Phase 4 will extend: || user is on a roster
-				t.TournamentManagers.Any(tm => tm.UserId == userDatabaseId) ||
-				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => teamMgr.UserId == userDatabaseId))));
+				// Using .Contains() with IQueryable creates a SQL IN clause with subquery for proper join
+				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId)))));
 	}
 
 	// Phase 3: Invite management methods
