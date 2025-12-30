@@ -114,6 +114,7 @@ jobs:
       with:
         paths: |
           src/backend/**/dotnet-test-result.xml
+          !src/backend/ManagementHub.IntegrationTests/**
       if: success() || failure()
 
     - name: Perform CodeQL Analysis
@@ -202,7 +203,7 @@ jobs:
       working-directory: src/backend
 
     - name: Run integration tests
-      run: dotnet test --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-integration-test-result.xml" --filter "FullyQualifiedName~IntegrationTests"
+      run: dotnet test --no-build -c Release --verbosity normal --logger:"junit;LogFilePath=dotnet-integration-test-result.xml" --filter "FullyQualifiedName~IntegrationTests"
       working-directory: src/backend
 
     - name: Print summary header for Integration Test Summary
