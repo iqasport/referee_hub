@@ -2,6 +2,7 @@
 using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Service.Contexts;
+
 public interface IUserContextAccessor
 {
 	Task<IUserContext> GetCurrentUserContextAsync();

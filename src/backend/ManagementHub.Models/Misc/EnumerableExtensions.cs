@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ManagementHub.Models.Misc;
+
 public static class EnumerableExtensions
 {
 	/// <summary>

@@ -4,6 +4,7 @@ using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 
 namespace ManagementHub.Models.Abstraction.Contexts.Providers;
+
 public interface ITeamContextProvider
 {
 	Task<ITeamContext> CreateTeamAsync(NgbIdentifier ngb, TeamData teamData);

@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Commands.Ngb;
+
 public class CreateNgbStatsSnapshotCommand : ICreateNgbStatsSnapshotCommand
 {
 	private readonly ManagementHubDbContext dbContext;

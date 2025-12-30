@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Processing.Export;
+
 public static class ExportExtensions
 {
 	/// <summary>

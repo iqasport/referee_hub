@@ -13,6 +13,7 @@ using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Commands.User;
+
 public class SetUserAttributeCommand : ISetUserAttributeCommand
 {
 	private readonly ManagementHubDbContext dbContext;

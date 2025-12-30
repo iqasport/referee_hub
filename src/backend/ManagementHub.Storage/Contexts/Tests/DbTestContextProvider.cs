@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options.Contextual;
 
 namespace ManagementHub.Storage.Contexts.Tests;
+
 public class DbTestContextProvider : ITestContextProvider
 {
 	private readonly ManagementHubDbContext dbContext;

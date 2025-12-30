@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace ManagementHub.Models.Abstraction.Contexts;
+
 public interface INgbStatsContext
 {
 	public int TotalRefereesCount { get; }

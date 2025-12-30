@@ -1,5 +1,7 @@
 ﻿using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ManagementHub.Service.Authorization;
@@ -47,4 +49,24 @@ public class NgbUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthorizat
 	override public bool Satisfies(TUserRole role, AuthorizationContext context) =>
 		context.RouteParameters.TryGetValue("ngb", out var ngbIdObject) && ngbIdObject is string ngbId &&
 		role.Ngb.AppliesTo(NgbIdentifier.Parse(ngbId));
+}
+
+// For any endpoint with a route parameter "tournamentId" that is a TournamentIdentifier, the user must have a role that applies to that tournament.
+public class TournamentUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthorizationRequirement<TUserRole>
+	where TUserRole : ITournamentUserRole
+{
+	override public bool Satisfies(TUserRole role, AuthorizationContext context) =>
+		context.RouteParameters.TryGetValue("tournamentId", out var tournamentIdObject) &&
+		tournamentIdObject is string tournamentId &&
+		role.Tournament.AppliesTo(TournamentIdentifier.Parse(tournamentId));
+}
+
+// For any endpoint with a route parameter "teamId" that is a TeamIdentifier, the user must have a role that applies to that team.
+public class TeamUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthorizationRequirement<TUserRole>
+	where TUserRole : ITeamUserRole
+{
+	override public bool Satisfies(TUserRole role, AuthorizationContext context) =>
+		context.RouteParameters.TryGetValue("teamId", out var teamIdObject) &&
+		teamIdObject is string teamId &&
+		role.Team.AppliesTo(TeamIdentifier.Parse(teamId));
 }

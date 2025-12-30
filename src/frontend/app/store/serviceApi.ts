@@ -11,6 +11,7 @@ export const addTagTypes = [
   "UserInfo",
   "Team",
   "Tests",
+  "Tournament",
   "UserAvatar",
 ] as const;
 const injectedRtkApi = api
@@ -311,6 +312,111 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/admin/Tests/${queryArg.testId}/questions` }),
         providesTags: ["Tests"],
       }),
+      getTournaments: build.query<GetTournamentsApiResponse, GetTournamentsApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments`,
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
+        }),
+        providesTags: ["Tournament"],
+      }),
+      createTournament: build.mutation<CreateTournamentApiResponse, CreateTournamentApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments`,
+          method: "POST",
+          body: queryArg.tournamentModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      getTournament: build.query<GetTournamentApiResponse, GetTournamentApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}` }),
+        providesTags: ["Tournament"],
+      }),
+      updateTournament: build.mutation<UpdateTournamentApiResponse, UpdateTournamentApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}`,
+          method: "PUT",
+          body: queryArg.tournamentModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      updateTournamentBanner: build.mutation<
+        UpdateTournamentBannerApiResponse,
+        UpdateTournamentBannerApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/banner`,
+          method: "PUT",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      getTournamentManagers: build.query<
+        GetTournamentManagersApiResponse,
+        GetTournamentManagersApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers` }),
+        providesTags: ["Tournament"],
+      }),
+      addTournamentManager: build.mutation<
+        AddTournamentManagerApiResponse,
+        AddTournamentManagerApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers`,
+          method: "POST",
+          body: queryArg.addTournamentManagerModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      removeTournamentManager: build.mutation<
+        RemoveTournamentManagerApiResponse,
+        RemoveTournamentManagerApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers/${queryArg.userId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      getTournamentInvites: build.query<
+        GetTournamentInvitesApiResponse,
+        GetTournamentInvitesApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites` }),
+        providesTags: ["Tournament"],
+      }),
+      createInvite: build.mutation<CreateInviteApiResponse, CreateInviteApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites`,
+          method: "POST",
+          body: queryArg.createInviteModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      respondToInvite: build.mutation<RespondToInviteApiResponse, RespondToInviteApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
+          method: "POST",
+          body: queryArg.inviteResponseModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      getParticipants: build.query<GetParticipantsApiResponse, GetParticipantsApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}/participants` }),
+        providesTags: ["Tournament"],
+      }),
+      removeParticipant: build.mutation<RemoveParticipantApiResponse, RemoveParticipantApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/participants/${queryArg.teamId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
@@ -559,6 +665,72 @@ export type ImportTestQuestionsApiArg = {
 export type GetTestQuestionsApiResponse = /** status 200 Success */ TestQuestionRecord[];
 export type GetTestQuestionsApiArg = {
   testId: string;
+};
+export type GetTournamentsApiResponse = /** status 200 Success */ TournamentViewModelFiltered;
+export type GetTournamentsApiArg = {
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+  skipPaging?: boolean;
+};
+export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
+export type CreateTournamentApiArg = {
+  tournamentModel: TournamentModel;
+};
+export type GetTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
+export type GetTournamentApiArg = {
+  tournamentId: string;
+};
+export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
+export type UpdateTournamentApiArg = {
+  tournamentId: string;
+  tournamentModel: TournamentModel;
+};
+export type UpdateTournamentBannerApiResponse = /** status 200 Success */ string;
+export type UpdateTournamentBannerApiArg = {
+  tournamentId: string;
+  body: {
+    bannerBlob?: Blob;
+  };
+};
+export type GetTournamentManagersApiResponse =
+  /** status 200 Success */ TournamentManagerViewModel[];
+export type GetTournamentManagersApiArg = {
+  tournamentId: string;
+};
+export type AddTournamentManagerApiResponse = /** status 200 Success */ void;
+export type AddTournamentManagerApiArg = {
+  tournamentId: string;
+  addTournamentManagerModel: AddTournamentManagerModel;
+};
+export type RemoveTournamentManagerApiResponse = /** status 200 Success */ void;
+export type RemoveTournamentManagerApiArg = {
+  tournamentId: string;
+  userId: string;
+};
+export type GetTournamentInvitesApiResponse = /** status 200 Success */ TournamentInviteViewModel[];
+export type GetTournamentInvitesApiArg = {
+  tournamentId: string;
+};
+export type CreateInviteApiResponse = /** status 201 Created */ TournamentInviteViewModel;
+export type CreateInviteApiArg = {
+  tournamentId: string;
+  createInviteModel: CreateInviteModel;
+};
+export type RespondToInviteApiResponse = /** status 200 Success */ void;
+export type RespondToInviteApiArg = {
+  tournamentId: string;
+  participantId: string;
+  inviteResponseModel: InviteResponseModel;
+};
+export type GetParticipantsApiResponse = /** status 200 Success */ TournamentParticipantViewModel[];
+export type GetParticipantsApiArg = {
+  tournamentId: string;
+};
+export type RemoveParticipantApiResponse = /** status 200 Success */ void;
+export type RemoveParticipantApiArg = {
+  tournamentId: string;
+  teamId: string;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -907,7 +1079,12 @@ export type CertificationProduct = {
   status?: ProductStatus;
 };
 export type TeamStatus = "competitive" | "developing" | "inactive" | "other";
-export type TeamGroupAffiliation = "university" | "community" | "youth" | "not_applicable";
+export type TeamGroupAffiliation =
+  | "university"
+  | "community"
+  | "youth"
+  | "not_applicable"
+  | "national";
 export type NgbTeamViewModel = {
   /** Team identifier. */
   teamId?: string;
@@ -975,6 +1152,85 @@ export type TestQuestionRecord = {
   answer4?: string | null;
   correct?: number;
   correctAnswer?: string | null;
+};
+export type TournamentType = "Club" | "National" | "Youth" | "Fantasy";
+export type TournamentViewModel = {
+  name?: string | null;
+  description?: string | null;
+  startDate?: string;
+  endDate?: string;
+  type?: TournamentType;
+  country?: string | null;
+  city?: string | null;
+  place?: string | null;
+  organizer?: string | null;
+  isPrivate?: boolean;
+  id?: string;
+  bannerImageUrl?: string | null;
+  isCurrentUserInvolved?: boolean;
+};
+export type TournamentViewModelFiltered = {
+  metadata?: FilteringMetadata;
+  items?: TournamentViewModel[] | null;
+};
+export type TournamentIdResponse = {
+  id?: string | null;
+};
+export type TournamentModel = {
+  name?: string | null;
+  description?: string | null;
+  startDate?: string;
+  endDate?: string;
+  type?: TournamentType;
+  country?: string | null;
+  city?: string | null;
+  place?: string | null;
+  organizer?: string | null;
+  isPrivate?: boolean;
+};
+export type TournamentManagerViewModel = {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+};
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type AddTournamentManagerModel = {
+  email?: string | null;
+};
+export type ParticipantType = "team";
+export type InviteStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatusViewModel = {
+  status?: ApprovalStatus;
+  date?: string | null;
+};
+export type TournamentInviteViewModel = {
+  participantType?: ParticipantType;
+  participantId?: string | null;
+  participantName?: string | null;
+  status?: InviteStatus;
+  initiatorUserId?: string;
+  createdAt?: string;
+  tournamentManagerApproval?: ApprovalStatusViewModel;
+  participantApproval?: ApprovalStatusViewModel;
+};
+export type CreateInviteModel = {
+  participantType?: ParticipantType;
+  participantId?: string | null;
+};
+export type InviteResponseModel = {
+  approved?: boolean;
+};
+export type TournamentParticipantViewModel = {
+  teamId?: string;
+  teamName?: string | null;
 };
 export type CurrentUserViewModel = {
   userId?: string;
@@ -1044,6 +1300,19 @@ export const {
   useGetAllTestsQuery,
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
+  useGetTournamentsQuery,
+  useCreateTournamentMutation,
+  useGetTournamentQuery,
+  useUpdateTournamentMutation,
+  useUpdateTournamentBannerMutation,
+  useGetTournamentManagersQuery,
+  useAddTournamentManagerMutation,
+  useRemoveTournamentManagerMutation,
+  useGetTournamentInvitesQuery,
+  useCreateInviteMutation,
+  useRespondToInviteMutation,
+  useGetParticipantsQuery,
+  useRemoveParticipantMutation,
   useGetCurrentUserQuery,
   useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,

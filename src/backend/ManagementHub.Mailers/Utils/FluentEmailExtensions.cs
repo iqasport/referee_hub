@@ -10,6 +10,7 @@ using FluentEmail.Core;
 using FluentEmail.Core.Models;
 
 namespace ManagementHub.Mailers.Utils;
+
 internal static class FluentEmailExtensions
 {
 	public static string RenderToString(this IFluentEmail email)

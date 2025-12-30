@@ -5,6 +5,7 @@ using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Processing.Domain.Tests.Extensions;
+
 public static class CertificationExtensions
 {
 	public static Certification Max(this IEnumerable<Certification> certifications) => certifications.Max(CertificationComparer.Instance) ?? certifications.First();

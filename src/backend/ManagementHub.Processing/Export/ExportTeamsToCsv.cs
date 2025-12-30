@@ -11,6 +11,7 @@ using ManagementHub.Models.Domain.Ngb;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Processing.Export;
+
 public class ExportTeamsToCsv : IExportTeamsToCsv
 {
 	private readonly ILogger<ExportTeamsToCsv> logger;

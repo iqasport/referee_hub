@@ -9,6 +9,7 @@ using ManagementHub.Processing.Domain.Tests.Extensions;
 using Xunit;
 
 namespace ManagementHub.UnitTests.Domain;
+
 public class CertificationComparisonTest
 {
 	private readonly List<Certification> certifications = new List<Certification>()

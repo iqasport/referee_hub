@@ -20,6 +20,8 @@ public partial class User : IIdentifiable
 		this.TestAttempts = new HashSet<TestAttempt>();
 		this.TestResults = new HashSet<TestResult>();
 		this.Attributes = new HashSet<UserAttribute>();
+		this.TournamentManagers = new HashSet<TournamentManager>();
+		this.TeamManagers = new HashSet<TeamManager>();
 	}
 
 	public long Id { get; set; }
@@ -74,4 +76,6 @@ public partial class User : IIdentifiable
 	public virtual ICollection<TestAttempt> TestAttempts { get; set; }
 	public virtual ICollection<TestResult> TestResults { get; set; }
 	public virtual ICollection<UserAttribute> Attributes { get; set; }
+	public virtual ICollection<TournamentManager> TournamentManagers { get; set; }
+	public virtual ICollection<TeamManager> TeamManagers { get; set; }
 }

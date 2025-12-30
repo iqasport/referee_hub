@@ -228,7 +228,8 @@ public class NgbsController : ControllerBase
 		{
 			_ = await this.ngbContextProvider.GetNgbContextAsync(ngb);
 			throw new InvalidOperationException($"NGB {ngb} already exists!");
-		} catch (NotFoundException)
+		}
+		catch (NotFoundException)
 		{
 			// expected
 		}
@@ -374,7 +375,7 @@ public class NgbsController : ControllerBase
 		}
 
 		// we have to first get the team to validate it belongs to the NGB
-		if(!await this.teamContextProvider.CheckTeamExistsInNgbAsync(ngb, teamId))
+		if (!await this.teamContextProvider.CheckTeamExistsInNgbAsync(ngb, teamId))
 		{
 			throw new AccessDeniedException(teamId.ToString());
 		}

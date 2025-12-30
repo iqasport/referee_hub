@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Commands.Migrations;
+
 public class UserIdMigrationCommand : IUserIdMigrationCommand
 {
 	private readonly ManagementHubDbContext dbContext;

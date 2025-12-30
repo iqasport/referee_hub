@@ -14,6 +14,7 @@ using Moq;
 using Xunit;
 
 namespace ManagementHub.UnitTests.Import;
+
 public class TestControllerUnitTests
 {
 	// The point of this test is to assert that CSV files in different formats can be imported
@@ -44,7 +45,7 @@ public class TestControllerUnitTests
 		// Arrange
 		var dbContext = new ManagementHubDbContext();
 		var importTestQuestions = new Mock<IImportTestQuestions>();
-		
+
 		var imported = new List<TestQuestionRecord>();
 		importTestQuestions.Setup(i => i.ImportTestQuestionsAsync(It.IsAny<TestIdentifier>(), It.IsAny<IEnumerable<TestQuestionRecord>>()))
 			.Callback<TestIdentifier, IEnumerable<TestQuestionRecord>>((testId, questions) => imported.AddRange(questions));
@@ -68,7 +69,7 @@ public class TestControllerUnitTests
 
 		// Assert
 		Assert.Equal(2, imported.Count);
-		
+
 		Assert.Equal(2, imported[0].SequenceNum);
 		Assert.Equal("question1", imported[0].Question);
 		Assert.Equal(2, imported[0].Correct);
@@ -76,7 +77,7 @@ public class TestControllerUnitTests
 		Assert.Equal("answer2", imported[0].Answer2);
 		Assert.Equal("answer3", imported[0].Answer3);
 		Assert.Equal("answer4", imported[0].Answer4);
-		
+
 		Assert.Equal(3, imported[1].SequenceNum);
 		Assert.Equal("question2", imported[1].Question);
 		Assert.Equal(3, imported[1].Correct);
