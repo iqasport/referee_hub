@@ -96,29 +96,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		await AuthenticateAsAsync("referee@example.com", "password");
 
 		// Step 2: Create a tournament with mock data
-		var createModel = new TournamentModel
-		{
-			Name = "Test Tournament",
-			Description = "Integration test tournament",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Test Country",
-			City = "Test City",
-			Place = "Test Place",
-			Organizer = "Test Organizer",
-			IsPrivate = false
-		};
-
-		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
-		createResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-			"tournament creation should succeed");
-
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		createResult.Should().NotBeNull();
-		createResult!.Id.Should().NotBeNull("created tournament should have an ID");
-
-		var tournamentId = createResult.Id;
+		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "Test Country", "Test City", place: "Test Place");
 		tournamentId.Should().StartWith("TR_", "tournament ID should have TR_ prefix");
 
 		// Step 3: Get tournaments and check the tournament is there
@@ -141,7 +119,6 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		var listedTournament = tournaments!.First(t => t.Id == tournamentId);
 		listedTournament.Name.Should().Be("Test Tournament");
-		listedTournament.Description.Should().Be("Integration test tournament");
 		listedTournament.Type.Should().Be(TournamentType.Club);
 		listedTournament.City.Should().Be("Test City");
 
@@ -150,8 +127,8 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		{
 			Name = "Updated Test Tournament",
 			Description = "Updated description",
-			StartDate = createModel.StartDate,
-			EndDate = createModel.EndDate,
+			StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
+			EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(32)),
 			Type = TournamentType.National,
 			Country = "Updated Country",
 			City = "Updated City",
@@ -193,24 +170,8 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// Sign in as referee (who will create the tournament)
 		await AuthenticateAsAsync("referee@example.com", "password");
 
-		// Create a private tournament as referee user
-		var createModel = new TournamentModel
-		{
-			Name = "Private Tournament",
-			Description = "Should only be visible to manager",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Private Country",
-			City = "Private City",
-			Place = "Private Place",
-			Organizer = "Private Organizer",
-			IsPrivate = true
-		};
-
-		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		var tournamentId = createResult!.Id;
+		// Create a private tournament
+		var tournamentId = await this.CreateTestTournamentAsync("Private Tournament", TournamentType.Club, "Private Country", "Private City", isPrivate: true, place: "Private Place");
 
 		// Verify it appears in the list (since creator is a manager)
 		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
@@ -247,23 +208,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		await AuthenticateAsAsync("referee@example.com", "password");
 
 		// Step 2: Create a tournament
-		var createModel = new TournamentModel
-		{
-			Name = "Manager Test Tournament",
-			Description = "Test manager operations",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Test Country",
-			City = "Test City",
-			Place = "Test Place",
-			Organizer = "Test Organizer",
-			IsPrivate = false
-		};
-
-		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		var tournamentId = createResult!.Id;
+		var tournamentId = await this.CreateTestTournamentAsync("Manager Test Tournament", TournamentType.Club, "Test Country", "Test City", place: "Test Place");
 
 		// Step 3: List managers - should only show the creator
 		var listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
@@ -335,20 +280,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// Sign in and create a tournament
 		await AuthenticateAsAsync("referee@example.com", "password");
 
-		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
-		{
-			Name = "Test Tournament",
-			Description = "Test",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Test",
-			City = "Test",
-			Organizer = "Test",
-			IsPrivate = false
-		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		var tournamentId = createResult!.Id;
+		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "Test", "Test");
 
 		// Try to add manager with invalid email
 		var addResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/managers", new
@@ -366,20 +298,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// Sign in and create a tournament
 		await AuthenticateAsAsync("referee@example.com", "password");
 
-		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
-		{
-			Name = "Test Tournament",
-			Description = "Test",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Test",
-			City = "Test",
-			Organizer = "Test",
-			IsPrivate = false
-		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		var tournamentId = createResult!.Id;
+		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "Test", "Test");
 
 		// Try to add manager with nonexistent user email
 		var addResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/managers", new
@@ -397,20 +316,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// Sign in and create a tournament
 		await AuthenticateAsAsync("referee@example.com", "password");
 
-		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
-		{
-			Name = "Test Tournament",
-			Description = "Test",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Test",
-			City = "Test",
-			Organizer = "Test",
-			IsPrivate = false
-		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		var tournamentId = createResult!.Id;
+		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "Test", "Test");
 
 		// Get the current user's userId from the managers list
 		var listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
@@ -434,20 +340,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		// Sign in and create a tournament
 		await AuthenticateAsAsync("referee@example.com", "password");
 
-		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
-		{
-			Name = "Test Tournament",
-			Description = "Test",
-			StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-			EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(32)),
-			Type = TournamentType.Club,
-			Country = "Test",
-			City = "Test",
-			Organizer = "Test",
-			IsPrivate = false
-		});
-		var createResult = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
-		var tournamentId = createResult!.Id;
+		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "Test", "Test");
 
 		// Add a manager
 		var addResponse1 = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/managers", new
@@ -711,7 +604,7 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 	}
 
 	// Helper method to create a test tournament
-	private async Task<string> CreateTestTournamentAsync(string name, TournamentType type, string country, string city)
+	private async Task<string> CreateTestTournamentAsync(string name, TournamentType type, string country, string city, bool isPrivate = false, string? place = null)
 	{
 		var createModel = new TournamentModel
 		{
@@ -722,8 +615,9 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 			Type = type,
 			Country = country,
 			City = city,
+			Place = place,
 			Organizer = "Test Organizer",
-			IsPrivate = false
+			IsPrivate = isPrivate
 		};
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
@@ -841,5 +735,52 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 		var updatedParticipantsJson = await updatedParticipantsResponse.Content.ReadFromJsonAsync<JsonElement>();
 		var updatedParticipantsList = updatedParticipantsJson.EnumerateArray().ToList();
 		updatedParticipantsList.Should().BeEmpty("participant should have been removed");
+	}
+
+	[Fact]
+	public async Task ArchivedTournament_CannotAcceptInvite_ShouldReturnBadRequest()
+	{
+		// Step 1: Authenticate as referee and create a tournament
+		await AuthenticateAsAsync("referee@example.com", "password");
+
+		var tournamentId = await this.CreateTestTournamentAsync("Tournament to be Archived", TournamentType.Club, "USA", "Chicago");
+
+		// Step 2: Get Yankees team ID
+		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
+
+		// Step 3: Create an invite for the Yankees team
+		var createInviteResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/invites", new
+		{
+			participantId = yankeesTeamId,
+			participantType = "team"
+		});
+		createInviteResponse.StatusCode.Should().Be(HttpStatusCode.Created, "invite creation should succeed");
+
+		// Step 4: Archive the tournament by setting end date to the past
+		var archiveModel = new TournamentModel
+		{
+			Name = "Tournament to be Archived",
+			Description = "Test tournament for archived tournament",
+			StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-10)),
+			EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-8)),
+			Type = TournamentType.Club,
+			Country = "USA",
+			City = "Chicago",
+			Organizer = "Test Organizer",
+			IsPrivate = false
+		};
+
+		var archiveResponse = await this._client.PutAsJsonAsync($"/api/v2/tournaments/{tournamentId}", archiveModel);
+		archiveResponse.StatusCode.Should().Be(HttpStatusCode.OK, "archiving tournament should succeed");
+
+		// Step 5: Switch to team manager and try to approve the invite
+		await AuthenticateAsAsync("team_manager@example.com", "password");
+
+		var approveResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/invites/{yankeesTeamId}", new { });
+		approveResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+			"cannot approve invite for archived tournament");
+
+		var errorContent = await approveResponse.Content.ReadAsStringAsync();
+		errorContent.Should().Contain("archived", "error message should indicate tournament is archived");
 	}
 }
