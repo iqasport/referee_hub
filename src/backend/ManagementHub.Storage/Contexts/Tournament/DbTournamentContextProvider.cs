@@ -464,10 +464,9 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		// If filtering by participant, filter by user's teams
 		if (filterByParticipant != null)
 		{
-			var userUniqueId = filterByParticipant.ToString();
-			// Get team IDs where user is a team manager
-			var userTeamIds = await this.dbContext.TeamManagers
-				.Where(tm => tm.User.UniqueId == userUniqueId)
+			// Get team IDs where user is a team manager - use WithIdentifier to support both UniqueId and legacy IDs
+			var userTeamIds = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, filterByParticipant.Value)
+				.SelectMany(u => u.TeamManagers)
 				.Select(tm => new TeamIdentifier(tm.TeamId).ToString())
 				.ToListAsync(cancellationToken);
 

@@ -745,6 +745,11 @@ public class TournamentApiIntegrationTests : IClassFixture<CustomWebApplicationF
 
 		// Step 3: Team manager can see their own pending invite
 		var teamManagerInvitesResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/invites");
+		if (teamManagerInvitesResponse.StatusCode != HttpStatusCode.OK)
+		{
+			var errorContent = await teamManagerInvitesResponse.Content.ReadAsStringAsync();
+			Assert.Fail($"Team manager failed to get invites. Status: {teamManagerInvitesResponse.StatusCode}, Content: {errorContent}");
+		}
 		teamManagerInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var teamManagerInvites = await teamManagerInvitesResponse.Content.ReadFromJsonAsync<List<TournamentInviteViewModel>>(this._jsonOptions);
