@@ -83,7 +83,7 @@ jobs:
       working-directory: src/frontend
       continue-on-error: true # perform frontend testing, but ignore failure while it's broken
     - name: Test backend
-      run: dotnet test --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-test-result.xml" --filter "FullyQualifiedName!~IntegrationTests"
+      run: dotnet test ManagementHub.UnitTests/ManagementHub.UnitTests.csproj --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-test-result.xml"
       working-directory: src/backend
     # END BUILD
 
@@ -113,8 +113,7 @@ jobs:
       uses: test-summary/action@v2
       with:
         paths: |
-          src/backend/**/dotnet-test-result.xml
-          !src/backend/ManagementHub.IntegrationTests/**
+          src/backend/ManagementHub.UnitTests/dotnet-test-result.xml
       if: success() || failure()
 
     - name: Perform CodeQL Analysis
@@ -203,7 +202,7 @@ jobs:
       working-directory: src/backend
 
     - name: Run integration tests
-      run: dotnet test --no-build -c Release --verbosity normal --logger:"junit;LogFilePath=dotnet-integration-test-result.xml" --filter "FullyQualifiedName~IntegrationTests"
+      run: dotnet test ManagementHub.IntegrationTests/ManagementHub.IntegrationTests.csproj --no-build -c Release --verbosity normal --logger:"junit;LogFilePath=dotnet-integration-test-result.xml"
       working-directory: src/backend
 
     - name: Print summary header for Integration Test Summary
@@ -215,7 +214,7 @@ jobs:
       uses: test-summary/action@v2
       with:
         paths: |
-          src/backend/**/dotnet-integration-test-result.xml
+          src/backend/ManagementHub.IntegrationTests/dotnet-integration-test-result.xml
 
   publish:
     name: Build Release & Publish
