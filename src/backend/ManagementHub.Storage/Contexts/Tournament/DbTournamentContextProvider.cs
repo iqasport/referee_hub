@@ -99,10 +99,15 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
+		// Get the user's database ID using WithIdentifier (supports both UniqueId and legacy IDs)
+		var userDatabaseId = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
+			.Select(u => u.Id)
+			.FirstOrDefaultAsync(cancellationToken);
+
 		var constrainedQuery = this.dbContext.Tournaments
 			.Where(t => t.UniqueId == tournamentId.ToString());
 
-		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userId)
+		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userDatabaseId)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
@@ -395,25 +400,48 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
 	{
-		// Get the user's unique ID for the Where clause
-		var userUniqueId = userId.ToString();
+		// Convert userId to string for comparison
+		var userIdString = userId.ToString();
+		
+		// Get the user's database ID using a join with WithIdentifier
+		// This works for both UniqueId and legacy IDs
+		var userDatabaseIds = UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
+			.Select(u => u.Id);
 
 		// Order and filter the tournaments BEFORE projection to allow EF Core to translate the query
 		var filteredTournaments = tournaments
 			// Sort by whether user is involved (tournaments where user is manager or team manager of participant appear first)
-			// This is computed as a subquery that EF Core can translate to SQL
-			.OrderByDescending(t => t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId) ||
-				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => teamMgr.User.UniqueId == userUniqueId)))
+			// Join with user table to support both UniqueId and legacy IDs
+			.OrderByDescending(t => t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))))
 			// Then sort by start date (most recent first)
 			.ThenByDescending(t => t.StartDate)
 			// Filter private tournaments at the entity level BEFORE projection
 			// Only show private tournaments where the user is involved (is a tournament manager OR team manager of participant)
 			// Public tournaments are visible to everyone
 			.Where(t => !t.IsPrivate ||
-				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId) ||
-				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => teamMgr.User.UniqueId == userUniqueId)));
+				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))));
 
-		return this.BuildTournamentContextQuery(filteredTournaments, userId);
+		// Build the final query with IsCurrentUserInvolved computed via join
+		return filteredTournaments.AsNoTracking()
+			.Select(t => new DbTournamentContext(
+				TournamentIdentifier.Parse(t.UniqueId),
+				t.Name,
+				t.Description,
+				t.StartDate,
+				t.EndDate,
+				t.Type,
+				t.Country,
+				t.City,
+				t.Place,
+				t.Organizer,
+				t.IsPrivate,
+				// IsCurrentUserInvolved: computed via database join
+				// User is involved if they manage this tournament OR manage a participating team
+				// Phase 4 will extend: || user is on a roster
+				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId)))));
 	}
 
 	/// <summary>
@@ -423,12 +451,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	/// <param name="tournaments">Constrained IQueryable of tournaments (can be filtered by ID, search terms, etc.)</param>
 	/// <param name="userId">The user identifier for computing IsCurrentUserInvolved</param>
 	/// <returns>IQueryable of ITournamentContext with all joins and computations applied</returns>
-	private IQueryable<ITournamentContext> BuildTournamentContextQuery(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
+	private IQueryable<ITournamentContext> BuildTournamentContextQuery(IQueryable<Models.Data.Tournament> tournaments, long userDatabaseId)
 	{
-		// Get the user's unique ID for joins
-		// This will be used in the select projection for database-level joins
-		var userUniqueId = userId.ToString();
-
 		return tournaments.AsNoTracking()
 			.Select(t => new DbTournamentContext(
 				TournamentIdentifier.Parse(t.UniqueId),
@@ -445,8 +469,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				// IsCurrentUserInvolved: computed via database join
 				// User is involved if they manage this tournament OR manage a participating team
 				// Phase 4 will extend: || user is on a roster
-				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId) ||
-				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => teamMgr.User.UniqueId == userUniqueId))));
+				t.TournamentManagers.Any(tm => tm.UserId == userDatabaseId) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => teamMgr.UserId == userDatabaseId))));
 	}
 
 	// Phase 3: Invite management methods
