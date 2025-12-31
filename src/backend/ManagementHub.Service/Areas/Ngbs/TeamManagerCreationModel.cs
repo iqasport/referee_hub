@@ -12,17 +12,22 @@ public class TeamManagerCreationModel
 public enum TeamManagerCreationStatus
 {
 	/// <summary>
+	/// The provided email is not a valid value.
+	/// </summary>
+	InvalidEmail = 0,
+
+	/// <summary>
 	/// The user doesn't exist and the request did not ask to create the account.
 	/// </summary>
-	UserDoesNotExist = 0,
+	UserDoesNotExist = 1,
 
 	/// <summary>
 	/// Manager role added to an existing user.
 	/// </summary>
-	ManagerRoleAdded = 1,
+	ManagerRoleAdded = 2,
 
 	/// <summary>
 	/// Manager user has been created.
 	/// </summary>
-	ManagerUserCreated = 2,
+	ManagerUserCreated = 3,
 }

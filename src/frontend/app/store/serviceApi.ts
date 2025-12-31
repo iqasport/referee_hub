@@ -1145,6 +1145,7 @@ export type NgbTeamViewModelFiltered = {
   items?: NgbTeamViewModel[] | null;
 };
 export type TeamManagerCreationStatus =
+  | "InvalidEmail"
   | "UserDoesNotExist"
   | "ManagerRoleAdded"
   | "ManagerUserCreated";

@@ -408,8 +408,7 @@ public class NgbsController : ControllerBase
 		var team = await this.teamContextProvider.GetTeamAsync(teamId);
 		if (team == null)
 		{
-			this.Response.StatusCode = StatusCodes.Status404NotFound;
-			return TeamManagerCreationStatus.UserDoesNotExist;
+			throw new NotFoundException($"Team {teamId} not found");
 		}
 
 		var permissionConstraint = userContext.Roles
@@ -425,7 +424,7 @@ public class NgbsController : ControllerBase
 		if (!Email.TryParse(managerModel.Email, out var email))
 		{
 			this.Response.StatusCode = StatusCodes.Status400BadRequest;
-			return TeamManagerCreationStatus.UserDoesNotExist;
+			return TeamManagerCreationStatus.InvalidEmail;
 		}
 
 		// Add manager
@@ -464,8 +463,7 @@ public class NgbsController : ControllerBase
 		var team = await this.teamContextProvider.GetTeamAsync(teamId);
 		if (team == null)
 		{
-			this.Response.StatusCode = StatusCodes.Status404NotFound;
-			return;
+			throw new NotFoundException($"Team {teamId} not found");
 		}
 
 		var permissionConstraint = userContext.Roles
