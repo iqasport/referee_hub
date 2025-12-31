@@ -72,11 +72,11 @@ public class TeamUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthoriza
 }
 
 // Compound requirement that succeeds if ANY of the inner requirements are satisfied (OR logic)
-public class CompoundAuthorizationRequirement : UserRoleAuthorizationRequirement
+public class CompoundOrAuthorizationRequirement : UserRoleAuthorizationRequirement
 {
 	private readonly UserRoleAuthorizationRequirement[] requirements;
 
-	public CompoundAuthorizationRequirement(params UserRoleAuthorizationRequirement[] requirements)
+	public CompoundOrAuthorizationRequirement(params UserRoleAuthorizationRequirement[] requirements)
 	{
 		this.requirements = requirements;
 	}

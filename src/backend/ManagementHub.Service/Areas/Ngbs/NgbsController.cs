@@ -391,26 +391,19 @@ public class NgbsController : ControllerBase
 	[HttpGet("{ngb}/teams/{teamId}/members")]
 	[Tags("Team")]
 	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
-	public async Task<Filtered<TeamMemberViewModel>> GetTeamMembers(
+	public Filtered<TeamMemberViewModel> GetTeamMembers(
 		[FromRoute] NgbIdentifier ngb,
 		[FromRoute] TeamIdentifier teamId,
 		[FromQuery] FilteringParameters filtering)
 	{
-		// Verify team belongs to NGB
-		var team = await this.teamContextProvider.GetTeamAsync(teamId);
-		if (team == null || !team.NgbId.Equals(ngb))
-		{
-			return Enumerable.Empty<TeamMemberViewModel>().AsQueryable().AsFiltered();
-		}
+		// Get members as queryable - NGB validation is done at the lower level
+		var membersQuery = this.teamContextProvider.QueryTeamMembers(teamId, NgbConstraint.Single(ngb));
 
-		// Get members as queryable - filtering is applied within QueryTeamMembers
-		var membersQuery = this.teamContextProvider.QueryTeamMembers(teamId);
-
-		// Convert to view model and apply pagination
+		// Convert to view model
 		return membersQuery
 			.Select(m => new TeamMemberViewModel
 			{
-				UserId = m.UserId.ToString(),
+				UserId = m.UserId,
 				Name = m.Name
 			})
 			.AsFiltered();

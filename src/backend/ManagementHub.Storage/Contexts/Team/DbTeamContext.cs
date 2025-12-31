@@ -173,12 +173,28 @@ public class DbTeamContextFactory
 		return FromDatabase(team, ngbId);
 	}
 
-	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId)
+	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)
 	{
-		// Start with RefereeTeams and filter first
+		// Start with RefereeTeams and join with Teams to validate NGB constraint
+		var teamsQuery = this.dbContext.Teams.AsQueryable();
+
+		if (!ngbs.AppliesToAny)
+		{
+			teamsQuery = teamsQuery.Join(
+				this.dbContext.NationalGoverningBodies.WithConstraint(ngbs),
+				t => t.NationalGoverningBodyId,
+				n => n.Id,
+				(t, n) => t);
+		}
+
 		var query = this.dbContext.RefereeTeams
 			.Where(rt => rt.TeamId == teamId.Id)
-			.Where(rt => rt.RefereeId != null);
+			.Where(rt => rt.RefereeId != null)
+			.Join(
+				teamsQuery,
+				rt => rt.TeamId,
+				t => t.Id,
+				(rt, t) => rt);
 
 		// Join with Users
 		var usersQuery = query.Join(
@@ -202,6 +218,18 @@ public class DbTeamContextFactory
 			}
 		}
 
+		// Distinct users
+		usersQuery = usersQuery.Distinct();
+
+		// Set total count for pagination metadata
+		if (this.filteringContext.FilteringMetadata != null)
+		{
+			this.filteringContext.FilteringMetadata.TotalCount = usersQuery.Count();
+		}
+
+		// Apply pagination
+		usersQuery = usersQuery.Page(this.filteringContext.FilteringParameters);
+
 		// Now project to TeamMemberInfo
 		return usersQuery
 			.Select(u => new TeamMemberInfo
@@ -210,8 +238,7 @@ public class DbTeamContextFactory
 					? UserIdentifier.Parse(u.UniqueId)
 					: UserIdentifier.FromLegacyUserId(u.Id),
 				Name = $"{u.FirstName} {u.LastName}"
-			})
-			.Distinct();
+			});
 	}
 
 	public static DbTeamContext FromDatabase(Models.Data.Team tt, NgbIdentifier ngb) => new DbTeamContext(new TeamIdentifier(tt.Id), ngb, new TeamData
