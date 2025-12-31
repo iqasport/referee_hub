@@ -256,12 +256,29 @@ public class DbTeamContextFactory
 			.FirstOrDefaultAsync();
 	}
 
-	public async Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId)
+	public async Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs)
 	{
 		var teamDbId = teamId.Id;
 
+		// Start with TeamManagers and join with Teams to validate NGB constraint
+		var teamsQuery = this.dbContext.Teams.AsQueryable();
+
+		if (!ngbs.AppliesToAny)
+		{
+			teamsQuery = teamsQuery.Join(
+				this.dbContext.NationalGoverningBodies.WithConstraint(ngbs),
+				t => t.NationalGoverningBodyId,
+				n => n.Id,
+				(t, n) => t);
+		}
+
 		var managers = await this.dbContext.TeamManagers
 			.Where(tm => tm.TeamId == teamDbId)
+			.Join(
+				teamsQuery,
+				tm => tm.TeamId,
+				t => t.Id,
+				(tm, t) => tm)
 			.Join(
 				this.dbContext.Users,
 				tm => tm.UserId,

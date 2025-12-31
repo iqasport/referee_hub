@@ -71,8 +71,8 @@ public class TeamManagersApiIntegrationTests : IClassFixture<TestWebApplicationF
 	[Fact]
 	public async Task GetTeamManagers_AsUnauthorizedUser_ShouldReturnUnauthorized()
 	{
-		// Arrange: Sign in as regular referee
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		// Arrange: Sign in as regular player (not a team manager or NGB admin)
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "sarah.player@example.com", "password");
 
 		// Act: Try to get team managers
 		var response = await this._client.GetAsync("/api/v2/Ngbs/USA/teams/TM_1/managers");
@@ -229,7 +229,7 @@ public class TeamManagersApiIntegrationTests : IClassFixture<TestWebApplicationF
 	}
 
 	[Fact]
-	public async Task AddTeamManager_AsTeamManager_ShouldReturnForbidden()
+	public async Task AddTeamManager_AsTeamManager_ShouldSucceed()
 	{
 		// Arrange: Sign in as team manager
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
@@ -240,12 +240,16 @@ public class TeamManagersApiIntegrationTests : IClassFixture<TestWebApplicationF
 			CreateAccountIfNotExists = false
 		};
 
-		// Act: Try to add manager (only NGB admins can do this)
+		// Act: Add manager to their own team
 		var response = await this._client.PostAsJsonAsync("/api/v2/Ngbs/USA/teams/TM_1/managers", newManager);
 
-		// Assert: Should be forbidden
-		response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-			"team managers should not be able to add other managers via this endpoint");
+		// Assert: Should succeed
+		response.StatusCode.Should().Be(HttpStatusCode.OK,
+			"team managers should be able to add other managers to their team");
+
+		var status = await response.Content.ReadFromJsonAsync<TeamManagerCreationStatusDto>();
+		status.Should().Be(TeamManagerCreationStatusDto.ManagerRoleAdded,
+			"existing user should have manager role added");
 	}
 
 	[Fact]
@@ -304,17 +308,26 @@ public class TeamManagersApiIntegrationTests : IClassFixture<TestWebApplicationF
 	}
 
 	[Fact]
-	public async Task DeleteTeamManager_AsTeamManager_ShouldReturnForbidden()
+	public async Task DeleteTeamManager_AsTeamManager_ShouldSucceed()
 	{
-		// Arrange: Sign in as team manager
+		// Arrange: Sign in as NGB admin and add a manager first
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+		var newManager = new TeamManagerCreationModelDto
+		{
+			Email = "referee@example.com",
+			CreateAccountIfNotExists = false
+		};
+		await this._client.PostAsJsonAsync("/api/v2/Ngbs/USA/teams/TM_1/managers", newManager);
+
+		// Sign in as team manager
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		// Act: Try to delete a manager (only NGB admins can do this)
+		// Act: Delete a manager from their own team
 		var response = await this._client.DeleteAsync("/api/v2/Ngbs/USA/teams/TM_1/managers?email=referee@example.com");
 
-		// Assert: Should be forbidden
-		response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-			"team managers should not be able to remove managers via this endpoint");
+		// Assert: Should succeed
+		response.StatusCode.Should().Be(HttpStatusCode.OK,
+			"team managers should be able to remove managers from their team");
 	}
 
 	[Fact]

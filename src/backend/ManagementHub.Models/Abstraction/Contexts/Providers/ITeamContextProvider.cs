@@ -16,5 +16,5 @@ public interface ITeamContextProvider
 	Task DeleteTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId);
 	IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs);
 	IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs);
-	Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId);
+	Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs);
 }

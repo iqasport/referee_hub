@@ -389,11 +389,11 @@ public class NgbsController : ControllerBase
 	}
 
 	/// <summary>
-	/// Add a team manager to a team (NGB Admin only).
+	/// Add a team manager to a team (NGB Admin or Team Manager).
 	/// </summary>
 	[HttpPost("{ngb}/teams/{teamId}/managers")]
 	[Tags("Team")]
-	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TeamManagerCreationStatus))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(object))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(object))]
@@ -404,18 +404,23 @@ public class NgbsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Verify NGB admin has jurisdiction over this team
+		// Verify team exists and belongs to the specified NGB
 		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Single(ngb));
 		if (team == null)
 		{
 			throw new NotFoundException($"Team {teamId} not found");
 		}
 
-		var permissionConstraint = userContext.Roles
+		// Verify user has permission (either NGB admin for this NGB, or team manager for this team)
+		var hasNgbAdminPermission = userContext.Roles
 			.OfType<NgbAdminRole>()
-			.FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
+			.Any(role => role.Ngb.AppliesTo(team.NgbId));
 
-		if (!permissionConstraint.AppliesTo(team.NgbId))
+		var hasTeamManagerPermission = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
+		if (!hasNgbAdminPermission && !hasTeamManagerPermission)
 		{
 			throw new AccessDeniedException($"No permission for team {teamId}");
 		}
@@ -444,11 +449,11 @@ public class NgbsController : ControllerBase
 	}
 
 	/// <summary>
-	/// Remove a team manager from a team (NGB Admin only).
+	/// Remove a team manager from a team (NGB Admin or Team Manager).
 	/// </summary>
 	[HttpDelete("{ngb}/teams/{teamId}/managers")]
 	[Tags("Team")]
-	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -459,18 +464,23 @@ public class NgbsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Verify NGB admin has jurisdiction over this team
+		// Verify team exists and belongs to the specified NGB
 		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Single(ngb));
 		if (team == null)
 		{
 			throw new NotFoundException($"Team {teamId} not found");
 		}
 
-		var permissionConstraint = userContext.Roles
+		// Verify user has permission (either NGB admin for this NGB, or team manager for this team)
+		var hasNgbAdminPermission = userContext.Roles
 			.OfType<NgbAdminRole>()
-			.FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
+			.Any(role => role.Ngb.AppliesTo(team.NgbId));
 
-		if (!permissionConstraint.AppliesTo(team.NgbId))
+		var hasTeamManagerPermission = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
+		if (!hasNgbAdminPermission && !hasTeamManagerPermission)
 		{
 			throw new AccessDeniedException($"No permission for team {teamId}");
 		}
@@ -501,22 +511,8 @@ public class NgbsController : ControllerBase
 		[FromRoute] NgbIdentifier ngb,
 		[FromRoute] TeamIdentifier teamId)
 	{
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-
-		// Verify team belongs to NGB
-		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Single(ngb));
-		if (team == null)
-		{
-			return Enumerable.Empty<TeamManagerViewModel>();
-		}
-
-		if (!team.NgbId.Equals(ngb))
-		{
-			return Enumerable.Empty<TeamManagerViewModel>();
-		}
-
-		// Get managers
-		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId);
+		// Get managers with NGB constraint - will return empty if team doesn't belong to NGB
+		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Single(ngb));
 
 		return managers.Select(m => new TeamManagerViewModel
 		{
