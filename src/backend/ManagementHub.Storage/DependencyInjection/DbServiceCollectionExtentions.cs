@@ -9,6 +9,7 @@ using ManagementHub.Models.Abstraction.Commands.Migrations;
 using ManagementHub.Models.Abstraction.Commands.Payments;
 using ManagementHub.Models.Abstraction.Commands.Tests;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Tournament;
@@ -37,6 +38,7 @@ using ManagementHub.Storage.Database;
 using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.DbAccessors;
 using ManagementHub.Storage.Identity;
+using ManagementHub.Storage.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -130,6 +132,8 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IUpdateNgbAdminRoleCommand, UpdateNgbAdminRoleCommand>();
 
 		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
+
+		services.AddScoped<IUserDelicateInfoService, UserDelicateInfoService>();
 
 		services.AddScoped<IAttachmentRepository, AttachmentRepository>();
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();
