@@ -8,6 +8,7 @@ using Hangfire;
 using ManagementHub.Mailers;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
+using ManagementHub.Models.Configuration;
 using ManagementHub.Models.Misc;
 using ManagementHub.Processing.Domain.Tests.Policies.Extensions;
 using ManagementHub.Processing.Export;
@@ -132,6 +133,10 @@ public partial class Program
 		services.AddSingleton<ILocalFileSystemBlobUriBaseProvider, LocalFileSystemBlobUriBaseProvider>();
 
 		services.AddHostedService<EnsureMonthlyStatsSnapshot>();
+		services.AddHostedService<CleanupStaleGenderDataJob>();
+
+		services.Configure<GenderDataRetentionSettings>(
+			context.Configuration.GetSection("GenderDataRetention"));
 
 		services.ConfigureExcos<TestPolicyOverride>("TestPolicy");
 		services.ConfigureExcos<FeatureGates>("FeatureGates");

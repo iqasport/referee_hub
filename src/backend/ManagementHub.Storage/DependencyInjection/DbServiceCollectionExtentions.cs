@@ -133,6 +133,8 @@ public static class DbServiceCollectionExtentions
 
 		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
 
+		services.AddScoped<ICleanupStaleGenderDataCommand, CleanupStaleGenderDataCommand>();
+
 		services.AddScoped<IUserDelicateInfoService, UserDelicateInfoService>();
 
 		services.AddScoped<IAttachmentRepository, AttachmentRepository>();
