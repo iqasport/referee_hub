@@ -1162,7 +1162,7 @@ export type ProblemDetails = {
   [key: string]: any;
 };
 export type TeamManagerViewModel = {
-  id?: string | null;
+  id?: string;
   name?: string | null;
   email?: string | null;
 };

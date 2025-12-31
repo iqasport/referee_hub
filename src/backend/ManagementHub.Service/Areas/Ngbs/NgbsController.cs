@@ -405,7 +405,7 @@ public class NgbsController : ControllerBase
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
 		// Verify NGB admin has jurisdiction over this team
-		var team = await this.teamContextProvider.GetTeamAsync(teamId);
+		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Single(ngb));
 		if (team == null)
 		{
 			throw new NotFoundException($"Team {teamId} not found");
@@ -460,7 +460,7 @@ public class NgbsController : ControllerBase
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
 		// Verify NGB admin has jurisdiction over this team
-		var team = await this.teamContextProvider.GetTeamAsync(teamId);
+		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Single(ngb));
 		if (team == null)
 		{
 			throw new NotFoundException($"Team {teamId} not found");
@@ -504,7 +504,7 @@ public class NgbsController : ControllerBase
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
 		// Verify team belongs to NGB
-		var team = await this.teamContextProvider.GetTeamAsync(teamId);
+		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Single(ngb));
 		if (team == null)
 		{
 			return Enumerable.Empty<TeamManagerViewModel>();
@@ -520,7 +520,7 @@ public class NgbsController : ControllerBase
 
 		return managers.Select(m => new TeamManagerViewModel
 		{
-			Id = m.UserId.ToString(),
+			Id = m.UserId,
 			Name = m.Name,
 			Email = m.Email
 		});

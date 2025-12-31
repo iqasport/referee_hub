@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,6 +7,8 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -176,4 +179,35 @@ public class DbTeamContextFactory
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
 	});
+
+	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		return await this.QueryTeamsInternal(ngbs)
+			.Where(t => t.Id == teamId.Id)
+			.Select(Selector)
+			.FirstOrDefaultAsync();
+	}
+
+	public async Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId)
+	{
+		var teamDbId = teamId.Id;
+
+		var managers = await this.dbContext.TeamManagers
+			.Where(tm => tm.TeamId == teamDbId)
+			.Join(
+				this.dbContext.Users,
+				tm => tm.UserId,
+				u => u.Id,
+				(tm, u) => new ManagerInfo
+				{
+					UserId = u.UniqueId != null
+						? UserIdentifier.Parse(u.UniqueId)
+						: UserIdentifier.FromLegacyUserId(u.Id),
+					Name = $"{u.FirstName} {u.LastName}",
+					Email = u.Email
+				})
+			.ToListAsync();
+
+		return managers;
+	}
 }

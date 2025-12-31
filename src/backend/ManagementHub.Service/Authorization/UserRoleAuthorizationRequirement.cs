@@ -89,11 +89,13 @@ public class TeamManagerOrNgbAdminAuthorizationRequirement : UserRoleAuthorizati
 			return true;
 		}
 
-		// Check if user has NgbAdmin role and verify team belongs to their NGB (done in controller)
-		// For now, just check if they have NgbAdmin role - actual jurisdiction check happens in endpoint
-		if (role is INgbUserRole)
+		// Check if user has NgbAdmin role for the NGB in the route
+		if (role is INgbUserRole ngbRole)
 		{
-			return true;
+			if (context.RouteParameters.TryGetValue("ngb", out var ngbIdObject) && ngbIdObject is string ngbId)
+			{
+				return ngbRole.Ngb.AppliesTo(NgbIdentifier.Parse(ngbId));
+			}
 		}
 
 		return false;
