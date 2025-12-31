@@ -316,6 +316,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		{
 			User = teamManager,
 			Team = teams.First(), // Yankees team
+			AddedBy = teamManager, // Self-assigned for bootstrap
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		});
