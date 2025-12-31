@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -153,6 +154,58 @@ public class DbTeamContextFactory
 
 		Debug.Assert(deleted == 1);
 		await transaction.CommitAsync();
+	}
+
+	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId)
+	{
+		var team = await this.dbContext.Teams
+			.Include(t => t.NationalGoverningBody)
+			.Where(t => t.Id == teamId.Id)
+			.AsNoTracking()
+			.FirstOrDefaultAsync();
+
+		if (team == null)
+		{
+			return null;
+		}
+
+		var ngbId = new NgbIdentifier(team.NationalGoverningBody!.CountryCode);
+		return FromDatabase(team, ngbId);
+	}
+
+	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId)
+	{
+		var query = this.dbContext.RefereeTeams
+			.Where(rt => rt.TeamId == teamId.Id)
+			.Where(rt => rt.RefereeId != null)
+			.Join(
+				this.dbContext.Users,
+				rt => rt.RefereeId,
+				u => u.Id,
+				(rt, u) => new TeamMemberInfo
+				{
+					UserId = u.UniqueId != null
+						? UserIdentifier.Parse(u.UniqueId)
+						: UserIdentifier.FromLegacyUserId(u.Id),
+					Name = $"{u.FirstName} {u.LastName}"
+				});
+
+		// Apply filtering if present
+		var filter = this.filteringContext.FilteringParameters.Filter;
+		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
+		if (!string.IsNullOrEmpty(filter))
+		{
+			if (this.dbContext.Database.IsNpgsql())
+			{
+				query = query.Where(m => EF.Functions.ILike(m.Name, filter));
+			}
+			else
+			{
+				query = query.Where(m => EF.Functions.Like(m.Name, filter));
+			}
+		}
+
+		return query.Distinct();
 	}
 
 	public static DbTeamContext FromDatabase(Models.Data.Team tt, NgbIdentifier ngb) => new DbTeamContext(new TeamIdentifier(tt.Id), ngb, new TeamData
