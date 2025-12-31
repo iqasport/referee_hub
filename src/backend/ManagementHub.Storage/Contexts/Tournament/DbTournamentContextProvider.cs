@@ -243,10 +243,22 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			.Distinct()
 			.ToListAsync(cancellationToken);
 
-		// Phase 4 will add: Check if user is on roster
+		// Phase 4: Check if user is on any tournament roster
+		var rosterTournamentIds = await this.dbContext.TournamentTeamRosterEntries
+			.Where(entry => entry.UserId == user.Id)
+			.Join(
+				this.dbContext.TournamentTeamParticipants,
+				entry => entry.TournamentTeamParticipantId,
+				participant => participant.Id,
+				(entry, participant) => new { participant.Tournament.UniqueId })
+			.Where(p => tournamentIdsList.Contains(p.UniqueId))
+			.Select(p => p.UniqueId)
+			.Distinct()
+			.ToListAsync(cancellationToken);
 
 		return managerTournamentIds
 			.Concat(teamManagerTournamentIds)
+			.Concat(rosterTournamentIds)
 			.Select(id => TournamentIdentifier.Parse(id))
 			.ToHashSet();
 	}
