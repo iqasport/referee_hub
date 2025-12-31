@@ -692,7 +692,7 @@ public class TournamentsController : ControllerBase
 						var userId = UserIdentifier.FromLegacyUserId(e.UserId);
 						return new PlayerViewModel
 						{
-							UserId = userId.ToString(),
+							UserId = userId,
 							UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim(),
 							Number = e.JerseyNumber ?? string.Empty,
 							Gender = genderData.ContainsKey(userId) ? genderData[userId] : null
@@ -705,7 +705,7 @@ public class TournamentsController : ControllerBase
 					.Where(e => e.Role == RosterRole.Coach)
 					.Select(e => new StaffViewModel
 					{
-						UserId = UserIdentifier.FromLegacyUserId(e.UserId).ToString(),
+						UserId = UserIdentifier.FromLegacyUserId(e.UserId),
 						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
 					})
 					.ToList();
@@ -715,7 +715,7 @@ public class TournamentsController : ControllerBase
 					.Where(e => e.Role == RosterRole.Staff)
 					.Select(e => new StaffViewModel
 					{
-						UserId = UserIdentifier.FromLegacyUserId(e.UserId).ToString(),
+						UserId = UserIdentifier.FromLegacyUserId(e.UserId),
 						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
 					})
 					.ToList();
@@ -803,17 +803,17 @@ public class TournamentsController : ControllerBase
 		{
 			Players = model.Players.Select(p => new RosterPlayerData
 			{
-				UserId = UserIdentifier.Parse(p.UserId),
+				UserId = p.UserId,
 				JerseyNumber = p.Number,
 				Gender = p.Gender
 			}).ToList(),
 			Coaches = model.Coaches.Select(c => new RosterStaffData
 			{
-				UserId = UserIdentifier.Parse(c.UserId)
+				UserId = c.UserId
 			}).ToList(),
 			Staff = model.Staff.Select(s => new RosterStaffData
 			{
-				UserId = UserIdentifier.Parse(s.UserId)
+				UserId = s.UserId
 			}).ToList()
 		};
 
@@ -865,12 +865,9 @@ public class TournamentsController : ControllerBase
 			accessibleUserIds.Add(currentUser.UserId);
 		}
 
-		// Get database IDs for all users at once
-		var userIdStrings = userIds.Select(id => id.ToString()).ToList();
-		var userIdLegacyIds = userIds.Select(id => id.ToLegacyUserId()).ToList();
-
+		// Get database IDs for all users at once using WithIdentifiers
 		var userMapping = await this.dbContext.Users
-			.Where(u => (u.UniqueId != null && userIdStrings.Contains(u.UniqueId)) || (u.UniqueId == null && userIdLegacyIds.Contains(u.Id)))
+			.WithIdentifiers(userIds)
 			.Select(u => new
 			{
 				DbId = u.Id,
@@ -886,6 +883,7 @@ public class TournamentsController : ControllerBase
 		if (tournamentManagerRole != null)
 		{
 			// Batch query: find all players in tournaments managed by current user
+			// Use join with Users.WithIdentifier instead of custom Where clause
 			var playersInManagedTournaments = await this.dbContext.TournamentTeamRosterEntries
 				.Where(entry => userDbIds.Contains(entry.UserId) && entry.Role == RosterRole.Player)
 				.Join(
@@ -894,9 +892,11 @@ public class TournamentsController : ControllerBase
 					participant => participant.Id,
 					(entry, participant) => new { entry.UserId, participant.TournamentId })
 				.Join(
-					this.dbContext.TournamentManagers.Where(tm =>
-						tm.User.UniqueId == currentUser.UserId.ToString() ||
-						(tm.User.UniqueId == null && tm.UserId == currentUser.UserId.ToLegacyUserId())),
+					this.dbContext.TournamentManagers.Join(
+						this.dbContext.Users.WithIdentifier(currentUser.UserId),
+						tm => tm.UserId,
+						u => u.Id,
+						(tm, u) => tm),
 					x => x.TournamentId,
 					tm => tm.TournamentId,
 					(x, tm) => x.UserId)
@@ -916,30 +916,27 @@ public class TournamentsController : ControllerBase
 		var teamManagerRole = currentUser.Roles.OfType<TeamManagerRole>().FirstOrDefault();
 		if (teamManagerRole != null)
 		{
-			var currentUserDbId = await this.dbContext.Users
-				.WithIdentifier(currentUser.UserId)
-				.Select(u => u.Id)
-				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+			// Batch query: find all players in teams managed by current user
+			// Join with Users.WithIdentifier to get current user's database ID
+			var playersInManagedTeams = await this.dbContext.RefereeTeams
+				.Where(rt => rt.RefereeId.HasValue && userDbIds.Contains(rt.RefereeId.Value))
+				.Join(
+					this.dbContext.TeamManagers.Join(
+						this.dbContext.Users.WithIdentifier(currentUser.UserId),
+						tm => tm.UserId,
+						u => u.Id,
+						(tm, u) => tm),
+					rt => rt.TeamId,
+					tm => tm.TeamId,
+					(rt, tm) => rt.RefereeId.Value)
+				.Distinct()
+				.ToListAsync(this.HttpContext.RequestAborted);
 
-			if (currentUserDbId != 0)
+			foreach (var userDbId in playersInManagedTeams)
 			{
-				// Batch query: find all players in teams managed by current user
-				var playersInManagedTeams = await this.dbContext.RefereeTeams
-					.Where(rt => rt.RefereeId.HasValue && userDbIds.Contains(rt.RefereeId.Value))
-					.Join(
-						this.dbContext.TeamManagers.Where(tm => tm.UserId == currentUserDbId),
-						rt => rt.TeamId,
-						tm => tm.TeamId,
-						(rt, tm) => rt.RefereeId.Value)
-					.Distinct()
-					.ToListAsync(this.HttpContext.RequestAborted);
-
-				foreach (var userDbId in playersInManagedTeams)
+				if (userDbIdToIdentifier.TryGetValue(userDbId, out var userId) && !accessibleUserIds.Contains(userId))
 				{
-					if (userDbIdToIdentifier.TryGetValue(userDbId, out var userId) && !accessibleUserIds.Contains(userId))
-					{
-						accessibleUserIds.Add(userId);
-					}
+					accessibleUserIds.Add(userId);
 				}
 			}
 		}
@@ -951,89 +948,6 @@ public class TournamentsController : ControllerBase
 		}
 
 		return await this.userDelicateInfoService.GetMultipleUserGendersAsync(accessibleUserIds);
-	}
-
-	private async Task<bool> CanAccessUserGenderAsync(
-		UserIdentifier targetUserId,
-		IUserContext currentUser)
-	{
-		// User can see own gender
-		if (targetUserId == currentUser.UserId)
-		{
-			return true;
-		}
-
-		// Get user's database ID
-		var userDbId = await this.dbContext.Users
-			.WithIdentifier(targetUserId)
-			.Select(u => u.Id)
-			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
-
-		if (userDbId == 0)
-		{
-			return false;
-		}
-
-		// Check if current user is tournament manager where target is playing
-		var tournamentManagerRole = currentUser.Roles
-			.OfType<TournamentManagerRole>()
-			.FirstOrDefault();
-
-		if (tournamentManagerRole != null)
-		{
-			// Check if target user is a player in any tournament managed by current user
-			var isPlayerInManagedTournament = await this.dbContext.TournamentTeamRosterEntries
-				.Where(entry => entry.UserId == userDbId && entry.Role == RosterRole.Player)
-				.Join(
-					this.dbContext.TournamentTeamParticipants,
-					entry => entry.TournamentTeamParticipantId,
-					participant => participant.Id,
-					(entry, participant) => participant.TournamentId)
-				.Join(
-					this.dbContext.TournamentManagers.Where(tm => tm.User.UniqueId == currentUser.UserId.ToString() || (tm.User.UniqueId == null && tm.UserId == currentUser.UserId.ToLegacyUserId())),
-					tournamentId => tournamentId,
-					tm => tm.TournamentId,
-					(tournamentId, tm) => tournamentId)
-				.AnyAsync(this.HttpContext.RequestAborted);
-
-			if (isPlayerInManagedTournament)
-			{
-				return true;
-			}
-		}
-
-		// Check if current user is team manager where target is playing
-		var teamManagerRole = currentUser.Roles
-			.OfType<TeamManagerRole>()
-			.FirstOrDefault();
-
-		if (teamManagerRole != null)
-		{
-			// Check if target user is a player in any team managed by current user
-			var currentUserDbId = await this.dbContext.Users
-				.WithIdentifier(currentUser.UserId)
-				.Select(u => u.Id)
-				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
-
-			if (currentUserDbId != 0)
-			{
-				var isPlayerInManagedTeam = await this.dbContext.RefereeTeams
-					.Where(rt => rt.RefereeId == userDbId)
-					.Join(
-						this.dbContext.TeamManagers.Where(tm => tm.UserId == currentUserDbId),
-						rt => rt.TeamId,
-						tm => tm.TeamId,
-						(rt, tm) => rt.TeamId)
-					.AnyAsync(this.HttpContext.RequestAborted);
-
-				if (isPlayerInManagedTeam)
-				{
-					return true;
-				}
-			}
-		}
-
-		return false;
 	}
 
 	// Helper methods

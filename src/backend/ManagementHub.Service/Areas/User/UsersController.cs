@@ -239,21 +239,27 @@ public class UsersController : ControllerBase
 	{
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var gender = await this.userDelicateInfoService.GetUserGenderAsync(currentUser.UserId);
-
-		// Get user's database ID
-		var userDbId = await this.dbContext.Users
+		// Single query to get gender and tournaments where user is rostered as a player
+		var result = await this.dbContext.Users
 			.WithIdentifier(currentUser.UserId)
-			.Select(u => u.Id)
+			.GroupJoin(
+				this.dbContext.UserDelicateInfos,
+				u => u.Id,
+				udi => udi.UserId,
+				(u, genders) => new
+				{
+					UserId = u.Id,
+					Gender = genders.Select(g => g.Gender).FirstOrDefault()
+				})
 			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
 
 		var tournaments = new List<TournamentReferenceViewModel>();
 
-		if (userDbId != 0)
+		if (result != null)
 		{
 			// Get tournaments where this user is on a roster as a player
 			tournaments = await this.dbContext.TournamentTeamRosterEntries
-				.Where(entry => entry.UserId == userDbId && entry.Role == RosterRole.Player)
+				.Where(entry => entry.UserId == result.UserId && entry.Role == RosterRole.Player)
 				.Join(
 					this.dbContext.TournamentTeamParticipants,
 					entry => entry.TournamentTeamParticipantId,
@@ -271,7 +277,7 @@ public class UsersController : ControllerBase
 
 		return new UserGenderViewModel
 		{
-			Gender = gender,
+			Gender = result?.Gender,
 			ReferencedInTournaments = tournaments
 		};
 	}
@@ -285,18 +291,14 @@ public class UsersController : ControllerBase
 	{
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Get user's database ID
-		var userDbId = await this.dbContext.Users
-			.WithIdentifier(currentUser.UserId)
-			.Select(u => u.Id)
-			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
-
-		if (userDbId != 0)
-		{
-			await this.dbContext.UserDelicateInfos
-				.Where(udi => udi.UserId == userDbId)
-				.ExecuteDeleteAsync(this.HttpContext.RequestAborted);
-		}
+		// Single query to delete gender data using join with Users.WithIdentifier
+		await this.dbContext.UserDelicateInfos
+			.Join(
+				this.dbContext.Users.WithIdentifier(currentUser.UserId),
+				udi => udi.UserId,
+				u => u.Id,
+				(udi, u) => udi)
+			.ExecuteDeleteAsync(this.HttpContext.RequestAborted);
 
 		return this.Ok();
 	}

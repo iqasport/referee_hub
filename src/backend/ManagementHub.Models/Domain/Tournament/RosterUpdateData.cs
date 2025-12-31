@@ -10,14 +10,13 @@ public class RosterUpdateData
 	public required List<RosterStaffData> Staff { get; set; }
 }
 
-public class RosterPlayerData
-{
-	public required UserIdentifier UserId { get; set; }
-	public required string JerseyNumber { get; set; }
-	public string? Gender { get; set; }
-}
-
 public class RosterStaffData
 {
 	public required UserIdentifier UserId { get; set; }
+}
+
+public class RosterPlayerData : RosterStaffData
+{
+	public required string JerseyNumber { get; set; }
+	public string? Gender { get; set; }
 }

@@ -43,17 +43,15 @@ public class TournamentParticipantViewModel
 	public required List<StaffViewModel> Staff { get; set; }
 }
 
-public class PlayerViewModel
-{
-	public required string UserId { get; set; }
-	public required string UserName { get; set; }
-	public required string Number { get; set; }
-	public string? Gender { get; set; }
-}
-
 public class StaffViewModel
 {
-	public required string UserId { get; set; }
+	public required UserIdentifier UserId { get; set; }
 	public required string UserName { get; set; }
+}
+
+public class PlayerViewModel : StaffViewModel
+{
+	public required string Number { get; set; }
+	public string? Gender { get; set; }
 }
 

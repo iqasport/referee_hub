@@ -1640,10 +1640,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasConstraintName("fk_tournament_team_roster_entries_participant");
 
 			entity.HasOne(d => d.User)
-				.WithMany()
+				.WithMany(p => p.TournamentTeamRosterEntries)
 				.HasForeignKey(d => d.UserId)
 				.OnDelete(DeleteBehavior.Restrict)
-				.HasConstraintName("fk_tournament_team_roster_entries_user");
+				.HasConstraintName("fk_tournament_team_roster_entries_user")
+				.IsRequired(false);
 
 			// Check constraint: JerseyNumber required when Role = Player (0)
 			entity.ToTable(t => t.HasCheckConstraint(
@@ -1675,10 +1676,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("created_at");
 
 			entity.HasOne(d => d.User)
-				.WithMany()
-				.HasForeignKey(d => d.UserId)
+				.WithOne()
+				.HasForeignKey<UserDelicateInfo>(d => d.UserId)
 				.OnDelete(DeleteBehavior.Cascade)
-				.HasConstraintName("fk_user_delicate_info_user");
+				.HasConstraintName("fk_user_delicate_info_user")
+				.IsRequired();
 		});
 
 		modelBuilder.Entity<TeamManager>(entity =>

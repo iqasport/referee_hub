@@ -21,19 +21,13 @@ public class UserDelicateInfoService : IUserDelicateInfoService
 
 	public async Task<string?> GetUserGenderAsync(UserIdentifier userId)
 	{
-		var userDbId = await this.context.Users
+		var delicateInfo = await this.context.Users
 			.WithIdentifier(userId)
-			.Select(u => u.Id)
-			.FirstOrDefaultAsync();
-
-		if (userDbId == 0)
-		{
-			return null;
-		}
-
-		var delicateInfo = await this.context.UserDelicateInfos
-			.Where(udi => udi.UserId == userDbId)
-			.Select(udi => udi.Gender)
+			.Join(
+				this.context.UserDelicateInfos,
+				u => u.Id,
+				udi => udi.UserId,
+				(u, udi) => udi.Gender)
 			.FirstOrDefaultAsync();
 
 		return delicateInfo;
@@ -84,43 +78,24 @@ public class UserDelicateInfoService : IUserDelicateInfoService
 			return result;
 		}
 
-		// Convert all UserIdentifiers to string representations for query
-		var userIdStrings = userIdsList.Select(id => id.ToString()).ToList();
-		var userIdLegacyIds = userIdsList.Select(id => id.ToLegacyUserId()).ToList();
-
-		// Batch query to resolve all UserIdentifiers to database IDs at once
-		var userMapping = await this.context.Users
-			.Where(u => (u.UniqueId != null && userIdStrings.Contains(u.UniqueId)) || (u.UniqueId == null && userIdLegacyIds.Contains(u.Id)))
-			.Select(u => new
-			{
-				u.Id,
-				UserIdentifier = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id)
-			})
+		// Single query using WithIdentifiers to get users and their gender data
+		var genderData = await this.context.Users
+			.WithIdentifiers(userIdsList)
+			.GroupJoin(
+				this.context.UserDelicateInfos,
+				u => u.Id,
+				udi => udi.UserId,
+				(u, genders) => new
+				{
+					UserIdentifier = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id),
+					Gender = genders.Select(g => g.Gender).FirstOrDefault()
+				})
 			.ToListAsync();
 
-		if (userMapping.Count == 0)
+		// Map results to dictionary
+		foreach (var data in genderData)
 		{
-			return result;
-		}
-
-		var userDbIds = userMapping.Select(um => um.Id).ToList();
-
-		// Batch query for gender data
-		var genderData = await this.context.UserDelicateInfos
-			.Where(udi => userDbIds.Contains(udi.UserId))
-			.Select(udi => new { udi.UserId, udi.Gender })
-			.ToListAsync();
-
-		// Create a lookup from database ID to gender
-		var genderLookup = genderData.ToDictionary(g => g.UserId, g => g.Gender);
-
-		// Map results back to UserIdentifiers
-		foreach (var mapping in userMapping)
-		{
-			if (genderLookup.TryGetValue(mapping.Id, out var gender))
-			{
-				result[mapping.UserIdentifier] = gender;
-			}
+			result[data.UserIdentifier] = data.Gender;
 		}
 
 		return result;

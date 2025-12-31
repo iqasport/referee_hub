@@ -873,6 +873,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		RosterUpdateData rosterData,
 		CancellationToken cancellationToken = default)
 	{
+		using var transaction = await this.transactionProvider.BeginAsync();
+
 		var tournamentIdString = tournamentId.ToString();
 
 		// Get participant with roster entries
@@ -893,21 +895,23 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			.Distinct()
 			.ToList();
 
-		// Validate all users exist and resolve to database IDs
-		var userIdMap = new Dictionary<UserIdentifier, long>();
-		foreach (var userId in allUserIds)
-		{
-			var userDbId = await this.dbContext.Users
-				.WithIdentifier(userId)
-				.Select(u => u.Id)
-				.FirstOrDefaultAsync(cancellationToken);
-
-			if (userDbId == 0)
+		// Validate all users exist and resolve to database IDs using WithIdentifiers
+		var userMapping = await this.dbContext.Users
+			.WithIdentifiers(allUserIds)
+			.Select(u => new
 			{
-				throw new NotFoundException($"User {userId} not found");
-			}
+				Identifier = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id),
+				u.Id
+			})
+			.ToListAsync(cancellationToken);
 
-			userIdMap[userId] = userDbId;
+		var userIdMap = userMapping.ToDictionary(m => m.Identifier, m => m.Id);
+
+		// Check if all users were found
+		var missingUsers = allUserIds.Where(id => !userIdMap.ContainsKey(id)).ToList();
+		if (missingUsers.Count > 0)
+		{
+			throw new NotFoundException($"User(s) not found: {string.Join(", ", missingUsers)}");
 		}
 
 		// Validate users are team members
@@ -969,6 +973,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
+		await transaction.CommitAsync(cancellationToken);
+
 		this.logger.LogInformation(
 			"Updated roster for team {TeamId} in tournament {TournamentId}: {PlayerCount} players, {CoachCount} coaches, {StaffCount} staff",
 			teamId, tournamentId, rosterData.Players.Count, rosterData.Coaches.Count, rosterData.Staff.Count);
@@ -988,7 +994,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var userDbIdsList = userDbIds.ToList();
 		var invalidUsers = userDbIdsList.Where(uid => !teamMembers.Contains(uid)).ToList();
 
-		if (invalidUsers.Any())
+		if (invalidUsers.Count > 0)
 		{
 			throw new InvalidOperationException($"{invalidUsers.Count} user(s) are not members of the team");
 		}
