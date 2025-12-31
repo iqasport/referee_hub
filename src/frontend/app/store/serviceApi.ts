@@ -287,6 +287,18 @@ const injectedRtkApi = api
         }),
         providesTags: ["Team"],
       }),
+      getTeamMembers: build.query<GetTeamMembersApiResponse, GetTeamMembersApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/members`,
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
+        }),
+        providesTags: ["Team"],
+      }),
       getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
         query: (queryArg) => ({ url: `/api/v2/referees/me/tests/${queryArg.testId}/details` }),
         providesTags: ["Tests"],
@@ -675,6 +687,15 @@ export type GetTeamManagersApiResponse = /** status 200 Success */ TeamManagerVi
 export type GetTeamManagersApiArg = {
   ngb: string;
   teamId: string;
+};
+export type GetTeamMembersApiResponse = /** status 200 Success */ TeamMemberViewModelFiltered;
+export type GetTeamMembersApiArg = {
+  ngb: string;
+  teamId: string;
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+  skipPaging?: boolean;
 };
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
@@ -1166,6 +1187,14 @@ export type TeamManagerViewModel = {
   name?: string | null;
   email?: string | null;
 };
+export type TeamMemberViewModel = {
+  userId?: string;
+  name?: string | null;
+};
+export type TeamMemberViewModelFiltered = {
+  metadata?: FilteringMetadata;
+  items?: TeamMemberViewModel[] | null;
+};
 export type RefereeTestDetailsViewModel = {
   testId?: string;
   title?: string | null;
@@ -1349,6 +1378,7 @@ export const {
   useAddTeamManagerMutation,
   useDeleteTeamManagerMutation,
   useGetTeamManagersQuery,
+  useGetTeamMembersQuery,
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
   useEditTestMutation,
