@@ -384,4 +384,28 @@ public class NgbsController : ControllerBase
 		await this.teamContextProvider.DeleteTeamAsync(ngb, teamId);
 		return this.NoContent();
 	}
+
+	/// <summary>
+	/// List members (referees) associated with a team.
+	/// </summary>
+	[HttpGet("{ngb}/teams/{teamId}/members")]
+	[Tags("Team")]
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	public Filtered<TeamMemberViewModel> GetTeamMembers(
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute] TeamIdentifier teamId,
+		[FromQuery] FilteringParameters filtering)
+	{
+		// Get members as queryable - NGB validation is done at the lower level
+		var membersQuery = this.teamContextProvider.QueryTeamMembers(teamId, NgbConstraint.Single(ngb));
+
+		// Convert to view model
+		return membersQuery
+			.Select(m => new TeamMemberViewModel
+			{
+				UserId = m.UserId,
+				Name = m.Name
+			})
+			.AsFiltered();
+	}
 }

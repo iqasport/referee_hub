@@ -228,7 +228,25 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			LastName = "TeamManager",
 		};
 
-		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName, teamManager);
+		var playerSarah = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "sarah.player@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = "Sarah",
+			LastName = "Player",
+		};
+
+		var coachMike = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "mike.coach@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = "Mike",
+			LastName = "Coach",
+		};
+
+		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike);
 
 		dbContext.Roles.AddRange(
 			new Role
@@ -259,6 +277,18 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			{
 				AccessType = UserAccessType.Referee,
 				User = teamManager,
+				CreatedAt = DateTime.UtcNow,
+			},
+			new Role
+			{
+				AccessType = UserAccessType.Referee,
+				User = playerSarah,
+				CreatedAt = DateTime.UtcNow,
+			},
+			new Role
+			{
+				AccessType = UserAccessType.Referee,
+				User = coachMike,
 				CreatedAt = DateTime.UtcNow,
 			});
 
@@ -302,14 +332,31 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			UpdatedAt = DateTime.UtcNow,
 		});
 
-		dbContext.RefereeTeams.Add(new RefereeTeam
-		{
-			Referee = referee,
-			AssociationType = RefereeTeamAssociationType.Player,
-			Team = teams.First(),
-			CreatedAt = DateTime.UtcNow,
-			UpdatedAt = DateTime.UtcNow,
-		});
+		dbContext.RefereeTeams.AddRange(
+			new RefereeTeam
+			{
+				Referee = referee,
+				AssociationType = RefereeTeamAssociationType.Player,
+				Team = teams.First(),
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new RefereeTeam
+			{
+				Referee = playerSarah,
+				AssociationType = RefereeTeamAssociationType.Player,
+				Team = teams.First(), // Yankees team
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new RefereeTeam
+			{
+				Referee = coachMike,
+				AssociationType = RefereeTeamAssociationType.Coach,
+				Team = teams.First(), // Yankees team
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			});
 
 		// Add team manager assignment for integration tests
 		dbContext.TeamManagers.Add(new TeamManager

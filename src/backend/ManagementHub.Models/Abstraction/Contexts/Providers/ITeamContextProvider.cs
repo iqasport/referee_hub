@@ -12,4 +12,6 @@ public interface ITeamContextProvider
 	Task<bool> CheckTeamExistsInNgbAsync(NgbIdentifier ngb, TeamIdentifier teamId);
 	Task DeleteTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId);
 	IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs);
+	Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId);
+	IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs);
 }
