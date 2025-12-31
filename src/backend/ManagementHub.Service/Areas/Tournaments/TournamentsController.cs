@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
@@ -39,6 +40,7 @@ public class TournamentsController : ControllerBase
 	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly IUpdateTournamentBannerCommand updateTournamentBannerCommand;
+	private readonly IUserDelicateInfoService userDelicateInfoService;
 	private readonly ManagementHubDbContext dbContext;
 
 	public TournamentsController(
@@ -47,6 +49,7 @@ public class TournamentsController : ControllerBase
 		ITournamentContextProvider tournamentContextProvider,
 		ITeamContextProvider teamContextProvider,
 		IUpdateTournamentBannerCommand updateTournamentBannerCommand,
+		IUserDelicateInfoService userDelicateInfoService,
 		ManagementHubDbContext dbContext)
 	{
 		this.contextAccessor = contextAccessor;
@@ -54,6 +57,7 @@ public class TournamentsController : ControllerBase
 		this.tournamentContextProvider = tournamentContextProvider;
 		this.teamContextProvider = teamContextProvider;
 		this.updateTournamentBannerCommand = updateTournamentBannerCommand;
+		this.userDelicateInfoService = userDelicateInfoService;
 		this.dbContext = dbContext;
 	}
 
@@ -654,11 +658,80 @@ public class TournamentsController : ControllerBase
 		var participants = await this.tournamentContextProvider
 			.GetTournamentTeamParticipantsAsync(tournamentId, this.HttpContext.RequestAborted);
 
-		return participants.Select(p => new TournamentParticipantViewModel
+		var result = new List<TournamentParticipantViewModel>();
+
+		foreach (var participant in participants)
 		{
-			TeamId = p.TeamId,
-			TeamName = p.TeamName
-		});
+			// Load roster entries for this participant
+			var participantEntity = await this.dbContext.TournamentTeamParticipants
+				.Include(p => p.RosterEntries)
+				.ThenInclude(e => e.User)
+				.Where(p => p.TeamId == participant.TeamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
+				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+			var players = new List<PlayerViewModel>();
+			var coaches = new List<StaffViewModel>();
+			var staff = new List<StaffViewModel>();
+
+			if (participantEntity != null)
+			{
+				// Get all player user IDs for batch gender loading
+				var playerUserIds = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Player)
+					.Select(e => UserIdentifier.FromLegacyUserId(e.UserId))
+					.ToList();
+
+				// Load gender data with access control
+				var genderData = await this.GetAccessibleGenderDataAsync(playerUserIds, userContext);
+
+				// Build player view models
+				players = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Player)
+					.Select(e =>
+					{
+						var userId = UserIdentifier.FromLegacyUserId(e.UserId);
+						return new PlayerViewModel
+						{
+							UserId = userId.ToString(),
+							UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim(),
+							Number = e.JerseyNumber ?? string.Empty,
+							Gender = genderData.ContainsKey(userId) ? genderData[userId] : null
+						};
+					})
+					.ToList();
+
+				// Build coach view models
+				coaches = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Coach)
+					.Select(e => new StaffViewModel
+					{
+						UserId = UserIdentifier.FromLegacyUserId(e.UserId).ToString(),
+						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
+					})
+					.ToList();
+
+				// Build staff view models
+				staff = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Staff)
+					.Select(e => new StaffViewModel
+					{
+						UserId = UserIdentifier.FromLegacyUserId(e.UserId).ToString(),
+						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
+					})
+					.ToList();
+			}
+
+			result.Add(new TournamentParticipantViewModel
+			{
+				TeamId = participant.TeamId,
+				TeamName = participant.TeamName,
+				Players = players,
+				Coaches = coaches,
+				Staff = staff
+			});
+		}
+
+		return result;
 	}
 
 	/// <summary>
@@ -686,6 +759,198 @@ public class TournamentsController : ControllerBase
 			tournamentId, teamId, this.HttpContext.RequestAborted);
 
 		return this.Ok();
+	}
+
+	// Phase 4: Roster management
+
+	/// <summary>
+	/// Update participant roster for a tournament.
+	/// </summary>
+	[HttpPut("{tournamentId}/participants/{teamId}/roster")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> UpdateParticipantRoster(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromRoute] TeamIdentifier teamId,
+		[FromBody] UpdateRosterModel model)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify team manager for this specific team
+		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>()
+			.Any(r => r.Team.AppliesTo(teamId));
+
+		if (!isTeamManager)
+		{
+			return this.Forbid();
+		}
+
+		// Check tournament not archived
+		var tournament = await this.tournamentContextProvider
+			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+
+		if (tournament.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
+		{
+			return this.BadRequest(new { error = "Cannot modify roster of archived tournament" });
+		}
+
+		// Parse and validate roster data
+		var rosterData = new RosterUpdateData
+		{
+			Players = model.Players.Select(p => new RosterPlayerData
+			{
+				UserId = UserIdentifier.Parse(p.UserId),
+				JerseyNumber = p.Number,
+				Gender = p.Gender
+			}).ToList(),
+			Coaches = model.Coaches.Select(c => new RosterStaffData
+			{
+				UserId = UserIdentifier.Parse(c.UserId)
+			}).ToList(),
+			Staff = model.Staff.Select(s => new RosterStaffData
+			{
+				UserId = UserIdentifier.Parse(s.UserId)
+			}).ToList()
+		};
+
+		// Validate jersey numbers are unique
+		var duplicateNumbers = rosterData.Players
+			.GroupBy(p => p.JerseyNumber)
+			.Where(g => g.Count() > 1)
+			.Select(g => g.Key)
+			.ToList();
+
+		if (duplicateNumbers.Any())
+		{
+			return this.BadRequest(new
+			{
+				error = $"Duplicate jersey numbers: {string.Join(", ", duplicateNumbers)}"
+			});
+		}
+
+		// Update roster
+		try
+		{
+			await this.tournamentContextProvider.UpdateParticipantRosterAsync(
+				tournamentId, teamId, rosterData, this.HttpContext.RequestAborted);
+		}
+		catch (NotFoundException)
+		{
+			return this.NotFound(new { error = "Team is not a participant" });
+		}
+		catch (InvalidOperationException ex)
+		{
+			return this.BadRequest(new { error = ex.Message });
+		}
+
+		return this.Ok();
+	}
+
+	// Helper methods
+
+	private async Task<Dictionary<UserIdentifier, string?>> GetAccessibleGenderDataAsync(
+		List<UserIdentifier> userIds,
+		IUserContext currentUser)
+	{
+		var result = new Dictionary<UserIdentifier, string?>();
+
+		foreach (var userId in userIds)
+		{
+			if (await this.CanAccessUserGenderAsync(userId, currentUser))
+			{
+				var gender = await this.userDelicateInfoService.GetUserGenderAsync(userId);
+				result[userId] = gender;
+			}
+		}
+
+		return result;
+	}
+
+	private async Task<bool> CanAccessUserGenderAsync(
+		UserIdentifier targetUserId,
+		IUserContext currentUser)
+	{
+		// User can see own gender
+		if (targetUserId == currentUser.UserId)
+		{
+			return true;
+		}
+
+		// Get user's database ID
+		var userDbId = await this.dbContext.Users
+			.WithIdentifier(targetUserId)
+			.Select(u => u.Id)
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (userDbId == 0)
+		{
+			return false;
+		}
+
+		// Check if current user is tournament manager where target is playing
+		var tournamentManagerRole = currentUser.Roles
+			.OfType<TournamentManagerRole>()
+			.FirstOrDefault();
+
+		if (tournamentManagerRole != null)
+		{
+			// Check if target user is a player in any tournament managed by current user
+			var isPlayerInManagedTournament = await this.dbContext.TournamentTeamRosterEntries
+				.Where(entry => entry.UserId == userDbId && entry.Role == RosterRole.Player)
+				.Join(
+					this.dbContext.TournamentTeamParticipants,
+					entry => entry.TournamentTeamParticipantId,
+					participant => participant.Id,
+					(entry, participant) => participant.TournamentId)
+				.Join(
+					this.dbContext.TournamentManagers.Where(tm => tm.User.UniqueId == currentUser.UserId.ToString() || (tm.User.UniqueId == null && tm.UserId == currentUser.UserId.ToLegacyUserId())),
+					tournamentId => tournamentId,
+					tm => tm.TournamentId,
+					(tournamentId, tm) => tournamentId)
+				.AnyAsync(this.HttpContext.RequestAborted);
+
+			if (isPlayerInManagedTournament)
+			{
+				return true;
+			}
+		}
+
+		// Check if current user is team manager where target is playing
+		var teamManagerRole = currentUser.Roles
+			.OfType<TeamManagerRole>()
+			.FirstOrDefault();
+
+		if (teamManagerRole != null)
+		{
+			// Check if target user is a player in any team managed by current user
+			var currentUserDbId = await this.dbContext.Users
+				.WithIdentifier(currentUser.UserId)
+				.Select(u => u.Id)
+				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+			if (currentUserDbId != 0)
+			{
+				var isPlayerInManagedTeam = await this.dbContext.RefereeTeams
+					.Where(rt => rt.RefereeId == userDbId)
+					.Join(
+						this.dbContext.TeamManagers.Where(tm => tm.UserId == currentUserDbId),
+						rt => rt.TeamId,
+						tm => tm.TeamId,
+						(rt, tm) => rt.TeamId)
+					.AnyAsync(this.HttpContext.RequestAborted);
+
+				if (isPlayerInManagedTeam)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	// Helper methods

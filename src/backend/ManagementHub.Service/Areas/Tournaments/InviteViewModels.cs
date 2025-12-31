@@ -38,5 +38,22 @@ public class TournamentParticipantViewModel
 {
 	public required TeamIdentifier TeamId { get; set; }
 	public required string TeamName { get; set; }
+	public required List<PlayerViewModel> Players { get; set; }
+	public required List<StaffViewModel> Coaches { get; set; }
+	public required List<StaffViewModel> Staff { get; set; }
+}
+
+public class PlayerViewModel
+{
+	public required string UserId { get; set; }
+	public required string UserName { get; set; }
+	public required string Number { get; set; }
+	public string? Gender { get; set; }
+}
+
+public class StaffViewModel
+{
+	public required string UserId { get; set; }
+	public required string UserName { get; set; }
 }
 
