@@ -41,7 +41,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 				["Logging:LogLevel:Default"] = "Information",
 				["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
 				["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
-				
+
 				// Service configuration
 				["Services:UseInMemoryDatabase"] = "false",
 				["Services:SeedDatabaseWithTestData"] = "true",

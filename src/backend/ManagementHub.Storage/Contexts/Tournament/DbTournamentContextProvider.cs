@@ -418,7 +418,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	{
 		// Convert userId to string for comparison
 		var userIdString = userId.ToString();
-		
+
 		// Get the user's database ID using a join with WithIdentifier
 		// This works for both UniqueId and legacy IDs
 		var userDatabaseIds = UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
