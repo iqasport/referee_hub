@@ -189,9 +189,9 @@ public class DbTeamContextFactory
 
 		// Apply filtering BEFORE projection
 		var filter = this.filteringContext.FilteringParameters.Filter;
-		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
 		if (!string.IsNullOrEmpty(filter))
 		{
+			filter = $"%{filter}%";
 			if (this.dbContext.Database.IsNpgsql())
 			{
 				usersQuery = usersQuery.Where(u => EF.Functions.ILike($"{u.FirstName} {u.LastName}", filter));
