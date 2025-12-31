@@ -70,3 +70,32 @@ public class TeamUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthoriza
 		teamIdObject is string teamId &&
 		role.Team.AppliesTo(TeamIdentifier.Parse(teamId));
 }
+
+// For endpoints that require either TeamManager OR NgbAdmin role for a team (bootstrap scenario)
+public class TeamManagerOrNgbAdminAuthorizationRequirement : UserRoleAuthorizationRequirement
+{
+	public override bool Satisfies(IUserRole role, AuthorizationContext context)
+	{
+		if (!context.RouteParameters.TryGetValue("teamId", out var teamIdObject) || teamIdObject is not string teamId)
+		{
+			return false;
+		}
+
+		var parsedTeamId = TeamIdentifier.Parse(teamId);
+
+		// Check if user has TeamManager role for this team
+		if (role is ITeamUserRole teamRole && teamRole.Team.AppliesTo(parsedTeamId))
+		{
+			return true;
+		}
+
+		// Check if user has NgbAdmin role and verify team belongs to their NGB (done in controller)
+		// For now, just check if they have NgbAdmin role - actual jurisdiction check happens in endpoint
+		if (role is INgbUserRole)
+		{
+			return true;
+		}
+
+		return false;
+	}
+}

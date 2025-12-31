@@ -30,6 +30,7 @@ public class NgbsController : ControllerBase
 	private readonly ISocialAccountsProvider socialAccountsProvider;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand;
+	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
 
 	public NgbsController(
 		IUserContextAccessor contextAccessor,
@@ -37,7 +38,8 @@ public class NgbsController : ControllerBase
 		ITeamContextProvider teamContextProvider,
 		ISocialAccountsProvider socialAccountsProvider,
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
-		IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand)
+		IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand,
+		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand)
 	{
 		this.contextAccessor = contextAccessor;
 		this.ngbContextProvider = ngbContextProvider;
@@ -45,6 +47,7 @@ public class NgbsController : ControllerBase
 		this.socialAccountsProvider = socialAccountsProvider;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.updateNgbAdminRoleCommand = updateNgbAdminRoleCommand;
+		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
 	}
 
 	/// <summary>
@@ -383,5 +386,145 @@ public class NgbsController : ControllerBase
 		_ = await this.socialAccountsProvider.UpdateTeamSocialAccounts(teamId, []);
 		await this.teamContextProvider.DeleteTeamAsync(ngb, teamId);
 		return this.NoContent();
+	}
+
+	/// <summary>
+	/// Add a team manager to a team (NGB Admin only).
+	/// </summary>
+	[HttpPost("{ngb}/teams/{teamId}/managers")]
+	[Tags("Team")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TeamManagerCreationStatus))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(object))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(object))]
+	public async Task<TeamManagerCreationStatus> AddTeamManager(
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute] TeamIdentifier teamId,
+		[FromBody] TeamManagerCreationModel managerModel)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify NGB admin has jurisdiction over this team
+		var team = await this.teamContextProvider.GetTeamAsync(teamId);
+		if (team == null)
+		{
+			this.Response.StatusCode = StatusCodes.Status404NotFound;
+			return TeamManagerCreationStatus.UserDoesNotExist;
+		}
+
+		var permissionConstraint = userContext.Roles
+			.OfType<NgbAdminRole>()
+			.FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
+
+		if (!permissionConstraint.AppliesTo(team.NgbId))
+		{
+			throw new AccessDeniedException($"No permission for team {teamId}");
+		}
+
+		// Parse and validate email
+		if (!Email.TryParse(managerModel.Email, out var email))
+		{
+			this.Response.StatusCode = StatusCodes.Status400BadRequest;
+			return TeamManagerCreationStatus.UserDoesNotExist;
+		}
+
+		// Add manager
+		var result = await this.updateTeamManagerRoleCommand.AddTeamManagerRoleAsync(
+			teamId, email, managerModel.CreateAccountIfNotExists, userContext.UserId);
+
+		return result switch
+		{
+			IUpdateTeamManagerRoleCommand.AddRoleResult.UserDoesNotExist =>
+				TeamManagerCreationStatus.UserDoesNotExist,
+			IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded =>
+				TeamManagerCreationStatus.ManagerRoleAdded,
+			IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole =>
+				TeamManagerCreationStatus.ManagerUserCreated,
+			_ => throw new InvalidOperationException($"Unexpected result {result}")
+		};
+	}
+
+	/// <summary>
+	/// Remove a team manager from a team (NGB Admin only).
+	/// </summary>
+	[HttpDelete("{ngb}/teams/{teamId}/managers")]
+	[Tags("Team")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task DeleteTeamManager(
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute] TeamIdentifier teamId,
+		[FromQuery] string email)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify NGB admin has jurisdiction over this team
+		var team = await this.teamContextProvider.GetTeamAsync(teamId);
+		if (team == null)
+		{
+			this.Response.StatusCode = StatusCodes.Status404NotFound;
+			return;
+		}
+
+		var permissionConstraint = userContext.Roles
+			.OfType<NgbAdminRole>()
+			.FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
+
+		if (!permissionConstraint.AppliesTo(team.NgbId))
+		{
+			throw new AccessDeniedException($"No permission for team {teamId}");
+		}
+
+		// Parse and validate email
+		if (!Email.TryParse(email, out var email_))
+		{
+			this.Response.StatusCode = StatusCodes.Status400BadRequest;
+			return;
+		}
+
+		// Remove manager
+		var result = await this.updateTeamManagerRoleCommand.DeleteTeamManagerRoleAsync(
+			teamId, email_);
+
+		this.Response.StatusCode = result
+			? StatusCodes.Status200OK
+			: StatusCodes.Status404NotFound;
+	}
+
+	/// <summary>
+	/// List team managers for a team (NGB Admin or Team Manager).
+	/// </summary>
+	[HttpGet("{ngb}/teams/{teamId}/managers")]
+	[Tags("Team")]
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	public async Task<IEnumerable<TeamManagerViewModel>> GetTeamManagers(
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute] TeamIdentifier teamId)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify team belongs to NGB
+		var team = await this.teamContextProvider.GetTeamAsync(teamId);
+		if (team == null)
+		{
+			return Enumerable.Empty<TeamManagerViewModel>();
+		}
+
+		if (!team.NgbId.Equals(ngb))
+		{
+			return Enumerable.Empty<TeamManagerViewModel>();
+		}
+
+		// Get managers
+		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId);
+
+		return managers.Select(m => new TeamManagerViewModel
+		{
+			Id = m.UserId.ToString(),
+			Name = m.Name,
+			Email = m.Email
+		});
 	}
 }

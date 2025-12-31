@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,8 @@ using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Collections;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,9 +17,11 @@ namespace ManagementHub.Storage.Contexts.Team;
 public class DbTeamContextProvider : ITeamContextProvider
 {
 	private readonly DbTeamContextFactory dbTeamContextFactory;
+	private readonly ManagementHubDbContext dbContext;
 
 	public DbTeamContextProvider(ManagementHubDbContext dbContext, CollectionFilteringContext filteringContext)
 	{
+		this.dbContext = dbContext;
 		this.dbTeamContextFactory = new DbTeamContextFactory(
 			dbContext,
 			filteringContext
@@ -48,5 +53,36 @@ public class DbTeamContextProvider : ITeamContextProvider
 	public Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)
 	{
 		return this.dbTeamContextFactory.UpdateTeamAsync(ngb, teamId, teamData);
+	}
+
+	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId)
+	{
+		return await this.dbTeamContextFactory.QueryTeamsInternal(NgbConstraint.Any)
+			.Where(t => t.Id == teamId.Id)
+			.Select(DbTeamContextFactory.Selector)
+			.FirstOrDefaultAsync();
+	}
+
+	public async Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId)
+	{
+		var teamDbId = teamId.Id;
+
+		var managers = await this.dbContext.TeamManagers
+			.Where(tm => tm.TeamId == teamDbId)
+			.Join(
+				this.dbContext.Users,
+				tm => tm.UserId,
+				u => u.Id,
+				(tm, u) => new ManagerInfo
+				{
+					UserId = u.UniqueId != null
+						? UserIdentifier.Parse(u.UniqueId)
+						: UserIdentifier.FromLegacyUserId(u.Id),
+					Name = $"{u.FirstName} {u.LastName}",
+					Email = u.Email
+				})
+			.ToListAsync();
+
+		return managers;
 	}
 }
