@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
@@ -156,23 +158,6 @@ public class DbTeamContextFactory
 		await transaction.CommitAsync();
 	}
 
-	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId)
-	{
-		var team = await this.dbContext.Teams
-			.Include(t => t.NationalGoverningBody)
-			.Where(t => t.Id == teamId.Id)
-			.AsNoTracking()
-			.FirstOrDefaultAsync();
-
-		if (team == null)
-		{
-			return null;
-		}
-
-		var ngbId = new NgbIdentifier(team.NationalGoverningBody!.CountryCode);
-		return FromDatabase(team, ngbId);
-	}
-
 	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)
 	{
 		// Start with RefereeTeams and join with Teams to validate NGB constraint
@@ -262,4 +247,53 @@ public class DbTeamContextFactory
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
 	});
+
+	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		return await this.QueryTeamsInternal(ngbs)
+			.Where(t => t.Id == teamId.Id)
+			.Select(Selector)
+			.FirstOrDefaultAsync();
+	}
+
+	public async Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		var teamDbId = teamId.Id;
+
+		// Build Teams query with NGB constraint
+		var teamsQuery = this.dbContext.Teams.AsQueryable();
+
+		if (!ngbs.AppliesToAny)
+		{
+			teamsQuery = teamsQuery.Join(
+				this.dbContext.NationalGoverningBodies.WithConstraint(ngbs),
+				t => t.NationalGoverningBodyId,
+				n => n.Id,
+				(t, n) => t);
+		}
+
+		// Query TeamManagers, join with Teams to validate NGB, then join with Users to get manager info
+		var managers = await this.dbContext.TeamManagers
+			.Where(tm => tm.TeamId == teamDbId)
+			.Join(
+				teamsQuery,
+				tm => tm.TeamId,
+				t => t.Id,
+				(tm, t) => tm)
+			.Join(
+				this.dbContext.Users,
+				tm => tm.UserId,
+				u => u.Id,
+				(tm, u) => new ManagerInfo
+				{
+					UserId = u.UniqueId != null
+						? UserIdentifier.Parse(u.UniqueId)
+						: UserIdentifier.FromLegacyUserId(u.Id),
+					Name = $"{u.FirstName} {u.LastName}",
+					Email = u.Email
+				})
+			.ToListAsync();
+
+		return managers;
+	}
 }

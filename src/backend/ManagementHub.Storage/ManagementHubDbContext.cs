@@ -1614,6 +1614,8 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
 
+			entity.Property(e => e.AddedByUserId).HasColumnName("added_by_user_id");
+
 			entity.Property(e => e.CreatedAt)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
@@ -1633,6 +1635,12 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasForeignKey(d => d.UserId)
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("fk_team_managers_user");
+
+			entity.HasOne(d => d.AddedBy)
+				.WithMany(u => u.TeamManagersAdded)
+				.HasForeignKey(d => d.AddedByUserId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("fk_team_managers_added_by_user");
 		});
 
 		this.OnModelCreatingPartial(modelBuilder);

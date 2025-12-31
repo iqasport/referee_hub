@@ -3,6 +3,7 @@ using System;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251231094745_Phase5AddTeamManagerAddedBy")]
+    partial class Phase5AddTeamManagerAddedBy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
