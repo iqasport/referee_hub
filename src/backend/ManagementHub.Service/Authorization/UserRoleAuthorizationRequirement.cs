@@ -71,33 +71,27 @@ public class TeamUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthoriza
 		role.Team.AppliesTo(TeamIdentifier.Parse(teamId));
 }
 
-// For endpoints that require either TeamManager OR NgbAdmin role for a team (bootstrap scenario)
-public class TeamManagerOrNgbAdminAuthorizationRequirement : UserRoleAuthorizationRequirement
+// Compound requirement that succeeds if ANY of the inner requirements are satisfied (OR logic)
+public class CompoundOrAuthorizationRequirement : UserRoleAuthorizationRequirement
 {
+	private readonly UserRoleAuthorizationRequirement[] requirements;
+
+	public CompoundOrAuthorizationRequirement(params UserRoleAuthorizationRequirement[] requirements)
+	{
+		this.requirements = requirements;
+	}
+
 	public override bool Satisfies(IUserRole role, AuthorizationContext context)
 	{
-		if (!context.RouteParameters.TryGetValue("teamId", out var teamIdObject) || teamIdObject is not string teamId)
+		foreach (var requirement in this.requirements)
 		{
-			return false;
-		}
-
-		var parsedTeamId = TeamIdentifier.Parse(teamId);
-
-		// Check if user has TeamManager role for this team
-		if (role is ITeamUserRole teamRole && teamRole.Team.AppliesTo(parsedTeamId))
-		{
-			return true;
-		}
-
-		// Check if user has NgbAdmin role for the NGB in the route
-		if (role is INgbUserRole ngbRole)
-		{
-			if (context.RouteParameters.TryGetValue("ngb", out var ngbIdObject) && ngbIdObject is string ngbId)
+			if (requirement.Satisfies(role, context))
 			{
-				return ngbRole.Ngb.AppliesTo(NgbIdentifier.Parse(ngbId));
+				return true;
 			}
 		}
-
 		return false;
 	}
+
+	public override string ToString() => $"Compound authorization requirement ({string.Join(" OR ", this.requirements.Select(r => r.ToString()))})";
 }

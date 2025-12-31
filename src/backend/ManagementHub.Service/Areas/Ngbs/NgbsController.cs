@@ -524,5 +524,26 @@ public class NgbsController : ControllerBase
 			Name = m.Name,
 			Email = m.Email
 		});
+	/// List members (referees) associated with a team.
+	/// </summary>
+	[HttpGet("{ngb}/teams/{teamId}/members")]
+	[Tags("Team")]
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	public Filtered<TeamMemberViewModel> GetTeamMembers(
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute] TeamIdentifier teamId,
+		[FromQuery] FilteringParameters filtering)
+	{
+		// Get members as queryable - NGB validation is done at the lower level
+		var membersQuery = this.teamContextProvider.QueryTeamMembers(teamId, NgbConstraint.Single(ngb));
+
+		// Convert to view model
+		return membersQuery
+			.Select(m => new TeamMemberViewModel
+			{
+				UserId = m.UserId,
+				Name = m.Name
+			})
+			.AsFiltered();
 	}
 }

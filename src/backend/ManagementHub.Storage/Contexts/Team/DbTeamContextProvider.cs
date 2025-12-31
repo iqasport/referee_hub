@@ -57,6 +57,11 @@ public class DbTeamContextProvider : ITeamContextProvider
 		return this.dbTeamContextFactory.GetTeamAsync(teamId, ngbs);
 	}
 
+	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		return this.dbTeamContextFactory.QueryTeamMembers(teamId, ngbs);
+	}
+
 	public Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId)
 	{
 		return this.dbTeamContextFactory.GetTeamManagersAsync(teamId);
