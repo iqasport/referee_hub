@@ -260,7 +260,7 @@ public class DbTeamContextFactory
 	{
 		var teamDbId = teamId.Id;
 
-		// Start with TeamManagers and join with Teams to validate NGB constraint
+		// Build Teams query with NGB constraint
 		var teamsQuery = this.dbContext.Teams.AsQueryable();
 
 		if (!ngbs.AppliesToAny)
@@ -272,6 +272,7 @@ public class DbTeamContextFactory
 				(t, n) => t);
 		}
 
+		// Query TeamManagers, join with Teams to validate NGB, then join with Users to get manager info
 		var managers = await this.dbContext.TeamManagers
 			.Where(tm => tm.TeamId == teamDbId)
 			.Join(

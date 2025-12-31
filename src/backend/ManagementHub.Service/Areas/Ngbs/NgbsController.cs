@@ -389,7 +389,9 @@ public class NgbsController : ControllerBase
 	}
 
 	/// <summary>
-	/// Add a team manager to a team (NGB Admin or Team Manager).
+	/// Add a team manager to a team.
+	/// NGB Admins can manage any team in their jurisdiction.
+	/// Team Managers can only add managers to their own teams.
 	/// </summary>
 	[HttpPost("{ngb}/teams/{teamId}/managers")]
 	[Tags("Team")]
@@ -449,7 +451,9 @@ public class NgbsController : ControllerBase
 	}
 
 	/// <summary>
-	/// Remove a team manager from a team (NGB Admin or Team Manager).
+	/// Remove a team manager from a team.
+	/// NGB Admins can manage any team in their jurisdiction.
+	/// Team Managers can only remove managers from their own teams.
 	/// </summary>
 	[HttpDelete("{ngb}/teams/{teamId}/managers")]
 	[Tags("Team")]
