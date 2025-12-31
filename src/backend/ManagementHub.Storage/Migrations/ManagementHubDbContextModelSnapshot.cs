@@ -4,6 +4,7 @@ using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,17 +16,21 @@ namespace ManagementHub.Storage.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
+            modelBuilder
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("ManagementHub.Models.Data.ActiveStorageAttachment", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("BlobId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("blob_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -38,7 +43,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("name");
 
                     b.Property<long>("RecordId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("record_id");
 
                     b.Property<string>("RecordType")
@@ -60,11 +65,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("ByteSize")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("byte_size");
 
                     b.Property<string>("Checksum")
@@ -91,7 +97,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("key");
 
                     b.Property<string>("Metadata")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("metadata");
 
                     b.HasKey("Id");
@@ -106,11 +112,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<bool>("Correct")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("correct");
 
                     b.Property<DateTime>("CreatedAt")
@@ -119,11 +126,11 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("description");
 
                     b.Property<long>("QuestionId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("question_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -165,8 +172,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -180,7 +188,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasDefaultValueSql("''");
 
                     b.Property<int>("Level")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("level");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -189,7 +197,7 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("Version")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("version")
                         .HasDefaultValueSql("0");
 
@@ -205,11 +213,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("CertificationId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("certification_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -226,7 +235,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
@@ -254,8 +263,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -289,7 +299,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("url");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
@@ -303,8 +313,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -331,8 +342,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -368,8 +380,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -410,8 +423,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("Acronym")
                         .HasColumnType("character varying")
@@ -435,7 +449,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("image_url");
 
                     b.Property<int>("MembershipStatus")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("membership_status");
 
                     b.Property<string>("Name")
@@ -444,11 +458,11 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("name");
 
                     b.Property<int>("PlayerCount")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("player_count");
 
                     b.Property<int?>("Region")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("region");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -473,15 +487,16 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<long>("NationalGoverningBodyId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("national_governing_body_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -489,7 +504,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
@@ -506,24 +521,25 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int?>("AssistantRefereesCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("assistant_referees_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("CommunityTeamsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("community_teams_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("CompetitiveTeamsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("competitive_teams_count")
                         .HasDefaultValueSql("0");
 
@@ -533,7 +549,7 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("DevelopingTeamsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("developing_teams_count")
                         .HasDefaultValueSql("0");
 
@@ -543,29 +559,29 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("HeadRefereesCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("head_referees_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("InactiveTeamsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("inactive_teams_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<long?>("NationalGoverningBodyId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("national_governing_body_id");
 
                     b.Property<int?>("ScorekeeperRefereesCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("scorekeeper_referees_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("SnitchRefereesCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("snitch_referees_count")
                         .HasDefaultValueSql("0");
 
@@ -575,31 +591,31 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("TeamStatusChangeCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("team_status_change_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("TotalRefereesCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("total_referees_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("TotalTeamsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("total_teams_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("UncertifiedCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("uncertified_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<int?>("UniversityTeamsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("university_teams_count")
                         .HasDefaultValueSql("0");
 
@@ -609,7 +625,7 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("YouthTeamsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("youth_teams_count")
                         .HasDefaultValueSql("0");
 
@@ -624,8 +640,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -644,7 +661,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<long?>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
@@ -658,8 +675,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime?>("AcceptedAt")
                         .HasColumnType("timestamp with time zone")
@@ -670,7 +688,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("description");
 
                     b.Property<DateTime?>("RejectedAt")
@@ -698,8 +716,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -710,7 +729,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("state");
 
                     b.Property<long?>("TermId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("term_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -718,7 +737,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<long?>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
@@ -736,8 +755,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -745,25 +765,25 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("description");
 
                     b.Property<string>("Feedback")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("feedback");
 
                     b.Property<int>("PointsAvailable")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("points_available")
                         .HasDefaultValueSql("1");
 
                     b.Property<long>("SequenceId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("seq_id");
 
                     b.Property<long>("TestId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("test_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -781,11 +801,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("AnswerId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("answer_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -793,19 +814,19 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<long>("QuestionId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("question_id");
 
                     b.Property<long>("RefereeId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("referee_id");
 
                     b.Property<long>("TestAttemptId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("test_attempt_id");
 
                     b.Property<long>("TestId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("test_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -831,11 +852,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("CertificationId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("certification_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -851,7 +873,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("received_at");
 
                     b.Property<long>("RefereeId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("referee_id");
 
                     b.Property<DateTime?>("RenewedAt")
@@ -881,12 +903,13 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int?>("AssociationType")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("association_type")
                         .HasDefaultValueSql("0");
 
@@ -895,11 +918,11 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<long>("NationalGoverningBodyId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("national_governing_body_id");
 
                     b.Property<long>("RefereeId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("referee_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -920,12 +943,13 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int?>("AssociationType")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("association_type")
                         .HasDefaultValueSql("0");
 
@@ -934,11 +958,11 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<long?>("RefereeId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("referee_id");
 
                     b.Property<long?>("TeamId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("team_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -961,11 +985,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int>("AccessType")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("access_type");
 
                     b.Property<DateTime>("CreatedAt")
@@ -977,7 +1002,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<long?>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
@@ -1006,11 +1031,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int>("AccountType")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("account_type");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1018,7 +1044,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<long?>("OwnableId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("ownable_id");
 
                     b.Property<string>("OwnableType")
@@ -1045,8 +1071,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -1064,7 +1091,7 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("GroupAffiliation")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("group_affiliation")
                         .HasDefaultValueSql("0");
 
@@ -1080,7 +1107,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("name");
 
                     b.Property<long?>("NationalGoverningBodyId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("national_governing_body_id");
 
                     b.Property<string>("State")
@@ -1089,7 +1116,7 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("Status")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("status")
                         .HasDefaultValueSql("0");
 
@@ -1108,15 +1135,16 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<long>("TeamId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("team_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1124,7 +1152,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
@@ -1141,8 +1169,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1157,7 +1186,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("previous_status");
 
                     b.Property<long?>("TeamId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("team_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1175,15 +1204,16 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<bool>("Active")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("active");
 
                     b.Property<long?>("CertificationId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("certification_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1192,7 +1222,7 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("description");
 
                     b.Property<string>("Language")
@@ -1201,13 +1231,13 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("Level")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("level")
                         .HasDefaultValueSql("0");
 
                     b.Property<int>("MinimumPassPercentage")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("minimum_pass_percentage")
                         .HasDefaultValueSql("80");
 
@@ -1216,30 +1246,30 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("name");
 
                     b.Property<string>("NegativeFeedback")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("negative_feedback");
 
                     b.Property<long?>("NewLanguageId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("new_language_id");
 
                     b.Property<string>("PositiveFeedback")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("positive_feedback");
 
                     b.Property<bool?>("Recertification")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("recertification")
                         .HasDefaultValueSql("false");
 
                     b.Property<int>("TestableQuestionCount")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("testable_question_count");
 
                     b.Property<int>("TimeLimit")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("time_limit")
                         .HasDefaultValueSql("18");
 
@@ -1264,8 +1294,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1276,15 +1307,15 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("next_attempt_at");
 
                     b.Property<long?>("RefereeId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("referee_id");
 
                     b.Property<long?>("TestId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("test_id");
 
                     b.Property<int?>("TestLevel")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("test_level");
 
                     b.Property<string>("UniqueId")
@@ -1308,8 +1339,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("CertificateUrl")
                         .HasColumnType("character varying")
@@ -1324,45 +1356,45 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("duration");
 
                     b.Property<int?>("MinimumPassPercentage")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("minimum_pass_percentage");
 
                     b.Property<bool?>("Passed")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("passed");
 
                     b.Property<int?>("Percentage")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("percentage");
 
                     b.Property<int?>("PointsAvailable")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("points_available");
 
                     b.Property<int?>("PointsScored")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("points_scored");
 
                     b.Property<long>("RefereeId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("referee_id");
 
                     b.Property<long?>("TestId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("test_id");
 
                     b.Property<int?>("TestLevel")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("test_level")
                         .HasDefaultValueSql("0");
 
                     b.Property<TimeOnly?>("TimeFinished")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("time without time zone")
                         .HasColumnName("time_finished");
 
                     b.Property<TimeOnly?>("TimeStarted")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("time without time zone")
                         .HasColumnName("time_started");
 
                     b.Property<string>("UniqueId")
@@ -1386,8 +1418,9 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -1413,7 +1446,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("end_date");
 
                     b.Property<bool>("IsPrivate")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("is_private");
 
                     b.Property<string>("Name")
@@ -1435,7 +1468,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("start_date");
 
                     b.Property<int>("Type")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("type");
 
                     b.Property<string>("UniqueId")
@@ -1459,19 +1492,20 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<long>("InitiatorUserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("initiator_user_id");
 
                     b.Property<int>("ParticipantApproval")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("participant_approval");
 
                     b.Property<DateTime?>("ParticipantApprovalDate")
@@ -1489,11 +1523,11 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("participant_type");
 
                     b.Property<long>("TournamentId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("tournament_id");
 
                     b.Property<int>("TournamentManagerApproval")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("tournament_manager_approval");
 
                     b.Property<DateTime?>("TournamentManagerApprovalDate")
@@ -1515,11 +1549,12 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("AddedByUserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("added_by_user_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1527,7 +1562,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<long>("TournamentId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("tournament_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1535,14 +1570,19 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("updated_at");
 
                     b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
+
+                    b.Property<long?>("UserId1")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AddedByUserId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.HasIndex(new[] { "TournamentId", "UserId" }, "index_tournament_managers_on_tournament_id_and_user_id")
                         .IsUnique();
@@ -1554,15 +1594,16 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<long>("TeamId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("team_id");
 
                     b.Property<string>("TeamName")
@@ -1571,7 +1612,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("team_name");
 
                     b.Property<long>("TournamentId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("tournament_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1588,66 +1629,22 @@ namespace ManagementHub.Storage.Migrations
                     b.ToTable("tournament_team_participants", (string)null);
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.TournamentTeamRosterEntry", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("JerseyNumber")
-                        .HasMaxLength(5)
-                        .HasColumnType("character varying")
-                        .HasColumnName("jersey_number");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("role");
-
-                    b.Property<long>("TournamentTeamParticipantId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("tournament_team_participant_id");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex(new[] { "TournamentTeamParticipantId", "UserId" }, "index_roster_entries_on_participant_and_user")
-                        .IsUnique();
-
-                    b.ToTable("tournament_team_roster_entries", null, t =>
-                        {
-                            t.HasCheckConstraint("chk_roster_entry_jersey_number", "role != 0 OR (role = 0 AND jersey_number IS NOT NULL)");
-                        });
-                });
-
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<bool?>("Admin")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("admin")
                         .HasDefaultValueSql("false");
 
                     b.Property<string>("Bio")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("text")
                         .HasColumnName("bio");
 
                     b.Property<DateTime?>("ConfirmationSentAt")
@@ -1671,7 +1668,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("current_sign_in_at");
 
                     b.Property<string>("CurrentSignInIp")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("inet")
                         .HasColumnName("current_sign_in_ip");
 
                     b.Property<string>("Email")
@@ -1690,12 +1687,12 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<bool?>("ExportName")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("export_name")
                         .HasDefaultValueSql("true");
 
                     b.Property<int>("FailedAttempts")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("failed_attempts");
 
                     b.Property<string>("FirstName")
@@ -1711,7 +1708,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("invitation_created_at");
 
                     b.Property<int?>("InvitationLimit")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("invitation_limit");
 
                     b.Property<DateTime?>("InvitationSentAt")
@@ -1724,12 +1721,12 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<int?>("InvitationsCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("invitations_count")
                         .HasDefaultValueSql("0");
 
                     b.Property<long?>("InvitedById")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("invited_by_id");
 
                     b.Property<string>("InvitedByType")
@@ -1737,7 +1734,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("invited_by_type");
 
                     b.Property<long?>("LanguageId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("language_id");
 
                     b.Property<string>("LastName")
@@ -1749,7 +1746,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnName("last_sign_in_at");
 
                     b.Property<string>("LastSignInIp")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("inet")
                         .HasColumnName("last_sign_in_ip");
 
                     b.Property<DateTime?>("LockedAt")
@@ -1774,12 +1771,12 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Property<bool?>("ShowPronouns")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("boolean")
                         .HasColumnName("show_pronouns")
                         .HasDefaultValueSql("false");
 
                     b.Property<int>("SignInCount")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("integer")
                         .HasColumnName("sign_in_count");
 
                     b.Property<string>("StripeCustomerId")
@@ -1833,23 +1830,23 @@ namespace ManagementHub.Storage.Migrations
             modelBuilder.Entity("ManagementHub.Models.Data.UserAttribute", b =>
                 {
                     b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.Property<string>("Prefix")
                         .HasMaxLength(16)
-                        .HasColumnType("TEXT")
+                        .HasColumnType("character varying(16)")
                         .HasColumnName("prefix");
 
                     b.Property<string>("Key")
                         .HasMaxLength(128)
-                        .HasColumnType("TEXT")
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("key");
 
                     b.Property<string>("Attribute")
                         .IsRequired()
                         .HasMaxLength(4096)
-                        .HasColumnType("TEXT")
+                        .HasColumnType("character varying(4096)")
                         .HasColumnName("attribute_value");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1865,52 +1862,22 @@ namespace ManagementHub.Storage.Migrations
                     b.ToTable("user_attributes", (string)null);
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.UserDelicateInfo", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Gender")
-                        .HasColumnType("character varying")
-                        .HasColumnName("gender");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex(new[] { "UserId" }, "index_user_delicate_info_on_user_id")
-                        .IsUnique();
-
-                    b.ToTable("user_delicate_info", (string)null);
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("FriendlyName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Xml")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataProtectionKeys");
+                    b.ToTable("DataProtectionKeys", (string)null);
                 });
 
             modelBuilder.Entity("ManagementHub.Models.Data.ActiveStorageAttachment", b =>
@@ -2149,7 +2116,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasConstraintName("fk_team_managers_team");
 
                     b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithMany("TeamManagers")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
@@ -2260,11 +2227,15 @@ namespace ManagementHub.Storage.Migrations
                         .HasConstraintName("fk_tournament_managers_tournament");
 
                     b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithMany("TournamentManagers")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_tournament_managers_user");
+
+                    b.HasOne("ManagementHub.Models.Data.User", null)
+                        .WithMany("TournamentManagers")
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("AddedBy");
 
@@ -2294,27 +2265,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("Tournament");
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.TournamentTeamRosterEntry", b =>
-                {
-                    b.HasOne("ManagementHub.Models.Data.TournamentTeamParticipant", "Participant")
-                        .WithMany("RosterEntries")
-                        .HasForeignKey("TournamentTeamParticipantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_tournament_team_roster_entries_participant");
-
-                    b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_tournament_team_roster_entries_user");
-
-                    b.Navigation("Participant");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.HasOne("ManagementHub.Models.Data.Language", "Language")
@@ -2333,18 +2283,6 @@ namespace ManagementHub.Storage.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_attributes_user_user_id");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ManagementHub.Models.Data.UserDelicateInfo", b =>
-                {
-                    b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_delicate_info_user");
 
                     b.Navigation("User");
                 });
@@ -2434,11 +2372,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("TournamentTeamParticipants");
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.TournamentTeamParticipant", b =>
-                {
-                    b.Navigation("RosterEntries");
-                });
-
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.Navigation("Attributes");
@@ -2461,8 +2394,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("RefereeTeams");
 
                     b.Navigation("Roles");
-
-                    b.Navigation("TeamManagers");
 
                     b.Navigation("TestAttempts");
 

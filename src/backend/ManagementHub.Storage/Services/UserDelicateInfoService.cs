@@ -79,38 +79,47 @@ public class UserDelicateInfoService : IUserDelicateInfoService
 		var userIdsList = userIds.ToList();
 		var result = new Dictionary<UserIdentifier, string?>();
 
-		// Resolve all UserIdentifiers to database IDs
-		var userIdMap = new Dictionary<long, UserIdentifier>();
-		foreach (var userId in userIdsList)
-		{
-			var userDbId = await this.context.Users
-				.WithIdentifier(userId)
-				.Select(u => u.Id)
-				.FirstOrDefaultAsync();
-
-			if (userDbId != 0)
-			{
-				userIdMap[userDbId] = userId;
-			}
-		}
-
-		if (userIdMap.Count == 0)
+		if (userIdsList.Count == 0)
 		{
 			return result;
 		}
 
+		// Convert all UserIdentifiers to string representations for query
+		var userIdStrings = userIdsList.Select(id => id.ToString()).ToList();
+		var userIdLegacyIds = userIdsList.Select(id => id.ToLegacyUserId()).ToList();
+
+		// Batch query to resolve all UserIdentifiers to database IDs at once
+		var userMapping = await this.context.Users
+			.Where(u => (u.UniqueId != null && userIdStrings.Contains(u.UniqueId)) || (u.UniqueId == null && userIdLegacyIds.Contains(u.Id)))
+			.Select(u => new
+			{
+				u.Id,
+				UserIdentifier = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id)
+			})
+			.ToListAsync();
+
+		if (userMapping.Count == 0)
+		{
+			return result;
+		}
+
+		var userDbIds = userMapping.Select(um => um.Id).ToList();
+
 		// Batch query for gender data
 		var genderData = await this.context.UserDelicateInfos
-			.Where(udi => userIdMap.Keys.Contains(udi.UserId))
+			.Where(udi => userDbIds.Contains(udi.UserId))
 			.Select(udi => new { udi.UserId, udi.Gender })
 			.ToListAsync();
 
+		// Create a lookup from database ID to gender
+		var genderLookup = genderData.ToDictionary(g => g.UserId, g => g.Gender);
+
 		// Map results back to UserIdentifiers
-		foreach (var data in genderData)
+		foreach (var mapping in userMapping)
 		{
-			if (userIdMap.TryGetValue(data.UserId, out var userId))
+			if (genderLookup.TryGetValue(mapping.Id, out var gender))
 			{
-				result[userId] = data.Gender;
+				result[mapping.UserIdentifier] = gender;
 			}
 		}
 

@@ -42,55 +42,43 @@ public class CleanupStaleGenderDataCommand : ICleanupStaleGenderDataCommand
 		var updateThreshold = now.AddMonths(-this.settings.Value.NotUpdatedForMonths);
 		var tournamentEndThreshold = now.AddMonths(-this.settings.Value.MonthsSinceLastTournamentEnded);
 
-		// Find users with stale gender data
-		var staleGenderData = await this.context.UserDelicateInfos
+		// Single query to find all stale gender records with their tournament participation status
+		var staleGenderRecords = await this.context.UserDelicateInfos
 			.Where(udi => udi.UpdatedAt < updateThreshold)
-			.Select(udi => new { udi.UserId, udi.UpdatedAt })
+			.GroupJoin(
+				this.context.TournamentTeamRosterEntries.Where(entry => entry.Role == RosterRole.Player)
+					.Join(
+						this.context.TournamentTeamParticipants,
+						entry => entry.TournamentTeamParticipantId,
+						participant => participant.Id,
+						(entry, participant) => new { entry.UserId, participant.Tournament.EndDate }),
+				udi => udi.UserId,
+				entry => entry.UserId,
+				(udi, tournaments) => new
+				{
+					udi.UserId,
+					udi.UpdatedAt,
+					HasRecentTournament = tournaments.Any(t => t.EndDate > DateOnly.FromDateTime(tournamentEndThreshold))
+				})
+			.Where(x => !x.HasRecentTournament)
 			.ToListAsync(cancellationToken);
 
 		this.logger.LogInformation(
-			"Found {Count} gender records not updated since {Threshold}",
-			staleGenderData.Count,
-			updateThreshold);
+			"Found {Count} stale gender records eligible for deletion",
+			staleGenderRecords.Count);
 
-		var deletedCount = 0;
-
-		foreach (var record in staleGenderData)
+		if (staleGenderRecords.Count > 0)
 		{
-			// Check if user has played in any tournament that ended recently
-			var hasRecentTournament = await this.context.TournamentTeamRosterEntries
-				.Where(rosterEntry =>
-					rosterEntry.UserId == record.UserId &&
-					rosterEntry.Role == RosterRole.Player)
-				.Join(
-					this.context.TournamentTeamParticipants,
-					rosterEntry => rosterEntry.TournamentTeamParticipantId,
-					participant => participant.Id,
-					(rosterEntry, participant) => participant.Tournament)
-				.AnyAsync(tournament =>
-					tournament.EndDate > DateOnly.FromDateTime(tournamentEndThreshold),
-					cancellationToken);
+			var userIdsToDelete = staleGenderRecords.Select(r => r.UserId).ToList();
 
-			if (!hasRecentTournament)
-			{
-				// Gender data is stale - delete it
-				await this.context.UserDelicateInfos
-					.Where(udi => udi.UserId == record.UserId)
-					.ExecuteDeleteAsync(cancellationToken);
+			var deletedCount = await this.context.UserDelicateInfos
+				.Where(udi => userIdsToDelete.Contains(udi.UserId))
+				.ExecuteDeleteAsync(cancellationToken);
 
-				deletedCount++;
-
-				this.logger.LogInformation(
-					"Deleted stale gender data for user ID {UserId} (last updated: {UpdatedAt})",
-					record.UserId,
-					record.UpdatedAt);
-			}
+			this.logger.LogInformation(
+				"Deleted {DeletedCount} stale gender records",
+				deletedCount);
 		}
-
-		this.logger.LogInformation(
-			"Deleted {DeletedCount} stale gender records out of {TotalCount} candidates",
-			deletedCount,
-			staleGenderData.Count);
 
 		await transaction.CommitAsync(cancellationToken);
 	}

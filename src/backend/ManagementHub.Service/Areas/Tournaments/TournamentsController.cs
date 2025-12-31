@@ -856,18 +856,101 @@ public class TournamentsController : ControllerBase
 		List<UserIdentifier> userIds,
 		IUserContext currentUser)
 	{
-		var result = new Dictionary<UserIdentifier, string?>();
+		// First, batch check which users the current user can access
+		var accessibleUserIds = new List<UserIdentifier>();
 
-		foreach (var userId in userIds)
+		// Add current user's own ID if it's in the list
+		if (userIds.Contains(currentUser.UserId))
 		{
-			if (await this.CanAccessUserGenderAsync(userId, currentUser))
+			accessibleUserIds.Add(currentUser.UserId);
+		}
+
+		// Get database IDs for all users at once
+		var userIdStrings = userIds.Select(id => id.ToString()).ToList();
+		var userIdLegacyIds = userIds.Select(id => id.ToLegacyUserId()).ToList();
+
+		var userMapping = await this.dbContext.Users
+			.Where(u => (u.UniqueId != null && userIdStrings.Contains(u.UniqueId)) || (u.UniqueId == null && userIdLegacyIds.Contains(u.Id)))
+			.Select(u => new
 			{
-				var gender = await this.userDelicateInfoService.GetUserGenderAsync(userId);
-				result[userId] = gender;
+				DbId = u.Id,
+				Identifier = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id)
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var userDbIds = userMapping.Select(m => m.DbId).ToList();
+		var userDbIdToIdentifier = userMapping.ToDictionary(m => m.DbId, m => m.Identifier);
+
+		// Check if current user is tournament manager
+		var tournamentManagerRole = currentUser.Roles.OfType<TournamentManagerRole>().FirstOrDefault();
+		if (tournamentManagerRole != null)
+		{
+			// Batch query: find all players in tournaments managed by current user
+			var playersInManagedTournaments = await this.dbContext.TournamentTeamRosterEntries
+				.Where(entry => userDbIds.Contains(entry.UserId) && entry.Role == RosterRole.Player)
+				.Join(
+					this.dbContext.TournamentTeamParticipants,
+					entry => entry.TournamentTeamParticipantId,
+					participant => participant.Id,
+					(entry, participant) => new { entry.UserId, participant.TournamentId })
+				.Join(
+					this.dbContext.TournamentManagers.Where(tm =>
+						tm.User.UniqueId == currentUser.UserId.ToString() ||
+						(tm.User.UniqueId == null && tm.UserId == currentUser.UserId.ToLegacyUserId())),
+					x => x.TournamentId,
+					tm => tm.TournamentId,
+					(x, tm) => x.UserId)
+				.Distinct()
+				.ToListAsync(this.HttpContext.RequestAborted);
+
+			foreach (var userDbId in playersInManagedTournaments)
+			{
+				if (userDbIdToIdentifier.TryGetValue(userDbId, out var userId) && !accessibleUserIds.Contains(userId))
+				{
+					accessibleUserIds.Add(userId);
+				}
 			}
 		}
 
-		return result;
+		// Check if current user is team manager
+		var teamManagerRole = currentUser.Roles.OfType<TeamManagerRole>().FirstOrDefault();
+		if (teamManagerRole != null)
+		{
+			var currentUserDbId = await this.dbContext.Users
+				.WithIdentifier(currentUser.UserId)
+				.Select(u => u.Id)
+				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+			if (currentUserDbId != 0)
+			{
+				// Batch query: find all players in teams managed by current user
+				var playersInManagedTeams = await this.dbContext.RefereeTeams
+					.Where(rt => rt.RefereeId.HasValue && userDbIds.Contains(rt.RefereeId.Value))
+					.Join(
+						this.dbContext.TeamManagers.Where(tm => tm.UserId == currentUserDbId),
+						rt => rt.TeamId,
+						tm => tm.TeamId,
+						(rt, tm) => rt.RefereeId.Value)
+					.Distinct()
+					.ToListAsync(this.HttpContext.RequestAborted);
+
+				foreach (var userDbId in playersInManagedTeams)
+				{
+					if (userDbIdToIdentifier.TryGetValue(userDbId, out var userId) && !accessibleUserIds.Contains(userId))
+					{
+						accessibleUserIds.Add(userId);
+					}
+				}
+			}
+		}
+
+		// Batch load gender data for accessible users only
+		if (accessibleUserIds.Count == 0)
+		{
+			return new Dictionary<UserIdentifier, string?>();
+		}
+
+		return await this.userDelicateInfoService.GetMultipleUserGendersAsync(accessibleUserIds);
 	}
 
 	private async Task<bool> CanAccessUserGenderAsync(
