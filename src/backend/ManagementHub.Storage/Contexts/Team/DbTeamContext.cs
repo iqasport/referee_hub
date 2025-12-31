@@ -158,23 +158,6 @@ public class DbTeamContextFactory
 		await transaction.CommitAsync();
 	}
 
-	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId)
-	{
-		var team = await this.dbContext.Teams
-			.Include(t => t.NationalGoverningBody)
-			.Where(t => t.Id == teamId.Id)
-			.AsNoTracking()
-			.FirstOrDefaultAsync();
-
-		if (team == null)
-		{
-			return null;
-		}
-
-		var ngbId = new NgbIdentifier(team.NationalGoverningBody!.CountryCode);
-		return FromDatabase(team, ngbId);
-	}
-
 	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)
 	{
 		// Start with RefereeTeams and join with Teams to validate NGB constraint

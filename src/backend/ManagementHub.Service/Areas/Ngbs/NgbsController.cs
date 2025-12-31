@@ -524,6 +524,9 @@ public class NgbsController : ControllerBase
 			Name = m.Name,
 			Email = m.Email
 		});
+	}
+
+	/// <summary>
 	/// List members (referees) associated with a team.
 	/// </summary>
 	[HttpGet("{ngb}/teams/{teamId}/members")]
