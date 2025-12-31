@@ -110,7 +110,7 @@ public class TeamMembersApiIntegrationTests : IClassFixture<TestWebApplicationFa
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
 		// Act: Get team members with pagination
-		var response = await this._client.GetAsync("/api/v2/Ngbs/USA/teams/TM_1/members?page=1&perPage=1");
+		var response = await this._client.GetAsync("/api/v2/Ngbs/USA/teams/TM_1/members?page=1&pageSize=1");
 
 		// Assert: Response should be successful
 		response.StatusCode.Should().Be(HttpStatusCode.OK,

@@ -210,11 +210,11 @@ public class DbTeamContextFactory
 			filter = $"%{filter}%";
 			if (this.dbContext.Database.IsNpgsql())
 			{
-				usersQuery = usersQuery.Where(u => EF.Functions.ILike($"{u.FirstName} {u.LastName}", filter));
+				usersQuery = usersQuery.Where(u => EF.Functions.ILike(u.FirstName + " " + u.LastName, filter));
 			}
 			else
 			{
-				usersQuery = usersQuery.Where(u => EF.Functions.Like($"{u.FirstName} {u.LastName}", filter));
+				usersQuery = usersQuery.Where(u => EF.Functions.Like(u.FirstName + " " + u.LastName, filter));
 			}
 		}
 
