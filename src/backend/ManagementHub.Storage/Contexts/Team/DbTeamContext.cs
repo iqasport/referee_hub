@@ -175,37 +175,43 @@ public class DbTeamContextFactory
 
 	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId)
 	{
+		// Start with RefereeTeams and filter first
 		var query = this.dbContext.RefereeTeams
 			.Where(rt => rt.TeamId == teamId.Id)
-			.Where(rt => rt.RefereeId != null)
-			.Join(
-				this.dbContext.Users,
-				rt => rt.RefereeId,
-				u => u.Id,
-				(rt, u) => new TeamMemberInfo
-				{
-					UserId = u.UniqueId != null
-						? UserIdentifier.Parse(u.UniqueId)
-						: UserIdentifier.FromLegacyUserId(u.Id),
-					Name = $"{u.FirstName} {u.LastName}"
-				});
+			.Where(rt => rt.RefereeId != null);
 
-		// Apply filtering if present
+		// Join with Users
+		var usersQuery = query.Join(
+			this.dbContext.Users,
+			rt => rt.RefereeId,
+			u => u.Id,
+			(rt, u) => u);
+
+		// Apply filtering BEFORE projection
 		var filter = this.filteringContext.FilteringParameters.Filter;
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
 		if (!string.IsNullOrEmpty(filter))
 		{
 			if (this.dbContext.Database.IsNpgsql())
 			{
-				query = query.Where(m => EF.Functions.ILike(m.Name, filter));
+				usersQuery = usersQuery.Where(u => EF.Functions.ILike($"{u.FirstName} {u.LastName}", filter));
 			}
 			else
 			{
-				query = query.Where(m => EF.Functions.Like(m.Name, filter));
+				usersQuery = usersQuery.Where(u => EF.Functions.Like($"{u.FirstName} {u.LastName}", filter));
 			}
 		}
 
-		return query.Distinct();
+		// Now project to TeamMemberInfo
+		return usersQuery
+			.Select(u => new TeamMemberInfo
+			{
+				UserId = u.UniqueId != null
+					? UserIdentifier.Parse(u.UniqueId)
+					: UserIdentifier.FromLegacyUserId(u.Id),
+				Name = $"{u.FirstName} {u.LastName}"
+			})
+			.Distinct();
 	}
 
 	public static DbTeamContext FromDatabase(Models.Data.Team tt, NgbIdentifier ngb) => new DbTeamContext(new TeamIdentifier(tt.Id), ngb, new TeamData
