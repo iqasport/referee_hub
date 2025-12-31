@@ -265,6 +265,28 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Team"],
       }),
+      addTeamManager: build.mutation<AddTeamManagerApiResponse, AddTeamManagerApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/managers`,
+          method: "POST",
+          body: queryArg.teamManagerCreationModel,
+        }),
+        invalidatesTags: ["Team"],
+      }),
+      deleteTeamManager: build.mutation<DeleteTeamManagerApiResponse, DeleteTeamManagerApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/managers`,
+          method: "DELETE",
+          params: { email: queryArg.email },
+        }),
+        invalidatesTags: ["Team"],
+      }),
+      getTeamManagers: build.query<GetTeamManagersApiResponse, GetTeamManagersApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/managers`,
+        }),
+        providesTags: ["Team"],
+      }),
       getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
         query: (queryArg) => ({ url: `/api/v2/referees/me/tests/${queryArg.testId}/details` }),
         providesTags: ["Tests"],
@@ -634,6 +656,23 @@ export type UpdateNgbTeamApiArg = {
 };
 export type DeleteNgbTeamApiResponse = unknown;
 export type DeleteNgbTeamApiArg = {
+  ngb: string;
+  teamId: string;
+};
+export type AddTeamManagerApiResponse = /** status 200 Success */ TeamManagerCreationStatus;
+export type AddTeamManagerApiArg = {
+  ngb: string;
+  teamId: string;
+  teamManagerCreationModel: TeamManagerCreationModel;
+};
+export type DeleteTeamManagerApiResponse = /** status 200 Success */ void;
+export type DeleteTeamManagerApiArg = {
+  ngb: string;
+  teamId: string;
+  email?: string;
+};
+export type GetTeamManagersApiResponse = /** status 200 Success */ TeamManagerViewModel[];
+export type GetTeamManagersApiArg = {
   ngb: string;
   teamId: string;
 };
@@ -1105,6 +1144,27 @@ export type NgbTeamViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: NgbTeamViewModel[] | null;
 };
+export type TeamManagerCreationStatus =
+  | "UserDoesNotExist"
+  | "ManagerRoleAdded"
+  | "ManagerUserCreated";
+export type TeamManagerCreationModel = {
+  email?: string | null;
+  createAccountIfNotExists?: boolean;
+};
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type TeamManagerViewModel = {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+};
 export type RefereeTestDetailsViewModel = {
   testId?: string;
   title?: string | null;
@@ -1192,14 +1252,6 @@ export type TournamentManagerViewModel = {
   id?: string;
   name?: string | null;
   email?: string | null;
-};
-export type ProblemDetails = {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  [key: string]: any;
 };
 export type AddTournamentManagerModel = {
   email?: string | null;
@@ -1293,6 +1345,9 @@ export const {
   useCreateNgbTeamMutation,
   useUpdateNgbTeamMutation,
   useDeleteNgbTeamMutation,
+  useAddTeamManagerMutation,
+  useDeleteTeamManagerMutation,
+  useGetTeamManagersQuery,
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
   useEditTestMutation,
