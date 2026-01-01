@@ -46,10 +46,10 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 3: Switch to team manager for roster updates
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		// Step 4: Get user IDs for roster - use users who are actually Yankees team members
-		var refereeUserId = await this.GetUserIdByEmailAsync("referee@example.com");
+		// Step 4: Get user IDs for roster - ONLY use actual Yankees team members (playerSarah, coachMike)
 		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 		var mikeCoachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
+		var teamManagerId = await this.GetUserIdByEmailAsync("team_manager@example.com");
 
 		// Step 5: Update roster with players, coaches, and staff
 		var updateRosterModel = new UpdateRosterModel
@@ -58,14 +58,8 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			{
 				new RosterPlayerModel
 				{
-					UserId = refereeUserId,
-					Number = "7",
-					Gender = "Male"
-				},
-				new RosterPlayerModel
-				{
 					UserId = sarahPlayerId,
-					Number = "42",
+					Number = "7",
 					Gender = "Female"
 				}
 			},
@@ -73,7 +67,10 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			{
 				new RosterStaffModel { UserId = mikeCoachId }
 			},
-			Staff = new List<RosterStaffModel>()
+			Staff = new List<RosterStaffModel>
+			{
+				new RosterStaffModel { UserId = teamManagerId }
+			}
 		};
 
 		var updateResponse = await this._client.PutAsJsonAsync(
@@ -97,20 +94,17 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var participant = participants![0];
 		var players = participant.GetProperty("players").EnumerateArray().ToList();
 		var coaches = participant.GetProperty("coaches").EnumerateArray().ToList();
+		var staff = participant.GetProperty("staff").EnumerateArray().ToList();
 
-		players.Should().HaveCount(2, "should have 2 players");
+		players.Should().HaveCount(1, "should have 1 player");
 		coaches.Should().HaveCount(1, "should have 1 coach");
+		staff.Should().HaveCount(1, "should have 1 staff");
 
 		// Verify player details
-		var player1 = players.FirstOrDefault(p => p.GetProperty("number").GetString() == "7");
-		player1.ValueKind.Should().NotBe(JsonValueKind.Undefined);
-		player1.GetProperty("userId").GetString().Should().Be(refereeUserId.ToString());
-		player1.GetProperty("gender").GetString().Should().Be("Male");
-
-		var player2 = players.FirstOrDefault(p => p.GetProperty("number").GetString() == "42");
-		player2.ValueKind.Should().NotBe(JsonValueKind.Undefined);
-		player2.GetProperty("userId").GetString().Should().Be(sarahPlayerId.ToString());
-		player2.GetProperty("gender").GetString().Should().Be("Female");
+		var player1 = players[0];
+		player1.GetProperty("number").GetString().Should().Be("7");
+		player1.GetProperty("userId").GetString().Should().Be(sarahPlayerId.ToString());
+		player1.GetProperty("gender").GetString().Should().Be("Female");
 	}
 
 	[Fact]
@@ -125,17 +119,17 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 2: Switch to team manager to update roster
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		// Step 3: Get user IDs (use team members)
-		var user1 = await this.GetUserIdByEmailAsync("referee@example.com");
-		var user2 = await this.GetUserIdByEmailAsync("sarah.player@example.com");
+		// Step 3: Get user IDs (use actual Yankees team members)
+		var sarahId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
+		var mikeId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
 
 		// Step 4: Try to add players with duplicate jersey numbers
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = user1, Number = "10", Gender = "Male" },
-				new RosterPlayerModel { UserId = user2, Number = "10", Gender = "Female" }
+				new RosterPlayerModel { UserId = sarahId, Number = "10", Gender = "Female" },
+				new RosterPlayerModel { UserId = mikeId, Number = "10", Gender = "Male" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -279,14 +273,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 2: Switch to team manager to update roster
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		var refereeUserId = await this.GetUserIdByEmailAsync("referee@example.com");
+		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 
-		// Step 3: Add referee to roster with gender
+		// Step 3: Add sarah.player to roster with gender
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = refereeUserId, Number = "10", Gender = "Male" }
+				new RosterPlayerModel { UserId = sarahPlayerId, Number = "10", Gender = "Female" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -296,15 +290,15 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
 			updateRosterModel);
 
-		// Step 4: Switch back to referee to check their gender
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		// Step 4: Switch to sarah.player to check their gender
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "sarah.player@example.com", "password");
 
 		// Step 5: Get gender data
 		var response = await this._client.GetAsync("/api/v2/users/me/gender");
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var genderData = await response.Content.ReadFromJsonAsync<JsonElement>();
-		genderData.GetProperty("gender").GetString().Should().Be("Male");
+		genderData.GetProperty("gender").GetString().Should().Be("Female");
 
 		var tournaments = genderData.GetProperty("referencedInTournaments").EnumerateArray().ToList();
 		tournaments.Should().HaveCount(1, "user is in roster of 1 tournament");
@@ -324,13 +318,13 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 2: Switch to team manager to update roster
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		var refereeUserId = await this.GetUserIdByEmailAsync("referee@example.com");
+		var mikeCoachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
 
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = refereeUserId, Number = "5", Gender = "Male" }
+				new RosterPlayerModel { UserId = mikeCoachId, Number = "5", Gender = "Male" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -340,8 +334,8 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
 			updateRosterModel);
 
-		// Step 3: Switch back to referee to check and delete their gender
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		// Step 3: Switch to mike.coach to check and delete their gender
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "mike.coach@example.com", "password");
 
 		// Step 4: Verify gender exists
 		var getResponse = await this._client.GetAsync("/api/v2/users/me/gender");
