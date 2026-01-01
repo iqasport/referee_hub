@@ -43,12 +43,15 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
-		// Step 3: Get user IDs for roster
-		var refereeUserId = await this.GetUserIdByEmailAsync("referee@example.com");
-		var ngbAdminUserId = await this.GetUserIdByEmailAsync("ngb_admin@example.com");
-		var teamManagerUserId = await this.GetUserIdByEmailAsync("team_manager@example.com");
+		// Step 3: Switch to team manager for roster updates
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		// Step 4: Update roster with players, coaches, and staff
+		// Step 4: Get user IDs for roster - use users who are actually Yankees team members
+		var refereeUserId = await this.GetUserIdByEmailAsync("referee@example.com");
+		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
+		var mikeCoachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
+
+		// Step 5: Update roster with players, coaches, and staff
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
@@ -61,14 +64,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 				},
 				new RosterPlayerModel
 				{
-					UserId = ngbAdminUserId,
+					UserId = sarahPlayerId,
 					Number = "42",
 					Gender = "Female"
 				}
 			},
 			Coaches = new List<RosterStaffModel>
 			{
-				new RosterStaffModel { UserId = teamManagerUserId }
+				new RosterStaffModel { UserId = mikeCoachId }
 			},
 			Staff = new List<RosterStaffModel>()
 		};
@@ -80,7 +83,10 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"updating roster should succeed");
 
-		// Step 5: Get participants list and verify roster was updated
+		// Step 6: Switch back to tournament manager to view participants
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		// Step 7: Get participants list and verify roster was updated
 		var participantsResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/participants");
 		participantsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -103,24 +109,27 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 		var player2 = players.FirstOrDefault(p => p.GetProperty("number").GetString() == "42");
 		player2.ValueKind.Should().NotBe(JsonValueKind.Undefined);
-		player2.GetProperty("userId").GetString().Should().Be(ngbAdminUserId.ToString());
+		player2.GetProperty("userId").GetString().Should().Be(sarahPlayerId.ToString());
 		player2.GetProperty("gender").GetString().Should().Be("Female");
 	}
 
 	[Fact]
 	public async Task UpdateRoster_WithDuplicateJerseyNumbers_ShouldReturnBadRequest()
 	{
-		// Step 1: Create tournament and add team
+		// Step 1: Create tournament as referee
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
 		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "USA", "NYC");
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
-		// Step 2: Get user IDs
-		var user1 = await this.GetUserIdByEmailAsync("referee@example.com");
-		var user2 = await this.GetUserIdByEmailAsync("ngb_admin@example.com");
+		// Step 2: Switch to team manager to update roster
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		// Step 3: Try to add players with duplicate jersey numbers
+		// Step 3: Get user IDs (use team members)
+		var user1 = await this.GetUserIdByEmailAsync("referee@example.com");
+		var user2 = await this.GetUserIdByEmailAsync("sarah.player@example.com");
+
+		// Step 4: Try to add players with duplicate jersey numbers
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
@@ -141,25 +150,27 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 	}
 
 	[Fact]
-	public async Task UpdateRoster_WithNonTeamMember_ShouldReturnBadRequest()
+	public async Task UpdateRoster_WithNonTeamMember_ShouldReturnForbidden()
 	{
-		// Step 1: Create tournament and add team
+		// Step 1: Create tournament as referee
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
 		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "USA", "NYC");
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
-		// Step 2: ngbAdmin is NOT on the Yankees team (only referee, playerSarah, coachMike are on Yankees)
-		// We'll create a user ID manually since ngb_admin won't be in the team members API
-		// Using a simple approach: ngbAdmin should have a database ID (legacy ID path)
-		var ngbAdminUserId = UserIdentifier.FromLegacyUserId(2); // ngbAdmin is the 2nd user added in seed data
+		// Step 2: Switch to team manager to update roster
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
-		// Step 3: Try to add non-team-member to roster
+		// Step 3: Get ID for a user who exists but is NOT on the Yankees team
+		// iqa_admin exists in seed data but is not a Yankees team member
+		var iqaAdminUserId = await this.GetUserIdByEmailAsync("iqa_admin@example.com");
+
+		// Step 4: Try to add non-team-member to roster
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = ngbAdminUserId, Number = "1", Gender = "Male" }
+				new RosterPlayerModel { UserId = iqaAdminUserId, Number = "1", Gender = "Male" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -169,8 +180,9 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
 			updateRosterModel);
 
-		updateResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
-			"adding non-team-member should return BadRequest");
+		// Should return Forbidden because user is not authorized to add non-team-members
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+			"adding non-team-member should be forbidden");
 	}
 
 	[Fact]
@@ -217,7 +229,10 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
-		// Step 2: Try to update roster for past tournament
+		// Step 2: Switch to team manager to update roster
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+
+		// Step 3: Try to update roster for past tournament
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>(),
@@ -261,9 +276,12 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
+		// Step 2: Switch to team manager to update roster
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+
 		var refereeUserId = await this.GetUserIdByEmailAsync("referee@example.com");
 
-		// Step 2: Add referee to roster with gender
+		// Step 3: Add referee to roster with gender
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
@@ -278,7 +296,10 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
 			updateRosterModel);
 
-		// Step 3: Get gender data
+		// Step 4: Switch back to referee to check their gender
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		// Step 5: Get gender data
 		var response = await this._client.GetAsync("/api/v2/users/me/gender");
 		response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -300,6 +321,9 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
+		// Step 2: Switch to team manager to update roster
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+
 		var refereeUserId = await this.GetUserIdByEmailAsync("referee@example.com");
 
 		var updateRosterModel = new UpdateRosterModel
@@ -316,16 +340,19 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
 			updateRosterModel);
 
-		// Step 2: Verify gender exists
+		// Step 3: Switch back to referee to check and delete their gender
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		// Step 4: Verify gender exists
 		var getResponse = await this._client.GetAsync("/api/v2/users/me/gender");
 		var genderData = await getResponse.Content.ReadFromJsonAsync<JsonElement>();
 		genderData.GetProperty("gender").GetString().Should().Be("Male");
 
-		// Step 3: Delete gender
+		// Step 5: Delete gender
 		var deleteResponse = await this._client.DeleteAsync("/api/v2/users/me/gender");
 		deleteResponse.StatusCode.Should().Be(HttpStatusCode.OK, "deleting gender should succeed");
 
-		// Step 4: Verify gender is now null
+		// Step 6: Verify gender is now null
 		getResponse = await this._client.GetAsync("/api/v2/users/me/gender");
 		genderData = await getResponse.Content.ReadFromJsonAsync<JsonElement>();
 		genderData.GetProperty("gender").ValueKind.Should().Be(JsonValueKind.Null, "gender should be null after deletion");
@@ -340,13 +367,16 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
-		var ngbAdminUserId = await this.GetUserIdByEmailAsync("ngb_admin@example.com");
+		// Step 2: Switch to team manager to update roster
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+
+		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = ngbAdminUserId, Number = "8", Gender = "Female" }
+				new RosterPlayerModel { UserId = sarahPlayerId, Number = "8", Gender = "Female" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -356,7 +386,9 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
 			updateRosterModel);
 
-		// Step 2: As tournament manager (referee), get participants and verify gender is visible
+		// Step 3: Switch back to tournament manager (referee) and get participants to verify gender is visible
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
 		var participantsResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/participants");
 		var participants = await participantsResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 
@@ -381,14 +413,16 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
-		// Step 2: Add ngb_admin to roster
-		var ngbAdminUserId = await this.GetUserIdByEmailAsync("ngb_admin@example.com");
+		// Step 2: Switch to team manager to add roster member
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+
+		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 
 		var updateRosterModel = new UpdateRosterModel
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = ngbAdminUserId, Number = "99", Gender = "Male" }
+				new RosterPlayerModel { UserId = sarahPlayerId, Number = "99", Gender = "Female" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -398,8 +432,8 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
 			updateRosterModel);
 
-		// Step 3: Switch to ngb_admin (roster member) and verify they can access the tournament
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+		// Step 3: Switch to sarah.player (roster member) and verify they can access the tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "sarah.player@example.com", "password");
 
 		var getResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}");
 		getResponse.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -485,43 +519,19 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 	private async Task<UserIdentifier> GetUserIdByEmailAsync(string email)
 	{
-		// Get user ID from team members list (Yankees team has all our test users)
-		// Switch to a user who can access the team members endpoint
+		// Get user ID by authenticating as that user and calling /users/me
 		var currentAuth = this._client.DefaultRequestHeaders.Authorization;
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, email, "password");
 
-		var response = await this._client.GetAsync("/api/v2/Ngbs/USA/teams/TM_1/members");
-		response.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to get team members");
+		var response = await this._client.GetAsync("/api/v2/users/me");
+		response.StatusCode.Should().Be(HttpStatusCode.OK, $"should be able to get user info for {email}");
 
-		var membersResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
-		var members = membersResponse.GetProperty("items").EnumerateArray();
+		var userResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
+		var userId = userResponse.GetProperty("userId").GetString();
 
 		// Restore original auth
 		this._client.DefaultRequestHeaders.Authorization = currentAuth;
 
-		// Find the user by matching their first/last name
-		var userMap = new Dictionary<string, (string firstName, string lastName)>
-		{
-			["referee@example.com"] = ("Jimmy", "Referee"),
-			["ngb_admin@example.com"] = ("Jason", "NgbAdmin"),
-			["team_manager@example.com"] = ("Tom", "TeamManager")
-		};
-
-		if (!userMap.TryGetValue(email, out var names))
-		{
-			throw new ArgumentException($"Unknown test user: {email}");
-		}
-
-		foreach (var member in members)
-		{
-			var name = member.GetProperty("name").GetString();
-			if (name != null && (name.Contains(names.firstName) || name.Contains(names.lastName)))
-			{
-				var userId = member.GetProperty("userId").GetString();
-				return UserIdentifier.Parse(userId!);
-			}
-		}
-
-		throw new InvalidOperationException($"Could not find user {email} in team members");
+		return UserIdentifier.Parse(userId!);
 	}
 }
