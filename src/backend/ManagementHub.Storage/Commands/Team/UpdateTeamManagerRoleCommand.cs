@@ -47,11 +47,11 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 		{
 			if (!createUserIfNotExists)
 			{
-				this.logger.LogInformation("User with email {Email} not found", email.Value);
+				this.logger.LogInformation("User not found");
 				return IUpdateTeamManagerRoleCommand.AddRoleResult.UserDoesNotExist;
 			}
 
-			this.logger.LogInformation("Creating user with email {Email}", email.Value);
+			this.logger.LogInformation("Creating user");
 			user = new Models.Data.User
 			{
 				Email = email.Value,
@@ -126,7 +126,7 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 
 		if (user == null)
 		{
-			this.logger.LogInformation("User with email {Email} not found", email.Value);
+			this.logger.LogInformation("User not found");
 			return false;
 		}
 
