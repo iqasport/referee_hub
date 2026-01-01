@@ -3,6 +3,7 @@ using System;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251231094745_Phase5AddTeamManagerAddedBy")]
+    partial class Phase5AddTeamManagerAddedBy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -1594,53 +1597,6 @@ namespace ManagementHub.Storage.Migrations
                     b.ToTable("tournament_team_participants", (string)null);
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.TournamentTeamRosterEntry", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("JerseyNumber")
-                        .HasMaxLength(5)
-                        .HasColumnType("character varying")
-                        .HasColumnName("jersey_number");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("integer")
-                        .HasColumnName("role");
-
-                    b.Property<long>("TournamentTeamParticipantId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("tournament_team_participant_id");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex(new[] { "TournamentTeamParticipantId", "UserId" }, "index_roster_entries_on_participant_and_user")
-                        .IsUnique();
-
-                    b.ToTable("tournament_team_roster_entries", null, t =>
-                        {
-                            t.HasCheckConstraint("chk_roster_entry_jersey_number", "role != 0 OR (role = 0 AND jersey_number IS NOT NULL)");
-                        });
-                });
-
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.Property<long>("Id")
@@ -1871,39 +1827,6 @@ namespace ManagementHub.Storage.Migrations
                     b.HasKey("UserId", "Prefix", "Key");
 
                     b.ToTable("user_attributes", (string)null);
-                });
-
-            modelBuilder.Entity("ManagementHub.Models.Data.UserDelicateInfo", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Gender")
-                        .HasColumnType("character varying")
-                        .HasColumnName("gender");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex(new[] { "UserId" }, "index_user_delicate_info_on_user_id")
-                        .IsUnique();
-
-                    b.ToTable("user_delicate_info", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -2313,26 +2236,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("Tournament");
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.TournamentTeamRosterEntry", b =>
-                {
-                    b.HasOne("ManagementHub.Models.Data.TournamentTeamParticipant", "Participant")
-                        .WithMany("RosterEntries")
-                        .HasForeignKey("TournamentTeamParticipantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_tournament_team_roster_entries_participant");
-
-                    b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithMany("TournamentTeamRosterEntries")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_tournament_team_roster_entries_user");
-
-                    b.Navigation("Participant");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.HasOne("ManagementHub.Models.Data.Language", "Language")
@@ -2351,18 +2254,6 @@ namespace ManagementHub.Storage.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_attributes_user_user_id");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ManagementHub.Models.Data.UserDelicateInfo", b =>
-                {
-                    b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithOne()
-                        .HasForeignKey("ManagementHub.Models.Data.UserDelicateInfo", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_delicate_info_user");
 
                     b.Navigation("User");
                 });
@@ -2452,11 +2343,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("TournamentTeamParticipants");
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.TournamentTeamParticipant", b =>
-                {
-                    b.Navigation("RosterEntries");
-                });
-
             modelBuilder.Entity("ManagementHub.Models.Data.User", b =>
                 {
                     b.Navigation("Attributes");
@@ -2487,8 +2373,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("TestResults");
 
                     b.Navigation("TournamentManagers");
-
-                    b.Navigation("TournamentTeamRosterEntries");
                 });
 #pragma warning restore 612, 618
         }

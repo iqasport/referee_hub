@@ -24,6 +24,7 @@ using ManagementHub.Storage.Commands.Migrations;
 using ManagementHub.Storage.Commands.Ngb;
 using ManagementHub.Storage.Commands.Payments;
 using ManagementHub.Storage.Commands.Referee;
+using ManagementHub.Storage.Commands.Team;
 using ManagementHub.Storage.Commands.Tests;
 using ManagementHub.Storage.Commands.Tournament;
 using ManagementHub.Storage.Commands.User;
@@ -130,6 +131,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<ICreateNgbStatsSnapshotCommand, CreateNgbStatsSnapshotCommand>();
 		services.AddScoped<IImportTestQuestions, ImportTestQuestions>();
 		services.AddScoped<IUpdateNgbAdminRoleCommand, UpdateNgbAdminRoleCommand>();
+		services.AddScoped<IUpdateTeamManagerRoleCommand, UpdateTeamManagerRoleCommand>();
 
 		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
 
