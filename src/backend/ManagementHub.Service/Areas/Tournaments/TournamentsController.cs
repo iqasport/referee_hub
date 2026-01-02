@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
@@ -39,6 +40,7 @@ public class TournamentsController : ControllerBase
 	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly IUpdateTournamentBannerCommand updateTournamentBannerCommand;
+	private readonly IUserDelicateInfoService userDelicateInfoService;
 	private readonly ManagementHubDbContext dbContext;
 
 	public TournamentsController(
@@ -47,6 +49,7 @@ public class TournamentsController : ControllerBase
 		ITournamentContextProvider tournamentContextProvider,
 		ITeamContextProvider teamContextProvider,
 		IUpdateTournamentBannerCommand updateTournamentBannerCommand,
+		IUserDelicateInfoService userDelicateInfoService,
 		ManagementHubDbContext dbContext)
 	{
 		this.contextAccessor = contextAccessor;
@@ -54,6 +57,7 @@ public class TournamentsController : ControllerBase
 		this.tournamentContextProvider = tournamentContextProvider;
 		this.teamContextProvider = teamContextProvider;
 		this.updateTournamentBannerCommand = updateTournamentBannerCommand;
+		this.userDelicateInfoService = userDelicateInfoService;
 		this.dbContext = dbContext;
 	}
 
@@ -654,11 +658,88 @@ public class TournamentsController : ControllerBase
 		var participants = await this.tournamentContextProvider
 			.GetTournamentTeamParticipantsAsync(tournamentId, this.HttpContext.RequestAborted);
 
-		return participants.Select(p => new TournamentParticipantViewModel
+		var result = new List<TournamentParticipantViewModel>();
+
+		foreach (var participant in participants)
 		{
-			TeamId = p.TeamId,
-			TeamName = p.TeamName
-		});
+			// Load roster entries for this participant
+			var participantEntity = await this.dbContext.TournamentTeamParticipants
+				.Include(p => p.RosterEntries)
+				.ThenInclude(e => e.User)
+				.Where(p => p.TeamId == participant.TeamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
+				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+			var players = new List<PlayerViewModel>();
+			var coaches = new List<StaffViewModel>();
+			var staff = new List<StaffViewModel>();
+
+			if (participantEntity != null)
+			{
+				// Get all player user IDs for batch gender loading
+				var playerUserIds = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Player)
+					.Select(e => e.User.UniqueId != null
+						? UserIdentifier.Parse(e.User.UniqueId)
+						: UserIdentifier.FromLegacyUserId(e.UserId))
+					.ToList();
+
+				// Load gender data with access control
+				var genderData = await this.GetAccessibleGenderDataAsync(playerUserIds, userContext);
+
+				// Build player view models
+				players = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Player)
+					.Select(e =>
+					{
+						var userId = e.User.UniqueId != null
+							? UserIdentifier.Parse(e.User.UniqueId)
+							: UserIdentifier.FromLegacyUserId(e.UserId);
+						return new PlayerViewModel
+						{
+							UserId = userId,
+							UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim(),
+							Number = e.JerseyNumber ?? string.Empty,
+							Gender = genderData.ContainsKey(userId) ? genderData[userId] : null
+						};
+					})
+					.ToList();
+
+				// Build coach view models
+				coaches = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Coach)
+					.Select(e => new StaffViewModel
+					{
+						UserId = e.User.UniqueId != null
+							? UserIdentifier.Parse(e.User.UniqueId)
+							: UserIdentifier.FromLegacyUserId(e.UserId),
+						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
+					})
+					.ToList();
+
+				// Build staff view models
+				staff = participantEntity.RosterEntries
+					.Where(e => e.Role == RosterRole.Staff)
+					.Select(e => new StaffViewModel
+					{
+						UserId = e.User.UniqueId != null
+							? UserIdentifier.Parse(e.User.UniqueId)
+							: UserIdentifier.FromLegacyUserId(e.UserId),
+						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
+					})
+					.ToList();
+			}
+
+			result.Add(new TournamentParticipantViewModel
+			{
+				TeamId = participant.TeamId,
+				TeamName = participant.TeamName,
+				Players = players,
+				Coaches = coaches,
+				Staff = staff
+			});
+		}
+
+		return result;
 	}
 
 	/// <summary>
@@ -686,6 +767,202 @@ public class TournamentsController : ControllerBase
 			tournamentId, teamId, this.HttpContext.RequestAborted);
 
 		return this.Ok();
+	}
+
+	// Phase 4: Roster management
+
+	/// <summary>
+	/// Update participant roster for a tournament.
+	/// </summary>
+	[HttpPut("{tournamentId}/participants/{teamId}/roster")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> UpdateParticipantRoster(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromRoute] TeamIdentifier teamId,
+		[FromBody] UpdateRosterModel model)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify team manager for this specific team
+		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>()
+			.Any(r => r.Team.AppliesTo(teamId));
+
+		if (!isTeamManager)
+		{
+			return this.Forbid();
+		}
+
+		// Check tournament not archived
+		var tournament = await this.tournamentContextProvider
+			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+
+		if (tournament.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
+		{
+			return this.BadRequest(new { error = "Cannot modify roster of archived tournament" });
+		}
+
+		// Convert to domain models
+		var players = model.Players.Select(p => new RosterPlayerData
+		{
+			UserId = p.UserId,
+			JerseyNumber = p.Number,
+			Gender = p.Gender
+		}).ToList();
+
+		var coaches = model.Coaches.Select(c => new RosterStaffData
+		{
+			UserId = c.UserId
+		}).ToList();
+
+		var staff = model.Staff.Select(s => new RosterStaffData
+		{
+			UserId = s.UserId
+		}).ToList();
+
+		// Create roster data
+		var rosterData = new RosterUpdateData
+		{
+			Players = players,
+			Coaches = coaches,
+			Staff = staff
+		};
+
+		// Validate jersey numbers are unique
+		var duplicateNumbers = rosterData.Players
+			.GroupBy(p => p.JerseyNumber)
+			.Where(g => g.Count() > 1)
+			.Select(g => g.Key)
+			.ToList();
+
+		if (duplicateNumbers.Any())
+		{
+			return this.BadRequest(new
+			{
+				error = $"Duplicate jersey numbers: {string.Join(", ", duplicateNumbers)}"
+			});
+		}
+
+		// Update roster
+		try
+		{
+			await this.tournamentContextProvider.UpdateParticipantRosterAsync(
+				tournamentId, teamId, rosterData, this.HttpContext.RequestAborted);
+		}
+		catch (NotFoundException)
+		{
+			return this.NotFound(new { error = "Team is not a participant" });
+		}
+		catch (InvalidOperationException ex)
+		{
+			return this.BadRequest(new { error = ex.Message });
+		}
+
+		return this.Ok();
+	}
+
+	// Helper methods
+
+	private async Task<Dictionary<UserIdentifier, string?>> GetAccessibleGenderDataAsync(
+		List<UserIdentifier> userIds,
+		IUserContext currentUser)
+	{
+		// First, batch check which users the current user can access
+		var accessibleUserIds = new List<UserIdentifier>();
+
+		// Add current user's own ID if it's in the list
+		if (userIds.Contains(currentUser.UserId))
+		{
+			accessibleUserIds.Add(currentUser.UserId);
+		}
+
+		// Get database IDs for all users at once using WithIdentifiers
+		var userMapping = await this.dbContext.Users
+			.WithIdentifiers(userIds)
+			.Select(u => new
+			{
+				DbId = u.Id,
+				Identifier = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id)
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var userDbIds = userMapping.Select(m => m.DbId).ToList();
+		var userDbIdToIdentifier = userMapping.ToDictionary(m => m.DbId, m => m.Identifier);
+
+		// Check if current user is tournament manager
+		var tournamentManagerRole = currentUser.Roles.OfType<TournamentManagerRole>().FirstOrDefault();
+		if (tournamentManagerRole != null)
+		{
+			// Batch query: find all players in tournaments managed by current user
+			// Use join with Users.WithIdentifier instead of custom Where clause
+			var playersInManagedTournaments = await this.dbContext.TournamentTeamRosterEntries
+				.Where(entry => userDbIds.Contains(entry.UserId) && entry.Role == RosterRole.Player)
+				.Join(
+					this.dbContext.TournamentTeamParticipants,
+					entry => entry.TournamentTeamParticipantId,
+					participant => participant.Id,
+					(entry, participant) => new { entry.UserId, participant.TournamentId })
+				.Join(
+					this.dbContext.TournamentManagers.Join(
+						this.dbContext.Users.WithIdentifier(currentUser.UserId),
+						tm => tm.UserId,
+						u => u.Id,
+						(tm, u) => tm),
+					x => x.TournamentId,
+					tm => tm.TournamentId,
+					(x, tm) => x.UserId)
+				.Distinct()
+				.ToListAsync(this.HttpContext.RequestAborted);
+
+			foreach (var userDbId in playersInManagedTournaments)
+			{
+				if (userDbIdToIdentifier.TryGetValue(userDbId, out var userId) && !accessibleUserIds.Contains(userId))
+				{
+					accessibleUserIds.Add(userId);
+				}
+			}
+		}
+
+		// Check if current user is team manager
+		var teamManagerRole = currentUser.Roles.OfType<TeamManagerRole>().FirstOrDefault();
+		if (teamManagerRole != null)
+		{
+			// Batch query: find all players in teams managed by current user
+			// Join with Users.WithIdentifier to get current user's database ID
+			var playersInManagedTeams = await this.dbContext.RefereeTeams
+				.Where(rt => rt.RefereeId.HasValue && userDbIds.Contains(rt.RefereeId.Value))
+				.Join(
+					this.dbContext.TeamManagers.Join(
+						this.dbContext.Users.WithIdentifier(currentUser.UserId),
+						tm => tm.UserId,
+						u => u.Id,
+						(tm, u) => tm),
+					rt => rt.TeamId,
+					tm => tm.TeamId,
+					(rt, tm) => rt.RefereeId.Value)
+				.Distinct()
+				.ToListAsync(this.HttpContext.RequestAborted);
+
+			foreach (var userDbId in playersInManagedTeams)
+			{
+				if (userDbIdToIdentifier.TryGetValue(userDbId, out var userId) && !accessibleUserIds.Contains(userId))
+				{
+					accessibleUserIds.Add(userId);
+				}
+			}
+		}
+
+		// Batch load gender data for accessible users only
+		if (accessibleUserIds.Count == 0)
+		{
+			return new Dictionary<UserIdentifier, string?>();
+		}
+
+		return await this.userDelicateInfoService.GetMultipleUserGendersAsync(accessibleUserIds);
 	}
 
 	// Helper methods

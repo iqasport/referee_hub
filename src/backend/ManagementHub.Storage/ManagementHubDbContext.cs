@@ -51,10 +51,12 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	public virtual DbSet<TournamentInvite> TournamentInvites { get; set; } = null!;
 	public virtual DbSet<TournamentManager> TournamentManagers { get; set; } = null!;
 	public virtual DbSet<TournamentTeamParticipant> TournamentTeamParticipants { get; set; } = null!;
+	public virtual DbSet<TournamentTeamRosterEntry> TournamentTeamRosterEntries { get; set; } = null!;
 	public virtual DbSet<TestAttempt> TestAttempts { get; set; } = null!;
 	public virtual DbSet<TestResult> TestResults { get; set; } = null!;
 	public virtual DbSet<User> Users { get; set; } = null!;
 	public virtual DbSet<UserAttribute> UserAttributes { get; set; } = null!;
+	public virtual DbSet<UserDelicateInfo> UserDelicateInfos { get; set; } = null!;
 
 	public virtual DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
@@ -1599,6 +1601,86 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasForeignKey(d => d.TeamId)
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("fk_tournament_team_participants_team");
+		});
+
+		modelBuilder.Entity<TournamentTeamRosterEntry>(entity =>
+		{
+			entity.ToTable("tournament_team_roster_entries");
+
+			entity.HasIndex(e => new { e.TournamentTeamParticipantId, e.UserId }, "index_roster_entries_on_participant_and_user")
+				.IsUnique();
+
+			entity.Property(e => e.Id).HasColumnName("id");
+
+			entity.Property(e => e.TournamentTeamParticipantId).HasColumnName("tournament_team_participant_id");
+
+			entity.Property(e => e.UserId).HasColumnName("user_id");
+
+			entity.Property(e => e.Role)
+				.HasConversion<int>()
+				.HasColumnName("role");
+
+			entity.Property(e => e.JerseyNumber)
+				.HasMaxLength(5)
+				.HasColumnType("character varying")
+				.HasColumnName("jersey_number");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.Property(e => e.UpdatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("updated_at");
+
+			entity.HasOne(d => d.Participant)
+				.WithMany(p => p.RosterEntries)
+				.HasForeignKey(d => d.TournamentTeamParticipantId)
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("fk_tournament_team_roster_entries_participant");
+
+			entity.HasOne(d => d.User)
+				.WithMany(p => p.TournamentTeamRosterEntries)
+				.HasForeignKey(d => d.UserId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("fk_tournament_team_roster_entries_user")
+				.IsRequired(false);
+
+			// Check constraint: JerseyNumber required when Role = Player (0)
+			entity.ToTable(t => t.HasCheckConstraint(
+				"chk_roster_entry_jersey_number",
+				"role != 0 OR (role = 0 AND jersey_number IS NOT NULL)"));
+		});
+
+		modelBuilder.Entity<UserDelicateInfo>(entity =>
+		{
+			entity.ToTable("user_delicate_info");
+
+			entity.HasIndex(e => e.UserId, "index_user_delicate_info_on_user_id")
+				.IsUnique();
+
+			entity.Property(e => e.Id).HasColumnName("id");
+
+			entity.Property(e => e.UserId).HasColumnName("user_id");
+
+			entity.Property(e => e.Gender)
+				.HasColumnType("character varying")
+				.HasColumnName("gender");
+
+			entity.Property(e => e.UpdatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("updated_at");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.HasOne(d => d.User)
+				.WithOne()
+				.HasForeignKey<UserDelicateInfo>(d => d.UserId)
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("fk_user_delicate_info_user")
+				.IsRequired();
 		});
 
 		modelBuilder.Entity<TeamManager>(entity =>

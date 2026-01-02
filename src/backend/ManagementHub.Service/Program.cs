@@ -6,6 +6,7 @@ using Excos.Options.Contextual;
 using Excos.Options.Providers.Configuration;
 using Hangfire;
 using ManagementHub.Mailers;
+using ManagementHub.Models.Configuration;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Models.Misc;
@@ -133,6 +134,10 @@ public partial class Program
 		services.AddSingleton<ILocalFileSystemBlobUriBaseProvider, LocalFileSystemBlobUriBaseProvider>();
 
 		services.AddHostedService<EnsureMonthlyStatsSnapshot>();
+		services.AddHostedService<CleanupStaleGenderDataJob>();
+
+		services.Configure<GenderDataRetentionSettings>(
+			context.Configuration.GetSection("GenderDataRetention"));
 
 		services.ConfigureExcos<TestPolicyOverride>("TestPolicy");
 		services.ConfigureExcos<FeatureGates>("FeatureGates");

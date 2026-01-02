@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
 using ManagementHub.Models.Abstraction;
 
 namespace ManagementHub.Models.Data;
 
 public partial class TournamentTeamParticipant : IIdentifiable
 {
+	public TournamentTeamParticipant()
+	{
+		this.RosterEntries = new HashSet<TournamentTeamRosterEntry>();
+	}
+
 	public long Id { get; set; }
 	public long TournamentId { get; set; }
 	public long TeamId { get; set; }
@@ -14,4 +20,5 @@ public partial class TournamentTeamParticipant : IIdentifiable
 
 	public virtual Tournament Tournament { get; set; } = null!;
 	public virtual Team Team { get; set; } = null!;
+	public virtual ICollection<TournamentTeamRosterEntry> RosterEntries { get; set; }
 }
