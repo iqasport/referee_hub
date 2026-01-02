@@ -237,7 +237,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			Organizer = "Test Organizer",
 			IsPrivate = false
 		};
-		
+
 		var updateTournamentResponse = await this._client.PutAsJsonAsync($"/api/v2/tournaments/{tournamentId}", archiveModel);
 		updateTournamentResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -320,7 +320,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 		var tournaments = genderData.GetProperty("referencedInTournaments").EnumerateArray().ToList();
 		tournaments.Should().NotBeEmpty("user is in at least one roster");
-		
+
 		// Verify the specific tournament is in the list
 		var thisTournament = tournaments.FirstOrDefault(t => t.GetProperty("id").GetString() == tournamentId);
 		thisTournament.ValueKind.Should().NotBe(JsonValueKind.Undefined, "the tournament we added should be in the list");

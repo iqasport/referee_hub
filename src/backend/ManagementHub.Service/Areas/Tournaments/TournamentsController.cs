@@ -810,7 +810,7 @@ public class TournamentsController : ControllerBase
 		List<RosterPlayerData> players;
 		List<RosterStaffData> coaches;
 		List<RosterStaffData> staff;
-		
+
 		try
 		{
 			players = model.Players.Select(p => new RosterPlayerData
@@ -819,12 +819,12 @@ public class TournamentsController : ControllerBase
 				JerseyNumber = p.Number,
 				Gender = p.Gender
 			}).ToList();
-			
+
 			coaches = model.Coaches.Select(c => new RosterStaffData
 			{
 				UserId = UserIdentifier.Parse(c.UserId)
 			}).ToList();
-			
+
 			staff = model.Staff.Select(s => new RosterStaffData
 			{
 				UserId = UserIdentifier.Parse(s.UserId)
