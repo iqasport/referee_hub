@@ -678,7 +678,9 @@ public class TournamentsController : ControllerBase
 				// Get all player user IDs for batch gender loading
 				var playerUserIds = participantEntity.RosterEntries
 					.Where(e => e.Role == RosterRole.Player)
-					.Select(e => UserIdentifier.FromLegacyUserId(e.UserId))
+					.Select(e => e.User.UniqueId != null
+						? UserIdentifier.Parse(e.User.UniqueId)
+						: UserIdentifier.FromLegacyUserId(e.UserId))
 					.ToList();
 
 				// Load gender data with access control
@@ -689,7 +691,9 @@ public class TournamentsController : ControllerBase
 					.Where(e => e.Role == RosterRole.Player)
 					.Select(e =>
 					{
-						var userId = UserIdentifier.FromLegacyUserId(e.UserId);
+						var userId = e.User.UniqueId != null
+							? UserIdentifier.Parse(e.User.UniqueId)
+							: UserIdentifier.FromLegacyUserId(e.UserId);
 						return new PlayerViewModel
 						{
 							UserId = userId,
@@ -705,7 +709,9 @@ public class TournamentsController : ControllerBase
 					.Where(e => e.Role == RosterRole.Coach)
 					.Select(e => new StaffViewModel
 					{
-						UserId = UserIdentifier.FromLegacyUserId(e.UserId),
+						UserId = e.User.UniqueId != null
+							? UserIdentifier.Parse(e.User.UniqueId)
+							: UserIdentifier.FromLegacyUserId(e.UserId),
 						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
 					})
 					.ToList();
@@ -715,7 +721,9 @@ public class TournamentsController : ControllerBase
 					.Where(e => e.Role == RosterRole.Staff)
 					.Select(e => new StaffViewModel
 					{
-						UserId = UserIdentifier.FromLegacyUserId(e.UserId),
+						UserId = e.User.UniqueId != null
+							? UserIdentifier.Parse(e.User.UniqueId)
+							: UserIdentifier.FromLegacyUserId(e.UserId),
 						UserName = $"{e.User.FirstName ?? string.Empty} {e.User.LastName ?? string.Empty}".Trim()
 					})
 					.ToList();
@@ -798,23 +806,41 @@ public class TournamentsController : ControllerBase
 			return this.BadRequest(new { error = "Cannot modify roster of archived tournament" });
 		}
 
+		// Parse UserIdentifiers from strings
+		List<RosterPlayerData> players;
+		List<RosterStaffData> coaches;
+		List<RosterStaffData> staff;
+		
+		try
+		{
+			players = model.Players.Select(p => new RosterPlayerData
+			{
+				UserId = UserIdentifier.Parse(p.UserId),
+				JerseyNumber = p.Number,
+				Gender = p.Gender
+			}).ToList();
+			
+			coaches = model.Coaches.Select(c => new RosterStaffData
+			{
+				UserId = UserIdentifier.Parse(c.UserId)
+			}).ToList();
+			
+			staff = model.Staff.Select(s => new RosterStaffData
+			{
+				UserId = UserIdentifier.Parse(s.UserId)
+			}).ToList();
+		}
+		catch (FormatException)
+		{
+			return this.BadRequest(new { error = "Invalid user identifier format" });
+		}
+
 		// Parse and validate roster data
 		var rosterData = new RosterUpdateData
 		{
-			Players = model.Players.Select(p => new RosterPlayerData
-			{
-				UserId = p.UserId,
-				JerseyNumber = p.Number,
-				Gender = p.Gender
-			}).ToList(),
-			Coaches = model.Coaches.Select(c => new RosterStaffData
-			{
-				UserId = c.UserId
-			}).ToList(),
-			Staff = model.Staff.Select(s => new RosterStaffData
-			{
-				UserId = s.UserId
-			}).ToList()
+			Players = players,
+			Coaches = coaches,
+			Staff = staff
 		};
 
 		// Validate jersey numbers are unique

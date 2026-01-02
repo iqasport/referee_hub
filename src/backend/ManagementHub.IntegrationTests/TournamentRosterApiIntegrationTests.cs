@@ -57,13 +57,13 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			{
 				new RosterPlayerModel
 				{
-					UserId = sarahPlayerId,
+					UserId = sarahPlayerId.ToString(),
 					Number = "7",
 					Gender = "Female"
 				},
 				new RosterPlayerModel
 				{
-					UserId = mikeCoachId,
+					UserId = mikeCoachId.ToString(),
 					Number = "42",
 					Gender = "Male"
 				}
@@ -128,8 +128,8 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = sarahId, Number = "10", Gender = "Female" },
-				new RosterPlayerModel { UserId = mikeId, Number = "10", Gender = "Male" }
+				new RosterPlayerModel { UserId = sarahId.ToString(), Number = "10", Gender = "Female" },
+				new RosterPlayerModel { UserId = mikeId.ToString(), Number = "10", Gender = "Male" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -164,7 +164,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = iqaAdminUserId, Number = "1", Gender = "Male" }
+				new RosterPlayerModel { UserId = iqaAdminUserId.ToString(), Number = "1", Gender = "Male" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -280,7 +280,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = sarahPlayerId, Number = "10", Gender = "Female" }
+				new RosterPlayerModel { UserId = sarahPlayerId.ToString(), Number = "10", Gender = "Female" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -324,7 +324,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = mikeCoachId, Number = "5", Gender = "Male" }
+				new RosterPlayerModel { UserId = mikeCoachId.ToString(), Number = "5", Gender = "Male" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -370,7 +370,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = sarahPlayerId, Number = "8", Gender = "Female" }
+				new RosterPlayerModel { UserId = sarahPlayerId.ToString(), Number = "8", Gender = "Female" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
@@ -416,7 +416,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		{
 			Players = new List<RosterPlayerModel>
 			{
-				new RosterPlayerModel { UserId = sarahPlayerId, Number = "99", Gender = "Female" }
+				new RosterPlayerModel { UserId = sarahPlayerId.ToString(), Number = "99", Gender = "Female" }
 			},
 			Coaches = new List<RosterStaffModel>(),
 			Staff = new List<RosterStaffModel>()
