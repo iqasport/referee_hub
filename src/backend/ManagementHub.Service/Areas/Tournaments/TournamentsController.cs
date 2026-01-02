@@ -806,36 +806,25 @@ public class TournamentsController : ControllerBase
 			return this.BadRequest(new { error = "Cannot modify roster of archived tournament" });
 		}
 
-		// Parse UserIdentifiers from strings
-		List<RosterPlayerData> players;
-		List<RosterStaffData> coaches;
-		List<RosterStaffData> staff;
-
-		try
+		// Convert to domain models
+		var players = model.Players.Select(p => new RosterPlayerData
 		{
-			players = model.Players.Select(p => new RosterPlayerData
-			{
-				UserId = UserIdentifier.Parse(p.UserId),
-				JerseyNumber = p.Number,
-				Gender = p.Gender
-			}).ToList();
+			UserId = p.UserId,
+			JerseyNumber = p.Number,
+			Gender = p.Gender
+		}).ToList();
 
-			coaches = model.Coaches.Select(c => new RosterStaffData
-			{
-				UserId = UserIdentifier.Parse(c.UserId)
-			}).ToList();
-
-			staff = model.Staff.Select(s => new RosterStaffData
-			{
-				UserId = UserIdentifier.Parse(s.UserId)
-			}).ToList();
-		}
-		catch (FormatException)
+		var coaches = model.Coaches.Select(c => new RosterStaffData
 		{
-			return this.BadRequest(new { error = "Invalid user identifier format" });
-		}
+			UserId = c.UserId
+		}).ToList();
 
-		// Parse and validate roster data
+		var staff = model.Staff.Select(s => new RosterStaffData
+		{
+			UserId = s.UserId
+		}).ToList();
+
+		// Create roster data
 		var rosterData = new RosterUpdateData
 		{
 			Players = players,

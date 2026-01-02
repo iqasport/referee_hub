@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ManagementHub.Models.Domain.User;
 
 namespace ManagementHub.Service.Areas.Tournaments;
 
@@ -11,7 +12,7 @@ public class UpdateRosterModel
 
 public class RosterStaffModel
 {
-	public required string UserId { get; set; }
+	public required UserIdentifier UserId { get; set; }
 }
 
 public class RosterPlayerModel : RosterStaffModel

@@ -51,25 +51,25 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var mikeCoachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
 
 		// Step 5: Update roster with both users as players (since we only have 2 Yankees members)
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>
+			Players = new List<RosterPlayerDto>
 			{
-				new RosterPlayerModel
+				new RosterPlayerDto
 				{
 					UserId = sarahPlayerId.ToString(),
 					Number = "7",
 					Gender = "Female"
 				},
-				new RosterPlayerModel
+				new RosterPlayerDto
 				{
 					UserId = mikeCoachId.ToString(),
 					Number = "42",
 					Gender = "Male"
 				}
 			},
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		var updateResponse = await this._client.PutAsJsonAsync(
@@ -124,15 +124,15 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var mikeId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
 
 		// Step 4: Try to add players with duplicate jersey numbers
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>
+			Players = new List<RosterPlayerDto>
 			{
-				new RosterPlayerModel { UserId = sarahId.ToString(), Number = "10", Gender = "Female" },
-				new RosterPlayerModel { UserId = mikeId.ToString(), Number = "10", Gender = "Male" }
+				new RosterPlayerDto { UserId = sarahId.ToString(), Number = "10", Gender = "Female" },
+				new RosterPlayerDto { UserId = mikeId.ToString(), Number = "10", Gender = "Male" }
 			},
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		var updateResponse = await this._client.PutAsJsonAsync(
@@ -160,14 +160,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var iqaAdminUserId = await this.GetUserIdByEmailAsync("iqa_admin@example.com");
 
 		// Step 4: Try to add non-team-member to roster
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>
+			Players = new List<RosterPlayerDto>
 			{
-				new RosterPlayerModel { UserId = iqaAdminUserId.ToString(), Number = "1", Gender = "Male" }
+				new RosterPlayerDto { UserId = iqaAdminUserId.ToString(), Number = "1", Gender = "Male" }
 			},
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		var updateResponse = await this._client.PutAsJsonAsync(
@@ -192,11 +192,11 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
 		// Step 3: Try to update roster as non-manager
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>(),
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Players = new List<RosterPlayerDto>(),
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		var updateResponse = await this._client.PutAsJsonAsync(
@@ -245,11 +245,11 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
 
 		// Step 5: Try to update roster for archived tournament
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>(),
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Players = new List<RosterPlayerDto>(),
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		var updateResponse = await this._client.PutAsJsonAsync(
@@ -294,14 +294,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 
 		// Step 3: Add sarah.player to roster with gender
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>
+			Players = new List<RosterPlayerDto>
 			{
-				new RosterPlayerModel { UserId = sarahPlayerId.ToString(), Number = "10", Gender = "Female" }
+				new RosterPlayerDto { UserId = sarahPlayerId.ToString(), Number = "10", Gender = "Female" }
 			},
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		await this._client.PutAsJsonAsync(
@@ -341,14 +341,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 		var mikeCoachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
 
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>
+			Players = new List<RosterPlayerDto>
 			{
-				new RosterPlayerModel { UserId = mikeCoachId.ToString(), Number = "5", Gender = "Male" }
+				new RosterPlayerDto { UserId = mikeCoachId.ToString(), Number = "5", Gender = "Male" }
 			},
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		await this._client.PutAsJsonAsync(
@@ -387,14 +387,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>
+			Players = new List<RosterPlayerDto>
 			{
-				new RosterPlayerModel { UserId = sarahPlayerId.ToString(), Number = "8", Gender = "Female" }
+				new RosterPlayerDto { UserId = sarahPlayerId.ToString(), Number = "8", Gender = "Female" }
 			},
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		await this._client.PutAsJsonAsync(
@@ -433,14 +433,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 
-		var updateRosterModel = new UpdateRosterModel
+		var updateRosterModel = new UpdateRosterDto
 		{
-			Players = new List<RosterPlayerModel>
+			Players = new List<RosterPlayerDto>
 			{
-				new RosterPlayerModel { UserId = sarahPlayerId.ToString(), Number = "99", Gender = "Female" }
+				new RosterPlayerDto { UserId = sarahPlayerId.ToString(), Number = "99", Gender = "Female" }
 			},
-			Coaches = new List<RosterStaffModel>(),
-			Staff = new List<RosterStaffModel>()
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
 		};
 
 		await this._client.PutAsJsonAsync(
