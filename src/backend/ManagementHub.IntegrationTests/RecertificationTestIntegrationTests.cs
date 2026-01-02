@@ -53,10 +53,6 @@ public class RecertificationTestIntegrationTests : IClassFixture<TestWebApplicat
 				var certifications = testElement.GetProperty("awardedCertifications").EnumerateArray();
 				var levels = certifications.Select(c => c.GetProperty("level").GetString()).ToList();
 				
-				// Debug: Output what we got
-				var certificationsStr = string.Join(", ", levels);
-				Console.WriteLine($"Flag Recert Test '{title}' awards: {certificationsStr}");
-				
 				// Verify that Flag recertification awards both Flag and Assistant certifications
 				levels.Should().Contain("snitch", "Flag recertification should award Flag certification");
 				levels.Should().Contain("assistant", "Flag recertification should award Assistant certification");
