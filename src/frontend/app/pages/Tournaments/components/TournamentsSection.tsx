@@ -47,24 +47,27 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
         </h2>
       )}
       <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-[80%]">
-        {tournaments.map((tournament) => (
-          <TournamentCard
-            key={tournament.id}
-            title={tournament.title}
-            description={tournament.description}
-            startDate={tournament.startDate}
-            endDate={tournament.endDate}
-            type={tournament.type}
-            country={tournament.country}
-            location={tournament.location}
-            bannerImageUrl={tournament.bannerImageUrl}
-            organizer={tournament.organizer}
-            onEdit={onEdit ? () => onEdit(tournament) : undefined}
-            onClick={() => {
-              navigate(`/tournaments/${tournament.id}`);
-            }}
-          />
-        ))}
+        {tournaments.map((tournament) => {
+          const tournamentId = Number(tournament.id);
+          return (
+            <TournamentCard
+              key={tournament.id}
+              title={tournament.title}
+              description={tournament.description}
+              startDate={tournament.startDate}
+              endDate={tournament.endDate}
+              type={tournament.type}
+              country={tournament.country}
+              location={tournament.location}
+              bannerImageUrl={tournament.bannerImageUrl}
+              organizer={tournament.organizer}
+              onEdit={onEdit ? () => onEdit(tournament) : undefined}
+              onClick={() => {
+                navigate(`/tournaments/${tournamentId}`);
+              }}
+            />
+          );
+        })}
       </div>
     </section>
   );
