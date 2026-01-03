@@ -1,0 +1,95 @@
+[
+  {
+    "teamId": "team-001",
+    "teamName": "Dragons",
+    "type": "team",
+    "players": [
+      {
+        "userId": "player-001",
+        "userName": "John Doe",
+        "number": "24",
+        "gender": "female"
+      },
+      {
+        "userId": "player-002",
+        "userName": "Alice Park",
+        "number": "11",
+        "gender": "female"
+      }
+    ],
+    "coaches": [
+      {
+        "userId": "user-002",
+        "userName": "Coach Harper"
+      }
+    ],
+    "staff": [
+      {
+        "userId": "user-003",
+        "userName": "Sam Lee"
+      }
+    ]
+  },
+  {
+    "teamId": "team-002",
+    "teamName": "Falcons",
+    "type": "team",
+    "players": [
+      {
+        "userId": "player-010",
+        "userName": "Maria Gomez",
+        "number": "7",
+        "gender": "female"
+      },
+      {
+        "userId": "player-011",
+        "userName": "Nina Patel",
+        "number": "18",
+        "gender": "female"
+      }
+    ],
+    "coaches": [
+      {
+        "userId": "user-012",
+        "userName": "Coach Ito"
+      }
+    ],
+    "staff": [
+      {
+        "userId": "user-013",
+        "userName": "Jordan Blake"
+      }
+    ]
+  },
+  {
+    "teamId": "team-003",
+    "teamName": "Wolves",
+    "type": "team",
+    "players": [
+      {
+        "userId": "player-020",
+        "userName": "Leo Martins",
+        "number": "4",
+        "gender": "male"
+      },
+      {
+        "userId": "player-021",
+        "userName": "Erin Chen",
+        "number": "16",
+        "gender": "female"
+      }
+    ],
+    "coaches": [
+      {
+        "userId": "user-022",
+        "userName": "Coach Silva"
+      }
+    ],
+    "staff": [
+      {
+        "userId": "user-023",
+        "userName": "Alex Morgan"
+      }
+    ]
+  }
+]
