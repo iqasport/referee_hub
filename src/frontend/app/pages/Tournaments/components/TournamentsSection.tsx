@@ -1,7 +1,7 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import TournamentCard from "./TournamentCard";
 import { TournamentType } from "../../../store/serviceApi";
+import { useNavigate } from "../../../utils/navigationUtils";
 
 export type Manager = { id: string; name: string };
 
