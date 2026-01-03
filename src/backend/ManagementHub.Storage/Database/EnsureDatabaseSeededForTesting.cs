@@ -16,22 +16,25 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 	{
 	}
 
-	protected override async Task ExecuteAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
+	protected override Task ExecuteAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
 	{
 		try
 		{
-			var ngbCount = await dbContext.NationalGoverningBodies.CountAsync(stoppingToken);
+			// Use synchronous operations to ensure seeding completes before host starts
+			// This is important for testing and dev environments
+			var ngbCount = dbContext.NationalGoverningBodies.Count();
 			if (ngbCount > 0)
 			{
 				this.logger.LogInformation(-0x48302e00, "Database not empty. Skipping seeding.");
-				return;
+				return Task.CompletedTask;
 			}
 
 			this.logger.LogInformation(-0x48302dff, "Ensuring database is seeded...");
 
-			await this.SeedDatabaseAsync(dbContext, stoppingToken);
+			this.SeedDatabase(dbContext);
 
 			this.logger.LogInformation(-0x48302dfe, "Ensuring database is seeded completed.");
+			return Task.CompletedTask;
 		}
 		catch (Exception ex)
 		{
@@ -40,7 +43,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		}
 	}
 
-	private async Task SeedDatabaseAsync(ManagementHubDbContext dbContext, CancellationToken stoppingToken)
+	private void SeedDatabase(ManagementHubDbContext dbContext)
 	{
 		var ngbs = new[]
 		{
@@ -120,7 +123,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				City = "New York",
 				Country = "USA",
 				Name = "Yankees",
-				NationalGoverningBody = ngbs.Last(),
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 				GroupAffiliation = TeamGroupAffiliation.Community,
 				CreatedAt = DateTime.UtcNow,
 				JoinedAt = DateTime.UtcNow,
@@ -132,7 +135,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				City = "Los Angeles",
 				Country = "USA",
 				Name = "LA Bisons",
-				NationalGoverningBody = ngbs.Last(),
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 				GroupAffiliation = TeamGroupAffiliation.University,
 				CreatedAt = DateTime.UtcNow,
 				JoinedAt = DateTime.UtcNow,
@@ -216,7 +219,34 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			UniqueId = "U_abcdefghijklmnopqrstuvwxyy"
 		};
 
-		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName);
+		var teamManager = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "team_manager@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = "Tom",
+			LastName = "TeamManager",
+		};
+
+		var playerSarah = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "sarah.player@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = "Sarah",
+			LastName = "Player",
+		};
+
+		var coachMike = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "mike.coach@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = "Mike",
+			LastName = "Coach",
+		};
+
+		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike);
 
 		dbContext.Roles.AddRange(
 			new Role
@@ -241,6 +271,24 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			{
 				AccessType = UserAccessType.Referee,
 				User = refereeWithEmptyName,
+				CreatedAt = DateTime.UtcNow,
+			},
+			new Role
+			{
+				AccessType = UserAccessType.Referee,
+				User = teamManager,
+				CreatedAt = DateTime.UtcNow,
+			},
+			new Role
+			{
+				AccessType = UserAccessType.Referee,
+				User = playerSarah,
+				CreatedAt = DateTime.UtcNow,
+			},
+			new Role
+			{
+				AccessType = UserAccessType.Referee,
+				User = coachMike,
 				CreatedAt = DateTime.UtcNow,
 			});
 
@@ -270,7 +318,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		dbContext.NationalGoverningBodyAdmins.Add(new NationalGoverningBodyAdmin
 		{
 			CreatedAt = DateTime.UtcNow,
-			NationalGoverningBody = ngbs.Last(),
+			NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 			UpdatedAt = DateTime.UtcNow,
 			User = ngbAdmin,
 		});
@@ -279,16 +327,43 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		{
 			Referee = referee,
 			AssociationType = RefereeNgbAssociationType.Primary,
-			NationalGoverningBody = ngbs.Last(),
+			NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		});
 
-		dbContext.RefereeTeams.Add(new RefereeTeam
+		dbContext.RefereeTeams.AddRange(
+			new RefereeTeam
+			{
+				Referee = referee,
+				AssociationType = RefereeTeamAssociationType.Player,
+				Team = teams.First(),
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new RefereeTeam
+			{
+				Referee = playerSarah,
+				AssociationType = RefereeTeamAssociationType.Player,
+				Team = teams.First(), // Yankees team
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new RefereeTeam
+			{
+				Referee = coachMike,
+				AssociationType = RefereeTeamAssociationType.Coach,
+				Team = teams.First(), // Yankees team
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			});
+
+		// Add team manager assignment for integration tests
+		dbContext.TeamManagers.Add(new TeamManager
 		{
-			Referee = referee,
-			AssociationType = RefereeTeamAssociationType.Player,
-			Team = teams.First(),
+			User = teamManager,
+			Team = teams.First(), // Yankees team
+			AddedBy = teamManager, // Self-assigned for bootstrap
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		});
@@ -519,6 +594,6 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			dbContext.Questions.AddRange(questions);
 		}
 
-		await dbContext.SaveChangesAsync(stoppingToken);
+		dbContext.SaveChanges();
 	}
 }

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Abstraction.Contexts.Providers;
 
@@ -32,4 +34,24 @@ public interface ITournamentContextProvider
 	Task AddTournamentManagerAsync(TournamentIdentifier tournamentId, UserIdentifier userId, UserIdentifier addedByUserId, CancellationToken cancellationToken = default);
 
 	Task<bool> RemoveTournamentManagerAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default);
+
+	// Phase 3: Invite management
+	Task<IEnumerable<InviteInfo>> GetTournamentInvitesAsync(TournamentIdentifier tournamentId, UserIdentifier? filterByParticipant = null, CancellationToken cancellationToken = default);
+
+	Task<InviteInfo> CreateTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, UserIdentifier initiatorUserId, CancellationToken cancellationToken = default);
+
+	Task<InviteInfo?> GetTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
+
+	Task UpdateInviteApprovalAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, bool isTournamentManager, bool approved, CancellationToken cancellationToken = default);
+
+	// Phase 3: Team participant management
+	Task<IEnumerable<TeamParticipantInfo>> GetTournamentTeamParticipantsAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
+
+	Task AddTeamParticipantAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
+
+	Task RemoveTeamParticipantAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
+
+	// Phase 4: Roster management
+	Task UpdateParticipantRosterAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, RosterUpdateData rosterData, CancellationToken cancellationToken = default);
 }
+

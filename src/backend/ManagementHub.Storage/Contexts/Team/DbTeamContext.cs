@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,6 +7,8 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -155,6 +158,74 @@ public class DbTeamContextFactory
 		await transaction.CommitAsync();
 	}
 
+	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		// Start with RefereeTeams and join with Teams to validate NGB constraint
+		var teamsQuery = this.dbContext.Teams.AsQueryable();
+
+		if (!ngbs.AppliesToAny)
+		{
+			teamsQuery = teamsQuery.Join(
+				this.dbContext.NationalGoverningBodies.WithConstraint(ngbs),
+				t => t.NationalGoverningBodyId,
+				n => n.Id,
+				(t, n) => t);
+		}
+
+		var query = this.dbContext.RefereeTeams
+			.Where(rt => rt.TeamId == teamId.Id)
+			.Where(rt => rt.RefereeId != null)
+			.Join(
+				teamsQuery,
+				rt => rt.TeamId,
+				t => t.Id,
+				(rt, t) => rt);
+
+		// Join with Users
+		var usersQuery = query.Join(
+			this.dbContext.Users,
+			rt => rt.RefereeId,
+			u => u.Id,
+			(rt, u) => u);
+
+		// Apply filtering BEFORE projection
+		var filter = this.filteringContext.FilteringParameters.Filter;
+		if (!string.IsNullOrEmpty(filter))
+		{
+			filter = $"%{filter}%";
+			if (this.dbContext.Database.IsNpgsql())
+			{
+				usersQuery = usersQuery.Where(u => EF.Functions.ILike(u.FirstName + " " + u.LastName, filter));
+			}
+			else
+			{
+				usersQuery = usersQuery.Where(u => EF.Functions.Like(u.FirstName + " " + u.LastName, filter));
+			}
+		}
+
+		// Distinct users
+		usersQuery = usersQuery.Distinct();
+
+		// Set total count for pagination metadata
+		if (this.filteringContext.FilteringMetadata != null)
+		{
+			this.filteringContext.FilteringMetadata.TotalCount = usersQuery.Count();
+		}
+
+		// Apply pagination
+		usersQuery = usersQuery.Page(this.filteringContext.FilteringParameters);
+
+		// Now project to TeamMemberInfo
+		return usersQuery
+			.Select(u => new TeamMemberInfo
+			{
+				UserId = u.UniqueId != null
+					? UserIdentifier.Parse(u.UniqueId)
+					: UserIdentifier.FromLegacyUserId(u.Id),
+				Name = $"{u.FirstName} {u.LastName}"
+			});
+	}
+
 	public static DbTeamContext FromDatabase(Models.Data.Team tt, NgbIdentifier ngb) => new DbTeamContext(new TeamIdentifier(tt.Id), ngb, new TeamData
 	{
 		Name = tt.Name,
@@ -176,4 +247,53 @@ public class DbTeamContextFactory
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
 	});
+
+	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		return await this.QueryTeamsInternal(ngbs)
+			.Where(t => t.Id == teamId.Id)
+			.Select(Selector)
+			.FirstOrDefaultAsync();
+	}
+
+	public async Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		var teamDbId = teamId.Id;
+
+		// Build Teams query with NGB constraint
+		var teamsQuery = this.dbContext.Teams.AsQueryable();
+
+		if (!ngbs.AppliesToAny)
+		{
+			teamsQuery = teamsQuery.Join(
+				this.dbContext.NationalGoverningBodies.WithConstraint(ngbs),
+				t => t.NationalGoverningBodyId,
+				n => n.Id,
+				(t, n) => t);
+		}
+
+		// Query TeamManagers, join with Teams to validate NGB, then join with Users to get manager info
+		var managers = await this.dbContext.TeamManagers
+			.Where(tm => tm.TeamId == teamDbId)
+			.Join(
+				teamsQuery,
+				tm => tm.TeamId,
+				t => t.Id,
+				(tm, t) => tm)
+			.Join(
+				this.dbContext.Users,
+				tm => tm.UserId,
+				u => u.Id,
+				(tm, u) => new ManagerInfo
+				{
+					UserId = u.UniqueId != null
+						? UserIdentifier.Parse(u.UniqueId)
+						: UserIdentifier.FromLegacyUserId(u.Id),
+					Name = $"{u.FirstName} {u.LastName}",
+					Email = u.Email
+				})
+			.ToListAsync();
+
+		return managers;
+	}
 }

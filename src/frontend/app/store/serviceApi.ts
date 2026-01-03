@@ -265,6 +265,40 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Team"],
       }),
+      addTeamManager: build.mutation<AddTeamManagerApiResponse, AddTeamManagerApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/managers`,
+          method: "POST",
+          body: queryArg.teamManagerCreationModel,
+        }),
+        invalidatesTags: ["Team"],
+      }),
+      deleteTeamManager: build.mutation<DeleteTeamManagerApiResponse, DeleteTeamManagerApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/managers`,
+          method: "DELETE",
+          params: { email: queryArg.email },
+        }),
+        invalidatesTags: ["Team"],
+      }),
+      getTeamManagers: build.query<GetTeamManagersApiResponse, GetTeamManagersApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/managers`,
+        }),
+        providesTags: ["Team"],
+      }),
+      getTeamMembers: build.query<GetTeamMembersApiResponse, GetTeamMembersApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/members`,
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
+        }),
+        providesTags: ["Team"],
+      }),
       getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
         query: (queryArg) => ({ url: `/api/v2/referees/me/tests/${queryArg.testId}/details` }),
         providesTags: ["Tests"],
@@ -379,6 +413,40 @@ const injectedRtkApi = api
       >({
         query: (queryArg) => ({
           url: `/api/v2/Tournaments/${queryArg.tournamentId}/managers/${queryArg.userId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      getTournamentInvites: build.query<
+        GetTournamentInvitesApiResponse,
+        GetTournamentInvitesApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites` }),
+        providesTags: ["Tournament"],
+      }),
+      createInvite: build.mutation<CreateInviteApiResponse, CreateInviteApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites`,
+          method: "POST",
+          body: queryArg.createInviteModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      respondToInvite: build.mutation<RespondToInviteApiResponse, RespondToInviteApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
+          method: "POST",
+          body: queryArg.inviteResponseModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      getParticipants: build.query<GetParticipantsApiResponse, GetParticipantsApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}/participants` }),
+        providesTags: ["Tournament"],
+      }),
+      removeParticipant: build.mutation<RemoveParticipantApiResponse, RemoveParticipantApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/participants/${queryArg.teamId}`,
           method: "DELETE",
         }),
         invalidatesTags: ["Tournament"],
@@ -603,6 +671,32 @@ export type DeleteNgbTeamApiArg = {
   ngb: string;
   teamId: string;
 };
+export type AddTeamManagerApiResponse = /** status 200 Success */ TeamManagerCreationStatus;
+export type AddTeamManagerApiArg = {
+  ngb: string;
+  teamId: string;
+  teamManagerCreationModel: TeamManagerCreationModel;
+};
+export type DeleteTeamManagerApiResponse = /** status 200 Success */ void;
+export type DeleteTeamManagerApiArg = {
+  ngb: string;
+  teamId: string;
+  email?: string;
+};
+export type GetTeamManagersApiResponse = /** status 200 Success */ TeamManagerViewModel[];
+export type GetTeamManagersApiArg = {
+  ngb: string;
+  teamId: string;
+};
+export type GetTeamMembersApiResponse = /** status 200 Success */ TeamMemberViewModelFiltered;
+export type GetTeamMembersApiArg = {
+  ngb: string;
+  teamId: string;
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+  skipPaging?: boolean;
+};
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
   testId: string;
@@ -673,6 +767,30 @@ export type RemoveTournamentManagerApiResponse = /** status 200 Success */ void;
 export type RemoveTournamentManagerApiArg = {
   tournamentId: string;
   userId: string;
+};
+export type GetTournamentInvitesApiResponse = /** status 200 Success */ TournamentInviteViewModel[];
+export type GetTournamentInvitesApiArg = {
+  tournamentId: string;
+};
+export type CreateInviteApiResponse = /** status 201 Created */ TournamentInviteViewModel;
+export type CreateInviteApiArg = {
+  tournamentId: string;
+  createInviteModel: CreateInviteModel;
+};
+export type RespondToInviteApiResponse = /** status 200 Success */ void;
+export type RespondToInviteApiArg = {
+  tournamentId: string;
+  participantId: string;
+  inviteResponseModel: InviteResponseModel;
+};
+export type GetParticipantsApiResponse = /** status 200 Success */ TournamentParticipantViewModel[];
+export type GetParticipantsApiArg = {
+  tournamentId: string;
+};
+export type RemoveParticipantApiResponse = /** status 200 Success */ void;
+export type RemoveParticipantApiArg = {
+  tournamentId: string;
+  teamId: string;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -1021,7 +1139,12 @@ export type CertificationProduct = {
   status?: ProductStatus;
 };
 export type TeamStatus = "competitive" | "developing" | "inactive" | "other";
-export type TeamGroupAffiliation = "university" | "community" | "youth" | "not_applicable";
+export type TeamGroupAffiliation =
+  | "university"
+  | "community"
+  | "youth"
+  | "not_applicable"
+  | "national";
 export type NgbTeamViewModel = {
   /** Team identifier. */
   teamId?: string;
@@ -1041,6 +1164,36 @@ export type NgbTeamViewModel = {
 export type NgbTeamViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: NgbTeamViewModel[] | null;
+};
+export type TeamManagerCreationStatus =
+  | "InvalidEmail"
+  | "UserDoesNotExist"
+  | "ManagerRoleAdded"
+  | "ManagerUserCreated";
+export type TeamManagerCreationModel = {
+  email?: string | null;
+  createAccountIfNotExists?: boolean;
+};
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type TeamManagerViewModel = {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+};
+export type TeamMemberViewModel = {
+  userId?: string;
+  name?: string | null;
+};
+export type TeamMemberViewModelFiltered = {
+  metadata?: FilteringMetadata;
+  items?: TeamMemberViewModel[] | null;
 };
 export type RefereeTestDetailsViewModel = {
   testId?: string;
@@ -1130,16 +1283,36 @@ export type TournamentManagerViewModel = {
   name?: string | null;
   email?: string | null;
 };
-export type ProblemDetails = {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  [key: string]: any;
-};
 export type AddTournamentManagerModel = {
   email?: string | null;
+};
+export type ParticipantType = "team";
+export type InviteStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatusViewModel = {
+  status?: ApprovalStatus;
+  date?: string | null;
+};
+export type TournamentInviteViewModel = {
+  participantType?: ParticipantType;
+  participantId?: string | null;
+  participantName?: string | null;
+  status?: InviteStatus;
+  initiatorUserId?: string;
+  createdAt?: string;
+  tournamentManagerApproval?: ApprovalStatusViewModel;
+  participantApproval?: ApprovalStatusViewModel;
+};
+export type CreateInviteModel = {
+  participantType?: ParticipantType;
+  participantId?: string | null;
+};
+export type InviteResponseModel = {
+  approved?: boolean;
+};
+export type TournamentParticipantViewModel = {
+  teamId?: string;
+  teamName?: string | null;
 };
 export type CurrentUserViewModel = {
   userId?: string;
@@ -1202,6 +1375,10 @@ export const {
   useCreateNgbTeamMutation,
   useUpdateNgbTeamMutation,
   useDeleteNgbTeamMutation,
+  useAddTeamManagerMutation,
+  useDeleteTeamManagerMutation,
+  useGetTeamManagersQuery,
+  useGetTeamMembersQuery,
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
   useEditTestMutation,
@@ -1217,6 +1394,11 @@ export const {
   useGetTournamentManagersQuery,
   useAddTournamentManagerMutation,
   useRemoveTournamentManagerMutation,
+  useGetTournamentInvitesQuery,
+  useCreateInviteMutation,
+  useRespondToInviteMutation,
+  useGetParticipantsQuery,
+  useRemoveParticipantMutation,
   useGetCurrentUserQuery,
   useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,
