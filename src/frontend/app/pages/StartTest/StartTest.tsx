@@ -85,7 +85,7 @@ const StartTest = () => {
     if (submittedTest && !finishedAt) {
       setFinishedAt(DateTime.utc());
     }
-  }, [submittedTest, finishedAt]);
+  }, [submittedTest]);
 
   const isLastQuestion = currentQuestionIndex === testQuestions.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
@@ -208,14 +208,13 @@ const StartTest = () => {
     const passPercentage = submittedTest?.passPercentage;
     const resultIcon = passed ? faCheckCircle : faTimesCircle;
     const resultText = passed ? "Passed" : "Failed";
-    const resultColorClass = passed ? "text-green-darker" : "text-red-500";
-    const iconColorClass = passed ? "text-green-darker" : "text-red-500";
+    const colorClass = passed ? "text-green-darker" : "text-red-500";
 
     return (
       <div>
         <div className="flex flex-col items-center">
-          <FontAwesomeIcon icon={resultIcon} className={`${iconColorClass} text-6xl mb-4`} />
-          <h1 className={`text-4xl font-bold mb-2 ${resultColorClass}`}>{resultText}</h1>
+          <FontAwesomeIcon icon={resultIcon} className={`${colorClass} text-6xl mb-4`} />
+          <h1 className={`text-4xl font-bold mb-2 ${colorClass}`}>{resultText}</h1>
           <h2 className="text-2xl font-bold my-4">{test?.title}</h2>
           <span className="italic text-gray-600">{test?.description}</span>
         </div>
