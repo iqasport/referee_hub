@@ -6,7 +6,7 @@ import { useNavigate } from "../../../utils/navigationUtils";
 export type Manager = { id: string; name: string };
 
 export type TournamentData = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   startDate: string;
@@ -48,7 +48,7 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
       )}
       <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-[80%]">
         {tournaments.map((tournament) => {
-          const tournamentId = Number(tournament.id);
+          const tournamentId = String(tournament.id);
           return (
             <TournamentCard
               key={tournament.id}

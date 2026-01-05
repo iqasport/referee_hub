@@ -85,7 +85,7 @@ const Tournament = () => {
 
   const { publicTournaments, privateTournaments } = useMemo(() => {
     const convertToDisplayFormat = (t: TournamentViewModel): TournamentData => ({
-      id: parseInt(t.id || "0"),
+      id: t.id ,
       title: t.name || "",
       description: t.description || "",
       startDate: t.startDate || "",
