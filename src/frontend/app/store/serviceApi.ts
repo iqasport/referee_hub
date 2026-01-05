@@ -1331,6 +1331,7 @@ export type CurrentUserViewModel = {
 };
 export type FeatureGates = {
   isTestFlag?: boolean;
+  showTestResultsOnFinish?: boolean;
 };
 export type UserDataViewModel = {
   firstName?: string | null;

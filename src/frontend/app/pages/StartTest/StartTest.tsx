@@ -1,4 +1,4 @@
-import { faEdit, faCheckCircle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime, Duration } from "luxon";
 import React, { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { getErrorString } from "../../utils/errorUtils";
 import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 import Loader from "../../components/Loader";
 import ResultChart from "../../components/TestResultCards/ResultChart";
+import { useFeatureGates } from "../../utils/featureGateUtils";
 
 export type FormattedQuestion = {
   questionId: string;
@@ -63,6 +64,7 @@ const StartTest = () => {
   });
 
   const navigate = useNavigate();
+  const featureGates = useFeatureGates();
   
   // TODO: create a single call endpoint?
   const { currentData: test, isLoading: testDetailsLoading, error: getTestError } = useGetTestDetailsQuery({ testId });
@@ -80,12 +82,6 @@ const StartTest = () => {
       setStartedAt(DateTime.utc());
     }
   }, [startedTest]);
-
-  useEffect(() => {
-    if (submittedTest && !finishedAt) {
-      setFinishedAt(DateTime.utc());
-    }
-  }, [submittedTest]);
 
   const isLastQuestion = currentQuestionIndex === testQuestions.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
@@ -203,12 +199,38 @@ const StartTest = () => {
   };
 
   const renderFinish = () => {
+    // Fallback to generic version if submittedTest is undefined or feature gate is off
+    if (!submittedTest || !featureGates.showTestResultsOnFinish) {
+      return (
+        <div>
+          <div className="flex flex-col items-center">
+            <FontAwesomeIcon icon={faCheckCircle} className="text-blue-darker text-6xl" />
+            <h1 className="text-3xl font-bold my-4">{test?.title}</h1>
+            <span className="italic text-gray-600">{test?.description}</span>
+          </div>
+          <div className="w-full h-px border-navy-blue border-t" />
+          {submitTestError && <h4 className="font-bold text-red-500 my-4">{getErrorString(submitTestError)}</h4>}
+          <h4 className="font-bold my-4">We have received your answers for this test.</h4>
+          <h4 className="font-bold my-4">
+            Results will be emailed to you through the email you registered your account with.
+          </h4>
+          <h4 className="font-bold my-4">
+            If you do not see the results for this test attempt after an hour please reach out to
+            <a className="text-blue-darker hover:text-blue" href="mailto:refhub@iqasport.org">
+              {" "}
+              refhub@iqasport.org
+            </a>
+          </h4>
+        </div>
+      );
+    }
+
     const passed = submittedTest?.passed;
     const scoredPercentage = submittedTest?.scoredPercentage;
     const passPercentage = submittedTest?.passPercentage;
-    const resultIcon = passed ? faCheckCircle : faTimesCircle;
-    const resultText = passed ? "Passed" : "Failed";
-    const colorClass = passed ? "text-green-darker" : "text-red-500";
+    const resultIcon = passed ? faCheckCircle : faCheckCircle;
+    const resultText = passed ? "Passed" : "Not Quite There";
+    const colorClass = passed ? "text-green-darker" : "text-gray-700";
 
     return (
       <div>
@@ -221,21 +243,19 @@ const StartTest = () => {
         <div className="w-full h-px border-navy-blue border-t my-6" />
         {submitTestError && <h4 className="font-bold text-red-500 my-4">{getErrorString(submitTestError)}</h4>}
         
-        {submittedTest && (
-          <div className="flex flex-col items-center my-6">
-            <div className="w-64 h-64 mb-4">
-              <ResultChart minimum={passPercentage || 0} actual={scoredPercentage || 0} />
-            </div>
-            <div className="text-center">
-              <h3 className="text-xl font-bold mb-2">Your Score: {scoredPercentage}%</h3>
-              {!passed && passPercentage && (
-                <h4 className="text-lg text-gray-700">
-                  Required to Pass: {passPercentage}%
-                </h4>
-              )}
-            </div>
+        <div className="flex flex-col items-center my-6">
+          <div className="w-64 h-64 mb-4">
+            <ResultChart minimum={passPercentage || 0} actual={scoredPercentage || 0} />
           </div>
-        )}
+          <div className="text-center">
+            <h4 className="text-xl font-bold mb-2">Your Score: {scoredPercentage}%</h4>
+            {!passed && passPercentage && (
+              <h4 className="text-lg text-gray-700">
+                Required to Pass: {passPercentage}%
+              </h4>
+            )}
+          </div>
+        </div>
 
         <div className="text-center mt-6">
           <h4 className="font-bold my-4">
