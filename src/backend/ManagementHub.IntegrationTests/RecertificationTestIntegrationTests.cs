@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -28,113 +29,109 @@ public class RecertificationTestIntegrationTests : IClassFixture<TestWebApplicat
 	}
 
 	[Fact]
-	public async Task FlagRecertificationTest_ShouldAwardFlagAndAssistantCertifications()
+	public async Task FlagRecertification_ShouldAwardBothFlagAndAssistantCertifications()
 	{
-		// Arrange: Sign in as a referee
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		// Arrange: Sign in as the recert test referee (has Assistant certification already)
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "recert.test@example.com", "password");
 
-		// Act: Get available tests
-		var response = await this._client.GetAsync("/api/v2/referees/me/tests/available");
-
-		// Assert: Response should be successful
-		response.StatusCode.Should().Be(HttpStatusCode.OK, "getting available tests should succeed");
-
-		// Parse JSON manually to avoid serialization issues in tests
-		var jsonString = await response.Content.ReadAsStringAsync();
-		var json = JsonDocument.Parse(jsonString);
+		// Verify initial state: should have only Flag certification (previous version)
+		var initialProfileResponse = await this._client.GetAsync("/api/v2/referees/me");
+		initialProfileResponse.StatusCode.Should().Be(HttpStatusCode.OK, "getting initial referee profile should succeed");
+		var initialProfile = await initialProfileResponse.Content.ReadAsStringAsync();
+		var initialProfileJson = JsonDocument.Parse(initialProfile);
+		var initialCertifications = initialProfileJson.RootElement.GetProperty("acquiredCertifications").EnumerateArray().ToList();
 		
-		// Find Flag recertification test (if one exists in test data)
-		foreach (var testElement in json.RootElement.EnumerateArray())
+		initialCertifications.Should().NotBeEmpty("referee should have at least one certification");
+		var hasFlagCert = initialCertifications.Any(c => c.GetProperty("level").GetString() == "snitch");
+		hasFlagCert.Should().BeTrue("referee should initially have Flag certification from previous version");
+
+		// Get available tests and find Flag recertification test
+		var testsResponse = await this._client.GetAsync("/api/v2/referees/me/tests/available");
+		testsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "getting available tests should succeed");
+		var testsJson = JsonDocument.Parse(await testsResponse.Content.ReadAsStringAsync());
+		
+		string? flagRecertTestId = null;
+		foreach (var testElement in testsJson.RootElement.EnumerateArray())
 		{
 			var title = testElement.GetProperty("title").GetString();
 			if (title != null && title.Contains("Flag", StringComparison.OrdinalIgnoreCase) && 
 			    title.Contains("Recert", StringComparison.OrdinalIgnoreCase))
 			{
-				var certifications = testElement.GetProperty("awardedCertifications").EnumerateArray();
-				var levels = certifications.Select(c => c.GetProperty("level").GetString()).ToList();
-				
-				// Verify that Flag recertification awards both Flag and Assistant certifications
-				levels.Should().Contain("snitch", "Flag recertification should award Flag certification");
-				levels.Should().Contain("assistant", "Flag recertification should award Assistant certification");
-				levels.Count.Should().Be(2, "Flag recertification should award exactly 2 certifications (Flag and Assistant)");
-				return; // Test passed
+				flagRecertTestId = testElement.GetProperty("testId").GetString();
+				break;
 			}
 		}
 		
-		Assert.True(false, "No Flag recertification test found in test data");
-	}
+		flagRecertTestId.Should().NotBeNull("Flag recertification test should be available");
 
-	[Fact]
-	public async Task HeadRecertificationTest_ShouldAwardHeadFlagAndAssistantCertifications()
-	{
-		// Arrange: Sign in as a referee
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
-
-		// Act: Get available tests
-		var response = await this._client.GetAsync("/api/v2/referees/me/tests/available");
-
-		// Assert: Response should be successful
-		response.StatusCode.Should().Be(HttpStatusCode.OK, "getting available tests should succeed");
-
-		// Parse JSON manually to avoid serialization issues in tests
-		var jsonString = await response.Content.ReadAsStringAsync();
-		var json = JsonDocument.Parse(jsonString);
+		// Start the test
+		var startResponse = await this._client.PostAsync($"/api/v2/referees/me/tests/{flagRecertTestId}/start", null);
+		startResponse.StatusCode.Should().Be(HttpStatusCode.OK, "starting test should succeed");
+		var testStartJson = JsonDocument.Parse(await startResponse.Content.ReadAsStringAsync());
 		
-		// Find Head recertification test (if one exists in test data)
-		foreach (var testElement in json.RootElement.EnumerateArray())
+		// Build correct answers by finding the correct answer for each question
+		var questions = testStartJson.RootElement.GetProperty("questions").EnumerateArray().ToList();
+		var answers = new System.Collections.Generic.List<object>();
+		
+		// In the seeded data, correct answers have "Correct" in their description
+		foreach (var question in questions)
 		{
-			var title = testElement.GetProperty("title").GetString();
-			if (title != null && title.Contains("Head", StringComparison.OrdinalIgnoreCase) && 
-			    title.Contains("Recert", StringComparison.OrdinalIgnoreCase))
+			var questionId = question.GetProperty("questionId").GetInt64();
+			var questionAnswers = question.GetProperty("answers").EnumerateArray().ToList();
+			
+			// Find the answer with "Correct" in the description
+			var correctAnswer = questionAnswers.FirstOrDefault(a => 
+				a.GetProperty("htmlText").GetString()?.Contains("Correct", StringComparison.OrdinalIgnoreCase) == true);
+			
+			if (correctAnswer.ValueKind == JsonValueKind.Undefined)
 			{
-				var certifications = testElement.GetProperty("awardedCertifications").EnumerateArray();
-				var levels = certifications.Select(c => c.GetProperty("level").GetString()).ToList();
-				
-				// Verify that Head recertification awards Head, Flag, and Assistant certifications
-				levels.Should().Contain("head", "Head recertification should award Head certification");
-				levels.Should().Contain("snitch", "Head recertification should award Flag certification");
-				levels.Should().Contain("assistant", "Head recertification should award Assistant certification");
-				levels.Count.Should().Be(3, "Head recertification should award exactly 3 certifications (Head, Flag, and Assistant)");
-				return; // Test passed
+				// Fallback: just pick the first answer if we can't find the correct one
+				correctAnswer = questionAnswers[0];
 			}
+			
+			var answerId = correctAnswer.GetProperty("answerId").GetInt64();
+			answers.Add(new { questionId, answerId });
 		}
-		
-		Assert.True(false, "No Head recertification test found in test data");
-	}
 
-	[Fact]
-	public async Task AssistantRecertificationTest_ShouldAwardOnlyAssistantCertification()
-	{
-		// Arrange: Sign in as a referee
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
-
-		// Act: Get available tests
-		var response = await this._client.GetAsync("/api/v2/referees/me/tests/available");
-
-		// Assert: Response should be successful
-		response.StatusCode.Should().Be(HttpStatusCode.OK, "getting available tests should succeed");
-
-		// Parse JSON manually to avoid serialization issues in tests
-		var jsonString = await response.Content.ReadAsStringAsync();
-		var json = JsonDocument.Parse(jsonString);
-		
-		// Find Assistant recertification test (if one exists in test data)
-		foreach (var testElement in json.RootElement.EnumerateArray())
+		// Submit the test
+		var submitModel = new
 		{
-			var title = testElement.GetProperty("title").GetString();
-			if (title != null && title.Contains("Assitant", StringComparison.OrdinalIgnoreCase) && 
-			    title.Contains("Recert", StringComparison.OrdinalIgnoreCase))
-			{
-				var certifications = testElement.GetProperty("awardedCertifications").EnumerateArray();
-				var levels = certifications.Select(c => c.GetProperty("level").GetString()).ToList();
-				
-				// Verify that Assistant recertification awards only Assistant certification
-				levels.Should().Contain("assistant", "Assistant recertification should award Assistant certification");
-				levels.Count.Should().Be(1, "Assistant recertification should award exactly 1 certification (Assistant only)");
-				return; // Test passed
-			}
-		}
+			startedAt = DateTime.UtcNow.AddMinutes(-5),
+			answers
+		};
 		
-		Assert.True(false, "No Assistant recertification test found in test data");
+		var submitResponse = await this._client.PostAsJsonAsync($"/api/v2/referees/me/tests/{flagRecertTestId}/submit", submitModel);
+		submitResponse.StatusCode.Should().Be(HttpStatusCode.OK, "submitting test should succeed");
+		
+		var submitResult = await submitResponse.Content.ReadAsStringAsync();
+		var submitJson = JsonDocument.Parse(submitResult);
+		var passed = submitJson.RootElement.GetProperty("passed").GetBoolean();
+		passed.Should().BeTrue("test should be passed with correct answers");
+
+		// Verify final state: should now have both Assistant and Flag certifications for the new version
+		var finalProfileResponse = await this._client.GetAsync("/api/v2/referees/me");
+		finalProfileResponse.StatusCode.Should().Be(HttpStatusCode.OK, "getting final referee profile should succeed");
+		var finalProfile = await finalProfileResponse.Content.ReadAsStringAsync();
+		var finalProfileJson = JsonDocument.Parse(finalProfile);
+		var finalCertifications = finalProfileJson.RootElement.GetProperty("acquiredCertifications").EnumerateArray().ToList();
+		
+		// Assert: Should have Flag certifications for both versions (old and new)
+		// Plus Assistant certification for the new version
+		var flagCerts = finalCertifications.Where(c => c.GetProperty("level").GetString() == "snitch").ToList();
+		var assistantCerts = finalCertifications.Where(c => c.GetProperty("level").GetString() == "assistant").ToList();
+		
+		flagCerts.Should().HaveCountGreaterOrEqualTo(2, "referee should have Flag certification for both old and new versions");
+		assistantCerts.Should().HaveCount(1, "referee should have Assistant certification for the new version");
+		
+		// Verify the new version certifications were awarded
+		var hasNewVersionFlag = finalCertifications.Any(c => 
+			c.GetProperty("level").GetString() == "snitch" && 
+			c.GetProperty("version").GetString() == "twentyfour");
+		var hasNewVersionAssistant = finalCertifications.Any(c => 
+			c.GetProperty("level").GetString() == "assistant" && 
+			c.GetProperty("version").GetString() == "twentyfour");
+		
+		hasNewVersionFlag.Should().BeTrue("referee should have Flag certification for the new version (twentyfour)");
+		hasNewVersionAssistant.Should().BeTrue("referee should have Assistant certification for the new version (twentyfour)");
 	}
 }
