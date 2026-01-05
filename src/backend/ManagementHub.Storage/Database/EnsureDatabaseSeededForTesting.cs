@@ -347,15 +347,6 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			UpdatedAt = DateTime.UtcNow,
 		});
 
-		dbContext.RefereeLocations.Add(new RefereeLocation
-		{
-			Referee = recertTestReferee,
-			AssociationType = RefereeNgbAssociationType.Primary,
-			NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
-			CreatedAt = DateTime.UtcNow,
-			UpdatedAt = DateTime.UtcNow,
-		});
-
 		dbContext.RefereeTeams.AddRange(
 			new RefereeTeam
 			{
