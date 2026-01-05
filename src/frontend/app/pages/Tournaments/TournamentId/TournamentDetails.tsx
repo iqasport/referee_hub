@@ -2,6 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useGetTournamentQuery } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
+import {
+  ChevronLeftIcon,
+  LocationIcon,
+  CalendarIcon,
+  UsersIcon,
+  HomeIcon,
+  ClockIcon,
+} from "../../../components/icons";
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
@@ -46,21 +54,8 @@ const TournamentDetails = () => {
             className="w-full h-full object-cover"
           />
           {/* Back button overlay */}
-          <Link
-            to="/tournaments"
-          >
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+          <Link to="/tournaments">
+            <ChevronLeftIcon />
           </Link>
         </div>
 
@@ -68,13 +63,7 @@ const TournamentDetails = () => {
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-8 text-white">
           <h1 className="text-4xl font-bold">{tournament.name}</h1>
           <div className="flex items-center gap-2 mt-2 text-sm opacity-90">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <LocationIcon className="w-4 h-4" />
             <span>{tournament.country}</span>
           </div>
         </div>
@@ -87,9 +76,7 @@ const TournamentDetails = () => {
             {/* Tournament Date Card */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M6 2a1 1 0 00-1 1v2H4a2 2 0 00-2 2v2h16V7a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v2H7V3a1 1 0 00-1-1zm0 5a2 2 0 002 2h8a2 2 0 002-2H6z" />
-                </svg>
+                <CalendarIcon className="w-5 h-5 text-green-600" />
                 <p className="text-xs text-gray-600 font-semibold">Tournament Date</p>
               </div>
               <p className="text-sm font-semibold text-gray-900">{formattedDateRange}</p>
@@ -98,9 +85,7 @@ const TournamentDetails = () => {
             {/* Participants Card */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM9 6a3 3 0 11-6 0 3 3 0 016 0zm12 0a3 3 0 11-6 0 3 3 0 016 0zm-5 9a3 3 0 11-6 0 3 3 0 016 0zm5-1a2 2 0 10-4 0v1h4v-1z" />
-                </svg>
+                <UsersIcon className="w-5 h-5 text-green-600" />
                 <p className="text-xs text-gray-600 font-semibold">Participants</p>
               </div>
               <p className="text-sm font-semibold text-gray-900">TBD</p>
@@ -109,9 +94,7 @@ const TournamentDetails = () => {
             {/* Organizer Card */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                </svg>
+                <HomeIcon className="w-5 h-5 text-green-600" />
                 <p className="text-xs text-gray-600 font-semibold">Organizer</p>
               </div>
               <p className="text-sm font-semibold text-gray-900">{tournament.organizer || "N/A"}</p>
@@ -120,13 +103,7 @@ const TournamentDetails = () => {
             {/* Registration Ends Card */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <ClockIcon className="w-5 h-5 text-green-600" />
                 <p className="text-xs text-gray-600 font-semibold">Registration Ends</p>
               </div>
               <p className="text-sm font-semibold text-gray-900">
