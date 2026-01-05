@@ -1,5 +1,6 @@
 ﻿using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using Microsoft.AspNetCore.Authorization;
 
@@ -58,4 +59,39 @@ public class TournamentUserRoleAuthorizationRequirement<TUserRole> : UserRoleAut
 		context.RouteParameters.TryGetValue("tournamentId", out var tournamentIdObject) &&
 		tournamentIdObject is string tournamentId &&
 		role.Tournament.AppliesTo(TournamentIdentifier.Parse(tournamentId));
+}
+
+// For any endpoint with a route parameter "teamId" that is a TeamIdentifier, the user must have a role that applies to that team.
+public class TeamUserRoleAuthorizationRequirement<TUserRole> : UserRoleAuthorizationRequirement<TUserRole>
+	where TUserRole : ITeamUserRole
+{
+	override public bool Satisfies(TUserRole role, AuthorizationContext context) =>
+		context.RouteParameters.TryGetValue("teamId", out var teamIdObject) &&
+		teamIdObject is string teamId &&
+		role.Team.AppliesTo(TeamIdentifier.Parse(teamId));
+}
+
+// Compound requirement that succeeds if ANY of the inner requirements are satisfied (OR logic)
+public class CompoundOrAuthorizationRequirement : UserRoleAuthorizationRequirement
+{
+	private readonly UserRoleAuthorizationRequirement[] requirements;
+
+	public CompoundOrAuthorizationRequirement(params UserRoleAuthorizationRequirement[] requirements)
+	{
+		this.requirements = requirements;
+	}
+
+	public override bool Satisfies(IUserRole role, AuthorizationContext context)
+	{
+		foreach (var requirement in this.requirements)
+		{
+			if (requirement.Satisfies(role, context))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public override string ToString() => $"Compound authorization requirement ({string.Join(" OR ", this.requirements.Select(r => r.ToString()))})";
 }

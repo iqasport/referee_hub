@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
@@ -12,6 +13,14 @@ public static class UserCollectionExtensions
 {
 	public static IQueryable<User> WithIdentifier(this IQueryable<User> users, UserIdentifier userId) =>
 		users.Where(user => user.UniqueId == userId.ToString() || (user.UniqueId == null && user.Id == userId.ToLegacyUserId()));
+
+	public static IQueryable<User> WithIdentifiers(this IQueryable<User> users, IEnumerable<UserIdentifier> userIds)
+	{
+		var userIdStrings = userIds.Select(id => id.ToString()).ToList();
+		var userIdLegacyIds = userIds.Select(id => id.ToLegacyUserId()).ToList();
+
+		return users.Where(u => (u.UniqueId != null && userIdStrings.Contains(u.UniqueId)) || (u.UniqueId == null && userIdLegacyIds.Contains(u.Id)));
+	}
 
 	public static IQueryable<User> WithEmail(this IQueryable<User> users, string email) =>
 		users.Where(user => user.Email == email);

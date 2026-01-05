@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
@@ -41,6 +43,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	private readonly IAccessFileCommand accessFileCommand;
 	private readonly CollectionFilteringContext filteringContext;
 	private readonly IDatabaseTransactionProvider transactionProvider;
+	private readonly IUserDelicateInfoService userDelicateInfoService;
 	private readonly ILogger<DbTournamentContextProvider> logger;
 
 	public DbTournamentContextProvider(
@@ -49,6 +52,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		IAccessFileCommand accessFileCommand,
 		CollectionFilteringContext filteringContext,
 		IDatabaseTransactionProvider transactionProvider,
+		IUserDelicateInfoService userDelicateInfoService,
 		ILogger<DbTournamentContextProvider> logger)
 	{
 		this.dbContext = dbContext;
@@ -56,6 +60,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.accessFileCommand = accessFileCommand;
 		this.filteringContext = filteringContext;
 		this.transactionProvider = transactionProvider;
+		this.userDelicateInfoService = userDelicateInfoService;
 		this.logger = logger;
 	}
 
@@ -98,10 +103,15 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	public async Task<ITournamentContext> GetTournamentContextAsync(TournamentIdentifier tournamentId, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
+		// Get the user's database ID using WithIdentifier (supports both UniqueId and legacy IDs)
+		// Keep as IQueryable to allow EF Core to translate to SQL join
+		var userDatabaseIds = UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
+			.Select(u => u.Id);
+
 		var constrainedQuery = this.dbContext.Tournaments
 			.Where(t => t.UniqueId == tournamentId.ToString());
 
-		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userId)
+		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userDatabaseIds)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
@@ -220,10 +230,35 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			.Select(tm => tm.Tournament.UniqueId)
 			.ToListAsync(cancellationToken);
 
-		// Phase 3 will add: Check if user is team manager for participating teams
-		// Phase 4 will add: Check if user is on roster
+		// Phase 3: Check if user is team manager for participating teams
+		var teamManagerTournamentIds = await this.dbContext.TeamManagers
+			.Where(teamMgr => teamMgr.UserId == user.Id)
+			.Join(
+				this.dbContext.TournamentTeamParticipants,
+				teamMgr => teamMgr.TeamId,
+				participant => participant.TeamId,
+				(teamMgr, participant) => new { participant.Tournament.UniqueId })
+			.Where(p => tournamentIdsList.Contains(p.UniqueId))
+			.Select(p => p.UniqueId)
+			.Distinct()
+			.ToListAsync(cancellationToken);
+
+		// Phase 4: Check if user is on any tournament roster
+		var rosterTournamentIds = await this.dbContext.TournamentTeamRosterEntries
+			.Where(entry => entry.UserId == user.Id)
+			.Join(
+				this.dbContext.TournamentTeamParticipants,
+				entry => entry.TournamentTeamParticipantId,
+				participant => participant.Id,
+				(entry, participant) => new { participant.Tournament.UniqueId })
+			.Where(p => tournamentIdsList.Contains(p.UniqueId))
+			.Select(p => p.UniqueId)
+			.Distinct()
+			.ToListAsync(cancellationToken);
 
 		return managerTournamentIds
+			.Concat(teamManagerTournamentIds)
+			.Concat(rosterTournamentIds)
 			.Select(id => TournamentIdentifier.Parse(id))
 			.ToHashSet();
 	}
@@ -381,22 +416,48 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
 	{
-		// Get the user's unique ID for the Where clause
-		var userUniqueId = userId.ToString();
+		// Convert userId to string for comparison
+		var userIdString = userId.ToString();
+
+		// Get the user's database ID using a join with WithIdentifier
+		// This works for both UniqueId and legacy IDs
+		var userDatabaseIds = UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
+			.Select(u => u.Id);
 
 		// Order and filter the tournaments BEFORE projection to allow EF Core to translate the query
 		var filteredTournaments = tournaments
-			// Sort by whether user is involved (tournaments where user is manager appear first)
-			// This is computed as a subquery that EF Core can translate to SQL
-			.OrderByDescending(t => t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId))
+			// Sort by whether user is involved (tournaments where user is manager or team manager of participant appear first)
+			// Join with user table to support both UniqueId and legacy IDs
+			.OrderByDescending(t => t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))))
 			// Then sort by start date (most recent first)
 			.ThenByDescending(t => t.StartDate)
 			// Filter private tournaments at the entity level BEFORE projection
-			// Only show private tournaments where the user is involved (is a tournament manager)
+			// Only show private tournaments where the user is involved (is a tournament manager OR team manager of participant)
 			// Public tournaments are visible to everyone
-			.Where(t => !t.IsPrivate || t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId));
+			.Where(t => !t.IsPrivate ||
+				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))));
 
-		return this.BuildTournamentContextQuery(filteredTournaments, userId);
+		// Build the final query with IsCurrentUserInvolved computed via join
+		return filteredTournaments.AsNoTracking()
+			.Select(t => new DbTournamentContext(
+				TournamentIdentifier.Parse(t.UniqueId),
+				t.Name,
+				t.Description,
+				t.StartDate,
+				t.EndDate,
+				t.Type,
+				t.Country,
+				t.City,
+				t.Place,
+				t.Organizer,
+				t.IsPrivate,
+				// IsCurrentUserInvolved: computed via database join
+				// User is involved if they manage this tournament OR manage a participating team
+				// Phase 4 will extend: || user is on a roster
+				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId)))));
 	}
 
 	/// <summary>
@@ -404,14 +465,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 	/// This shared function is used by both single and batch tournament queries to ensure consistent logic.
 	/// </summary>
 	/// <param name="tournaments">Constrained IQueryable of tournaments (can be filtered by ID, search terms, etc.)</param>
-	/// <param name="userId">The user identifier for computing IsCurrentUserInvolved</param>
+	/// <param name="userDatabaseIds">IQueryable of user database IDs (supports both UniqueId and legacy IDs via WithIdentifier)</param>
 	/// <returns>IQueryable of ITournamentContext with all joins and computations applied</returns>
-	private IQueryable<ITournamentContext> BuildTournamentContextQuery(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
+	private IQueryable<ITournamentContext> BuildTournamentContextQuery(IQueryable<Models.Data.Tournament> tournaments, IQueryable<long> userDatabaseIds)
 	{
-		// Get the user's unique ID for joins
-		// This will be used in the select projection for database-level joins
-		var userUniqueId = userId.ToString();
-
 		return tournaments.AsNoTracking()
 			.Select(t => new DbTournamentContext(
 				TournamentIdentifier.Parse(t.UniqueId),
@@ -426,9 +483,520 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Organizer,
 				t.IsPrivate,
 				// IsCurrentUserInvolved: computed via database join
-				// User is involved if they manage this tournament
-				// Phase 3 will extend: || user is a team manager for participating teams
-				// Phase 4 will extend: || user is on a roster
-				t.TournamentManagers.Any(tm => tm.User.UniqueId == userUniqueId)));
+				// User is involved if they manage this tournament OR manage a participating team OR are on a roster
+				// Using .Contains() with IQueryable creates a SQL IN clause with subquery for proper join
+				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
+				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))) ||
+				t.TournamentTeamParticipants.Any(p => p.RosterEntries.Any(entry => userDatabaseIds.Contains(entry.UserId)))));
+	}
+
+	// Phase 3: Invite management methods
+
+	public async Task<IEnumerable<InviteInfo>> GetTournamentInvitesAsync(
+		TournamentIdentifier tournamentId,
+		UserIdentifier? filterByParticipant = null,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+
+		var query = this.dbContext.TournamentInvites
+			.Include(i => i.Tournament)
+			.Include(i => i.Initiator)
+			.Where(i => i.Tournament.UniqueId == tournamentIdString);
+
+		// If filtering by participant, filter by user's teams
+		if (filterByParticipant != null)
+		{
+			// First, get the user's database ID using WithIdentifier (supports both UniqueId and legacy IDs)
+			var userId = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, filterByParticipant.Value)
+				.Select(u => u.Id)
+				.FirstOrDefaultAsync(cancellationToken);
+
+			if (userId == 0)
+			{
+				// User not found
+				return new List<InviteInfo>();
+			}
+
+			// Get team IDs where user is a team manager
+			var userTeamLongIds = await this.dbContext.TeamManagers
+				.Where(tm => tm.UserId == userId)
+				.Select(tm => tm.TeamId)
+				.ToListAsync(cancellationToken);
+
+			// If user is not a team manager of any team, return empty list
+			if (!userTeamLongIds.Any())
+			{
+				return new List<InviteInfo>();
+			}
+
+			// Convert long IDs to TeamIdentifier strings
+			var userTeamIds = userTeamLongIds.Select(id => new TeamIdentifier(id).ToString()).ToList();
+
+			query = query.Where(i => userTeamIds.Contains(i.ParticipantId));
+		}
+
+		// Fetch invites from database
+		var dbInvites = await query.ToListAsync(cancellationToken);
+
+		// If there are no invites, return empty list
+		if (!dbInvites.Any())
+		{
+			return new List<InviteInfo>();
+		}
+
+		// Get unique participant IDs for teams
+		var teamParticipantIds = dbInvites
+			.Where(i => i.ParticipantType == "team")
+			.Select(i => i.ParticipantId)
+			.Distinct()
+			.ToList();
+
+		// Fetch team names in a separate query if there are any team participants
+		Dictionary<string, string> teamNames = new Dictionary<string, string>();
+		if (teamParticipantIds.Any())
+		{
+			// Parse team participant IDs to get the long IDs for database query
+			var teamLongIds = teamParticipantIds
+				.Select(id => TeamIdentifier.Parse(id).Id)
+				.ToList();
+
+			// Query teams by long IDs
+			var teams = await this.dbContext.Teams
+				.Where(t => teamLongIds.Contains(t.Id))
+				.Select(t => new { t.Id, t.Name })
+				.ToListAsync(cancellationToken);
+
+			// Convert back to TeamIdentifier strings for the dictionary
+			teamNames = teams.ToDictionary(
+				t => new TeamIdentifier(t.Id).ToString(),
+				t => t.Name);
+		}
+
+		// Map to InviteInfo
+		return dbInvites.Select(i => new InviteInfo
+		{
+			TournamentId = TournamentIdentifier.Parse(i.Tournament.UniqueId),
+			ParticipantType = i.ParticipantType == "team" ? ParticipantType.Team : ParticipantType.Team,
+			ParticipantId = i.ParticipantId,
+			ParticipantName = i.ParticipantType == "team" && teamNames.TryGetValue(i.ParticipantId, out var name)
+				? name
+				: "Unknown",
+			InitiatorUserId = i.Initiator.UniqueId != null
+				? UserIdentifier.Parse(i.Initiator.UniqueId)
+				: UserIdentifier.FromLegacyUserId(i.Initiator.Id),
+			CreatedAt = i.CreatedAt,
+			TournamentManagerApproval = i.TournamentManagerApproval,
+			TournamentManagerApprovalDate = i.TournamentManagerApprovalDate,
+			ParticipantApproval = i.ParticipantApproval,
+			ParticipantApprovalDate = i.ParticipantApprovalDate
+		}).ToList();
+	}
+
+	public async Task<InviteInfo> CreateTeamInviteAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		UserIdentifier initiatorUserId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var participantId = teamId.ToString();
+
+		// Get tournament database ID
+		var tournament = await this.dbContext.Tournaments
+			.Where(t => t.UniqueId == tournamentIdString)
+			.Select(t => new { t.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		// Get initiator's database ID
+		var initiator = await this.dbContext.Users
+			.WithIdentifier(initiatorUserId)
+			.Select(u => new { u.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (initiator == null)
+		{
+			throw new NotFoundException(initiatorUserId.ToString());
+		}
+
+		// Check if user is tournament manager
+		var isTournamentManager = await this.dbContext.TournamentManagers
+			.AnyAsync(tm => tm.TournamentId == tournament.Id && tm.UserId == initiator.Id, cancellationToken);
+
+		// Check if user is team manager
+		var isTeamManager = await this.dbContext.TeamManagers
+			.AnyAsync(tm => tm.TeamId == teamId.Id && tm.UserId == initiator.Id, cancellationToken);
+
+		var now = DateTime.UtcNow;
+
+		var invite = new TournamentInvite
+		{
+			TournamentId = tournament.Id,
+			ParticipantType = "team",
+			ParticipantId = participantId,
+			InitiatorUserId = initiator.Id,
+			CreatedAt = now,
+			// Auto-approve if user has both roles
+			TournamentManagerApproval = isTournamentManager ? ApprovalStatus.Approved : ApprovalStatus.Pending,
+			TournamentManagerApprovalDate = isTournamentManager ? now : null,
+			ParticipantApproval = isTeamManager ? ApprovalStatus.Approved : ApprovalStatus.Pending,
+			ParticipantApprovalDate = isTeamManager ? now : null,
+		};
+
+		this.dbContext.TournamentInvites.Add(invite);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Created invite for tournament {TournamentId} team {TeamId}",
+			tournamentId, teamId);
+
+		// Fetch the created invite to return with proper team name
+		var createdInvite = await this.GetTeamInviteAsync(tournamentId, teamId, cancellationToken);
+		return createdInvite!;
+	}
+
+	public async Task<InviteInfo?> GetTeamInviteAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var participantId = teamId.ToString();
+
+		var invite = await this.dbContext.TournamentInvites
+			.Include(i => i.Tournament)
+			.Include(i => i.Initiator)
+			.Where(i => i.Tournament.UniqueId == tournamentIdString && i.ParticipantId == participantId)
+			.OrderByDescending(i => i.CreatedAt)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invite == null)
+		{
+			return null;
+		}
+
+		return new InviteInfo
+		{
+			TournamentId = TournamentIdentifier.Parse(invite.Tournament.UniqueId),
+			ParticipantType = ParticipantType.Team,
+			ParticipantId = invite.ParticipantId,
+			ParticipantName = await this.GetTeamNameAsync(invite.ParticipantId, cancellationToken),
+			InitiatorUserId = invite.Initiator.UniqueId != null
+				? UserIdentifier.Parse(invite.Initiator.UniqueId)
+				: UserIdentifier.FromLegacyUserId(invite.Initiator.Id),
+			CreatedAt = invite.CreatedAt,
+			TournamentManagerApproval = invite.TournamentManagerApproval,
+			TournamentManagerApprovalDate = invite.TournamentManagerApprovalDate,
+			ParticipantApproval = invite.ParticipantApproval,
+			ParticipantApprovalDate = invite.ParticipantApprovalDate
+		};
+	}
+
+	private async Task<string> GetTeamNameAsync(string participantId, CancellationToken cancellationToken)
+	{
+		if (!TeamIdentifier.TryParse(participantId, out var teamId))
+		{
+			return "Unknown";
+		}
+
+		var teamName = await this.dbContext.Teams
+			.Where(t => t.Id == teamId.Id)
+			.Select(t => t.Name)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		return teamName ?? "Unknown";
+	}
+
+	public async Task UpdateInviteApprovalAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		bool isTournamentManager,
+		bool approved,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var participantId = teamId.ToString();
+
+		var invite = await this.dbContext.TournamentInvites
+			.Where(i => i.Tournament.UniqueId == tournamentIdString && i.ParticipantId == participantId)
+			.OrderByDescending(i => i.CreatedAt)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invite == null)
+		{
+			throw new NotFoundException($"Invite for tournament {tournamentId} and team {teamId}");
+		}
+
+		var now = DateTime.UtcNow;
+		var newStatus = approved ? ApprovalStatus.Approved : ApprovalStatus.Rejected;
+
+		if (isTournamentManager)
+		{
+			invite.TournamentManagerApproval = newStatus;
+			invite.TournamentManagerApprovalDate = now;
+		}
+		else
+		{
+			invite.ParticipantApproval = newStatus;
+			invite.ParticipantApprovalDate = now;
+		}
+
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Updated invite approval for tournament {TournamentId} team {TeamId}: {ApproverType} = {Status}",
+			tournamentId, teamId, isTournamentManager ? "TournamentManager" : "Participant", newStatus);
+	}
+
+	// Phase 3: Participant management methods
+
+	public async Task<IEnumerable<TeamParticipantInfo>> GetTournamentTeamParticipantsAsync(
+		TournamentIdentifier tournamentId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+
+		var participants = await this.dbContext.TournamentTeamParticipants
+			.Where(p => p.Tournament.UniqueId == tournamentIdString)
+			.Select(p => new TeamParticipantInfo
+			{
+				TeamId = new TeamIdentifier(p.TeamId),
+				TeamName = p.TeamName,
+				CreatedAt = p.CreatedAt
+			})
+			.ToListAsync(cancellationToken);
+
+		return participants;
+	}
+
+	public async Task AddTeamParticipantAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+
+		// Get tournament database ID
+		var tournament = await this.dbContext.Tournaments
+			.Where(t => t.UniqueId == tournamentIdString)
+			.Select(t => new { t.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		// Get team and its name
+		var team = await this.dbContext.Teams
+			.Where(t => t.Id == teamId.Id)
+			.Select(t => new { t.Id, t.Name })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (team == null)
+		{
+			throw new NotFoundException(teamId.ToString());
+		}
+
+		// Check if already a participant (idempotent)
+		var existingParticipant = await this.dbContext.TournamentTeamParticipants
+			.AnyAsync(p => p.TournamentId == tournament.Id && p.TeamId == team.Id, cancellationToken);
+
+		if (existingParticipant)
+		{
+			this.logger.LogInformation("Team {TeamId} is already a participant of tournament {TournamentId}",
+				teamId, tournamentId);
+			return;
+		}
+
+		var now = DateTime.UtcNow;
+
+		var participant = new TournamentTeamParticipant
+		{
+			TournamentId = tournament.Id,
+			TeamId = team.Id,
+			TeamName = team.Name,
+			CreatedAt = now,
+			UpdatedAt = now,
+		};
+
+		this.dbContext.TournamentTeamParticipants.Add(participant);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Added team {TeamId} as participant to tournament {TournamentId}",
+			teamId, tournamentId);
+	}
+
+	public async Task RemoveTeamParticipantAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+
+		// Get tournament database ID
+		var tournament = await this.dbContext.Tournaments
+			.Where(t => t.UniqueId == tournamentIdString)
+			.Select(t => new { t.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		// Find and remove the participant
+		var participant = await this.dbContext.TournamentTeamParticipants
+			.Where(p => p.TournamentId == tournament.Id && p.TeamId == teamId.Id)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (participant == null)
+		{
+			this.logger.LogInformation("Team {TeamId} is not a participant of tournament {TournamentId}",
+				teamId, tournamentId);
+			return;
+		}
+
+		this.dbContext.TournamentTeamParticipants.Remove(participant);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Removed team {TeamId} as participant from tournament {TournamentId}",
+			teamId, tournamentId);
+	}
+
+	public async Task UpdateParticipantRosterAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		RosterUpdateData rosterData,
+		CancellationToken cancellationToken = default)
+	{
+		using var transaction = await this.transactionProvider.BeginAsync();
+
+		var tournamentIdString = tournamentId.ToString();
+
+		// Get participant with roster entries
+		var participant = await this.dbContext.TournamentTeamParticipants
+			.Include(p => p.RosterEntries)
+			.Where(p => p.Tournament.UniqueId == tournamentIdString && p.TeamId == teamId.Id)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (participant == null)
+		{
+			throw new NotFoundException($"Team {teamId} is not a participant of tournament {tournamentId}");
+		}
+
+		// Collect all user IDs
+		var allUserIds = rosterData.Players.Select(p => p.UserId)
+			.Concat(rosterData.Coaches.Select(c => c.UserId))
+			.Concat(rosterData.Staff.Select(s => s.UserId))
+			.Distinct()
+			.ToList();
+
+		// Validate all users exist and resolve to database IDs using WithIdentifiers
+		var userMapping = await this.dbContext.Users
+			.WithIdentifiers(allUserIds)
+			.Select(u => new
+			{
+				Identifier = u.UniqueId != null ? UserIdentifier.Parse(u.UniqueId) : UserIdentifier.FromLegacyUserId(u.Id),
+				u.Id
+			})
+			.ToListAsync(cancellationToken);
+
+		var userIdMap = userMapping.ToDictionary(m => m.Identifier, m => m.Id);
+
+		// Check if all users were found
+		var missingUsers = allUserIds.Where(id => !userIdMap.ContainsKey(id)).ToList();
+		if (missingUsers.Count > 0)
+		{
+			throw new NotFoundException($"User(s) not found: {string.Join(", ", missingUsers)}");
+		}
+
+		// Validate users are team members
+		await this.ValidateUsersAreTeamMembersAsync(userIdMap.Values, teamId, cancellationToken);
+
+		// Clear existing roster
+		this.dbContext.TournamentTeamRosterEntries.RemoveRange(participant.RosterEntries);
+
+		var now = DateTime.UtcNow;
+
+		// Add players
+		foreach (var player in rosterData.Players)
+		{
+			var entry = new TournamentTeamRosterEntry
+			{
+				TournamentTeamParticipantId = participant.Id,
+				UserId = userIdMap[player.UserId],
+				Role = RosterRole.Player,
+				JerseyNumber = player.JerseyNumber,
+				CreatedAt = now,
+				UpdatedAt = now
+			};
+			this.dbContext.TournamentTeamRosterEntries.Add(entry);
+
+			// Update gender if provided
+			if (player.Gender != null)
+			{
+				await this.userDelicateInfoService.SetUserGenderAsync(player.UserId, player.Gender);
+			}
+		}
+
+		// Add coaches
+		foreach (var coach in rosterData.Coaches)
+		{
+			var entry = new TournamentTeamRosterEntry
+			{
+				TournamentTeamParticipantId = participant.Id,
+				UserId = userIdMap[coach.UserId],
+				Role = RosterRole.Coach,
+				CreatedAt = now,
+				UpdatedAt = now
+			};
+			this.dbContext.TournamentTeamRosterEntries.Add(entry);
+		}
+
+		// Add staff
+		foreach (var staff in rosterData.Staff)
+		{
+			var entry = new TournamentTeamRosterEntry
+			{
+				TournamentTeamParticipantId = participant.Id,
+				UserId = userIdMap[staff.UserId],
+				Role = RosterRole.Staff,
+				CreatedAt = now,
+				UpdatedAt = now
+			};
+			this.dbContext.TournamentTeamRosterEntries.Add(entry);
+		}
+
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		await transaction.CommitAsync(cancellationToken);
+
+		this.logger.LogInformation(
+			"Updated roster for team {TeamId} in tournament {TournamentId}: {PlayerCount} players, {CoachCount} coaches, {StaffCount} staff",
+			teamId, tournamentId, rosterData.Players.Count, rosterData.Coaches.Count, rosterData.Staff.Count);
+	}
+
+	private async Task ValidateUsersAreTeamMembersAsync(
+		IEnumerable<long> userDbIds,
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken)
+	{
+		// Get all users who are members of this team
+		var teamMembers = await this.dbContext.RefereeTeams
+			.Where(rt => rt.TeamId == teamId.Id)
+			.Select(rt => rt.RefereeId)
+			.ToListAsync(cancellationToken);
+
+		var userDbIdsList = userDbIds.ToList();
+		var invalidUsers = userDbIdsList.Where(uid => !teamMembers.Contains(uid)).ToList();
+
+		if (invalidUsers.Count > 0)
+		{
+			throw new InvalidOperationException($"{invalidUsers.Count} user(s) are not members of the team");
+		}
 	}
 }

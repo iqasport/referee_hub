@@ -18,7 +18,7 @@ const ImportWizard = lazy(() => import("./pages/ImportWizard"));
 const RefereeTests = lazy(() => import("./pages/RefereeTests"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Tournament = lazy(() => import("./pages/Tournaments"));
-const TournamentDetails = lazy(() => import("./pages/Tournaments/[id]"));
+const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
@@ -114,7 +114,7 @@ const App = () => {
           element={<Tournament/>}
           />
           <Route 
-          path="/tournaments/:id"
+          path="/tournaments/:tournamentId"
           element={<TournamentDetails/>}
           />
           {/* TODO {currentUser?.enabledFeatures.includes("i18n") ? (

@@ -1,11 +1,12 @@
 import React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useGetTournamentQuery } from "../../../store/serviceApi";
+import { useNavigationParams } from "../../../utils/navigationUtils";
 
 const TournamentDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { tournamentId } = useNavigationParams<"tournamentId">();
 
-  const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: id || "" });
+  const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
 
   if (isLoading) {
     return (

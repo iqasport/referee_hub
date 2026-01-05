@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Storage.Collections;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,5 +50,20 @@ public class DbTeamContextProvider : ITeamContextProvider
 	public Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)
 	{
 		return this.dbTeamContextFactory.UpdateTeamAsync(ngb, teamId, teamData);
+	}
+
+	public Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		return this.dbTeamContextFactory.GetTeamAsync(teamId, ngbs);
+	}
+
+	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		return this.dbTeamContextFactory.QueryTeamMembers(teamId, ngbs);
+	}
+
+	public Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs)
+	{
+		return this.dbTeamContextFactory.GetTeamManagersAsync(teamId, ngbs);
 	}
 }
