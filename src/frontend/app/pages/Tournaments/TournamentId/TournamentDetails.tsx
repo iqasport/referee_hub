@@ -4,8 +4,6 @@ import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterT
 import { useGetTournamentQuery } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
 import {
-  ChevronLeftIcon,
-  LocationIcon,
   CalendarIcon,
   UsersIcon,
   HomeIcon,
@@ -47,32 +45,33 @@ const TournamentDetails = () => {
 
   return (
     <>
-      {/* Header with back button overlay */}
-      <header className="relative">
+      {/* Header */}
+      <header>
         <div className="relative h-48 overflow-hidden">
           <img
             src={tournament.bannerImageUrl || "https://placehold.co/1200x200"}
             alt="Tournament banner"
             className="w-full h-full object-cover"
           />
-          {/* Back button overlay */}
-          <Link to="/tournaments">
-            <ChevronLeftIcon />
-          </Link>
-        </div>
-
-        {/* Title overlay on image */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-8 text-white">
-          <h1 className="text-4xl font-bold">{tournament.name}</h1>
-          <div className="flex items-center gap-2 mt-2 text-sm opacity-90">
-            <LocationIcon className="w-4 h-4" />
-            <span>{tournament.country}</span>
+          {/* Title overlay on image */}
+          <div className="absolute bottom-0 left-0 right-0 p-8 text-white" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+            <h1 className="text-4xl font-bold">{tournament.name}</h1>
           </div>
         </div>
       </header>
 
+      {/* Back button */}
+      <div className="bg-white px-6 py-3 border-b border-gray-200">
+        <Link
+          to="/tournaments"
+          className="text-blue-600 font-medium"
+        >
+          ← Back to Tournaments
+        </Link>
+      </div>
+
       {/* Info cards section */}
-      <section className="bg-white px-6 py-8 -mt-12 relative z-10">
+      <section className="bg-white px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {/* Tournament Date Card */}
