@@ -8,6 +8,7 @@ import type { FeatureGates } from '../store/serviceApi';
  */
 const defaultFeatureGates: FeatureGates = {
   isTestFlag: false,
+  showTestResultsOnFinish: false,
 };
 
 /**
