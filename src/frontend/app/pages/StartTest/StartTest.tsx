@@ -228,14 +228,13 @@ const StartTest = () => {
     const passed = submittedTest?.passed;
     const scoredPercentage = submittedTest?.scoredPercentage;
     const passPercentage = submittedTest?.passPercentage;
-    const resultIcon = passed ? faCheckCircle : faCheckCircle;
     const resultText = passed ? "Passed" : "Not Quite There";
     const colorClass = passed ? "text-green-darker" : "text-gray-700";
 
     return (
       <div>
         <div className="flex flex-col items-center">
-          <FontAwesomeIcon icon={resultIcon} className={`${colorClass} text-6xl mb-4`} />
+          <FontAwesomeIcon icon={faCheckCircle} className={`${colorClass} text-6xl mb-4`} />
           <h1 className={`text-4xl font-bold mb-2 ${colorClass}`}>{resultText}</h1>
           <h2 className="text-2xl font-bold my-4">{test?.title}</h2>
           <span className="italic text-gray-600">{test?.description}</span>

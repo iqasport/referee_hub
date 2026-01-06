@@ -9,4 +9,9 @@ public class FeatureGates
 	/// Example test flag for demonstration purposes.
 	/// </summary>
 	public bool IsTestFlag { get; set; }
+
+	/// <summary>
+	/// Controls whether to show detailed test results on the finish page.
+	/// </summary>
+	public bool ShowTestResultsOnFinish { get; set; }
 }
