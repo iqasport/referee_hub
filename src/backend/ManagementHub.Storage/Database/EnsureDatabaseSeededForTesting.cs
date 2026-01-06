@@ -246,7 +246,16 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			LastName = "Coach",
 		};
 
-		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike);
+		var recertTestReferee = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "recert.test@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = "Recert",
+			LastName = "TestReferee",
+		};
+
+		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike, recertTestReferee);
 
 		dbContext.Roles.AddRange(
 			new Role
@@ -289,6 +298,12 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			{
 				AccessType = UserAccessType.Referee,
 				User = coachMike,
+				CreatedAt = DateTime.UtcNow,
+			},
+			new Role
+			{
+				AccessType = UserAccessType.Referee,
+				User = recertTestReferee,
 				CreatedAt = DateTime.UtcNow,
 			});
 
@@ -571,6 +586,19 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			CreatedAt = DateTime.UtcNow.AddDays(-50),
 			ReceivedAt = DateTime.UtcNow.AddDays(-50),
 			Referee = referee,
+		});
+
+		// Add Flag certification (previous version) to recert test referee so they're eligible for Flag recert test
+		// The Flag recert test requires Flag certification from the previous version
+		// Since the Flag recert test is for the latest version (2022), we need the previous version (2020)
+		var flagRecertTest = tests.First(t => t.Recertification == true && t.Certification!.Level == CertificationLevel.Flag);
+		var previousVersionForFlagRecert = flagRecertTest.Certification!.Version!.Value - 1;
+		dbContext.RefereeCertifications.Add(new RefereeCertification
+		{
+			Certification = certifications.First(c => c.Level == CertificationLevel.Flag && c.Version == previousVersionForFlagRecert),
+			CreatedAt = DateTime.UtcNow.AddDays(-30),
+			ReceivedAt = DateTime.UtcNow.AddDays(-30),
+			Referee = recertTestReferee,
 		});
 
 		foreach (var test in tests)
