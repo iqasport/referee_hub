@@ -191,6 +191,7 @@ const Tournament = () => {
                     hideOnSinglePage={true}
                     jumpPrevIcon={<FontAwesomeIcon icon={faEllipsisH} />}
                     jumpNextIcon={<FontAwesomeIcon icon={faEllipsisH} />}
+                    showTitle={false}
                   />
                 </div>
               )}
