@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
+import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterTournamentModal";
 import { useGetTournamentQuery } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
 import {
@@ -13,6 +14,7 @@ import {
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
+  const registerModalRef = useRef<RegisterTournamentModalRef>(null);
 
   const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
 
@@ -145,7 +147,17 @@ const TournamentDetails = () => {
                 <p className="text-sm text-gray-600 mb-4">
                   Secure your spot in this exciting tournament. Limited slots available!
                 </p>
-                <button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                <button
+                  onClick={() => registerModalRef.current?.open({
+                    id: tournament.id || "",
+                    name: tournament.name || "",
+                    startDate: tournament.startDate || "",
+                    endDate: tournament.endDate || "",
+                    country: tournament.country || "",
+                    city: tournament.city || "",
+                  })}
+                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
                   Register for Tournament
                 </button>
               </div>
@@ -164,6 +176,8 @@ const TournamentDetails = () => {
           </div>
         </div>
       </section>
+
+      <RegisterTournamentModal ref={registerModalRef} />
     </>
   );
 };
