@@ -154,6 +154,7 @@ const TournamentDetails = () => {
                     endDate: tournament.endDate || "",
                     country: tournament.country || "",
                     city: tournament.city || "",
+                    type: tournament.type || "",
                   })}
                   className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
                 >
