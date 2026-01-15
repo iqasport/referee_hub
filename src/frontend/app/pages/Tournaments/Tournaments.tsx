@@ -17,19 +17,33 @@ const Tournament = () => {
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const modalRef = useRef<AddTournamentModalRef>(null);
 
-  // When type filter is active, we need all tournaments for client-side filtering
-  // Otherwise, use server-side pagination for better performance
-  const useServerPaging = !typeFilter;
-
-  //RTK Query hooks - conditional pagination based on filtering needs
-  const { data, isLoading, isError } = useGetTournamentsQuery({
+  // Query for user's private tournaments (no pagination - uses lazy loading in carousel)
+  const {
+    data: allTournamentsData,
+    isLoading: isLoadingAll,
+    isError: isErrorAll,
+  } = useGetTournamentsQuery({
     filter: searchTerm || undefined,
-    page: useServerPaging ? currentPage : undefined,
-    pageSize: useServerPaging ? DEFAULT_PAGE_SIZE : undefined,
-    skipPaging: !useServerPaging,
+    skipPaging: true,
   });
-  const tournaments = data?.items || [];
-  const serverTotalCount = data?.metadata?.totalCount ?? 0;
+
+  // Query for public tournaments with pagination
+  const {
+    data: paginatedData,
+    isLoading: isLoadingPaginated,
+    isError: isErrorPaginated,
+  } = useGetTournamentsQuery({
+    filter: searchTerm || undefined,
+    page: currentPage,
+    pageSize: DEFAULT_PAGE_SIZE,
+  });
+
+  const isLoading = isLoadingAll || isLoadingPaginated;
+  const isError = isErrorAll || isErrorPaginated;
+
+  const allTournaments = allTournamentsData?.items || [];
+  const paginatedTournaments = paginatedData?.items || [];
+  const serverTotalCount = paginatedData?.metadata?.totalCount ?? 0;
 
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
@@ -65,12 +79,19 @@ const Tournament = () => {
 
   // Type filtering is applied client-side since the API doesn't support it yet
   // Note: For better performance, type filtering should be added to the API
-  const filteredTournaments = useMemo(() => {
+  const filteredAllTournaments = useMemo(() => {
     if (!typeFilter) {
-      return tournaments;
+      return allTournaments;
     }
-    return tournaments.filter((t) => t.type === typeFilter);
-  }, [tournaments, typeFilter]);
+    return allTournaments.filter((t) => t.type === typeFilter);
+  }, [allTournaments, typeFilter]);
+
+  const filteredPaginatedTournaments = useMemo(() => {
+    if (!typeFilter) {
+      return paginatedTournaments;
+    }
+    return paginatedTournaments.filter((t) => t.type === typeFilter);
+  }, [paginatedTournaments, typeFilter]);
 
   const { publicTournaments, privateTournaments, totalCount } = useMemo(() => {
     const convertToDisplayFormat = (t: TournamentViewModel): TournamentData => ({
@@ -87,30 +108,27 @@ const Tournament = () => {
       isPrivate: Boolean(t.isCurrentUserInvolved),
     });
 
-    const withFlags = filteredTournaments.map(convertToDisplayFormat);
-    const userInvolvedTournaments = withFlags.filter((t) => t.isPrivate);
-    const otherTournaments = withFlags.filter((t) => !t.isPrivate);
+    // Private tournaments come from the unpaginated query (all tournaments)
+    const userInvolvedTournaments = filteredAllTournaments
+      .filter((t) => t.isCurrentUserInvolved)
+      .map(convertToDisplayFormat);
 
-    // When using server-side pagination, tournaments are already paginated
-    // When type filtering is active, apply client-side pagination
-    if (useServerPaging) {
-      return {
-        publicTournaments: otherTournaments,
-        privateTournaments: userInvolvedTournaments,
-        totalCount: serverTotalCount,
-      };
-    }
+    // Public tournaments come from the paginated query
+    const otherTournaments = filteredPaginatedTournaments
+      .filter((t) => !t.isCurrentUserInvolved)
+      .map(convertToDisplayFormat);
 
-    // Client-side pagination for filtered results
-    const startIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE;
-    const paginatedOther = otherTournaments.slice(startIndex, startIndex + DEFAULT_PAGE_SIZE);
+    // Calculate public tournament count from all tournaments (for correct pagination)
+    const publicTournamentCount = filteredAllTournaments.filter(
+      (t) => !t.isCurrentUserInvolved
+    ).length;
 
     return {
-      publicTournaments: paginatedOther,
+      publicTournaments: otherTournaments,
       privateTournaments: userInvolvedTournaments,
-      totalCount: otherTournaments.length,
+      totalCount: publicTournamentCount,
     };
-  }, [filteredTournaments, useServerPaging, serverTotalCount, currentPage]);
+  }, [filteredAllTournaments, filteredPaginatedTournaments]);
 
   return (
     <>
