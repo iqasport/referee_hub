@@ -2,12 +2,7 @@ import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 import { TournamentViewModel } from "../../../store/serviceApi";
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
-import {
-  CalendarIcon,
-  UsersIcon,
-  HomeIcon,
-  ClockIcon,
-} from "../../../components/icons";
+import { CalendarIcon, UsersIcon, HomeIcon, ClockIcon } from "../../../components/icons";
 
 interface ManagerViewProps {
   tournament: TournamentViewModel;
@@ -40,6 +35,7 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
       place: tournament.place || "",
       organizer: tournament.organizer || "",
       isPrivate: tournament.isPrivate || false,
+      bannerImageUrl: tournament.bannerImageUrl || "",
     });
   };
 
@@ -54,7 +50,10 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
             className="w-full h-full object-cover"
           />
           {/* Title overlay on image with manager badge */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 text-white" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+          <div
+            className="absolute bottom-0 left-0 right-0 p-8 text-white"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}
+          >
             <div className="flex items-center justify-between">
               <h1 className="text-4xl font-bold">{tournament.name}</h1>
               <div className="bg-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
@@ -67,16 +66,10 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
 
       {/* Back button and Edit button */}
       <div className="bg-white px-6 py-3 border-b border-gray-200 flex justify-between items-center">
-        <Link
-          to="/tournaments"
-          className="text-blue-600 font-medium"
-        >
+        <Link to="/tournaments" className="text-blue-600 font-medium">
           ← Back to Tournaments
         </Link>
-        <button
-          onClick={handleEdit}
-          className="text-blue-600 font-medium"
-        >
+        <button onClick={handleEdit} className="text-blue-600 font-medium">
           Edit Tournament
         </button>
       </div>
@@ -155,7 +148,8 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
               <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mb-6 sticky top-4">
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Manager Tools</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  You are the manager of this tournament. Use the tools below to manage the tournament.
+                  You are the manager of this tournament. Use the tools below to manage the
+                  tournament.
                 </p>
                 <button
                   onClick={handleEdit}
@@ -186,11 +180,15 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Private Tournament</span>
-                    <span className="text-sm font-semibold text-gray-900">{tournament.isPrivate ? "Yes" : "No"}</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {tournament.isPrivate ? "Yes" : "No"}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Tournament Type</span>
-                    <span className="text-sm font-semibold text-gray-900">{tournament.type || "N/A"}</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {tournament.type || "N/A"}
+                    </span>
                   </div>
                 </div>
               </div>
