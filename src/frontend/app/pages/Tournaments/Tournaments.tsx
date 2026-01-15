@@ -79,16 +79,16 @@ const Tournament = () => {
       location: [t.place, t.city].filter(Boolean).join(", "),
       bannerImageUrl: t.bannerImageUrl || undefined,
       organizer: t.organizer || undefined,
-      isPrivate: Boolean(t.isPrivate),
+      isPrivate: Boolean(t.isCurrentUserInvolved),
     });
 
     const withFlags = filteredTournaments.map(convertToDisplayFormat);
-    const allPublic = withFlags.filter((t) => !t.isPrivate);
-    const allPrivate = withFlags.filter((t) => t.isPrivate);
+    const userInvolvedTournaments = withFlags.filter((t) => t.isPrivate); // Using isPrivate field which now maps to isCurrentUserInvolved
+    const otherTournaments = withFlags.filter((t) => !t.isPrivate);
 
     return {
-      publicTournaments: allPublic,
-      privateTournaments: allPrivate,
+      publicTournaments: otherTournaments,
+      privateTournaments: userInvolvedTournaments,
     };
   }, [filteredTournaments]);
 
