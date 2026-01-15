@@ -1,7 +1,9 @@
 import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import React from "react";
-import { useCreateTournamentMutation, useUpdateTournamentMutation, TournamentType } from "../../../store/serviceApi";
+import { useCreateTournamentMutation, useUpdateTournamentMutation, useGetTournamentQuery } from "../../../store/serviceApi";
+import type { TournamentType } from "../../../store/serviceApi";
+import UploadedImage from "../../../components/UploadedImage";
 
 interface Tournament {
   id?: string;
@@ -15,6 +17,7 @@ interface Tournament {
   place: string;
   organizer?: string;
   isPrivate: boolean;
+  bannerImageUrl?: string;
 }
 
 export interface AddTournamentModalRef {
@@ -39,6 +42,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>(
       place: "",
       organizer: "",
       isPrivate: false,
+      bannerImageUrl: "",
     };
     const [formData, setFormData] = useState<Tournament>(initialFormData);
 
@@ -115,6 +119,33 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>(
       }));
     }
 
+    async function handleBannerUpload(file: File) {
+      if (!formData.id) {
+        alert("Please save the tournament first before uploading a banner image.");
+        return;
+      }
+      try {
+        // RTK Query code gen doesn't support multipart form requests, so use native fetch
+        const payload = new FormData();
+        payload.append("bannerBlob", file);
+        const response = await fetch(`/api/v2/Tournaments/${formData.id}/banner`, {
+          method: "PUT",
+          body: payload,
+        });
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+        // Update local state with a temporary URL for preview
+        setFormData((prev) => ({
+          ...prev,
+          bannerImageUrl: URL.createObjectURL(file),
+        }));
+      } catch (error) {
+        console.error("Failed to upload banner:", error);
+        alert("Failed to upload banner image. Please try again.");
+      }
+    }
+
     const isEditMode = mode === "edit";
 
     return (
@@ -160,6 +191,24 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>(
                   placeholder="Brief description of the tournament"
                 />
               </div>
+
+              {/* Banner Image Upload - only available in edit mode */}
+              {isEditMode && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Banner Image
+                  </label>
+                  <UploadedImage
+                    imageUrl={formData.bannerImageUrl || ""}
+                    imageAlt="Tournament banner"
+                    onSubmit={handleBannerUpload}
+                    isEditable={true}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Click the + icon to upload a banner image for the tournament.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

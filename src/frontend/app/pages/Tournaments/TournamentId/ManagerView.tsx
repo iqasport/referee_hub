@@ -40,6 +40,7 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
       place: tournament.place || "",
       organizer: tournament.organizer || "",
       isPrivate: tournament.isPrivate || false,
+      bannerImageUrl: tournament.bannerImageUrl || "",
     });
   };
 
