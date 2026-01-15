@@ -5,19 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Pagination from "rc-pagination";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
-import {
-  useGetTournamentsQuery,
-  TournamentType,
-  TournamentViewModel,
-} from "../../store/serviceApi";
+import { useGetTournamentsQuery, TournamentViewModel } from "../../store/serviceApi";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
 const DEFAULT_PAGE_SIZE = 9;
-
-const getTournamentTypeName = (type?: TournamentType): string => {
-  if (!type) return "Unknown";
-  return type;
-};
 
 const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,12 +17,19 @@ const Tournament = () => {
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const modalRef = useRef<AddTournamentModalRef>(null);
 
-  //RTK Query hooks - fetch all tournaments, pagination applied client-side to public only
+  // When type filter is active, we need all tournaments for client-side filtering
+  // Otherwise, use server-side pagination for better performance
+  const useServerPaging = !typeFilter;
+
+  //RTK Query hooks - conditional pagination based on filtering needs
   const { data, isLoading, isError } = useGetTournamentsQuery({
     filter: searchTerm || undefined,
-    skipPaging: true,
+    page: useServerPaging ? currentPage : undefined,
+    pageSize: useServerPaging ? DEFAULT_PAGE_SIZE : undefined,
+    skipPaging: !useServerPaging,
   });
   const tournaments = data?.items || [];
+  const serverTotalCount = data?.metadata?.totalCount ?? 0;
 
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
@@ -65,30 +63,16 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
+  // Type filtering is applied client-side since the API doesn't support it yet
+  // Note: For better performance, type filtering should be added to the API
   const filteredTournaments = useMemo(() => {
-    let result = tournaments;
-
-    if (typeFilter) {
-      result = result.filter((t) => t.type === typeFilter);
+    if (!typeFilter) {
+      return tournaments;
     }
+    return tournaments.filter((t) => t.type === typeFilter);
+  }, [tournaments, typeFilter]);
 
-    if (searchTerm.trim()) {
-      const lowerTerm = searchTerm.toLowerCase();
-      result = result.filter((t) => {
-        const typeName = getTournamentTypeName(t.type);
-        const location = [t.place, t.city, t.country].filter(Boolean).join(", ");
-        return (
-          (t.name || "").toLowerCase().includes(lowerTerm) ||
-          location.toLowerCase().includes(lowerTerm) ||
-          typeName.toLowerCase().includes(lowerTerm)
-        );
-      });
-    }
-
-    return result;
-  }, [tournaments, searchTerm, typeFilter]);
-
-  const { publicTournaments, privateTournaments, totalPublicCount } = useMemo(() => {
+  const { publicTournaments, privateTournaments, totalCount } = useMemo(() => {
     const convertToDisplayFormat = (t: TournamentViewModel): TournamentData => ({
       id: t.id,
       title: t.name || "",
@@ -100,23 +84,33 @@ const Tournament = () => {
       location: [t.place, t.city].filter(Boolean).join(", "),
       bannerImageUrl: t.bannerImageUrl || undefined,
       organizer: t.organizer || undefined,
-      isPrivate: Boolean(t.isPrivate),
+      isPrivate: Boolean(t.isCurrentUserInvolved),
     });
 
     const withFlags = filteredTournaments.map(convertToDisplayFormat);
-    const allPublic = withFlags.filter((t) => !t.isPrivate);
-    const allPrivate = withFlags.filter((t) => t.isPrivate);
+    const userInvolvedTournaments = withFlags.filter((t) => t.isPrivate);
+    const otherTournaments = withFlags.filter((t) => !t.isPrivate);
 
-    // Apply client-side pagination to public tournaments only
+    // When using server-side pagination, tournaments are already paginated
+    // When type filtering is active, apply client-side pagination
+    if (useServerPaging) {
+      return {
+        publicTournaments: otherTournaments,
+        privateTournaments: userInvolvedTournaments,
+        totalCount: serverTotalCount,
+      };
+    }
+
+    // Client-side pagination for filtered results
     const startIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE;
-    const paginatedPublic = allPublic.slice(startIndex, startIndex + DEFAULT_PAGE_SIZE);
+    const paginatedOther = otherTournaments.slice(startIndex, startIndex + DEFAULT_PAGE_SIZE);
 
     return {
-      publicTournaments: paginatedPublic,
-      privateTournaments: allPrivate,
-      totalPublicCount: allPublic.length,
+      publicTournaments: paginatedOther,
+      privateTournaments: userInvolvedTournaments,
+      totalCount: otherTournaments.length,
     };
-  }, [filteredTournaments, currentPage]);
+  }, [filteredTournaments, useServerPaging, serverTotalCount, currentPage]);
 
   return (
     <>
@@ -150,11 +144,11 @@ const Tournament = () => {
                 visibility="public"
                 layout="grid"
               />
-              {totalPublicCount > DEFAULT_PAGE_SIZE && (
+              {totalCount > DEFAULT_PAGE_SIZE && (
                 <div className="flex justify-center py-4">
                   <Pagination
                     current={currentPage}
-                    total={totalPublicCount}
+                    total={totalCount}
                     onChange={handlePageChange}
                     pageSize={DEFAULT_PAGE_SIZE}
                     prevIcon={<FontAwesomeIcon icon={faArrowLeft} />}
