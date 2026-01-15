@@ -11,7 +11,6 @@ interface TournamentCardProps {
   location: string;
   bannerImageUrl?: string;
   organizer?: string;
-  onEdit?: () => void;
   onClick?: () => void;
 }
 
@@ -29,17 +28,6 @@ const LocationIcon = () => (
   </svg>
 );
 
-const EditIcon = () => (
-  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-    />
-  </svg>
-);
-
 const TournamentCard: React.FC<TournamentCardProps> = ({
   title,
   description,
@@ -50,7 +38,6 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   location,
   bannerImageUrl,
   organizer,
-  onEdit,
   onClick,
 }) => {
   const locationText = [location, country].filter(Boolean).join(", ");
@@ -62,18 +49,6 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
       className="rounded-lg bg-green-100 shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer relative group"
       onClick={onClick}
     >
-      {onEdit && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 transition-colors z-10"
-          title="Edit tournament"
-        >
-          <EditIcon />
-        </button>
-      )}
       <figure className="w-full h-64 bg-gray-300 overflow-hidden">
         <img
           src={bannerImageUrl || `https://placehold.co/600x400?text=${encodeURIComponent(title)}`}
