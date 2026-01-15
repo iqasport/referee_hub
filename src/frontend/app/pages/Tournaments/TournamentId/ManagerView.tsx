@@ -1,9 +1,7 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
-import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterTournamentModal";
-import ManagerView from "./ManagerView";
-import { useGetTournamentQuery, useGetTournamentManagersQuery, useGetCurrentUserQuery } from "../../../store/serviceApi";
-import { useNavigationParams } from "../../../utils/navigationUtils";
+import { TournamentViewModel } from "../../../store/serviceApi";
+import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
 import {
   CalendarIcon,
   UsersIcon,
@@ -11,38 +9,12 @@ import {
   ClockIcon,
 } from "../../../components/icons";
 
-const TournamentDetails = () => {
-  const { tournamentId } = useNavigationParams<"tournamentId">();
-  const registerModalRef = useRef<RegisterTournamentModalRef>(null);
+interface ManagerViewProps {
+  tournament: TournamentViewModel;
+}
 
-  const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
-  const { data: currentUser } = useGetCurrentUserQuery();
-  // Only fetch managers if we have both tournamentId and userId - this prevents unnecessary API calls
-  const shouldFetchManagers = Boolean(tournamentId && currentUser?.userId);
-  const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !shouldFetchManagers }
-  );
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading tournament...</p>
-      </div>
-    );
-  }
-
-  if (isError || !tournament) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Tournament not found</p>
-      </div>
-    );
-  }
-
-  // Check if current user is a manager of this tournament
-  // Only consider them a manager if they're in the managers list and we successfully fetched the list
-  const isManager = !managersError && currentUser?.userId && managers ? managers.some((manager) => manager.id === currentUser.userId) : false;
+const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
+  const editModalRef = useRef<AddTournamentModalRef>(null);
 
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
@@ -55,10 +27,21 @@ const TournamentDetails = () => {
     year: "numeric",
   })}`;
 
-  // Show manager view if user is a manager
-  if (isManager) {
-    return <ManagerView tournament={tournament} />;
-  }
+  const handleEdit = () => {
+    editModalRef.current?.openEdit({
+      id: tournament.id || "",
+      name: tournament.name || "",
+      description: tournament.description || "",
+      startDate: tournament.startDate || "",
+      endDate: tournament.endDate || "",
+      type: tournament.type || ("" as const),
+      country: tournament.country || "",
+      city: tournament.city || "",
+      place: tournament.place || "",
+      organizer: tournament.organizer || "",
+      isPrivate: tournament.isPrivate || false,
+    });
+  };
 
   return (
     <>
@@ -70,21 +53,32 @@ const TournamentDetails = () => {
             alt="Tournament banner"
             className="w-full h-full object-cover"
           />
-          {/* Title overlay on image */}
+          {/* Title overlay on image with manager badge */}
           <div className="absolute bottom-0 left-0 right-0 p-8 text-white" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
-            <h1 className="text-4xl font-bold">{tournament.name}</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-4xl font-bold">{tournament.name}</h1>
+              <div className="bg-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
+                Manager View
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Back button */}
-      <div className="bg-white px-6 py-3 border-b border-gray-200">
+      {/* Back button and Edit button */}
+      <div className="bg-white px-6 py-3 border-b border-gray-200 flex justify-between items-center">
         <Link
           to="/tournaments"
           className="text-blue-600 font-medium"
         >
           ← Back to Tournaments
         </Link>
+        <button
+          onClick={handleEdit}
+          className="text-blue-600 font-medium"
+        >
+          Edit Tournament
+        </button>
       </div>
 
       {/* Info cards section */}
@@ -155,48 +149,59 @@ const TournamentDetails = () => {
               </div>
             </div>
 
-            {/* Right sidebar - Registration and Contact */}
+            {/* Right sidebar - Manager Tools */}
             <div>
-              {/* Register Now Card */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 sticky top-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Register Now</h3>
+              {/* Manager Tools Card */}
+              <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mb-6 sticky top-4">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Manager Tools</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Secure your spot in this exciting tournament. Limited slots available!
+                  You are the manager of this tournament. Use the tools below to manage the tournament.
                 </p>
                 <button
-                  onClick={() => registerModalRef.current?.open({
-                    id: tournament.id || "",
-                    name: tournament.name || "",
-                    startDate: tournament.startDate || "",
-                    endDate: tournament.endDate || "",
-                    country: tournament.country || "",
-                    city: tournament.city || "",
-                    type: tournament.type || "",
-                  })}
-                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                  onClick={handleEdit}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors mb-3 flex items-center justify-center gap-2"
                 >
-                  Register for Tournament
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Edit Tournament Details
+                </button>
+                <button className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">
+                  View Registrations
                 </button>
               </div>
 
-              {/* Need Help Card */}
+              {/* Tournament Stats Card */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Need Help?</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Have questions about this tournament? Contact the organizers.
-                </p>
-                <button className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">
-                  Contact Organizer
-                </button>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Tournament Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <span className="text-sm text-gray-600">Teams Registered</span>
+                    <span className="text-sm font-semibold text-gray-900">0</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <span className="text-sm text-gray-600">Private Tournament</span>
+                    <span className="text-sm font-semibold text-gray-900">{tournament.isPrivate ? "Yes" : "No"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Tournament Type</span>
+                    <span className="text-sm font-semibold text-gray-900">{tournament.type || "N/A"}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <RegisterTournamentModal ref={registerModalRef} />
+      <AddTournamentModal ref={editModalRef} />
     </>
   );
 };
 
-export default TournamentDetails;
+export default ManagerView;

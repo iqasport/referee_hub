@@ -33,32 +33,6 @@ const Tournament = () => {
   });
   const tournaments = data?.items || [];
 
-  // Convert TournamentViewModel to modal format
-  const convertToModalFormat = (tournament: TournamentViewModel) => {
-    return {
-      id: tournament.id || "",
-      name: tournament.name || "",
-      description: tournament.description || "",
-      startDate: tournament.startDate || "",
-      endDate: tournament.endDate || "",
-      type: tournament.type || ("" as const),
-      country: tournament.country || "",
-      city: tournament.city || "",
-      place: tournament.place || "",
-      organizer: tournament.organizer || "",
-      isPrivate: tournament.isPrivate || false,
-    };
-  };
-
-  function handleEdit(tournament: TournamentData) {
-    // Find the original TournamentViewModel from the tournaments array
-    const originalTournament = tournaments.find((t) => t.id === tournament.id.toString());
-    if (originalTournament) {
-      const modalData = convertToModalFormat(originalTournament);
-      modalRef.current?.openEdit(modalData);
-    }
-  }
-
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
     if (term.trim()) {
@@ -166,7 +140,6 @@ const Tournament = () => {
               tournaments={privateTournaments}
               visibility="private"
               layout="carousel"
-              onEdit={handleEdit}
             />
           )}
 
@@ -176,7 +149,6 @@ const Tournament = () => {
                 tournaments={publicTournaments}
                 visibility="public"
                 layout="grid"
-                onEdit={handleEdit}
               />
               {totalPublicCount > DEFAULT_PAGE_SIZE && (
                 <div className="flex justify-center py-4">
