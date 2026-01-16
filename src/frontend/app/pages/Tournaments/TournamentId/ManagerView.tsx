@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { TournamentViewModel, useGetTournamentInvitesQuery } from "../../../store/serviceApi";
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
 import RegistrationsModal, { RegistrationsModalRef } from "./RegistrationsModal";
+import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
 import { CalendarIcon, UsersIcon, HomeIcon, ClockIcon } from "../../../components/icons";
 
 interface ManagerViewProps {
@@ -12,11 +13,12 @@ interface ManagerViewProps {
 const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
   const editModalRef = useRef<AddTournamentModalRef>(null);
   const registrationsModalRef = useRef<RegistrationsModalRef>(null);
+  const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
 
   // Fetch tournament invites
   const { data: invites } = useGetTournamentInvitesQuery({
     tournamentId: tournament.id || "",
-  });
+  }); 
 
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
@@ -174,9 +176,15 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
                 </button>
                 <button 
                   onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
-                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors mb-3"
                 >
                   View Team Registrations ({invites?.length || 0})
+                </button>
+                <button 
+                  onClick={() => inviteTeamsModalRef.current?.open(tournament)}
+                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors mb-3"
+                >
+                  Invite Teams
                 </button>
               </div>
 
@@ -212,6 +220,7 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
 
       <AddTournamentModal ref={editModalRef} />
       <RegistrationsModal ref={registrationsModalRef} />
+      <InviteTeamsModal ref={inviteTeamsModalRef} />
     </>
   );
 };
