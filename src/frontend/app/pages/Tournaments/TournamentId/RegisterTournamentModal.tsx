@@ -5,6 +5,7 @@ import {
   useGetCurrentUserQuery,
   useGetNgbTeamsQuery,
   useCreateInviteMutation,
+  useGetTournamentInvitesQuery,
   NgbTeamViewModel,
 } from "../../../store/serviceApi";
 
@@ -146,6 +147,30 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
       return teams;
     }, [teamManagerTeamIds, ngbTeamsData, ngbToFetch, isNgbAdmin]);
 
+    // Fetch existing invites for this tournament to check which teams already registered
+    const { data: existingInvites } = useGetTournamentInvitesQuery(
+      { tournamentId: tournament?.id || "" },
+      { skip: !tournament?.id || !isOpen }
+    );
+
+    // Get set of team IDs that already have invites (any status)
+    const teamsWithExistingInvites = useMemo(() => {
+      const teamIds = new Set<string>();
+      if (existingInvites) {
+        existingInvites.forEach((invite) => {
+          if (invite.participantId) {
+            teamIds.add(invite.participantId);
+          }
+        });
+      }
+      return teamIds;
+    }, [existingInvites]);
+
+    // Filter managed teams to only show those without existing invites
+    const availableTeams = useMemo(() => {
+      return managedTeams.filter((team) => !teamsWithExistingInvites.has(team.teamId));
+    }, [managedTeams, teamsWithExistingInvites]);
+
     // Team registration form data
     const initialTeamData: TeamRegistrationData = {
       selectedTeamId: "",
@@ -172,8 +197,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
 
 
 
-    // Validation
-    const isTeamFormValid = !!teamData.selectedTeamId;
+    // Validation - ensure selected team is in availableTeams (not already registered)
+    const isTeamFormValid = !!teamData.selectedTeamId && availableTeams.some(t => t.teamId === teamData.selectedTeamId);
 
     async function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
@@ -189,7 +214,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
           },
         }).unwrap();
 
-        const selectedTeam = managedTeams.find(t => t.teamId === teamData.selectedTeamId);
+        const selectedTeam = availableTeams.find(t => t.teamId === teamData.selectedTeamId);
         console.log("Team invite sent:", {
           tournamentId: tournament?.id,
           teamId: teamData.selectedTeamId,
@@ -274,7 +299,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
                           className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
                         >
                           <option value="">Select an existing team you manage</option>
-                          {managedTeams.map((team) => (
+                          {availableTeams.map((team) => (
                             <option key={team.teamId} value={team.teamId}>
                               {team.teamName}
                             </option>
@@ -285,6 +310,39 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
                         <p className="text-sm text-amber-600 mt-2">
                           No teams found. You must be an NGB Admin with registered teams or a Team Manager to register for a tournament.
                         </p>
+                      )}
+                      {!isLoadingTeams && managedTeams.length > 0 && availableTeams.length === 0 && (
+                        <p className="text-sm text-amber-600 mt-2">
+                          All your teams have already registered for this tournament.
+                        </p>
+                      )}
+                      {/* Show already registered teams */}
+                      {teamsWithExistingInvites.size > 0 && managedTeams.some(t => teamsWithExistingInvites.has(t.teamId)) && (
+                        <div className="mt-3 p-3 rounded" style={{ backgroundColor: "#f3f4f6" }}>
+                          <p className="text-xs text-gray-600 mb-2">Teams already registered:</p>
+                          <div className="text-sm text-gray-700">
+                            {managedTeams
+                              .filter(t => teamsWithExistingInvites.has(t.teamId))
+                              .map(t => {
+                                const invite = existingInvites?.find(i => i.participantId === t.teamId);
+                                const status = invite?.status || "unknown";
+                                return (
+                                  <div key={t.teamId} className="flex items-center justify-between py-1">
+                                    <span>{t.teamName}</span>
+                                    <span
+                                      className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                                      style={{
+                                        backgroundColor: status === "pending" ? "#fef3c7" : status === "approved" ? "#d1fae5" : "#fee2e2",
+                                        color: status === "pending" ? "#92400e" : status === "approved" ? "#065f46" : "#991b1b"
+                                      }}
+                                    >
+                                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
