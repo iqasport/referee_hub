@@ -1,7 +1,8 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
-import { TournamentViewModel } from "../../../store/serviceApi";
+import { TournamentViewModel, useGetTournamentInvitesQuery } from "../../../store/serviceApi";
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
+import InviteResponseModal, { InviteResponseModalRef } from "./InviteResponseModal";
 import { CalendarIcon, UsersIcon, HomeIcon, ClockIcon } from "../../../components/icons";
 
 interface ManagerViewProps {
@@ -10,6 +11,12 @@ interface ManagerViewProps {
 
 const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
   const editModalRef = useRef<AddTournamentModalRef>(null);
+  const inviteResponseModalRef = useRef<InviteResponseModalRef>(null);
+
+  // Fetch tournament invites
+  const { data: invites } = useGetTournamentInvitesQuery({
+    tournamentId: tournament.id || "",
+  });
 
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
@@ -166,7 +173,7 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
                   Edit Tournament Details
                 </button>
                 <button className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">
-                  View Registrations
+                  View Team Registrations ({invites?.filter(i => i.status === "pending").length || 0})
                 </button>
               </div>
 
@@ -176,7 +183,9 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Teams Registered</span>
-                    <span className="text-sm font-semibold text-gray-900">0</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {invites?.filter(i => i.status === "approved").length || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Private Tournament</span>
@@ -194,10 +203,57 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
               </div>
             </div>
           </div>
+
+          {/* Pending Invites Section */}
+          {invites && invites.filter(i => i.status === "pending").length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Pending Team Registrations</h2>
+              <div className="grid grid-cols-1 gap-4">
+                {invites
+                  .filter(i => i.status === "pending")
+                  .map((invite) => (
+                    <div
+                      key={invite.participantId}
+                      className="bg-white rounded-lg border border-yellow-200 p-4 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{invite.participantName}</h3>
+                          <p className="text-sm text-gray-600">
+                            Requested on{" "}
+                            {new Date(invite.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() =>
+                            inviteResponseModalRef.current?.open(
+                              {
+                                teamId: invite.participantId,
+                                teamName: invite.participantName || "",
+                                participantId: invite.participantId,
+                              },
+                              tournament.id || ""
+                            )
+                          }
+                          className="px-6 py-2 text-sm font-medium rounded mr-3"
+                        >
+                          Review
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
       <AddTournamentModal ref={editModalRef} />
+      <InviteResponseModal ref={inviteResponseModalRef} />
     </>
   );
 };
