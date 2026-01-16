@@ -17,8 +17,12 @@ const TournamentDetails = () => {
 
   const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
   const { data: currentUser } = useGetCurrentUserQuery();
-  // Only fetch managers if we have both tournamentId and userId - this prevents unnecessary API calls
-  const shouldFetchManagers = Boolean(tournamentId && currentUser?.userId);
+  
+  // Check if user is a tournament manager - only tournament managers can view the managers list
+  const isTournamentManager = currentUser?.roles?.some((role: any) => role.roleType === "TournamentManager");
+  
+  // Only fetch managers if user is a tournament manager
+  const shouldFetchManagers = Boolean(tournamentId && isTournamentManager);
   const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
     { tournamentId: tournamentId || "" },
     { skip: !shouldFetchManagers }
