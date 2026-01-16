@@ -6,10 +6,7 @@ using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
-<<<<<<< HEAD
 using ManagementHub.Models.Domain.Team;
-=======
->>>>>>> cd0fd53d03c21becdc0eacd7ecba68ee2cb18a4a
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
@@ -306,7 +303,6 @@ public class UsersController : ControllerBase
 
 		return this.Ok();
 	}
-<<<<<<< HEAD
 
 	/// <summary>
 	/// Get teams managed by the current user.
@@ -343,6 +339,4 @@ public class UsersController : ControllerBase
 
 		return managedTeams;
 	}
-=======
->>>>>>> cd0fd53d03c21becdc0eacd7ecba68ee2cb18a4a
 }
