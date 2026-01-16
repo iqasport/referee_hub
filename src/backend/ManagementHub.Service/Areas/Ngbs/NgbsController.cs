@@ -589,13 +589,7 @@ public class NgbsController : ControllerBase
 			throw new AccessDeniedException($"No permission for team {teamId}");
 		}
 
-		// Get all invites for teams where the current user is a team manager
-		// We use the current user's ID to filter invites through GetTournamentInvitesAsync
-		// which will filter to only teams where the user is a manager
-		var allInvites = new List<TournamentInviteViewModel>();
-
-		// Query invites from the database directly for the specific team
-		// We need to get all tournaments and their invites for this team
+		// Get all tournament invites for this specific team
 		var invites = await this.tournamentContextProvider.GetTeamInvitesAsync(teamId, this.HttpContext.RequestAborted);
 
 		return invites.Select(i => new TournamentInviteViewModel

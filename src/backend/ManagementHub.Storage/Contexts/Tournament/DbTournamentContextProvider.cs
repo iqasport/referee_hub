@@ -608,12 +608,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		// Fetch invites from database
 		var dbInvites = await query.ToListAsync(cancellationToken);
 
-		// If there are no invites, return empty list
-		if (!dbInvites.Any())
-		{
-			return new List<InviteInfo>();
-		}
-
 		// Get the team name
 		var team = await this.dbContext.Teams
 			.Where(t => t.Id == teamId.Id)
