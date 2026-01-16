@@ -509,6 +509,10 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/Users/me/gender`, method: "DELETE" }),
         invalidatesTags: ["User"],
       }),
+      getManagedTeams: build.query<GetManagedTeamsApiResponse, GetManagedTeamsApiArg>({
+        query: () => ({ url: `/api/v2/Users/me/managedTeams` }),
+        providesTags: ["User"],
+      }),
       getCurrentUserAvatar: build.query<
         GetCurrentUserAvatarApiResponse,
         GetCurrentUserAvatarApiArg
@@ -853,6 +857,8 @@ export type GetMyGenderApiResponse = /** status 200 Success */ UserGenderViewMod
 export type GetMyGenderApiArg = void;
 export type DeleteMyGenderApiResponse = unknown;
 export type DeleteMyGenderApiArg = void;
+export type GetManagedTeamsApiResponse = /** status 200 Success */ ManagedTeamViewModel[];
+export type GetManagedTeamsApiArg = void;
 export type GetCurrentUserAvatarApiResponse = unknown;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
@@ -1413,6 +1419,11 @@ export type UserGenderViewModel = {
   gender?: string | null;
   referencedInTournaments?: TournamentReferenceViewModel[] | null;
 };
+export type ManagedTeamViewModel = {
+  teamId?: string;
+  teamName?: string | null;
+  ngb?: string;
+};
 export type UserDataViewModel = {
   firstName?: string | null;
   lastName?: string | null;
@@ -1488,6 +1499,7 @@ export const {
   usePutUserAttributeMutation,
   useGetMyGenderQuery,
   useDeleteMyGenderMutation,
+  useGetManagedTeamsQuery,
   useGetCurrentUserAvatarQuery,
   useUpdateCurrentUserAvatarMutation,
   useGetUserAvatarQuery,
