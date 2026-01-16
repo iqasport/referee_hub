@@ -6,6 +6,7 @@ using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
@@ -301,5 +302,41 @@ public class UsersController : ControllerBase
 			.ExecuteDeleteAsync(this.HttpContext.RequestAborted);
 
 		return this.Ok();
+	}
+
+	/// <summary>
+	/// Get teams managed by the current user.
+	/// Returns team IDs, team names, and NGB country codes for all teams the user is a manager of.
+	/// </summary>
+	[HttpGet("me/managedTeams")]
+	[Tags("User")]
+	public async Task<List<ManagedTeamViewModel>> GetManagedTeams()
+	{
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		var managedTeams = await this.dbContext.TeamManagers
+			.Join(
+				this.dbContext.Users.WithIdentifier(currentUser.UserId),
+				tm => tm.UserId,
+				u => u.Id,
+				(tm, u) => tm)
+			.Join(
+				this.dbContext.Teams,
+				tm => tm.TeamId,
+				t => t.Id,
+				(tm, t) => new { tm, t })
+			.Join(
+				this.dbContext.NationalGoverningBodies,
+				combined => combined.t.NationalGoverningBodyId,
+				ngb => ngb.Id,
+				(combined, ngb) => new ManagedTeamViewModel
+				{
+					TeamId = new TeamIdentifier(combined.t.Id),
+					TeamName = combined.t.Name,
+					NgbCountryCode = ngb.CountryCode
+				})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		return managedTeams;
 	}
 }
