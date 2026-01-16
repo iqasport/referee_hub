@@ -593,6 +593,45 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		}).ToList();
 	}
 
+	public async Task<IEnumerable<InviteInfo>> GetTeamInvitesAsync(
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken = default)
+	{
+		var participantId = teamId.ToString();
+
+		// Get the team name first
+		var team = await this.dbContext.Teams
+			.Where(t => t.Id == teamId.Id)
+			.Select(t => new { t.Name })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		var teamName = team?.Name ?? "Unknown";
+
+		// Query and project invites in a single database call
+		var invites = await this.dbContext.TournamentInvites
+			.Include(i => i.Tournament)
+			.Include(i => i.Initiator)
+			.Where(i => i.ParticipantId == participantId && i.ParticipantType == "team")
+			.Select(i => new InviteInfo
+			{
+				TournamentId = TournamentIdentifier.Parse(i.Tournament.UniqueId),
+				ParticipantType = ParticipantType.Team,
+				ParticipantId = i.ParticipantId,
+				ParticipantName = teamName,
+				InitiatorUserId = i.Initiator.UniqueId != null
+					? UserIdentifier.Parse(i.Initiator.UniqueId)
+					: UserIdentifier.FromLegacyUserId(i.Initiator.Id),
+				CreatedAt = i.CreatedAt,
+				TournamentManagerApproval = i.TournamentManagerApproval,
+				TournamentManagerApprovalDate = i.TournamentManagerApprovalDate,
+				ParticipantApproval = i.ParticipantApproval,
+				ParticipantApprovalDate = i.ParticipantApprovalDate
+			})
+			.ToListAsync(cancellationToken);
+
+		return invites;
+	}
+
 	public async Task<InviteInfo> CreateTeamInviteAsync(
 		TournamentIdentifier tournamentId,
 		TeamIdentifier teamId,
