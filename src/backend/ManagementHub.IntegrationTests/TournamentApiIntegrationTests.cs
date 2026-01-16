@@ -458,7 +458,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var yankeesTeamId = yankeesTeam.GetProperty("teamId").GetString();
 		yankeesTeamId.Should().NotBeNullOrEmpty("Yankees team should have an ID");
 		
-		var yankeesNgb = yankeesTeam.GetProperty("ngbCountryCode").GetString();
+		var yankeesNgb = yankeesTeam.GetProperty("ngb").GetString();
 		yankeesNgb.Should().Be("USA", "Yankees team should be part of USA NGB");
 
 		// Step 3: Team manager requests to join (create invite from team side)
