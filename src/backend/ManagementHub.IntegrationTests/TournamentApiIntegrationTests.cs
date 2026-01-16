@@ -367,7 +367,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var createInviteModel = new CreateInviteModel
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId!  // TeamIdentifier for Yankees team
+			ParticipantId = yankeesTeamId!  // Team ID obtained from NGB teams endpoint
 		};
 
 		var createInviteResponse = await this._client.PostAsJsonAsync(
@@ -465,7 +465,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var joinRequestModel = new CreateInviteModel
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId!  // Team manager manages Yankees
+			ParticipantId = yankeesTeamId!  // Team ID obtained from managed teams endpoint
 		};
 
 		var joinRequestResponse = await this._client.PostAsJsonAsync(
