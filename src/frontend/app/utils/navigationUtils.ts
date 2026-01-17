@@ -49,6 +49,7 @@ type NavigationParameters = {
     ngbId: string;
     importScope: string;
     scopeId: string;
+    tournamentId: string; // added for usage in tournament details page
 }
 
 export const useNavigationParams = <Keys extends keyof NavigationParameters>() : Readonly<Partial<Pick<NavigationParameters, Keys>>> => {
@@ -63,6 +64,7 @@ export const useNavigationParams = <Keys extends keyof NavigationParameters>() :
         ngbId: params.ngbId,
         importScope: params.importScope,
         scopeId: params.scopeId,
+        tournamentId: params.tournamentId, //added for usage in tournament details page
     };
     return updatedParams;
 }
