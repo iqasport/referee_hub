@@ -32,6 +32,7 @@ export interface AddTournamentModalRef {
 const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
+  const [pendingBannerFile, setPendingBannerFile] = useState<File | null>(null);
   const [createTournament, { isLoading: isCreating }] = useCreateTournamentMutation();
   const [updateTournament, { isLoading: isUpdating }] = useUpdateTournamentMutation();
   const initialFormData: Tournament = {
@@ -52,11 +53,13 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
   useImperativeHandle(ref, () => ({
     openAdd: () => {
       setFormData(initialFormData);
+      setPendingBannerFile(null);
       setMode("add");
       setIsOpen(true);
     },
     openEdit: (tournament: Tournament) => {
       setFormData(tournament);
+      setPendingBannerFile(null);
       setMode("edit");
       setIsOpen(true);
     },
@@ -90,7 +93,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
           },
         }).unwrap();
       } else {
-        await createTournament({
+        const result = await createTournament({
           tournamentModel: {
             name: formData.name,
             description: formData.description,
@@ -104,6 +107,21 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             isPrivate: formData.isPrivate,
           },
         }).unwrap();
+
+        // Upload banner image if one was selected during creation
+        if (pendingBannerFile && result.id) {
+          try {
+            const payload = new FormData();
+            payload.append("bannerBlob", pendingBannerFile);
+            await fetch(`/api/v2/Tournaments/${result.id}/banner`, {
+              method: "PUT",
+              body: payload,
+            });
+          } catch (bannerError) {
+            console.error("Failed to upload banner:", bannerError);
+            // Don't fail the whole operation, tournament was created successfully
+          }
+        }
       }
       close();
     } catch (error) {
@@ -124,7 +142,13 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
 
   async function handleBannerUpload(file: File) {
     if (!formData.id) {
-      alert("Please save the tournament first before uploading a banner image.");
+      // In create mode, store the file to upload after tournament creation
+      setPendingBannerFile(file);
+      // Update preview with temporary URL
+      setFormData((prev) => ({
+        ...prev,
+        bannerImageUrl: URL.createObjectURL(file),
+      }));
       return;
     }
     try {
@@ -192,21 +216,19 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
               />
             </div>
 
-            {/* Banner Image Upload - only available in edit mode */}
-            {isEditMode && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
-                <UploadedImage
-                  imageUrl={formData.bannerImageUrl || ""}
-                  imageAlt="Tournament banner"
-                  onSubmit={handleBannerUpload}
-                  isEditable={true}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Click the + icon to upload a banner image for the tournament.
-                </p>
-              </div>
-            )}
+            {/* Banner Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
+              <UploadedImage
+                imageUrl={formData.bannerImageUrl || ""}
+                imageAlt="Tournament banner"
+                onSubmit={handleBannerUpload}
+                isEditable={true}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Click the + icon to upload a banner image for the tournament.
+              </p>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>

@@ -299,6 +299,15 @@ const injectedRtkApi = api
         }),
         providesTags: ["Team"],
       }),
+      getTeamTournamentInvites: build.query<
+        GetTeamTournamentInvitesApiResponse,
+        GetTeamTournamentInvitesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}/tournamentInvites`,
+        }),
+        providesTags: ["Team"],
+      }),
       getTestDetails: build.query<GetTestDetailsApiResponse, GetTestDetailsApiArg>({
         query: (queryArg) => ({ url: `/api/v2/referees/me/tests/${queryArg.testId}/details` }),
         providesTags: ["Tests"],
@@ -451,6 +460,17 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
+      updateParticipantRoster: build.mutation<
+        UpdateParticipantRosterApiResponse,
+        UpdateParticipantRosterApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/participants/${queryArg.teamId}/roster`,
+          method: "PUT",
+          body: queryArg.updateRosterModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
@@ -480,6 +500,18 @@ const injectedRtkApi = api
           body: queryArg.body,
         }),
         invalidatesTags: ["User"],
+      }),
+      getMyGender: build.query<GetMyGenderApiResponse, GetMyGenderApiArg>({
+        query: () => ({ url: `/api/v2/Users/me/gender` }),
+        providesTags: ["User"],
+      }),
+      deleteMyGender: build.mutation<DeleteMyGenderApiResponse, DeleteMyGenderApiArg>({
+        query: () => ({ url: `/api/v2/Users/me/gender`, method: "DELETE" }),
+        invalidatesTags: ["User"],
+      }),
+      getManagedTeams: build.query<GetManagedTeamsApiResponse, GetManagedTeamsApiArg>({
+        query: () => ({ url: `/api/v2/Users/me/managedTeams` }),
+        providesTags: ["User"],
       }),
       getCurrentUserAvatar: build.query<
         GetCurrentUserAvatarApiResponse,
@@ -697,6 +729,12 @@ export type GetTeamMembersApiArg = {
   pageSize?: number;
   skipPaging?: boolean;
 };
+export type GetTeamTournamentInvitesApiResponse =
+  /** status 200 Success */ TournamentInviteViewModel[];
+export type GetTeamTournamentInvitesApiArg = {
+  ngb: string;
+  teamId: string;
+};
 export type GetTestDetailsApiResponse = /** status 200 Success */ RefereeTestDetailsViewModel;
 export type GetTestDetailsApiArg = {
   testId: string;
@@ -792,6 +830,12 @@ export type RemoveParticipantApiArg = {
   tournamentId: string;
   teamId: string;
 };
+export type UpdateParticipantRosterApiResponse = /** status 200 Success */ void;
+export type UpdateParticipantRosterApiArg = {
+  tournamentId: string;
+  teamId: string;
+  updateRosterModel: UpdateRosterModel;
+};
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
 export type GetCurrentUserFeatureGatesApiResponse = /** status 200 Success */ FeatureGates;
@@ -809,6 +853,12 @@ export type PutUserAttributeApiArg = {
   key: string;
   body: any;
 };
+export type GetMyGenderApiResponse = /** status 200 Success */ UserGenderViewModel;
+export type GetMyGenderApiArg = void;
+export type DeleteMyGenderApiResponse = unknown;
+export type DeleteMyGenderApiArg = void;
+export type GetManagedTeamsApiResponse = /** status 200 Success */ ManagedTeamViewModel[];
+export type GetManagedTeamsApiArg = void;
 export type GetCurrentUserAvatarApiResponse = unknown;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
@@ -1195,6 +1245,23 @@ export type TeamMemberViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: TeamMemberViewModel[] | null;
 };
+export type ParticipantType = "team";
+export type InviteStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatusViewModel = {
+  status?: ApprovalStatus;
+  date?: string | null;
+};
+export type TournamentInviteViewModel = {
+  participantType?: ParticipantType;
+  participantId?: string | null;
+  participantName?: string | null;
+  status?: InviteStatus;
+  initiatorUserId?: string;
+  createdAt?: string;
+  tournamentManagerApproval?: ApprovalStatusViewModel;
+  participantApproval?: ApprovalStatusViewModel;
+};
 export type RefereeTestDetailsViewModel = {
   testId?: string;
   title?: string | null;
@@ -1286,23 +1353,6 @@ export type TournamentManagerViewModel = {
 export type AddTournamentManagerModel = {
   email?: string | null;
 };
-export type ParticipantType = "team";
-export type InviteStatus = "pending" | "approved" | "rejected";
-export type ApprovalStatus = "pending" | "approved" | "rejected";
-export type ApprovalStatusViewModel = {
-  status?: ApprovalStatus;
-  date?: string | null;
-};
-export type TournamentInviteViewModel = {
-  participantType?: ParticipantType;
-  participantId?: string | null;
-  participantName?: string | null;
-  status?: InviteStatus;
-  initiatorUserId?: string;
-  createdAt?: string;
-  tournamentManagerApproval?: ApprovalStatusViewModel;
-  participantApproval?: ApprovalStatusViewModel;
-};
 export type CreateInviteModel = {
   participantType?: ParticipantType;
   participantId?: string | null;
@@ -1310,9 +1360,35 @@ export type CreateInviteModel = {
 export type InviteResponseModel = {
   approved?: boolean;
 };
+export type PlayerViewModel = {
+  userId?: string;
+  userName?: string | null;
+  number?: string | null;
+  gender?: string | null;
+};
+export type StaffViewModel = {
+  userId?: string;
+  userName?: string | null;
+};
 export type TournamentParticipantViewModel = {
   teamId?: string;
   teamName?: string | null;
+  players?: PlayerViewModel[] | null;
+  coaches?: StaffViewModel[] | null;
+  staff?: StaffViewModel[] | null;
+};
+export type RosterPlayerModel = {
+  userId?: string;
+  number?: string | null;
+  gender?: string | null;
+};
+export type RosterStaffModel = {
+  userId?: string;
+};
+export type UpdateRosterModel = {
+  players?: RosterPlayerModel[] | null;
+  coaches?: RosterStaffModel[] | null;
+  staff?: RosterStaffModel[] | null;
 };
 export type CurrentUserViewModel = {
   userId?: string;
@@ -1332,6 +1408,21 @@ export type CurrentUserViewModel = {
 export type FeatureGates = {
   isTestFlag?: boolean;
   showTestResultsOnFinish?: boolean;
+};
+export type TournamentReferenceViewModel = {
+  id?: string | null;
+  name?: string | null;
+  startDate?: string;
+  endDate?: string;
+};
+export type UserGenderViewModel = {
+  gender?: string | null;
+  referencedInTournaments?: TournamentReferenceViewModel[] | null;
+};
+export type ManagedTeamViewModel = {
+  teamId?: string;
+  teamName?: string | null;
+  ngb?: string;
 };
 export type UserDataViewModel = {
   firstName?: string | null;
@@ -1380,6 +1471,7 @@ export const {
   useDeleteTeamManagerMutation,
   useGetTeamManagersQuery,
   useGetTeamMembersQuery,
+  useGetTeamTournamentInvitesQuery,
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
   useEditTestMutation,
@@ -1400,10 +1492,14 @@ export const {
   useRespondToInviteMutation,
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
+  useUpdateParticipantRosterMutation,
   useGetCurrentUserQuery,
   useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,
   usePutUserAttributeMutation,
+  useGetMyGenderQuery,
+  useDeleteMyGenderMutation,
+  useGetManagedTeamsQuery,
   useGetCurrentUserAvatarQuery,
   useUpdateCurrentUserAvatarMutation,
   useGetUserAvatarQuery,
