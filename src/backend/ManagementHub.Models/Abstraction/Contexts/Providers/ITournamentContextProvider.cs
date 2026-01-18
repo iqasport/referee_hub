@@ -38,6 +38,8 @@ public interface ITournamentContextProvider
 	// Phase 3: Invite management
 	Task<IEnumerable<InviteInfo>> GetTournamentInvitesAsync(TournamentIdentifier tournamentId, UserIdentifier? filterByParticipant = null, CancellationToken cancellationToken = default);
 
+	Task<IEnumerable<InviteInfo>> GetTeamInvitesAsync(TeamIdentifier teamId, CancellationToken cancellationToken = default);
+
 	Task<InviteInfo> CreateTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, UserIdentifier initiatorUserId, CancellationToken cancellationToken = default);
 
 	Task<InviteInfo?> GetTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
