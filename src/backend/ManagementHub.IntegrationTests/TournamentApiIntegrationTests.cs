@@ -367,7 +367,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var createInviteModel = new CreateInviteModel
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId!  // TeamIdentifier for Yankees team
+			ParticipantId = yankeesTeamId!  // Team ID obtained from NGB teams endpoint
 		};
 
 		var createInviteResponse = await this._client.PostAsJsonAsync(
@@ -443,15 +443,29 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
 		var tournamentId = await this.CreateTestTournamentAsync("Club Tournament for Join Request", TournamentType.Club, "USA", "Boston");
 
-		// Step 2: Switch to team manager and get Yankees team ID
+		// Step 2: Switch to team manager and get their managed teams
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
-		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
+		
+		var managedTeamsResponse = await this._client.GetAsync("/api/v2/users/me/managedTeams");
+		managedTeamsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to get managed teams");
+		
+		var managedTeams = await managedTeamsResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
+		managedTeams.Should().NotBeEmpty("team manager should have at least one managed team");
+		
+		var yankeesTeam = managedTeams!.FirstOrDefault(t => t.GetProperty("teamName").GetString() == "Yankees");
+		yankeesTeam.ValueKind.Should().NotBe(JsonValueKind.Undefined, "team manager should manage Yankees team");
+		
+		var yankeesTeamId = yankeesTeam.GetProperty("teamId").GetString();
+		yankeesTeamId.Should().NotBeNullOrEmpty("Yankees team should have an ID");
+		
+		var yankeesNgb = yankeesTeam.GetProperty("ngb").GetString();
+		yankeesNgb.Should().Be("USA", "Yankees team should be part of USA NGB");
 
 		// Step 3: Team manager requests to join (create invite from team side)
 		var joinRequestModel = new CreateInviteModel
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId!  // Team manager manages Yankees
+			ParticipantId = yankeesTeamId!  // Team ID obtained from managed teams endpoint
 		};
 
 		var joinRequestResponse = await this._client.PostAsJsonAsync(

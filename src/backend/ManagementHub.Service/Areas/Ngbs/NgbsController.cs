@@ -6,6 +6,7 @@ using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Exceptions;
+using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
@@ -27,6 +28,7 @@ public class NgbsController : ControllerBase
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly INgbContextProvider ngbContextProvider;
 	private readonly ITeamContextProvider teamContextProvider;
+	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly ISocialAccountsProvider socialAccountsProvider;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand;
@@ -36,6 +38,7 @@ public class NgbsController : ControllerBase
 		IUserContextAccessor contextAccessor,
 		INgbContextProvider ngbContextProvider,
 		ITeamContextProvider teamContextProvider,
+		ITournamentContextProvider tournamentContextProvider,
 		ISocialAccountsProvider socialAccountsProvider,
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
 		IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand,
@@ -44,6 +47,7 @@ public class NgbsController : ControllerBase
 		this.contextAccessor = contextAccessor;
 		this.ngbContextProvider = ngbContextProvider;
 		this.teamContextProvider = teamContextProvider;
+		this.tournamentContextProvider = tournamentContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.updateNgbAdminRoleCommand = updateNgbAdminRoleCommand;
@@ -548,5 +552,64 @@ public class NgbsController : ControllerBase
 				Name = m.Name
 			})
 			.AsFiltered();
+	}
+
+	/// <summary>
+	/// List all tournament invites for a team.
+	/// Team managers can view invites for their own teams.
+	/// NGB admins can view invites for any team in their jurisdiction.
+	/// </summary>
+	[HttpGet("{ngb}/teams/{teamId}/tournamentInvites")]
+	[Tags("Team")]
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	public async Task<IEnumerable<TournamentInviteViewModel>> GetTeamTournamentInvites(
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute] TeamIdentifier teamId)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify team exists and belongs to the specified NGB
+		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Single(ngb));
+		if (team == null)
+		{
+			throw new NotFoundException($"Team {teamId} not found");
+		}
+
+		// Verify user has permission (either NGB admin for this NGB, or team manager for this team)
+		var hasNgbAdminPermission = userContext.Roles
+			.OfType<NgbAdminRole>()
+			.Any(role => role.Ngb.AppliesTo(team.NgbId));
+
+		var hasTeamManagerPermission = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
+		if (!hasNgbAdminPermission && !hasTeamManagerPermission)
+		{
+			throw new AccessDeniedException($"No permission for team {teamId}");
+		}
+
+		// Get all tournament invites for this specific team
+		var invites = await this.tournamentContextProvider.GetTeamInvitesAsync(teamId, this.HttpContext.RequestAborted);
+
+		return invites.Select(i => new TournamentInviteViewModel
+		{
+			ParticipantType = i.ParticipantType,
+			ParticipantId = i.ParticipantId,
+			ParticipantName = i.ParticipantName,
+			Status = i.GetStatus(),
+			InitiatorUserId = i.InitiatorUserId,
+			CreatedAt = i.CreatedAt,
+			TournamentManagerApproval = new ApprovalStatusViewModel
+			{
+				Status = i.TournamentManagerApproval,
+				Date = i.TournamentManagerApprovalDate
+			},
+			ParticipantApproval = new ApprovalStatusViewModel
+			{
+				Status = i.ParticipantApproval,
+				Date = i.ParticipantApprovalDate
+			}
+		});
 	}
 }
