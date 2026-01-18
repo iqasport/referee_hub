@@ -28,14 +28,12 @@ type TournamentSectionProps = {
   tournaments: TournamentData[];
   visibility?: "public" | "private";
   layout?: "grid" | "carousel";
-  onEdit?: (tournament: TournamentData) => void;
 };
 
 const TournamentSection: React.FC<TournamentSectionProps> = ({
   tournaments,
   visibility,
   layout = "grid",
-  onEdit,
 }) => {
   const navigate = useNavigate();
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -107,7 +105,6 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
           location={tournament.location}
           bannerImageUrl={tournament.bannerImageUrl}
           organizer={tournament.organizer}
-          onEdit={onEdit ? () => onEdit(tournament) : undefined}
           onClick={() => {
             navigate(`/tournaments/${tournamentId}`);
           }}
@@ -146,7 +143,6 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
                     location={tournament.location}
                     bannerImageUrl={tournament.bannerImageUrl}
                     organizer={tournament.organizer}
-                    onEdit={onEdit ? () => onEdit(tournament) : undefined}
                     onClick={() => {
                       navigate(`/tournaments/${tournamentId}`);
                     }}

@@ -1,7 +1,15 @@
-import React, { useRef } from "react";
+import React, { useRef, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterTournamentModal";
-import { useGetTournamentQuery } from "../../../store/serviceApi";
+import ManagerView from "./ManagerView";
+import { 
+  useGetTournamentQuery, 
+  useGetTournamentManagersQuery, 
+  useGetCurrentUserQuery,
+  useGetTournamentInvitesQuery,
+  useRespondToInviteMutation,
+  TournamentInviteViewModel,
+} from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
 import {
   CalendarIcon,
@@ -10,11 +18,97 @@ import {
   ClockIcon,
 } from "../../../components/icons";
 
+// Role type for current user
+interface UserRole {
+  roleType?: string;
+  teamId?: string;
+  team?: string | string[] | { id?: string };
+}
+
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
   const registerModalRef = useRef<RegisterTournamentModalRef>(null);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
+  const { data: currentUser } = useGetCurrentUserQuery();
+  
+  // Check if user is a tournament manager - only tournament managers can view the managers list
+  const isTournamentManager = currentUser?.roles?.some((role: any) => role.roleType === "TournamentManager");
+  
+  // Only fetch managers if user is a tournament manager
+  const shouldFetchManagers = Boolean(tournamentId && isTournamentManager);
+  const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !shouldFetchManagers }
+  );
+
+  // Fetch tournament invites to check for pending invites for user's teams
+  const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !tournamentId }
+  );
+
+  const [respondToInvite] = useRespondToInviteMutation();
+
+  // Extract team IDs from TeamManager roles
+  const managedTeamIds: Set<string> = useMemo(() => {
+    const teamIds = new Set<string>();
+    if (currentUser?.roles) {
+      const teamManagerRoles = (currentUser.roles as UserRole[]).filter((r) => r.roleType === "TeamManager");
+      teamManagerRoles.forEach((role) => {
+        if (role.team) {
+          if (Array.isArray(role.team)) {
+            role.team.forEach((t: string | { id?: string }) => {
+              const id = typeof t === "string" ? t : t.id;
+              if (id) teamIds.add(id);
+            });
+          } else if (typeof role.team === "string") {
+            teamIds.add(role.team);
+          } else if (role.team.id) {
+            teamIds.add(role.team.id);
+          }
+        }
+      });
+    }
+    return teamIds;
+  }, [currentUser]);
+
+  // Find pending invites for user's managed teams (where participantApproval is pending)
+  // These are invites initiated by tournament managers that the team manager needs to accept/decline
+  const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
+    if (!invites || managedTeamIds.size === 0) return [];
+    
+    return invites.filter((invite) => {
+      // Check if this invite is for one of user's teams
+      if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
+      
+      // Check if participant approval is pending (user needs to respond)
+      return invite.participantApproval?.status === "pending";
+    });
+  }, [invites, managedTeamIds]);
+
+  // Handle accept/decline invite
+  async function handleRespondToInvite(participantId: string, approved: boolean) {
+    if (!tournamentId) return;
+    
+    setRespondingTo(participantId);
+    try {
+      await respondToInvite({
+        tournamentId,
+        participantId,
+        inviteResponseModel: { approved },
+      }).unwrap();
+      
+      alert(approved ? "Successfully accepted the invite!" : "Invite declined.");
+      refetchInvites();
+    } catch (error) {
+      console.error("Failed to respond to invite:", error);
+      alert("Failed to respond. Please try again.");
+    } finally {
+      setRespondingTo(null);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -32,6 +126,10 @@ const TournamentDetails = () => {
     );
   }
 
+  // Check if current user is a manager of this tournament
+  // Only consider them a manager if they're in the managers list and we successfully fetched the list
+  const isManager = !managersError && currentUser?.userId && managers ? managers.some((manager) => manager.id === currentUser.userId) : false;
+
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
   const formattedDateRange = `${startDate.toLocaleDateString("en-US", {
@@ -42,6 +140,11 @@ const TournamentDetails = () => {
     day: "numeric",
     year: "numeric",
   })}`;
+
+  // Show manager view if user is a manager
+  if (isManager) {
+    return <ManagerView tournament={tournament} />;
+  }
 
   return (
     <>
@@ -140,6 +243,54 @@ const TournamentDetails = () => {
 
             {/* Right sidebar - Registration and Contact */}
             <div>
+              {/* Pending Invites Card - Show when user has pending invites to respond to */}
+              {pendingInvitesForUser.length > 0 && (
+                <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    🎉 You&apos;re Invited!
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    The tournament organizer has invited your team(s) to participate.
+                  </p>
+                  <div className="space-y-3">
+                    {pendingInvitesForUser.map((invite) => (
+                      <div
+                        key={invite.participantId}
+                        className="bg-white rounded-lg border border-gray-200 p-4"
+                      >
+                        <p className="font-semibold text-gray-900 mb-3">
+                          {invite.participantName}
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleRespondToInvite(invite.participantId || "", true)}
+                            disabled={respondingTo === invite.participantId}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
+                            style={{
+                              opacity: respondingTo === invite.participantId ? 0.5 : 1,
+                              cursor: respondingTo === invite.participantId ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {respondingTo === invite.participantId ? "..." : "Accept"}
+                          </button>
+                          <button
+                            onClick={() => handleRespondToInvite(invite.participantId || "", false)}
+                            disabled={respondingTo === invite.participantId}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
+                            style={{
+                              opacity: respondingTo === invite.participantId ? 0.5 : 1,
+                              cursor: respondingTo === invite.participantId ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {respondingTo === invite.participantId ? "..." : "Decline"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Register Now Card */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 sticky top-4">
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Register Now</h3>

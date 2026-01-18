@@ -8,10 +8,10 @@ interface SearchProps {
 
 const TOURNAMENT_TYPES = [
   { value: "", label: "All Types" },
-  { value: "0", label: "Club" },
-  { value: "1", label: "National" },
-  { value: "2", label: "Youth" },
-  { value: "3", label: "Fantasy" },
+  { value: "Club", label: "Club" },
+  { value: "National", label: "National" },
+  { value: "Youth", label: "Youth" },
+  { value: "Fantasy", label: "Fantasy" },
 ];
 
 const Search: React.FC<SearchProps> = ({ onSearch, onTypeFilter, selectedType }) => {
