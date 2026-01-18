@@ -5,6 +5,7 @@ import {
   useGetCurrentUserQuery,
   useGetNgbTeamsQuery,
   useCreateInviteMutation,
+  useGetTournamentInvitesQuery,
   NgbTeamViewModel,
 } from "../../../store/serviceApi";
 
@@ -14,6 +15,7 @@ interface UserRole {
   teamId?: string;
   teamName?: string;
   ngb?: string | string[];
+  team?: string | string[] | { id?: string }; // TeamConstraint from backend
 }
 
 interface Tournament {
@@ -67,37 +69,75 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
     const isNgbAdmin = userNgbs.length > 0;
     const primaryNgb = userNgbs[0] || "";
 
-    // Fetch NGB teams if user is an NGB Admin
-    const { data: ngbTeamsData, isLoading: isLoadingNgbTeams } = useGetNgbTeamsQuery(
-      { ngb: primaryNgb, skipPaging: true },
-      { skip: !isNgbAdmin || !primaryNgb }
-    );
-
-    // Extract managed teams from TeamManager roles
-    const teamManagerTeams: ManagedTeam[] = useMemo(() => {
-      if (!currentUser?.roles) return [];
-      return (currentUser.roles as UserRole[])
-        .filter((r) => r.roleType === "TeamManager")
-        .map((r) => ({
-          teamId: r.teamId || "",
-          teamName: r.teamName || `Team ${r.teamId}`,
-          ngb: (typeof r.ngb === "string" ? r.ngb : "") || "",
-        }));
+    // Extract team IDs from TeamManager roles
+    const teamManagerTeamIds: Set<string> = useMemo(() => {
+      const teamIds = new Set<string>();
+      if (currentUser?.roles) {
+        const teamManagerRoles = (currentUser.roles as UserRole[]).filter((r) => r.roleType === "TeamManager");
+        teamManagerRoles.forEach((role) => {
+          if (role.team) {
+            if (Array.isArray(role.team)) {
+              role.team.forEach((t: string | { id?: string }) => {
+                const id = typeof t === "string" ? t : t.id;
+                if (id) teamIds.add(id);
+              });
+            } else if (typeof role.team === "string") {
+              teamIds.add(role.team);
+            } else if (role.team.id) {
+              teamIds.add(role.team.id);
+            }
+          }
+        });
+      }
+      return teamIds;
     }, [currentUser]);
 
-    // Combine NGB teams (for NGB Admins) with TeamManager teams
+    // Check if user has any TeamManager roles
+    const hasTeamManagerRole = teamManagerTeamIds.size > 0;
+
+    // Fetch NGB teams if user is an NGB Admin OR has TeamManager roles
+    // For TeamManager-only users, we try to fetch from the primary NGB or any available NGB
+    const shouldFetchTeams = isNgbAdmin || hasTeamManagerRole;
+    const ngbToFetch = primaryNgb || (userNgbs.length > 0 ? userNgbs[0] : "");
+    
+    const { data: ngbTeamsData, isLoading: isLoadingNgbTeams } = useGetNgbTeamsQuery(
+      { ngb: ngbToFetch, skipPaging: true },
+      { skip: !shouldFetchTeams || !ngbToFetch }
+    );
+
+    // Build managed teams from both NGB teams (for NGB Admins) and TeamManager roles
     const managedTeams: ManagedTeam[] = useMemo(() => {
-      const teams: ManagedTeam[] = [...teamManagerTeams];
+      const teams: ManagedTeam[] = [];
       
-      // Add NGB teams if user is NGB Admin
+      // Create a map of team details from NGB teams data for quick lookup
+      const teamDetailsMap = new Map<string, NgbTeamViewModel>();
+      if (ngbTeamsData?.items) {
+        ngbTeamsData.items.forEach((team: NgbTeamViewModel) => {
+          if (team.teamId) {
+            teamDetailsMap.set(team.teamId, team);
+          }
+        });
+      }
+
+      // Add teams from TeamManager roles with details if available
+      teamManagerTeamIds.forEach((teamId) => {
+        const teamDetail = teamDetailsMap.get(teamId);
+        teams.push({
+          teamId,
+          teamName: teamDetail?.name || `Team ${teamId}`,
+          ngb: ngbToFetch,
+          groupAffiliation: teamDetail?.groupAffiliation,
+        });
+      });
+      
+      // Add NGB teams if user is NGB Admin (avoid duplicates)
       if (isNgbAdmin && ngbTeamsData?.items) {
         ngbTeamsData.items.forEach((team: NgbTeamViewModel) => {
-          // Avoid duplicates
           if (!teams.some(t => t.teamId === team.teamId)) {
             teams.push({
               teamId: team.teamId || "",
               teamName: team.name || `Team ${team.teamId}`,
-              ngb: primaryNgb,
+              ngb: ngbToFetch,
               groupAffiliation: team.groupAffiliation,
             });
           }
@@ -105,7 +145,31 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
       }
       
       return teams;
-    }, [teamManagerTeams, isNgbAdmin, ngbTeamsData, primaryNgb]);
+    }, [teamManagerTeamIds, ngbTeamsData, ngbToFetch, isNgbAdmin]);
+
+    // Fetch existing invites for this tournament to check which teams already registered
+    const { data: existingInvites } = useGetTournamentInvitesQuery(
+      { tournamentId: tournament?.id || "" },
+      { skip: !tournament?.id || !isOpen }
+    );
+
+    // Get set of team IDs that already have invites (any status)
+    const teamsWithExistingInvites = useMemo(() => {
+      const teamIds = new Set<string>();
+      if (existingInvites) {
+        existingInvites.forEach((invite) => {
+          if (invite.participantId) {
+            teamIds.add(invite.participantId);
+          }
+        });
+      }
+      return teamIds;
+    }, [existingInvites]);
+
+    // Filter managed teams to only show those without existing invites
+    const availableTeams = useMemo(() => {
+      return managedTeams.filter((team) => !teamsWithExistingInvites.has(team.teamId));
+    }, [managedTeams, teamsWithExistingInvites]);
 
     // Team registration form data
     const initialTeamData: TeamRegistrationData = {
@@ -117,7 +181,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
     const [createInvite] = useCreateInviteMutation();
 
     // Loading state for teams
-    const isLoadingTeams = isNgbAdmin && isLoadingNgbTeams;
+    const isLoadingTeams = shouldFetchTeams && isLoadingNgbTeams;
 
     useImperativeHandle(ref, () => ({
       open: (tournamentData: Tournament) => {
@@ -133,8 +197,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
 
 
 
-    // Validation
-    const isTeamFormValid = !!teamData.selectedTeamId;
+    // Validation - ensure selected team is in availableTeams (not already registered)
+    const isTeamFormValid = !!teamData.selectedTeamId && availableTeams.some(t => t.teamId === teamData.selectedTeamId);
 
     async function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
@@ -150,7 +214,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
           },
         }).unwrap();
 
-        const selectedTeam = managedTeams.find(t => t.teamId === teamData.selectedTeamId);
+        const selectedTeam = availableTeams.find(t => t.teamId === teamData.selectedTeamId);
         console.log("Team invite sent:", {
           tournamentId: tournament?.id,
           teamId: teamData.selectedTeamId,
@@ -160,9 +224,9 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
         alert(`Successfully sent invite for ${selectedTeam?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`);
 
         close();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Failed to register for tournament:", error);
-        const errorMessage = error?.data?.error || error?.message || "Failed to register for tournament. Please try again.";
+        const errorMessage = error instanceof Error ? error.message : "Failed to register for tournament. Please try again.";
         alert(errorMessage);
       } finally {
         setIsSubmitting(false);
@@ -235,7 +299,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
                           className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
                         >
                           <option value="">Select an existing team you manage</option>
-                          {managedTeams.map((team) => (
+                          {availableTeams.map((team) => (
                             <option key={team.teamId} value={team.teamId}>
                               {team.teamName}
                             </option>
@@ -244,10 +308,41 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
                       )}
                       {!isLoadingTeams && managedTeams.length === 0 && (
                         <p className="text-sm text-amber-600 mt-2">
-                          No teams found. {isNgbAdmin 
-                            ? "Your NGB doesn't have any teams registered yet."
-                            : "Please contact your NGB admin to be added as a team manager."}
+                          No teams found. You must be an NGB Admin with registered teams or a Team Manager to register for a tournament.
                         </p>
+                      )}
+                      {!isLoadingTeams && managedTeams.length > 0 && availableTeams.length === 0 && (
+                        <p className="text-sm text-amber-600 mt-2">
+                          All your teams have already registered for this tournament.
+                        </p>
+                      )}
+                      {/* Show already registered teams */}
+                      {teamsWithExistingInvites.size > 0 && managedTeams.some(t => teamsWithExistingInvites.has(t.teamId)) && (
+                        <div className="mt-3 p-3 rounded" style={{ backgroundColor: "#f3f4f6" }}>
+                          <p className="text-xs text-gray-600 mb-2">Teams already registered:</p>
+                          <div className="text-sm text-gray-700">
+                            {managedTeams
+                              .filter(t => teamsWithExistingInvites.has(t.teamId))
+                              .map(t => {
+                                const invite = existingInvites?.find(i => i.participantId === t.teamId);
+                                const status = invite?.status || "unknown";
+                                return (
+                                  <div key={t.teamId} className="flex items-center justify-between py-1">
+                                    <span>{t.teamName}</span>
+                                    <span
+                                      className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                                      style={{
+                                        backgroundColor: status === "pending" ? "#fef3c7" : status === "approved" ? "#d1fae5" : "#fee2e2",
+                                        color: status === "pending" ? "#92400e" : status === "approved" ? "#065f46" : "#991b1b"
+                                      }}
+                                    >
+                                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
