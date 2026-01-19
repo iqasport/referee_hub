@@ -3,9 +3,11 @@ import { useState, forwardRef, useImperativeHandle, useMemo } from "react";
 import React from "react";
 import {
   useGetCurrentUserQuery,
+  useGetManagedTeamsQuery,
   useGetNgbTeamsQuery,
   useCreateInviteMutation,
   useGetTournamentInvitesQuery,
+  ManagedTeamViewModel,
   NgbTeamViewModel,
 } from "../../../store/serviceApi";
 
@@ -69,75 +71,43 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
     const isNgbAdmin = userNgbs.length > 0;
     const primaryNgb = userNgbs[0] || "";
 
-    // Extract team IDs from TeamManager roles
-    const teamManagerTeamIds: Set<string> = useMemo(() => {
-      const teamIds = new Set<string>();
-      if (currentUser?.roles) {
-        const teamManagerRoles = (currentUser.roles as UserRole[]).filter((r) => r.roleType === "TeamManager");
-        teamManagerRoles.forEach((role) => {
-          if (role.team) {
-            if (Array.isArray(role.team)) {
-              role.team.forEach((t: string | { id?: string }) => {
-                const id = typeof t === "string" ? t : t.id;
-                if (id) teamIds.add(id);
-              });
-            } else if (typeof role.team === "string") {
-              teamIds.add(role.team);
-            } else if (role.team.id) {
-              teamIds.add(role.team.id);
-            }
-          }
-        });
-      }
-      return teamIds;
-    }, [currentUser]);
+    // Use the new managed teams endpoint - directly fetches teams the user manages
+    const { data: managedTeamsData, isLoading: isLoadingManagedTeams } = useGetManagedTeamsQuery();
 
-    // Check if user has any TeamManager roles
-    const hasTeamManagerRole = teamManagerTeamIds.size > 0;
-
-    // Fetch NGB teams if user is an NGB Admin OR has TeamManager roles
-    // For TeamManager-only users, we try to fetch from the primary NGB or any available NGB
-    const shouldFetchTeams = isNgbAdmin || hasTeamManagerRole;
-    const ngbToFetch = primaryNgb || (userNgbs.length > 0 ? userNgbs[0] : "");
-    
+    // Fetch NGB teams if user is an NGB Admin (for additional teams they can register)
     const { data: ngbTeamsData, isLoading: isLoadingNgbTeams } = useGetNgbTeamsQuery(
-      { ngb: ngbToFetch, skipPaging: true },
-      { skip: !shouldFetchTeams || !ngbToFetch }
+      { ngb: primaryNgb, skipPaging: true },
+      { skip: !isNgbAdmin || !primaryNgb }
     );
 
-    // Build managed teams from both NGB teams (for NGB Admins) and TeamManager roles
+    // Build managed teams from API response and NGB teams (for NGB Admins)
     const managedTeams: ManagedTeam[] = useMemo(() => {
       const teams: ManagedTeam[] = [];
+      const addedTeamIds = new Set<string>();
       
-      // Create a map of team details from NGB teams data for quick lookup
-      const teamDetailsMap = new Map<string, NgbTeamViewModel>();
-      if (ngbTeamsData?.items) {
-        ngbTeamsData.items.forEach((team: NgbTeamViewModel) => {
-          if (team.teamId) {
-            teamDetailsMap.set(team.teamId, team);
+      // Add teams from the managedTeams endpoint (team managers)
+      if (managedTeamsData) {
+        managedTeamsData.forEach((team: ManagedTeamViewModel) => {
+          if (team.teamId && !addedTeamIds.has(team.teamId)) {
+            addedTeamIds.add(team.teamId);
+            teams.push({
+              teamId: team.teamId,
+              teamName: team.teamName || `Team ${team.teamId}`,
+              ngb: team.ngb || "",
+            });
           }
         });
       }
-
-      // Add teams from TeamManager roles with details if available
-      teamManagerTeamIds.forEach((teamId) => {
-        const teamDetail = teamDetailsMap.get(teamId);
-        teams.push({
-          teamId,
-          teamName: teamDetail?.name || `Team ${teamId}`,
-          ngb: ngbToFetch,
-          groupAffiliation: teamDetail?.groupAffiliation,
-        });
-      });
       
       // Add NGB teams if user is NGB Admin (avoid duplicates)
       if (isNgbAdmin && ngbTeamsData?.items) {
         ngbTeamsData.items.forEach((team: NgbTeamViewModel) => {
-          if (!teams.some(t => t.teamId === team.teamId)) {
+          if (team.teamId && !addedTeamIds.has(team.teamId)) {
+            addedTeamIds.add(team.teamId);
             teams.push({
-              teamId: team.teamId || "",
+              teamId: team.teamId,
               teamName: team.name || `Team ${team.teamId}`,
-              ngb: ngbToFetch,
+              ngb: primaryNgb,
               groupAffiliation: team.groupAffiliation,
             });
           }
@@ -145,7 +115,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
       }
       
       return teams;
-    }, [teamManagerTeamIds, ngbTeamsData, ngbToFetch, isNgbAdmin]);
+    }, [managedTeamsData, ngbTeamsData, primaryNgb, isNgbAdmin]);
 
     // Fetch existing invites for this tournament to check which teams already registered
     const { data: existingInvites } = useGetTournamentInvitesQuery(
@@ -181,7 +151,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>(
     const [createInvite] = useCreateInviteMutation();
 
     // Loading state for teams
-    const isLoadingTeams = shouldFetchTeams && isLoadingNgbTeams;
+    const isLoadingTeams = isLoadingManagedTeams || (isNgbAdmin && isLoadingNgbTeams);
 
     useImperativeHandle(ref, () => ({
       open: (tournamentData: Tournament) => {
