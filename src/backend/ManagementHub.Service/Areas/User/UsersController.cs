@@ -333,7 +333,8 @@ public class UsersController : ControllerBase
 				{
 					TeamId = new TeamIdentifier(combined.t.Id),
 					TeamName = combined.t.Name,
-					Ngb = new NgbIdentifier(ngb.CountryCode)
+					Ngb = new NgbIdentifier(ngb.CountryCode),
+					GroupAffiliation = combined.t.GroupAffiliation
 				})
 			.ToListAsync(this.HttpContext.RequestAborted);
 
