@@ -1,10 +1,11 @@
 import React, { useRef, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterTournamentModal";
+import ContactOrganizerModal, { ContactOrganizerModalRef } from "./ContactOrganizerModal";
 import ManagerView from "./ManagerView";
-import { 
-  useGetTournamentQuery, 
-  useGetTournamentManagersQuery, 
+import {
+  useGetTournamentQuery,
+  useGetTournamentManagersQuery,
   useGetCurrentUserQuery,
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
@@ -17,22 +18,30 @@ import {
   UsersIcon,
   HomeIcon,
   ClockIcon,
+  LocationIcon,
 } from "../../../components/icons";
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
   const registerModalRef = useRef<RegisterTournamentModalRef>(null);
+  const contactOrganizerModalRef = useRef<ContactOrganizerModalRef>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
-  const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
+  const {
+    data: tournament,
+    isLoading,
+    isError,
+  } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
   const { data: currentUser } = useGetCurrentUserQuery();
-  
+
   // Use the new managed teams endpoint to get teams the user manages
   const { data: managedTeamsData } = useGetManagedTeamsQuery();
-  
+
   // Check if user is a tournament manager - only tournament managers can view the managers list
-  const isTournamentManager = currentUser?.roles?.some((role: any) => role.roleType === "TournamentManager");
-  
+  const isTournamentManager = currentUser?.roles?.some(
+    (role: any) => role.roleType === "TournamentManager"
+  );
+
   // Only fetch managers if user is a tournament manager
   const shouldFetchManagers = Boolean(tournamentId && isTournamentManager);
   const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
@@ -65,11 +74,11 @@ const TournamentDetails = () => {
   // These are invites initiated by tournament managers that the team manager needs to accept/decline
   const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
     if (!invites || managedTeamIds.size === 0) return [];
-    
+
     return invites.filter((invite) => {
       // Check if this invite is for one of user's teams
       if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
-      
+
       // Check if participant approval is pending (user needs to respond)
       return invite.participantApproval?.status === "pending";
     });
@@ -78,7 +87,7 @@ const TournamentDetails = () => {
   // Handle accept/decline invite
   async function handleRespondToInvite(participantId: string, approved: boolean) {
     if (!tournamentId) return;
-    
+
     setRespondingTo(participantId);
     try {
       await respondToInvite({
@@ -86,7 +95,7 @@ const TournamentDetails = () => {
         participantId,
         inviteResponseModel: { approved },
       }).unwrap();
-      
+
       alert(approved ? "Successfully accepted the invite!" : "Invite declined.");
       refetchInvites();
     } catch (error) {
@@ -115,7 +124,10 @@ const TournamentDetails = () => {
 
   // Check if current user is a manager of this tournament
   // Only consider them a manager if they're in the managers list and we successfully fetched the list
-  const isManager = !managersError && currentUser?.userId && managers ? managers.some((manager) => manager.id === currentUser.userId) : false;
+  const isManager =
+    !managersError && currentUser?.userId && managers
+      ? managers.some((manager) => manager.id === currentUser.userId)
+      : false;
 
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
@@ -144,7 +156,10 @@ const TournamentDetails = () => {
             className="w-full h-full object-cover"
           />
           {/* Title overlay on image */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 text-white" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+          <div
+            className="absolute bottom-0 left-0 right-0 p-8 text-white"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}
+          >
             <h1 className="text-4xl font-bold">{tournament.name}</h1>
           </div>
         </div>
@@ -152,10 +167,7 @@ const TournamentDetails = () => {
 
       {/* Back button */}
       <div className="bg-white px-6 py-3 border-b border-gray-200">
-        <Link
-          to="/tournaments"
-          className="text-blue-600 font-medium"
-        >
+        <Link to="/tournaments" className="text-blue-600 font-medium">
           ← Back to Tournaments
         </Link>
       </div>
@@ -214,6 +226,18 @@ const TournamentDetails = () => {
               {/* About this tournament */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">About This Tournament</h2>
+                {/* Location */}
+                <div className="flex items-start gap-2 mt-4">
+                  <LocationIcon className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      {[tournament.place, tournament.city, tournament.country]
+                        .filter(Boolean)
+                        .join(", ") || "TBD"}
+                    </p>
+                  </div>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">{tournament.description}</p>
               </div>
 
@@ -233,9 +257,7 @@ const TournamentDetails = () => {
               {/* Pending Invites Card - Show when user has pending invites to respond to */}
               {pendingInvitesForUser.length > 0 && (
                 <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6 mb-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    You&apos;re Invited!
-                  </h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">You&apos;re Invited!</h3>
                   <p className="text-sm text-gray-600 mb-4">
                     The tournament organizer has invited your team(s) to participate.
                   </p>
@@ -245,20 +267,19 @@ const TournamentDetails = () => {
                         key={invite.participantId}
                         className="bg-white rounded-lg border border-gray-200 p-4"
                       >
-                        <p className="font-semibold text-gray-900 mb-3">
-                          {invite.participantName}
-                        </p>
+                        <p className="font-semibold text-gray-900 mb-3">{invite.participantName}</p>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleRespondToInvite(invite.participantId || "", true)}
                             disabled={respondingTo === invite.participantId}
                             className="px-4 py-2 text-sm font-medium rounded-lg"
-                            style={{  
+                            style={{
                               flex: 1,
                               backgroundColor: "#16a34a",
                               color: "white",
                               opacity: respondingTo === invite.participantId ? 0.5 : 1,
-                              cursor: respondingTo === invite.participantId ? "not-allowed" : "pointer",
+                              cursor:
+                                respondingTo === invite.participantId ? "not-allowed" : "pointer",
                             }}
                           >
                             {respondingTo === invite.participantId ? "..." : "Accept"}
@@ -269,7 +290,8 @@ const TournamentDetails = () => {
                             className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
                             style={{
                               opacity: respondingTo === invite.participantId ? 0.5 : 1,
-                              cursor: respondingTo === invite.participantId ? "not-allowed" : "pointer",
+                              cursor:
+                                respondingTo === invite.participantId ? "not-allowed" : "pointer",
                             }}
                           >
                             {respondingTo === invite.participantId ? "..." : "Decline"}
@@ -288,15 +310,17 @@ const TournamentDetails = () => {
                   Secure your spot in this exciting tournament. Limited slots available!
                 </p>
                 <button
-                  onClick={() => registerModalRef.current?.open({
-                    id: tournament.id || "",
-                    name: tournament.name || "",
-                    startDate: tournament.startDate || "",
-                    endDate: tournament.endDate || "",
-                    country: tournament.country || "",
-                    city: tournament.city || "",
-                    type: tournament.type || "",
-                  })}
+                  onClick={() =>
+                    registerModalRef.current?.open({
+                      id: tournament.id || "",
+                      name: tournament.name || "",
+                      startDate: tournament.startDate || "",
+                      endDate: tournament.endDate || "",
+                      country: tournament.country || "",
+                      city: tournament.city || "",
+                      type: tournament.type || "",
+                    })
+                  }
                   className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
                 >
                   Register for Tournament
@@ -309,7 +333,15 @@ const TournamentDetails = () => {
                 <p className="text-sm text-gray-600 mb-4">
                   Have questions about this tournament? Contact the organizers.
                 </p>
-                <button className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">
+                <button
+                  onClick={() =>
+                    contactOrganizerModalRef.current?.open({
+                      name: tournament.organizer || "",
+                      tournamentName: tournament.name || "",
+                    })
+                  }
+                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
                   Contact Organizer
                 </button>
               </div>
@@ -319,6 +351,7 @@ const TournamentDetails = () => {
       </section>
 
       <RegisterTournamentModal ref={registerModalRef} />
+      <ContactOrganizerModal ref={contactOrganizerModalRef} />
     </>
   );
 };

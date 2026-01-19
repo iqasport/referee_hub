@@ -4,7 +4,13 @@ import { TournamentViewModel, useGetTournamentInvitesQuery } from "../../../stor
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
 import RegistrationsModal, { RegistrationsModalRef } from "./RegistrationsModal";
 import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
-import { CalendarIcon, UsersIcon, HomeIcon, ClockIcon } from "../../../components/icons";
+import {
+  CalendarIcon,
+  UsersIcon,
+  HomeIcon,
+  ClockIcon,
+  LocationIcon,
+} from "../../../components/icons";
 
 interface ManagerViewProps {
   tournament: TournamentViewModel;
@@ -18,7 +24,7 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
   // Fetch tournament invites
   const { data: invites } = useGetTournamentInvitesQuery({
     tournamentId: tournament.id || "",
-  }); 
+  });
 
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
@@ -137,6 +143,18 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
               {/* About this tournament */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">About This Tournament</h2>
+                {/* Location */}
+                <div className="flex items-start gap-2 mt-4">
+                  <LocationIcon className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      {[tournament.place, tournament.city, tournament.country]
+                        .filter(Boolean)
+                        .join(", ") || "TBD"}
+                    </p>
+                  </div>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">{tournament.description}</p>
               </div>
 
@@ -174,13 +192,13 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
                   </svg>
                   Edit Tournament Details
                 </button>
-                <button 
+                <button
                   onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
                   className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors mb-3"
                 >
                   View Team Registrations ({invites?.length || 0})
                 </button>
-                <button 
+                <button
                   onClick={() => inviteTeamsModalRef.current?.open(tournament)}
                   className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors mb-3"
                 >
@@ -195,7 +213,7 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Teams Registered</span>
                     <span className="text-sm font-semibold text-gray-900">
-                      {invites?.filter(i => i.status === "approved").length || 0}
+                      {invites?.filter((i) => i.status === "approved").length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-200">
@@ -214,7 +232,6 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
