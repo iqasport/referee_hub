@@ -323,8 +323,8 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		contactResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 		"involved users should be able to contact organizers of a private tournament");
 
-		// Sign in as tech_admin who is NOT involved
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "tech_admin@example.com", "password");
+		// Sign in as empty@example.com who is NOT involved
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "empty@example.com", "password");
 
 		// Try to send a contact message (should fail)
 		var unauthorizedContactResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/contact", new
