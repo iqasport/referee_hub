@@ -1,5 +1,6 @@
 import React from "react";
 import { TournamentType } from "../../../store/serviceApi";
+import { LocationIcon } from "../../../components/icons";
 
 interface TournamentCardProps {
   title: string;
@@ -18,16 +19,6 @@ const getTournamentTypeName = (type?: TournamentType): string => {
   return type || "Unknown";
 };
 
-const LocationIcon = () => (
-  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-    <path
-      fillRule="evenodd"
-      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
 const TournamentCard: React.FC<TournamentCardProps> = ({
   title,
   description,
@@ -45,7 +36,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   const dateText = startDate === endDate ? startDate : `${startDate} - ${endDate}`;
 
   return (
-    <div 
+    <div
       className="rounded-lg bg-green-100 shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer relative group"
       onClick={onClick}
     >
@@ -66,7 +57,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
         <h2 className="text-2xl font-bold text-navy-blue mb-2">{title}</h2>
         <p className="text-gray-600 mb-3">{description}</p>
         <div className="flex items-center text-sm text-gray-500">
-          <LocationIcon />
+          <LocationIcon className="w-4 h-4 mr-1" />
           {locationText}
         </div>
         {organizer && <div className="text-xs text-gray-500 mt-2">Organized by: {organizer}</div>}
