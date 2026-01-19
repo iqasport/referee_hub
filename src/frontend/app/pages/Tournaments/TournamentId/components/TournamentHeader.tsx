@@ -15,7 +15,7 @@ const TournamentHeader: React.FC<TournamentHeaderProps> = ({
     <header className="bg-white px-6">
       <div className="max-w-6xl mx-auto">
         <div
-          className="relative h-48 overflow-hidden"
+          className="relative h-56 overflow-hidden"
         >
           <img
             src={bannerImageUrl || "https://placehold.co/1200x200"}

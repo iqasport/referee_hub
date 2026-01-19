@@ -178,7 +178,15 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
           </div>
         </div>
       ) : (
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-[80%]">
+        <div
+          className="p-4 mx-auto"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gap: "1.5rem",
+            maxWidth: "80%",
+          }}
+        >
           {renderCards()}
         </div>
       )}
