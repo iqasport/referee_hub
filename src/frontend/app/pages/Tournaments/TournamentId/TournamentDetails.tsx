@@ -4,6 +4,7 @@ import ContactOrganizerModal, { ContactOrganizerModalRef } from "./ContactOrgani
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
 import RegistrationsModal, { RegistrationsModalRef } from "./RegistrationsModal";
 import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
+import ActionButtonPair from "../../../components/ActionButtonPair";
 import {
   TournamentHeader,
   TournamentNavBar,
@@ -281,43 +282,16 @@ const TournamentDetails = () => {
                             <p className="font-semibold text-gray-900 mb-3">
                               {invite.participantName}
                             </p>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() =>
-                                  handleRespondToInvite(invite.participantId || "", true)
-                                }
-                                disabled={respondingTo === invite.participantId}
-                                className="px-4 py-2 text-sm font-medium rounded-lg"
-                                style={{
-                                  flex: 1,
-                                  backgroundColor: "#16a34a",
-                                  color: "white",
-                                  opacity: respondingTo === invite.participantId ? 0.5 : 1,
-                                  cursor:
-                                    respondingTo === invite.participantId
-                                      ? "not-allowed"
-                                      : "pointer",
-                                }}
-                              >
-                                {respondingTo === invite.participantId ? "..." : "Accept"}
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleRespondToInvite(invite.participantId || "", false)
-                                }
-                                disabled={respondingTo === invite.participantId}
-                                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
-                                style={{
-                                  opacity: respondingTo === invite.participantId ? 0.5 : 1,
-                                  cursor:
-                                    respondingTo === invite.participantId
-                                      ? "not-allowed"
-                                      : "pointer",
-                                }}
-                              >
-                                {respondingTo === invite.participantId ? "..." : "Decline"}
-                              </button>
-                            </div>
+                            <ActionButtonPair
+                              onAccept={() =>
+                                handleRespondToInvite(invite.participantId || "", true)
+                              }
+                              onDecline={() =>
+                                handleRespondToInvite(invite.participantId || "", false)
+                              }
+                              isLoading={respondingTo === invite.participantId}
+                              size="sm"
+                            />
                           </div>
                         ))}
                       </div>

@@ -5,6 +5,8 @@ import {
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
 } from "../../../store/serviceApi";
+import StatusBadge from "../../../components/StatusBadge";
+import ActionButtonPair from "../../../components/ActionButtonPair";
 
 export interface RegistrationsModalRef {
   open: (tournamentId: string) => void;
@@ -74,16 +76,6 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     }
   }
 
-  const getStatusStyle = (status?: string) => {
-    if (status === "pending") {
-      return { bg: "#fef3c7", color: "#92400e", border: "#fde68a" };
-    } else if (status === "approved") {
-      return { bg: "#d1fae5", color: "#065f46", border: "#a7f3d0" };
-    } else {
-      return { bg: "#fee2e2", color: "#991b1b", border: "#fecaca" };
-    }
-  };
-
   const selectedInviteData = invites?.find((i) => i.participantId === selectedInvite);
 
   return (
@@ -150,133 +142,85 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <p className="text-sm text-gray-600 mb-2">Status</p>
                   <div className="flex items-center">
-                    {(() => {
-                      const statusStyle = getStatusStyle(selectedInviteData.status);
-                      return (
-                        <>
-                          <span
-                            className="px-3 py-1 rounded-full text-sm font-semibold"
-                            style={{ backgroundColor: statusStyle.bg, color: statusStyle.color }}
-                          >
-                            {selectedInviteData.status
-                              ? selectedInviteData.status.charAt(0).toUpperCase() +
-                                selectedInviteData.status.slice(1)
-                              : "Unknown"}
-                          </span>
-                          {selectedInviteData.status !== "pending" &&
-                            selectedInviteData.tournamentManagerApproval?.date && (
-                              <span className="text-xs text-gray-600 ml-2">
-                                on{" "}
-                                {new Date(
-                                  selectedInviteData.tournamentManagerApproval.date
-                                ).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </span>
-                            )}
-                        </>
-                      );
-                    })()}
+                    <StatusBadge status={selectedInviteData.status || "unknown"} />
+                    {selectedInviteData.status !== "pending" &&
+                      selectedInviteData.tournamentManagerApproval?.date && (
+                        <span className="text-xs text-gray-600 ml-2">
+                          on{" "}
+                          {new Date(
+                            selectedInviteData.tournamentManagerApproval.date
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      )}
                   </div>
                 </div>
 
                 {/* Actions for pending - only show if tournament manager approval is pending */}
-                {selectedInviteData.status === "pending" && 
-                 selectedInviteData.tournamentManagerApproval?.status === "pending" && (
-                  <div className="flex" style={{ gap: "12px" }}>
-                    <button
-                      onClick={() =>
-                        handleDeny(
-                          selectedInviteData.participantId,
-                          selectedInviteData.participantName || ""
-                        )
-                      }
-                      disabled={isSubmitting}
-                      className="px-4 py-2 text-sm font-medium rounded"
-                      style={{
-                        flex: 1,
-                        backgroundColor: "#dc2626",
-                        color: "white",
-                        opacity: isSubmitting ? 0.5 : 1,
-                        cursor: isSubmitting ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      {isSubmitting ? "Processing..." : "Deny"}
-                    </button>
-                    <button
-                      onClick={() =>
+                {selectedInviteData.status === "pending" &&
+                  selectedInviteData.tournamentManagerApproval?.status === "pending" && (
+                    <ActionButtonPair
+                      onAccept={() =>
                         handleApprove(
                           selectedInviteData.participantId,
                           selectedInviteData.participantName || ""
                         )
                       }
-                      disabled={isSubmitting}
-                      className="px-4 py-2 text-sm font-medium rounded"
-                      style={{
-                        flex: 1,
-                        backgroundColor: "#16a34a",
-                        color: "white",
-                        opacity: isSubmitting ? 0.5 : 1,
-                        cursor: isSubmitting ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      {isSubmitting ? "Processing..." : "Approve"}
-                    </button>
-                  </div>
-                )}
+                      onDecline={() =>
+                        handleDeny(
+                          selectedInviteData.participantId,
+                          selectedInviteData.participantName || ""
+                        )
+                      }
+                      isLoading={isSubmitting}
+                      acceptLabel="Approve"
+                      declineLabel="Deny"
+                      loadingLabel="Processing..."
+                    />
+                  )}
 
                 {/* Info message when waiting for team to respond */}
-                {selectedInviteData.status === "pending" && 
-                 selectedInviteData.tournamentManagerApproval?.status === "approved" &&
-                 selectedInviteData.participantApproval?.status === "pending" && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
-                      ⏳ Waiting for the team to accept or decline this invitation.
-                    </p>
-                  </div>
-                )}
+                {selectedInviteData.status === "pending" &&
+                  selectedInviteData.tournamentManagerApproval?.status === "approved" &&
+                  selectedInviteData.participantApproval?.status === "pending" && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-sm text-blue-800">
+                        ⏳ Waiting for the team to accept or decline this invitation.
+                      </p>
+                    </div>
+                  )}
               </div>
             ) : (
               // List view
               <>
                 {invites && invites.length > 0 ? (
                   <div>
-                    {invites.map((invite) => {
-                      const statusStyle = getStatusStyle(invite.status);
-                      return (
-                        <div
-                          key={invite.participantId}
-                          className="border rounded-lg p-4 mb-3 cursor-pointer hover:shadow-md"
-                          style={{ borderColor: statusStyle.border }}
-                          onClick={() => setSelectedInvite(invite.participantId)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-semibold text-gray-900">
-                                {invite.participantName}
-                              </h4>
-                              <p className="text-sm text-gray-600">
-                                Requested{" "}
-                                {new Date(invite.createdAt).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })}
-                              </p>
-                            </div>
-                            <span
-                              className="px-3 py-1 rounded-full text-sm font-semibold"
-                              style={{ backgroundColor: statusStyle.bg, color: statusStyle.color }}
-                            >
-                              {invite.status
-                                ? invite.status.charAt(0).toUpperCase() + invite.status.slice(1)
-                                : "Unknown"}
-                            </span>
+                    {invites.map((invite) => (
+                      <div
+                        key={invite.participantId}
+                        className="border border-gray-200 rounded-lg p-4 mb-3 cursor-pointer hover:shadow-md"
+                        onClick={() => setSelectedInvite(invite.participantId)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {invite.participantName}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Requested{" "}
+                              {new Date(invite.createdAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
                           </div>
+                          <StatusBadge status={invite.status || "unknown"} />
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <p className="text-gray-600 text-center py-8">No team registrations yet.</p>
