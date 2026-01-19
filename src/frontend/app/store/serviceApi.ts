@@ -426,6 +426,17 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
+      contactTournamentOrganizers: build.mutation<
+        ContactTournamentOrganizersApiResponse,
+        ContactTournamentOrganizersApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/contact`,
+          method: "POST",
+          body: queryArg.contactTournamentRequest,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
       getTournamentInvites: build.query<
         GetTournamentInvitesApiResponse,
         GetTournamentInvitesApiArg
@@ -805,6 +816,11 @@ export type RemoveTournamentManagerApiResponse = /** status 200 Success */ void;
 export type RemoveTournamentManagerApiArg = {
   tournamentId: string;
   userId: string;
+};
+export type ContactTournamentOrganizersApiResponse = /** status 200 Success */ void;
+export type ContactTournamentOrganizersApiArg = {
+  tournamentId: string;
+  contactTournamentRequest: ContactTournamentRequest;
 };
 export type GetTournamentInvitesApiResponse = /** status 200 Success */ TournamentInviteViewModel[];
 export type GetTournamentInvitesApiArg = {
@@ -1353,6 +1369,9 @@ export type TournamentManagerViewModel = {
 export type AddTournamentManagerModel = {
   email?: string | null;
 };
+export type ContactTournamentRequest = {
+  message: string;
+};
 export type CreateInviteModel = {
   participantType?: ParticipantType;
   participantId?: string | null;
@@ -1488,6 +1507,7 @@ export const {
   useGetTournamentManagersQuery,
   useAddTournamentManagerMutation,
   useRemoveTournamentManagerMutation,
+  useContactTournamentOrganizersMutation,
   useGetTournamentInvitesQuery,
   useCreateInviteMutation,
   useRespondToInviteMutation,
