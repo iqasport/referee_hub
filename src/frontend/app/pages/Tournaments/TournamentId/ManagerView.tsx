@@ -1,16 +1,15 @@
 import React, { useRef } from "react";
-import { Link } from "react-router-dom";
 import { TournamentViewModel, useGetTournamentInvitesQuery } from "../../../store/serviceApi";
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
 import RegistrationsModal, { RegistrationsModalRef } from "./RegistrationsModal";
 import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
 import {
-  CalendarIcon,
-  UsersIcon,
-  HomeIcon,
-  ClockIcon,
-  LocationIcon,
-} from "../../../components/icons";
+  TournamentHeader,
+  TournamentNavBar,
+  TournamentInfoCards,
+  TournamentAboutSection,
+  TournamentFormatSection,
+} from "./components";
 
 interface ManagerViewProps {
   tournament: TournamentViewModel;
@@ -56,117 +55,35 @@ const ManagerView: React.FC<ManagerViewProps> = ({ tournament }) => {
 
   return (
     <>
-      {/* Header */}
-      <header>
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={tournament.bannerImageUrl || "https://placehold.co/1200x200"}
-            alt="Tournament banner"
-            className="w-full h-full object-cover"
-          />
-          {/* Title overlay on image with manager badge */}
-          <div
-            className="absolute bottom-0 left-0 right-0 p-8 text-white"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}
-          >
-            <div className="flex items-center justify-between">
-              <h1 className="text-4xl font-bold">{tournament.name}</h1>
-              <div className="bg-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
-                Manager View
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <TournamentHeader
+        bannerImageUrl={tournament.bannerImageUrl}
+        name={tournament.name}
+        isManager
+      />
 
-      {/* Back button and Edit button */}
-      <div className="bg-white px-6 py-3 border-b border-gray-200 flex justify-between items-center">
-        <Link to="/tournaments" className="text-blue-600 font-medium">
-          ← Back to Tournaments
-        </Link>
-        <button onClick={handleEdit} className="text-blue-600 font-medium">
-          Edit Tournament
-        </button>
-      </div>
+      <TournamentNavBar isManager onEdit={handleEdit} />
 
       {/* Info cards section */}
       <section className="bg-white px-6 py-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {/* Tournament Date Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <CalendarIcon className="w-5 h-5 text-green-600" />
-                <p className="text-xs text-gray-600 font-semibold">Tournament Date</p>
-              </div>
-              <p className="text-sm font-semibold text-gray-900">{formattedDateRange}</p>
-            </div>
-
-            {/* Participants Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <UsersIcon className="w-5 h-5 text-green-600" />
-                <p className="text-xs text-gray-600 font-semibold">Participants</p>
-              </div>
-              <p className="text-sm font-semibold text-gray-900">TBD</p>
-            </div>
-
-            {/* Organizer Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <HomeIcon className="w-5 h-5 text-green-600" />
-                <p className="text-xs text-gray-600 font-semibold">Organizer</p>
-              </div>
-              <p className="text-sm font-semibold text-gray-900">{tournament.organizer || "N/A"}</p>
-            </div>
-
-            {/* Registration Ends Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <ClockIcon className="w-5 h-5 text-green-600" />
-                <p className="text-xs text-gray-600 font-semibold">Registration Ends</p>
-              </div>
-              <p className="text-sm font-semibold text-gray-900">
-                {new Date(tournament.startDate).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-          </div>
+          <TournamentInfoCards
+            formattedDateRange={formattedDateRange}
+            organizer={tournament.organizer}
+            startDate={tournament.startDate}
+          />
 
           {/* Main content grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left column - About and Format */}
             <div className="lg:col-span-2">
-              {/* About this tournament */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">About This Tournament</h2>
-                {/* Location */}
-                <div className="flex items-start gap-2 mt-4">
-                  <LocationIcon className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      {[tournament.place, tournament.city, tournament.country]
-                        .filter(Boolean)
-                        .join(", ") || "TBD"}
-                    </p>
-                  </div>
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
-                <p className="text-gray-700 leading-relaxed mb-4">{tournament.description}</p>
-              </div>
+              <TournamentAboutSection
+                place={tournament.place}
+                city={tournament.city}
+                country={tournament.country}
+                description={tournament.description}
+              />
 
-              {/* Tournament Format (placeholder based on design) */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-3">Tournament Format</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  Single elimination bracket with all teams. All games will be played according to
-                  official rules. Each game consists of four 10-minute quarters with a 15-minute
-                  halftime break.
-                </p>
-              </div>
+              <TournamentFormatSection />
             </div>
 
             {/* Right sidebar - Manager Tools */}
