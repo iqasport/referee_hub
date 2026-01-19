@@ -181,8 +181,9 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                   </div>
                 </div>
 
-                {/* Actions for pending */}
-                {selectedInviteData.status === "pending" && (
+                {/* Actions for pending - only show if tournament manager approval is pending */}
+                {selectedInviteData.status === "pending" && 
+                 selectedInviteData.tournamentManagerApproval?.status === "pending" && (
                   <div className="flex" style={{ gap: "12px" }}>
                     <button
                       onClick={() =>
@@ -222,6 +223,17 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                     >
                       {isSubmitting ? "Processing..." : "Approve"}
                     </button>
+                  </div>
+                )}
+
+                {/* Info message when waiting for team to respond */}
+                {selectedInviteData.status === "pending" && 
+                 selectedInviteData.tournamentManagerApproval?.status === "approved" &&
+                 selectedInviteData.participantApproval?.status === "pending" && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      ⏳ Waiting for the team to accept or decline this invitation.
+                    </p>
                   </div>
                 )}
               </div>

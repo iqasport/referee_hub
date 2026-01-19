@@ -8,6 +8,7 @@ import {
   useGetCurrentUserQuery,
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
+  useGetManagedTeamsQuery,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
@@ -18,13 +19,6 @@ import {
   ClockIcon,
 } from "../../../components/icons";
 
-// Role type for current user
-interface UserRole {
-  roleType?: string;
-  teamId?: string;
-  team?: string | string[] | { id?: string };
-}
-
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
   const registerModalRef = useRef<RegisterTournamentModalRef>(null);
@@ -32,6 +26,9 @@ const TournamentDetails = () => {
 
   const { data: tournament, isLoading, isError } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
   const { data: currentUser } = useGetCurrentUserQuery();
+  
+  // Use the new managed teams endpoint to get teams the user manages
+  const { data: managedTeamsData } = useGetManagedTeamsQuery();
   
   // Check if user is a tournament manager - only tournament managers can view the managers list
   const isTournamentManager = currentUser?.roles?.some((role: any) => role.roleType === "TournamentManager");
@@ -51,28 +48,18 @@ const TournamentDetails = () => {
 
   const [respondToInvite] = useRespondToInviteMutation();
 
-  // Extract team IDs from TeamManager roles
+  // Get team IDs from the managed teams endpoint
   const managedTeamIds: Set<string> = useMemo(() => {
     const teamIds = new Set<string>();
-    if (currentUser?.roles) {
-      const teamManagerRoles = (currentUser.roles as UserRole[]).filter((r) => r.roleType === "TeamManager");
-      teamManagerRoles.forEach((role) => {
-        if (role.team) {
-          if (Array.isArray(role.team)) {
-            role.team.forEach((t: string | { id?: string }) => {
-              const id = typeof t === "string" ? t : t.id;
-              if (id) teamIds.add(id);
-            });
-          } else if (typeof role.team === "string") {
-            teamIds.add(role.team);
-          } else if (role.team.id) {
-            teamIds.add(role.team.id);
-          }
+    if (managedTeamsData) {
+      managedTeamsData.forEach((team) => {
+        if (team.teamId) {
+          teamIds.add(team.teamId);
         }
       });
     }
     return teamIds;
-  }, [currentUser]);
+  }, [managedTeamsData]);
 
   // Find pending invites for user's managed teams (where participantApproval is pending)
   // These are invites initiated by tournament managers that the team manager needs to accept/decline
@@ -247,7 +234,7 @@ const TournamentDetails = () => {
               {pendingInvitesForUser.length > 0 && (
                 <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6 mb-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    🎉 You&apos;re Invited!
+                    You&apos;re Invited!
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">
                     The tournament organizer has invited your team(s) to participate.
@@ -265,8 +252,11 @@ const TournamentDetails = () => {
                           <button
                             onClick={() => handleRespondToInvite(invite.participantId || "", true)}
                             disabled={respondingTo === invite.participantId}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
-                            style={{
+                            className="px-4 py-2 text-sm font-medium rounded-lg"
+                            style={{  
+                              flex: 1,
+                              backgroundColor: "#16a34a",
+                              color: "white",
                               opacity: respondingTo === invite.participantId ? 0.5 : 1,
                               cursor: respondingTo === invite.participantId ? "not-allowed" : "pointer",
                             }}
