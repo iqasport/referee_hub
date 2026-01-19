@@ -1,6 +1,7 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle, useMemo } from "react";
 import React from "react";
+import StatusBadge from "../../../components/StatusBadge";
 import {
   useGetCurrentUserQuery,
   useGetManagedTeamsQuery,
@@ -317,25 +318,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
                                   className="flex items-center justify-between py-1"
                                 >
                                   <span>{t.teamName}</span>
-                                  <span
-                                    className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                                    style={{
-                                      backgroundColor:
-                                        status === "pending"
-                                          ? "#fef3c7"
-                                          : status === "approved"
-                                          ? "#d1fae5"
-                                          : "#fee2e2",
-                                      color:
-                                        status === "pending"
-                                          ? "#92400e"
-                                          : status === "approved"
-                                          ? "#065f46"
-                                          : "#991b1b",
-                                    }}
-                                  >
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                                  </span>
+                                  <StatusBadge status={status} />
                                 </div>
                               );
                             })}
