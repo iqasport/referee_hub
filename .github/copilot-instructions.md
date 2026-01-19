@@ -241,7 +241,7 @@ cd src/backend/ManagementHub.Service
 dotnet ef migrations add AddTournamentTables --project ../ManagementHub.Storage
 ```
 
-Configure entities in `ManagementHub.Storage/Data/ManagementHubDbContext.cs` - index foreign keys and review generated SQL.
+Configure entities in `ManagementHub.Storage/ManagementHubDbContext.cs` - index foreign keys and review generated SQL.
 
 ---
 
