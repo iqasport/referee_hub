@@ -40,7 +40,7 @@ public class RecertificationTestIntegrationTests : IClassFixture<TestWebApplicat
 		var initialProfile = await initialProfileResponse.Content.ReadAsStringAsync();
 		var initialProfileJson = JsonDocument.Parse(initialProfile);
 		var initialCertifications = initialProfileJson.RootElement.GetProperty("acquiredCertifications").EnumerateArray().ToList();
-		
+
 		initialCertifications.Should().NotBeEmpty("referee should have at least one certification");
 		var hasFlagCert = initialCertifications.Any(c => c.GetProperty("level").GetString() == "snitch");
 		hasFlagCert.Should().BeTrue("referee should initially have Flag certification from previous version");
@@ -49,46 +49,46 @@ public class RecertificationTestIntegrationTests : IClassFixture<TestWebApplicat
 		var testsResponse = await this._client.GetAsync("/api/v2/referees/me/tests/available");
 		testsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "getting available tests should succeed");
 		var testsJson = JsonDocument.Parse(await testsResponse.Content.ReadAsStringAsync());
-		
+
 		string? flagRecertTestId = null;
 		foreach (var testElement in testsJson.RootElement.EnumerateArray())
 		{
 			var title = testElement.GetProperty("title").GetString();
-			if (title != null && title.Contains("Flag", StringComparison.OrdinalIgnoreCase) && 
-			    title.Contains("Recert", StringComparison.OrdinalIgnoreCase))
+			if (title != null && title.Contains("Flag", StringComparison.OrdinalIgnoreCase) &&
+				title.Contains("Recert", StringComparison.OrdinalIgnoreCase))
 			{
 				flagRecertTestId = testElement.GetProperty("testId").GetString();
 				break;
 			}
 		}
-		
+
 		flagRecertTestId.Should().NotBeNull("Flag recertification test should be available");
 
 		// Start the test
 		var startResponse = await this._client.PostAsync($"/api/v2/referees/me/tests/{flagRecertTestId}/start", null);
 		startResponse.StatusCode.Should().Be(HttpStatusCode.OK, "starting test should succeed");
 		var testStartJson = JsonDocument.Parse(await startResponse.Content.ReadAsStringAsync());
-		
+
 		// Build correct answers by finding the correct answer for each question
 		var questions = testStartJson.RootElement.GetProperty("questions").EnumerateArray().ToList();
 		var answers = new System.Collections.Generic.List<object>();
-		
+
 		// In the seeded data, correct answers have "Correct" in their description
 		foreach (var question in questions)
 		{
 			var questionId = question.GetProperty("questionId").GetInt64();
 			var questionAnswers = question.GetProperty("answers").EnumerateArray().ToList();
-			
+
 			// Find the answer with "Correct" in the description
-			var correctAnswer = questionAnswers.FirstOrDefault(a => 
+			var correctAnswer = questionAnswers.FirstOrDefault(a =>
 				a.GetProperty("htmlText").GetString()?.Contains("Correct", StringComparison.OrdinalIgnoreCase) == true);
-			
+
 			if (correctAnswer.ValueKind == JsonValueKind.Undefined)
 			{
 				// Fallback: just pick the first answer if we can't find the correct one
 				correctAnswer = questionAnswers[0];
 			}
-			
+
 			var answerId = correctAnswer.GetProperty("answerId").GetInt64();
 			answers.Add(new { questionId, answerId });
 		}
@@ -99,10 +99,10 @@ public class RecertificationTestIntegrationTests : IClassFixture<TestWebApplicat
 			startedAt = DateTime.UtcNow.AddMinutes(-5),
 			answers
 		};
-		
+
 		var submitResponse = await this._client.PostAsJsonAsync($"/api/v2/referees/me/tests/{flagRecertTestId}/submit", submitModel);
 		submitResponse.StatusCode.Should().Be(HttpStatusCode.OK, "submitting test should succeed");
-		
+
 		var submitResult = await submitResponse.Content.ReadAsStringAsync();
 		var submitJson = JsonDocument.Parse(submitResult);
 		var passed = submitJson.RootElement.GetProperty("passed").GetBoolean();
@@ -114,23 +114,23 @@ public class RecertificationTestIntegrationTests : IClassFixture<TestWebApplicat
 		var finalProfile = await finalProfileResponse.Content.ReadAsStringAsync();
 		var finalProfileJson = JsonDocument.Parse(finalProfile);
 		var finalCertifications = finalProfileJson.RootElement.GetProperty("acquiredCertifications").EnumerateArray().ToList();
-		
+
 		// Assert: Should have Flag certifications for both versions (old and new)
 		// Plus Assistant certification for the new version
 		var flagCerts = finalCertifications.Where(c => c.GetProperty("level").GetString() == "snitch").ToList();
 		var assistantCerts = finalCertifications.Where(c => c.GetProperty("level").GetString() == "assistant").ToList();
-		
+
 		flagCerts.Should().HaveCountGreaterOrEqualTo(2, "referee should have Flag certification for both old and new versions");
 		assistantCerts.Should().HaveCount(1, "referee should have Assistant certification for the new version");
-		
+
 		// Verify the new version certifications were awarded
-		var hasNewVersionFlag = finalCertifications.Any(c => 
-			c.GetProperty("level").GetString() == "snitch" && 
+		var hasNewVersionFlag = finalCertifications.Any(c =>
+			c.GetProperty("level").GetString() == "snitch" &&
 			c.GetProperty("version").GetString() == "twentyfour");
-		var hasNewVersionAssistant = finalCertifications.Any(c => 
-			c.GetProperty("level").GetString() == "assistant" && 
+		var hasNewVersionAssistant = finalCertifications.Any(c =>
+			c.GetProperty("level").GetString() == "assistant" &&
 			c.GetProperty("version").GetString() == "twentyfour");
-		
+
 		hasNewVersionFlag.Should().BeTrue("referee should have Flag certification for the new version (twentyfour)");
 		hasNewVersionAssistant.Should().BeTrue("referee should have Assistant certification for the new version (twentyfour)");
 	}
