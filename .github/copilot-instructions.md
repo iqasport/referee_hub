@@ -1,71 +1,52 @@
 # GitHub Copilot Instructions for IQA Management Hub
 
-This document provides comprehensive guidance for coding agents working on the IQA Management Hub repository.
-
----
-
-## Table of Contents
-
-1. [Before You Begin](#before-you-begin)
-2. [High-Level Guidance](#high-level-guidance)
-3. [Technology Stack](#technology-stack)
-4. [Coding Guidelines](#coding-guidelines)
-5. [Building and Running](#building-and-running)
-6. [Testing](#testing)
-7. [Database Migrations](#database-migrations)
-8. [Before You Commit](#before-you-commit)
-9. [Specific Coding Patterns](#specific-coding-patterns)
-10. [Common Pitfalls](#common-pitfalls)
+Comprehensive guidance for coding agents working on this repository.
 
 ---
 
 ## Before You Begin
 
-### 1. Understand the Project Structure
+### Project Structure
 
 Full-stack application:
-- **Backend**: .NET 8.0, ASP.NET Core, Entity Framework Core
-- **Frontend**: React 18, TypeScript, Redux Toolkit, Webpack 5
-- **Database**: PostgreSQL (production), in-memory (dev)
+- **Backend**: .NET 8.0, ASP.NET Core, Entity Framework Core, PostgreSQL
+- **Frontend**: React 18, TypeScript, Redux Toolkit, RTK Query, Webpack 5
 
 **Key directories:**
 ```
 src/backend/
   ├── ManagementHub.Service/      # Main API
   ├── ManagementHub.Models/       # Domain models
-  ├── ManagementHub.Storage/      # Data access
+  ├── ManagementHub.Storage/      # Data access & EF Core
   └── ManagementHub.IntegrationTests/
 src/frontend/app/
   ├── modules/  # Feature modules
   ├── pages/    # Page components
-  └── store/    # Redux store & API client
+  └── store/    # Redux store & RTK Query API client
 ```
 
-### 2. Read Documentation First
+### Documentation
 
 Review before making changes:
 - `README.md` - Setup and building
-- `docs/building.md`, `docs/testing.md`, `docs/api-client.md`
-- `docs/features/` - Feature-specific guides
+- `docs/` - Building, testing, API client, features
 
-### 3. Build Projects Before Starting
+### Build First
 
-**Backend:**
+Build projects to understand existing errors before starting work:
+
 ```bash
+# Backend (use these flags for local dev to avoid GitVersion/frontend build issues)
 cd src/backend
 dotnet build /p:DisableGitVersion=true /p:BuildFrontend=false
-```
 
-**Frontend:**
-```bash
+# Frontend
 cd src/frontend
 yarn install --immutable
 yarn build:dev
 ```
 
-Understanding existing build errors helps avoid fixing unrelated issues.
-
-### 4. User Context
+### User Roles
 
 - **Referees**: Take tests, manage profiles
 - **NGB Admins**: Manage referees in jurisdiction
@@ -73,28 +54,24 @@ Understanding existing build errors helps avoid fixing unrelated issues.
 
 ---
 
-## High-Level Guidance
-
-### Core Principles
+## Core Principles
 
 1. **Minimal Changes** - Make smallest changes to achieve goal
 2. **Follow Patterns** - Look for similar code and follow consistently
 3. **Type Safety** - Use strongly-typed identifiers, not raw strings
-4. **Security** - Never log sensitive data; validate authorization
+4. **Security** - Never log sensitive data (emails, passwords, PII); validate authorization
 5. **Test-Driven** - Write/update tests for changes
 6. **Document** - Update docs when making significant changes
 
-### Workflow
-
-Explore → Plan → Implement → Test → Lint → Build → Commit
+**Workflow**: Explore → Plan → Implement → Test → Lint → Build → Commit
 
 ---
 
 ## Technology Stack
 
-**Backend**: .NET 8.0, C# 12, ASP.NET Core, Entity Framework Core 8, PostgreSQL 14+, Redis, Hangfire, xUnit, Swashbuckle
+**Backend**: .NET 8.0, C# 12, ASP.NET Core, Entity Framework Core 8, PostgreSQL, Redis, Hangfire, xUnit
 
-**Frontend**: React 18, TypeScript 5.x, Redux Toolkit, RTK Query, React Router 6, Tailwind CSS 3.x, Webpack 5, Jest
+**Frontend**: React 18, TypeScript 5.x, Redux Toolkit, RTK Query, React Router 6, Tailwind CSS, Webpack 5, Jest
 
 ---
 
@@ -102,16 +79,13 @@ Explore → Plan → Implement → Test → Lint → Build → Commit
 
 ### Backend (C#)
 
-#### Naming Conventions
-- **Classes/Interfaces**: PascalCase (`UserService`, `IUserRepository`)
-- **Methods**: PascalCase (`GetUserAsync`, `CreateTournament`)
-- **Variables/Parameters/Private Fields**: camelCase (`userId`, `dbContext`, `logger`)
-- **Constants**: PascalCase (`MaxRetryCount`)
+**Naming Conventions:**
+- Classes/Interfaces: PascalCase (`UserService`, `IUserRepository`)
+- Methods: PascalCase (`GetUserAsync`, `CreateTournament`)
+- Variables/Parameters/Private Fields: camelCase (`userId`, `dbContext`, `logger`)
+- Constants: PascalCase (`MaxRetryCount`)
 
-#### Required Properties
-
-Use `required` keyword instead of `= null!`:
-
+**Required Properties** - Use `required` keyword:
 ```csharp
 public class TournamentData
 {
@@ -120,10 +94,7 @@ public class TournamentData
 }
 ```
 
-#### Strongly-Typed Identifiers
-
-Use record structs instead of raw strings:
-
+**Strongly-Typed Identifiers** - Use record structs with ULID:
 ```csharp
 public record struct TournamentIdentifier(Ulid UniqueId)
 {
@@ -131,15 +102,9 @@ public record struct TournamentIdentifier(Ulid UniqueId)
     public static TournamentIdentifier NewId() => new(Ulid.NewUlid());
     public override string ToString() => $"{IdPrefix}{UniqueId}";
 }
-
-// Usage
-public async Task<Tournament> GetTournamentAsync(TournamentIdentifier id) { }
 ```
 
-#### EF Core Query Pattern
-
-**ALWAYS filter/order BEFORE projection** for SQL translation:
-
+**EF Core Queries** - Filter/order BEFORE projection for SQL translation:
 ```csharp
 var tournaments = await dbContext.Tournaments
     .Where(t => t.IsPublic || managedIds.Contains(t.Id))
@@ -148,20 +113,14 @@ var tournaments = await dbContext.Tournaments
     .ToListAsync();
 ```
 
-#### User Queries
-
-**NEVER** compare `User.UniqueId` directly. Use `WithIdentifier`:
-
+**User Queries** - Use `WithIdentifier` pattern (NEVER compare `User.UniqueId` directly):
 ```csharp
 var userDbId = await WithIdentifier(dbContext.Users, userId)
     .Select(u => u.Id)
     .FirstOrDefaultAsync();
 ```
 
-#### Authorization
-
-Use policies and requirements:
-
+**Authorization** - Use policies:
 ```csharp
 [Authorize(AuthorizationPolicies.TournamentManager)]
 public async Task<IActionResult> UpdateTournament(
@@ -169,22 +128,29 @@ public async Task<IActionResult> UpdateTournament(
     [FromBody] UpdateTournamentRequest request) { }
 ```
 
-#### Logging - NO SENSITIVE DATA
-
+**Logging** - NO sensitive data (emails, passwords):
 ```csharp
 // ✅ GOOD
-_logger.LogInformation("User login attempt for user ID {UserId}", userId);
+_logger.LogInformation("User login for user ID {UserId}", userId);
 
 // ❌ BAD - logs email
-_logger.LogInformation("User login attempt for email {Email}", email);
+_logger.LogInformation("User login for {Email}", email);
+```
+
+**Entity Configuration** - Always specify `.WithMany()` to avoid EF shadow properties:
+```csharp
+modelBuilder.Entity<Tournament>(entity =>
+{
+    entity.HasOne(d => d.Ngb)
+        .WithMany(p => p.Tournaments)  // Required to avoid shadow properties
+        .HasForeignKey(d => d.NgbId)
+        .OnDelete(DeleteBehavior.Restrict);
+});
 ```
 
 ### Frontend (TypeScript/React)
 
-#### Component Structure
-
-Functional components with hooks:
-
+**Components** - Functional with hooks:
 ```typescript
 interface TournamentCardProps {
   tournamentId: string;
@@ -196,10 +162,7 @@ export const TournamentCard: FC<TournamentCardProps> = ({ tournamentId, name }) 
 };
 ```
 
-#### API Calls
-
-Use RTK Query (not legacy Redux):
-
+**API Calls** - Use RTK Query (not legacy Redux):
 ```typescript
 import { useGetTournamentsQuery } from '../store/serviceApi';
 
@@ -213,106 +176,28 @@ export const TournamentList: FC = () => {
 };
 ```
 
-#### Type Safety
-
-Use generated types from backend API:
-
+**Type Safety** - Use generated types:
 ```typescript
 import { TournamentViewModel } from '../store/serviceApi';
-
-interface TournamentListProps {
-  tournaments: TournamentViewModel[];
-}
 ```
 
-#### Feature Flags
-
+**Feature Flags** - Query override: `?features=isTestFlag` or `?features=!isTestFlag`
 ```typescript
 import { useFeatureGates } from '../hooks/useFeatureGates';
 
-export const AdminPage: FC = () => {
-  const { isTestFlag } = useFeatureGates();
-  return <div>{isTestFlag && <NewFeature />}</div>;
-};
+const { isTestFlag } = useFeatureGates();
 ```
 
-Query override: `?features=isTestFlag` or `?features=!isTestFlag`
-
-#### Navigation
-
-Use custom hook to preserve query parameters:
-
+**Navigation** - Use custom hook to preserve query parameters (`?impersonate`, `?features`):
 ```typescript
 import { useNavigate } from '../utils/navigationUtils';
-
-const navigate = useNavigate();
-navigate('/tournaments'); // Preserves ?impersonate and ?features
-```
-
----
-
-## Building and Running
-
-### Backend
-
-**Local development:**
-```bash
-cd src/backend
-dotnet build /p:DisableGitVersion=true /p:BuildFrontend=false
-```
-
-Properties: `/p:DisableGitVersion=true` (avoids GitVersion in shallow clones), `/p:BuildFrontend=false` (skips frontend)
-
-**Run service:**
-```bash
-cd src/backend/ManagementHub.Service
-dotnet run  # Starts at http://localhost:5000 with Swagger at /swagger
-```
-
-### Frontend
-
-**Development build:**
-```bash
-cd src/frontend
-yarn install --immutable
-yarn build:dev
-```
-
-**Dev server with hot reload:**
-```bash
-# Terminal 1: Backend
-cd src/backend/ManagementHub.Service
-dotnet run
-
-# Terminal 2: Frontend
-cd src/frontend
-yarn start:dev  # Changes auto-reload at http://localhost:5000
-```
-
-Note: CSS changes need `yarn styles`
-
-### API Client Regeneration
-
-After backend API changes:
-```bash
-bash scripts/refresh_swagger.sh
-```
-
-Generates RTK Query types in `src/frontend/app/store/serviceApi.ts`
-
-### Docker
-
-```bash
-cd src/backend
-dotnet publish --os linux --arch x64 -c Release -p:PublishProfile=DefaultContainer
 ```
 
 ---
 
 ## Testing
 
-### Backend
-
+**Backend:**
 ```bash
 cd src/backend
 dotnet test                              # All tests
@@ -320,7 +205,7 @@ dotnet test ManagementHub.UnitTests      # Unit tests only
 dotnet test ManagementHub.IntegrationTests  # Integration tests (use TestContainers)
 ```
 
-**Integration test example:**
+Integration test example - test with auth, validate responses:
 ```csharp
 [Fact]
 public async Task CreateTournament_WithValidData_ReturnsTournament()
@@ -338,8 +223,7 @@ public async Task CreateTournament_WithValidData_ReturnsTournament()
 }
 ```
 
-### Frontend
-
+**Frontend:**
 ```bash
 cd src/frontend
 yarn test
@@ -351,89 +235,40 @@ Test non-trivial logic, minimize mocking. Skip legacy Redux tests.
 
 ## Database Migrations
 
-### Creating Migrations
-
-Run from `ManagementHub.Service` directory:
-
+Create migrations from `ManagementHub.Service` directory:
 ```bash
 cd src/backend/ManagementHub.Service
 dotnet ef migrations add AddTournamentTables --project ../ManagementHub.Storage
 ```
 
-### Applying Migrations
-
-Development (in-memory): Auto-applied on startup
-
-PostgreSQL:
-```bash
-cd src/backend/ManagementHub.Service
-dotnet ef database update
-```
-
-### Entity Configuration
-
-Configure in `ManagementHub.Storage/Data/ManagementHubDbContext.cs`:
-
-```csharp
-modelBuilder.Entity<Tournament>(entity =>
-{
-    entity.ToTable("tournaments");
-    entity.HasKey(e => e.Id);
-    entity.HasIndex(e => e.UniqueId).IsUnique();
-    
-    entity.HasOne(d => d.Ngb)
-        .WithMany(p => p.Tournaments)  // MUST specify to avoid shadow properties
-        .HasForeignKey(d => d.NgbId)
-        .OnDelete(DeleteBehavior.Restrict);
-});
-```
-
-**Key points:**
-- Always specify `.WithMany(p => p.NavigationProperty)` to avoid EF shadow properties
-- Index foreign keys explicitly
-- Review generated `Up()` and `Down()` methods
+Configure entities in `ManagementHub.Storage/Data/ManagementHubDbContext.cs` - index foreign keys and review generated SQL.
 
 ---
 
 ## Before You Commit
 
-1. **Format code:**
+1. **Format & Lint:**
    ```bash
-   cd src/backend && dotnet format  # Must exit cleanly
+   cd src/backend && dotnet format
    cd src/frontend && yarn lint
    ```
 
-2. **Run tests** (relevant to your changes)
+2. **Run relevant tests**
 
-3. **Build successfully:**
+3. **Check for sensitive data** in logs (no emails, passwords, PII)
+
+4. **Update documentation** if needed
+
+5. **Regenerate API client** after backend API changes:
    ```bash
-   cd src/backend && dotnet build /p:DisableGitVersion=true /p:BuildFrontend=false
-   cd src/frontend && yarn build:dev
-   ```
-
-4. **Check for sensitive data** in logs (no emails, passwords, PII)
-
-5. **Update documentation** if needed
-
-6. **Validate .gitignore** (exclude `dist/`, `bin/`, `obj/`, `node_modules/`)
-
-7. **Commit message format:**
-   ```
-   Add tournament management API endpoints
-   
-   - Implement GET /api/tournaments
-   - Add TournamentManager authorization policy
-   - Add integration tests
-   
-   Resolves #451
+   bash scripts/refresh_swagger.sh
    ```
 
 ---
 
-## Specific Coding Patterns
+## Coding Patterns
 
-### Controller Pattern
-
+**Controller:**
 ```csharp
 [ApiController]
 [Route("api/[controller]")]
@@ -462,8 +297,7 @@ public class TournamentsController : ControllerBase
 }
 ```
 
-### Authorization Requirement
-
+**Authorization Requirement:**
 ```csharp
 public class TournamentManagerRequirement : IAuthorizationRequirement
 {
@@ -485,8 +319,7 @@ public class TournamentManagerHandler : AuthorizationHandler<TournamentManagerRe
 }
 ```
 
-### View Models
-
+**View Models:**
 ```csharp
 // Returned to client
 public class TournamentViewModel
@@ -507,64 +340,21 @@ public class CreateTournamentRequest
 
 ## Common Pitfalls
 
-### 1. EF Core Shadow Properties
+1. **EF Shadow Properties** - Forgetting `.WithMany()` creates shadow properties (see Entity Configuration above)
 
-Forgetting `.WithMany()` creates shadow properties:
+2. **Projection Before Filtering** - Filter/order in SQL first, then project to ViewModels
 
-```csharp
-// ❌ BAD - Creates shadow property UserId1
-entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
+3. **Direct User.UniqueId Comparison** - Use `WithIdentifier` pattern instead
 
-// ✅ GOOD
-entity.HasOne(d => d.User).WithMany(p => p.TournamentManagers).HasForeignKey(d => d.UserId);
-```
+4. **Missing Swagger Regeneration** - Run `bash scripts/refresh_swagger.sh` after backend API changes
 
-### 2. Projection Before Filtering
+5. **Legacy Redux** - Use RTK Query for new code
 
-Projects to ViewModels before filtering runs in-memory:
+6. **Query Parameters** - Use custom `useNavigate` from `../utils/navigationUtils`
 
-```csharp
-// ✅ GOOD - Filter in SQL
-var result = await dbContext.Tournaments
-    .Where(t => t.Name.Contains("World"))
-    .Select(t => new TournamentViewModel { Name = t.Name })
-    .ToListAsync();
-```
+7. **Build Flags** - Use `/p:DisableGitVersion=true /p:BuildFrontend=false` for local dev
 
-### 3. Direct User.UniqueId Comparison
-
-Use `WithIdentifier` pattern instead.
-
-### 4. Missing Swagger Regeneration
-
-After backend API changes:
-```bash
-bash scripts/refresh_swagger.sh
-```
-
-### 5. Legacy Redux Usage
-
-Use RTK Query for new code, not legacy Redux actions/reducers.
-
-### 6. Not Preserving Query Parameters
-
-Use custom `useNavigate` from `../utils/navigationUtils`, not `react-router-dom`.
-
-### 7. Forgetting Build Flags
-
-Use `/p:DisableGitVersion=true /p:BuildFrontend=false` for local development.
-
-### 8. Logging Sensitive Data
-
-Never log emails, passwords, or PII.
-
----
-
-## Additional Resources
-
-- **Swagger UI**: http://localhost:5000/swagger (when running)
-- **Documentation**: `docs/` directory
-- **Test users (dev)**: See README.md
+8. **Sensitive Data in Logs** - Never log emails, passwords, or PII
 
 ---
 
