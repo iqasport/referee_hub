@@ -1423,6 +1423,7 @@ export type ManagedTeamViewModel = {
   teamId?: string;
   teamName?: string | null;
   ngb?: string;
+  groupAffiliation?: TeamGroupAffiliation;
 };
 export type UserDataViewModel = {
   firstName?: string | null;
