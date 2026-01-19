@@ -1,6 +1,7 @@
 import React, { useRef, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterTournamentModal";
+import ContactOrganizerModal, { ContactOrganizerModalRef } from "./ContactOrganizerModal";
 import ManagerView from "./ManagerView";
 import {
   useGetTournamentQuery,
@@ -23,6 +24,7 @@ import {
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
   const registerModalRef = useRef<RegisterTournamentModalRef>(null);
+  const contactOrganizerModalRef = useRef<ContactOrganizerModalRef>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   const {
@@ -331,7 +333,15 @@ const TournamentDetails = () => {
                 <p className="text-sm text-gray-600 mb-4">
                   Have questions about this tournament? Contact the organizers.
                 </p>
-                <button className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">
+                <button
+                  onClick={() =>
+                    contactOrganizerModalRef.current?.open({
+                      name: tournament.organizer || "",
+                      tournamentName: tournament.name || "",
+                    })
+                  }
+                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
                   Contact Organizer
                 </button>
               </div>
@@ -341,6 +351,7 @@ const TournamentDetails = () => {
       </section>
 
       <RegisterTournamentModal ref={registerModalRef} />
+      <ContactOrganizerModal ref={contactOrganizerModalRef} />
     </>
   );
 };
