@@ -132,7 +132,7 @@ const Tournament = () => {
 
   return (
     <>
-      <div className="max-w-[80%] mx-auto px-4 py-2">
+      <div className="p-4 mx-auto" style={{ maxWidth: "80%" }}>
         <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
         <button onClick={() => modalRef.current?.openAdd()}>Add Tournament</button>
 
@@ -146,7 +146,7 @@ const Tournament = () => {
           Error loading tournaments. Please try again.
         </div>
       ) : (
-        <div className="max-w-[80%] mx-auto px-4 space-y-10">
+        <div className="p-4 mx-auto space-y-10" style={{ maxWidth: "80%" }}>
           {privateTournaments.length > 0 && (
             <TournamentSection
               tournaments={privateTournaments}
