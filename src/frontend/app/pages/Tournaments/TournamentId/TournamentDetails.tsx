@@ -427,21 +427,14 @@ const TournamentDetails = () => {
           {approvedTeamsForUser.length > 0 && (
             <div ref={rosterSectionRef} className="roster-section">
               <h2 className="card-title card-title-lg">Manage Your Team Rosters</h2>
-              <div className="roster-list">
-                {approvedTeamsForUser.map((team) => (
-                  <RosterManager
-                    key={team.teamId}
-                    tournamentId={tournamentId || ""}
-                    teamId={team.teamId}
-                    teamName={team.teamName}
-                    ngb={team.ngb}
-                    onRosterSaved={() => {
-                      refetchInvites();
-                      refetchParticipants();
-                    }}
-                  />
-                ))}
-              </div>
+              <RosterManager
+                tournamentId={tournamentId || ""}
+                teams={approvedTeamsForUser}
+                onRosterSaved={() => {
+                  refetchInvites();
+                  refetchParticipants();
+                }}
+              />
             </div>
           )}
         </div>
