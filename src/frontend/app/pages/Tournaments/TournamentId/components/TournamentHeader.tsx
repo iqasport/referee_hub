@@ -12,25 +12,32 @@ const TournamentHeader: React.FC<TournamentHeaderProps> = ({
   isManager = false,
 }) => {
   return (
-    <header className="bg-white px-6">
-      <div className="max-w-6xl mx-auto">
+    <header style={{ backgroundColor: '#fff', padding: '0 1.5rem' }}>
+      <div style={{ maxWidth: '72rem', margin: '0 auto', width: '100%' }}>
         <div
-          className="relative h-56 overflow-hidden"
+          style={{ position: 'relative', height: window.innerWidth >= 768 ? '12rem' : '10rem', overflow: 'hidden' }}
         >
           <img
             src={bannerImageUrl || "https://placehold.co/1200x200"}
             alt="Tournament banner"
-            className="w-full h-full object-cover"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
           {/* Title overlay on image */}
           <div
-            className="absolute bottom-0 left-0 right-0 p-8 text-white"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              padding: window.innerWidth >= 768 ? '2rem' : '1.5rem',
+              color: '#fff',
+              background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)'
+            }}
           >
-            <div className="flex items-center justify-between">
-              <h1 className="text-4xl font-bold">{name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+              <h1 style={{ fontSize: window.innerWidth >= 768 ? '2rem' : '1.5rem', fontWeight: 'bold', margin: 0 }}>{name}</h1>
               {isManager && (
-                <div className="bg-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
+                <div style={{ backgroundColor: '#16a34a', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>
                   Manager View
                 </div>
               )}

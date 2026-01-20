@@ -17,17 +17,19 @@ const TournamentAboutSection: React.FC<TournamentAboutSectionProps> = ({
   const location = [place, city, country].filter(Boolean).join(", ") || "TBD";
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">About This Tournament</h2>
+    <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem', marginBottom: '1rem' }}>
+      <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.875rem' }}>About This Tournament</h2>
       {/* Location */}
-      <div className="flex items-start gap-2 mt-4">
-        <LocationIcon className="w-5 h-5 text-green-600 mt-0.5" />
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginTop: '0.75rem' }}>
+        <div style={{ width: '1.125rem', height: '1.125rem', color: '#16a34a', marginTop: '0.125rem' }}>
+          <LocationIcon />
+        </div>
         <div>
-          <p className="text-sm text-gray-700">{location}</p>
+          <p style={{ fontSize: '0.8125rem', color: '#374151' }}>{location}</p>
         </div>
       </div>
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
-      <p className="text-gray-700 leading-relaxed mb-4">{description}</p>
+      <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem', marginTop: '0.875rem' }}>Description</h2>
+      <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: '1.625', marginBottom: '0.75rem' }}>{description}</p>
     </div>
   );
 };

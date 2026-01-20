@@ -226,24 +226,26 @@ const RosterManager: React.FC<RosterManagerProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div style={{ backgroundColor: '#fff', borderRadius: '0.75rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
       {/* Header */}
-      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+      <div style={{ backgroundColor: '#f9fafb', padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Team Roster</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Manage the roster for <span className="font-medium">{teamName}</span>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827' }}>Team Roster</h2>
+            <p style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.25rem' }}>
+              Manage the roster for <span style={{ fontWeight: '500' }}>{teamName}</span>
             </p>
           </div>
           <button
             type="button"
             onClick={handleSaveRoster}
             disabled={!hasChanges || isSaving || disabled}
-            className="px-4 py-2 text-sm font-bold"
             style={{
-              borderRadius: 4,
-              minWidth: 110,
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              borderRadius: '4px',
+              minWidth: '110px',
               background: hasChanges && !isSaving && !disabled ? '#16a34a' : '#e5e7eb',
               border: hasChanges && !isSaving && !disabled ? '1px solid #15803d' : '1px solid #d1d5db',
               color: hasChanges && !isSaving && !disabled ? '#fff' : '#6b7280',
@@ -256,15 +258,15 @@ const RosterManager: React.FC<RosterManagerProps> = ({
           </button>
         </div>
         {hasChanges && (
-          <p className="text-xs text-amber-600 mt-2">
+          <p style={{ fontSize: '0.75rem', color: '#d97706', marginTop: '0.5rem' }}>
             * You have unsaved changes. Click &quot;Save Roster&quot; to save your changes.
           </p>
         )}
       </div>
 
       {/* Roster Columns */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div style={{ padding: '1.25rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? 'repeat(3, 1fr)' : '1fr', gap: '0.875rem' }}>
           <RosterColumn
             title="Players"
             type="players"
@@ -294,19 +296,19 @@ const RosterManager: React.FC<RosterManagerProps> = ({
         </div>
 
         {/* Summary */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+        <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#4b5563' }}>
             <span>
-              <span className="font-medium text-blue-600">{roster.players.length}</span> Players
+              <span style={{ fontWeight: '500', color: '#2563eb' }}>{roster.players.length}</span> Players
             </span>
             <span>
-              <span className="font-medium text-green-600">{roster.coaches.length}</span> Coaches
+              <span style={{ fontWeight: '500', color: '#16a34a' }}>{roster.coaches.length}</span> Coaches
             </span>
             <span>
-              <span className="font-medium text-purple-600">{roster.staff.length}</span> Staff
+              <span style={{ fontWeight: '500', color: '#9333ea' }}>{roster.staff.length}</span> Staff
             </span>
-            <span className="ml-auto">
-              Total: <span className="font-medium">
+            <span style={{ marginLeft: 'auto' }}>
+              Total: <span style={{ fontWeight: '500' }}>
                 {roster.players.length + roster.coaches.length + roster.staff.length}
               </span> members
             </span>

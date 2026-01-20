@@ -71,12 +71,25 @@ const ContactOrganizerModal = forwardRef<ContactOrganizerModalRef>((_props, ref)
             </p>
           </div>
 
+          {/* Message Input */}
+          <div className="mb-6">
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+              Your Message
+            </label>
+            <textarea
+              id="message"
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              placeholder="Type your message here..."
+            />
+          </div>
+
           {/* Close Button */}
           <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={close}
-              className="px-6 py-2 text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              className="px-6 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors"
             >
               Close
             </button>
