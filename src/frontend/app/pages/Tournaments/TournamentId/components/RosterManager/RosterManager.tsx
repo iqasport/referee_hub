@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import RosterColumn, { RosterMember } from "./RosterColumn";
+import PlayersTable from "./PlayersTable";
 import AddMemberModal from "./AddMemberModal";
 import CustomAlert from "../../../../../components/CustomAlert";
 import { useAlert } from "../../../../../hooks/useAlert";
@@ -18,12 +19,15 @@ export interface RosterData {
   staff: RosterMember[];
 }
 
-export interface RosterManagerProps {
-  tournamentId: string;
+export interface TeamInfo {
   teamId: string;
   teamName: string;
   ngb: string;
-  initialRoster?: RosterData;
+}
+
+export interface RosterManagerProps {
+  tournamentId: string;
+  teams: TeamInfo[];
   onRosterSaved?: () => void;
   disabled?: boolean;
 }
@@ -32,15 +36,18 @@ type ColumnType = "players" | "coaches" | "staff";
 
 const RosterManager: React.FC<RosterManagerProps> = ({
   tournamentId,
-  teamId,
-  teamName,
-  ngb,
-  initialRoster,
+  teams,
   onRosterSaved,
   disabled = false,
 }) => {
   // Alert state
   const { alertState, showAlert, hideAlert } = useAlert();
+
+  // Selected team state
+  const [selectedTeamId, setSelectedTeamId] = useState<string>(teams[0]?.teamId || "");
+  
+  // Get current team info
+  const currentTeam = teams.find(t => t.teamId === selectedTeamId) || teams[0];
 
   // Roster state
   const [roster, setRoster] = useState<RosterData>({
@@ -71,8 +78,8 @@ const RosterManager: React.FC<RosterManagerProps> = ({
 
   // Load initial roster from participants data
   useEffect(() => {
-    if (participantsData && !initialLoaded) {
-      const teamParticipant = participantsData.find((p) => p.teamId === teamId);
+    if (participantsData && selectedTeamId) {
+      const teamParticipant = participantsData.find((p) => p.teamId === selectedTeamId);
       if (teamParticipant) {
         setRoster({
           players: (teamParticipant.players || []).map((p) => ({
@@ -91,14 +98,23 @@ const RosterManager: React.FC<RosterManagerProps> = ({
           })),
         });
         setInitialLoaded(true);
+      } else {
+        // No roster data for this team yet, reset to empty
+        setRoster({
+          players: [],
+          coaches: [],
+          staff: [],
+        });
+        setInitialLoaded(true);
       }
+      setHasChanges(false);
     }
-  }, [participantsData, teamId, initialLoaded]);
+  }, [participantsData, selectedTeamId]);
 
   // Fetch team members
   const { data: teamMembersData, isLoading: isLoadingMembers } = useGetTeamMembersQuery({
-    ngb,
-    teamId,
+    ngb: currentTeam?.ngb || "",
+    teamId: selectedTeamId,
     skipPaging: true,
   });
 
@@ -199,7 +215,7 @@ const RosterManager: React.FC<RosterManagerProps> = ({
 
       await updateRoster({
         tournamentId,
-        teamId,
+        teamId: selectedTeamId,
         updateRosterModel: {
           players,
           coaches,
@@ -245,9 +261,34 @@ const RosterManager: React.FC<RosterManagerProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827' }}>Team Roster</h2>
-            <p style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.25rem' }}>
-              Manage the roster for <span style={{ fontWeight: '500' }}>{teamName}</span>
-            </p>
+            <div style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>Manage the roster for</span>
+              {teams.length > 1 ? (
+                <select
+                  value={selectedTeamId}
+                  onChange={(e) => setSelectedTeamId(e.target.value)}
+                  disabled={disabled || hasChanges}
+                  style={{
+                    fontWeight: '500',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '0.375rem',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: '#fff',
+                    cursor: hasChanges ? 'not-allowed' : 'pointer',
+                    opacity: hasChanges ? 0.6 : 1,
+                  }}
+                  title={hasChanges ? 'Save or discard changes before switching teams' : 'Select a team'}
+                >
+                  {teams.map((team) => (
+                    <option key={team.teamId} value={team.teamId}>
+                      {team.teamName}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span style={{ fontWeight: '500' }}>{currentTeam?.teamName}</span>
+              )}
+            </div>
           </div>
           <button
             type="button"
@@ -280,14 +321,11 @@ const RosterManager: React.FC<RosterManagerProps> = ({
       {/* Roster Columns */}
       <div style={{ padding: '1.25rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? 'repeat(3, 1fr)' : '1fr', gap: '0.875rem' }}>
-          <RosterColumn
-            title="Players"
-            type="players"
+          <PlayersTable
             members={roster.players}
             onAddClick={() => handleOpenAddModal("players")}
             onRemove={(userId) => handleRemoveMember("players", userId)}
             onUpdateMember={handleUpdateMember}
-            showNumberAndGender={true}
             disabled={disabled}
           />
           <RosterColumn
