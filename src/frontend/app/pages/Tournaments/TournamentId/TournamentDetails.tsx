@@ -604,9 +604,9 @@ const TournamentDetails = () => {
                       }
                       style={{
                         width: "100%",
-                        backgroundColor: "#16a34a",
-                        border: "1px solid #d1d5db",
-                        color: "#fff  ",
+                        backgroundColor: "#fff",
+                        border: "1px solid #16a34a",
+                        color: "#16a34a",
                         fontWeight: "600",
                         padding: "0.5rem 1rem",
                         borderRadius: "0.5rem",
@@ -614,8 +614,8 @@ const TournamentDetails = () => {
                         cursor: "pointer",
                         fontSize: "0.875rem",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#16a34a")}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0fdf4")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fff")}
                     >
                       Contact Organizer
                     </button>
