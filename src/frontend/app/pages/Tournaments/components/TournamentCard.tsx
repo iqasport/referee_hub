@@ -38,7 +38,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   return (
     <div
       className="flex flex-col rounded-lg bg-green-100 shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer relative group"
-      style={{ width: "100%", height: "100%", minHeight: "380px" }}
+      style={{ width: "300px", height: "100%", minHeight: "380px" }}
       onClick={onClick}
     >
       <figure
