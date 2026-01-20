@@ -11,6 +11,7 @@ import {
   TournamentInfoCards,
   TournamentAboutSection,
   TournamentFormatSection,
+  RosterManager,
 } from "./components";
 import {
   useGetTournamentQuery,
@@ -19,6 +20,7 @@ import {
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
   useGetManagedTeamsQuery,
+  useGetParticipantsQuery,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
@@ -60,6 +62,12 @@ const TournamentDetails = () => {
     { skip: !tournamentId }
   );
 
+  // Fetch participants to get roster counts
+  const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !tournamentId }
+  );
+
   const [respondToInvite] = useRespondToInviteMutation();
 
   // Get team IDs from the managed teams endpoint
@@ -75,7 +83,6 @@ const TournamentDetails = () => {
     return teamIds;
   }, [managedTeamsData]);
 
-  // Find pending invites for user's managed teams (where participantApproval is pending)
   // These are invites initiated by tournament managers that the team manager needs to accept/decline
   const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
     if (!invites || managedTeamIds.size === 0) return [];
@@ -88,6 +95,38 @@ const TournamentDetails = () => {
       return invite.participantApproval?.status === "pending";
     });
   }, [invites, managedTeamIds]);
+
+  // Find teams that are fully approved and participating
+  const approvedTeamsForUser = useMemo(() => {
+    if (!invites || managedTeamIds.size === 0 || !managedTeamsData) return [];
+
+    return invites
+      .filter((invite) => {
+        // Check if this invite is for one of user's teams
+        if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
+        // Check if the invite is fully approved
+        return invite.status === "approved";
+      })
+      .map((invite) => {
+        const teamData = managedTeamsData.find((t) => t.teamId === invite.participantId);
+        return {
+          teamId: invite.participantId,
+          teamName: invite.participantName || teamData?.teamName || "Unknown Team",
+          ngb: teamData?.ngb || "",
+        };
+      });
+  }, [invites, managedTeamIds, managedTeamsData]);
+
+  // Calculate total participant count from all team rosters
+  const totalParticipantCount = useMemo(() => {
+    if (!participants) return 0;
+    return participants.reduce((total, team) => {
+      const playerCount = team.players?.length || 0;
+      const coachCount = team.coaches?.length || 0;
+      const staffCount = team.staff?.length || 0;
+      return total + playerCount + coachCount + staffCount;
+    }, 0);
+  }, [participants]);
 
   // Handle accept/decline invite
   async function handleRespondToInvite(participantId: string, approved: boolean) {
@@ -180,6 +219,7 @@ const TournamentDetails = () => {
             formattedDateRange={formattedDateRange}
             organizer={tournament.organizer}
             startDate={tournament.startDate}
+            participantCount={totalParticipantCount}
           />
 
           {/* Main content grid */}
@@ -344,6 +384,28 @@ const TournamentDetails = () => {
               )}
             </div>
           </div>
+
+          {/* Roster Management Section - Show for team managers with approved teams */}
+          {approvedTeamsForUser.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Manage Your Team Rosters</h2>
+              <div className="space-y-6">
+                {approvedTeamsForUser.map((team) => (
+                  <RosterManager
+                    key={team.teamId}
+                    tournamentId={tournamentId || ""}
+                    teamId={team.teamId}
+                    teamName={team.teamName}
+                    ngb={team.ngb}
+                    onRosterSaved={() => {
+                      refetchInvites();
+                      refetchParticipants();
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

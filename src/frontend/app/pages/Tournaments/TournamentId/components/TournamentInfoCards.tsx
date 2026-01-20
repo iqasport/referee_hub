@@ -6,12 +6,14 @@ interface TournamentInfoCardsProps {
   formattedDateRange: string;
   organizer?: string | null;
   startDate?: string;
+  participantCount?: number;
 }
 
 const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
   formattedDateRange,
   organizer,
   startDate,
+  participantCount,
 }) => {
   const registrationEndDate = startDate
     ? new Date(startDate).toLocaleDateString("en-US", {
@@ -28,7 +30,11 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
         label="Tournament Date"
         value={formattedDateRange}
       />
-      <InfoCard icon={<UsersIcon className="w-5 h-5" />} label="Participants" value="TBD" />
+      <InfoCard
+        icon={<UsersIcon className="w-5 h-5" />}
+        label="Participants"
+        value={participantCount !== undefined ? participantCount.toString() : "0"}
+      />
       <InfoCard
         icon={<HomeIcon className="w-5 h-5" />}
         label="Organizer"
