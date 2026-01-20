@@ -5,6 +5,8 @@ import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTour
 import RegistrationsModal, { RegistrationsModalRef } from "./RegistrationsModal";
 import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
 import ActionButtonPair from "../../../components/ActionButtonPair";
+import CustomAlert from "../../../components/CustomAlert";
+import { useAlert } from "../../../hooks/useAlert";
 import {
   TournamentHeader,
   TournamentNavBar,
@@ -32,6 +34,7 @@ const TournamentDetails = () => {
   const registrationsModalRef = useRef<RegistrationsModalRef>(null);
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const { alertState, showAlert, hideAlert } = useAlert();
 
   const {
     data: tournament,
@@ -139,11 +142,14 @@ const TournamentDetails = () => {
         inviteResponseModel: { approved },
       }).unwrap();
 
-      alert(approved ? "Successfully accepted the invite!" : "Invite declined.");
+      showAlert(
+        approved ? "Successfully accepted the invite!" : "Invite declined.",
+        "success"
+      );
       refetchInvites();
     } catch (error) {
       console.error("Failed to respond to invite:", error);
-      alert("Failed to respond. Please try again.");
+      showAlert("Failed to respond. Please try again.", "error");
     } finally {
       setRespondingTo(null);
     }
@@ -213,6 +219,14 @@ const TournamentDetails = () => {
 
   return (
     <>
+      {alertState.isVisible && (
+        <CustomAlert
+          message={alertState.message}
+          type={alertState.type}
+          onClose={hideAlert}
+        />
+      )}
+      
       <TournamentHeader
         bannerImageUrl={tournament.bannerImageUrl}
         name={tournament.name}

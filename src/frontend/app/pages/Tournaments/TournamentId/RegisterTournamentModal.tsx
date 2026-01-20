@@ -11,6 +11,8 @@ import {
   ManagedTeamViewModel,
   NgbTeamViewModel,
 } from "../../../store/serviceApi";
+import CustomAlert from "../../../components/CustomAlert";
+import { useAlert } from "../../../hooks/useAlert";
 
 // Role type for current user
 interface UserRole {
@@ -47,6 +49,7 @@ export interface RegisterTournamentModalRef {
 }
 
 const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, ref) => {
+  const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -192,8 +195,9 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
         teamName: selectedTeam?.teamName,
       });
 
-      alert(
-        `Successfully sent invite for ${selectedTeam?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`
+      showAlert(
+        `Successfully sent invite for ${selectedTeam?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`,
+        "success"
       );
 
       close();
@@ -203,7 +207,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
         error instanceof Error
           ? error.message
           : "Failed to register for tournament. Please try again.";
-      alert(errorMessage);
+      showAlert(errorMessage, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -224,7 +228,15 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
       : "";
 
   return (
-    <Dialog open={isOpen && !!tournament} as="div" className="relative z-50" onClose={close}>
+    <>
+      {alertState.isVisible && (
+        <CustomAlert
+          message={alertState.message}
+          type={alertState.type}
+          onClose={hideAlert}
+        />
+      )}
+      <Dialog open={isOpen && !!tournament} as="div" className="relative z-50" onClose={close}>
       <div
         className="fixed inset-0"
         style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
@@ -366,7 +378,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
           </form>
         </DialogPanel>
       </div>
-    </Dialog>
+      </Dialog>
+    </>
   );
 });
 

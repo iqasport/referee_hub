@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import RosterColumn, { RosterMember } from "./RosterColumn";
 import AddMemberModal from "./AddMemberModal";
+import CustomAlert from "../../../../../components/CustomAlert";
+import { useAlert } from "../../../../../hooks/useAlert";
 import {
   useGetTeamMembersQuery,
   useUpdateParticipantRosterMutation,
@@ -37,6 +39,9 @@ const RosterManager: React.FC<RosterManagerProps> = ({
   onRosterSaved,
   disabled = false,
 }) => {
+  // Alert state
+  const { alertState, showAlert, hideAlert } = useAlert();
+
   // Roster state
   const [roster, setRoster] = useState<RosterData>({
     players: [],
@@ -204,10 +209,10 @@ const RosterManager: React.FC<RosterManagerProps> = ({
 
       setHasChanges(false);
       onRosterSaved?.();
-      alert("Roster saved successfully!");
+      showAlert("Roster saved successfully!", "success");
     } catch (error) {
       console.error("Failed to save roster:", error);
-      alert("Failed to save roster. Please try again.");
+      showAlert("Failed to save roster. Please try again.", "error");
     }
   };
 
@@ -226,8 +231,16 @@ const RosterManager: React.FC<RosterManagerProps> = ({
   };
 
   return (
-    <div style={{ backgroundColor: '#fff', borderRadius: '0.75rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-      {/* Header */}
+    <>
+      {alertState.isVisible && (
+        <CustomAlert
+          message={alertState.message}
+          type={alertState.type}
+          onClose={hideAlert}
+        />
+      )}
+      <div style={{ backgroundColor: '#fff', borderRadius: '0.75rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        {/* Header */}
       <div style={{ backgroundColor: '#f9fafb', padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
@@ -327,7 +340,8 @@ const RosterManager: React.FC<RosterManagerProps> = ({
         onAddMember={handleAddMember}
         isLoading={isLoadingMembers}
       />
-    </div>
+      </div>
+    </>
   );
 };
 

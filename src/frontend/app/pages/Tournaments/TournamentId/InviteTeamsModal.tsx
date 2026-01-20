@@ -10,12 +10,15 @@ import {
   NgbTeamViewModel,
   TournamentViewModel,
 } from "../../../store/serviceApi";
+import CustomAlert from "../../../components/CustomAlert";
+import { useAlert } from "../../../hooks/useAlert";
 
 export interface InviteTeamsModalRef {
   open: (tournament: TournamentViewModel) => void;
 }
 
 const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
+  const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
   const [tournament, setTournament] = useState<TournamentViewModel | null>(null);
   const [selectedNgb, setSelectedNgb] = useState<string>("");
@@ -124,14 +127,14 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
       }).unwrap();
 
       const selectedTeam = availableTeams.find((t) => t.teamId === selectedTeamId);
-      alert(`Successfully sent invite to ${selectedTeam?.name || "team"}!`);
+      showAlert(`Successfully sent invite to ${selectedTeam?.name || "team"}!`, "success");
       
       // Refetch invites to update the list
       refetchInvites();
       setSelectedTeamId("");
     } catch (error) {
       console.error("Failed to invite team:", error);
-      alert("Failed to send invite. Please try again.");
+      showAlert("Failed to send invite. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -148,7 +151,15 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
   };
 
   return (
-    <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
+    <>
+      {alertState.isVisible && (
+        <CustomAlert
+          message={alertState.message}
+          type={alertState.type}
+          onClose={hideAlert}
+        />
+      )}
+      <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
       <div
         className="fixed inset-0"
         style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
@@ -325,7 +336,8 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
           </div>
         </DialogPanel>
       </div>
-    </Dialog>
+      </Dialog>
+    </>
   );
 });
 
