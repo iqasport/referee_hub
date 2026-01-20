@@ -83,7 +83,6 @@ const TournamentDetails = () => {
     return teamIds;
   }, [managedTeamsData]);
 
-  // Find pending invites for user's managed teams (where participantApproval is pending)
   // These are invites initiated by tournament managers that the team manager needs to accept/decline
   const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
     if (!invites || managedTeamIds.size === 0) return [];
@@ -97,7 +96,7 @@ const TournamentDetails = () => {
     });
   }, [invites, managedTeamIds]);
 
-  // Find teams that are fully approved and participating (team manager can manage roster)
+  // Find teams that are fully approved and participating
   const approvedTeamsForUser = useMemo(() => {
     if (!invites || managedTeamIds.size === 0 || !managedTeamsData) return [];
 
@@ -111,7 +110,7 @@ const TournamentDetails = () => {
       .map((invite) => {
         const teamData = managedTeamsData.find((t) => t.teamId === invite.participantId);
         return {
-          teamId: invite.participantId!,
+          teamId: invite.participantId,
           teamName: invite.participantName || teamData?.teamName || "Unknown Team",
           ngb: teamData?.ngb || "",
         };
