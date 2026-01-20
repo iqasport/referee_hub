@@ -133,8 +133,31 @@ const Tournament = () => {
   return (
     <>
       <div className="p-4 mx-auto" style={{ maxWidth: "80%" }}>
-        <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
-        <button onClick={() => modalRef.current?.openAdd()}>Add Tournament</button>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: "200px" }}>
+            <Search
+              onSearch={handleSearch}
+              onTypeFilter={handleTypeFilter}
+              selectedType={typeFilter}
+            />
+          </div>
+          <button
+            onClick={() => modalRef.current?.openAdd()}
+            style={{
+              backgroundColor: "#16a34a",
+              color: "#fff",
+              fontWeight: "600",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.5rem",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Add Tournament
+          </button>
+        </div>
 
         <AddTournamentModal ref={modalRef} />
       </div>

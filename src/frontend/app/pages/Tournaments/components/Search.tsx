@@ -52,7 +52,18 @@ const Search: React.FC<SearchProps> = ({ onSearch, onTypeFilter, selectedType })
       </select>
       <button
         onClick={handleSearch}
-        className="px-4 py-2 bg-blue-600 text-black rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+        style={{
+          backgroundColor: "#fff",
+          border: "1px solid #16a34a",
+          color: "#16a34a",
+          padding: "0.5rem 1rem",
+          borderRadius: "0.5rem",
+          fontWeight: "600",
+          cursor: "pointer",
+          transition: "background-color 0.2s",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0fdf4")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fff")}
       >
         Search
       </button>
