@@ -9,7 +9,6 @@ import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
 import {
   TournamentHeader,
-  TournamentNavBar,
   TournamentInfoCards,
   TournamentAboutSection,
   RosterManager,
@@ -33,6 +32,7 @@ const TournamentDetails = () => {
   const editModalRef = useRef<AddTournamentModalRef>(null);
   const registrationsModalRef = useRef<RegistrationsModalRef>(null);
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
+  const rosterSectionRef = useRef<HTMLDivElement>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const { alertState, showAlert, hideAlert } = useAlert();
 
@@ -142,10 +142,7 @@ const TournamentDetails = () => {
         inviteResponseModel: { approved },
       }).unwrap();
 
-      showAlert(
-        approved ? "Successfully accepted the invite!" : "Invite declined.",
-        "success"
-      );
+      showAlert(approved ? "Successfully accepted the invite!" : "Invite declined.", "success");
       refetchInvites();
     } catch (error) {
       console.error("Failed to respond to invite:", error);
@@ -157,7 +154,7 @@ const TournamentDetails = () => {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div className="tournament-details-loading">
         <p>Loading tournament...</p>
       </div>
     );
@@ -165,7 +162,7 @@ const TournamentDetails = () => {
 
   if (isError || !tournament) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div className="tournament-details-error">
         <p>Tournament not found</p>
       </div>
     );
@@ -180,10 +177,10 @@ const TournamentDetails = () => {
 
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
-  
+
   // Check if start and end dates are the same
   const isSameDay = startDate.toDateString() === endDate.toDateString();
-  
+
   const formattedDateRange = isSameDay
     ? startDate.toLocaleDateString("en-US", {
         month: "short",
@@ -220,24 +217,18 @@ const TournamentDetails = () => {
   return (
     <>
       {alertState.isVisible && (
-        <CustomAlert
-          message={alertState.message}
-          type={alertState.type}
-          onClose={hideAlert}
-        />
+        <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
       )}
-      
+
       <TournamentHeader
         bannerImageUrl={tournament.bannerImageUrl}
         name={tournament.name}
         isManager={isManager}
       />
 
-      <TournamentNavBar isManager={isManager} />
-
       {/* Info cards section */}
-      <section style={{ backgroundColor: '#fff', padding: '1.5rem 1rem' }}>
-        <div style={{ maxWidth: '72rem', margin: '0 auto', width: '100%' }}>
+      <section className="tournament-details-section">
+        <div className="tournament-details-wrapper">
           <TournamentInfoCards
             formattedDateRange={formattedDateRange}
             organizer={tournament.organizer}
@@ -246,7 +237,7 @@ const TournamentDetails = () => {
           />
 
           {/* Main content grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? '2fr 1fr' : '1fr', gap: '1rem' }}>
+          <div className="tournament-details-grid">
             {/* Left column - About and Format */}
             <div>
               <TournamentAboutSection
@@ -255,7 +246,6 @@ const TournamentDetails = () => {
                 country={tournament.country}
                 description={tournament.description}
               />
-
             </div>
 
             {/* Right sidebar - Different content for managers vs regular users */}
@@ -263,93 +253,78 @@ const TournamentDetails = () => {
               {isManager ? (
                 <>
                   {/* Manager Tools Card */}
-                  <div style={{ backgroundColor: '#f0fdf4', borderRadius: '0.5rem', border: '1px solid #bbf7d0', padding: '1.25rem', marginBottom: '1rem', position: window.innerWidth >= 1024 ? 'sticky' : 'static', top: '1rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Manager Tools</h3>
-                  <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
+                  <div className="card card-highlighted card-mb card-sticky">
+                    <h3 className="card-title">Manager Tools</h3>
+                    <p className="card-description">
                       You are the manager of this tournament. Use the tools below to manage the
                       tournament.
-                  </p>
-                  <button
-                    onClick={handleEdit}
-                    style={{ width: '100%', backgroundColor: '#16a34a', color: '#fff', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', marginBottom: '0.625rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
-                  >
-                    <svg
-                      style={{ width: '1rem', height: '1rem' }}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    </p>
+                    <button
+                      onClick={handleEdit}
+                      className="btn btn-primary btn-full-width btn-with-icon card-mb"
                     >
+                      <svg
+                        className="btn-icon"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                         />
-                    </svg>
-                    Edit Tournament Details
-                  </button>
-                  <button
-                    onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
-                    style={{ width: '100%', backgroundColor: '#fff', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', marginBottom: '0.625rem', cursor: 'pointer', fontSize: '0.875rem' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
-                  >
-                    View Team Registrations ({invites?.length || 0})
-                  </button>
-                  <button
-                    onClick={() => inviteTeamsModalRef.current?.open(tournament)}
-                    style={{ width: '100%', backgroundColor: '#fff', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', marginBottom: '0.625rem', cursor: 'pointer', fontSize: '0.875rem' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
-                  >
-                    Invite Teams
-                  </button>
-                </div>
+                      </svg>
+                      Edit Tournament Details
+                    </button>
+                    <button
+                      onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
+                      className="btn btn-secondary btn-full-width card-mb"
+                    >
+                      View Team Registrations ({invites?.length || 0})
+                    </button>
+                    <button
+                      onClick={() => inviteTeamsModalRef.current?.open(tournament)}
+                      className="btn btn-secondary btn-full-width"
+                    >
+                      Invite Teams
+                    </button>
+                  </div>
 
-                {/* Tournament Stats Card */}
-                <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.875rem' }}>Tournament Stats</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                      <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>Teams Registered</span>
-                      <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>
-                        {invites?.filter((i) => i.status === "approved").length || 0}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                      <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>Private Tournament</span>
-                      <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>
-                        {tournament.isPrivate ? "Yes" : "No"}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>Tournament Type</span>
-                      <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>
-                        {tournament.type || "N/A"}
-                      </span>
+                  {/* Tournament Stats Card */}
+                  <div className="card">
+                    <h3 className="card-title">Tournament Stats</h3>
+                    <div className="stats-list">
+                      <div className="stats-item">
+                        <span className="stats-label">Teams Registered</span>
+                        <span className="stats-value">
+                          {invites?.filter((i) => i.status === "approved").length || 0}
+                        </span>
+                      </div>
+                      <div className="stats-item">
+                        <span className="stats-label">Private Tournament</span>
+                        <span className="stats-value">{tournament.isPrivate ? "Yes" : "No"}</span>
+                      </div>
+                      <div className="stats-item">
+                        <span className="stats-label">Tournament Type</span>
+                        <span className="stats-value">{tournament.type || "N/A"}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </>
+                </>
               ) : (
                 <>
                   {pendingInvitesForUser.length > 0 && (
-                    <div style={{ backgroundColor: '#f0fdf4', borderRadius: '0.5rem', border: '1px solid #bbf7d0', padding: '1.25rem', marginBottom: '1rem' }}>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>You&apos;re Invited!</h3>
-                      <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
+                    <div className="card card-highlighted card-mb">
+                      <h3 className="card-title">You&apos;re Invited!</h3>
+                      <p className="card-description">
                         The tournament organizer has invited your team(s) to participate.
                       </p>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div className="invite-list">
                         {pendingInvitesForUser.map((invite) => (
-                          <div
-                            key={invite.participantId}
-                            style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1rem' }}
-                          >
-                            <p style={{ fontWeight: '600', color: '#111827', marginBottom: '0.75rem' }}>
-                              {invite.participantName}
-                            </p>
+                          <div key={invite.participantId} className="invite-item">
+                            <p className="invite-team-name">{invite.participantName}</p>
                             <ActionButtonPair
                               onAccept={() =>
                                 handleRespondToInvite(invite.participantId || "", true)
@@ -366,36 +341,69 @@ const TournamentDetails = () => {
                     </div>
                   )}
 
-                  {/* Register Now Card */}
-                  <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem', marginBottom: '1rem', top: '1rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Register Now</h3>
-                    <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
-                      Secure your spot in this exciting tournament. Limited slots available!
-                    </p>
-                    <button
-                      onClick={() =>
-                        registerModalRef.current?.open({
-                          id: tournament.id || "",
-                          name: tournament.name || "",
-                          startDate: tournament.startDate || "",
-                          endDate: tournament.endDate || "",
-                          country: tournament.country || "",
-                          city: tournament.city || "",
-                          type: tournament.type || "",
-                        })
-                      }
-                      style={{ width: '100%', backgroundColor: '#16a34a', border: 'none', color: '#fff', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', cursor: 'pointer', fontSize: '0.875rem' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
-                    >
-                      Register for Tournament
-                    </button>
+                  {/* Register Now / Manage Rosters Card */}
+                  <div className="card card-mb">
+                    {approvedTeamsForUser.length > 0 ? (
+                      <>
+                        <h3 className="card-title">You&apos;re Registered!</h3>
+                        <p className="card-description">
+                          Your team is registered for this tournament. Manage your roster below.
+                        </p>
+                        <button
+                          onClick={() =>
+                            rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
+                          }
+                          className="btn btn-primary btn-full-width card-mb"
+                        >
+                          Manage Your Rosters
+                        </button>
+                        <button
+                          onClick={() =>
+                            registerModalRef.current?.open({
+                              id: tournament.id || "",
+                              name: tournament.name || "",
+                              startDate: tournament.startDate || "",
+                              endDate: tournament.endDate || "",
+                              country: tournament.country || "",
+                              city: tournament.city || "",
+                              type: tournament.type || "",
+                            })
+                          }
+                          className="btn btn-outline btn-full-width"
+                        >
+                          Register Another Team
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="card-title">Register Now</h3>
+                        <p className="card-description">
+                          Secure your spot in this exciting tournament. Limited slots available!
+                        </p>
+                        <button
+                          onClick={() =>
+                            registerModalRef.current?.open({
+                              id: tournament.id || "",
+                              name: tournament.name || "",
+                              startDate: tournament.startDate || "",
+                              endDate: tournament.endDate || "",
+                              country: tournament.country || "",
+                              city: tournament.city || "",
+                              type: tournament.type || "",
+                            })
+                          }
+                          className="btn btn-primary btn-full-width"
+                        >
+                          Register for Tournament
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   {/* Need Help Card */}
-                  <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Need Help?</h3>
-                    <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
+                  <div className="card">
+                    <h3 className="card-title">Need Help?</h3>
+                    <p className="card-description">
                       Have questions about this tournament? Contact the organizers.
                     </p>
                     <button
@@ -405,9 +413,7 @@ const TournamentDetails = () => {
                           tournamentName: tournament.name || "",
                         })
                       }
-                      style={{ width: '100%', backgroundColor: '#16a34a', border: '1px solid #d1d5db', color: '#fff  ', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', cursor: 'pointer', fontSize: '0.875rem' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
+                      className="btn btn-outline btn-full-width"
                     >
                       Contact Organizer
                     </button>
@@ -419,16 +425,23 @@ const TournamentDetails = () => {
 
           {/* Roster Management Section - Show for team managers with approved teams */}
           {approvedTeamsForUser.length > 0 && (
-            <div style={{ marginTop: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem' }}>Manage Your Team Rosters</h2>
-              <RosterManager
-                tournamentId={tournamentId || ""}
-                teams={approvedTeamsForUser}
-                onRosterSaved={() => {
-                  refetchInvites();
-                  refetchParticipants();
-                }}
-              />
+            <div ref={rosterSectionRef} className="roster-section">
+              <h2 className="card-title card-title-lg">Manage Your Team Rosters</h2>
+              <div className="roster-list">
+                {approvedTeamsForUser.map((team) => (
+                  <RosterManager
+                    key={team.teamId}
+                    tournamentId={tournamentId || ""}
+                    teamId={team.teamId}
+                    teamName={team.teamName}
+                    ngb={team.ngb}
+                    onRosterSaved={() => {
+                      refetchInvites();
+                      refetchParticipants();
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

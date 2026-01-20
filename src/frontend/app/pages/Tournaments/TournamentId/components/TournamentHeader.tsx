@@ -1,4 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface TournamentHeaderProps {
   bannerImageUrl?: string | null;
@@ -12,35 +15,22 @@ const TournamentHeader: React.FC<TournamentHeaderProps> = ({
   isManager = false,
 }) => {
   return (
-    <header style={{ backgroundColor: '#fff', padding: '0 1.5rem' }}>
-      <div style={{ maxWidth: '72rem', margin: '0 auto', width: '100%' }}>
-        <div
-          style={{ position: 'relative', height: window.innerWidth >= 768 ? '12rem' : '10rem', overflow: 'hidden' }}
-        >
+    <header className="tournament-header">
+      <div className="tournament-header-wrapper">
+        <div className="tournament-header-container">
+          <Link to="/tournaments" className="tournament-back-button">
+            <FontAwesomeIcon icon={faArrowLeft} />
+          </Link>
           <img
             src={bannerImageUrl || "https://placehold.co/1200x200"}
             alt="Tournament banner"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            className="tournament-banner-image"
           />
           {/* Title overlay on image */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: window.innerWidth >= 768 ? '2rem' : '1.5rem',
-              color: '#fff',
-              background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-              <h1 style={{ fontSize: window.innerWidth >= 768 ? '2rem' : '1.5rem', fontWeight: 'bold', margin: 0 }}>{name}</h1>
-              {isManager && (
-                <div style={{ backgroundColor: '#16a34a', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>
-                  Manager View
-                </div>
-              )}
+          <div className="tournament-title-overlay">
+            <div className="tournament-title-content">
+              <h1 className="tournament-title">{name}</h1>
+              {isManager && <div className="manager-badge">Manager View</div>}
             </div>
           </div>
         </div>

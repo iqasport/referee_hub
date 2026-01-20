@@ -28,21 +28,21 @@ const Search: React.FC<SearchProps> = ({ onSearch, onTypeFilter, selectedType })
   };
 
   return (
-    <div className="flex gap-2 w-full max-w-2xl items-center">
-      <div className="relative flex-1">
+    <div className="tournament-search">
+      <div className="tournament-search-input-wrapper">
         <input
           type="text"
           placeholder="Search tournaments..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyPress={handleKeyPress}
-          className="w-full px-4 py-2 pl-10 border border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="tournament-search-input"
         />
       </div>
       <select
         value={selectedType}
         onChange={(e) => onTypeFilter(e.target.value)}
-        className="px-4 py-2 border border-gray-800 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="tournament-search-select"
       >
         {TOURNAMENT_TYPES.map((type) => (
           <option key={type.value} value={type.value}>
@@ -50,10 +50,7 @@ const Search: React.FC<SearchProps> = ({ onSearch, onTypeFilter, selectedType })
           </option>
         ))}
       </select>
-      <button
-        onClick={handleSearch}
-        className="px-4 py-2 bg-blue-600 text-black rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-      >
+      <button onClick={handleSearch} className="btn btn-outline">
         Search
       </button>
     </div>
