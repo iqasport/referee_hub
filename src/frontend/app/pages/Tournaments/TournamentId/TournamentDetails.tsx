@@ -174,14 +174,24 @@ const TournamentDetails = () => {
 
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
-  const formattedDateRange = `${startDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  })} - ${endDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })}`;
+  
+  // Check if start and end dates are the same
+  const isSameDay = startDate.toDateString() === endDate.toDateString();
+  
+  const formattedDateRange = isSameDay
+    ? startDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : `${startDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })} - ${endDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })}`;
 
   // Handle edit tournament (for managers)
   const handleEdit = () => {
@@ -209,7 +219,7 @@ const TournamentDetails = () => {
         isManager={isManager}
       />
 
-      <TournamentNavBar isManager={isManager} onEdit={handleEdit} />
+      <TournamentNavBar isManager={isManager} />
 
       {/* Info cards section */}
       <section style={{ backgroundColor: '#fff', padding: '1.5rem 1rem' }}>
@@ -381,9 +391,9 @@ const TournamentDetails = () => {
                           tournamentName: tournament.name || "",
                         })
                       }
-                      style={{ width: '100%', backgroundColor: '#fff', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', cursor: 'pointer', fontSize: '0.875rem' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                      style={{ width: '100%', backgroundColor: '#16a34a', border: '1px solid #d1d5db', color: '#fff  ', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', cursor: 'pointer', fontSize: '0.875rem' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
                     >
                       Contact Organizer
                     </button>

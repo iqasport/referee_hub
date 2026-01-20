@@ -247,7 +247,7 @@ const RosterManager: React.FC<RosterManagerProps> = ({
               borderRadius: '4px',
               minWidth: '110px',
               background: hasChanges && !isSaving && !disabled ? '#16a34a' : '#e5e7eb',
-              border: hasChanges && !isSaving && !disabled ? '1px solid #15803d' : '1px solid #d1d5db',
+              border: hasChanges && !isSaving && !disabled ? '1px solid #16a34a' : '1px solid #d1d5db',
               color: hasChanges && !isSaving && !disabled ? '#fff' : '#6b7280',
               cursor: !hasChanges || isSaving || disabled ? 'not-allowed' : 'pointer',
               opacity: isSaving ? 0.7 : 1,
