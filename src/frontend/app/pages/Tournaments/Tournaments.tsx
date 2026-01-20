@@ -132,29 +132,16 @@ const Tournament = () => {
 
   return (
     <>
-      <div className="p-4 mx-auto" style={{ maxWidth: "80%" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: "200px" }}>
+      <div className="tournament-page-container">
+        <div className="tournament-page-header">
+          <div className="tournament-search-wrapper">
             <Search
               onSearch={handleSearch}
               onTypeFilter={handleTypeFilter}
               selectedType={typeFilter}
             />
           </div>
-          <button
-            onClick={() => modalRef.current?.openAdd()}
-            style={{
-              backgroundColor: "#16a34a",
-              color: "#fff",
-              fontWeight: "600",
-              padding: "0.5rem 1rem",
-              borderRadius: "0.5rem",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
             Add Tournament
           </button>
         </div>
@@ -163,13 +150,11 @@ const Tournament = () => {
       </div>
 
       {isLoading ? (
-        <div className="text-center text-gray-600 py-8">Loading tournaments...</div>
+        <div className="tournament-loading">Loading tournaments...</div>
       ) : isError ? (
-        <div className="text-center text-red-600 py-8">
-          Error loading tournaments. Please try again.
-        </div>
+        <div className="tournament-error">Error loading tournaments. Please try again.</div>
       ) : (
-        <div className="p-4 mx-auto space-y-10" style={{ maxWidth: "80%" }}>
+        <div className="tournament-page-container">
           {privateTournaments.length > 0 && (
             <TournamentSection
               tournaments={privateTournaments}
@@ -206,7 +191,7 @@ const Tournament = () => {
           )}
 
           {privateTournaments.length === 0 && publicTournaments.length === 0 && (
-            <div className="text-center text-gray-600 py-8">No tournaments available.</div>
+            <div className="tournament-empty">No tournaments available.</div>
           )}
         </div>
       )}
