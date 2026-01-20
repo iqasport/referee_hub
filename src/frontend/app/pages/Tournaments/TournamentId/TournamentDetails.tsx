@@ -562,11 +562,41 @@ const TournamentDetails = () => {
                             transition: "background-color 0.2s",
                             cursor: "pointer",
                             fontSize: "0.875rem",
+                            marginBottom: "0.5rem",
                           }}
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#16a34a")}
                         >
                           Manage Your Rosters
+                        </button>
+                        <button
+                          onClick={() =>
+                            registerModalRef.current?.open({
+                              id: tournament.id || "",
+                              name: tournament.name || "",
+                              startDate: tournament.startDate || "",
+                              endDate: tournament.endDate || "",
+                              country: tournament.country || "",
+                              city: tournament.city || "",
+                              type: tournament.type || "",
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            backgroundColor: "#fff",
+                            border: "1px solid #16a34a",
+                            color: "#16a34a",
+                            fontWeight: "600",
+                            padding: "0.5rem 1rem",
+                            borderRadius: "0.5rem",
+                            transition: "background-color 0.2s",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0fdf4")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fff")}
+                        >
+                          Register Another Team
                         </button>
                       </>
                     ) : (
