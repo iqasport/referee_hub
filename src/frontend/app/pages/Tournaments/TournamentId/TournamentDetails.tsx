@@ -32,6 +32,7 @@ const TournamentDetails = () => {
   const editModalRef = useRef<AddTournamentModalRef>(null);
   const registrationsModalRef = useRef<RegistrationsModalRef>(null);
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
+  const rosterSectionRef = useRef<HTMLDivElement>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const { alertState, showAlert, hideAlert } = useAlert();
 
@@ -514,7 +515,7 @@ const TournamentDetails = () => {
                     </div>
                   )}
 
-                  {/* Register Now Card */}
+                  {/* Register Now / Manage Rosters Card */}
                   <div
                     style={{
                       backgroundColor: "#fff",
@@ -525,50 +526,101 @@ const TournamentDetails = () => {
                       top: "1rem",
                     }}
                   >
-                    <h3
-                      style={{
-                        fontSize: "1rem",
-                        fontWeight: "bold",
-                        color: "#111827",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      Register Now
-                    </h3>
-                    <p
-                      style={{ fontSize: "0.8125rem", color: "#4b5563", marginBottom: "0.875rem" }}
-                    >
-                      Secure your spot in this exciting tournament. Limited slots available!
-                    </p>
-                    <button
-                      onClick={() =>
-                        registerModalRef.current?.open({
-                          id: tournament.id || "",
-                          name: tournament.name || "",
-                          startDate: tournament.startDate || "",
-                          endDate: tournament.endDate || "",
-                          country: tournament.country || "",
-                          city: tournament.city || "",
-                          type: tournament.type || "",
-                        })
-                      }
-                      style={{
-                        width: "100%",
-                        backgroundColor: "#16a34a",
-                        border: "none",
-                        color: "#fff",
-                        fontWeight: "600",
-                        padding: "0.5rem 1rem",
-                        borderRadius: "0.5rem",
-                        transition: "background-color 0.2s",
-                        cursor: "pointer",
-                        fontSize: "0.875rem",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#16a34a")}
-                    >
-                      Register for Tournament
-                    </button>
+                    {approvedTeamsForUser.length > 0 ? (
+                      <>
+                        <h3
+                          style={{
+                            fontSize: "1rem",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "0.5rem",
+                          }}
+                        >
+                          You&apos;re Registered!
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: "0.8125rem",
+                            color: "#4b5563",
+                            marginBottom: "0.875rem",
+                          }}
+                        >
+                          Your team is registered for this tournament. Manage your roster below.
+                        </p>
+                        <button
+                          onClick={() =>
+                            rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
+                          }
+                          style={{
+                            width: "100%",
+                            backgroundColor: "#16a34a",
+                            border: "none",
+                            color: "#fff",
+                            fontWeight: "600",
+                            padding: "0.5rem 1rem",
+                            borderRadius: "0.5rem",
+                            transition: "background-color 0.2s",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#16a34a")}
+                        >
+                          Manage Your Rosters
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <h3
+                          style={{
+                            fontSize: "1rem",
+                            fontWeight: "bold",
+                            color: "#111827",
+                            marginBottom: "0.5rem",
+                          }}
+                        >
+                          Register Now
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: "0.8125rem",
+                            color: "#4b5563",
+                            marginBottom: "0.875rem",
+                          }}
+                        >
+                          Secure your spot in this exciting tournament. Limited slots available!
+                        </p>
+                        <button
+                          onClick={() =>
+                            registerModalRef.current?.open({
+                              id: tournament.id || "",
+                              name: tournament.name || "",
+                              startDate: tournament.startDate || "",
+                              endDate: tournament.endDate || "",
+                              country: tournament.country || "",
+                              city: tournament.city || "",
+                              type: tournament.type || "",
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            backgroundColor: "#16a34a",
+                            border: "none",
+                            color: "#fff",
+                            fontWeight: "600",
+                            padding: "0.5rem 1rem",
+                            borderRadius: "0.5rem",
+                            transition: "background-color 0.2s",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#16a34a")}
+                        >
+                          Register for Tournament
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   {/* Need Help Card */}
@@ -627,7 +679,7 @@ const TournamentDetails = () => {
 
           {/* Roster Management Section - Show for team managers with approved teams */}
           {approvedTeamsForUser.length > 0 && (
-            <div style={{ marginTop: "1.5rem" }}>
+            <div ref={rosterSectionRef} style={{ marginTop: "1.5rem" }}>
               <h2
                 style={{
                   fontSize: "1.25rem",
