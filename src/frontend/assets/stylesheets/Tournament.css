@@ -1,0 +1,220 @@
+/* ========================
+   Tournament Card
+   ======================== */
+.tournament-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.8rem;
+  background-color: #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  width: 100%; /* fluid by default */
+  min-width: 260px;
+  max-width: 360px;
+  min-height: 360px;
+  height: 100%;
+}
+
+.tournament-card:hover {
+  transform: translateY(-0.5rem);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.tournament-card figure {
+  width: 100%;
+  height: 140px;
+  flex-shrink: 0;
+  background-color: #d1d5db;
+  overflow: hidden;
+}
+
+.tournament-card figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tournament-card .card-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tournament-card .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.tournament-card .card-type {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #3a4356;
+  background-color: #dbe2ed;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.tournament-card .card-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 0.5rem;
+}
+
+.tournament-card .card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournament-card .card-description {
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.tournament-card .card-footer {
+  margin-top: auto;
+}
+
+.tournament-card .card-location {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournament-card .card-location svg {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+.tournament-card .card-organizer {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ========================
+   Section Grid Layout
+   ======================== */
+.tournament-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem;
+  justify-items: center;
+
+  /* 1 column on small screens */
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  /* 2 columns on tablets */
+  .tournament-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  /* 3 columns on desktops */
+  .tournament-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1440px) {
+  /* 4 columns on wide screens */
+  .tournament-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ========================
+   Carousel Layout
+   ======================== */
+.tournament-carousel {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 1rem 0;
+  -webkit-overflow-scrolling: touch;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tournament-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.tournament-carousel-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 85vw; /* nearly full width on mobile */
+  max-width: 320px;
+}
+
+@media (min-width: 640px) {
+  .tournament-carousel-item {
+    width: 45vw;
+    max-width: 320px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tournament-carousel-item {
+    width: 320px;
+  }
+}
+
+/* ========================
+   Carousel Nav Buttons
+   ======================== */
+.carousel-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.carousel-nav button {
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  padding: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.carousel-nav button:hover {
+  background: #f3f4f6;
+}
