@@ -421,21 +421,14 @@ const TournamentDetails = () => {
           {approvedTeamsForUser.length > 0 && (
             <div style={{ marginTop: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem' }}>Manage Your Team Rosters</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {approvedTeamsForUser.map((team) => (
-                  <RosterManager
-                    key={team.teamId}
-                    tournamentId={tournamentId || ""}
-                    teamId={team.teamId}
-                    teamName={team.teamName}
-                    ngb={team.ngb}
-                    onRosterSaved={() => {
-                      refetchInvites();
-                      refetchParticipants();
-                    }}
-                  />
-                ))}
-              </div>
+              <RosterManager
+                tournamentId={tournamentId || ""}
+                teams={approvedTeamsForUser}
+                onRosterSaved={() => {
+                  refetchInvites();
+                  refetchParticipants();
+                }}
+              />
             </div>
           )}
         </div>
