@@ -72,7 +72,7 @@ const RosterColumn: React.FC<RosterColumnProps> = ({
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-white text-gray-700 hover:bg-gray-100 shadow-sm"
           }`}
-          style={{ padding: "6px", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{ padding: "6px", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a" }}
           title={`Add ${title.toLowerCase()}`}
         >
           <FontAwesomeIcon icon={faPlus} style={{ fontSize: "14px" }} />

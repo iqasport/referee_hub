@@ -212,7 +212,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 type="button"
                 onClick={() => handleAddMember()}
                 className="px-4 py-2 text-sm font-bold text-white bg-green-600"
-                style={{ backgroundColor: "#22c55e", borderRadius: 4, minWidth: 100 }}
+                style={{ backgroundColor: "#16a34a", borderRadius: 4, minWidth: 100 }}
               >
                 Add Player
               </button>
