@@ -8,6 +8,8 @@ import {
 } from "../../../store/serviceApi";
 import type { TournamentType } from "../../../store/serviceApi";
 import UploadedImage from "../../../components/UploadedImage";
+import CustomAlert from "../../../components/CustomAlert";
+import { useAlert } from "../../../hooks/useAlert";
 
 interface Tournament {
   id?: string;
@@ -30,6 +32,7 @@ export interface AddTournamentModalRef {
 }
 
 const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
+  const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [pendingBannerFile, setPendingBannerFile] = useState<File | null>(null);
@@ -74,7 +77,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     try {
       if (isEditMode) {
         if (!formData.id) {
-          alert("Tournament ID is missing");
+          showAlert("Tournament ID is missing", "error");
           return;
         }
         await updateTournament({
@@ -126,7 +129,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
       close();
     } catch (error) {
       console.error("Failed to save tournament:", error);
-      alert("Failed to save tournament. Please try again.");
+      showAlert("Failed to save tournament. Please try again.", "error");
     }
   }
 
@@ -169,14 +172,22 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
       }));
     } catch (error) {
       console.error("Failed to upload banner:", error);
-      alert("Failed to upload banner image. Please try again.");
+      showAlert("Failed to upload banner image. Please try again.", "error");
     }
   }
 
   const isEditMode = mode === "edit";
 
   return (
-    <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
+    <>
+      {alertState.isVisible && (
+        <CustomAlert
+          message={alertState.message}
+          type={alertState.type}
+          onClose={hideAlert}
+        />
+      )}
+      <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
         <DialogPanel className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl my-8 max-h-full overflow-y-auto">
@@ -380,7 +391,8 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
           </form>
         </DialogPanel>
       </div>
-    </Dialog>
+      </Dialog>
+    </>
   );
 });
 

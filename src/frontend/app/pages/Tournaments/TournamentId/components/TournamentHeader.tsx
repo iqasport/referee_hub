@@ -1,4 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface TournamentHeaderProps {
   bannerImageUrl?: string | null;
@@ -12,25 +15,23 @@ const TournamentHeader: React.FC<TournamentHeaderProps> = ({
   isManager = false,
 }) => {
   return (
-    <header>
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={bannerImageUrl || "https://placehold.co/1200x200"}
-          alt="Tournament banner"
-          className="w-full h-full object-cover"
-        />
-        {/* Title overlay on image */}
-        <div
-          className="absolute bottom-0 left-0 right-0 p-8 text-white"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}
-        >
-          <div className="flex items-center justify-between">
-            <h1 className="text-4xl font-bold">{name}</h1>
-            {isManager && (
-              <div className="bg-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
-                Manager View
-              </div>
-            )}
+    <header className="tournament-header">
+      <div className="tournament-header-wrapper">
+        <div className="tournament-header-container">
+          <Link to="/tournaments" className="tournament-back-button">
+            <FontAwesomeIcon icon={faArrowLeft} />
+          </Link>
+          <img
+            src={bannerImageUrl || "https://placehold.co/1200x200"}
+            alt="Tournament banner"
+            className="tournament-banner-image"
+          />
+          {/* Title overlay on image */}
+          <div className="tournament-title-overlay">
+            <div className="tournament-title-content">
+              <h1 className="tournament-title">{name}</h1>
+              {isManager && <div className="manager-badge">Manager View</div>}
+            </div>
           </div>
         </div>
       </div>

@@ -6,12 +6,14 @@ interface TournamentInfoCardsProps {
   formattedDateRange: string;
   organizer?: string | null;
   startDate?: string;
+  participantCount?: number;
 }
 
 const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
   formattedDateRange,
   organizer,
   startDate,
+  participantCount,
 }) => {
   const registrationEndDate = startDate
     ? new Date(startDate).toLocaleDateString("en-US", {
@@ -22,20 +24,29 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
     : "TBD";
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: window.innerWidth >= 1024 ? 'repeat(4, 1fr)' : window.innerWidth >= 640 ? 'repeat(2, 1fr)' : '1fr', 
+      gap: '0.75rem', 
+      marginBottom: '1.5rem' 
+    }}>
       <InfoCard
-        icon={<CalendarIcon className="w-5 h-5" />}
+        icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><CalendarIcon /></div>}
         label="Tournament Date"
         value={formattedDateRange}
       />
-      <InfoCard icon={<UsersIcon className="w-5 h-5" />} label="Participants" value="TBD" />
       <InfoCard
-        icon={<HomeIcon className="w-5 h-5" />}
+        icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><UsersIcon /></div>}
+        label="Participants"
+        value={participantCount !== undefined ? participantCount.toString() : "0"}
+      />
+      <InfoCard
+        icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><HomeIcon /></div>}
         label="Organizer"
         value={organizer || "N/A"}
       />
       <InfoCard
-        icon={<ClockIcon className="w-5 h-5" />}
+        icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><ClockIcon /></div>}
         label="Registration Ends"
         value={registrationEndDate}
       />

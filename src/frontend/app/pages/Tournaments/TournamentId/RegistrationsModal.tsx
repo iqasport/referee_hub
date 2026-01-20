@@ -7,12 +7,15 @@ import {
 } from "../../../store/serviceApi";
 import StatusBadge from "../../../components/StatusBadge";
 import ActionButtonPair from "../../../components/ActionButtonPair";
+import CustomAlert from "../../../components/CustomAlert";
+import { useAlert } from "../../../hooks/useAlert";
 
 export interface RegistrationsModalRef {
   open: (tournamentId: string) => void;
 }
 
 const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
+  const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
   const [tournamentId, setTournamentId] = useState<string>("");
   const [selectedInvite, setSelectedInvite] = useState<string | null>(null);
@@ -46,12 +49,12 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
         participantId,
         inviteResponseModel: { approved: true },
       }).unwrap();
-      alert(`Successfully approved ${teamName}'s registration!`);
+      showAlert(`Successfully approved ${teamName}'s registration!`, "success");
       refetch();
       setSelectedInvite(null);
     } catch (error) {
       console.error("Failed to approve:", error);
-      alert("Failed to approve. Please try again.");
+      showAlert("Failed to approve. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -65,12 +68,12 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
         participantId,
         inviteResponseModel: { approved: false },
       }).unwrap();
-      alert(`Successfully denied ${teamName}'s registration.`);
+      showAlert(`Successfully denied ${teamName}'s registration.`, "success");
       refetch();
       setSelectedInvite(null);
     } catch (error) {
       console.error("Failed to deny:", error);
-      alert("Failed to deny. Please try again.");
+      showAlert("Failed to deny. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +82,15 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const selectedInviteData = invites?.find((i) => i.participantId === selectedInvite);
 
   return (
-    <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
+    <>
+      {alertState.isVisible && (
+        <CustomAlert
+          message={alertState.message}
+          type={alertState.type}
+          onClose={hideAlert}
+        />
+      )}
+      <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
       <div
         className="fixed inset-0"
         style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
@@ -230,7 +241,8 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
           </div>
         </DialogPanel>
       </div>
-    </Dialog>
+      </Dialog>
+    </>
   );
 });
 

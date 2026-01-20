@@ -1,6 +1,7 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import url(Tournament.css);
 
 body {
     font-family: "Lato", Helvetica, Arial, sans-serif;

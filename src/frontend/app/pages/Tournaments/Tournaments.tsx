@@ -8,7 +8,7 @@ import Search from "./components/Search";
 import { useGetTournamentsQuery, TournamentViewModel } from "../../store/serviceApi";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
-const DEFAULT_PAGE_SIZE = 9;
+const DEFAULT_PAGE_SIZE = 8;
 
 const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -132,21 +132,29 @@ const Tournament = () => {
 
   return (
     <>
-      <div className="max-w-[80%] mx-auto px-4 py-2">
-        <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
-        <button onClick={() => modalRef.current?.openAdd()}>Add Tournament</button>
+      <div className="tournament-page-container">
+        <div className="tournament-page-header">
+          <div className="tournament-search-wrapper">
+            <Search
+              onSearch={handleSearch}
+              onTypeFilter={handleTypeFilter}
+              selectedType={typeFilter}
+            />
+          </div>
+          <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
+            Add Tournament
+          </button>
+        </div>
 
         <AddTournamentModal ref={modalRef} />
       </div>
 
       {isLoading ? (
-        <div className="text-center text-gray-600 py-8">Loading tournaments...</div>
+        <div className="tournament-loading">Loading tournaments...</div>
       ) : isError ? (
-        <div className="text-center text-red-600 py-8">
-          Error loading tournaments. Please try again.
-        </div>
+        <div className="tournament-error">Error loading tournaments. Please try again.</div>
       ) : (
-        <div className="max-w-[80%] mx-auto px-4 space-y-10">
+        <div className="tournament-page-container">
           {privateTournaments.length > 0 && (
             <TournamentSection
               tournaments={privateTournaments}
@@ -183,7 +191,7 @@ const Tournament = () => {
           )}
 
           {privateTournaments.length === 0 && publicTournaments.length === 0 && (
-            <div className="text-center text-gray-600 py-8">No tournaments available.</div>
+            <div className="tournament-empty">No tournaments available.</div>
           )}
         </div>
       )}

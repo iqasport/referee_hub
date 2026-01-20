@@ -124,15 +124,11 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
       )}
       {layout === "carousel" ? (
         <div>
-          <div
-            ref={carouselRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth py-4 scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
+          <div ref={carouselRef} className="tournament-carousel">
             {visibleTournaments.map((tournament) => {
               const tournamentId = String(tournament.id);
               return (
-                <div key={tournament.id} className="flex-shrink-0 w-80">
+                <div key={tournament.id} className="tournament-carousel-item">
                   <TournamentCard
                     title={tournament.title}
                     description={tournament.description}
@@ -154,33 +150,24 @@ const TournamentSection: React.FC<TournamentSectionProps> = ({
             {visibleCount < tournaments.length && (
               <div
                 ref={loadMoreRef}
-                className="flex-shrink-0 w-20 flex items-center justify-center"
+                className="tournament-carousel-item"
+                style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 <div className="animate-pulse text-gray-400">Loading...</div>
               </div>
             )}
           </div>
-          <div className="flex justify-center gap-4 mt-4">
-            <button
-              onClick={() => scrollCarousel("left")}
-              className="bg-white shadow-lg rounded-full p-3 hover:bg-gray-100 transition-colors"
-              aria-label="Scroll left"
-            >
-              <FontAwesomeIcon icon={faChevronLeft} className="text-gray-700" />
+          <div className="carousel-nav">
+            <button onClick={() => scrollCarousel("left")} aria-label="Scroll left">
+              <FontAwesomeIcon icon={faChevronLeft} />
             </button>
-            <button
-              onClick={() => scrollCarousel("right")}
-              className="bg-white shadow-lg rounded-full p-3 hover:bg-gray-100 transition-colors"
-              aria-label="Scroll right"
-            >
-              <FontAwesomeIcon icon={faChevronRight} className="text-gray-700" />
+            <button onClick={() => scrollCarousel("right")} aria-label="Scroll right">
+              <FontAwesomeIcon icon={faChevronRight} />
             </button>
           </div>
         </div>
       ) : (
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-[80%]">
-          {renderCards()}
-        </div>
+        <div className="tournament-grid">{renderCards()}</div>
       )}
     </section>
   );
