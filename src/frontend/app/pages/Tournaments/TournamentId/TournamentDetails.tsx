@@ -10,7 +10,6 @@ import {
   TournamentNavBar,
   TournamentInfoCards,
   TournamentAboutSection,
-  TournamentFormatSection,
   RosterManager,
 } from "./components";
 import {
@@ -152,7 +151,7 @@ const TournamentDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <p>Loading tournament...</p>
       </div>
     );
@@ -160,7 +159,7 @@ const TournamentDetails = () => {
 
   if (isError || !tournament) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <p>Tournament not found</p>
       </div>
     );
@@ -213,8 +212,8 @@ const TournamentDetails = () => {
       <TournamentNavBar isManager={isManager} onEdit={handleEdit} />
 
       {/* Info cards section */}
-      <section className="bg-white px-6 py-8">
-        <div className="max-w-6xl mx-auto">
+      <section style={{ backgroundColor: '#fff', padding: '1.5rem 1rem' }}>
+        <div style={{ maxWidth: '72rem', margin: '0 auto', width: '100%' }}>
           <TournamentInfoCards
             formattedDateRange={formattedDateRange}
             organizer={tournament.organizer}
@@ -223,9 +222,9 @@ const TournamentDetails = () => {
           />
 
           {/* Main content grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? '2fr 1fr' : '1fr', gap: '1rem' }}>
             {/* Left column - About and Format */}
-            <div className="lg:col-span-2">
+            <div>
               <TournamentAboutSection
                 place={tournament.place}
                 city={tournament.city}
@@ -233,7 +232,6 @@ const TournamentDetails = () => {
                 description={tournament.description}
               />
 
-              <TournamentFormatSection />
             </div>
 
             {/* Right sidebar - Different content for managers vs regular users */}
@@ -241,85 +239,91 @@ const TournamentDetails = () => {
               {isManager ? (
                 <>
                   {/* Manager Tools Card */}
-                  <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mb-6 sticky top-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">Manager Tools</h3>
-                    <p className="text-sm text-gray-600 mb-4">
+                  <div style={{ backgroundColor: '#f0fdf4', borderRadius: '0.5rem', border: '1px solid #bbf7d0', padding: '1.25rem', marginBottom: '1rem', position: window.innerWidth >= 1024 ? 'sticky' : 'static', top: '1rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Manager Tools</h3>
+                  <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
                       You are the manager of this tournament. Use the tools below to manage the
                       tournament.
-                    </p>
-                    <button
-                      onClick={handleEdit}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors mb-3 flex items-center justify-center gap-2"
+                  </p>
+                  <button
+                    onClick={handleEdit}
+                    style={{ width: '100%', backgroundColor: '#16a34a', color: '#fff', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', marginBottom: '0.625rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
+                  >
+                    <svg
+                      style={{ width: '1rem', height: '1rem' }}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                         />
-                      </svg>
-                      Edit Tournament Details
-                    </button>
-                    <button
-                      onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
-                      className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors mb-3"
-                    >
-                      View Team Registrations ({invites?.length || 0})
-                    </button>
-                    <button
-                      onClick={() => inviteTeamsModalRef.current?.open(tournament)}
-                      className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors mb-3"
-                    >
-                      Invite Teams
-                    </button>
-                  </div>
+                    </svg>
+                    Edit Tournament Details
+                  </button>
+                  <button
+                    onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
+                    style={{ width: '100%', backgroundColor: '#fff', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', marginBottom: '0.625rem', cursor: 'pointer', fontSize: '0.875rem' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                  >
+                    View Team Registrations ({invites?.length || 0})
+                  </button>
+                  <button
+                    onClick={() => inviteTeamsModalRef.current?.open(tournament)}
+                    style={{ width: '100%', backgroundColor: '#fff', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', marginBottom: '0.625rem', cursor: 'pointer', fontSize: '0.875rem' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                  >
+                    Invite Teams
+                  </button>
+                </div>
 
-                  {/* Tournament Stats Card */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Tournament Stats</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                        <span className="text-sm text-gray-600">Teams Registered</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          {invites?.filter((i) => i.status === "approved").length || 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                        <span className="text-sm text-gray-600">Private Tournament</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          {tournament.isPrivate ? "Yes" : "No"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Tournament Type</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          {tournament.type || "N/A"}
-                        </span>
-                      </div>
+                {/* Tournament Stats Card */}
+                <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.875rem' }}>Tournament Stats</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                      <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>Teams Registered</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>
+                        {invites?.filter((i) => i.status === "approved").length || 0}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                      <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>Private Tournament</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>
+                        {tournament.isPrivate ? "Yes" : "No"}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.875rem', color: '#4b5563' }}>Tournament Type</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>
+                        {tournament.type || "N/A"}
+                      </span>
                     </div>
                   </div>
-                </>
+                </div>
+              </>
               ) : (
                 <>
                   {pendingInvitesForUser.length > 0 && (
-                    <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6 mb-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">You&apos;re Invited!</h3>
-                      <p className="text-sm text-gray-600 mb-4">
+                    <div style={{ backgroundColor: '#f0fdf4', borderRadius: '0.5rem', border: '1px solid #bbf7d0', padding: '1.25rem', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>You&apos;re Invited!</h3>
+                      <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
                         The tournament organizer has invited your team(s) to participate.
                       </p>
-                      <div className="space-y-3">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {pendingInvitesForUser.map((invite) => (
                           <div
                             key={invite.participantId}
-                            className="bg-white rounded-lg border border-gray-200 p-4"
+                            style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1rem' }}
                           >
-                            <p className="font-semibold text-gray-900 mb-3">
+                            <p style={{ fontWeight: '600', color: '#111827', marginBottom: '0.75rem' }}>
                               {invite.participantName}
                             </p>
                             <ActionButtonPair
@@ -339,9 +343,9 @@ const TournamentDetails = () => {
                   )}
 
                   {/* Register Now Card */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 sticky top-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">Register Now</h3>
-                    <p className="text-sm text-gray-600 mb-4">
+                  <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem', marginBottom: '1rem', top: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Register Now</h3>
+                    <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
                       Secure your spot in this exciting tournament. Limited slots available!
                     </p>
                     <button
@@ -356,16 +360,18 @@ const TournamentDetails = () => {
                           type: tournament.type || "",
                         })
                       }
-                      className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                      style={{ width: '100%', backgroundColor: '#16a34a', border: 'none', color: '#fff', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', cursor: 'pointer', fontSize: '0.875rem' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
                     >
                       Register for Tournament
                     </button>
                   </div>
 
                   {/* Need Help Card */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">Need Help?</h3>
-                    <p className="text-sm text-gray-600 mb-4">
+                  <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Need Help?</h3>
+                    <p style={{ fontSize: '0.8125rem', color: '#4b5563', marginBottom: '0.875rem' }}>
                       Have questions about this tournament? Contact the organizers.
                     </p>
                     <button
@@ -375,7 +381,9 @@ const TournamentDetails = () => {
                           tournamentName: tournament.name || "",
                         })
                       }
-                      className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                      style={{ width: '100%', backgroundColor: '#fff', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '0.5rem', transition: 'background-color 0.2s', cursor: 'pointer', fontSize: '0.875rem' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
                     >
                       Contact Organizer
                     </button>
@@ -387,9 +395,9 @@ const TournamentDetails = () => {
 
           {/* Roster Management Section - Show for team managers with approved teams */}
           {approvedTeamsForUser.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Manage Your Team Rosters</h2>
-              <div className="space-y-6">
+            <div style={{ marginTop: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem' }}>Manage Your Team Rosters</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {approvedTeamsForUser.map((team) => (
                   <RosterManager
                     key={team.teamId}
