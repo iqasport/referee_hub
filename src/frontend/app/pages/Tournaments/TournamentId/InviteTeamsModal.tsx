@@ -314,11 +314,7 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
               <button
                 onClick={handleInviteTeam}
                 disabled={!selectedTeamId || isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg"
-                style={{
-                  backgroundColor: !selectedTeamId || isSubmitting ? "#93c5fd" : "#2563eb",
-                  cursor: !selectedTeamId || isSubmitting ? "not-allowed" : "pointer",
-                }}
+                className="btn btn-primary"
               >
                 {isSubmitting ? "Sending..." : "Send Invite"}
               </button>
