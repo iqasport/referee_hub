@@ -47,11 +47,15 @@ const TournamentDetails = () => {
   const { data: managedTeamsData } = useGetManagedTeamsQuery();
 
   // Check if user is a tournament manager for this specific tournament
-  const isTournamentManagerOfThis = currentUser?.roles?.some(
-    (role: any) =>
-      role.roleType === "TournamentManager" &&
-      (role.tournament === "ANY" || role.tournament === tournamentId)
-  );
+  // Note: role.tournament can be "ANY", a single tournament ID string, or an array of tournament IDs
+  const isTournamentManagerOfThis = currentUser?.roles?.some((role: any) => {
+    if (role.roleType !== "TournamentManager") return false;
+    if (role.tournament === "ANY") return true;
+    if (Array.isArray(role.tournament)) {
+      return role.tournament.includes(tournamentId);
+    }
+    return role.tournament === tournamentId;
+  });
 
   // Only fetch managers if user is a tournament manager of this tournament
   const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
