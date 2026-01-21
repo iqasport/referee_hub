@@ -9,12 +9,7 @@ interface CustomAlertProps {
   duration?: number;
 }
 
-const CustomAlert: React.FC<CustomAlertProps> = ({
-  message,
-  type,
-  onClose,
-  duration = 3000,
-}) => {
+const CustomAlert: React.FC<CustomAlertProps> = ({ message, type, onClose, duration = 3000 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
@@ -135,7 +130,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
           {getIcon()}
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: "0.875rem", fontWeight: "500", color: "#111827", margin: 0 }}>
+          <p style={{ fontSize: "1rem", fontWeight: "500", color: "#111827", margin: 0 }}>
             {message}
           </p>
         </div>
