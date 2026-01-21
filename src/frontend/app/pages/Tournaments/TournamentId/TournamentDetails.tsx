@@ -46,13 +46,15 @@ const TournamentDetails = () => {
   // Use the new managed teams endpoint to get teams the user manages
   const { data: managedTeamsData } = useGetManagedTeamsQuery();
 
-  // Check if user is a tournament manager - only tournament managers can view the managers list
-  const isTournamentManager = currentUser?.roles?.some(
-    (role: any) => role.roleType === "TournamentManager"
+  // Check if user is a tournament manager for this specific tournament
+  const isTournamentManagerOfThis = currentUser?.roles?.some(
+    (role: any) =>
+      role.roleType === "TournamentManager" &&
+      (role.tournament === "ANY" || role.tournament === tournamentId)
   );
 
-  // Only fetch managers if user is a tournament manager
-  const shouldFetchManagers = Boolean(tournamentId && isTournamentManager);
+  // Only fetch managers if user is a tournament manager of this tournament
+  const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
   const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
     { tournamentId: tournamentId || "" },
     { skip: !shouldFetchManagers }

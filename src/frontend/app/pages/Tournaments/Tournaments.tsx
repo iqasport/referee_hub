@@ -43,7 +43,6 @@ const Tournament = () => {
 
   const allTournaments = allTournamentsData?.items || [];
   const paginatedTournaments = paginatedData?.items || [];
-  const serverTotalCount = paginatedData?.metadata?.totalCount ?? 0;
 
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
