@@ -45,9 +45,9 @@ const RosterManager: React.FC<RosterManagerProps> = ({
 
   // Selected team state
   const [selectedTeamId, setSelectedTeamId] = useState<string>(teams[0]?.teamId || "");
-  
+
   // Get current team info
-  const currentTeam = teams.find(t => t.teamId === selectedTeamId) || teams[0];
+  const currentTeam = teams.find((t) => t.teamId === selectedTeamId) || teams[0];
 
   // Roster state
   const [roster, setRoster] = useState<RosterData>({
@@ -67,9 +67,6 @@ const RosterManager: React.FC<RosterManagerProps> = ({
 
   // Track if there are unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
-
-  // Track if we've loaded initial data
-  const [initialLoaded, setInitialLoaded] = useState(false);
 
   // Fetch participants to get existing roster data
   const { data: participantsData } = useGetParticipantsQuery({
@@ -97,7 +94,6 @@ const RosterManager: React.FC<RosterManagerProps> = ({
             userName: s.userName || "Unknown",
           })),
         });
-        setInitialLoaded(true);
       } else {
         // No roster data for this team yet, reset to empty
         setRoster({
@@ -105,7 +101,6 @@ const RosterManager: React.FC<RosterManagerProps> = ({
           coaches: [],
           staff: [],
         });
-        setInitialLoaded(true);
       }
       setHasChanges(false);
     }
@@ -151,11 +146,7 @@ const RosterManager: React.FC<RosterManagerProps> = ({
 
   // Handle adding a member to a column
   const handleAddMember = useCallback(
-    (
-      member: { userId: string; name: string },
-      number?: string,
-      gender?: string
-    ) => {
+    (member: { userId: string; name: string }, number?: string, gender?: string) => {
       const newMember: RosterMember = {
         userId: member.userId,
         userName: member.name,
@@ -249,135 +240,188 @@ const RosterManager: React.FC<RosterManagerProps> = ({
   return (
     <>
       {alertState.isVisible && (
-        <CustomAlert
-          message={alertState.message}
-          type={alertState.type}
-          onClose={hideAlert}
-        />
+        <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
       )}
-      <div style={{ backgroundColor: '#fff', borderRadius: '0.75rem', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+      <div
+        style={{
+          backgroundColor: "#fff",
+          borderRadius: "0.75rem",
+          boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+          border: "1px solid #e5e7eb",
+          overflow: "hidden",
+        }}
+      >
         {/* Header */}
-      <div style={{ backgroundColor: '#f9fafb', padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827' }}>Team Roster</h2>
-            <div style={{ fontSize: '0.875rem', color: '#4b5563', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>Manage the roster for</span>
-              {teams.length > 1 ? (
-                <select
-                  value={selectedTeamId}
-                  onChange={(e) => setSelectedTeamId(e.target.value)}
-                  disabled={disabled || hasChanges}
-                  style={{
-                    fontWeight: '500',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: '#fff',
-                    cursor: hasChanges ? 'not-allowed' : 'pointer',
-                    opacity: hasChanges ? 0.6 : 1,
-                  }}
-                  title={hasChanges ? 'Save or discard changes before switching teams' : 'Select a team'}
-                >
-                  {teams.map((team) => (
-                    <option key={team.teamId} value={team.teamId}>
-                      {team.teamName}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span style={{ fontWeight: '500' }}>{currentTeam?.teamName}</span>
-              )}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleSaveRoster}
-            disabled={!hasChanges || isSaving || disabled}
+        <div
+          style={{
+            backgroundColor: "#f9fafb",
+            padding: "1rem 1.5rem",
+            borderBottom: "1px solid #e5e7eb",
+          }}
+        >
+          <div
             style={{
-              padding: '0.5rem 1rem',
-              fontSize: '0.875rem',
-              fontWeight: 'bold',
-              borderRadius: '4px',
-              minWidth: '110px',
-              background: hasChanges && !isSaving && !disabled ? '#16a34a' : '#e5e7eb',
-              border: hasChanges && !isSaving && !disabled ? '1px solid #16a34a' : '1px solid #d1d5db',
-              color: hasChanges && !isSaving && !disabled ? '#fff' : '#6b7280',
-              cursor: !hasChanges || isSaving || disabled ? 'not-allowed' : 'pointer',
-              opacity: isSaving ? 0.7 : 1,
-              transition: 'background 0.2s, color 0.2s',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "1rem",
             }}
           >
-            {isSaving ? "Saving..." : hasChanges ? "Save Roster" : "Saved"}
-          </button>
+            <div>
+              <h2 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#111827" }}>
+                Team Roster
+              </h2>
+              <div
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#4b5563",
+                  marginTop: "0.25rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <span>Manage the roster for</span>
+                {teams.length > 1 ? (
+                  <select
+                    value={selectedTeamId}
+                    onChange={(e) => setSelectedTeamId(e.target.value)}
+                    disabled={disabled || hasChanges}
+                    style={{
+                      fontWeight: "500",
+                      padding: "0.25rem 0.5rem",
+                      borderRadius: "0.375rem",
+                      border: "1px solid #d1d5db",
+                      backgroundColor: "#fff",
+                      cursor: hasChanges ? "not-allowed" : "pointer",
+                      opacity: hasChanges ? 0.6 : 1,
+                    }}
+                    title={
+                      hasChanges
+                        ? "Save or discard changes before switching teams"
+                        : "Select a team"
+                    }
+                  >
+                    {teams.map((team) => (
+                      <option key={team.teamId} value={team.teamId}>
+                        {team.teamName}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span style={{ fontWeight: "500" }}>{currentTeam?.teamName}</span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveRoster}
+              disabled={!hasChanges || isSaving || disabled}
+              style={{
+                padding: "0.5rem 1rem",
+                fontSize: "0.875rem",
+                fontWeight: "bold",
+                borderRadius: "4px",
+                minWidth: "110px",
+                background: hasChanges && !isSaving && !disabled ? "#16a34a" : "#e5e7eb",
+                border:
+                  hasChanges && !isSaving && !disabled ? "1px solid #16a34a" : "1px solid #d1d5db",
+                color: hasChanges && !isSaving && !disabled ? "#fff" : "#6b7280",
+                cursor: !hasChanges || isSaving || disabled ? "not-allowed" : "pointer",
+                opacity: isSaving ? 0.7 : 1,
+                transition: "background 0.2s, color 0.2s",
+              }}
+            >
+              {isSaving ? "Saving..." : hasChanges ? "Save Roster" : "Saved"}
+            </button>
+          </div>
+          {hasChanges && (
+            <p style={{ fontSize: "0.75rem", color: "#d97706", marginTop: "0.5rem" }}>
+              * You have unsaved changes. Click &quot;Save Roster&quot; to save your changes.
+            </p>
+          )}
         </div>
-        {hasChanges && (
-          <p style={{ fontSize: '0.75rem', color: '#d97706', marginTop: '0.5rem' }}>
-            * You have unsaved changes. Click &quot;Save Roster&quot; to save your changes.
-          </p>
-        )}
-      </div>
 
-      {/* Roster Columns */}
-      <div style={{ padding: '1.25rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? 'repeat(3, 1fr)' : '1fr', gap: '0.875rem' }}>
-          <PlayersTable
-            members={roster.players}
-            onAddClick={() => handleOpenAddModal("players")}
-            onRemove={(userId) => handleRemoveMember("players", userId)}
-            onUpdateMember={handleUpdateMember}
-            disabled={disabled}
-          />
-          <RosterColumn
-            title="Coaches"
-            type="coaches"
-            members={roster.coaches}
-            onAddClick={() => handleOpenAddModal("coaches")}
-            onRemove={(userId) => handleRemoveMember("coaches", userId)}
-            disabled={disabled}
-          />
-          <RosterColumn
-            title="Staff"
-            type="staff"
-            members={roster.staff}
-            onAddClick={() => handleOpenAddModal("staff")}
-            onRemove={(userId) => handleRemoveMember("staff", userId)}
-            disabled={disabled}
-          />
-        </div>
+        {/* Roster Columns */}
+        <div style={{ padding: "1.25rem" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: window.innerWidth >= 1024 ? "repeat(3, 1fr)" : "1fr",
+              gap: "0.875rem",
+            }}
+          >
+            <PlayersTable
+              members={roster.players}
+              onAddClick={() => handleOpenAddModal("players")}
+              onRemove={(userId) => handleRemoveMember("players", userId)}
+              onUpdateMember={handleUpdateMember}
+              disabled={disabled}
+            />
+            <RosterColumn
+              title="Coaches"
+              type="coaches"
+              members={roster.coaches}
+              onAddClick={() => handleOpenAddModal("coaches")}
+              onRemove={(userId) => handleRemoveMember("coaches", userId)}
+              disabled={disabled}
+            />
+            <RosterColumn
+              title="Staff"
+              type="staff"
+              members={roster.staff}
+              onAddClick={() => handleOpenAddModal("staff")}
+              onRemove={(userId) => handleRemoveMember("staff", userId)}
+              disabled={disabled}
+            />
+          </div>
 
-        {/* Summary */}
-        <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#4b5563' }}>
-            <span>
-              <span style={{ fontWeight: '500', color: '#2563eb' }}>{roster.players.length}</span> Players
-            </span>
-            <span>
-              <span style={{ fontWeight: '500', color: '#16a34a' }}>{roster.coaches.length}</span> Coaches
-            </span>
-            <span>
-              <span style={{ fontWeight: '500', color: '#9333ea' }}>{roster.staff.length}</span> Staff
-            </span>
-            <span style={{ marginLeft: 'auto' }}>
-              Total: <span style={{ fontWeight: '500' }}>
-                {roster.players.length + roster.coaches.length + roster.staff.length}
-              </span> members
-            </span>
+          {/* Summary */}
+          <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid #e5e7eb" }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "1rem",
+                fontSize: "0.875rem",
+                color: "#4b5563",
+              }}
+            >
+              <span>
+                <span style={{ fontWeight: "500", color: "#2563eb" }}>{roster.players.length}</span>{" "}
+                Players
+              </span>
+              <span>
+                <span style={{ fontWeight: "500", color: "#16a34a" }}>{roster.coaches.length}</span>{" "}
+                Coaches
+              </span>
+              <span>
+                <span style={{ fontWeight: "500", color: "#9333ea" }}>{roster.staff.length}</span>{" "}
+                Staff
+              </span>
+              <span style={{ marginLeft: "auto" }}>
+                Total:{" "}
+                <span style={{ fontWeight: "500" }}>
+                  {roster.players.length + roster.coaches.length + roster.staff.length}
+                </span>{" "}
+                members
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Add Member Modal */}
-      <AddMemberModal
-        isOpen={modalState.isOpen}
-        onClose={handleCloseModal}
-        title={getModalTitle()}
-        columnType={modalState.columnType}
-        availableMembers={availableTeamMembers}
-        existingMemberIds={existingMemberIds}
-        onAddMember={handleAddMember}
-        isLoading={isLoadingMembers}
-      />
+        {/* Add Member Modal */}
+        <AddMemberModal
+          isOpen={modalState.isOpen}
+          onClose={handleCloseModal}
+          title={getModalTitle()}
+          columnType={modalState.columnType}
+          availableMembers={availableTeamMembers}
+          existingMemberIds={existingMemberIds}
+          onAddMember={handleAddMember}
+          isLoading={isLoadingMembers}
+        />
       </div>
     </>
   );
