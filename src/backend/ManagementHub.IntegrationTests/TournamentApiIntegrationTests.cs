@@ -279,6 +279,99 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 	}
 
 	[Fact]
+	public async Task ContactTournamentOrganizers_PublicTournament_ShouldSucceed()
+	{
+		// Sign in as referee and create a public tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Public Contact Test", TournamentType.Club, "Test", "Test", isPrivate: false);
+
+		// Sign in as a different user (ngb_admin) who is not a manager
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+
+		// Send a contact message
+		var contactResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/contact", new
+		{
+			message = "Hello, I have a question about this tournament."
+		});
+
+		contactResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+		"any authenticated user should be able to contact organizers of a public tournament");
+	}
+
+	[Fact]
+	public async Task ContactTournamentOrganizers_PrivateTournament_OnlyInvolvedUsers_ShouldSucceed()
+	{
+		// Sign in as referee and create a private tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Private Contact Test", TournamentType.Club, "Test", "Test", isPrivate: true);
+
+		// Add ngb_admin as a manager
+		await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/managers", new
+		{
+			email = "ngb_admin@example.com"
+		});
+
+		// Sign in as ngb_admin (who is now a manager)
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+
+		// Send a contact message as manager (involved user)
+		var contactResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/contact", new
+		{
+			message = "I'm a manager contacting other managers."
+		});
+
+		contactResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+		"involved users should be able to contact organizers of a private tournament");
+
+		// Sign in as empty@example.com who is NOT involved
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "empty@example.com", "password");
+
+		// Try to send a contact message (should fail)
+		var unauthorizedContactResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/contact", new
+		{
+			message = "I'm not involved in this tournament."
+		});
+
+		unauthorizedContactResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
+		"non-involved users should not be able to contact organizers of a private tournament");
+	}
+
+	[Fact]
+	public async Task ContactTournamentOrganizers_WithEmptyMessage_ShouldReturnBadRequest()
+	{
+		// Sign in and create a tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "Test", "Test");
+
+		// Try to send an empty message
+		var contactResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/contact", new
+		{
+			message = ""
+		});
+
+		contactResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+		"sending an empty message should return BadRequest");
+	}
+
+	[Fact]
+	public async Task ContactTournamentOrganizers_WithTooLongMessage_ShouldReturnBadRequest()
+	{
+		// Sign in and create a tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Test Tournament", TournamentType.Club, "Test", "Test");
+
+		// Try to send a message that's too long (> 1000 characters)
+		var longMessage = new string('a', 1001);
+		var contactResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/contact", new
+		{
+			message = longMessage
+		});
+
+		contactResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+		"sending a message longer than 1000 characters should return BadRequest");
+	}
+
+	[Fact]
 	public async Task AddTournamentManager_Idempotent_ShouldNotError()
 	{
 		// Sign in and create a tournament
@@ -445,19 +538,19 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 
 		// Step 2: Switch to team manager and get their managed teams
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
-		
+
 		var managedTeamsResponse = await this._client.GetAsync("/api/v2/users/me/managedTeams");
 		managedTeamsResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to get managed teams");
-		
+
 		var managedTeams = await managedTeamsResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
 		managedTeams.Should().NotBeEmpty("team manager should have at least one managed team");
-		
+
 		var yankeesTeam = managedTeams!.FirstOrDefault(t => t.GetProperty("teamName").GetString() == "Yankees");
 		yankeesTeam.ValueKind.Should().NotBe(JsonValueKind.Undefined, "team manager should manage Yankees team");
-		
+
 		var yankeesTeamId = yankeesTeam.GetProperty("teamId").GetString();
 		yankeesTeamId.Should().NotBeNullOrEmpty("Yankees team should have an ID");
-		
+
 		var yankeesNgb = yankeesTeam.GetProperty("ngb").GetString();
 		yankeesNgb.Should().Be("USA", "Yankees team should be part of USA NGB");
 

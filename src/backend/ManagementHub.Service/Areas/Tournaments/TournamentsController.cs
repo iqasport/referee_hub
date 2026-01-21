@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Abstraction.Services;
@@ -41,6 +42,7 @@ public class TournamentsController : ControllerBase
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly IUpdateTournamentBannerCommand updateTournamentBannerCommand;
 	private readonly IUserDelicateInfoService userDelicateInfoService;
+	private readonly ISendTournamentContactEmail sendTournamentContactEmail;
 	private readonly ManagementHubDbContext dbContext;
 
 	public TournamentsController(
@@ -50,6 +52,7 @@ public class TournamentsController : ControllerBase
 		ITeamContextProvider teamContextProvider,
 		IUpdateTournamentBannerCommand updateTournamentBannerCommand,
 		IUserDelicateInfoService userDelicateInfoService,
+		ISendTournamentContactEmail sendTournamentContactEmail,
 		ManagementHubDbContext dbContext)
 	{
 		this.contextAccessor = contextAccessor;
@@ -58,6 +61,7 @@ public class TournamentsController : ControllerBase
 		this.teamContextProvider = teamContextProvider;
 		this.updateTournamentBannerCommand = updateTournamentBannerCommand;
 		this.userDelicateInfoService = userDelicateInfoService;
+		this.sendTournamentContactEmail = sendTournamentContactEmail;
 		this.dbContext = dbContext;
 	}
 
@@ -316,6 +320,43 @@ public class TournamentsController : ControllerBase
 		{
 			return this.BadRequest(new { error = "Cannot remove the last manager of a tournament" });
 		}
+	}
+
+	/// <summary>
+	/// Contact tournament organizers.
+	/// Sends a message to all tournament managers with the sender's email as reply-to.
+	/// For private tournaments, only involved users can send messages.
+	/// </summary>
+	[HttpPost("{tournamentId}/contact")]
+	[Tags("Tournament")]
+	[Authorize]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> ContactTournamentOrganizers(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromBody] ContactTournamentRequest request)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Get tournament context to check access
+		var tournament = await this.tournamentContextProvider
+			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+
+		// For private tournaments, only involved users can send messages
+		if (tournament.IsPrivate && !tournament.IsCurrentUserInvolved)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		// Send email to all tournament managers
+		await this.sendTournamentContactEmail.SendTournamentContactEmailAsync(
+			tournamentId,
+			userContext.UserId,
+			request.Message,
+			this.HttpContext.RequestAborted);
+
+		return this.Ok();
 	}
 
 	// Phase 3: Invite endpoints
