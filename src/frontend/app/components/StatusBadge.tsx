@@ -1,4 +1,5 @@
 import React from "react";
+import { capitalize } from "lodash";
 
 type StatusType = "pending" | "approved" | "declined" | "rejected" | string;
 
@@ -23,7 +24,7 @@ const getStatusStyle = (status: StatusType) => {
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = "" }) => {
   const style = getStatusStyle(status);
-  const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  const displayStatus = capitalize(status);
 
   return (
     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${className}`} style={style}>
