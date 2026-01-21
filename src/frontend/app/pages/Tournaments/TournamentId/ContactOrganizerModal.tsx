@@ -86,11 +86,7 @@ const ContactOrganizerModal = forwardRef<ContactOrganizerModalRef>((_props, ref)
 
           {/* Close Button */}
           <div className="flex justify-end pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={close}
-              className="px-6 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors"
-            >
+            <button type="button" onClick={close} className="btn btn-primary">
               Close
             </button>
           </div>
