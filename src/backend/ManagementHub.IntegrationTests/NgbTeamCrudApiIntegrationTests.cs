@@ -71,7 +71,7 @@ public class NgbTeamCrudApiIntegrationTests : IClassFixture<TestWebApplicationFa
 
 		// Act: Retrieve the team to verify persistence
 		var getResponse = await this._client.GetAsync($"/api/v2/Ngbs/USA/teams/{createdTeam.TeamId}");
-		
+
 		// Note: If there's no direct GET endpoint for a single team, we'll verify through the list
 		// For now, let's verify through the list endpoint
 		var listResponse = await this._client.GetAsync("/api/v2/Ngbs/USA/teams");
@@ -176,7 +176,7 @@ public class NgbTeamCrudApiIntegrationTests : IClassFixture<TestWebApplicationFa
 		var teamsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
 		var teams = teamsResponse!.Items.ToList();
 		var retrievedTeam = teams.FirstOrDefault(t => t.TeamId == updatedTeam.TeamId);
-		
+
 		retrievedTeam.Should().NotBeNull();
 		retrievedTeam!.Name.Should().Be("Cataluña Quadball Federació",
 			"special characters should persist after update");
