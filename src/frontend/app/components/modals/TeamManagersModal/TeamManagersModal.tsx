@@ -29,7 +29,7 @@ const TeamManagersModal = (props: TeamManagersModalProps) => {
         <h2 className="my-2 font-bold">Add manager</h2>
         <input className="block mx-2 border-b border-gray-400" type="email" placeholder="Email" value={addEmail} onChange={e => setAddEmail(e.target.value)} />
         <label htmlFor="createIfNotExists">
-          <input className="mx-2 mt-2" type="checkbox" checked={createIfNotExists} onChange={e => setCreateIfNotExists(e.target.checked)}/>
+          <input id="createIfNotExists" className="mx-2 mt-2" type="checkbox" checked={createIfNotExists} onChange={e => setCreateIfNotExists(e.target.checked)}/>
           Create user if they don&apos;t have an account already.
         </label>
         <p className="text-red-600">{getErrorString(addError)}</p>
@@ -40,7 +40,7 @@ const TeamManagersModal = (props: TeamManagersModalProps) => {
         <h2 className="my-2 font-bold">Delete manager</h2>
         <input className="block mx-2 border-b border-gray-400" type="email" placeholder="Email" value={deleteEmail} onChange={e => setDeleteEmail(e.target.value)} />
         <p className="text-red-600">{getErrorString(deleteError)}</p>
-        <p className="text-green">{isDeleted ? "Deleted successfully": ""}</p>
+        <p className="text-green">{isDeleted ? "Deleted successfully" : ""}</p>
         <button className="green-button-outline h-10 mt-4" onClick={() => deleteManager({ngb: ngbId, teamId: teamId, email: deleteEmail})}>Delete manager</button>
       </div>
     </Modal>
