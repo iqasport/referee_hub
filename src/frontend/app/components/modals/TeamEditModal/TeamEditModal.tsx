@@ -11,7 +11,7 @@ import { NgbTeamViewModel, SocialAccount, TeamGroupAffiliation, TeamStatus, useC
 import { urlType } from "../../../utils/socialUtils";
 
 const STATUS_OPTIONS: TeamStatus[] = ["competitive", "developing", "inactive"];
-const TYPE_OPTIONS: TeamGroupAffiliation[] = ["community", "university", "youth"];
+const TYPE_OPTIONS: TeamGroupAffiliation[] = ["community", "university", "youth", "national"];
 const REQUIRED_FIELDS: (keyof NgbTeamViewModel)[] = ["name", "city", "country", "groupAffiliation", "status"];
 const DATE_FORMAT = "yyyy-MM-dd";
 
