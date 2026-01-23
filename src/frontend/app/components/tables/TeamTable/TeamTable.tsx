@@ -3,6 +3,7 @@ import { toDateTime } from "../../../utils/dateUtils";
 
 import FilterToolbar from "../../../components/FilterToolbar";
 import TeamEditModal from "../../../components/modals/TeamEditModal";
+import TeamManagersModal from "../../../components/modals/TeamManagersModal";
 import WarningModal from "../../../components/modals/WarningModal";
 import Table, { CellConfig } from "../../../components/tables/Table/Table";
 
@@ -13,6 +14,7 @@ import { getErrorString } from "../../../utils/errorUtils";
 enum ModalType {
   Edit = "edit",
   Delete = "delete",
+  Managers = "managers",
 }
 
 interface TeamTableProps {
@@ -37,6 +39,10 @@ const TeamTable = (props: TeamTableProps) => {
   const handleDeleteClick = (teamId: string) => {
     setActiveTeamId(teamId);
     setOpenModal(ModalType.Delete);
+  };
+  const handleManageManagersClick = (teamId: string) => {
+    setActiveTeamId(teamId);
+    setOpenModal(ModalType.Managers);
   };
   const handleDeleteConfirm = () => {
     deleteTeam({ngb: ngbId, teamId: activeTeamId});
@@ -74,6 +80,16 @@ const TeamTable = (props: TeamTableProps) => {
             action="delete"
             dataType="team"
             onConfirm={handleDeleteConfirm}
+          />
+        );
+      case ModalType.Managers:
+        return (
+          <TeamManagersModal
+            open={true}
+            onClose={handleCloseModal}
+            showClose={true}
+            ngbId={ngbId}
+            teamId={activeTeamId}
           />
         );
       default:
@@ -123,6 +139,7 @@ const TeamTable = (props: TeamTableProps) => {
             teamId={item.teamId.toString()}
             onEditClick={handleEditClick}
             onDeleteClick={handleDeleteClick}
+            onManageManagersClick={handleManageManagersClick}
           />
         );
       },
