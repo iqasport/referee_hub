@@ -46,8 +46,7 @@ internal class SendTournamentInviteEmail : ISendTournamentInviteEmail
 		{
 			this.logger.LogInformation(0x7a1bc500, "Sending tournament invite email for tournament {TournamentId} to team {TeamId}.", tournamentId, teamId);
 
-			// Get tournament info - we need a user identifier, but we only need tournament name which is public info
-			// We'll use the first team manager's ID for context
+			// Get team managers who will receive the invitation email
 			var teamManagers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
 			var managersList = teamManagers.ToList();
 
@@ -57,7 +56,7 @@ internal class SendTournamentInviteEmail : ISendTournamentInviteEmail
 				return;
 			}
 
-			// Get tournament context using first manager's ID
+			// Get tournament context - we need any valid user ID, so we use the first manager's ID
 			var tournament = await this.tournamentContextProvider.GetTournamentContextAsync(
 				tournamentId,
 				managersList[0].UserId,
