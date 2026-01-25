@@ -1,4 +1,5 @@
 import React from "react";
+import ReactMarkdown from "react-markdown";
 import { LocationIcon } from "../../../../components/icons";
 
 interface TournamentAboutSectionProps {
@@ -29,7 +30,27 @@ const TournamentAboutSection: React.FC<TournamentAboutSectionProps> = ({
         </div>
       </div>
       <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem', marginTop: '0.875rem' }}>Description</h2>
-      <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: '1.625', marginBottom: '0.75rem' }}>{description}</p>
+      <div style={{ fontSize: '0.875rem', color: '#374151', lineHeight: '1.625', marginBottom: '0.75rem' }}>
+        <ReactMarkdown
+          components={{
+            // Customize link rendering to open in new tab for security
+            a: ({ ...props }) => (
+              <a 
+                {...props} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ color: '#2563eb', textDecoration: 'underline' }}
+              />
+            ),
+            // Preserve paragraph styling
+            p: ({ ...props }) => (
+              <p {...props} style={{ marginBottom: '0.5rem' }} />
+            ),
+          }}
+        >
+          {description || 'No description provided.'}
+        </ReactMarkdown>
+      </div>
     </div>
   );
 };
