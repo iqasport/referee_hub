@@ -496,7 +496,9 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 					i.ParticipantType == "team" &&
 					this.dbContext.TeamManagers
 						.Where(tm => userDatabaseIds.Contains(tm.UserId))
-						.Select(tm => new TeamIdentifier(tm.TeamId).ToString())
+						// Note: TeamIdentifier format is "TM_<id>". Using string concatenation instead of the struct constructor
+						// because EF Core cannot translate struct constructors to SQL queries.
+						.Select(tm => "TM_" + tm.TeamId.ToString())
 						.Contains(i.ParticipantId))));
 	}
 
