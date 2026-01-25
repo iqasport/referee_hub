@@ -38,6 +38,7 @@ const TournamentAboutSection: React.FC<TournamentAboutSectionProps> = ({
             // Customize link rendering to open in new tab for security
             // eslint-disable-next-line react/prop-types
             a: (props) => {
+              // eslint-disable-next-line react/prop-types
               const { href, children } = props;
               return (
                 <a

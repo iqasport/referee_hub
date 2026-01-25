@@ -18,6 +18,7 @@ jest.mock('react-markdown', () => {
 jest.mock('remark-gfm', () => {
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     default: () => {},
   };
 });
