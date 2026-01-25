@@ -22,25 +22,52 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 
 	public async Task<IEnumerable<SocialAccount>> GetTeamSocialAccounts(TeamIdentifier teamId)
 	{
-		return await this.dbContext.SocialAccounts.AsNoTracking().Where(sa => sa.OwnableType == "Team" && sa.OwnableId == teamId.Id)
-			.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)).ToListAsync();
+		var accounts = await this.dbContext.SocialAccounts.AsNoTracking()
+			.Where(sa => sa.OwnableType == "Team" && sa.OwnableId == teamId.Id)
+			.ToListAsync();
+
+		return FilterValidSocialAccounts(accounts);
 	}
 
-	public Task<Dictionary<NgbIdentifier, IEnumerable<SocialAccount>>> QueryNgbSocialAccounts(NgbConstraint ngbConstraint)
+	public async Task<Dictionary<NgbIdentifier, IEnumerable<SocialAccount>>> QueryNgbSocialAccounts(NgbConstraint ngbConstraint)
 	{
-		return this.dbContext.SocialAccounts.AsNoTracking().Where(sa => sa.OwnableType == "NationalGoverningBody")
-			.Join(this.dbContext.NationalGoverningBodies.AsNoTracking().WithConstraint(ngbConstraint), sa => sa.OwnableId, ngb => ngb.Id, (sa, ngb) => new { ngb.CountryCode, sa.Url, sa.AccountType })
-			.GroupBy(sa => sa.CountryCode)
-			.ToDictionaryAsync(g => NgbIdentifier.Parse(g.Key), g => g.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)));
+		var groupedAccounts = await this.dbContext.SocialAccounts.AsNoTracking()
+			.Where(sa => sa.OwnableType == "NationalGoverningBody")
+			.Join(this.dbContext.NationalGoverningBodies.AsNoTracking().WithConstraint(ngbConstraint),
+				sa => sa.OwnableId,
+				ngb => ngb.Id,
+				(sa, ngb) => new { ngb.CountryCode, SocialAccount = sa })
+			.GroupBy(x => x.CountryCode)
+			.ToDictionaryAsync(
+				g => NgbIdentifier.Parse(g.Key),
+				g => g.Select(x => x.SocialAccount));
+
+		// Post-process to filter out invalid URLs
+		return groupedAccounts
+			.Select(kvp => KeyValuePair.Create(kvp.Key, FilterValidSocialAccounts(kvp.Value)))
+			.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 	}
 
-	public Task<Dictionary<TeamIdentifier, IEnumerable<SocialAccount>>> QueryTeamSocialAccounts(NgbConstraint ngbConstraint)
+	public async Task<Dictionary<TeamIdentifier, IEnumerable<SocialAccount>>> QueryTeamSocialAccounts(NgbConstraint ngbConstraint)
 	{
-		var teams = this.dbContext.Teams.Join(this.dbContext.NationalGoverningBodies.AsNoTracking().WithConstraint(ngbConstraint), t => t.NationalGoverningBodyId, n => n.Id, (t, _) => t);
-		return this.dbContext.SocialAccounts.AsNoTracking().Where(sa => sa.OwnableType == "Team")
-			.Join(teams, sa => sa.OwnableId, t => t.Id, (sa, t) => new { TeamId = t.Id, sa.Url, sa.AccountType })
-			.GroupBy(sa => sa.TeamId)
-			.ToDictionaryAsync(g => new TeamIdentifier(g.Key), g => g.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)));
+		var teams = this.dbContext.Teams.Join(
+			this.dbContext.NationalGoverningBodies.AsNoTracking().WithConstraint(ngbConstraint),
+			t => t.NationalGoverningBodyId,
+			n => n.Id,
+			(t, _) => t);
+
+		var groupedAccounts = await this.dbContext.SocialAccounts.AsNoTracking()
+			.Where(sa => sa.OwnableType == "Team")
+			.Join(teams, sa => sa.OwnableId, t => t.Id, (sa, t) => new { TeamId = t.Id, SocialAccount = sa })
+			.GroupBy(x => x.TeamId)
+			.ToDictionaryAsync(
+				g => new TeamIdentifier(g.Key),
+				g => g.Select(x => x.SocialAccount));
+
+		// Post-process to filter out invalid URLs
+		return groupedAccounts
+			.Select(kvp => KeyValuePair.Create(kvp.Key, FilterValidSocialAccounts(kvp.Value)))
+			.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 	}
 
 	public async Task<IEnumerable<SocialAccount>> UpdateNgbSocialAccounts(NgbIdentifier ngb, IEnumerable<SocialAccount> socialAccounts)
@@ -62,8 +89,12 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 
 		await this.dbContext.SaveChangesAsync();
 
-		return await this.dbContext.SocialAccounts.Where(sa => sa.OwnableType == "NationalGoverningBody" && sa.OwnableId == ngbId)
-			.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)).ToListAsync();
+		// Return saved accounts, filtering out any invalid URLs for safety
+		var savedAccounts = await this.dbContext.SocialAccounts
+			.Where(sa => sa.OwnableType == "NationalGoverningBody" && sa.OwnableId == ngbId)
+			.ToListAsync();
+
+		return FilterValidSocialAccounts(savedAccounts);
 	}
 
 	public async Task<IEnumerable<SocialAccount>> UpdateTeamSocialAccounts(TeamIdentifier teamId, IEnumerable<SocialAccount> socialAccounts)
@@ -84,7 +115,28 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 
 		await this.dbContext.SaveChangesAsync();
 
-		return await this.dbContext.SocialAccounts.Where(sa => sa.OwnableType == "Team" && sa.OwnableId == teamId.Id)
-			.Select(sa => new SocialAccount(new Uri(sa.Url), sa.AccountType)).ToListAsync();
+		// Return saved accounts, filtering out any invalid URLs for safety
+		var savedAccounts = await this.dbContext.SocialAccounts
+			.Where(sa => sa.OwnableType == "Team" && sa.OwnableId == teamId.Id)
+			.ToListAsync();
+
+		return FilterValidSocialAccounts(savedAccounts);
+	}
+
+	/// <summary>
+	/// Filters a collection of social account data entities to only include those with valid URIs.
+	/// Invalid URLs are silently skipped to prevent crashes when reading from the database.
+	/// </summary>
+	private static IEnumerable<SocialAccount> FilterValidSocialAccounts(IEnumerable<Models.Data.SocialAccount> accounts)
+	{
+		var validAccounts = new List<SocialAccount>();
+		foreach (var sa in accounts)
+		{
+			if (Uri.TryCreate(sa.Url, UriKind.Absolute, out var uri))
+			{
+				validAccounts.Add(new SocialAccount(uri, sa.AccountType));
+			}
+		}
+		return validAccounts;
 	}
 }
