@@ -13,3 +13,11 @@ jest.mock('react-markdown', () => {
     },
   };
 });
+
+// Mock remark-gfm plugin
+jest.mock('remark-gfm', () => {
+  return {
+    __esModule: true,
+    default: () => {},
+  };
+});

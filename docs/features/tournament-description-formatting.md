@@ -23,12 +23,13 @@ Use a markdown processing library to render tournament descriptions. This provid
 - **Future extensibility**: Support for rich formatting (bold, italic, lists, etc.) without code changes
 - **User-friendly**: Markdown syntax is intuitive and widely understood
 
-**Recommended Library: `react-markdown`**
+**Recommended Library: `react-markdown` with `remark-gfm`**
 - Popular, well-maintained React library (7.5k+ stars)
 - Small bundle size with tree-shaking support
 - Secure by default (sanitizes HTML to prevent XSS)
 - Customizable rendering
 - TypeScript support
+- **remark-gfm plugin**: Enables GitHub Flavored Markdown including autolink literals (converts plain URLs to clickable links)
 
 **Alternative: `marked` + `DOMPurify`**
 - More control over rendering
@@ -65,19 +66,21 @@ Use CSS `white-space: pre-line` to preserve line breaks and add link detection:
 
 ## Recommended Implementation
 
-**Use `react-markdown` with the following configuration:**
+**Use `react-markdown` with `remark-gfm` plugin for autolink support:**
 
 1. **Install Dependencies:**
    ```bash
-   yarn add react-markdown
+   yarn add react-markdown remark-gfm
    ```
 
 2. **Update TournamentAboutSection Component:**
    ```tsx
    import ReactMarkdown from 'react-markdown';
+   import remarkGfm from 'remark-gfm';
    
    // In the component render
    <ReactMarkdown 
+     remarkPlugins={[remarkGfm]}
      className="tournament-description"
      components={{
        // Customize link rendering to open in new tab
@@ -134,11 +137,12 @@ Use CSS `white-space: pre-line` to preserve line breaks and add link detection:
 
 ## Migration Path
 
-1. Add `react-markdown` dependency
+1. Add `react-markdown` and `remark-gfm` dependencies
 2. Update `TournamentAboutSection` component
 3. Add CSS styles for markdown content
-4. Test with existing tournament data
-5. Document markdown support in user guides (future)
+4. Update Jest configuration to mock react-markdown and remark-gfm
+5. Test with existing tournament data
+6. Document markdown support in user guides (future)
 
 ## Future Enhancements
 

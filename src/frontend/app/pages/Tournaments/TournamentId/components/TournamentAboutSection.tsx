@@ -1,5 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { LocationIcon } from "../../../../components/icons";
 
 interface TournamentAboutSectionProps {
@@ -32,6 +33,7 @@ const TournamentAboutSection: React.FC<TournamentAboutSectionProps> = ({
       <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem', marginTop: '0.875rem' }}>Description</h2>
       <div style={{ fontSize: '0.875rem', color: '#374151', lineHeight: '1.625', marginBottom: '0.75rem' }}>
         <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
           components={{
             // Customize link rendering to open in new tab for security
             // eslint-disable-next-line react/prop-types
