@@ -72,8 +72,8 @@ public static class SocialAccountUrlValidator
 		// Try adding https://
 		if (Uri.TryCreate($"https://{url}", UriKind.Absolute, out uri))
 		{
-			// Valid after adding https:// - this is acceptable
-			if (uri.Scheme == Uri.UriSchemeHttps && uri.Host.Contains('.'))
+			// Valid after adding https:// - check if host looks reasonable
+			if (uri.Scheme == Uri.UriSchemeHttps && IsValidHost(uri.Host))
 			{
 				return (true, null);
 			}
@@ -102,12 +102,28 @@ public static class SocialAccountUrlValidator
 
 		// Try adding https://
 		if (Uri.TryCreate($"https://{url}", UriKind.Absolute, out uri) &&
-			uri.Scheme == Uri.UriSchemeHttps && uri.Host.Contains('.'))
+			uri.Scheme == Uri.UriSchemeHttps && IsValidHost(uri.Host))
 		{
 			return uri.ToString();
 		}
 
 		return null;
+	}
+
+	/// <summary>
+	/// Validates that a host looks reasonable for a URL.
+	/// Checks for basic domain structure (contains at least one dot).
+	/// </summary>
+	private static bool IsValidHost(string host)
+	{
+		if (string.IsNullOrWhiteSpace(host))
+		{
+			return false;
+		}
+
+		// Basic check: host should contain at least one dot (e.g., example.com)
+		// This filters out obviously invalid hosts like "localhost" or single words
+		return host.Contains('.') && host.Length > 3;
 	}
 
 	/// <summary>
