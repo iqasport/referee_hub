@@ -10,6 +10,7 @@ using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Service.Validation;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -121,6 +122,13 @@ public class NgbsController : ControllerBase
 			throw new AccessDeniedException(ngb.ToString());
 		}
 
+		// Validate and normalize social account URLs
+		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(model.SocialAccounts);
+		if (validationErrors.Count > 0)
+		{
+			throw new ArgumentException($"Invalid social account URLs: {string.Join(", ", validationErrors)}");
+		}
+
 		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
 
 		var ngbData = new NgbData
@@ -136,7 +144,7 @@ public class NgbsController : ControllerBase
 
 		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
 
-		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
+		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, normalizedSocialAccounts);
 	}
 
 	[HttpPut("{ngb}/avatar")]
@@ -206,6 +214,13 @@ public class NgbsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
+		// Validate and normalize social account URLs
+		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(model.SocialAccounts);
+		if (validationErrors.Count > 0)
+		{
+			throw new ArgumentException($"Invalid social account URLs: {string.Join(", ", validationErrors)}");
+		}
+
 		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
 
 		var ngbData = new NgbData
@@ -221,7 +236,7 @@ public class NgbsController : ControllerBase
 
 		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
 
-		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
+		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, normalizedSocialAccounts);
 	}
 
 	[HttpPost("api/v2/admin/[controller]/{ngb}")]
@@ -297,6 +312,13 @@ public class NgbsController : ControllerBase
 			throw new ArgumentException("TeamId must not be specified when creating a team. Did you mean to use PUT method to update a team?");
 		}
 
+		// Validate and normalize social account URLs
+		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(viewModel.SocialAccounts);
+		if (validationErrors.Count > 0)
+		{
+			throw new ArgumentException($"Invalid social account URLs: {string.Join(", ", validationErrors)}");
+		}
+
 		var teamData = new TeamData
 		{
 			Name = viewModel.Name,
@@ -308,7 +330,7 @@ public class NgbsController : ControllerBase
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
 		};
 		var team = await this.teamContextProvider.CreateTeamAsync(ngb, teamData);
-		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
+		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, normalizedSocialAccounts);
 		return new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,
@@ -341,6 +363,13 @@ public class NgbsController : ControllerBase
 			throw new ArgumentException("Team id mismatch between URL and request body.");
 		}
 
+		// Validate and normalize social account URLs
+		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(viewModel.SocialAccounts);
+		if (validationErrors.Count > 0)
+		{
+			throw new ArgumentException($"Invalid social account URLs: {string.Join(", ", validationErrors)}");
+		}
+
 		var teamData = new TeamData
 		{
 			Name = viewModel.Name,
@@ -352,7 +381,7 @@ public class NgbsController : ControllerBase
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
 		};
 		var team = await this.teamContextProvider.UpdateTeamAsync(ngb, teamId, teamData);
-		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
+		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, normalizedSocialAccounts);
 		return new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,

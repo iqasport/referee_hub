@@ -3,12 +3,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Serialization.General;
 using ManagementHub.Serialization.Identifiers;
 using ManagementHub.Serialization.Roles;
 using Microsoft.OpenApi.Models;
@@ -20,6 +22,7 @@ public static class DefaultJsonSerialization
 {
 	public static JsonSerializerOptions ConfigureOptions(JsonSerializerOptions options)
 	{
+		options.Converters.Add(new SocialAccountJsonConverter());
 		options.Converters.Add(new UserIdentifierJsonConverter());
 		options.Converters.Add(new TestIdentifierJsonConverter());
 		options.Converters.Add(new TestAttemptIdentifierJsonConverter());
