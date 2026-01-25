@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
+using ManagementHub.IntegrationTests.Models;
 using Xunit;
 
 namespace ManagementHub.IntegrationTests;
@@ -219,63 +220,4 @@ public class SocialAccountUrlValidationTests : IClassFixture<TestWebApplicationF
 		createdTeam.SocialAccounts[0].Url.Should().StartWith("https://",
 			"URL should have https:// prefix added");
 	}
-
-	[Fact]
-	public async Task GetNgbsTeams_WithInvalidSocialAccountInDatabase_ShouldNotThrow()
-	{
-		// This test verifies that even if somehow an invalid URL gets into the database,
-		// the read operations won't crash the API
-		// We can't easily insert invalid data through the API if validation is working,
-		// but we want to ensure graceful handling
-
-		// Arrange: Sign in as NGB admin
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
-
-		// Act: Get teams (this internally loads social accounts)
-		var response = await this._client.GetAsync("/api/v2/Ngbs/USA/teams");
-
-		// Assert: Should not throw, should return OK
-		response.StatusCode.Should().Be(HttpStatusCode.OK,
-			"even with invalid URLs in database, API should handle gracefully");
-	}
-}
-
-// DTOs for testing
-public class NgbInfoDto
-{
-	public required string Name { get; set; }
-	public string? Country { get; set; }
-	public string? Acronym { get; set; }
-	public string? Website { get; set; }
-	public int PlayerCount { get; set; }
-	public SocialAccountDto[] SocialAccounts { get; set; } = Array.Empty<SocialAccountDto>();
-}
-
-public class NgbUpdateModelDto
-{
-	public required string Name { get; set; }
-	public string? Country { get; set; }
-	public string? Acronym { get; set; }
-	public string? Website { get; set; }
-	public int PlayerCount { get; set; }
-	public SocialAccountDto[] SocialAccounts { get; set; } = Array.Empty<SocialAccountDto>();
-}
-
-public class NgbTeamViewModelDto
-{
-	public string? TeamId { get; set; }
-	public required string Name { get; set; }
-	public required string City { get; set; }
-	public string? State { get; set; }
-	public required string Country { get; set; }
-	public required string Status { get; set; }
-	public required string GroupAffiliation { get; set; }
-	public required string JoinedAt { get; set; }
-	public SocialAccountDto[] SocialAccounts { get; set; } = Array.Empty<SocialAccountDto>();
-}
-
-public class SocialAccountDto
-{
-	public required string Url { get; set; }
-	public required string Type { get; set; }
 }

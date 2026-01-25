@@ -10,7 +10,6 @@ using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
-using ManagementHub.Service.Validation;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -112,7 +111,7 @@ public class NgbsController : ControllerBase
 	[HttpPut("{ngb}")]
 	[Tags("Ngb")]
 	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
-	public async Task<ActionResult> UpdateNgb([FromRoute] NgbIdentifier ngb, [FromBody] NgbUpdateModel model)
+	public async Task UpdateNgb([FromRoute] NgbIdentifier ngb, [FromBody] NgbUpdateModel model)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var permissionConstraint = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
@@ -120,13 +119,6 @@ public class NgbsController : ControllerBase
 		if (!permissionConstraint.AppliesTo(ngb))
 		{
 			throw new AccessDeniedException(ngb.ToString());
-		}
-
-		// Validate and normalize social account URLs
-		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(model.SocialAccounts);
-		if (validationErrors.Count > 0)
-		{
-			return this.BadRequest(new { errors = validationErrors });
 		}
 
 		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
@@ -144,8 +136,7 @@ public class NgbsController : ControllerBase
 
 		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
 
-		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, normalizedSocialAccounts);
-		return this.Ok();
+		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
 	}
 
 	[HttpPut("{ngb}/avatar")]
@@ -211,16 +202,9 @@ public class NgbsController : ControllerBase
 	[HttpPut("api/v2/admin/[controller]/{ngb}")]
 	[Tags("Ngb")]
 	[Authorize(AuthorizationPolicies.IqaAdminPolicy)]
-	public async Task<ActionResult> AdminUpdateNgb([FromRoute] NgbIdentifier ngb, [FromBody] AdminNgbUpdateModel model)
+	public async Task AdminUpdateNgb([FromRoute] NgbIdentifier ngb, [FromBody] AdminNgbUpdateModel model)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-
-		// Validate and normalize social account URLs
-		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(model.SocialAccounts);
-		if (validationErrors.Count > 0)
-		{
-			return this.BadRequest(new { errors = validationErrors });
-		}
 
 		var context = await this.ngbContextProvider.GetNgbContextAsync(ngb);
 
@@ -237,8 +221,7 @@ public class NgbsController : ControllerBase
 
 		await this.ngbContextProvider.UpdateNgbInfoAsync(ngb, ngbData);
 
-		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, normalizedSocialAccounts);
-		return this.Ok();
+		_ = await this.socialAccountsProvider.UpdateNgbSocialAccounts(ngb, model.SocialAccounts);
 	}
 
 	[HttpPost("api/v2/admin/[controller]/{ngb}")]
@@ -299,7 +282,7 @@ public class NgbsController : ControllerBase
 	[HttpPost("{ngb}/teams")]
 	[Tags("Team")]
 	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
-	public async Task<ActionResult<NgbTeamViewModel>> CreateNgbTeam([FromRoute] NgbIdentifier ngb, [FromBody] NgbTeamViewModel viewModel)
+	public async Task<NgbTeamViewModel> CreateNgbTeam([FromRoute] NgbIdentifier ngb, [FromBody] NgbTeamViewModel viewModel)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var permissionConstraint = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
@@ -314,13 +297,6 @@ public class NgbsController : ControllerBase
 			throw new ArgumentException("TeamId must not be specified when creating a team. Did you mean to use PUT method to update a team?");
 		}
 
-		// Validate and normalize social account URLs
-		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(viewModel.SocialAccounts);
-		if (validationErrors.Count > 0)
-		{
-			return this.BadRequest(new { errors = validationErrors });
-		}
-
 		var teamData = new TeamData
 		{
 			Name = viewModel.Name,
@@ -332,7 +308,7 @@ public class NgbsController : ControllerBase
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
 		};
 		var team = await this.teamContextProvider.CreateTeamAsync(ngb, teamData);
-		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, normalizedSocialAccounts);
+		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
 		return new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,
@@ -350,7 +326,7 @@ public class NgbsController : ControllerBase
 	[HttpPut("{ngb}/teams/{teamId}")]
 	[Tags("Team")]
 	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
-	public async Task<ActionResult<NgbTeamViewModel>> UpdateNgbTeam([FromRoute] NgbIdentifier ngb, [FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
+	public async Task<NgbTeamViewModel> UpdateNgbTeam([FromRoute] NgbIdentifier ngb, [FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var permissionConstraint = userContext.Roles.OfType<NgbAdminRole>().FirstOrDefault()?.Ngb ?? NgbConstraint.Empty();
@@ -365,13 +341,6 @@ public class NgbsController : ControllerBase
 			throw new ArgumentException("Team id mismatch between URL and request body.");
 		}
 
-		// Validate and normalize social account URLs
-		var (normalizedSocialAccounts, validationErrors) = SocialAccountUrlValidator.ValidateAndNormalize(viewModel.SocialAccounts);
-		if (validationErrors.Count > 0)
-		{
-			return this.BadRequest(new { errors = validationErrors });
-		}
-
 		var teamData = new TeamData
 		{
 			Name = viewModel.Name,
@@ -383,7 +352,7 @@ public class NgbsController : ControllerBase
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
 		};
 		var team = await this.teamContextProvider.UpdateTeamAsync(ngb, teamId, teamData);
-		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, normalizedSocialAccounts);
+		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
 		return new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,

@@ -31,20 +31,21 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 
 	public async Task<Dictionary<NgbIdentifier, IEnumerable<SocialAccount>>> QueryNgbSocialAccounts(NgbConstraint ngbConstraint)
 	{
-		var accounts = await this.dbContext.SocialAccounts.AsNoTracking()
+		var groupedAccounts = await this.dbContext.SocialAccounts.AsNoTracking()
 			.Where(sa => sa.OwnableType == "NationalGoverningBody")
 			.Join(this.dbContext.NationalGoverningBodies.AsNoTracking().WithConstraint(ngbConstraint),
 				sa => sa.OwnableId,
 				ngb => ngb.Id,
-				(sa, ngb) => new { ngb.CountryCode, sa.Url, sa.AccountType })
+				(sa, ngb) => new { ngb.CountryCode, SocialAccount = sa })
+			.GroupBy(x => x.CountryCode)
 			.ToListAsync();
 
-		// Group and filter out invalid URLs
+		// Process results and filter out invalid URLs
 		var result = new Dictionary<NgbIdentifier, IEnumerable<SocialAccount>>();
-		foreach (var group in accounts.GroupBy(a => a.CountryCode))
+		foreach (var group in groupedAccounts)
 		{
-			var groupAccounts = group.Select(a => new Models.Data.SocialAccount { Url = a.Url, AccountType = a.AccountType }).ToList();
-			result[NgbIdentifier.Parse(group.Key)] = FilterValidSocialAccounts(groupAccounts);
+			var accounts = group.Select(x => x.SocialAccount).ToList();
+			result[NgbIdentifier.Parse(group.Key)] = FilterValidSocialAccounts(accounts);
 		}
 		return result;
 	}
@@ -57,17 +58,18 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 			n => n.Id,
 			(t, _) => t);
 
-		var accounts = await this.dbContext.SocialAccounts.AsNoTracking()
+		var groupedAccounts = await this.dbContext.SocialAccounts.AsNoTracking()
 			.Where(sa => sa.OwnableType == "Team")
-			.Join(teams, sa => sa.OwnableId, t => t.Id, (sa, t) => new { TeamId = t.Id, sa.Url, sa.AccountType })
+			.Join(teams, sa => sa.OwnableId, t => t.Id, (sa, t) => new { TeamId = t.Id, SocialAccount = sa })
+			.GroupBy(x => x.TeamId)
 			.ToListAsync();
 
-		// Group and filter out invalid URLs
+		// Process results and filter out invalid URLs
 		var result = new Dictionary<TeamIdentifier, IEnumerable<SocialAccount>>();
-		foreach (var group in accounts.GroupBy(a => a.TeamId))
+		foreach (var group in groupedAccounts)
 		{
-			var groupAccounts = group.Select(a => new Models.Data.SocialAccount { Url = a.Url, AccountType = a.AccountType }).ToList();
-			result[new TeamIdentifier(group.Key)] = FilterValidSocialAccounts(groupAccounts);
+			var accounts = group.Select(x => x.SocialAccount).ToList();
+			result[new TeamIdentifier(group.Key)] = FilterValidSocialAccounts(accounts);
 		}
 		return result;
 	}
