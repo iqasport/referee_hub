@@ -21,6 +21,7 @@ public static class DependencyInjectionExtensions
 		services.AddScoped<ISendTestFeedbackEmail, SendTestFeedbackEmail>();
 		services.AddScoped<ISendNgbExportEmail, SendNgbExportEmail>();
 		services.AddScoped<ISendTournamentContactEmail, SendTournamentContactEmail>();
+		services.AddScoped<ISendTournamentInviteEmail, SendTournamentInviteEmail>();
 
 		services.AddOptions<EmailSenderSettings>()
 			.ValidateDataAnnotations()
