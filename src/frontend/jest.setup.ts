@@ -8,7 +8,7 @@ jest.mock('react-markdown', () => {
   return {
     __esModule: true,
     default: ({ children }: { children: string }) => {
-      // Simple mock that renders children in a div to simulate markdown rendering
+      // Simple mock that returns children directly for testing
       return children;
     },
   };

@@ -34,18 +34,26 @@ const TournamentAboutSection: React.FC<TournamentAboutSectionProps> = ({
         <ReactMarkdown
           components={{
             // Customize link rendering to open in new tab for security
-            a: ({ ...props }) => (
-              <a 
-                {...props} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ color: '#2563eb', textDecoration: 'underline' }}
-              />
-            ),
+            // eslint-disable-next-line react/prop-types
+            a: (props) => {
+              const { href, children } = props;
+              return (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#2563eb', textDecoration: 'underline' }}
+                >
+                  {children}
+                </a>
+              );
+            },
             // Preserve paragraph styling
-            p: ({ ...props }) => (
-              <p {...props} style={{ marginBottom: '0.5rem' }} />
-            ),
+            // eslint-disable-next-line react/prop-types
+            p: (props) => {
+              const { children } = props;
+              return <p style={{ marginBottom: '0.5rem' }}>{children}</p>;
+            },
           }}
         >
           {description || 'No description provided.'}
