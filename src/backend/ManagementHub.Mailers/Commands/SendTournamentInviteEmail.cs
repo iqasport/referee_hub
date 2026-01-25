@@ -98,17 +98,18 @@ IQA Referee Hub</p>
 </body>
 </html>";
 
-			// Send email to each team manager
-			foreach (var manager in managersList)
-			{
-				await this.emailFactory.Create()
+			// Send email to each team manager concurrently
+			var emailTasks = managersList.Select(manager =>
+				this.emailFactory.Create()
 					.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
 					.To(manager.Email)
 					.ReplyTo(this.emailSenderSettings.ReplyToEmail)
 					.Subject(subject)
 					.Body(body, isHtml: true)
-					.SendAsync();
-			}
+					.SendAsync()
+			).ToList();
+
+			await Task.WhenAll(emailTasks);
 
 			this.logger.LogInformation(0x7a1bc505, "Tournament invite email sent successfully.");
 		}
