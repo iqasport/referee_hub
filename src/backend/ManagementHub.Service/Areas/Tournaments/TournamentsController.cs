@@ -478,21 +478,25 @@ public class TournamentsController : ControllerBase
 
 		await this.HandleAutoApproval(invite, tournamentId, teamId);
 
-		// Send invitation email to team managers
-		try
+		// Send invitation email to team managers only if invite was not auto-approved
+		// Auto-approved invites don't require team manager action
+		if (invite.GetStatus() == InviteStatus.Pending)
 		{
-			var hostUri = this.GetHostBaseUri();
-			await this.sendTournamentInviteEmail.SendTournamentInviteEmailAsync(
-				tournamentId,
-				teamId,
-				hostUri,
-				this.HttpContext.RequestAborted);
-		}
-		catch (Exception ex)
-		{
-			// Log but don't fail the invite creation if email fails
-			// The invite is already created successfully
-			this.logger.LogError(ex, "Failed to send tournament invite email for tournament {TournamentId} to team {TeamId}", tournamentId, teamId);
+			try
+			{
+				var hostUri = this.GetHostBaseUri();
+				await this.sendTournamentInviteEmail.SendTournamentInviteEmailAsync(
+					tournamentId,
+					teamId,
+					hostUri,
+					this.HttpContext.RequestAborted);
+			}
+			catch (Exception ex)
+			{
+				// Log but don't fail the invite creation if email fails
+				// The invite is already created successfully
+				this.logger.LogError(ex, "Failed to send tournament invite email for tournament {TournamentId} to team {TeamId}", tournamentId, teamId);
+			}
 		}
 
 		var viewModel = MapInviteToViewModel(invite);

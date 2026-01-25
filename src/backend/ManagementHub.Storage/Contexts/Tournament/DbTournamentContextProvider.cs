@@ -483,11 +483,21 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Organizer,
 				t.IsPrivate,
 				// IsCurrentUserInvolved: computed via database join
-				// User is involved if they manage this tournament OR manage a participating team OR are on a roster
+				// User is involved if they:
+				// - Manage this tournament OR
+				// - Manage a participating team OR
+				// - Are on a participating team's roster OR
+				// - Manage a team with a pending invite (check if user manages any team that matches an invite's ParticipantId)
 				// Using .Contains() with IQueryable creates a SQL IN clause with subquery for proper join
 				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
 				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))) ||
-				t.TournamentTeamParticipants.Any(p => p.RosterEntries.Any(entry => userDatabaseIds.Contains(entry.UserId)))));
+				t.TournamentTeamParticipants.Any(p => p.RosterEntries.Any(entry => userDatabaseIds.Contains(entry.UserId))) ||
+				t.TournamentInvites.Any(i => 
+					i.ParticipantType == "team" &&
+					this.dbContext.TeamManagers
+						.Where(tm => userDatabaseIds.Contains(tm.UserId))
+						.Select(tm => new TeamIdentifier(tm.TeamId).ToString())
+						.Contains(i.ParticipantId))));
 	}
 
 	// Phase 3: Invite management methods

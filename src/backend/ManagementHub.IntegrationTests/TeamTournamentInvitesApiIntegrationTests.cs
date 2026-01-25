@@ -173,6 +173,66 @@ public class TeamTournamentInvitesApiIntegrationTests : IClassFixture<TestWebApp
 			"response should be an array");
 	}
 
+	[Fact]
+	public async Task CreateInvite_ShouldSendEmailToTeamManagers_AndAllowThemToSeeTournament()
+	{
+		// Clear any previous emails
+		this._factory.EmailSender.Clear();
+
+		// Step 1: Sign in as referee and create a tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Email Test Tournament", TournamentType.Club, "USA", "Chicago");
+
+		// Step 2: Get the Yankees team ID
+		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
+
+		// Step 3: Create an invite for the Yankees team
+		var createInviteModel = new CreateInviteModel
+		{
+			ParticipantType = ParticipantType.Team,
+			ParticipantId = yankeesTeamId
+		};
+
+		var createInviteResponse = await this._client.PostAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/invites",
+			createInviteModel);
+
+		// If request failed, log the error for debugging
+		if (!createInviteResponse.IsSuccessStatusCode)
+		{
+			var errorContent = await createInviteResponse.Content.ReadAsStringAsync();
+			System.Console.WriteLine($"Create invite failed with {createInviteResponse.StatusCode}: {errorContent}");
+		}
+
+		createInviteResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+			"tournament manager should be able to create invite");
+
+		// Step 4: Verify email was sent to team managers
+		var sentEmails = this._factory.EmailSender.GetSentEmails();
+		sentEmails.Should().NotBeEmpty("at least one email should be sent to team managers");
+
+		var inviteEmails = sentEmails.Where(e => e.Subject.Contains("Tournament Invitation")).ToArray();
+		inviteEmails.Should().NotBeEmpty("invitation email should be sent");
+
+		// Verify email contains team manager email
+		var teamManagerEmail = inviteEmails.FirstOrDefault(e => e.To.Contains("team_manager@example.com"));
+		teamManagerEmail.Should().NotBeNull("email should be sent to team_manager@example.com");
+		teamManagerEmail!.Body.Should().Contain("Email Test Tournament", "email should contain tournament name");
+		teamManagerEmail.Body.Should().Contain($"/tournaments/{tournamentId}", "email should contain tournament link");
+
+		// Step 5: Switch to team manager and verify they can see the tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+
+		var getTournamentResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}");
+		getTournamentResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"team manager with pending invite should be able to see the tournament");
+
+		var tournamentJson = await getTournamentResponse.Content.ReadFromJsonAsync<JsonElement>();
+		tournamentJson.GetProperty("name").GetString().Should().Be("Email Test Tournament");
+		tournamentJson.GetProperty("isCurrentUserInvolved").GetBoolean().Should().BeTrue(
+			"team manager with pending invite should be marked as involved");
+	}
+
 	// Helper methods
 
 	private async Task<string> CreateTestTournamentAsync(string name, TournamentType type, string country, string city)
