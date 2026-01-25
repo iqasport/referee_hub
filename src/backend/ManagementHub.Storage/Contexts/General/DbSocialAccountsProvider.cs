@@ -38,16 +38,14 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 				ngb => ngb.Id,
 				(sa, ngb) => new { ngb.CountryCode, SocialAccount = sa })
 			.GroupBy(x => x.CountryCode)
-			.ToListAsync();
+			.ToDictionaryAsync(
+				g => NgbIdentifier.Parse(g.Key),
+				g => g.Select(x => x.SocialAccount));
 
-		// Process results and filter out invalid URLs
-		var result = new Dictionary<NgbIdentifier, IEnumerable<SocialAccount>>();
-		foreach (var group in groupedAccounts)
-		{
-			var accounts = group.Select(x => x.SocialAccount).ToList();
-			result[NgbIdentifier.Parse(group.Key)] = FilterValidSocialAccounts(accounts);
-		}
-		return result;
+		// Post-process to filter out invalid URLs
+		return groupedAccounts
+			.Select(kvp => KeyValuePair.Create(kvp.Key, FilterValidSocialAccounts(kvp.Value)))
+			.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 	}
 
 	public async Task<Dictionary<TeamIdentifier, IEnumerable<SocialAccount>>> QueryTeamSocialAccounts(NgbConstraint ngbConstraint)
@@ -62,16 +60,14 @@ public class DbSocialAccountsProvider : ISocialAccountsProvider
 			.Where(sa => sa.OwnableType == "Team")
 			.Join(teams, sa => sa.OwnableId, t => t.Id, (sa, t) => new { TeamId = t.Id, SocialAccount = sa })
 			.GroupBy(x => x.TeamId)
-			.ToListAsync();
+			.ToDictionaryAsync(
+				g => new TeamIdentifier(g.Key),
+				g => g.Select(x => x.SocialAccount));
 
-		// Process results and filter out invalid URLs
-		var result = new Dictionary<TeamIdentifier, IEnumerable<SocialAccount>>();
-		foreach (var group in groupedAccounts)
-		{
-			var accounts = group.Select(x => x.SocialAccount).ToList();
-			result[new TeamIdentifier(group.Key)] = FilterValidSocialAccounts(accounts);
-		}
-		return result;
+		// Post-process to filter out invalid URLs
+		return groupedAccounts
+			.Select(kvp => KeyValuePair.Create(kvp.Key, FilterValidSocialAccounts(kvp.Value)))
+			.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 	}
 
 	public async Task<IEnumerable<SocialAccount>> UpdateNgbSocialAccounts(NgbIdentifier ngb, IEnumerable<SocialAccount> socialAccounts)
