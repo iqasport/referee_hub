@@ -16,6 +16,7 @@ using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Extensions;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
@@ -43,7 +44,9 @@ public class TournamentsController : ControllerBase
 	private readonly IUpdateTournamentBannerCommand updateTournamentBannerCommand;
 	private readonly IUserDelicateInfoService userDelicateInfoService;
 	private readonly ISendTournamentContactEmail sendTournamentContactEmail;
+	private readonly ISendTournamentInviteEmail sendTournamentInviteEmail;
 	private readonly ManagementHubDbContext dbContext;
+	private readonly Microsoft.Extensions.Logging.ILogger<TournamentsController> logger;
 
 	public TournamentsController(
 		IUserContextAccessor contextAccessor,
@@ -53,7 +56,9 @@ public class TournamentsController : ControllerBase
 		IUpdateTournamentBannerCommand updateTournamentBannerCommand,
 		IUserDelicateInfoService userDelicateInfoService,
 		ISendTournamentContactEmail sendTournamentContactEmail,
-		ManagementHubDbContext dbContext)
+		ISendTournamentInviteEmail sendTournamentInviteEmail,
+		ManagementHubDbContext dbContext,
+		Microsoft.Extensions.Logging.ILogger<TournamentsController> logger)
 	{
 		this.contextAccessor = contextAccessor;
 		this.userContextProvider = userContextProvider;
@@ -62,7 +67,9 @@ public class TournamentsController : ControllerBase
 		this.updateTournamentBannerCommand = updateTournamentBannerCommand;
 		this.userDelicateInfoService = userDelicateInfoService;
 		this.sendTournamentContactEmail = sendTournamentContactEmail;
+		this.sendTournamentInviteEmail = sendTournamentInviteEmail;
 		this.dbContext = dbContext;
+		this.logger = logger;
 	}
 
 	/// <summary>
@@ -470,6 +477,23 @@ public class TournamentsController : ControllerBase
 			this.HttpContext.RequestAborted);
 
 		await this.HandleAutoApproval(invite, tournamentId, teamId);
+
+		// Send invitation email to team managers
+		try
+		{
+			var hostUri = this.GetHostBaseUri();
+			await this.sendTournamentInviteEmail.SendTournamentInviteEmailAsync(
+				tournamentId,
+				teamId,
+				hostUri,
+				this.HttpContext.RequestAborted);
+		}
+		catch (Exception ex)
+		{
+			// Log but don't fail the invite creation if email fails
+			// The invite is already created successfully
+			this.logger.LogError(ex, "Failed to send tournament invite email for tournament {TournamentId} to team {TeamId}", tournamentId, teamId);
+		}
 
 		var viewModel = MapInviteToViewModel(invite);
 
