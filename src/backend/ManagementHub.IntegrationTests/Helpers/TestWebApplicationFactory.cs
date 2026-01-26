@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Service;
 using Microsoft.AspNetCore.Hosting;
@@ -21,6 +22,11 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 	private const string DatabaseName = "managementhub_test";
 	private const string Username = "postgres";
 	private const string Password = "postgres";
+
+	/// <summary>
+	/// In-memory email sender for testing. Accessible to tests to verify sent emails.
+	/// </summary>
+	public InMemoryEmailSender EmailSender { get; } = new();
 
 	protected override IWebHostBuilder CreateWebHostBuilder()
 	{
@@ -73,6 +79,14 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 				options.ShutdownTimeout = TimeSpan.FromSeconds(30);
 				options.StartupTimeout = TimeSpan.FromSeconds(30);
 			});
+
+			// Replace the ISender with our in-memory implementation for testing
+			var senderDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(FluentEmail.Core.Interfaces.ISender));
+			if (senderDescriptor != null)
+			{
+				services.Remove(senderDescriptor);
+			}
+			services.AddSingleton<FluentEmail.Core.Interfaces.ISender>(this.EmailSender);
 		});
 	}
 
