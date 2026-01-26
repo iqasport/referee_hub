@@ -2,16 +2,18 @@
 
 ## Overview
 
-This document outlines the approach for rendering tournament descriptions with proper formatting, including line breaks and clickable links.
+This document outlines the approach for rendering tournament descriptions with proper markdown formatting, including line breaks, clickable links, styled headings, lists, and other rich text elements.
 
 ## Problem Statement
 
-Tournament descriptions are currently displayed as plain text without preserving:
+Tournament descriptions were displayed as plain text without:
 - Line breaks (newlines)
 - Clickable URLs
+- Visual styling for headings
+- Proper formatting for lists
 - Any other text formatting
 
-The data is stored correctly in the database, but the display component (`TournamentAboutSection`) renders it as a simple `<p>` tag without any processing.
+The data was stored correctly in the database, but the display component (`TournamentAboutSection`) rendered it without any markdown processing or styling.
 
 ## Solution Approach
 
@@ -93,23 +95,23 @@ Use CSS `white-space: pre-line` to preserve line breaks and add link detection:
    </ReactMarkdown>
    ```
 
-3. **Add Styling:**
-   ```css
-   .tournament-description {
-     font-size: 0.875rem;
-     color: #374151;
-     line-height: 1.625;
-     margin-bottom: 0.75rem;
-   }
+3. **Add Styling via Component Renderers:**
    
-   .tournament-description a {
-     color: #2563eb;
-     text-decoration: underline;
-   }
+   Custom component renderers are used to apply inline styles to all markdown elements. This approach:
+   - Ensures consistent rendering without CSS conflicts
+   - Keeps the component self-contained
+   - Avoids specificity issues
    
-   .tournament-description a:hover {
-     color: #1d4ed8;
-   }
+   Key styles:
+   - **Headings**: Progressive sizing from h1 (1rem) to h6 (0.75rem), all smaller than the "Description" header (1.125rem)
+   - **Lists**: 1.5rem left padding for indentation, proper list-style-type
+   - **Emphasis/Strong**: Explicit italic and bold styles
+   - **Code**: Gray background, monospace font, padding
+   - **Blockquotes**: Left border, italic, indented
+   
+   Example:
+   ```tsx
+   h1: ({ children }) => <h1 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#111827', marginTop: '1rem', marginBottom: '0.5rem' }}>{children}</h1>
    ```
 
 ## Security Considerations
@@ -125,6 +127,36 @@ Use CSS `white-space: pre-line` to preserve line breaks and add link detection:
 - URLs in plain text will be auto-linked
 - Line breaks will be preserved
 - No database migration required
+
+## Supported Markdown Features
+
+The implementation supports full GitHub Flavored Markdown (GFM) including:
+
+**Text Formatting:**
+- *Italic* text using `*asterisks*` or `_underscores_`
+- **Bold** text using `**double asterisks**` or `__double underscores__`
+- Inline `code` using backticks
+
+**Headings:**
+- # H1 through ###### H6
+- Properly sized with visual hierarchy
+- h1 (1rem) is slightly smaller than the "Description" section header (1.125rem)
+
+**Lists:**
+- Ordered lists with numbers (1. 2. 3.)
+- Unordered lists with bullets (- or *)
+- Nested lists supported
+- Proper indentation (1.5rem)
+
+**Links:**
+- Plain URLs automatically become clickable: `https://example.com`
+- Markdown links: `[text](url)`
+- All links open in new tab with security attributes
+
+**Other:**
+- Blockquotes using `>`
+- Horizontal rules using `---` or `***`
+- Code blocks using triple backticks
 
 ## Testing Strategy
 
