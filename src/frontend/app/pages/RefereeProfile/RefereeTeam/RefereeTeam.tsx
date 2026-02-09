@@ -5,7 +5,7 @@ import Select, { SelectOption } from "../../../components/Select/Select";
 import { RefereeLocationOptions } from "../RefereeLocation/RefereeLocation";
 import { NgbTeamViewModel, NgbViewModel, RefereeViewModel, useGetNgbTeamsQuery } from "../../../store/serviceApi";
 
-export type RefereeTeamOptions = Pick<RefereeViewModel, "playingTeam" | "coachingTeam">
+export type RefereeTeamOptions = Pick<RefereeViewModel, "playingTeam" | "coachingTeam" | "nationalTeam">
 
 interface RefereeTeamProps {
   teams: RefereeTeamOptions;
@@ -21,11 +21,23 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb, skipPaging: true }, {skip: !locations.primaryNgb});
   const { data: secondaryNgbTeams, error: getSecondaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.secondaryNgb, skipPaging: true }, {skip: !locations.secondaryNgb});
   const allTeams = (primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? []);
-  const [filteredTeams, setFilteredTeams] = useState<NgbTeamViewModel[]>([]);
+  
+  // Filter teams by type: regular teams (excluding national) and national teams
+  const regularTeams = allTeams.filter(team => team.groupAffiliation !== "national");
+  const nationalTeams = allTeams.filter(team => team.groupAffiliation === "national");
+  
+  const [filteredPlayingTeams, setFilteredPlayingTeams] = useState<NgbTeamViewModel[]>([]);
+  const [filteredCoachingTeams, setFilteredCoachingTeams] = useState<NgbTeamViewModel[]>([]);
+  const [filteredNationalTeams, setFilteredNationalTeams] = useState<NgbTeamViewModel[]>([]);
 
   // update local state after teams are loaded
-  // can't use allTeams here as it's changing on each rerender
-  useEffect(() => setFilteredTeams((primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? [])), [primaryNgbTeams, secondaryNgbTeams]);
+  useEffect(() => {
+    const allRegularTeams = (primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? []).filter(team => team.groupAffiliation !== "national");
+    const allNationalTeams = (primaryNgbTeams?.items ?? []).concat(secondaryNgbTeams?.items ?? []).filter(team => team.groupAffiliation === "national");
+    setFilteredPlayingTeams(allRegularTeams);
+    setFilteredCoachingTeams(allRegularTeams);
+    setFilteredNationalTeams(allNationalTeams);
+  }, [primaryNgbTeams, secondaryNgbTeams]);
 
   const hasType = (type: keyof RefereeTeamOptions): boolean => {
     return !!teams[type];
@@ -50,14 +62,27 @@ const RefereeTeam = (props: RefereeTeamProps) => {
     onChange({...teams, [type]: isBlank ? null : { id: newTeamId }})
   };
 
-  const handleSearch = (searchValue: string) => {
-    if (!searchValue) setFilteredTeams(allTeams);
-    setFilteredTeams(allTeams.filter(team => team.name.toLowerCase().includes(searchValue.toLowerCase())));
+  const handleSearch = (teamType: 'playing' | 'coaching' | 'national', searchValue: string) => {
+    const sourceTeams = teamType === 'national' ? nationalTeams : regularTeams;
+    const filteredResults = searchValue 
+      ? sourceTeams.filter(team => {
+          const teamName = team.name ?? '';
+          return teamName.toLowerCase().includes(searchValue.toLowerCase());
+        })
+      : sourceTeams;
+    
+    if (teamType === 'playing') {
+      setFilteredPlayingTeams(filteredResults);
+    } else if (teamType === 'coaching') {
+      setFilteredCoachingTeams(filteredResults);
+    } else {
+      setFilteredNationalTeams(filteredResults);
+    }
   };
 
-  const handleInputChange = (newValue: string, actionMeta: InputActionMeta) => {
+  const handleInputChange = (teamType: 'playing' | 'coaching' | 'national') => (newValue: string, actionMeta: InputActionMeta) => {
     if (actionMeta.action === "input-change") {
-      handleSearch(newValue);
+      handleSearch(teamType, newValue);
     }
   };
 
@@ -75,7 +100,11 @@ const RefereeTeam = (props: RefereeTeamProps) => {
     }
   };
 
-  const renderDropdown = (type: keyof RefereeTeamOptions) => {
+  const renderDropdown = (type: keyof RefereeTeamOptions, teamType: 'playing' | 'coaching' | 'national') => {
+    const options = teamType === 'playing' ? filteredPlayingTeams 
+      : teamType === 'coaching' ? filteredCoachingTeams 
+      : filteredNationalTeams;
+    
     return (
       <label>
         {isDisabled && "Please select a Primary NGB to select a team"}
@@ -83,9 +112,9 @@ const RefereeTeam = (props: RefereeTeamProps) => {
           isClearable
           isMulti={false}
           isDisabled={isDisabled}
-          onInputChange={handleInputChange}
+          onInputChange={handleInputChange(teamType)}
           onChange={handleChange(type)}
-          options={filteredTeams.map((team) => ({ value: team.teamId.toString(), label: team.name }))}
+          options={options.map((team) => ({ value: team.teamId?.toString() ?? '', label: team.name ?? '' }))}
           value={getSelectedTeam(type)}
         />
       </label>
@@ -102,16 +131,25 @@ const RefereeTeam = (props: RefereeTeamProps) => {
             {hasType("playingTeam") ? getTeamName("playingTeam") : emptyTeam}
           </p>
         )}
-        {isEditing && renderDropdown("playingTeam")}
+        {isEditing && renderDropdown("playingTeam", "playing")}
       </div>
-      <div className="w-full">
+      <div className="w-full mb-4">
         <h4 className="text-sm mb-2">Coaching Team</h4>
         {!isEditing && (
           <p className="font-bold">
             {hasType("coachingTeam") ? getTeamName("coachingTeam") : emptyTeam}
           </p>
         )}
-        {isEditing && renderDropdown("coachingTeam")}
+        {isEditing && renderDropdown("coachingTeam", "coaching")}
+      </div>
+      <div className="w-full">
+        <h4 className="text-sm mb-2">National Team</h4>
+        {!isEditing && (
+          <p className="font-bold">
+            {hasType("nationalTeam") ? getTeamName("nationalTeam") : emptyTeam}
+          </p>
+        )}
+        {isEditing && renderDropdown("nationalTeam", "national")}
       </div>
     </div>
   );
