@@ -1164,6 +1164,7 @@ export type RefereeUpdateViewModel = {
   secondaryNgb?: string | null;
   playingTeam?: RefereeTeamUpdater;
   coachingTeam?: RefereeTeamUpdater;
+  nationalTeam?: RefereeTeamUpdater;
 };
 export type TeamIndicator = {
   id?: string;
@@ -1180,6 +1181,7 @@ export type RefereeViewModel = {
   secondaryNgb?: string | null;
   playingTeam?: TeamIndicator;
   coachingTeam?: TeamIndicator;
+  nationalTeam?: TeamIndicator;
   /** Certifications acquired by this referee. */
   acquiredCertifications?: Certification[] | null;
   /** User attributes of this referee. */
