@@ -5,6 +5,12 @@
 namespace ManagementHub.Storage.Migrations
 {
     /// <inheritdoc />
+    /// <remarks>
+    /// This migration adds the NationalTeamPlayer enum value to RefereeTeamAssociationType.
+    /// Since enum values are stored as integers in the database, no schema changes are required.
+    /// The auto-generated migration contains unrelated column type adjustments that were detected
+    /// by EF Core but are not part of the primary purpose of this migration.
+    /// </remarks>
     public partial class AddNationalTeamPlayerAssociationType : Migration
     {
         /// <inheritdoc />

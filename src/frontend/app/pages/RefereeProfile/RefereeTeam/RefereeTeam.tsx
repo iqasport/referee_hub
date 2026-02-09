@@ -65,7 +65,10 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   const handleSearch = (teamType: 'playing' | 'coaching' | 'national', searchValue: string) => {
     const sourceTeams = teamType === 'national' ? nationalTeams : regularTeams;
     const filteredResults = searchValue 
-      ? sourceTeams.filter(team => team.name?.toLowerCase().includes(searchValue.toLowerCase()))
+      ? sourceTeams.filter(team => {
+          const teamName = team.name ?? '';
+          return teamName.toLowerCase().includes(searchValue.toLowerCase());
+        })
       : sourceTeams;
     
     if (teamType === 'playing') {
