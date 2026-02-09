@@ -48,6 +48,7 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				IsActive = true,
 				CoachingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Coach).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
 				PlayingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Player).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
+				NationalTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.NationalTeamPlayer).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
 				PrimaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Primary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
 				SecondaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Secondary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
 			})
@@ -55,12 +56,13 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 		var newRefereeRole = updater(currentRefereeRole);
 
-		const int numberOfPropertiesOfExtendedUserData = 5;
+		const int numberOfPropertiesOfExtendedUserData = 6;
 		var propertyNames = new List<string>(capacity: numberOfPropertiesOfExtendedUserData);
 
 		bool updateIsActive = false;
 		bool updateCoachingTeam = false;
 		bool updatePlayingTeam = false;
+		bool updateNationalTeam = false;
 		bool updatePrimaryNgb = false;
 		bool updateSecondaryNgb = false;
 
@@ -80,6 +82,12 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 		{
 			updatePlayingTeam = true;
 			propertyNames.Add(nameof(newRefereeRole.PlayingTeam));
+		}
+
+		if (newRefereeRole.NationalTeam != currentRefereeRole.NationalTeam)
+		{
+			updateNationalTeam = true;
+			propertyNames.Add(nameof(newRefereeRole.NationalTeam));
 		}
 
 		if (newRefereeRole.PrimaryNgb != currentRefereeRole.PrimaryNgb)
@@ -188,6 +196,50 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 				this.dbContext.RefereeTeams.Add(new RefereeTeam
 				{
 					AssociationType = RefereeTeamAssociationType.Player,
+					Referee = referee ??= await this.dbContext.Users.WithIdentifier(userId).SingleAsync(cancellationToken),
+					TeamId = newTeamId,
+					CreatedAt = now,
+					UpdatedAt = now,
+				});
+				await this.dbContext.SaveChangesAsync(cancellationToken);
+			}
+		}
+
+		if (updateNationalTeam)
+		{
+			if (currentRefereeRole.NationalTeam != null)
+			{
+				var oldTeamId = currentRefereeRole.NationalTeam.Value.Id;
+				var team = this.dbContext.RefereeTeams
+					.Join(this.dbContext.Users.WithIdentifier(userId), t => t.RefereeId, u => u.Id, (t, _) => t)
+					.Where(t => t.AssociationType == RefereeTeamAssociationType.NationalTeamPlayer);
+
+				if (newRefereeRole.NationalTeam == null)
+				{
+					this.logger.LogInformation(0x5fd20711, "Removing national team ({teamId}) from referee ({userId}).", oldTeamId, userId);
+					await team.ExecuteDeleteAsync(cancellationToken);
+				}
+				else
+				{
+					var newTeamId = newRefereeRole.NationalTeam.Value.Id;
+					var updatedAt = this.clock.UtcNow.UtcDateTime;
+
+					this.logger.LogInformation(0x5fd20712, "Updating national team ({oldTeamId} -> {newTeamId}) for referee ({userId}).", oldTeamId, newTeamId, userId);
+					await team.ExecuteUpdateAsync(t => t
+						.SetProperty(x => x.TeamId, newTeamId)
+						.SetProperty(x => x.UpdatedAt, updatedAt),
+						cancellationToken);
+				}
+			}
+			else
+			{
+				var newTeamId = newRefereeRole.NationalTeam?.Id ?? throw new InvalidOperationException("Both current and new are null?");
+				var now = this.clock.UtcNow.UtcDateTime;
+
+				this.logger.LogInformation(0x5fd20713, "Adding national team ({teamId}) for referee ({userId}).", newTeamId, userId);
+				this.dbContext.RefereeTeams.Add(new RefereeTeam
+				{
+					AssociationType = RefereeTeamAssociationType.NationalTeamPlayer,
 					Referee = referee ??= await this.dbContext.Users.WithIdentifier(userId).SingleAsync(cancellationToken),
 					TeamId = newTeamId,
 					CreatedAt = now,

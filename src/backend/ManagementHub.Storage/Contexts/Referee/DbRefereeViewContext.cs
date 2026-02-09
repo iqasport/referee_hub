@@ -57,6 +57,11 @@ public class DbRefereeViewContext : IRefereeViewContext
 	public TeamIdentifier? CoachingTeam { get; set; }
 
 	/// <summary>
+	/// National team the referee is playing for.
+	/// </summary>
+	public TeamIdentifier? NationalTeam { get; set; }
+
+	/// <summary>
 	/// Certifications acquired by this referee.
 	/// </summary>
 	public required HashSet<DomainCertification> AcquiredCertifications { get; set; }
@@ -137,6 +142,7 @@ public class DbRefereeViewContextFactory
 			AcquiredCertifications = u.RefereeCertifications.Select(rc => DomainCertification.New(rc.Certification.Level, rc.Certification.Version)).ToHashSet(),
 			CoachingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Coach).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
 			PlayingTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.Player).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
+			NationalTeam = u.RefereeTeams.Where(rt => rt.AssociationType == RefereeTeamAssociationType.NationalTeamPlayer).Select(rt => new TeamIdentifier(rt.Team!.Id)).Cast<TeamIdentifier?>().FirstOrDefault(),
 			PrimaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Primary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
 			SecondaryNgb = u.RefereeLocations.Where(rt => rt.AssociationType == RefereeNgbAssociationType.Secondary).Select(rt => NgbIdentifier.Parse(rt.NationalGoverningBody.CountryCode)).Cast<NgbIdentifier?>().FirstOrDefault(),
 			TeamContextList = u.RefereeTeams.Select(rt => rt.Team!).Select(tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
