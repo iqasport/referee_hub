@@ -8,11 +8,9 @@ import {
   useGetTeamMembersQuery,
   useUpdateParticipantRosterMutation,
   useGetParticipantsQuery,
-  useGetTeamRosterQuery,
   TeamMemberViewModel,
   RosterPlayerModel,
   RosterStaffModel,
-  RosterEntryViewModel,
 } from "../../../../../store/serviceApi";
 
 export interface RosterData {
@@ -118,12 +116,6 @@ const RosterManager: React.FC<RosterManagerProps> = ({
   // Update roster mutation
   const [updateRoster, { isLoading: isSaving }] = useUpdateParticipantRosterMutation();
 
-  // Fetch roster data for download (includes certifications)
-  const { data: rosterData } = useGetTeamRosterQuery(
-    { tournamentId, teamId: selectedTeamId },
-    { skip: !tournamentId || !selectedTeamId }
-  );
-
   // Convert team members to the format expected by the modal
   const availableTeamMembers = useMemo(() => {
     if (!teamMembersData?.items) return [];
@@ -193,60 +185,6 @@ const RosterManager: React.FC<RosterManagerProps> = ({
     },
     []
   );
-
-  // Handle downloading roster as CSV
-  const handleDownloadRoster = useCallback(() => {
-    if (!rosterData || rosterData.length === 0) {
-      showAlert("No roster data to download", "error");
-      return;
-    }
-
-    const headers = [
-      "Name",
-      "Pronouns",
-      "Gender",
-      "Jersey Number",
-      "Role",
-      "Max Certification",
-      "Certification Date",
-    ];
-
-    const csvRows = [headers.join(",")];
-
-    rosterData.forEach((entry: RosterEntryViewModel) => {
-      const row = [
-        `"${entry.name || ""}"`,
-        `"${entry.pronouns || ""}"`,
-        `"${entry.gender || ""}"`,
-        `"${entry.jerseyNumber || ""}"`,
-        `"${entry.role || ""}"`,
-        `"${entry.maxCertification || ""}"`,
-        entry.maxCertificationDate
-          ? `"${new Date(entry.maxCertificationDate).toLocaleDateString()}"`
-          : '""',
-      ];
-      csvRows.push(row.join(","));
-    });
-
-    const csvContent = csvRows.join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-
-    const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
-    // Sanitize team name for filename (remove special characters)
-    const sanitizeName = (name: string) => name.replace(/[^a-zA-Z0-9]/g, "_");
-    const filename = `${sanitizeName(currentTeam?.teamName || "team")}_roster_${date}.csv`;
-
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    showAlert("Roster downloaded successfully!", "success");
-  }, [rosterData, currentTeam?.teamName, showAlert]);
 
   // Handle saving the roster
   const handleSaveRoster = async () => {
@@ -376,57 +314,27 @@ const RosterManager: React.FC<RosterManagerProps> = ({
                 )}
               </div>
             </div>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button
-                type="button"
-                onClick={handleDownloadRoster}
-                disabled={disabled || !rosterData || rosterData.length === 0}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.875rem",
-                  fontWeight: "bold",
-                  borderRadius: "4px",
-                  minWidth: "110px",
-                  background: !disabled && rosterData && rosterData.length > 0 ? "#2563eb" : "#e5e7eb",
-                  border:
-                    !disabled && rosterData && rosterData.length > 0
-                      ? "1px solid #2563eb"
-                      : "1px solid #d1d5db",
-                  color: !disabled && rosterData && rosterData.length > 0 ? "#fff" : "#6b7280",
-                  cursor:
-                    disabled || !rosterData || rosterData.length === 0 ? "not-allowed" : "pointer",
-                  transition: "background 0.2s, color 0.2s",
-                }}
-                title={
-                  !rosterData || rosterData.length === 0
-                    ? "No roster data to download"
-                    : "Download roster as CSV"
-                }
-              >
-                Download CSV
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveRoster}
-                disabled={!hasChanges || isSaving || disabled}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.875rem",
-                  fontWeight: "bold",
-                  borderRadius: "4px",
-                  minWidth: "110px",
-                  background: hasChanges && !isSaving && !disabled ? "#16a34a" : "#e5e7eb",
-                  border:
-                    hasChanges && !isSaving && !disabled ? "1px solid #16a34a" : "1px solid #d1d5db",
-                  color: hasChanges && !isSaving && !disabled ? "#fff" : "#6b7280",
-                  cursor: !hasChanges || isSaving || disabled ? "not-allowed" : "pointer",
-                  opacity: isSaving ? 0.7 : 1,
-                  transition: "background 0.2s, color 0.2s",
-                }}
-              >
-                {isSaving ? "Saving..." : hasChanges ? "Save Roster" : "Saved"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleSaveRoster}
+              disabled={!hasChanges || isSaving || disabled}
+              style={{
+                padding: "0.5rem 1rem",
+                fontSize: "0.875rem",
+                fontWeight: "bold",
+                borderRadius: "4px",
+                minWidth: "110px",
+                background: hasChanges && !isSaving && !disabled ? "#16a34a" : "#e5e7eb",
+                border:
+                  hasChanges && !isSaving && !disabled ? "1px solid #16a34a" : "1px solid #d1d5db",
+                color: hasChanges && !isSaving && !disabled ? "#fff" : "#6b7280",
+                cursor: !hasChanges || isSaving || disabled ? "not-allowed" : "pointer",
+                opacity: isSaving ? 0.7 : 1,
+                transition: "background 0.2s, color 0.2s",
+              }}
+            >
+              {isSaving ? "Saving..." : hasChanges ? "Save Roster" : "Saved"}
+            </button>
           </div>
           {hasChanges && (
             <p style={{ fontSize: "0.75rem", color: "#d97706", marginTop: "0.5rem" }}>
