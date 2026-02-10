@@ -53,7 +53,7 @@ echo "✓ Repository updated"
 echo ""
 
 # Check if package.json changed
-if git diff --name-only HEAD@{1} HEAD 2>/dev/null | grep -q "src/frontend/package.json"; then
+if git diff --name-only ORIG_HEAD HEAD 2>/dev/null | grep -q "src/frontend/package.json"; then
     echo "Frontend dependencies have changed, updating..."
     cd "$FRONTEND_DIR"
     yarn install --immutable
@@ -62,7 +62,7 @@ if git diff --name-only HEAD@{1} HEAD 2>/dev/null | grep -q "src/frontend/packag
 fi
 
 # Check if backend project files changed
-if git diff --name-only HEAD@{1} HEAD 2>/dev/null | grep -q "src/backend/.*\.csproj"; then
+if git diff --name-only ORIG_HEAD HEAD 2>/dev/null | grep -q "src/backend/.*\.csproj"; then
     echo "Backend dependencies have changed, updating..."
     cd "$BACKEND_DIR"
     dotnet restore
