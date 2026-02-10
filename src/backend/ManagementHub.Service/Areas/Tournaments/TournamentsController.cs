@@ -934,6 +934,82 @@ public class TournamentsController : ControllerBase
 		return this.Ok();
 	}
 
+	/// <summary>
+	/// Get roster for a team participating in a tournament.
+	/// </summary>
+	[HttpGet("{tournamentId}/teams/{teamId}/roster")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+	[ProducesResponseType(typeof(IEnumerable<RosterEntryViewModel>), StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<ActionResult<IEnumerable<RosterEntryViewModel>>> GetTeamRoster(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromRoute] TeamIdentifier teamId)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify the team is a participant in the tournament
+		var participant = await this.dbContext.TournamentTeamParticipants
+			.Include(p => p.RosterEntries)
+			.ThenInclude(e => e.User)
+			.ThenInclude(u => u.RefereeCertifications)
+			.ThenInclude(rc => rc.Certification)
+			.Where(p => p.TeamId == teamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (participant == null)
+		{
+			return this.NotFound(new { error = "Team is not a participant in this tournament" });
+		}
+
+		// Build roster entries
+		var rosterEntries = new List<RosterEntryViewModel>();
+
+		foreach (var entry in participant.RosterEntries)
+		{
+			var user = entry.User;
+			var name = $"{user.FirstName ?? string.Empty} {user.LastName ?? string.Empty}".Trim();
+
+			// Get the highest certification for this user
+			string? maxCertification = null;
+			DateTime? maxCertificationDate = null;
+
+			var activeCertifications = user.RefereeCertifications
+				.Where(rc => rc.ReceivedAt != null && rc.RevokedAt == null)
+				.OrderByDescending(rc => rc.Certification.Level)
+				.ThenByDescending(rc => rc.ReceivedAt)
+				.ToList();
+
+			if (activeCertifications.Any())
+			{
+				var highest = activeCertifications.First();
+				maxCertification = highest.Certification.DisplayName;
+				maxCertificationDate = highest.ReceivedAt;
+			}
+
+			// Get gender data if accessible
+			var userId = user.UniqueId != null
+				? UserIdentifier.Parse(user.UniqueId)
+				: UserIdentifier.FromLegacyUserId(user.Id);
+			var genderData = await this.GetAccessibleGenderDataAsync(new List<UserIdentifier> { userId }, userContext);
+			var gender = genderData.ContainsKey(userId) ? genderData[userId] : null;
+
+			rosterEntries.Add(new RosterEntryViewModel
+			{
+				Name = name,
+				Pronouns = user.ShowPronouns == true ? user.Pronouns : null,
+				Gender = gender,
+				JerseyNumber = entry.JerseyNumber,
+				Role = entry.Role.ToString(),
+				MaxCertification = maxCertification,
+				MaxCertificationDate = maxCertificationDate
+			});
+		}
+
+		return this.Ok(rosterEntries);
+	}
+
 	// Helper methods
 
 	private async Task<Dictionary<UserIdentifier, string?>> GetAccessibleGenderDataAsync(
