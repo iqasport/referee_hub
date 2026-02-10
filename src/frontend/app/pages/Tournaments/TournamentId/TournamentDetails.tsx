@@ -285,7 +285,7 @@ const TournamentDetails = () => {
                       Edit Tournament Details
                     </button>
                     <button
-                      onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
+                      onClick={() => registrationsModalRef.current?.open(tournament.id || "", tournament.name || "Unknown Tournament")}
                       className="btn btn-secondary btn-full-width card-mb"
                     >
                       View Team Registrations ({invites?.length || 0})

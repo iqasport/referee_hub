@@ -12,13 +12,14 @@ import { useAlert } from "../../../hooks/useAlert";
 import RosterViewModal, { RosterViewModalRef } from "./RosterViewModal";
 
 export interface RegistrationsModalRef {
-  open: (tournamentId: string) => void;
+  open: (tournamentId: string, tournamentName: string) => void;
 }
 
 const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
   const [tournamentId, setTournamentId] = useState<string>("");
+  const [tournamentName, setTournamentName] = useState<string>("");
   const [selectedInvite, setSelectedInvite] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const rosterViewModalRef = useRef<RosterViewModalRef>(null);
@@ -31,8 +32,9 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const [respondToInvite] = useRespondToInviteMutation();
 
   useImperativeHandle(ref, () => ({
-    open: (tournId: string) => {
+    open: (tournId: string, tournName: string) => {
       setTournamentId(tournId);
+      setTournamentName(tournName);
       setSelectedInvite(null);
       setIsOpen(true);
     },
@@ -243,7 +245,8 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                                 rosterViewModalRef.current?.open(
                                   tournamentId,
                                   invite.participantId,
-                                  invite.participantName || "Unknown Team"
+                                  invite.participantName || "Unknown Team",
+                                  tournamentName
                                 );
                               }}
                               className="text-sm text-blue-600 hover:text-blue-800 font-medium"

@@ -4,7 +4,7 @@ import React from "react";
 import { useGetTeamRosterQuery, RosterEntryViewModel } from "../../../store/serviceApi";
 
 export interface RosterViewModalRef {
-  open: (tournamentId: string, teamId: string, teamName: string) => void;
+  open: (tournamentId: string, teamId: string, teamName: string, tournamentName: string) => void;
 }
 
 const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
@@ -12,6 +12,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
   const [tournamentId, setTournamentId] = useState<string>("");
   const [teamId, setTeamId] = useState<string>("");
   const [teamName, setTeamName] = useState<string>("");
+  const [tournamentName, setTournamentName] = useState<string>("");
 
   const { data: roster, isLoading, isError } = useGetTeamRosterQuery(
     { tournamentId, teamId },
@@ -19,10 +20,11 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
   );
 
   useImperativeHandle(ref, () => ({
-    open: (tournId: string, tId: string, tName: string) => {
+    open: (tournId: string, tId: string, tName: string, trnmtName: string) => {
       setTournamentId(tournId);
       setTeamId(tId);
       setTeamName(tName);
+      setTournamentName(trnmtName);
       setIsOpen(true);
     },
   }));
@@ -67,7 +69,9 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
     const url = URL.createObjectURL(blob);
 
     const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
-    const filename = `tournament_${tournamentId}_team_${teamId}_roster_${date}.csv`;
+    // Sanitize names for filename (remove special characters)
+    const sanitizeName = (name: string) => name.replace(/[^a-zA-Z0-9]/g, "_");
+    const filename = `tournament_${sanitizeName(tournamentName)}_team_${sanitizeName(teamName)}_roster_${date}.csv`;
 
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
