@@ -39,6 +39,9 @@ if ! command -v dotnet &> /dev/null; then
 fi
 
 echo "✓ All prerequisites found"
+echo "  - Node.js: $(node --version)"
+echo "  - Yarn: $(yarn --version)"
+echo "  - .NET: $(dotnet --version)"
 echo ""
 
 # Build Frontend
