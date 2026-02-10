@@ -482,6 +482,12 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
+      getTeamRoster: build.query<GetTeamRosterApiResponse, GetTeamRosterApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/teams/${queryArg.teamId}/roster`,
+        }),
+        providesTags: ["Tournament"],
+      }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
@@ -851,6 +857,11 @@ export type UpdateParticipantRosterApiArg = {
   tournamentId: string;
   teamId: string;
   updateRosterModel: UpdateRosterModel;
+};
+export type GetTeamRosterApiResponse = /** status 200 Success */ RosterEntryViewModel[];
+export type GetTeamRosterApiArg = {
+  tournamentId: string;
+  teamId: string;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -1411,6 +1422,15 @@ export type UpdateRosterModel = {
   coaches?: RosterStaffModel[] | null;
   staff?: RosterStaffModel[] | null;
 };
+export type RosterEntryViewModel = {
+  name?: string | null;
+  pronouns?: string | null;
+  gender?: string | null;
+  jerseyNumber?: string | null;
+  role?: string | null;
+  maxCertification?: string | null;
+  maxCertificationDate?: string | null;
+};
 export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
@@ -1516,6 +1536,7 @@ export const {
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
   useUpdateParticipantRosterMutation,
+  useGetTeamRosterQuery,
   useGetCurrentUserQuery,
   useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,
