@@ -71,7 +71,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
     const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
     // Sanitize names for filename (remove special characters)
     const sanitizeName = (name: string) => name.replace(/[^a-zA-Z0-9]/g, "_");
-    const filename = `tournament_${sanitizeName(tournamentName)}_team_${sanitizeName(teamName)}_roster_${date}.csv`;
+    const filename = `${sanitizeName(tournamentName)}_${sanitizeName(teamName)}_roster_${date}.csv`;
 
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
