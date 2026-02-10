@@ -57,11 +57,11 @@ public class PlayerViewModel : StaffViewModel
 
 public class RosterEntryViewModel
 {
-	public required string Name { get; set; }
+	public string? Name { get; set; }
 	public string? Pronouns { get; set; }
 	public string? Gender { get; set; }
 	public string? JerseyNumber { get; set; }
-	public required string Role { get; set; }
+	public string? Role { get; set; }
 	public string? MaxCertification { get; set; }
 	public DateTime? MaxCertificationDate { get; set; }
 }
