@@ -492,7 +492,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
 				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))) ||
 				t.TournamentTeamParticipants.Any(p => p.RosterEntries.Any(entry => userDatabaseIds.Contains(entry.UserId))) ||
-				t.TournamentInvites.Any(i => 
+				t.TournamentInvites.Any(i =>
 					i.ParticipantType == "team" &&
 					this.dbContext.TeamManagers
 						.Where(tm => userDatabaseIds.Contains(tm.UserId))

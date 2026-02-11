@@ -46,7 +46,7 @@ public class UserApiIntegrationTests : IClassFixture<TestWebApplicationFactory>
 		// Verify that the managed teams include GroupAffiliation
 		var yankeesTeam = managedTeams!.Should().ContainSingle(t => t.TeamName == "Yankees",
 			"the seeded team manager should manage the Yankees team").Subject;
-		
+
 		yankeesTeam.TeamId.Should().NotBeNullOrEmpty("TeamId should be populated");
 		yankeesTeam.Ngb.Should().Be("USA", "Yankees team should belong to USA NGB");
 		yankeesTeam.GroupAffiliation.Should().Be(TeamGroupAffiliationDto.Community,
