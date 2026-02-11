@@ -556,14 +556,14 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 1: Create tournament as tournament manager (referee)
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
 		var tournamentId = await this.CreateTestTournamentAsync("Roster View Test", TournamentType.Club, "USA", "NYC");
-		
+
 		// Step 2: Add Yankees team to tournament
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
 		// Step 3: Switch to team manager and add roster
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
-		
+
 		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
 		var mikeCoachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
 
@@ -608,7 +608,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		coachEntry.ValueKind.Should().NotBe(JsonValueKind.Undefined, "should have a coach entry");
 		coachEntry.GetProperty("name").GetString().Should().NotBeNullOrEmpty();
 		coachEntry.GetProperty("role").GetString().Should().Be("Coach");
-		
+
 		// Jersey number should be null for non-players
 		if (coachEntry.TryGetProperty("jerseyNumber", out var jerseyNum))
 		{
@@ -622,7 +622,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 1: Create tournament as tournament manager
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
 		var tournamentId = await this.CreateTestTournamentAsync("Forbidden Roster Test", TournamentType.Club, "USA", "NYC");
-		
+
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
@@ -632,7 +632,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 3: Try to get roster - should be forbidden
 		var rosterResponse = await this._client.GetAsync(
 			$"/api/v2/tournaments/{tournamentId}/teams/{participantId}/roster");
-		rosterResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden, 
+		rosterResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden,
 			"non-tournament manager should not be able to view roster");
 	}
 
@@ -642,12 +642,12 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// Step 1: Create tournament
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
 		var tournamentId = await this.CreateTestTournamentAsync("Not Found Test", TournamentType.Club, "USA", "NYC");
-		
+
 		// Step 2: Try to get roster for team that's not a participant (using valid format but non-existent team)
 		var nonExistentTeamId = "TM_99999";
 		var rosterResponse = await this._client.GetAsync(
 			$"/api/v2/tournaments/{tournamentId}/teams/{nonExistentTeamId}/roster");
-		rosterResponse.StatusCode.Should().Be(HttpStatusCode.NotFound, 
+		rosterResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
 			"should return 404 for non-participant team");
 	}
 }

@@ -67,10 +67,10 @@ public class TeamTournamentInvitesApiIntegrationTests : IClassFixture<TestWebApp
 		invitesList.Should().NotBeEmpty("there should be at least one invite for the Yankees team");
 
 		// Find the invite for this specific tournament
-		var invite = invitesList.FirstOrDefault(i => 
+		var invite = invitesList.FirstOrDefault(i =>
 			i.TryGetProperty("participantId", out var pid) && pid.GetString() == yankeesTeamId);
 		invite.ValueKind.Should().NotBe(JsonValueKind.Undefined, "should find an invite for Yankees team");
-		
+
 		invite.GetProperty("participantId").GetString().Should().Be(yankeesTeamId);
 		invite.GetProperty("status").GetString().Should().Be("pending",
 			"invite should be pending because team manager hasn't approved yet");
@@ -212,8 +212,8 @@ public class TeamTournamentInvitesApiIntegrationTests : IClassFixture<TestWebApp
 		inviteEmails.Should().NotBeEmpty("invitation email should be sent");
 
 		// Verify email contains team manager email and tournament details
-		var teamManagerEmail = inviteEmails.FirstOrDefault(e => 
-			e.To.Contains("team_manager@example.com") && 
+		var teamManagerEmail = inviteEmails.FirstOrDefault(e =>
+			e.To.Contains("team_manager@example.com") &&
 			e.Body.Contains("Email Test Tournament"));
 		teamManagerEmail.Should().NotBeNull("email should be sent to team_manager@example.com for Email Test Tournament");
 		teamManagerEmail!.Body.Should().Contain($"/tournaments/{tournamentId}", "email should contain tournament link");

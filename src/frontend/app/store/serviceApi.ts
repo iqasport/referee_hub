@@ -230,6 +230,18 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/certifications/payments` }),
         providesTags: ["Referee"],
       }),
+      getNationalTeams: build.query<GetNationalTeamsApiResponse, GetNationalTeamsApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Teams/national`,
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
+        }),
+        providesTags: ["Team"],
+      }),
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
@@ -696,6 +708,13 @@ export type GetNgbRefereesApiArg = {
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
+export type GetNationalTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
+export type GetNationalTeamsApiArg = {
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+  skipPaging?: boolean;
+};
 export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNgbTeamsApiArg = {
   ngb: string;
@@ -1505,6 +1524,7 @@ export const {
   useGetRefereesQuery,
   useGetNgbRefereesQuery,
   useGetAvailablePaymentsQuery,
+  useGetNationalTeamsQuery,
   useGetNgbTeamsQuery,
   useCreateNgbTeamMutation,
   useUpdateNgbTeamMutation,
