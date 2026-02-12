@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -79,5 +80,73 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 		// Should return national teams from all NGBs, not just USA
 		// (The actual assertion depends on seeded test data, but this verifies the endpoint works)
 		result!.Items.Should().NotBeNull();
+	}
+
+	/// <summary>
+	/// Test that a player from one NGB can join a National Team of another NGB.
+	/// This verifies that national teams are truly cross-NGB and not restricted to a player's primary NGB.
+	/// </summary>
+	[Fact]
+	public async Task PlayerFromOneNgb_CanJoinNationalTeamOfAnotherNgb()
+	{
+		// Arrange: Sign in as sarah.player who is associated with USA
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "sarah.player@example.com", "password");
+
+		// Step 1: Get all national teams to find the Australia National Team
+		var nationalTeamsResponse = await this._client.GetAsync("/api/v2/Teams/national?SkipPaging=true");
+		nationalTeamsResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"should be able to retrieve national teams");
+
+		var nationalTeamsResult = await nationalTeamsResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
+		nationalTeamsResult.Should().NotBeNull();
+		nationalTeamsResult!.Items.Should().NotBeNull();
+
+		// Find Australia National Team (which is from AUS NGB, different from sarah's USA NGB)
+		var australiaTeam = nationalTeamsResult.Items!
+			.FirstOrDefault(t => t.Name.Contains("Australia", StringComparison.OrdinalIgnoreCase));
+		australiaTeam.Should().NotBeNull("Australia National Team should be in the seeded data");
+
+		// Step 2: Get current user profile to verify current state
+		var profileBeforeResponse = await this._client.GetAsync("/api/v2/Referees/me");
+		profileBeforeResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"should be able to get current user profile");
+
+		// Step 3: Update sarah's profile to join Australia National Team
+		var updateRequest = new
+		{
+			primaryNgb = "USA",  // Keep USA as primary NGB
+			secondaryNgb = (string?)null,
+			playingTeam = (object?)null,
+			coachingTeam = (object?)null,
+			nationalTeam = new
+			{
+				id = australiaTeam!.TeamId.ToString()
+			}
+		};
+
+		var updateResponse = await this._client.PutAsJsonAsync("/api/v2/Referees/me", updateRequest);
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"player from USA should be able to join Australia National Team");
+
+		// Step 4: Verify the update by getting the profile again
+		var profileAfterResponse = await this._client.GetAsync("/api/v2/Referees/me");
+		profileAfterResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"should be able to get updated profile");
+
+		var profileAfterContent = await profileAfterResponse.Content.ReadAsStringAsync();
+		profileAfterContent.Should().Contain(australiaTeam.TeamId.ToString(),
+			"profile should now contain the Australia National Team ID");
+
+		// Optional: Clean up by removing the national team assignment
+		var cleanupRequest = new
+		{
+			primaryNgb = "USA",
+			secondaryNgb = (string?)null,
+			playingTeam = (object?)null,
+			coachingTeam = (object?)null,
+			nationalTeam = (object?)null
+		};
+
+		await this._client.PutAsJsonAsync("/api/v2/Referees/me", cleanupRequest);
 	}
 }

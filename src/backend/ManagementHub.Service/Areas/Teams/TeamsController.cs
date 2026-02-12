@@ -7,6 +7,7 @@ using ManagementHub.Service.Filtering;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Teams;
 
@@ -33,13 +34,23 @@ public class TeamsController : ControllerBase
 	/// <summary>
 	/// Get all national teams across all NGBs.
 	/// </summary>
+	/// <summary>
+	/// Get all national teams across all NGBs.
+	/// </summary>
+	/// <remarks>
+	/// This endpoint materializes all teams before filtering to avoid LINQ translation issues.
+	/// Since national teams are typically few in number (&lt;100), the performance impact is minimal.
+	/// </remarks>
 	[HttpGet("national")]
 	[Tags("Team")]
 	public async Task<Filtered<NgbTeamViewModel>> GetNationalTeams([FromQuery] FilteringParameters filtering)
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Any);
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
-		return this.teamContextProvider.GetTeams(NgbConstraint.Any)
+		// Materialize the query before filtering to avoid LINQ translation issues
+		// This is acceptable because national teams are few in number
+		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Any).ToListAsync();
+		return teams
 			.Where(team => team.TeamData.GroupAffiliation == TeamGroupAffiliation.National)
 			.Select(team => new NgbTeamViewModel
 			{
