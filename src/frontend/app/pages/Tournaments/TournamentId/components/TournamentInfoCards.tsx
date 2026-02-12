@@ -7,6 +7,7 @@ interface TournamentInfoCardsProps {
   organizer?: string | null;
   startDate?: string;
   registrationEndsDate?: string | null;
+  isRegistrationOpen?: boolean;
   teamCount?: number;
   totalParticipantCount?: number;
 }
@@ -16,22 +17,50 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
   organizer,
   startDate,
   registrationEndsDate,
+  isRegistrationOpen,
   teamCount,
   totalParticipantCount,
 }) => {
-  const registrationEndDate = registrationEndsDate
-    ? new Date(registrationEndsDate).toLocaleDateString("en-US", {
+  // Check if registration is closed or if the registration end date has passed
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+  
+  let registrationEndDate: string;
+  
+  if (isRegistrationOpen === false) {
+    // If explicitly closed, show "Closed"
+    registrationEndDate = "Closed";
+  } else if (registrationEndsDate) {
+    const regEndDate = new Date(registrationEndsDate);
+    regEndDate.setHours(0, 0, 0, 0);
+    
+    // Check if the date has passed
+    if (regEndDate < today) {
+      registrationEndDate = "Closed";
+    } else {
+      registrationEndDate = regEndDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
-      })
-    : startDate
-    ? new Date(startDate).toLocaleDateString("en-US", {
+      });
+    }
+  } else if (startDate) {
+    const startDateObj = new Date(startDate);
+    startDateObj.setHours(0, 0, 0, 0);
+    
+    // Use start date as fallback, but check if it has passed
+    if (startDateObj < today) {
+      registrationEndDate = "Closed";
+    } else {
+      registrationEndDate = startDateObj.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
-      })
-    : "TBD";
+      });
+    }
+  } else {
+    registrationEndDate = "TBD";
+  }
 
   // Format participant label with team count and optional total participant count
   const participantLabel = teamCount !== undefined && totalParticipantCount !== undefined

@@ -248,6 +248,7 @@ const TournamentDetails = () => {
             organizer={tournament.organizer}
             startDate={tournament.startDate}
             registrationEndsDate={tournament.registrationEndsDate}
+            isRegistrationOpen={tournament.isRegistrationOpen}
             teamCount={teamCount}
             totalParticipantCount={totalParticipantCount}
           />
