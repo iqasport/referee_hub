@@ -23,6 +23,7 @@ interface Tournament {
   place: string;
   organizer?: string;
   isPrivate: boolean;
+  isRegistrationOpen?: boolean;
   bannerImageUrl?: string;
 }
 
@@ -50,6 +51,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     place: "",
     organizer: "",
     isPrivate: false,
+    isRegistrationOpen: true,
     bannerImageUrl: "",
   };
   const [formData, setFormData] = useState<Tournament>(initialFormData);
@@ -95,6 +97,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             place: formData.place,
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
+            isRegistrationOpen: formData.isRegistrationOpen ?? true,
           },
         }).unwrap();
       } else {
@@ -111,6 +114,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             place: formData.place,
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
+            isRegistrationOpen: formData.isRegistrationOpen ?? true,
           },
         }).unwrap();
 
@@ -195,6 +199,43 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             </DialogTitle>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Registration Status Toggle */}
+              <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                      Registration Status
+                    </label>
+                    <p className="text-xs text-gray-600">
+                      Control whether teams can register for this tournament
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isRegistrationOpen: !formData.isRegistrationOpen })}
+                    className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      formData.isRegistrationOpen ? 'bg-green-500 focus:ring-green-500' : 'bg-gray-400 focus:ring-gray-400'
+                    }`}
+                  >
+                    <span className="sr-only">Toggle registration status</span>
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                        formData.isRegistrationOpen ? 'translate-x-9' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <div className="mt-2">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    formData.isRegistrationOpen 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-200 text-gray-700'
+                  }`}>
+                    {formData.isRegistrationOpen ? 'Open' : 'Closed'}
+                  </span>
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                   Tournament Name *

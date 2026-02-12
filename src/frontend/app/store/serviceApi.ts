@@ -1371,6 +1371,7 @@ export type TournamentViewModel = {
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
+  isRegistrationOpen?: boolean;
   id?: string;
   bannerImageUrl?: string | null;
   isCurrentUserInvolved?: boolean;
@@ -1394,6 +1395,7 @@ export type TournamentModel = {
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
+  isRegistrationOpen?: boolean;
 };
 export type TournamentManagerViewModel = {
   id?: string;
