@@ -114,6 +114,7 @@ public class TournamentsController : ControllerBase
 			Place = t.Place,
 			Organizer = t.Organizer,
 			IsPrivate = t.IsPrivate,
+			IsRegistrationOpen = t.IsRegistrationOpen,
 			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		}).ToList();
@@ -158,6 +159,7 @@ public class TournamentsController : ControllerBase
 			Place = tournament.Place,
 			Organizer = tournament.Organizer,
 			IsPrivate = tournament.IsPrivate,
+			IsRegistrationOpen = tournament.IsRegistrationOpen,
 			BannerImageUrl = bannerUri?.ToString(),
 			IsCurrentUserInvolved = tournament.IsCurrentUserInvolved
 		};
@@ -185,7 +187,8 @@ public class TournamentsController : ControllerBase
 			City = model.City,
 			Place = model.Place,
 			Organizer = model.Organizer,
-			IsPrivate = model.IsPrivate
+			IsPrivate = model.IsPrivate,
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		var tournamentId = await this.tournamentContextProvider
@@ -217,7 +220,8 @@ public class TournamentsController : ControllerBase
 			City = model.City,
 			Place = model.Place,
 			Organizer = model.Organizer,
-			IsPrivate = model.IsPrivate
+			IsPrivate = model.IsPrivate,
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		await this.tournamentContextProvider

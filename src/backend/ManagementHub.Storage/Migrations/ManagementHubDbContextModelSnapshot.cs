@@ -1426,6 +1426,10 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_private");
 
+                    b.Property<bool>("IsRegistrationOpen")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_registration_open");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("character varying")

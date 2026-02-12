@@ -16,4 +16,5 @@ public class TournamentModel
 	public string? Place { get; set; }
 	public required string Organizer { get; set; }
 	public bool IsPrivate { get; set; }
+	public bool IsRegistrationOpen { get; set; }
 }

@@ -27,6 +27,7 @@ public partial class Tournament : IIdentifiable
 	public string? Place { get; set; }
 	public string Organizer { get; set; } = null!;
 	public bool IsPrivate { get; set; }
+	public bool IsRegistrationOpen { get; set; }
 	public DateTime CreatedAt { get; set; }
 	public DateTime UpdatedAt { get; set; }
 
