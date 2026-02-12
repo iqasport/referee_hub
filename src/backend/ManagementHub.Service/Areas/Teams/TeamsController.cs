@@ -7,6 +7,7 @@ using ManagementHub.Service.Filtering;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Teams;
 
@@ -39,7 +40,8 @@ public class TeamsController : ControllerBase
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Any);
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
-		return this.teamContextProvider.GetTeams(NgbConstraint.Any)
+		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Any).ToListAsync();
+		return teams
 			.Where(team => team.TeamData.GroupAffiliation == TeamGroupAffiliation.National)
 			.Select(team => new NgbTeamViewModel
 			{
