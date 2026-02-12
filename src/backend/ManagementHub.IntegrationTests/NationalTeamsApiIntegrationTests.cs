@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -36,14 +37,6 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 
 		// Act: Get all national teams
 		var response = await this._client.GetAsync("/api/v2/Teams/national?SkipPaging=true");
-
-		// Debug: Print response content if not successful
-		if (!response.IsSuccessStatusCode)
-		{
-			var errorContent = await response.Content.ReadAsStringAsync();
-			System.Console.WriteLine($"Response Status: {response.StatusCode}");
-			System.Console.WriteLine($"Response Content: {errorContent}");
-		}
 
 		// Assert: Response should be successful
 		response.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -110,7 +103,7 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 
 		// Find Australia National Team (which is from AUS NGB, different from sarah's USA NGB)
 		var australiaTeam = nationalTeamsResult.Items!
-			.FirstOrDefault(t => t.Name.Contains("Australia"));
+			.FirstOrDefault(t => t.Name.Contains("Australia", StringComparison.OrdinalIgnoreCase));
 		australiaTeam.Should().NotBeNull("Australia National Team should be in the seeded data");
 
 		// Step 2: Get current user profile to verify current state
