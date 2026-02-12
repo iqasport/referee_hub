@@ -258,7 +258,7 @@ const TournamentDetails = () => {
             startDate={tournament.startDate}
             registrationEndsDate={tournament.registrationEndsDate}
             isRegistrationOpen={tournament.isRegistrationOpen}
-            participantCount={totalParticipantCount}
+            tournamentType={tournament.type}
           />
 
           {/* Main content grid */}
@@ -334,10 +334,6 @@ const TournamentDetails = () => {
                       <div className="stats-item">
                         <span className="stats-label">Private Tournament</span>
                         <span className="stats-value">{tournament.isPrivate ? "Yes" : "No"}</span>
-                      </div>
-                      <div className="stats-item">
-                        <span className="stats-label">Tournament Type</span>
-                        <span className="stats-value">{tournament.type || "N/A"}</span>
                       </div>
                     </div>
                   </div>
