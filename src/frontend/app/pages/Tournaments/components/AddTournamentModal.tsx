@@ -9,6 +9,7 @@ import type { TournamentType } from "../../../store/serviceApi";
 import UploadedImage from "../../../components/UploadedImage";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
+import Toggle from "../../../components/Toggle";
 
 interface Tournament {
   id?: string;
@@ -199,43 +200,6 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             </DialogTitle>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Registration Status Toggle */}
-              <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">
-                      Registration Status
-                    </label>
-                    <p className="text-xs text-gray-600">
-                      Control whether teams can register for this tournament
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isRegistrationOpen: !formData.isRegistrationOpen })}
-                    className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                      formData.isRegistrationOpen ? 'bg-green-500 focus:ring-green-500' : 'bg-gray-400 focus:ring-gray-400'
-                    }`}
-                  >
-                    <span className="sr-only">Toggle registration status</span>
-                    <span
-                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                        formData.isRegistrationOpen ? 'translate-x-9' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-                <div className="mt-2">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                    formData.isRegistrationOpen 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-200 text-gray-700'
-                  }`}>
-                    {formData.isRegistrationOpen ? 'Open' : 'Closed'}
-                  </span>
-                </div>
-              </div>
-
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                   Tournament Name *
@@ -270,18 +234,41 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                 />
               </div>
 
-              {/* Banner Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
-                <UploadedImage
-                  imageUrl={formData.bannerImageUrl || ""}
-                  imageAlt="Tournament banner"
-                  onSubmit={handleBannerUpload}
-                  isEditable={true}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Click the + icon to upload a banner image for the tournament.
-                </p>
+              {/* Banner Image and Registration Status side by side */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Banner Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
+                  <UploadedImage
+                    imageUrl={formData.bannerImageUrl || ""}
+                    imageAlt="Tournament banner"
+                    onSubmit={handleBannerUpload}
+                    isEditable={true}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Click the + icon to upload a banner image for the tournament.
+                  </p>
+                </div>
+
+                {/* Registration Status Toggle */}
+                <div className="flex flex-col justify-start">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Registration Status
+                  </label>
+                  <div className="flex items-center justify-end">
+                    <span className="mr-3 text-sm text-gray-600">
+                      {formData.isRegistrationOpen ? 'Open' : 'Closed'}
+                    </span>
+                    <Toggle
+                      name="isRegistrationOpen"
+                      checked={formData.isRegistrationOpen ?? true}
+                      onChange={(e) => setFormData({ ...formData, isRegistrationOpen: e.target.checked })}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500 text-right">
+                    Control whether teams can register for this tournament
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
