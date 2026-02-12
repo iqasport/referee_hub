@@ -28,6 +28,7 @@ public record DbTournamentContext(
 	string Description,
 	DateOnly StartDate,
 	DateOnly EndDate,
+	DateOnly? RegistrationEndsDate,
 	TournamentType Type,
 	string Country,
 	string City,
@@ -134,6 +135,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			Description = tournamentData.Description,
 			StartDate = tournamentData.StartDate,
 			EndDate = tournamentData.EndDate,
+			RegistrationEndsDate = tournamentData.RegistrationEndsDate,
 			Type = tournamentData.Type,
 			Country = tournamentData.Country,
 			City = tournamentData.City,
@@ -185,6 +187,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		tournament.Description = tournamentData.Description;
 		tournament.StartDate = tournamentData.StartDate;
 		tournament.EndDate = tournamentData.EndDate;
+		tournament.RegistrationEndsDate = tournamentData.RegistrationEndsDate;
 		tournament.Type = tournamentData.Type;
 		tournament.Country = tournamentData.Country;
 		tournament.City = tournamentData.City;
@@ -447,6 +450,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Description,
 				t.StartDate,
 				t.EndDate,
+				t.RegistrationEndsDate,
 				t.Type,
 				t.Country,
 				t.City,
@@ -476,6 +480,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Description,
 				t.StartDate,
 				t.EndDate,
+				t.RegistrationEndsDate,
 				t.Type,
 				t.Country,
 				t.City,

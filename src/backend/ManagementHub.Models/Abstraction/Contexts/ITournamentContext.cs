@@ -11,6 +11,7 @@ public interface ITournamentContext
 	string Description { get; }
 	DateOnly StartDate { get; }
 	DateOnly EndDate { get; }
+	DateOnly? RegistrationEndsDate { get; }
 	TournamentType Type { get; }
 	string Country { get; }
 	string City { get; }

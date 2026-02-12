@@ -1439,6 +1439,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("date")
 				.HasColumnName("end_date");
 
+			entity.Property(e => e.RegistrationEndsDate)
+				.HasColumnType("date")
+				.HasColumnName("registration_ends_date");
+
 			entity.Property(e => e.Type)
 				.HasColumnName("type");
 

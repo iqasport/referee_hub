@@ -125,7 +125,13 @@ const TournamentDetails = () => {
       });
   }, [invites, managedTeamIds, managedTeamsData]);
 
-  // Calculate total participant count from all team rosters
+  // Calculate team count (number of teams registered)
+  const teamCount = useMemo(() => {
+    if (!participants) return 0;
+    return participants.length;
+  }, [participants]);
+
+  // Calculate total participant count from all team rosters (players + coaches + staff)
   const totalParticipantCount = useMemo(() => {
     if (!participants) return 0;
     return participants.reduce((total, team) => {
@@ -210,6 +216,7 @@ const TournamentDetails = () => {
       description: tournament.description || "",
       startDate: tournament.startDate || "",
       endDate: tournament.endDate || "",
+      registrationEndsDate: tournament.registrationEndsDate || "",
       type: tournament.type || ("" as const),
       country: tournament.country || "",
       city: tournament.city || "",
@@ -239,7 +246,9 @@ const TournamentDetails = () => {
             formattedDateRange={formattedDateRange}
             organizer={tournament.organizer}
             startDate={tournament.startDate}
-            participantCount={totalParticipantCount}
+            registrationEndsDate={tournament.registrationEndsDate}
+            teamCount={teamCount}
+            totalParticipantCount={totalParticipantCount}
           />
 
           {/* Main content grid */}

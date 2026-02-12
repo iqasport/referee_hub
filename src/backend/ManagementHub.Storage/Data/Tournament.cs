@@ -20,6 +20,7 @@ public partial class Tournament : IIdentifiable
 	public string Description { get; set; } = null!;
 	public DateOnly StartDate { get; set; }
 	public DateOnly EndDate { get; set; }
+	public DateOnly? RegistrationEndsDate { get; set; }
 	public TournamentType Type { get; set; }
 	public string Country { get; set; } = null!;
 	public string City { get; set; } = null!;

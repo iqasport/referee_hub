@@ -6,22 +6,39 @@ interface TournamentInfoCardsProps {
   formattedDateRange: string;
   organizer?: string | null;
   startDate?: string;
-  participantCount?: number;
+  registrationEndsDate?: string | null;
+  teamCount?: number;
+  totalParticipantCount?: number;
 }
 
 const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
   formattedDateRange,
   organizer,
   startDate,
-  participantCount,
+  registrationEndsDate,
+  teamCount,
+  totalParticipantCount,
 }) => {
-  const registrationEndDate = startDate
+  const registrationEndDate = registrationEndsDate
+    ? new Date(registrationEndsDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : startDate
     ? new Date(startDate).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
       })
     : "TBD";
+
+  // Format participant label with team count and optional total participant count
+  const participantLabel = teamCount !== undefined && totalParticipantCount !== undefined
+    ? `Teams: ${teamCount} (${totalParticipantCount} people)`
+    : teamCount !== undefined
+    ? teamCount.toString()
+    : "0";
 
   return (
     <div style={{ 
@@ -38,7 +55,7 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
       <InfoCard
         icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><UsersIcon /></div>}
         label="Participants"
-        value={participantCount !== undefined ? participantCount.toString() : "0"}
+        value={participantLabel}
       />
       <InfoCard
         icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><HomeIcon /></div>}

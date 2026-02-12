@@ -16,6 +16,7 @@ interface Tournament {
   description: string;
   startDate: string;
   endDate: string;
+  registrationEndsDate?: string;
   type: TournamentType | "";
   country: string;
   city: string;
@@ -42,6 +43,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     description: "",
     startDate: "",
     endDate: "",
+    registrationEndsDate: "",
     type: "",
     country: "",
     city: "",
@@ -86,6 +88,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             description: formData.description,
             startDate: formData.startDate,
             endDate: formData.endDate,
+            registrationEndsDate: formData.registrationEndsDate || undefined,
             type: formData.type || undefined,
             country: formData.country,
             city: formData.city,
@@ -101,6 +104,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             description: formData.description,
             startDate: formData.startDate,
             endDate: formData.endDate,
+            registrationEndsDate: formData.registrationEndsDate || undefined,
             type: formData.type || undefined,
             country: formData.country,
             city: formData.city,
@@ -239,7 +243,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label
                     htmlFor="startDate"
@@ -268,6 +272,20 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                     name="endDate"
                     required
                     value={formData.endDate}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="registrationEndsDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Registration Ends
+                  </label>
+                  <input
+                    type="date"
+                    id="registrationEndsDate"
+                    name="registrationEndsDate"
+                    value={formData.registrationEndsDate || ""}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

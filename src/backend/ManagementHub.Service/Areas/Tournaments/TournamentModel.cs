@@ -9,6 +9,7 @@ public class TournamentModel
 	public required string Description { get; set; }
 	public DateOnly StartDate { get; set; }
 	public DateOnly EndDate { get; set; }
+	public DateOnly? RegistrationEndsDate { get; set; }
 	public TournamentType Type { get; set; }
 	public required string Country { get; set; }
 	public required string City { get; set; }
