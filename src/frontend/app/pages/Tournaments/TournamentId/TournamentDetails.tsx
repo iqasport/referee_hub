@@ -141,6 +141,15 @@ const TournamentDetails = () => {
       return total + playerCount + coachCount + staffCount;
     }, 0);
   }, [participants]);
+  
+  // Calculate total player count (excluding coaches and staff)
+  const totalPlayerCount = useMemo(() => {
+    if (!participants) return 0;
+    return participants.reduce((total, team) => {
+      const playerCount = team.players?.length || 0;
+      return total + playerCount;
+    }, 0);
+  }, [participants]);
 
   // Handle accept/decline invite
   async function handleRespondToInvite(participantId: string, approved: boolean) {
@@ -249,8 +258,7 @@ const TournamentDetails = () => {
             startDate={tournament.startDate}
             registrationEndsDate={tournament.registrationEndsDate}
             isRegistrationOpen={tournament.isRegistrationOpen}
-            teamCount={teamCount}
-            totalParticipantCount={totalParticipantCount}
+            participantCount={totalParticipantCount}
           />
 
           {/* Main content grid */}
@@ -318,6 +326,10 @@ const TournamentDetails = () => {
                         <span className="stats-value">
                           {invites?.filter((i) => i.status === "approved").length || 0}
                         </span>
+                      </div>
+                      <div className="stats-item">
+                        <span className="stats-label">Players Registered</span>
+                        <span className="stats-value">{totalPlayerCount}</span>
                       </div>
                       <div className="stats-item">
                         <span className="stats-label">Private Tournament</span>

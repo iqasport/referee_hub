@@ -8,8 +8,7 @@ interface TournamentInfoCardsProps {
   startDate?: string;
   registrationEndsDate?: string | null;
   isRegistrationOpen?: boolean;
-  teamCount?: number;
-  totalParticipantCount?: number;
+  participantCount?: number;
 }
 
 const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
@@ -18,8 +17,7 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
   startDate,
   registrationEndsDate,
   isRegistrationOpen,
-  teamCount,
-  totalParticipantCount,
+  participantCount,
 }) => {
   // Check if registration is closed or if the registration end date has passed
   const today = new Date();
@@ -62,13 +60,6 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
     registrationEndDate = "TBD";
   }
 
-  // Format participant label with team count and optional total participant count
-  const participantLabel = teamCount !== undefined && totalParticipantCount !== undefined
-    ? `Teams: ${teamCount} (${totalParticipantCount} people)`
-    : teamCount !== undefined
-    ? teamCount.toString()
-    : "0";
-
   return (
     <div style={{ 
       display: 'grid', 
@@ -84,7 +75,7 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
       <InfoCard
         icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><UsersIcon /></div>}
         label="Participants"
-        value={participantLabel}
+        value={participantCount !== undefined ? participantCount.toString() : "0"}
       />
       <InfoCard
         icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><HomeIcon /></div>}
