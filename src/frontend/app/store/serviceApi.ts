@@ -1364,6 +1364,7 @@ export type TournamentViewModel = {
   description?: string | null;
   startDate?: string;
   endDate?: string;
+  registrationEndsDate?: string | null;
   type?: TournamentType;
   country?: string | null;
   city?: string | null;
@@ -1386,6 +1387,7 @@ export type TournamentModel = {
   description?: string | null;
   startDate?: string;
   endDate?: string;
+  registrationEndsDate?: string | null;
   type?: TournamentType;
   country?: string | null;
   city?: string | null;
