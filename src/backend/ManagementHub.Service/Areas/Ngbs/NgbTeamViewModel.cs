@@ -45,4 +45,19 @@ public class NgbTeamViewModel
 
 	public required IEnumerable<SocialAccount> SocialAccounts { get; set; }
 
+	/// <summary>
+	/// URL to the team's logo image.
+	/// </summary>
+	public string? LogoUrl { get; set; }
+
+	/// <summary>
+	/// Team description.
+	/// </summary>
+	public string? Description { get; set; }
+
+	/// <summary>
+	/// Team contact email.
+	/// </summary>
+	public string? ContactEmail { get; set; }
+
 }

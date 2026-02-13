@@ -1,11 +1,15 @@
+using System;
+using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Ngbs;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,13 +26,16 @@ public class TeamsController : ControllerBase
 {
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly ISocialAccountsProvider socialAccountsProvider;
+	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 
 	public TeamsController(
 		ITeamContextProvider teamContextProvider,
-		ISocialAccountsProvider socialAccountsProvider)
+		ISocialAccountsProvider socialAccountsProvider,
+		IUpdateUserAvatarCommand updateUserAvatarCommand)
 	{
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
+		this.updateUserAvatarCommand = updateUserAvatarCommand;
 	}
 
 	/// <summary>
@@ -63,6 +70,41 @@ public class TeamsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+				LogoUrl = team.TeamData.LogoUrl,
+				Description = team.TeamData.Description,
+				ContactEmail = team.TeamData.ContactEmail,
 			}).AsFiltered();
+	}
+
+	/// <summary>
+	/// Upload a logo for a team.
+	/// </summary>
+	/// <param name="teamId">Team identifier</param>
+	/// <param name="logoBlob">Logo image file</param>
+	/// <returns>URL to access the uploaded logo</returns>
+	[HttpPut("{teamId}/logo")]
+	[Tags("Team")]
+	[Authorize] // TODO: Add appropriate authorization policy for team managers and NGB admins
+	public async Task<Uri> UploadTeamLogo([FromRoute] TeamIdentifier teamId, IFormFile logoBlob)
+	{
+		// Validate file is an image
+		if (!logoBlob.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+		{
+			throw new ArgumentException("File must be an image (image/*)");
+		}
+
+		// Validate file size (max 5 MB)
+		const long maxSize = 5 * 1024 * 1024;
+		if (logoBlob.Length > maxSize)
+		{
+			throw new ArgumentException($"File size must not exceed {maxSize / (1024 * 1024)} MB");
+		}
+
+		var logoUri = await this.updateUserAvatarCommand.UpdateTeamLogoAsync(
+			teamId,
+			logoBlob.ContentType,
+			logoBlob.OpenReadStream(),
+			this.HttpContext.RequestAborted);
+		return logoUri;
 	}
 }

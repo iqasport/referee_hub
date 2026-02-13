@@ -91,6 +91,9 @@ public class DbTeamContextFactory
 			GroupAffiliation = teamData.GroupAffiliation,
 			Status = teamData.Status,
 			JoinedAt = teamData.JoinedAt,
+			LogoUrl = teamData.LogoUrl,
+			Description = teamData.Description,
+			ContactEmail = teamData.ContactEmail,
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		};
@@ -124,6 +127,9 @@ public class DbTeamContextFactory
 		team.GroupAffiliation = teamData.GroupAffiliation;
 		team.Status = teamData.Status;
 		team.JoinedAt = teamData.JoinedAt;
+		team.LogoUrl = teamData.LogoUrl;
+		team.Description = teamData.Description;
+		team.ContactEmail = teamData.ContactEmail;
 		team.UpdatedAt = DateTime.UtcNow;
 
 		if (previousStatus != teamData.Status)
@@ -235,6 +241,9 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
+		LogoUrl = tt.LogoUrl,
+		Description = tt.Description,
+		ContactEmail = tt.ContactEmail,
 	});
 
 	public static Expression<Func<Models.Data.Team, DbTeamContext>> Selector = tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
@@ -246,6 +255,9 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
+		LogoUrl = tt.LogoUrl,
+		Description = tt.Description,
+		ContactEmail = tt.ContactEmail,
 	});
 
 	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)

@@ -1097,6 +1097,18 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("character varying")
+                        .HasColumnName("logo_url");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("ContactEmail")
+                        .HasColumnType("character varying")
+                        .HasColumnName("contact_email");
+
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "NationalGoverningBodyId" }, "index_teams_on_national_governing_body_id");
