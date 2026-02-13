@@ -44,20 +44,10 @@ public class DbTeamContextFactory
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
 		if (!string.IsNullOrEmpty(filter))
 		{
-			if (this.dbContext.Database.IsNpgsql())
-			{
-				t = t.Where(x =>
-					EF.Functions.ILike(x.Name, filter) ||
-					EF.Functions.ILike(x.City, filter) ||
-					EF.Functions.ILike(x.State!, filter));
-			}
-			else
-			{
-				t = t.Where(x =>
-					EF.Functions.Like(x.Name, filter) ||
-					EF.Functions.Like(x.City, filter) ||
-					EF.Functions.Like(x.State!, filter));
-			}
+			t = t.Where(x =>
+				EF.Functions.Like(x.Name, filter) ||
+				EF.Functions.Like(x.City, filter) ||
+				EF.Functions.Like(x.State!, filter));
 		}
 
 		if (this.filteringContext.FilteringMetadata != null)
@@ -193,14 +183,7 @@ public class DbTeamContextFactory
 		if (!string.IsNullOrEmpty(filter))
 		{
 			filter = $"%{filter}%";
-			if (this.dbContext.Database.IsNpgsql())
-			{
-				usersQuery = usersQuery.Where(u => EF.Functions.ILike(u.FirstName + " " + u.LastName, filter));
-			}
-			else
-			{
-				usersQuery = usersQuery.Where(u => EF.Functions.Like(u.FirstName + " " + u.LastName, filter));
-			}
+			usersQuery = usersQuery.Where(u => EF.Functions.Like(u.FirstName + " " + u.LastName, filter));
 		}
 
 		// Distinct users

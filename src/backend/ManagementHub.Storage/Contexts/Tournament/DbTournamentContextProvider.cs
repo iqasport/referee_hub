@@ -71,29 +71,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var filter = this.filteringContext.FilteringParameters.Filter;
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
 
-		IQueryable<Models.Data.Tournament> filteredTournaments;
-		if (this.dbContext.Database.IsNpgsql())
-		{
-			filteredTournaments = string.IsNullOrEmpty(filter)
-				? this.dbContext.Tournaments
-				: this.dbContext.Tournaments
-					.Where(t => EF.Functions.ILike(t.Name, filter)
-						|| EF.Functions.ILike(t.Description, filter)
-						|| (t.Country != null && EF.Functions.ILike(t.Country, filter))
-						|| (t.City != null && EF.Functions.ILike(t.City, filter))
-						|| (t.Place != null && EF.Functions.ILike(t.Place, filter)));
-		}
-		else
-		{
-			filteredTournaments = string.IsNullOrEmpty(filter)
-				? this.dbContext.Tournaments
-				: this.dbContext.Tournaments
-					.Where(t => EF.Functions.Like(t.Name, filter)
-						|| EF.Functions.Like(t.Description, filter)
-						|| (t.Country != null && EF.Functions.Like(t.Country, filter))
-						|| (t.City != null && EF.Functions.Like(t.City, filter))
-						|| (t.Place != null && EF.Functions.Like(t.Place, filter)));
-		}
+		IQueryable<Models.Data.Tournament> filteredTournaments = string.IsNullOrEmpty(filter)
+			? this.dbContext.Tournaments
+			: this.dbContext.Tournaments
+				.Where(t => EF.Functions.Like(t.Name, filter)
+					|| EF.Functions.Like(t.Description, filter)
+					|| (t.Country != null && EF.Functions.Like(t.Country, filter))
+					|| (t.City != null && EF.Functions.Like(t.City, filter))
+					|| (t.Place != null && EF.Functions.Like(t.Place, filter)));
 
 		if (this.filteringContext.FilteringMetadata != null)
 		{

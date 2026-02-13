@@ -64,7 +64,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	{
 		if (!optionsBuilder.IsConfigured)
 		{
-			optionsBuilder.UseNpgsql();
+			optionsBuilder.UseSqlite("Data Source=ManagementHub.db");
 		}
 	}
 
