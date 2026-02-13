@@ -132,7 +132,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			await using var transaction = await this.databaseTransactionProvider.BeginAsync();
 
 			const string attachmentName = "logo";
-			var attachment = this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
+			var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
 
 			this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team ({teamId}) of content type '{contentType}'. Team had previously a logo: {hadLogo}.", teamId, contentType, attachment != null);
 

@@ -109,30 +109,42 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       state: newTeam.state || null // state is nullable but needs to be a string for input value
     };
     
-    let createdOrUpdatedTeam;
-    if (teamId) {
-      const result = await updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
-      createdOrUpdatedTeam = result.data;
-    } else {
-      const result = await createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
-      createdOrUpdatedTeam = result.data;
-    }
-
-    // Upload logo if a file was selected
-    if (logoFile && createdOrUpdatedTeam?.teamId) {
-      try {
-        await uploadLogo({
-          teamId: createdOrUpdatedTeam.teamId,
-          body: { logoBlob: logoFile }
-        });
-      } catch (error) {
-        console.error("Failed to upload logo:", error);
-        // Continue anyway - the team was created/updated
+    try {
+      let createdOrUpdatedTeam;
+      if (teamId) {
+        const result = await updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
+        if ('error' in result) {
+          console.error("Failed to update team:", result.error);
+          return;
+        }
+        createdOrUpdatedTeam = result.data;
+      } else {
+        const result = await createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
+        if ('error' in result) {
+          console.error("Failed to create team:", result.error);
+          return;
+        }
+        createdOrUpdatedTeam = result.data;
       }
-    }
 
-    setHasChangedTeam(false);
-    onClose();
+      // Upload logo if a file was selected
+      if (logoFile && createdOrUpdatedTeam?.teamId) {
+        try {
+          await uploadLogo({
+            teamId: createdOrUpdatedTeam.teamId,
+            body: { logoBlob: logoFile }
+          });
+        } catch (error) {
+          console.error("Failed to upload logo:", error);
+          // Continue anyway - the team was created/updated
+        }
+      }
+
+      setHasChangedTeam(false);
+      onClose();
+    } catch (error) {
+      console.error("Unexpected error during team save:", error);
+    }
   };
 
   const handleDataChange = (dataKey: string, newValue: string) => {
@@ -157,15 +169,20 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     if (file) {
       // Validate file is an image
       if (!file.type.startsWith("image/")) {
-        alert("Please select an image file");
+        setErrors([...(errors || []), "logoFile"]);
         return;
       }
       
       // Validate file size (max 5 MB)
       const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
-        alert("File size must not exceed 5 MB");
+        setErrors([...(errors || []), "logoSize"]);
         return;
+      }
+
+      // Clear any previous logo errors
+      if (errors) {
+        setErrors(errors.filter(e => e !== "logoFile" && e !== "logoSize"));
       }
 
       setLogoFile(file);
@@ -184,6 +201,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     setLogoFile(null);
     setLogoPreview(null);
     setHasChangedTeam(true);
+    handleDataChange('logoUrl', null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -226,8 +244,16 @@ const TeamEditModal = (props: TeamEditModalProps) => {
                   type="file"
                   accept="image/*"
                   onChange={handleLogoChange}
-                  className="form-input mt-1 block w-full"
+                  className={classnames("form-input mt-1 block w-full", {
+                    "border border-red-500": hasError("logoFile") || hasError("logoSize"),
+                  })}
                 />
+              )}
+              {hasError("logoFile") && (
+                <span className="text-red-500 text-sm">Please select an image file</span>
+              )}
+              {hasError("logoSize") && (
+                <span className="text-red-500 text-sm">File size must not exceed 5 MB</span>
               )}
               <p className="text-sm text-gray-500 mt-1">
                 Max file size: 5 MB. Supported formats: JPG, PNG, GIF
