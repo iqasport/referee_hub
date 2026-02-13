@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { InputActionMeta, MultiValue, ActionMeta } from "react-select";
+import { Link } from "react-router-dom";
 
 import Select, { SelectOption } from "../../../components/Select/Select";
 import { RefereeLocationOptions } from "../RefereeLocation/RefereeLocation";
@@ -12,10 +13,11 @@ interface RefereeTeamProps {
   locations: RefereeLocationOptions;
   isEditing: boolean;
   onChange: (newTeams: RefereeTeamOptions) => void;
+  isOwnProfile: boolean;
 }
 
 const RefereeTeam = (props: RefereeTeamProps) => {
-  const { isEditing, onChange, teams, locations } = props;
+  const { isEditing, onChange, teams, locations, isOwnProfile } = props;
   const isDisabled = !locations.primaryNgb && !locations.secondaryNgb;
   
   const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb, skipPaging: true }, {skip: !locations.primaryNgb});
@@ -125,13 +127,34 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
   const emptyTeam = "Team not selected";
 
+  const renderTeamName = (type: keyof RefereeTeamOptions): JSX.Element => {
+    if (!hasType(type)) {
+      return <span>{emptyTeam}</span>;
+    }
+
+    const teamName = getTeamName(type);
+    const teamId = teams[type]?.id;
+
+    // If viewing own profile and team exists, make it a link
+    if (isOwnProfile && teamId) {
+      return (
+        <Link to={`/teams/${teamId}`} className="text-blue-600 hover:underline">
+          {teamName}
+        </Link>
+      );
+    }
+
+    // Otherwise, just display the name
+    return <span>{teamName}</span>;
+  };
+
   return (
     <div className="flex flex-col w-1/2 p-4">
       <div className="w-full mb-4">
         <h4 className="text-sm mb-2">Playing Team</h4>
         {!isEditing && (
           <p className="font-bold">
-            {hasType("playingTeam") ? getTeamName("playingTeam") : emptyTeam}
+            {renderTeamName("playingTeam")}
           </p>
         )}
         {isEditing && renderDropdown("playingTeam", "playing")}
@@ -140,7 +163,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
         <h4 className="text-sm mb-2">Coaching Team</h4>
         {!isEditing && (
           <p className="font-bold">
-            {hasType("coachingTeam") ? getTeamName("coachingTeam") : emptyTeam}
+            {renderTeamName("coachingTeam")}
           </p>
         )}
         {isEditing && renderDropdown("coachingTeam", "coaching")}
@@ -149,7 +172,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
         <h4 className="text-sm mb-2">National Team</h4>
         {!isEditing && (
           <p className="font-bold">
-            {hasType("nationalTeam") ? getTeamName("nationalTeam") : emptyTeam}
+            {renderTeamName("nationalTeam")}
           </p>
         )}
         {isEditing && renderDropdown("nationalTeam", "national")}

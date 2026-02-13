@@ -250,6 +250,10 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Team"],
       }),
+      getTeamDetails: build.query<GetTeamDetailsApiResponse, GetTeamDetailsApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Teams/${queryArg.teamId}` }),
+        providesTags: ["Team"],
+      }),
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
@@ -730,6 +734,11 @@ export type UploadTeamLogoApiArg = {
   body: {
     logoBlob?: Blob;
   };
+};
+export type GetTeamDetailsApiResponse = /** status 200 Success */ TeamDetailViewModel;
+export type GetTeamDetailsApiArg = {
+  /** Team identifier */
+  teamId: string;
 };
 export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNgbTeamsApiArg = {
@@ -1285,6 +1294,43 @@ export type NgbTeamViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: NgbTeamViewModel[] | null;
 };
+export type TeamManagerViewModel = {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+};
+export type TeamMemberViewModel = {
+  userId?: string;
+  name?: string | null;
+};
+export type TeamDetailViewModel = {
+  /** Team identifier. */
+  teamId?: string;
+  /** Team name. */
+  name?: string | null;
+  /** The city the team is based in. */
+  city?: string | null;
+  /** The state the team is based in. */
+  state?: string | null;
+  /** The country the team is based in. */
+  country?: string | null;
+  status?: TeamStatus;
+  groupAffiliation?: TeamGroupAffiliation;
+  /** Date when the team joined. */
+  joinedAt?: string;
+  /** URL to the team's logo image. */
+  logoUrl?: string | null;
+  /** Team description. */
+  description?: string | null;
+  /** Team contact email. */
+  contactEmail?: string | null;
+  /** Team social media accounts. */
+  socialAccounts?: SocialAccount[] | null;
+  /** Team managers. */
+  managers?: TeamManagerViewModel[] | null;
+  /** Team members (players). */
+  members?: TeamMemberViewModel[] | null;
+};
 export type TeamManagerCreationStatus =
   | "InvalidEmail"
   | "UserDoesNotExist"
@@ -1301,15 +1347,6 @@ export type ProblemDetails = {
   detail?: string | null;
   instance?: string | null;
   [key: string]: any;
-};
-export type TeamManagerViewModel = {
-  id?: string;
-  name?: string | null;
-  email?: string | null;
-};
-export type TeamMemberViewModel = {
-  userId?: string;
-  name?: string | null;
 };
 export type TeamMemberViewModelFiltered = {
   metadata?: FilteringMetadata;
@@ -1553,6 +1590,7 @@ export const {
   useGetAvailablePaymentsQuery,
   useGetNationalTeamsQuery,
   useUploadTeamLogoMutation,
+  useGetTeamDetailsQuery,
   useGetNgbTeamsQuery,
   useCreateNgbTeamMutation,
   useUpdateNgbTeamMutation,

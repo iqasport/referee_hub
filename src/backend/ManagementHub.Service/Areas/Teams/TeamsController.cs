@@ -107,4 +107,61 @@ public class TeamsController : ControllerBase
 			this.HttpContext.RequestAborted);
 		return logoUri;
 	}
+
+	/// <summary>
+	/// Get details of a specific team including managers and members.
+	/// </summary>
+	/// <param name="teamId">Team identifier</param>
+	/// <returns>Team details with managers and members</returns>
+	[HttpGet("{teamId}")]
+	[Tags("Team")]
+	[Authorize]
+	public async Task<TeamDetailViewModel> GetTeamDetails([FromRoute] TeamIdentifier teamId)
+	{
+		// Get team details - any authenticated user can view team details
+		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+		
+		if (team == null)
+		{
+			throw new ArgumentException($"Team {teamId} not found");
+		}
+
+		// Get social accounts
+		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Any);
+		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
+
+		// Get managers
+		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
+		
+		// Get members
+		var membersQuery = this.teamContextProvider.QueryTeamMembers(teamId, NgbConstraint.Any);
+		var members = await membersQuery.ToListAsync();
+
+		return new TeamDetailViewModel
+		{
+			TeamId = team.TeamId,
+			Name = team.TeamData.Name,
+			City = team.TeamData.City,
+			State = team.TeamData.State,
+			Country = team.TeamData.Country,
+			Status = team.TeamData.Status,
+			GroupAffiliation = team.TeamData.GroupAffiliation,
+			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
+			LogoUrl = team.TeamData.LogoUrl,
+			Description = team.TeamData.Description,
+			ContactEmail = team.TeamData.ContactEmail,
+			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+			Managers = managers.Select(m => new TeamManagerViewModel
+			{
+				Id = m.UserId,
+				Name = m.Name,
+				Email = m.Email
+			}),
+			Members = members.Select(m => new TeamMemberViewModel
+			{
+				UserId = m.UserId,
+				Name = m.Name
+			})
+		};
+	}
 }
