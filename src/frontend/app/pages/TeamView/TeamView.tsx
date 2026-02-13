@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigationParams } from "../../utils/navigationUtils";
 import { useGetTeamDetailsQuery } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
+import { toDateTime } from "../../utils/dateUtils";
 
 const TeamView = () => {
   const { teamId } = useNavigationParams<"teamId">();
@@ -143,7 +144,8 @@ const TeamView = () => {
             <span className="capitalize">{team.status}</span>
           </div>
           <div>
-            <span className="font-semibold">Joined:</span> {team.joinedAt}
+            <span className="font-semibold">Joined:</span>{" "}
+            {toDateTime(team.joinedAt).toFormat("MMMM d, yyyy")}
           </div>
         </div>
       </div>

@@ -126,9 +126,8 @@ public class TeamsController : ControllerBase
 			throw new ArgumentException($"Team {teamId} not found");
 		}
 
-		// Get social accounts
-		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Any);
-		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
+		// Get social accounts for this specific team
+		var socialAccounts = await this.socialAccountsProvider.GetTeamSocialAccounts(teamId);
 
 		// Get managers
 		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
@@ -150,7 +149,7 @@ public class TeamsController : ControllerBase
 			LogoUrl = team.TeamData.LogoUrl,
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
-			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+			SocialAccounts = socialAccounts,
 			Managers = managers.Select(m => new TeamManagerViewModel
 			{
 				Id = m.UserId,

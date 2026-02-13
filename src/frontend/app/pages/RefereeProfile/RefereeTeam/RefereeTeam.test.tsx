@@ -49,6 +49,7 @@ describe("RefereeTeam", () => {
     locations: defaultLocations,
     isEditing: false,
     onChange: mockOnChange,
+    isOwnProfile: false,
   };
 
   beforeEach(() => {
