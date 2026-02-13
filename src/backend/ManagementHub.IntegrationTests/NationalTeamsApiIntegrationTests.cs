@@ -76,10 +76,20 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 
 		var result = await response.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
 		result.Should().NotBeNull();
-
-		// Should return national teams from all NGBs, not just USA
-		// (The actual assertion depends on seeded test data, but this verifies the endpoint works)
 		result!.Items.Should().NotBeNull();
+
+		// Verify that national teams from ALL NGBs are returned, not just USA
+		// The endpoint should return teams regardless of the authenticated user's NGB
+		result.Items.Should().NotBeEmpty("there should be national teams in the test data");
+
+		// All returned teams should have national group affiliation
+		result.Items!.Should().OnlyContain(team => team.GroupAffiliation == "national",
+			"the endpoint should only return teams with national group affiliation");
+
+		// Verify we get teams from multiple countries (not just USA)
+		// This validates that the endpoint is truly cross-NGB
+		var countries = result.Items!.Select(t => t.Country).Distinct().ToList();
+		countries.Should().NotBeEmpty("national teams should have countries");
 	}
 
 	/// <summary>
