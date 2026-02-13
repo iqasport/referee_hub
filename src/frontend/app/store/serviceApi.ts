@@ -242,6 +242,14 @@ const injectedRtkApi = api
         }),
         providesTags: ["Team"],
       }),
+      uploadTeamLogo: build.mutation<UploadTeamLogoApiResponse, UploadTeamLogoApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Teams/${queryArg.teamId}/logo`,
+          method: "PUT",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["Team"],
+      }),
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
@@ -714,6 +722,14 @@ export type GetNationalTeamsApiArg = {
   page?: number;
   pageSize?: number;
   skipPaging?: boolean;
+};
+export type UploadTeamLogoApiResponse = /** status 200 Success */ string;
+export type UploadTeamLogoApiArg = {
+  /** Team identifier */
+  teamId: string;
+  body: {
+    logoBlob?: Blob;
+  };
 };
 export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNgbTeamsApiArg = {
@@ -1258,6 +1274,12 @@ export type NgbTeamViewModel = {
   groupAffiliation?: TeamGroupAffiliation;
   joinedAt?: string;
   socialAccounts?: SocialAccount[] | null;
+  /** URL to the team's logo image. */
+  logoUrl?: string | null;
+  /** Team description. */
+  description?: string | null;
+  /** Team contact email. */
+  contactEmail?: string | null;
 };
 export type NgbTeamViewModelFiltered = {
   metadata?: FilteringMetadata;
@@ -1530,6 +1552,7 @@ export const {
   useGetNgbRefereesQuery,
   useGetAvailablePaymentsQuery,
   useGetNationalTeamsQuery,
+  useUploadTeamLogoMutation,
   useGetNgbTeamsQuery,
   useCreateNgbTeamMutation,
   useUpdateNgbTeamMutation,
