@@ -147,7 +147,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     }
   };
 
-  const handleDataChange = (dataKey: string, newValue: string) => {
+  const handleDataChange = (dataKey: string, newValue: string | null) => {
     setNewTeam({ ...newTeam, [dataKey]: newValue });
   };
 
