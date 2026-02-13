@@ -180,7 +180,9 @@ public class TeamsController : ControllerBase
 			Members = members.Select(m => new TeamMemberViewModel
 			{
 				UserId = m.UserId,
-				Name = m.Name
+				Name = m.Name,
+				PrimaryTeamName = m.PrimaryTeamName,
+				PrimaryTeamId = m.PrimaryTeamId?.ToString()
 			})
 		};
 	}

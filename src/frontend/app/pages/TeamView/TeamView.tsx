@@ -125,6 +125,9 @@ const TeamView = () => {
               {team.members.map((member) => (
                 <li key={member.userId} className="font-medium">
                   {member.name}
+                  {team.groupAffiliation === "national" && member.primaryTeamName && (
+                    <span className="ml-2 text-gray-600 text-sm">({member.primaryTeamName})</span>
+                  )}
                 </li>
               ))}
             </ul>

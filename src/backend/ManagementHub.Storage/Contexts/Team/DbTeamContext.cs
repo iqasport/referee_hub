@@ -221,15 +221,31 @@ public class DbTeamContextFactory
 		// Apply pagination
 		usersQuery = usersQuery.Page(this.filteringContext.FilteringParameters);
 
-		// Now project to TeamMemberInfo
+		// Now project to TeamMemberInfo with primary team information
+		// Join with RefereeTeams to get the user's playing team
 		return usersQuery
-			.Select(u => new TeamMemberInfo
-			{
-				UserId = u.UniqueId != null
-					? UserIdentifier.Parse(u.UniqueId)
-					: UserIdentifier.FromLegacyUserId(u.Id),
-				Name = $"{u.FirstName} {u.LastName}"
-			});
+			.GroupJoin(
+				this.dbContext.RefereeTeams
+					.Where(rt => rt.AssociationType == ManagementHub.Models.Enums.RefereeTeamAssociationType.Player)
+					.Join(
+						this.dbContext.Teams,
+						rt => rt.TeamId,
+						t => t.Id,
+						(rt, t) => new { rt.RefereeId, TeamId = t.Id, TeamName = t.Name }),
+				u => u.Id,
+				rt => rt.RefereeId,
+				(u, primaryTeams) => new { User = u, PrimaryTeams = primaryTeams })
+			.SelectMany(
+				x => x.PrimaryTeams.DefaultIfEmpty(),
+				(x, primaryTeam) => new TeamMemberInfo
+				{
+					UserId = x.User.UniqueId != null
+						? UserIdentifier.Parse(x.User.UniqueId)
+						: UserIdentifier.FromLegacyUserId(x.User.Id),
+					Name = $"{x.User.FirstName} {x.User.LastName}",
+					PrimaryTeamName = primaryTeam != null ? primaryTeam.TeamName : null,
+					PrimaryTeamId = primaryTeam != null ? new TeamIdentifier(primaryTeam.TeamId) : null
+				});
 	}
 
 	public static DbTeamContext FromDatabase(Models.Data.Team tt, NgbIdentifier ngb) => new DbTeamContext(new TeamIdentifier(tt.Id), ngb, new TeamData

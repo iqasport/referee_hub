@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { InputActionMeta, MultiValue, ActionMeta } from "react-select";
-import { Link } from "react-router-dom";
 
 import Select, { SelectOption } from "../../../components/Select/Select";
 import { RefereeLocationOptions } from "../RefereeLocation/RefereeLocation";
@@ -13,11 +12,10 @@ interface RefereeTeamProps {
   locations: RefereeLocationOptions;
   isEditing: boolean;
   onChange: (newTeams: RefereeTeamOptions) => void;
-  isOwnProfile: boolean;
 }
 
 const RefereeTeam = (props: RefereeTeamProps) => {
-  const { isEditing, onChange, teams, locations, isOwnProfile } = props;
+  const { isEditing, onChange, teams, locations } = props;
   const isDisabled = !locations.primaryNgb && !locations.secondaryNgb;
   
   const { data: primaryNgbTeams, error: getPrimaryNgbTeamsError } = useGetNgbTeamsQuery({ ngb: locations.primaryNgb, skipPaging: true }, {skip: !locations.primaryNgb});
@@ -133,18 +131,8 @@ const RefereeTeam = (props: RefereeTeamProps) => {
     }
 
     const teamName = getTeamName(type);
-    const teamId = teams[type]?.id;
 
-    // If viewing own profile and team exists, make it a link
-    if (isOwnProfile && teamId) {
-      return (
-        <Link to={`/teams/${teamId}`} className="text-blue-600 hover:underline">
-          {teamName}
-        </Link>
-      );
-    }
-
-    // Otherwise, just display the name
+    // Always display the name as plain text (privacy)
     return <span>{teamName}</span>;
   };
 

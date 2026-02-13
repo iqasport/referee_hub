@@ -243,11 +243,17 @@ const injectedRtkApi = api
         providesTags: ["Team"],
       }),
       uploadTeamLogo: build.mutation<UploadTeamLogoApiResponse, UploadTeamLogoApiArg>({
-        query: (queryArg) => ({
-          url: `/api/v2/Teams/${queryArg.teamId}/logo`,
-          method: "PUT",
-          body: queryArg.body,
-        }),
+        query: (queryArg) => {
+          const formData = new FormData();
+          if (queryArg.body.logoBlob) {
+            formData.append('logoBlob', queryArg.body.logoBlob);
+          }
+          return {
+            url: `/api/v2/Teams/${queryArg.teamId}/logo`,
+            method: "PUT",
+            body: formData,
+          };
+        },
         invalidatesTags: ["Team"],
       }),
       getTeamDetails: build.query<GetTeamDetailsApiResponse, GetTeamDetailsApiArg>({
@@ -1302,6 +1308,8 @@ export type TeamManagerViewModel = {
 export type TeamMemberViewModel = {
   userId?: string;
   name?: string | null;
+  primaryTeamName?: string | null;
+  primaryTeamId?: string | null;
 };
 export type TeamDetailViewModel = {
   /** Team identifier. */

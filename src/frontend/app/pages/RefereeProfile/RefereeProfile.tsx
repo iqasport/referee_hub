@@ -68,7 +68,6 @@ const RefereeDetails = () => {
       }}
       isEditing={isEditing}
       onChange={handleChange}
-      isOwnProfile={refereeId === "me"}
     />
   </div>);
 }
