@@ -949,63 +949,88 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Verify the team is a participant in the tournament
-		var participant = await this.dbContext.TournamentTeamParticipants
-			.Include(p => p.RosterEntries)
-			.ThenInclude(e => e.User)
-			.ThenInclude(u => u.RefereeCertifications)
-			.ThenInclude(rc => rc.Certification)
+		// Verify the team is a participant in the tournament and get roster entries with only needed data
+		var rosterData = await this.dbContext.TournamentTeamParticipants
 			.Where(p => p.TeamId == teamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
-			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+			.SelectMany(p => p.RosterEntries)
+			.Select(entry => new
+			{
+				entry.UserId,
+				entry.Role,
+				entry.JerseyNumber,
+				User = new
+				{
+					entry.User.Id,
+					entry.User.UniqueId,
+					entry.User.FirstName,
+					entry.User.LastName,
+					entry.User.ShowPronouns,
+					entry.User.Pronouns,
+					Certifications = entry.User.RefereeCertifications
+						.Where(rc => rc.ReceivedAt != null && rc.RevokedAt == null)
+						.OrderByDescending(rc => rc.Certification.Level)
+						.ThenByDescending(rc => rc.ReceivedAt)
+						.Select(rc => new
+						{
+							rc.Certification.Level,
+							rc.Certification.DisplayName,
+							rc.ReceivedAt
+						})
+						.Take(1)
+				}
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
 
-		if (participant == null)
+		if (!rosterData.Any())
 		{
-			return this.NotFound(new { error = "Team is not a participant in this tournament" });
+			// Check if participant exists at all
+			var participantExists = await this.dbContext.TournamentTeamParticipants
+				.Where(p => p.TeamId == teamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
+				.AnyAsync(this.HttpContext.RequestAborted);
+
+			if (!participantExists)
+			{
+				return this.NotFound(new { error = "Team is not a participant in this tournament" });
+			}
 		}
+
+		// Batch get all user identifiers at once
+		var userIdentifiers = rosterData
+			.Select(r => r.User.UniqueId != null
+				? UserIdentifier.Parse(r.User.UniqueId)
+				: UserIdentifier.FromLegacyUserId(r.User.Id))
+			.ToList();
+
+		// Batch get gender data for all users at once (outside the loop)
+		var genderData = await this.GetAccessibleGenderDataAsync(userIdentifiers, userContext);
 
 		// Build roster entries
-		var rosterEntries = new List<RosterEntryViewModel>();
-
-		foreach (var entry in participant.RosterEntries)
+		var rosterEntries = rosterData.Select(entry =>
 		{
-			var user = entry.User;
-			var name = $"{user.FirstName ?? string.Empty} {user.LastName ?? string.Empty}".Trim();
+			var name = $"{entry.User.FirstName ?? string.Empty} {entry.User.LastName ?? string.Empty}".Trim();
 
-			// Get the highest certification for this user
-			string? maxCertification = null;
-			DateTime? maxCertificationDate = null;
+			var userId = entry.User.UniqueId != null
+				? UserIdentifier.Parse(entry.User.UniqueId)
+				: UserIdentifier.FromLegacyUserId(entry.User.Id);
 
-			var activeCertifications = user.RefereeCertifications
-				.Where(rc => rc.ReceivedAt != null && rc.RevokedAt == null)
-				.OrderByDescending(rc => rc.Certification.Level)
-				.ThenByDescending(rc => rc.ReceivedAt)
-				.ToList();
-
-			if (activeCertifications.Any())
-			{
-				var highest = activeCertifications.First();
-				maxCertification = highest.Certification.DisplayName;
-				maxCertificationDate = highest.ReceivedAt;
-			}
-
-			// Get gender data if accessible
-			var userId = user.UniqueId != null
-				? UserIdentifier.Parse(user.UniqueId)
-				: UserIdentifier.FromLegacyUserId(user.Id);
-			var genderData = await this.GetAccessibleGenderDataAsync(new List<UserIdentifier> { userId }, userContext);
 			var gender = genderData.ContainsKey(userId) ? genderData[userId] : null;
 
-			rosterEntries.Add(new RosterEntryViewModel
+			// Get the highest certification
+			var highestCert = entry.User.Certifications.FirstOrDefault();
+
+			return new RosterEntryViewModel
 			{
 				Name = name,
-				Pronouns = user.ShowPronouns == true ? user.Pronouns : null,
+				Pronouns = entry.User.ShowPronouns == true ? entry.User.Pronouns : null,
 				Gender = gender,
 				JerseyNumber = entry.JerseyNumber,
-				Role = entry.Role.ToString(),
-				MaxCertification = maxCertification,
-				MaxCertificationDate = maxCertificationDate
-			});
-		}
+				// Role is returned as the enum value (0=Player, 1=Coach, 2=Staff) for type safety
+				// Frontend converts these numeric values to display strings
+				Role = entry.Role,
+				MaxCertification = highestCert?.DisplayName,
+				MaxCertificationDate = highestCert?.ReceivedAt
+			};
+		}).ToList();
 
 		return this.Ok(rosterEntries);
 	}
