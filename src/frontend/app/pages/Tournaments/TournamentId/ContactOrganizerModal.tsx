@@ -2,10 +2,13 @@ import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import React from "react";
 import { HomeIcon } from "../../../components/icons";
+import { useContactTournamentOrganizersMutation } from "../../../store/serviceApi";
+import { useAlert } from "../../../hooks/useAlert";
 
 interface OrganizerInfo {
   name: string;
   tournamentName: string;
+  tournamentId: string;
 }
 
 export interface ContactOrganizerModalRef {
@@ -15,16 +18,43 @@ export interface ContactOrganizerModalRef {
 const ContactOrganizerModal = forwardRef<ContactOrganizerModalRef>((_props, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [organizer, setOrganizer] = useState<OrganizerInfo | null>(null);
+  const [message, setMessage] = useState("");
+  const [contactOrganizers, { isLoading }] = useContactTournamentOrganizersMutation();
+  const { showAlert } = useAlert();
 
   useImperativeHandle(ref, () => ({
     open: (organizerData: OrganizerInfo) => {
       setOrganizer(organizerData);
+      setMessage("");
       setIsOpen(true);
     },
   }));
 
   function close() {
     setIsOpen(false);
+    setMessage("");
+  }
+
+  async function handleSend() {
+    if (!organizer || !message.trim()) {
+      showAlert("Please enter a message", "error");
+      return;
+    }
+
+    try {
+      await contactOrganizers({
+        tournamentId: organizer.tournamentId,
+        contactTournamentRequest: {
+          message: message.trim(),
+        },
+      }).unwrap();
+
+      showAlert("Message sent successfully to tournament organizers", "success");
+      close();
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      showAlert("Failed to send message. Please try again.", "error");
+    }
   }
 
   return (
@@ -66,28 +96,47 @@ const ContactOrganizerModal = forwardRef<ContactOrganizerModalRef>((_props, ref)
           {/* Contact Instructions */}
           <div className="text-sm text-gray-600 space-y-2 mb-6">
             <p>
-              To get in touch with the tournament organizer, please reach out through your National
-              Governing Body (NGB) or check the official tournament communications.
+              Send a message to the tournament organizers. They will receive your message via email
+              and can respond to you directly.
             </p>
           </div>
 
           {/* Message Input */}
           <div className="mb-6">
             <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-              Your Message
+              Your Message <span className="text-red-500">*</span>
             </label>
             <textarea
               id="message"
               rows={4}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
               placeholder="Type your message here..."
+              maxLength={1000}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              {message.length}/1000 characters
+            </p>
           </div>
 
-          {/* Close Button */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
-            <button type="button" onClick={close} className="btn btn-primary">
-              Close
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={close}
+              className="btn btn-secondary"
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              className="btn btn-primary"
+              disabled={isLoading || !message.trim()}
+            >
+              {isLoading ? "Sending..." : "Send Message"}
             </button>
           </div>
         </DialogPanel>

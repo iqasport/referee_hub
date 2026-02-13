@@ -449,6 +449,7 @@ const TournamentDetails = () => {
                         contactOrganizerModalRef.current?.open({
                           name: tournament.organizer || "",
                           tournamentName: tournament.name || "",
+                          tournamentId: tournament.id,
                         })
                       }
                       className="btn btn-outline btn-full-width"
