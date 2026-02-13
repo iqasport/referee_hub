@@ -107,12 +107,14 @@ public class TournamentsController : ControllerBase
 			Description = t.Description,
 			StartDate = t.StartDate,
 			EndDate = t.EndDate,
+			RegistrationEndsDate = t.RegistrationEndsDate,
 			Type = t.Type,
 			Country = t.Country,
 			City = t.City,
 			Place = t.Place,
 			Organizer = t.Organizer,
 			IsPrivate = t.IsPrivate,
+			IsRegistrationOpen = t.IsRegistrationOpen,
 			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		}).ToList();
@@ -150,12 +152,14 @@ public class TournamentsController : ControllerBase
 			Description = tournament.Description,
 			StartDate = tournament.StartDate,
 			EndDate = tournament.EndDate,
+			RegistrationEndsDate = tournament.RegistrationEndsDate,
 			Type = tournament.Type,
 			Country = tournament.Country,
 			City = tournament.City,
 			Place = tournament.Place,
 			Organizer = tournament.Organizer,
 			IsPrivate = tournament.IsPrivate,
+			IsRegistrationOpen = tournament.IsRegistrationOpen,
 			BannerImageUrl = bannerUri?.ToString(),
 			IsCurrentUserInvolved = tournament.IsCurrentUserInvolved
 		};
@@ -177,12 +181,14 @@ public class TournamentsController : ControllerBase
 			Description = model.Description,
 			StartDate = model.StartDate,
 			EndDate = model.EndDate,
+			RegistrationEndsDate = model.RegistrationEndsDate,
 			Type = model.Type,
 			Country = model.Country,
 			City = model.City,
 			Place = model.Place,
 			Organizer = model.Organizer,
-			IsPrivate = model.IsPrivate
+			IsPrivate = model.IsPrivate,
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		var tournamentId = await this.tournamentContextProvider
@@ -208,12 +214,14 @@ public class TournamentsController : ControllerBase
 			Description = model.Description,
 			StartDate = model.StartDate,
 			EndDate = model.EndDate,
+			RegistrationEndsDate = model.RegistrationEndsDate,
 			Type = model.Type,
 			Country = model.Country,
 			City = model.City,
 			Place = model.Place,
 			Organizer = model.Organizer,
-			IsPrivate = model.IsPrivate
+			IsPrivate = model.IsPrivate,
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		await this.tournamentContextProvider

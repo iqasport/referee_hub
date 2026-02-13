@@ -6,22 +6,59 @@ interface TournamentInfoCardsProps {
   formattedDateRange: string;
   organizer?: string | null;
   startDate?: string;
-  participantCount?: number;
+  registrationEndsDate?: string | null;
+  isRegistrationOpen?: boolean;
+  tournamentType?: string | null;
 }
 
 const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
   formattedDateRange,
   organizer,
   startDate,
-  participantCount,
+  registrationEndsDate,
+  isRegistrationOpen,
+  tournamentType,
 }) => {
-  const registrationEndDate = startDate
-    ? new Date(startDate).toLocaleDateString("en-US", {
+  // Check if registration is closed or if the registration end date has passed
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+  
+  let registrationEndDate: string;
+  
+  if (isRegistrationOpen === false) {
+    // If explicitly closed, show "Closed"
+    registrationEndDate = "Closed";
+  } else if (registrationEndsDate) {
+    const regEndDate = new Date(registrationEndsDate);
+    regEndDate.setHours(0, 0, 0, 0);
+    
+    // Check if the date has passed
+    if (regEndDate < today) {
+      registrationEndDate = "Closed";
+    } else {
+      registrationEndDate = regEndDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
-      })
-    : "TBD";
+      });
+    }
+  } else if (startDate) {
+    const startDateObj = new Date(startDate);
+    startDateObj.setHours(0, 0, 0, 0);
+    
+    // Use start date as fallback, but check if it has passed
+    if (startDateObj < today) {
+      registrationEndDate = "Closed";
+    } else {
+      registrationEndDate = startDateObj.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+  } else {
+    registrationEndDate = "TBD";
+  }
 
   return (
     <div style={{ 
@@ -37,8 +74,8 @@ const TournamentInfoCards: React.FC<TournamentInfoCardsProps> = ({
       />
       <InfoCard
         icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><UsersIcon /></div>}
-        label="Participants"
-        value={participantCount !== undefined ? participantCount.toString() : "0"}
+        label="Tournament Type"
+        value={tournamentType || "N/A"}
       />
       <InfoCard
         icon={<div style={{ width: '1.25rem', height: '1.25rem' }}><HomeIcon /></div>}

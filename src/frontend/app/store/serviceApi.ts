@@ -1364,12 +1364,14 @@ export type TournamentViewModel = {
   description?: string | null;
   startDate?: string;
   endDate?: string;
+  registrationEndsDate?: string | null;
   type?: TournamentType;
   country?: string | null;
   city?: string | null;
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
+  isRegistrationOpen?: boolean;
   id?: string;
   bannerImageUrl?: string | null;
   isCurrentUserInvolved?: boolean;
@@ -1386,12 +1388,14 @@ export type TournamentModel = {
   description?: string | null;
   startDate?: string;
   endDate?: string;
+  registrationEndsDate?: string | null;
   type?: TournamentType;
   country?: string | null;
   city?: string | null;
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
+  isRegistrationOpen?: boolean;
 };
 export type TournamentManagerViewModel = {
   id?: string;
