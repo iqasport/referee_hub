@@ -105,6 +105,27 @@ public class TeamsController : ControllerBase
 			logoBlob.ContentType,
 			logoBlob.OpenReadStream(),
 			this.HttpContext.RequestAborted);
+
+		// Update the team's LogoUrl field so it's reflected in the team data
+		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+		if (team != null)
+		{
+			var updatedTeamData = new TeamData
+			{
+				Name = team.TeamData.Name,
+				City = team.TeamData.City,
+				State = team.TeamData.State,
+				Country = team.TeamData.Country,
+				Status = team.TeamData.Status,
+				GroupAffiliation = team.TeamData.GroupAffiliation,
+				JoinedAt = team.TeamData.JoinedAt,
+				LogoUrl = logoUri.ToString(),
+				Description = team.TeamData.Description,
+				ContactEmail = team.TeamData.ContactEmail,
+			};
+			await this.teamContextProvider.UpdateTeamAsync(team.NgbId, teamId, updatedTeamData);
+		}
+
 		return logoUri;
 	}
 
