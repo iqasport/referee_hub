@@ -6,7 +6,10 @@ import { toDateTime } from "../../utils/dateUtils";
 
 const TeamView = () => {
   const { teamId } = useNavigationParams<"teamId">();
-  const { data: team, error: teamError, isLoading } = useGetTeamDetailsQuery({ teamId });
+  const { data: team, error: teamError, isLoading } = useGetTeamDetailsQuery(
+    { teamId: teamId! },
+    { skip: !teamId }
+  );
 
   if (isLoading) {
     return (
