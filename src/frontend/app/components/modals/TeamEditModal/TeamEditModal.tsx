@@ -79,7 +79,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
 
   const [createTeam, {data: createTeamData, error: createTeamError, isLoading: isCreateTeamLoading}] = useCreateNgbTeamMutation();
   const [updateTeam, {data: updateTeamData, error: updateTeamError, isLoading: isUpdateTeamLoading}] = useUpdateNgbTeamMutation();
-  const [uploadLogo] = useUploadTeamLogoMutation();
+  const [uploadLogo, {isLoading: isUploadingLogo}] = useUploadTeamLogoMutation();
   // TODO: handle errors and show loading spinner
   // upon submit it should wait until *Data is not undefined before closing the modal
 
@@ -130,13 +130,16 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       // Upload logo if a file was selected
       if (logoFile && createdOrUpdatedTeam?.teamId) {
         try {
-          await uploadLogo({
+          const uploadResult = await uploadLogo({
             teamId: createdOrUpdatedTeam.teamId,
             body: { logoBlob: logoFile }
-          });
+          }).unwrap();
+          console.log("Logo uploaded successfully:", uploadResult);
         } catch (error) {
           console.error("Failed to upload logo:", error);
-          // Continue anyway - the team was created/updated
+          setErrors([...(errors || []), "logoUpload"]);
+          // Don't close the modal if logo upload fails
+          return;
         }
       }
 
@@ -254,6 +257,9 @@ const TeamEditModal = (props: TeamEditModalProps) => {
               )}
               {hasError("logoSize") && (
                 <span className="text-red-500 text-sm">File size must not exceed 5 MB</span>
+              )}
+              {hasError("logoUpload") && (
+                <span className="text-red-500 text-sm">Failed to upload logo. Please try again.</span>
               )}
               <p className="text-sm text-gray-500 mt-1">
                 Max file size: 5 MB. Supported formats: JPG, PNG, GIF
@@ -403,12 +409,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <button
             type="button"
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
-              "opacity-50 cursor-default": !hasChangedTeam,
+              "opacity-50 cursor-default": !hasChangedTeam || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo,
             })}
             onClick={handleSubmit}
-            disabled={!hasChangedTeam}
+            disabled={!hasChangedTeam || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo}
           >
-            Done
+            {(isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo) ? "Saving..." : "Done"}
           </button>
         </div>
       </form>
