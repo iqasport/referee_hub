@@ -1441,12 +1441,13 @@ export type UpdateRosterModel = {
   coaches?: RosterStaffModel[] | null;
   staff?: RosterStaffModel[] | null;
 };
+export type RosterRole = 0 | 1 | 2;
 export type RosterEntryViewModel = {
   name?: string | null;
   pronouns?: string | null;
   gender?: string | null;
   jerseyNumber?: string | null;
-  role?: string | null;
+  role?: RosterRole;
   maxCertification?: string | null;
   maxCertificationDate?: string | null;
 };

@@ -1,10 +1,25 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import React from "react";
-import { useGetTeamRosterQuery, RosterEntryViewModel } from "../../../store/serviceApi";
+import { useGetTeamRosterQuery, RosterEntryViewModel, RosterRole } from "../../../store/serviceApi";
 
 export interface RosterViewModalRef {
   open: (tournamentId: string, teamId: string, teamName: string, tournamentName: string) => void;
+}
+
+// Helper function to convert RosterRole enum to readable string
+function getRoleDisplayName(role?: RosterRole): string {
+  if (role === undefined || role === null) return "-";
+  switch (role) {
+    case 0:
+      return "Player";
+    case 1:
+      return "Coach";
+    case 2:
+      return "Staff";
+    default:
+      return String(role);
+  }
 }
 
 const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
@@ -54,7 +69,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
         `"${entry.pronouns || ""}"`,
         `"${entry.gender || ""}"`,
         `"${entry.jerseyNumber || ""}"`,
-        `"${entry.role || ""}"`,
+        `"${getRoleDisplayName(entry.role)}"`,
         `"${entry.maxCertification || ""}"`,
         entry.maxCertification && entry.maxCertificationDate
           ? `"${new Date(entry.maxCertificationDate).toLocaleDateString()}"`
@@ -164,7 +179,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {roster.map((entry: RosterEntryViewModel, index: number) => (
-                        <tr key={`${entry.name || 'unknown'}-${entry.role || 'role'}-${index}`} className="hover:bg-gray-50">
+                        <tr key={`${entry.name || 'unknown'}-${entry.role ?? 'role'}-${index}`} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {entry.name || "-"}
                           </td>
@@ -178,7 +193,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
                             {entry.jerseyNumber || "-"}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">
-                            {entry.role || "-"}
+                            {getRoleDisplayName(entry.role)}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">
                             {entry.maxCertification || "-"}
