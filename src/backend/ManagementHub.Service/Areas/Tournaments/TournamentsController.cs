@@ -1024,6 +1024,8 @@ public class TournamentsController : ControllerBase
 				Pronouns = entry.User.ShowPronouns == true ? entry.User.Pronouns : null,
 				Gender = gender,
 				JerseyNumber = entry.JerseyNumber,
+				// Role is returned as the enum value (0=Player, 1=Coach, 2=Staff) for type safety
+				// Frontend converts these numeric values to display strings
 				Role = entry.Role,
 				MaxCertification = highestCert?.DisplayName,
 				MaxCertificationDate = highestCert?.ReceivedAt

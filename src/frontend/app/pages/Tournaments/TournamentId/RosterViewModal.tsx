@@ -179,7 +179,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {roster.map((entry: RosterEntryViewModel, index: number) => (
-                        <tr key={`${entry.name || 'unknown'}-${entry.role ?? 'role'}-${index}`} className="hover:bg-gray-50">
+                        <tr key={`${entry.name || 'unknown'}-${entry.role}-${index}`} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {entry.name || "-"}
                           </td>
