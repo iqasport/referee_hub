@@ -46,16 +46,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Options;
+using Npgsql;
+
 namespace ManagementHub.Storage.DependencyInjection;
 
 public static class DbServiceCollectionExtentions
 {
 	/// <summary>
-	/// Name of the configuration section for database connection.
+	/// Name of the configuration section for Postgres connection.
 	/// </summary>
 	public const string DatabaseConnectionSection = "DatabaseConnection";
 	private const string SharedInMemorySqliteConnectionString = "DataSource=ManagementHub;mode=memory;cache=shared";
-	private const string DefaultSqliteConnectionString = "Data Source=ManagementHub.db";
 
 	/// <summary>
 	/// Adds dependencies for services of the storage based implementations of abstract interfaces.
@@ -80,12 +81,15 @@ public static class DbServiceCollectionExtentions
 		}
 		else
 		{
-			// Use SQLite for persistent storage
-			services.AddDbContext<ManagementHubDbContext>((options) =>
+			// allow creating a connection string builder directly based on configuration
+			services.AddOptions<NpgsqlConnectionStringBuilder>()
+				.BindConfiguration(DatabaseConnectionSection);
+
+			services.AddDbContext<ManagementHubDbContext>((serviceProvider, options) =>
 			{
-				options.UseSqlite(DefaultSqliteConnectionString);
-				options.EnableSensitiveDataLogging();
-				options.EnableDetailedErrors();
+				var connectionStringBuilder = serviceProvider.GetRequiredService<IOptionsSnapshot<NpgsqlConnectionStringBuilder>>();
+				var connectionString = connectionStringBuilder.Value.ConnectionString;
+				options.UseNpgsql(connectionString);
 			});
 
 			// for hosted database we run migration script

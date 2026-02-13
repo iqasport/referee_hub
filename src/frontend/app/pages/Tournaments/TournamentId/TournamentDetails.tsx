@@ -217,35 +217,6 @@ const TournamentDetails = () => {
         year: "numeric",
       })}`;
 
-  // Determine if registration is actually closed (either explicitly or by date)
-  const isRegistrationClosed = useMemo(() => {
-    // If explicitly closed
-    if (tournament.isRegistrationOpen === false) {
-      return true;
-    }
-    
-    // Check if registration end date has passed
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-    
-    if (tournament.registrationEndsDate) {
-      const regEndDate = new Date(tournament.registrationEndsDate);
-      regEndDate.setHours(0, 0, 0, 0);
-      if (regEndDate < today) {
-        return true;
-      }
-    } else if (tournament.startDate) {
-      // Fallback to start date if no registration end date
-      const tournamentStartDate = new Date(tournament.startDate);
-      tournamentStartDate.setHours(0, 0, 0, 0);
-      if (tournamentStartDate < today) {
-        return true;
-      }
-    }
-    
-    return false;
-  }, [tournament.isRegistrationOpen, tournament.registrationEndsDate, tournament.startDate]);
-
   // Handle edit tournament (for managers)
   const handleEdit = () => {
     editModalRef.current?.openEdit({
@@ -397,7 +368,7 @@ const TournamentDetails = () => {
 
                   {/* Register Now / Manage Rosters Card */}
                   <div className="card card-mb">
-                    {isRegistrationClosed ? (
+                    {tournament.isRegistrationOpen === false ? (
                       <>
                         <h3 className="card-title">Registration Closed</h3>
                         <p className="card-description">

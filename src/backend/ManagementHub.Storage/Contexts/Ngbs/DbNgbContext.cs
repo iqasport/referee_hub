@@ -32,10 +32,21 @@ public class DbNgbContextFactory
 	{
 		var filter = this.filteringContext.FilteringParameters.Filter;
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
-		IQueryable<NationalGoverningBody> filteredNgbs = string.IsNullOrEmpty(filter)
-			? this.dbContext.NationalGoverningBodies
-			: this.dbContext.NationalGoverningBodies
-				.Where(ngb => EF.Functions.Like(ngb.Name, filter));
+		IQueryable<NationalGoverningBody> filteredNgbs;
+		if (this.dbContext.Database.IsNpgsql())
+		{
+			filteredNgbs = string.IsNullOrEmpty(filter)
+				? this.dbContext.NationalGoverningBodies
+				: this.dbContext.NationalGoverningBodies
+					.Where(ngb => EF.Functions.ILike(ngb.Name, filter));
+		}
+		else
+		{
+			filteredNgbs = string.IsNullOrEmpty(filter)
+				? this.dbContext.NationalGoverningBodies
+				: this.dbContext.NationalGoverningBodies
+					.Where(ngb => EF.Functions.Like(ngb.Name, filter));
+		}
 
 		if (this.filteringContext.FilteringMetadata != null)
 		{

@@ -113,9 +113,18 @@ public class DbRefereeViewContextFactory
 		filter = string.IsNullOrEmpty(filter) ? filter : $"%{filter}%";
 		if (!string.IsNullOrEmpty(filter))
 		{
-			referees = referees.Where(u =>
-				EF.Functions.Like(u.FirstName!, filter) ||
-				EF.Functions.Like(u.LastName!, filter));
+			if (this.dbContext.Database.IsNpgsql())
+			{
+				referees = referees.Where(u =>
+					EF.Functions.ILike(u.FirstName!, filter) ||
+					EF.Functions.ILike(u.LastName!, filter));
+			}
+			else
+			{
+				referees = referees.Where(u =>
+					EF.Functions.Like(u.FirstName!, filter) ||
+					EF.Functions.Like(u.LastName!, filter));
+			}
 		}
 
 		if (this.filteringContext.FilteringMetadata != null)
