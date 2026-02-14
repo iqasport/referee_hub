@@ -4,8 +4,12 @@ using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Ngbs;
+using ManagementHub.Service.Authorization;
+using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
@@ -27,15 +31,21 @@ public class TeamsController : ControllerBase
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly ISocialAccountsProvider socialAccountsProvider;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
+	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
+	private readonly IUserContextAccessor contextAccessor;
 
 	public TeamsController(
 		ITeamContextProvider teamContextProvider,
 		ISocialAccountsProvider socialAccountsProvider,
-		IUpdateUserAvatarCommand updateUserAvatarCommand)
+		IUpdateUserAvatarCommand updateUserAvatarCommand,
+		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand,
+		IUserContextAccessor contextAccessor)
 	{
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
+		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
+		this.contextAccessor = contextAccessor;
 	}
 
 	/// <summary>
@@ -185,5 +195,138 @@ public class TeamsController : ControllerBase
 				PrimaryTeamId = m.PrimaryTeamId?.ToString()
 			})
 		};
+	}
+
+	/// <summary>
+	/// Get team management data including managers, players, and pending invites.
+	/// </summary>
+	/// <param name="teamId">Team identifier</param>
+	/// <returns>Team management data</returns>
+	[HttpGet("{teamId}/management")]
+	[Tags("TeamManagement")]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
+	public async Task<TeamManagementViewModel> GetTeamManagement([FromRoute] TeamIdentifier teamId)
+	{
+		// Verify user is a manager of this team
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var isTeamManager = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
+		if (!isTeamManager)
+		{
+			throw new UnauthorizedAccessException($"User is not a manager of team {teamId}");
+		}
+
+		// Get team details
+		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+		if (team == null)
+		{
+			throw new ArgumentException($"Team {teamId} not found");
+		}
+
+		// Get social accounts
+		var socialAccounts = await this.socialAccountsProvider.GetTeamSocialAccounts(teamId);
+
+		// Get managers
+		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
+
+		// Get members
+		var membersQuery = this.teamContextProvider.QueryTeamMembers(teamId, NgbConstraint.Any);
+		var members = await membersQuery.ToListAsync();
+
+		// TODO: Get pending invites (Phase 3 - will be implemented separately)
+		var pendingInvites = Enumerable.Empty<TeamInvitationViewModel>();
+
+		return new TeamManagementViewModel
+		{
+			TeamId = team.TeamId,
+			Name = team.TeamData.Name,
+			City = team.TeamData.City,
+			State = team.TeamData.State,
+			Country = team.TeamData.Country,
+			Status = team.TeamData.Status,
+			GroupAffiliation = team.TeamData.GroupAffiliation,
+			LogoUrl = team.TeamData.LogoUrl,
+			Description = team.TeamData.Description,
+			ContactEmail = team.TeamData.ContactEmail,
+			SocialAccounts = socialAccounts,
+			Managers = managers.Select(m => new TeamManagerViewModel
+			{
+				Id = m.UserId,
+				Name = m.Name,
+				Email = m.Email
+			}),
+			Members = members.Select(m => new TeamMemberViewModel
+			{
+				UserId = m.UserId,
+				Name = m.Name,
+				PrimaryTeamName = m.PrimaryTeamName,
+				PrimaryTeamId = m.PrimaryTeamId?.ToString()
+			}),
+			PendingInvites = pendingInvites
+		};
+	}
+
+	/// <summary>
+	/// Promote a team player to team manager.
+	/// </summary>
+	/// <param name="teamId">Team identifier</param>
+	/// <param name="playerId">Player user identifier</param>
+	/// <returns>Success status</returns>
+	[HttpPost("{teamId}/players/{playerId}/make-manager")]
+	[Tags("TeamManagement")]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
+	public async Task<IActionResult> MakePlayerManager(
+		[FromRoute] TeamIdentifier teamId,
+		[FromRoute] UserIdentifier playerId)
+	{
+		// Verify user is a manager of this team
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var isTeamManager = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
+		if (!isTeamManager)
+		{
+			return Unauthorized($"User is not a manager of team {teamId}");
+		}
+
+		// Get the player's email to use for adding manager role
+		// TODO: This requires looking up the user's email - for now, skip this implementation
+		// The proper way would be to use UserContext to get the email
+		return StatusCode(501, "Make player manager not yet fully implemented - needs user email lookup");
+	}
+
+	/// <summary>
+	/// Remove a player from the team.
+	/// </summary>
+	/// <param name="teamId">Team identifier</param>
+	/// <param name="playerId">Player user identifier</param>
+	/// <returns>Success status</returns>
+	[HttpDelete("{teamId}/players/{playerId}")]
+	[Tags("TeamManagement")]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
+	public async Task<IActionResult> RemovePlayer(
+		[FromRoute] TeamIdentifier teamId,
+		[FromRoute] UserIdentifier playerId)
+	{
+		// Verify user is a manager of this team
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var isTeamManager = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
+		if (!isTeamManager)
+		{
+			return Unauthorized($"User is not a manager of team {teamId}");
+		}
+
+		// TODO: Implement player removal logic
+		// This would involve:
+		// 1. Removing the RefereeTeam association
+		// 2. Updating PlayerHistory (if it exists)
+		// For now, return NotImplemented
+		return StatusCode(501, "Player removal not yet implemented");
 	}
 }
