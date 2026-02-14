@@ -15,7 +15,7 @@ interface AddMemberModalProps {
   columnType: "players" | "coaches" | "staff";
   availableMembers: TeamMember[];
   existingMemberIds: Set<string>;
-  onAddMember: (member: TeamMember, number?: string, gender?: string) => void;
+  onAddMembers: (members: TeamMember[]) => void;
   isLoading?: boolean;
 }
 
@@ -26,13 +26,11 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   columnType,
   availableMembers,
   existingMemberIds,
-  onAddMember,
+  onAddMembers,
   isLoading = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [playerNumber, setPlayerNumber] = useState("");
-  const [playerGender, setPlayerGender] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
 
   // Filter available members who aren't already in any roster column
   const filteredMembers = useMemo(() => {
@@ -44,35 +42,32 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
       );
   }, [availableMembers, existingMemberIds, searchQuery]);
 
-  const handleSelectMember = (member: TeamMember) => {
-    setSelectedMember(member);
-    // Reset player fields when selecting new member
-    if (columnType !== "players") {
-      handleAddMember(member);
-    }
+  const handleToggleMember = (member: TeamMember) => {
+    setSelectedMembers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(member.userId)) {
+        newSet.delete(member.userId);
+      } else {
+        newSet.add(member.userId);
+      }
+      return newSet;
+    });
   };
 
-  const handleAddMember = (member: TeamMember = selectedMember!) => {
-    if (!member) return;
+  const handleAddMembers = () => {
+    if (selectedMembers.size === 0) return;
 
-    if (columnType === "players") {
-      onAddMember(member, playerNumber, playerGender);
-    } else {
-      onAddMember(member);
-    }
+    const membersToAdd = availableMembers.filter((m) => selectedMembers.has(m.userId));
+    onAddMembers(membersToAdd);
 
     // Reset state
-    setSelectedMember(null);
-    setPlayerNumber("");
-    setPlayerGender("");
+    setSelectedMembers(new Set());
     setSearchQuery("");
     onClose();
   };
 
   const handleClose = () => {
-    setSelectedMember(null);
-    setPlayerNumber("");
-    setPlayerGender("");
+    setSelectedMembers(new Set());
     setSearchQuery("");
     onClose();
   };
@@ -141,61 +136,33 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               </div>
             ) : (
               <ul className="divide-y divide-gray-100">
-                {filteredMembers.map((member) => (
-                  <li key={member.userId}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectMember(member)}
-                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between ${
-                        selectedMember?.userId === member.userId
-                          ? "bg-blue-50 border-l-4 border-blue-500"
-                          : ""
-                      }`}
-                    >
-                      <span className="font-medium text-gray-900">{member.name}</span>
-                      {selectedMember?.userId === member.userId && (
-                        <span className="text-xs text-blue-600 font-medium">Selected</span>
-                      )}
-                    </button>
-                  </li>
-                ))}
+                {filteredMembers.map((member) => {
+                  const isSelected = selectedMembers.has(member.userId);
+                  return (
+                    <li key={member.userId}>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleMember(member)}
+                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between ${
+                          isSelected ? "bg-blue-50 border-l-4 border-blue-500" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="font-medium text-gray-900">{member.name}</span>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
-
-          {/* Player-specific fields */}
-          {columnType === "players" && selectedMember && (
-            <div className="bg-blue-50 rounded-lg p-4 mb-4">
-              <p className="text-sm font-medium text-blue-800 mb-3">
-                Adding: {selectedMember.name}
-              </p>
-              <div className="flex" style={{ gap: "12px" }}>
-                <div className="flex-1">
-                  <label className="block text-xs text-blue-700 mb-1 font-medium">
-                    Jersey Number
-                  </label>
-                  <input
-                    type="text"
-                    value={playerNumber}
-                    onChange={(e) => setPlayerNumber(e.target.value)}
-                    placeholder="#"
-                    maxLength={3}
-                    className="w-full px-3 py-2 border border-blue-300 rounded-lg"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs text-blue-700 mb-1 font-medium">Gender</label>
-                  <input
-                    type="text"
-                    value={playerGender}
-                    onChange={(e) => setPlayerGender(e.target.value)}
-                    placeholder="Enter gender"
-                    className="w-full px-3 py-2 border border-blue-300 rounded-lg"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="flex justify-end" style={{ gap: 8 }}>
@@ -207,16 +174,20 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             >
               Cancel
             </button>
-            {columnType === "players" && selectedMember && (
-              <button
-                type="button"
-                onClick={() => handleAddMember()}
-                className="px-4 py-2 text-sm font-bold text-white bg-green-600"
-                style={{ backgroundColor: "#16a34a", borderRadius: 4, minWidth: 100 }}
-              >
-                Add Player
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleAddMembers}
+              disabled={selectedMembers.size === 0}
+              className="px-4 py-2 text-sm font-bold text-white"
+              style={{
+                backgroundColor: selectedMembers.size === 0 ? "#9ca3af" : "#16a34a",
+                borderRadius: 4,
+                minWidth: 100,
+                cursor: selectedMembers.size === 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              Add {selectedMembers.size > 0 ? `(${selectedMembers.size})` : ""}
+            </button>
           </div>
         </DialogPanel>
       </div>
