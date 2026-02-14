@@ -79,4 +79,9 @@ public class TeamDetailViewModel
 	/// Team members (players).
 	/// </summary>
 	public required IEnumerable<TeamMemberViewModel> Members { get; set; }
+
+	/// <summary>
+	/// Indicates whether the current user is a manager of this team.
+	/// </summary>
+	public bool IsCurrentUserManager { get; set; }
 }

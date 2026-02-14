@@ -157,6 +157,12 @@ public class TeamsController : ControllerBase
 			throw new ArgumentException($"Team {teamId} not found");
 		}
 
+		// Check if current user is a manager of this team
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var isTeamManager = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
 		// Get social accounts for this specific team
 		var socialAccounts = await this.socialAccountsProvider.GetTeamSocialAccounts(teamId);
 
@@ -193,7 +199,8 @@ public class TeamsController : ControllerBase
 				Name = m.Name,
 				PrimaryTeamName = m.PrimaryTeamName,
 				PrimaryTeamId = m.PrimaryTeamId?.ToString()
-			})
+			}),
+			IsCurrentUserManager = isTeamManager
 		};
 	}
 

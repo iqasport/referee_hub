@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useNavigationParams } from "../../utils/navigationUtils";
-import { useGetTeamDetailsQuery, useGetCurrentUserQuery } from "../../store/serviceApi";
+import { useGetTeamDetailsQuery } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
 import { toDateTime } from "../../utils/dateUtils";
 
@@ -10,12 +10,6 @@ const TeamView = () => {
   const { data: team, error: teamError, isLoading } = useGetTeamDetailsQuery(
     { teamId: teamId! },
     { skip: !teamId }
-  );
-  const { data: currentUser } = useGetCurrentUserQuery();
-
-  // Check if current user is a manager of this team
-  const isTeamManager = currentUser?.roles?.some(
-    (role) => role.roleType === "TeamManager" && (role as any).team?.appliesTo?.(teamId)
   );
 
   if (isLoading) {
@@ -41,6 +35,9 @@ const TeamView = () => {
       </div>
     );
   }
+
+  // Use the backend-provided flag for whether current user is a manager
+  const isTeamManager = team.isCurrentUserManager;
 
   return (
     <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">

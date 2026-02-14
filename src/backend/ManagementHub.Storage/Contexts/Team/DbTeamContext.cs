@@ -234,18 +234,16 @@ public class DbTeamContextFactory
 						(rt, t) => new { rt.RefereeId, TeamId = t.Id, TeamName = t.Name }),
 				u => u.Id,
 				rt => rt.RefereeId,
-				(u, primaryTeams) => new { User = u, PrimaryTeams = primaryTeams })
-			.SelectMany(
-				x => x.PrimaryTeams.DefaultIfEmpty(),
-				(x, primaryTeam) => new TeamMemberInfo
-				{
-					UserId = x.User.UniqueId != null
-						? UserIdentifier.Parse(x.User.UniqueId)
-						: UserIdentifier.FromLegacyUserId(x.User.Id),
-					Name = $"{x.User.FirstName} {x.User.LastName}",
-					PrimaryTeamName = primaryTeam != null ? primaryTeam.TeamName : null,
-					PrimaryTeamId = primaryTeam != null ? new TeamIdentifier(primaryTeam.TeamId) : null
-				});
+				(u, primaryTeams) => new { User = u, PrimaryTeam = primaryTeams.FirstOrDefault() })
+			.Select(x => new TeamMemberInfo
+			{
+				UserId = x.User.UniqueId != null
+					? UserIdentifier.Parse(x.User.UniqueId)
+					: UserIdentifier.FromLegacyUserId(x.User.Id),
+				Name = $"{x.User.FirstName} {x.User.LastName}",
+				PrimaryTeamName = x.PrimaryTeam != null ? x.PrimaryTeam.TeamName : null,
+				PrimaryTeamId = x.PrimaryTeam != null ? new TeamIdentifier(x.PrimaryTeam.TeamId) : null
+			});
 	}
 
 	public static DbTeamContext FromDatabase(Models.Data.Team tt, NgbIdentifier ngb) => new DbTeamContext(new TeamIdentifier(tt.Id), ngb, new TeamData
