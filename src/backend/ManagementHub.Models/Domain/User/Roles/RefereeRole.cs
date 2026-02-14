@@ -34,4 +34,9 @@ public class RefereeRole : IUserRole
 	/// Team the referee is coaching.
 	/// </summary>
 	public TeamIdentifier? CoachingTeam { get; set; }
+
+	/// <summary>
+	/// National team the referee is playing for.
+	/// </summary>
+	public TeamIdentifier? NationalTeam { get; set; }
 }

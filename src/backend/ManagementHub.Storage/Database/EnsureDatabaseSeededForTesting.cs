@@ -154,9 +154,126 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
 			},
+			new Team
+			{
+				City = "Chicago",
+				Country = "USA",
+				Name = "Chicago Youth Quidditch",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
+				GroupAffiliation = TeamGroupAffiliation.Youth,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Washington DC",
+				Country = "USA",
+				Name = "Team USA",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
+				GroupAffiliation = TeamGroupAffiliation.National,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Sydney",
+				Country = "Australia",
+				Name = "Australia National Team",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "AUS"),
+				GroupAffiliation = TeamGroupAffiliation.National,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Berlin",
+				Country = "Germany",
+				Name = "Germany National Team",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "DEU"),
+				GroupAffiliation = TeamGroupAffiliation.National,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
 		};
 
 		dbContext.Teams.AddRange(teams);
+
+		var tournaments = new[]
+		{
+			new Tournament
+			{
+				UniqueId = Models.Domain.Tournament.TournamentIdentifier.NewTournamentId().ToString(),
+				Name = "US Quadball Cup 2024",
+				Description = "National club championship tournament",
+				Type = TournamentType.Club,
+				StartDate = new DateOnly(2024, 8, 15),
+				EndDate = new DateOnly(2024, 8, 18),
+				Country = "USA",
+				City = "Richmond",
+				Organizer = "US Quadball",
+				IsPrivate = false,
+				IsRegistrationOpen = true,
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Tournament
+			{
+				UniqueId = Models.Domain.Tournament.TournamentIdentifier.NewTournamentId().ToString(),
+				Name = "World Cup 2024",
+				Description = "International national teams championship",
+				Type = TournamentType.National,
+				StartDate = new DateOnly(2024, 7, 20),
+				EndDate = new DateOnly(2024, 7, 23),
+				Country = "USA",
+				City = "Minneapolis",
+				Organizer = "IQA",
+				IsPrivate = false,
+				IsRegistrationOpen = true,
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Tournament
+			{
+				UniqueId = Models.Domain.Tournament.TournamentIdentifier.NewTournamentId().ToString(),
+				Name = "Youth Quidditch Championship 2024",
+				Description = "Youth development tournament for players under 18",
+				Type = TournamentType.Youth,
+				StartDate = new DateOnly(2024, 6, 10),
+				EndDate = new DateOnly(2024, 6, 12),
+				Country = "USA",
+				City = "Chicago",
+				Organizer = "US Quadball Youth",
+				IsPrivate = false,
+				IsRegistrationOpen = true,
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Tournament
+			{
+				UniqueId = Models.Domain.Tournament.TournamentIdentifier.NewTournamentId().ToString(),
+				Name = "Fantasy Tournament 2024",
+				Description = "Fun fantasy league tournament",
+				Type = TournamentType.Fantasy,
+				StartDate = new DateOnly(2024, 9, 5),
+				EndDate = new DateOnly(2024, 9, 7),
+				Country = "USA",
+				City = "Portland",
+				Organizer = "Fantasy Quadball League",
+				IsPrivate = false,
+				IsRegistrationOpen = true,
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow,
+			},
+		};
+		dbContext.Tournaments.AddRange(tournaments);
 
 		var certifications = new List<Certification>(32);
 		foreach (var version in Enum.GetValues<CertificationVersion>())

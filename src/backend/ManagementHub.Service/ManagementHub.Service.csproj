@@ -57,7 +57,7 @@
     <Yarn Command="install --immutable" Condition=" ! Exists('$(SolutionDir)/../frontend/node_modules/')" WorkingDirectory="$(YarnWorkingDir)" />
   </Target>
 
-  <Target Name="IncludeFrontendDist" AfterTargets="YarnBuild">
+  <Target Name="IncludeFrontendDist" AfterTargets="YarnBuild" Condition="'$(BuildFrontend)' != 'false'">
     <ItemGroup>
       <FrontendFiles Include="$(SolutionDir)/../frontend/dist/**/*" />
       <Content Include="@(FrontendFiles)">

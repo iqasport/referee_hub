@@ -8,6 +8,7 @@ using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Enums;
 using ManagementHub.Storage.Collections;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,9 +43,9 @@ public class DbTeamContextProvider : ITeamContextProvider
 		return this.dbTeamContextFactory.DeleteTeamAsync(teamId);
 	}
 
-	public IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs)
+	public IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs, TeamGroupAffiliation? groupAffiliation = null)
 	{
-		return this.dbTeamContextFactory.QueryTeams(ngbs);
+		return this.dbTeamContextFactory.QueryTeams(ngbs, groupAffiliation);
 	}
 
 	public Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)

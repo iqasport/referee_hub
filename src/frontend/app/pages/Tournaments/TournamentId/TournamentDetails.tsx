@@ -125,7 +125,13 @@ const TournamentDetails = () => {
       });
   }, [invites, managedTeamIds, managedTeamsData]);
 
-  // Calculate total participant count from all team rosters
+  // Calculate team count (number of teams registered)
+  const teamCount = useMemo(() => {
+    if (!participants) return 0;
+    return participants.length;
+  }, [participants]);
+
+  // Calculate total participant count from all team rosters (players + coaches + staff)
   const totalParticipantCount = useMemo(() => {
     if (!participants) return 0;
     return participants.reduce((total, team) => {
@@ -135,6 +141,47 @@ const TournamentDetails = () => {
       return total + playerCount + coachCount + staffCount;
     }, 0);
   }, [participants]);
+  
+  // Calculate total player count (excluding coaches and staff)
+  const totalPlayerCount = useMemo(() => {
+    if (!participants) return 0;
+    return participants.reduce((total, team) => {
+      const playerCount = team.players?.length || 0;
+      return total + playerCount;
+    }, 0);
+  }, [participants]);
+
+  // Determine if registration is closed (manual toggle or date-based)
+  const isRegistrationClosed = useMemo(() => {
+    // Check manual closure first (field may not exist if migration not applied)
+    if (tournament?.isRegistrationOpen === false) {
+      return true;
+    }
+
+    // Check if registration end date has passed
+    if (tournament?.registrationEndsDate) {
+      const regEndsDate = new Date(tournament.registrationEndsDate);
+      const today = new Date();
+      // Reset hours to compare at day level
+      regEndsDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      if (today > regEndsDate) {
+        return true;
+      }
+    } else if (tournament?.startDate) {
+      // Fall back to start date if no registration end date
+      const startDate = new Date(tournament.startDate);
+      const today = new Date();
+      // Reset hours to compare at day level
+      startDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      if (today > startDate) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
 
   // Handle accept/decline invite
   async function handleRespondToInvite(participantId: string, approved: boolean) {
@@ -210,12 +257,14 @@ const TournamentDetails = () => {
       description: tournament.description || "",
       startDate: tournament.startDate || "",
       endDate: tournament.endDate || "",
+      registrationEndsDate: tournament.registrationEndsDate || "",
       type: tournament.type || ("" as const),
       country: tournament.country || "",
       city: tournament.city || "",
       place: tournament.place || "",
       organizer: tournament.organizer || "",
       isPrivate: tournament.isPrivate || false,
+      isRegistrationOpen: tournament.isRegistrationOpen ?? true,
       bannerImageUrl: tournament.bannerImageUrl || "",
     });
   };
@@ -239,7 +288,9 @@ const TournamentDetails = () => {
             formattedDateRange={formattedDateRange}
             organizer={tournament.organizer}
             startDate={tournament.startDate}
-            participantCount={totalParticipantCount}
+            registrationEndsDate={tournament.registrationEndsDate}
+            isRegistrationOpen={tournament.isRegistrationOpen}
+            tournamentType={tournament.type}
           />
 
           {/* Main content grid */}
@@ -285,7 +336,7 @@ const TournamentDetails = () => {
                       Edit Tournament Details
                     </button>
                     <button
-                      onClick={() => registrationsModalRef.current?.open(tournament.id || "")}
+                      onClick={() => registrationsModalRef.current?.open(tournament.id || "", tournament.name || "Unknown Tournament")}
                       className="btn btn-secondary btn-full-width card-mb"
                     >
                       View Team Registrations ({invites?.length || 0})
@@ -309,12 +360,12 @@ const TournamentDetails = () => {
                         </span>
                       </div>
                       <div className="stats-item">
-                        <span className="stats-label">Private Tournament</span>
-                        <span className="stats-value">{tournament.isPrivate ? "Yes" : "No"}</span>
+                        <span className="stats-label">Players Registered</span>
+                        <span className="stats-value">{totalPlayerCount}</span>
                       </div>
                       <div className="stats-item">
-                        <span className="stats-label">Tournament Type</span>
-                        <span className="stats-value">{tournament.type || "N/A"}</span>
+                        <span className="stats-label">Private Tournament</span>
+                        <span className="stats-value">{tournament.isPrivate ? "Yes" : "No"}</span>
                       </div>
                     </div>
                   </div>
@@ -349,7 +400,20 @@ const TournamentDetails = () => {
 
                   {/* Register Now / Manage Rosters Card */}
                   <div className="card card-mb">
-                    {approvedTeamsForUser.length > 0 ? (
+                    {isRegistrationClosed ? (
+                      <>
+                        <h3 className="card-title">Registration Closed</h3>
+                        <p className="card-description">
+                          Registration for this tournament is now closed. Contact the organizers if you have questions.
+                        </p>
+                        <div className="mt-4 p-3 bg-gray-100 rounded-md border border-gray-300 text-center">
+                          <svg className="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          <p className="text-sm font-medium text-gray-700">Registration is now closed</p>
+                        </div>
+                      </>
+                    ) : approvedTeamsForUser.length > 0 ? (
                       <>
                         <h3 className="card-title">You&apos;re Registered!</h3>
                         <p className="card-description">
@@ -417,6 +481,7 @@ const TournamentDetails = () => {
                         contactOrganizerModalRef.current?.open({
                           name: tournament.organizer || "",
                           tournamentName: tournament.name || "",
+                          tournamentId: tournament.id,
                         })
                       }
                       className="btn btn-outline btn-full-width"

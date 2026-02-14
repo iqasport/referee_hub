@@ -17,6 +17,11 @@ const TournamentAboutSection: React.FC<TournamentAboutSectionProps> = ({
   description,
 }) => {
   const location = [place, city, country].filter(Boolean).join(", ") || "TBD";
+  
+  // Create Google Maps search URL
+  const googleMapsUrl = location !== "TBD" 
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
+    : null;
 
   return (
     <div style={{ backgroundColor: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.25rem', marginBottom: '1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -27,7 +32,18 @@ const TournamentAboutSection: React.FC<TournamentAboutSectionProps> = ({
           <LocationIcon />
         </div>
         <div>
-          <p style={{ fontSize: '0.8125rem', color: '#374151' }}>{location}</p>
+          {googleMapsUrl ? (
+            <a 
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: '0.8125rem', color: '#2563eb', textDecoration: 'underline', cursor: 'pointer' }}
+            >
+              {location}
+            </a>
+          ) : (
+            <p style={{ fontSize: '0.8125rem', color: '#374151' }}>{location}</p>
+          )}
         </div>
       </div>
       <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.75rem', marginTop: '0.875rem' }}>Description</h2>

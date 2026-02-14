@@ -45,6 +45,7 @@ public class RefereesController : ControllerBase
 			IsActive = refereeRole.IsActive,
 			CoachingTeam = refereeUpdate.CoachingTeam?.Id,
 			PlayingTeam = refereeUpdate.PlayingTeam?.Id,
+			NationalTeam = refereeUpdate.NationalTeam?.Id,
 			PrimaryNgb = refereeUpdate.PrimaryNgb,
 			SecondaryNgb = refereeUpdate.SecondaryNgb,
 		}, this.HttpContext.RequestAborted);
@@ -127,6 +128,11 @@ public class RefereesController : ControllerBase
 			{
 				Id = context.PlayingTeam.Value,
 				Name = context.TeamContext[context.PlayingTeam.Value].TeamData.Name,
+			},
+			NationalTeam = context.NationalTeam == null ? null : new TeamIndicator
+			{
+				Id = context.NationalTeam.Value,
+				Name = context.TeamContext[context.NationalTeam.Value].TeamData.Name,
 			},
 			PrimaryNgb = context.PrimaryNgb,
 			SecondaryNgb = context.SecondaryNgb,

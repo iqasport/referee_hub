@@ -3,6 +3,7 @@ using System;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212181900_AddIsRegistrationOpenToTournament")]
+    partial class AddIsRegistrationOpenToTournament
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -1422,13 +1425,13 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("date")
                         .HasColumnName("registration_ends_date");
 
-                    b.Property<bool>("IsPrivate")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("is_private");
-
                     b.Property<bool>("IsRegistrationOpen")
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_registration_open");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_private");
 
                     b.Property<string>("Name")
                         .IsRequired()

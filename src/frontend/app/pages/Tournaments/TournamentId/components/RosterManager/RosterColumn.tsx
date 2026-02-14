@@ -115,14 +115,15 @@ const RosterColumn: React.FC<RosterColumnProps> = ({
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs text-gray-500 mb-1">Gender</label>
+                        <label className="block text-xs text-gray-500 mb-1">Observations</label>
                         <input
                           type="text"
                           value={member.gender || ""}
                           onChange={(e) => onUpdateMember?.(member.userId, "gender", e.target.value)}
                           disabled={disabled}
-                          placeholder="Gender"
+                          placeholder="Notes"
                           className="w-full px-2 py-1 text-sm border border-gray-300 rounded disabled:bg-gray-100"
+                          maxLength={50}
                         />
                       </div>
                     </div>

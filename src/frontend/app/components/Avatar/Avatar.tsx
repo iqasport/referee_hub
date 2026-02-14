@@ -42,6 +42,10 @@ const Avatar = (props: AvatarProps) => {
     navigate("/settings");
   };
 
+  const handleTournamentsClick = () => {
+    navigate("/tournaments");
+  };
+
   const renderTrigger = (onClick) => {
     const firstLetter = firstName ? firstName[0] : "A";
     const lastLetter = lastName ? lastName[0] : "R";
@@ -77,6 +81,10 @@ const Avatar = (props: AvatarProps) => {
     content: "Settings",
     onClick: handleSettingsClick,
   };
+  const tournaments: ItemConfig = {
+    content: "Tournaments",
+    onClick: handleTournamentsClick,
+  };
 
   const items: ItemConfig[] = [home];
 
@@ -86,6 +94,7 @@ const Avatar = (props: AvatarProps) => {
   if (roles.includes("Referee")) items.push(refereeProfile);
   //if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite); // TODO: unblock once implemented
 
+  items.push(tournaments);
   items.push(logout);
 
   return <DropdownMenu renderTrigger={renderTrigger} items={items} />;

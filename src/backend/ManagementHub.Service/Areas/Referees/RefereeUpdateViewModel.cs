@@ -24,6 +24,11 @@ public class RefereeUpdateViewModel
 	/// Team the referee is coaching.
 	/// </summary>
 	public RefereeTeamUpdater? CoachingTeam { get; set; }
+
+	/// <summary>
+	/// National team the referee is playing for.
+	/// </summary>
+	public RefereeTeamUpdater? NationalTeam { get; set; }
 }
 
 public class RefereeTeamUpdater

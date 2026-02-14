@@ -55,3 +55,14 @@ public class PlayerViewModel : StaffViewModel
 	public string? Gender { get; set; }
 }
 
+public class RosterEntryViewModel
+{
+	public string? Name { get; set; }
+	public string? Pronouns { get; set; }
+	public string? Gender { get; set; }
+	public string? JerseyNumber { get; set; }
+	public RosterRole Role { get; set; }
+	public string? MaxCertification { get; set; }
+	public DateTime? MaxCertificationDate { get; set; }
+}
+

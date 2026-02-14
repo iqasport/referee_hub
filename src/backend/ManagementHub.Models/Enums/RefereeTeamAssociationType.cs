@@ -11,4 +11,7 @@ public enum RefereeTeamAssociationType
 
 	[EnumMember(Value = "coach")]
 	Coach = 1,
+
+	[EnumMember(Value = "national_team_player")]
+	NationalTeamPlayer = 2,
 }

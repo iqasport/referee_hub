@@ -1439,6 +1439,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("date")
 				.HasColumnName("end_date");
 
+			entity.Property(e => e.RegistrationEndsDate)
+				.HasColumnType("date")
+				.HasColumnName("registration_ends_date");
+
 			entity.Property(e => e.Type)
 				.HasColumnName("type");
 
@@ -1460,6 +1464,9 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 			entity.Property(e => e.IsPrivate)
 				.HasColumnName("is_private");
+
+			entity.Property(e => e.IsRegistrationOpen)
+				.HasColumnName("is_registration_open");
 
 			entity.Property(e => e.CreatedAt)
 				.HasColumnType("timestamp with time zone")

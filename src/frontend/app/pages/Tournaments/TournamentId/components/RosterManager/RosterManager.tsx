@@ -144,19 +144,19 @@ const RosterManager: React.FC<RosterManagerProps> = ({
     setModalState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
-  // Handle adding a member to a column
-  const handleAddMember = useCallback(
-    (member: { userId: string; name: string }, number?: string, gender?: string) => {
-      const newMember: RosterMember = {
+  // Handle adding members to a column
+  const handleAddMembers = useCallback(
+    (members: { userId: string; name: string }[]) => {
+      const newMembers: RosterMember[] = members.map((member) => ({
         userId: member.userId,
         userName: member.name,
-        number: number || "",
-        gender: gender || "",
-      };
+        number: "",
+        gender: "",
+      }));
 
       setRoster((prev) => ({
         ...prev,
-        [modalState.columnType]: [...prev[modalState.columnType], newMember],
+        [modalState.columnType]: [...prev[modalState.columnType], ...newMembers],
       }));
       setHasChanges(true);
     },
@@ -419,7 +419,7 @@ const RosterManager: React.FC<RosterManagerProps> = ({
           columnType={modalState.columnType}
           availableMembers={availableTeamMembers}
           existingMemberIds={existingMemberIds}
-          onAddMember={handleAddMember}
+          onAddMembers={handleAddMembers}
           isLoading={isLoadingMembers}
         />
       </div>
