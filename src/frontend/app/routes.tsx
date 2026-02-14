@@ -20,6 +20,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Tournament = lazy(() => import("./pages/Tournaments"));
 const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"));
 const TeamView = lazy(() => import("./pages/TeamView"));
+const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
@@ -121,6 +122,10 @@ const App = () => {
           <Route
           path="/teams/:teamId"
           element={<TeamView/>}
+          />
+          <Route
+          path="/teams/:teamId/manage"
+          element={<TeamManagement/>}
           />
           {/* TODO {currentUser?.enabledFeatures.includes("i18n") ? (
             <Route
