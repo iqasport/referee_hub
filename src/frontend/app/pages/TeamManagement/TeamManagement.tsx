@@ -74,6 +74,8 @@ const TeamManagement = () => {
       {/* Edit Team Modal */}
       {isEditModalOpen && team && (
         <TeamEditModal
+          open={isEditModalOpen}
+          showClose={true}
           ngbId={team.ngbId}
           teamId={team.teamId}
           onClose={() => setIsEditModalOpen(false)}
