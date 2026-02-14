@@ -629,9 +629,9 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 		// Step 2: Add roster as team manager
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
-		
+
 		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
-		
+
 		var updateRosterModel = new UpdateRosterDto
 		{
 			Players = new List<RosterPlayerDto>
@@ -652,7 +652,7 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			$"/api/v2/tournaments/{tournamentId}/teams/{participantId}/roster");
 		rosterResponse.StatusCode.Should().Be(HttpStatusCode.OK,
 			"team manager should be able to view roster for their team");
-		
+
 		var roster = await rosterResponse.Content.ReadFromJsonAsync<List<RosterEntryViewModel>>();
 		roster.Should().NotBeNull();
 		roster.Should().HaveCount(1, "roster should have 1 entry");
