@@ -617,7 +617,29 @@ const injectedRtkApi = api
     }),
     overrideExisting: false,
   });
-export { injectedRtkApi as serviceApi };
+
+// Custom override for uploadTeamLogo to send FormData instead of JSON
+const enhancedApi = injectedRtkApi.injectEndpoints({
+  endpoints: (build) => ({
+    uploadTeamLogo: build.mutation<string, { teamId: string; logoBlob: File }>({
+      query: ({ teamId, logoBlob }) => {
+        const formData = new FormData();
+        formData.append('logoBlob', logoBlob);
+        return {
+          url: `/api/v2/Teams/${teamId}/logo`,
+          method: 'PUT',
+          body: formData,
+        };
+      },
+      invalidatesTags: ['Team'],
+    }),
+  }),
+  overrideExisting: true,
+});
+
+export { enhancedApi as serviceApi };
+// Re-export all the generated types
+export type { injectedRtkApi };
 export type CreatePaymentSessionApiResponse = /** status 200 Success */ CheckoutSession;
 export type CreatePaymentSessionApiArg = {
   level?: CertificationLevel;
@@ -1721,4 +1743,4 @@ export const {
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
-} = injectedRtkApi;
+} = enhancedApi;

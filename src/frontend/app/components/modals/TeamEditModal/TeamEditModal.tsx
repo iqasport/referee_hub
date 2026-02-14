@@ -132,7 +132,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         try {
           const uploadResult = await uploadLogo({
             teamId: createdOrUpdatedTeam.teamId,
-            body: { logoBlob: logoFile }
+            logoBlob: logoFile
           }).unwrap();
           console.log("Logo uploaded successfully:", uploadResult);
         } catch (error) {
