@@ -95,7 +95,7 @@ public class TeamsController : ControllerBase
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
 	[Authorize] // TODO: Add appropriate authorization policy for team managers and NGB admins
-	public async Task<Uri> UploadTeamLogo([FromRoute] TeamIdentifier teamId, IFormFile logoBlob)
+	public async Task<Uri> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
 		// Validate file is an image
 		if (!logoBlob.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))

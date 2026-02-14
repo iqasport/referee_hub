@@ -52,7 +52,7 @@ public class TeamLogoUploadIntegrationTests : IClassFixture<TestWebApplicationFa
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.OK, "logo upload should succeed");
-		var logoUrl = await response.Content.ReadAsStringAsync();
+		var logoUrl = await response.Content.ReadFromJsonAsync<string>();
 		logoUrl.Should().NotBeNullOrEmpty("logo URL should be returned");
 		logoUrl.Should().StartWith("http", "logo URL should be a valid HTTP URL");
 
