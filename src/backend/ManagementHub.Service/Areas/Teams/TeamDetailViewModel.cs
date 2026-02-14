@@ -1,4 +1,5 @@
 using ManagementHub.Models.Domain.General;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Ngbs;
@@ -10,6 +11,11 @@ namespace ManagementHub.Service.Areas.Teams;
 /// </summary>
 public class TeamDetailViewModel
 {
+	/// <summary>
+	/// NGB identifier that the team belongs to.
+	/// </summary>
+	public NgbIdentifier NgbId { get; set; }
+
 	/// <summary>
 	/// Team identifier.
 	/// </summary>

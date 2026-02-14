@@ -1344,6 +1344,8 @@ export type TeamMemberViewModel = {
   primaryTeamId?: string | null;
 };
 export type TeamDetailViewModel = {
+  /** NGB identifier that the team belongs to. */
+  ngbId?: string;
   /** Team identifier. */
   teamId?: string;
   /** Team name. */

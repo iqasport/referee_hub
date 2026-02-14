@@ -175,6 +175,7 @@ public class TeamsController : ControllerBase
 
 		return new TeamDetailViewModel
 		{
+			NgbId = team.NgbId,
 			TeamId = team.TeamId,
 			Name = team.TeamData.Name,
 			City = team.TeamData.City,

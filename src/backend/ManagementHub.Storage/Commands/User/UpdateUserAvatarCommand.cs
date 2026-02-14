@@ -45,7 +45,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "avatar";
 			var attachment = this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0x2d0ef100, "Uploading new avatar for user ({userId}) of content type '{contentType}'. User had previously an avatar: {hadAvatar}.", userId, contentType, attachment != null);
+			this.logger.LogInformation(0x2d0ef100, "Uploading new avatar for user ({userId}). User had previously an avatar: {hadAvatar}.", userId, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 			fileUploaded = true;
@@ -90,7 +90,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "logo";
 			var attachment = this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbId}) of content type '{contentType}'. NGB had previously an avatar: {hadAvatar}.", ngbId, contentType, attachment != null);
+			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbId}). NGB had previously an avatar: {hadAvatar}.", ngbId, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 			fileUploaded = true;
@@ -134,7 +134,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "logo";
 			var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team ({teamId}) of content type '{contentType}'. Team had previously a logo: {hadLogo}.", teamId, contentType, attachment != null);
+			this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team ({teamId}). Team had previously a logo: {hadLogo}.", teamId, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, logoStream, cancellationToken);
 			fileUploaded = true;

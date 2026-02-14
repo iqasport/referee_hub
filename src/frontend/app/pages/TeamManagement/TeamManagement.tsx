@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigationParams } from "../../utils/navigationUtils";
 import { useGetTeamDetailsQuery } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
+import TeamEditModal from "../../components/modals/TeamEditModal/TeamEditModal";
 
 const TeamManagement = () => {
   const { teamId } = useNavigationParams<"teamId">();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   // For now, use the regular team details endpoint
   // TODO: Switch to GET /api/v2/teams/{teamId}/management once Swagger is regenerated
@@ -62,15 +64,21 @@ const TeamManagement = () => {
         <div className="relative">
           <button
             className="bg-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
-            onClick={() => {
-              // TODO: Implement actions dropdown
-              alert("Actions menu coming soon!");
-            }}
+            onClick={() => setIsEditModalOpen(true)}
           >
-            Actions ▼
+            Edit Team
           </button>
         </div>
       </div>
+
+      {/* Edit Team Modal */}
+      {isEditModalOpen && team && (
+        <TeamEditModal
+          ngbId={team.ngbId}
+          teamId={team.teamId}
+          onClose={() => setIsEditModalOpen(false)}
+        />
+      )}
 
       {/* Team Managers Section */}
       <div className="bg-gray-100 rounded-lg p-6 mb-8">
