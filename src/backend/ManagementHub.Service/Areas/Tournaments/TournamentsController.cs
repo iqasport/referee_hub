@@ -947,7 +947,7 @@ public class TournamentsController : ControllerBase
 	/// </summary>
 	[HttpGet("{tournamentId}/teams/{teamId}/roster")]
 	[Tags("Tournament")]
-	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+	[Authorize(AuthorizationPolicies.TournamentManagerOrTeamManagerPolicy)]
 	[ProducesResponseType(typeof(IEnumerable<RosterEntryViewModel>), StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
