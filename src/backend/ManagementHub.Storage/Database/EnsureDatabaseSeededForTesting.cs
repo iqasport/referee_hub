@@ -259,11 +259,11 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			new Tournament
 			{
 				UniqueId = Models.Domain.Tournament.TournamentIdentifier.NewTournamentId().ToString(),
-				Name = "Fantasy Tournament 2024",
-				Description = "Fun fantasy league tournament",
+				Name = "Fantasy Tournament 2027",
+				Description = "Fun fantasy league tournament - Future event for testing team registration",
 				Type = TournamentType.Fantasy,
-				StartDate = new DateOnly(2024, 9, 5),
-				EndDate = new DateOnly(2024, 9, 7),
+				StartDate = new DateOnly(2027, 9, 5),
+				EndDate = new DateOnly(2027, 9, 7),
 				Country = "USA",
 				City = "Portland",
 				Organizer = "Fantasy Quadball League",
