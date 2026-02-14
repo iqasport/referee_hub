@@ -54,7 +54,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
     const headers = [
       "Name",
       "Pronouns",
-      "Gender",
+      "Observations",
       "Jersey Number",
       "Role",
       "Max Certification",
@@ -161,7 +161,7 @@ const RosterViewModal = forwardRef<RosterViewModalRef>((_props, ref) => {
                           Pronouns
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Gender
+                          Observations
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Jersey #
