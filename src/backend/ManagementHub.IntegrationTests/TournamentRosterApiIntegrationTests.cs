@@ -618,23 +618,64 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 	}
 
 	[Fact]
-	public async Task GetTeamRoster_AsNonTournamentManager_ShouldReturnForbidden()
+	public async Task GetTeamRoster_AsTeamManager_ShouldReturnRoster()
 	{
 		// Step 1: Create tournament as tournament manager
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
-		var tournamentId = await this.CreateTestTournamentAsync("Forbidden Roster Test", TournamentType.Club, "USA", "NYC");
+		var tournamentId = await this.CreateTestTournamentAsync("Team Manager Roster Test", TournamentType.Club, "USA", "NYC");
 
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
 
-		// Step 2: Switch to team manager (who is NOT a tournament manager)
+		// Step 2: Add roster as team manager
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+		
+		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
+		
+		var updateRosterModel = new UpdateRosterDto
+		{
+			Players = new List<RosterPlayerDto>
+			{
+				new RosterPlayerDto { UserId = sarahPlayerId.ToString(), Number = "7", Gender = "Female" }
+			},
+			Coaches = new List<RosterStaffDto>(),
+			Staff = new List<RosterStaffDto>()
+		};
+
+		var updateResponse = await this._client.PutAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
+			updateRosterModel);
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		// Step 3: Team manager should be able to get roster for their team
+		var rosterResponse = await this._client.GetAsync(
+			$"/api/v2/tournaments/{tournamentId}/teams/{participantId}/roster");
+		rosterResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"team manager should be able to view roster for their team");
+		
+		var roster = await rosterResponse.Content.ReadFromJsonAsync<List<RosterEntryViewModel>>();
+		roster.Should().NotBeNull();
+		roster.Should().HaveCount(1, "roster should have 1 entry");
+	}
+
+	[Fact]
+	public async Task GetTeamRoster_AsNonManagerUser_ShouldReturnForbidden()
+	{
+		// Step 1: Create tournament as tournament manager
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Forbidden Roster Test 2", TournamentType.Club, "USA", "NYC");
+
+		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
+		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
+
+		// Step 2: Switch to user who is neither tournament manager nor team manager
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
 		// Step 3: Try to get roster - should be forbidden
 		var rosterResponse = await this._client.GetAsync(
 			$"/api/v2/tournaments/{tournamentId}/teams/{participantId}/roster");
 		rosterResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-			"non-tournament manager should not be able to view roster");
+			"user who is neither tournament manager nor team manager should not be able to view roster");
 	}
 
 	[Fact]
