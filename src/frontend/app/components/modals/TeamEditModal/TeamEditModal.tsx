@@ -433,7 +433,16 @@ const TeamEditModal = (props: TeamEditModalProps) => {
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
               "opacity-50 cursor-default": (!hasChangedTeam && !teamId) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo,
             })}
-            onClick={handleSubmit}
+            onClick={() => {
+              console.log("Done button clicked!");
+              console.log("hasChangedTeam:", hasChangedTeam);
+              console.log("teamId:", teamId);
+              console.log("isCreateTeamLoading:", isCreateTeamLoading);
+              console.log("isUpdateTeamLoading:", isUpdateTeamLoading);
+              console.log("isUploadingLogo:", isUploadingLogo);
+              console.log("Button disabled?:", (!hasChangedTeam && !teamId) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo);
+              handleSubmit();
+            }}
             disabled={(!hasChangedTeam && !teamId) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo}
           >
             {(isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo) ? "Saving..." : "Done"}
