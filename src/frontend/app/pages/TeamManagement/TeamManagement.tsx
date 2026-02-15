@@ -128,6 +128,20 @@ const TeamManagement = () => {
           showClose={true}
           ngbId={team.ngbId}
           teamId={team.teamId}
+          team={{
+            teamId: team.teamId,
+            name: team.name,
+            city: team.city,
+            state: team.state,
+            country: team.country,
+            status: team.status,
+            groupAffiliation: team.groupAffiliation,
+            joinedAt: team.joinedAt,
+            socialAccounts: team.socialAccounts,
+            logoUrl: team.logoUrl,
+            description: team.description,
+            contactEmail: team.contactEmail,
+          }}
           onClose={() => setIsEditModalOpen(false)}
         />
       )}
