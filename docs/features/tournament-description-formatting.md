@@ -76,6 +76,7 @@ Use CSS `white-space: pre-line` to preserve line breaks and add link detection:
    ```
 
 2. **Update TournamentAboutSection Component:**
+   {% raw %}
    ```tsx
    import ReactMarkdown from 'react-markdown';
    import remarkGfm from 'remark-gfm';
@@ -94,6 +95,7 @@ Use CSS `white-space: pre-line` to preserve line breaks and add link detection:
      {description || 'No description provided.'}
    </ReactMarkdown>
    ```
+   {% endraw %}
 
 3. **Add Styling via Component Renderers:**
    
