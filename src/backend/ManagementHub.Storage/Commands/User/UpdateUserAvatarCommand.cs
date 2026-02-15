@@ -90,7 +90,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "logo";
 			var attachment = this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbId}). NGB had previously an avatar: {hadAvatar}.", ngbId, attachment != null);
+			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB (Code: {ngbCode}). NGB had previously an avatar: {hadAvatar}.", ngbId.NgbCode, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 			fileUploaded = true;
@@ -134,7 +134,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "logo";
 			var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team ({teamId}). Team had previously a logo: {hadLogo}.", teamId, attachment != null);
+			this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team (ID: {teamId}). Team had previously a logo: {hadLogo}.", teamId.Id, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, logoStream, cancellationToken);
 			fileUploaded = true;
@@ -149,7 +149,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 				Key = uploadResult.Key,
 			};
 
-			this.logger.LogInformation(0x2d0ef107, "Setting new logo for team ({teamId}) in the database.", teamId);
+			this.logger.LogInformation(0x2d0ef107, "Setting new logo for team (ID: {teamId}) in the database.", teamId.Id);
 			await this.attachmentRepository.UpsertAttachmentAsync(teamId, attachmentName, blob, cancellationToken);
 
 			await transaction.CommitAsync(cancellationToken);
@@ -161,7 +161,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(0x2d0ef108, ex, "Error occurred during team logo upload for team ({teamId}). File uploaded = {fileUploaded}.", teamId, fileUploaded);
+			this.logger.LogError(0x2d0ef108, ex, "Error occurred during team logo upload for team (ID: {teamId}). File uploaded = {fileUploaded}.", teamId.Id, fileUploaded);
 
 			// TODO: if uploaded and not committed, remove file.
 			throw;
