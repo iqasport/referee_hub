@@ -96,6 +96,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }, [team]);
 
   const handleSubmit = async () => {
+    // If editing and no changes made, just close the modal
+    if (teamId && !hasChangedTeam) {
+      onClose();
+      return;
+    }
+
     const validationErrors = validateInput(newTeam);
     if (validationErrors.length) {
       setErrors(validationErrors);
@@ -409,10 +415,10 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <button
             type="button"
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
-              "opacity-50 cursor-default": !hasChangedTeam || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo,
+              "opacity-50 cursor-default": (!hasChangedTeam && !teamId) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo,
             })}
             onClick={handleSubmit}
-            disabled={!hasChangedTeam || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo}
+            disabled={(!hasChangedTeam && !teamId) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo}
           >
             {(isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo) ? "Saving..." : "Done"}
           </button>
