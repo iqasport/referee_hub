@@ -11,6 +11,7 @@ using ManagementHub.Service.Areas.Ngbs;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -33,19 +34,22 @@ public class TeamsController : ControllerBase
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
 	private readonly IUserContextAccessor contextAccessor;
+	private readonly ManagementHubDbContext dbContext;
 
 	public TeamsController(
 		ITeamContextProvider teamContextProvider,
 		ISocialAccountsProvider socialAccountsProvider,
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
 		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand,
-		IUserContextAccessor contextAccessor)
+		IUserContextAccessor contextAccessor,
+		ManagementHubDbContext dbContext)
 	{
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
 		this.contextAccessor = contextAccessor;
+		this.dbContext = dbContext;
 	}
 
 	/// <summary>
@@ -307,6 +311,55 @@ public class TeamsController : ControllerBase
 	}
 
 	/// <summary>
+	/// Add a user as a team manager.
+	/// </summary>
+	/// <param name="teamId">Team identifier</param>
+	/// <param name="request">Request containing user email</param>
+	/// <returns>Success message</returns>
+	[HttpPost("{teamId}/managers")]
+	[Tags("TeamManagement")]
+	[Authorize]
+	public async Task<ActionResult<string>> AddTeamManager(
+		[FromRoute] TeamIdentifier teamId,
+		[FromBody] AddTeamManagerRequest request)
+	{
+		// Verify user is a manager of this team
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var isTeamManager = userContext.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(teamId));
+
+		if (!isTeamManager)
+		{
+			return Forbid();
+		}
+
+		// Parse and validate email
+		if (!Email.TryParse(request.Email, out var email))
+		{
+			return BadRequest("Invalid email address");
+		}
+
+		// Add team manager role (will handle user existence check and duplicate check)
+		var result = await this.updateTeamManagerRoleCommand.AddTeamManagerRoleAsync(
+			teamId,
+			email,
+			createUserIfNotExists: false,
+			userContext.UserId);
+
+		return result switch
+		{
+			IUpdateTeamManagerRoleCommand.AddRoleResult.UserDoesNotExist =>
+				BadRequest("No user found with that email address"),
+			IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded =>
+				Ok("User successfully added as team manager"),
+			IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole =>
+				Ok("User created and added as team manager"),
+			_ => StatusCode(500, "An unexpected error occurred")
+		};
+	}
+
+	/// <summary>
 	/// Remove a player from the team.
 	/// </summary>
 	/// <param name="teamId">Team identifier</param>
@@ -314,7 +367,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Success status</returns>
 	[HttpDelete("{teamId}/players/{playerId}")]
 	[Tags("TeamManagement")]
-	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
+	[Authorize]
 	public async Task<IActionResult> RemovePlayer(
 		[FromRoute] TeamIdentifier teamId,
 		[FromRoute] UserIdentifier playerId)
@@ -327,14 +380,19 @@ public class TeamsController : ControllerBase
 
 		if (!isTeamManager)
 		{
-			return Unauthorized($"User is not a manager of team {teamId}");
+			return Forbid();
 		}
 
-		// TODO: Implement player removal logic
-		// This would involve:
-		// 1. Removing the RefereeTeam association
-		// 2. Updating PlayerHistory (if it exists)
-		// For now, return NotImplemented
-		return StatusCode(501, "Player removal not yet implemented");
+		// Remove the RefereeTeam association
+		var deleted = await this.dbContext.RefereeTeams
+			.Where(rt => rt.TeamId == teamId.Id && rt.RefereeId == playerId.Id)
+			.ExecuteDeleteAsync();
+
+		if (deleted == 0)
+		{
+			return NotFound("Player not found on this team");
+		}
+
+		return NoContent();
 	}
 }

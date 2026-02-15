@@ -618,7 +618,7 @@ const injectedRtkApi = api
     overrideExisting: false,
   });
 
-// Custom override for uploadTeamLogo to send FormData instead of JSON
+// Custom overrides for team management endpoints
 const enhancedApi = injectedRtkApi.injectEndpoints({
   endpoints: (build) => ({
     uploadTeamLogo: build.mutation<string, { teamId: string; logoBlob: File }>({
@@ -631,6 +631,21 @@ const enhancedApi = injectedRtkApi.injectEndpoints({
           body: formData,
         };
       },
+      invalidatesTags: ['Team'],
+    }),
+    addTeamManagerToTeam: build.mutation<string, { teamId: string; email: string }>({
+      query: ({ teamId, email }) => ({
+        url: `/api/v2/Teams/${teamId}/managers`,
+        method: 'POST',
+        body: { email },
+      }),
+      invalidatesTags: ['Team'],
+    }),
+    deleteTeamPlayer: build.mutation<void, { teamId: string; playerId: string }>({
+      query: ({ teamId, playerId }) => ({
+        url: `/api/v2/Teams/${teamId}/players/${playerId}`,
+        method: 'DELETE',
+      }),
       invalidatesTags: ['Team'],
     }),
   }),
@@ -1707,6 +1722,8 @@ export const {
   useGetTeamManagementQuery,
   useMakePlayerManagerMutation,
   useRemovePlayerMutation,
+  useAddTeamManagerToTeamMutation,
+  useDeleteTeamPlayerMutation,
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
   useEditTestMutation,
