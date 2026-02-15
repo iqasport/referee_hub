@@ -77,7 +77,7 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 		if (existingManager != null)
 		{
 			this.logger.LogInformation("User {UserId} already is a manager of team {TeamId}",
-				user.Id, teamId);
+				user.Id, teamId.Id);
 			return userCreated
 				? IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole
 				: IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded;
@@ -96,7 +96,7 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 
 		// Add team manager
 		this.logger.LogInformation("Adding team manager for user {UserId} to team {TeamId}",
-			user.Id, teamId);
+			user.Id, teamId.Id);
 
 		this.dbContext.TeamManagers.Add(new Models.Data.TeamManager
 		{
@@ -142,13 +142,13 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 		{
 			this.logger.LogInformation(
 				"User {UserId} is not a manager of team {TeamId}",
-				user.Id, teamId);
+				user.Id, teamId.Id);
 			return false;
 		}
 
 		this.logger.LogInformation(
 			"Removing team manager assignment for user {UserId} from team {TeamId}",
-			user.Id, teamId);
+			user.Id, teamId.Id);
 
 		this.dbContext.TeamManagers.Remove(manager);
 		await this.dbContext.SaveChangesAsync();
