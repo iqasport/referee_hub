@@ -96,12 +96,6 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }, [team]);
 
   const handleSubmit = async () => {
-    // If editing and no changes made, just close the modal
-    if (teamId && !hasChangedTeam) {
-      onClose();
-      return;
-    }
-
     const validationErrors = validateInput(newTeam);
     if (validationErrors.length) {
       setErrors(validationErrors);
