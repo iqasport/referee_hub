@@ -96,8 +96,14 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }, [teamId]); // Only run when teamId changes (modal opens), not when team data refetches
 
   const handleSubmit = async () => {
+    console.log("handleSubmit called");
+    console.log("newTeam data:", newTeam);
+    
     const validationErrors = validateInput(newTeam);
+    console.log("Validation errors:", validationErrors);
+    
     if (validationErrors.length) {
+      console.log("Validation failed, setting errors");
       setErrors(validationErrors);
       return null;
     }
@@ -109,26 +115,39 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       state: newTeam.state || null // state is nullable but needs to be a string for input value
     };
     
+    console.log("Attempting to save team:", teamObject);
+    
     try {
       let createdOrUpdatedTeam;
       if (teamId) {
+        console.log("Updating existing team");
         const result = await updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
+        console.log("Update result:", result);
+        
         if ('error' in result) {
           console.error("Failed to update team:", result.error);
+          alert("Failed to update team: " + JSON.stringify(result.error));
           return;
         }
         createdOrUpdatedTeam = result.data;
       } else {
+        console.log("Creating new team");
         const result = await createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
+        console.log("Create result:", result);
+        
         if ('error' in result) {
           console.error("Failed to create team:", result.error);
+          alert("Failed to create team: " + JSON.stringify(result.error));
           return;
         }
         createdOrUpdatedTeam = result.data;
       }
 
+      console.log("Team saved successfully:", createdOrUpdatedTeam);
+
       // Upload logo if a file was selected
       if (logoFile && createdOrUpdatedTeam?.teamId) {
+        console.log("Uploading logo for team:", createdOrUpdatedTeam.teamId);
         try {
           const uploadResult = await uploadLogo({
             teamId: createdOrUpdatedTeam.teamId,
@@ -137,16 +156,19 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           console.log("Logo uploaded successfully:", uploadResult);
         } catch (error) {
           console.error("Failed to upload logo:", error);
+          alert("Failed to upload logo: " + JSON.stringify(error));
           setErrors([...(errors || []), "logoUpload"]);
           // Don't close the modal if logo upload fails
           return;
         }
       }
 
+      console.log("Resetting hasChangedTeam and closing modal");
       setHasChangedTeam(false);
       onClose();
     } catch (error) {
       console.error("Unexpected error during team save:", error);
+      alert("Unexpected error: " + JSON.stringify(error));
     }
   };
 
