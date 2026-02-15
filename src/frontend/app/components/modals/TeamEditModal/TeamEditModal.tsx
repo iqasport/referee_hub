@@ -93,7 +93,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         setLogoPreview(team.logoUrl);
       }
     }
-  }, [team]);
+  }, [teamId]); // Only run when teamId changes (modal opens), not when team data refetches
 
   const handleSubmit = async () => {
     const validationErrors = validateInput(newTeam);
