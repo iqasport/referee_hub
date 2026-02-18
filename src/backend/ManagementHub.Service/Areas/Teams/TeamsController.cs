@@ -147,7 +147,7 @@ public class TeamsController : ControllerBase
 	{
 		// Get team details - any authenticated user can view team details
 		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
-		
+
 		if (team == null)
 		{
 			throw new ArgumentException($"Team {teamId} not found");
@@ -164,7 +164,7 @@ public class TeamsController : ControllerBase
 
 		// Get managers
 		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
-		
+
 		// Get members
 		var membersQuery = this.teamContextProvider.QueryTeamMembers(teamId, NgbConstraint.Any);
 		var members = await membersQuery.ToListAsync();
@@ -293,13 +293,13 @@ public class TeamsController : ControllerBase
 
 		if (!isTeamManager)
 		{
-			return Unauthorized($"User is not a manager of team {teamId}");
+			return this.Unauthorized($"User is not a manager of team {teamId}");
 		}
 
 		// Get the player's email to use for adding manager role
 		// TODO: This requires looking up the user's email - for now, skip this implementation
 		// The proper way would be to use UserContext to get the email
-		return StatusCode(501, "Make player manager not yet fully implemented - needs user email lookup");
+		return this.StatusCode(501, "Make player manager not yet fully implemented - needs user email lookup");
 	}
 
 	/// <summary>
@@ -323,13 +323,13 @@ public class TeamsController : ControllerBase
 
 		if (!isTeamManager)
 		{
-			return Forbid();
+			return this.Forbid();
 		}
 
 		// Parse and validate email
 		if (!Email.TryParse(request.Email, out var email))
 		{
-			return BadRequest("Invalid email address");
+			return this.BadRequest("Invalid email address");
 		}
 
 		// Add team manager role (will handle user existence check and duplicate check)
@@ -342,12 +342,12 @@ public class TeamsController : ControllerBase
 		return result switch
 		{
 			IUpdateTeamManagerRoleCommand.AddRoleResult.UserDoesNotExist =>
-				BadRequest("No user found with that email address"),
+				this.BadRequest("No user found with that email address"),
 			IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded =>
-				Ok("User successfully added as team manager"),
+				this.Ok("User successfully added as team manager"),
 			IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole =>
-				Ok("User created and added as team manager"),
-			_ => StatusCode(500, "An unexpected error occurred")
+				this.Ok("User created and added as team manager"),
+			_ => this.StatusCode(500, "An unexpected error occurred")
 		};
 	}
 
@@ -372,7 +372,7 @@ public class TeamsController : ControllerBase
 
 		if (!isTeamManager)
 		{
-			return Forbid();
+			return this.Forbid();
 		}
 
 		// Remove the RefereeTeam association
@@ -382,9 +382,9 @@ public class TeamsController : ControllerBase
 
 		if (deleted == 0)
 		{
-			return NotFound("Player not found on this team");
+			return this.NotFound("Player not found on this team");
 		}
 
-		return NoContent();
+		return this.NoContent();
 	}
 }
