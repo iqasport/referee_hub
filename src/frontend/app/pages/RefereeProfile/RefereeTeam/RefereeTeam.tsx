@@ -163,6 +163,15 @@ const RefereeTeam = (props: RefereeTeamProps) => {
             {renderTeamName("nationalTeam")}
           </p>
         )}
+        {isEditing && renderDropdown("coachingTeam", "coaching")}
+      </div>
+      <div className="w-full">
+        <h4 className="text-sm mb-2">National Team</h4>
+        {!isEditing && (
+          <p className="font-bold">
+            {hasType("nationalTeam") ? getTeamName("nationalTeam") : emptyTeam}
+          </p>
+        )}
         {isEditing && renderDropdown("nationalTeam", "national")}
       </div>
     </div>

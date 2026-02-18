@@ -9,6 +9,7 @@ using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Enums;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,7 @@ public class DbTeamContextFactory
 		this.filteringContext = filteringContext;
 	}
 
-	public IQueryable<Models.Data.Team> QueryTeamsInternal(NgbConstraint ngbs)
+	public IQueryable<Models.Data.Team> QueryTeamsInternal(NgbConstraint ngbs, TeamGroupAffiliation? groupAffiliation = null)
 	{
 		IQueryable<Models.Data.Team> t = this.dbContext.Teams
 				.Include(t => t.NationalGoverningBody);
@@ -36,6 +37,11 @@ public class DbTeamContextFactory
 		if (!ngbs.AppliesToAny)
 		{
 			t = t.Join(this.dbContext.NationalGoverningBodies.WithConstraint(ngbs), tt => tt.NationalGoverningBodyId, n => n.Id, (tt, n) => tt);
+		}
+
+		if (groupAffiliation.HasValue)
+		{
+			t = t.Where(x => x.GroupAffiliation == groupAffiliation.Value);
 		}
 
 		t = t.OrderBy(x => x.Name);
@@ -71,7 +77,7 @@ public class DbTeamContextFactory
 		return t;
 	}
 
-	public IQueryable<ITeamContext> QueryTeams(NgbConstraint ngbs) => this.QueryTeamsInternal(ngbs).AsNoTracking().Select(Selector);
+	public IQueryable<ITeamContext> QueryTeams(NgbConstraint ngbs, TeamGroupAffiliation? groupAffiliation = null) => this.QueryTeamsInternal(ngbs, groupAffiliation).AsNoTracking().Select(Selector);
 
 	public async Task<ITeamContext> CreateTeamAsync(NgbIdentifier ngb, TeamData teamData)
 	{

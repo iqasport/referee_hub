@@ -1,20 +1,11 @@
-using System;
-using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
-using ManagementHub.Models.Domain.Team;
-using ManagementHub.Models.Domain.User;
-using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Ngbs;
-using ManagementHub.Service.Authorization;
-using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
-using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,37 +22,18 @@ public class TeamsController : ControllerBase
 {
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly ISocialAccountsProvider socialAccountsProvider;
-	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
-	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
-	private readonly IUserContextAccessor contextAccessor;
-	private readonly ManagementHubDbContext dbContext;
 
 	public TeamsController(
 		ITeamContextProvider teamContextProvider,
-		ISocialAccountsProvider socialAccountsProvider,
-		IUpdateUserAvatarCommand updateUserAvatarCommand,
-		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand,
-		IUserContextAccessor contextAccessor,
-		ManagementHubDbContext dbContext)
+		ISocialAccountsProvider socialAccountsProvider)
 	{
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
-		this.updateUserAvatarCommand = updateUserAvatarCommand;
-		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
-		this.contextAccessor = contextAccessor;
-		this.dbContext = dbContext;
 	}
 
 	/// <summary>
 	/// Get all national teams across all NGBs.
 	/// </summary>
-	/// <summary>
-	/// Get all national teams across all NGBs.
-	/// </summary>
-	/// <remarks>
-	/// This endpoint materializes all teams before filtering to avoid LINQ translation issues.
-	/// Since national teams are typically few in number (&lt;100), the performance impact is minimal.
-	/// </remarks>
 	[HttpGet("national")]
 	[Tags("Team")]
 	public async Task<Filtered<NgbTeamViewModel>> GetNationalTeams([FromQuery] FilteringParameters filtering)

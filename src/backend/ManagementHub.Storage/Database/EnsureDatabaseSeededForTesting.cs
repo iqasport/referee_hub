@@ -223,6 +223,54 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Description = "German National Quidditch Team",
 				ContactEmail = "teamgermany@qbund.example.de",
 			},
+			new Team
+			{
+				City = "Chicago",
+				Country = "USA",
+				Name = "Chicago Youth Quidditch",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
+				GroupAffiliation = TeamGroupAffiliation.Youth,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Washington DC",
+				Country = "USA",
+				Name = "Team USA",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
+				GroupAffiliation = TeamGroupAffiliation.National,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Sydney",
+				Country = "Australia",
+				Name = "Australia National Team",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "AUS"),
+				GroupAffiliation = TeamGroupAffiliation.National,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
+			new Team
+			{
+				City = "Berlin",
+				Country = "Germany",
+				Name = "Germany National Team",
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "DEU"),
+				GroupAffiliation = TeamGroupAffiliation.National,
+				CreatedAt = DateTime.UtcNow,
+				JoinedAt = DateTime.UtcNow,
+				Status = TeamStatus.Competitive,
+				UpdatedAt = DateTime.UtcNow,
+			},
 		};
 
 		dbContext.Teams.AddRange(teams);
