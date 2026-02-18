@@ -25,7 +25,7 @@ public class DbNgbAvatarContextFactory
 
 	public async Task<Uri?> GetNgbAvatarUriAsync(NgbIdentifier ngbId, CancellationToken cancellationToken)
 	{
-		this.logger.LogInformation(-0x22a8f500, "Getting avatar context for NGB ({ngbCode}).", ngbId.NgbCode);
+		this.logger.LogInformation(-0x22a8f500, "Getting avatar context for NGB.");
 
 		try
 		{
@@ -44,7 +44,7 @@ public class DbNgbAvatarContextFactory
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(-0x22a8f4ff, ex, "Error while getting avatar URI for NGB ({ngbCode}).", ngbId.NgbCode);
+			this.logger.LogError(-0x22a8f4ff, ex, "Error while getting avatar URI for NGB.");
 			throw;
 		}
 	}
