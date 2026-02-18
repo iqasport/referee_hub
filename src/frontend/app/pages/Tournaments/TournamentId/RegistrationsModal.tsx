@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import React from "react";
 import {
   useGetTournamentInvitesQuery,
@@ -9,17 +9,20 @@ import StatusBadge from "../../../components/StatusBadge";
 import ActionButtonPair from "../../../components/ActionButtonPair";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
+import RosterViewModal, { RosterViewModalRef } from "./RosterViewModal";
 
 export interface RegistrationsModalRef {
-  open: (tournamentId: string) => void;
+  open: (tournamentId: string, tournamentName: string) => void;
 }
 
 const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
   const [tournamentId, setTournamentId] = useState<string>("");
+  const [tournamentName, setTournamentName] = useState<string>("");
   const [selectedInvite, setSelectedInvite] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const rosterViewModalRef = useRef<RosterViewModalRef>(null);
 
   const { data: invites, refetch } = useGetTournamentInvitesQuery(
     { tournamentId },
@@ -29,8 +32,9 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const [respondToInvite] = useRespondToInviteMutation();
 
   useImperativeHandle(ref, () => ({
-    open: (tournId: string) => {
+    open: (tournId: string, tournName: string) => {
       setTournamentId(tournId);
+      setTournamentName(tournName);
       setSelectedInvite(null);
       setIsOpen(true);
     },
@@ -90,6 +94,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
           onClose={hideAlert}
         />
       )}
+      <RosterViewModal ref={rosterViewModalRef} />
       <Dialog open={isOpen} as="div" className="relative z-50" onClose={close}>
       <div
         className="fixed inset-0"
@@ -211,10 +216,12 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                     {invites.map((invite) => (
                       <div
                         key={invite.participantId}
-                        className="border border-gray-200 rounded-lg p-4 mb-3 cursor-pointer hover:shadow-md"
-                        onClick={() => setSelectedInvite(invite.participantId)}
+                        className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md"
                       >
-                        <div className="flex items-center justify-between">
+                        <div 
+                          className="flex items-center justify-between cursor-pointer"
+                          onClick={() => setSelectedInvite(invite.participantId)}
+                        >
                           <div>
                             <h4 className="font-semibold text-gray-900">
                               {invite.participantName}
@@ -230,6 +237,24 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                           </div>
                           <StatusBadge status={invite.status || "unknown"} />
                         </div>
+                        {invite.status === "approved" && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                rosterViewModalRef.current?.open(
+                                  tournamentId,
+                                  invite.participantId,
+                                  invite.participantName || "Unknown Team",
+                                  tournamentName
+                                );
+                              }}
+                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              View Roster →
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

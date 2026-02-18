@@ -60,6 +60,7 @@ const RefereeDetails = () => {
       teams={{
         coachingTeam: editableReferee.coachingTeam,
         playingTeam: editableReferee.playingTeam,
+        nationalTeam: editableReferee.nationalTeam,
       }}
       locations={{
         primaryNgb: editableReferee.primaryNgb,

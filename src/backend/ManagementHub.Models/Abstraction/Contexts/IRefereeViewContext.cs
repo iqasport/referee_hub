@@ -39,6 +39,11 @@ public interface IRefereeViewContext
 	TeamIdentifier? CoachingTeam { get; }
 
 	/// <summary>
+	/// National team the referee is playing for.
+	/// </summary>
+	TeamIdentifier? NationalTeam { get; }
+
+	/// <summary>
 	/// Certifications acquired by this referee.
 	/// </summary>
 	HashSet<Certification> AcquiredCertifications { get; }

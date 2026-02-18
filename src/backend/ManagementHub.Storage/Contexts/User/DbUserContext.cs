@@ -136,6 +136,7 @@ public class DbUserContextFactory
 
 					var playingTeam = properties.RefereeTeams.FirstOrDefault(team => team.AssociationType == RefereeTeamAssociationType.Player);
 					var coachingTeam = properties.RefereeTeams.FirstOrDefault(team => team.AssociationType == RefereeTeamAssociationType.Coach);
+					var nationalTeam = properties.RefereeTeams.FirstOrDefault(team => team.AssociationType == RefereeTeamAssociationType.NationalTeamPlayer);
 					var primaryNgb = properties.RefereeLocations.FirstOrDefault(ngb => ngb.AssociationType == RefereeNgbAssociationType.Primary);
 					var secondaryNgb = properties.RefereeLocations.FirstOrDefault(ngb => ngb.AssociationType == RefereeNgbAssociationType.Secondary);
 
@@ -145,6 +146,7 @@ public class DbUserContextFactory
 							IsActive = true,
 							PlayingTeam = playingTeam is not null ? new TeamIdentifier(playingTeam.TeamId ?? throw new Exception("I don't know why this is nullable")) : null,
 							CoachingTeam = coachingTeam is not null ? new TeamIdentifier(coachingTeam.TeamId ?? throw new Exception("I don't know why this is nullable")) : null,
+							NationalTeam = nationalTeam is not null ? new TeamIdentifier(nationalTeam.TeamId ?? throw new Exception("I don't know why this is nullable")) : null,
 							PrimaryNgb = primaryNgb is not null ? NgbIdentifier.Parse(primaryNgb.NgbId) : null,
 							SecondaryNgb = secondaryNgb is not null ? NgbIdentifier.Parse(secondaryNgb.NgbId) : null,
 						},

@@ -9,6 +9,7 @@ import type { TournamentType } from "../../../store/serviceApi";
 import UploadedImage from "../../../components/UploadedImage";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
+import Toggle from "../../../components/Toggle";
 
 interface Tournament {
   id?: string;
@@ -16,12 +17,14 @@ interface Tournament {
   description: string;
   startDate: string;
   endDate: string;
+  registrationEndsDate?: string;
   type: TournamentType | "";
   country: string;
   city: string;
   place: string;
   organizer?: string;
   isPrivate: boolean;
+  isRegistrationOpen?: boolean;
   bannerImageUrl?: string;
 }
 
@@ -42,12 +45,14 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     description: "",
     startDate: "",
     endDate: "",
+    registrationEndsDate: "",
     type: "",
     country: "",
     city: "",
     place: "",
     organizer: "",
     isPrivate: false,
+    isRegistrationOpen: true,
     bannerImageUrl: "",
   };
   const [formData, setFormData] = useState<Tournament>(initialFormData);
@@ -86,12 +91,14 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             description: formData.description,
             startDate: formData.startDate,
             endDate: formData.endDate,
+            registrationEndsDate: formData.registrationEndsDate || undefined,
             type: formData.type || undefined,
             country: formData.country,
             city: formData.city,
             place: formData.place,
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
+            isRegistrationOpen: formData.isRegistrationOpen ?? true,
           },
         }).unwrap();
       } else {
@@ -101,12 +108,14 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             description: formData.description,
             startDate: formData.startDate,
             endDate: formData.endDate,
+            registrationEndsDate: formData.registrationEndsDate || undefined,
             type: formData.type || undefined,
             country: formData.country,
             city: formData.city,
             place: formData.place,
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
+            isRegistrationOpen: formData.isRegistrationOpen ?? true,
           },
         }).unwrap();
 
@@ -225,21 +234,44 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                 />
               </div>
 
-              {/* Banner Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
-                <UploadedImage
-                  imageUrl={formData.bannerImageUrl || ""}
-                  imageAlt="Tournament banner"
-                  onSubmit={handleBannerUpload}
-                  isEditable={true}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Click the + icon to upload a banner image for the tournament.
-                </p>
+              {/* Banner Image and Registration Status side by side */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Banner Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
+                  <UploadedImage
+                    imageUrl={formData.bannerImageUrl || ""}
+                    imageAlt="Tournament banner"
+                    onSubmit={handleBannerUpload}
+                    isEditable={true}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Click the + icon to upload a banner image for the tournament.
+                  </p>
+                </div>
+
+                {/* Registration Status Toggle */}
+                <div className="flex flex-col justify-start">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Registration Status
+                  </label>
+                  <div className="flex items-center justify-end">
+                    <span className="mr-3 text-sm text-gray-600">
+                      {formData.isRegistrationOpen ? 'Open' : 'Closed'}
+                    </span>
+                    <Toggle
+                      name="isRegistrationOpen"
+                      checked={formData.isRegistrationOpen ?? true}
+                      onChange={(e) => setFormData({ ...formData, isRegistrationOpen: e.target.checked })}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500 text-right">
+                    Control whether teams can register for this tournament
+                  </p>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label
                     htmlFor="startDate"
@@ -268,6 +300,20 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                     name="endDate"
                     required
                     value={formData.endDate}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="registrationEndsDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Registration Ends
+                  </label>
+                  <input
+                    type="date"
+                    id="registrationEndsDate"
+                    name="registrationEndsDate"
+                    value={formData.registrationEndsDate || ""}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

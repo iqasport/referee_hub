@@ -39,6 +39,11 @@ public class RefereeViewModel
 	public TeamIndicator? CoachingTeam { get; set; }
 
 	/// <summary>
+	/// National team the referee is playing for.
+	/// </summary>
+	public TeamIndicator? NationalTeam { get; set; }
+
+	/// <summary>
 	/// Certifications acquired by this referee.
 	/// </summary>
 	public HashSet<Certification> AcquiredCertifications { get; set; } = new HashSet<Certification>();

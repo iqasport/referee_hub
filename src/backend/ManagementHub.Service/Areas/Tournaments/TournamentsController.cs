@@ -107,12 +107,14 @@ public class TournamentsController : ControllerBase
 			Description = t.Description,
 			StartDate = t.StartDate,
 			EndDate = t.EndDate,
+			RegistrationEndsDate = t.RegistrationEndsDate,
 			Type = t.Type,
 			Country = t.Country,
 			City = t.City,
 			Place = t.Place,
 			Organizer = t.Organizer,
 			IsPrivate = t.IsPrivate,
+			IsRegistrationOpen = t.IsRegistrationOpen,
 			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		}).ToList();
@@ -150,12 +152,14 @@ public class TournamentsController : ControllerBase
 			Description = tournament.Description,
 			StartDate = tournament.StartDate,
 			EndDate = tournament.EndDate,
+			RegistrationEndsDate = tournament.RegistrationEndsDate,
 			Type = tournament.Type,
 			Country = tournament.Country,
 			City = tournament.City,
 			Place = tournament.Place,
 			Organizer = tournament.Organizer,
 			IsPrivate = tournament.IsPrivate,
+			IsRegistrationOpen = tournament.IsRegistrationOpen,
 			BannerImageUrl = bannerUri?.ToString(),
 			IsCurrentUserInvolved = tournament.IsCurrentUserInvolved
 		};
@@ -177,12 +181,14 @@ public class TournamentsController : ControllerBase
 			Description = model.Description,
 			StartDate = model.StartDate,
 			EndDate = model.EndDate,
+			RegistrationEndsDate = model.RegistrationEndsDate,
 			Type = model.Type,
 			Country = model.Country,
 			City = model.City,
 			Place = model.Place,
 			Organizer = model.Organizer,
-			IsPrivate = model.IsPrivate
+			IsPrivate = model.IsPrivate,
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		var tournamentId = await this.tournamentContextProvider
@@ -208,12 +214,14 @@ public class TournamentsController : ControllerBase
 			Description = model.Description,
 			StartDate = model.StartDate,
 			EndDate = model.EndDate,
+			RegistrationEndsDate = model.RegistrationEndsDate,
 			Type = model.Type,
 			Country = model.Country,
 			City = model.City,
 			Place = model.Place,
 			Organizer = model.Organizer,
-			IsPrivate = model.IsPrivate
+			IsPrivate = model.IsPrivate,
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		await this.tournamentContextProvider
@@ -932,6 +940,107 @@ public class TournamentsController : ControllerBase
 		}
 
 		return this.Ok();
+	}
+
+	/// <summary>
+	/// Get roster for a team participating in a tournament.
+	/// </summary>
+	[HttpGet("{tournamentId}/teams/{teamId}/roster")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TournamentManagerOrTeamManagerPolicy)]
+	[ProducesResponseType(typeof(IEnumerable<RosterEntryViewModel>), StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<ActionResult<IEnumerable<RosterEntryViewModel>>> GetTeamRoster(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromRoute] TeamIdentifier teamId)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		// Verify the team is a participant in the tournament and get roster entries with only needed data
+		var rosterData = await this.dbContext.TournamentTeamParticipants
+			.Where(p => p.TeamId == teamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
+			.SelectMany(p => p.RosterEntries)
+			.Select(entry => new
+			{
+				entry.UserId,
+				entry.Role,
+				entry.JerseyNumber,
+				User = new
+				{
+					entry.User.Id,
+					entry.User.UniqueId,
+					entry.User.FirstName,
+					entry.User.LastName,
+					entry.User.ShowPronouns,
+					entry.User.Pronouns,
+					Certifications = entry.User.RefereeCertifications
+						.Where(rc => rc.ReceivedAt != null && rc.RevokedAt == null)
+						.OrderByDescending(rc => rc.Certification.Level)
+						.ThenByDescending(rc => rc.ReceivedAt)
+						.Select(rc => new
+						{
+							rc.Certification.Level,
+							rc.Certification.DisplayName,
+							rc.ReceivedAt
+						})
+						.Take(1)
+				}
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		if (!rosterData.Any())
+		{
+			// Check if participant exists at all
+			var participantExists = await this.dbContext.TournamentTeamParticipants
+				.Where(p => p.TeamId == teamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
+				.AnyAsync(this.HttpContext.RequestAborted);
+
+			if (!participantExists)
+			{
+				return this.NotFound(new { error = "Team is not a participant in this tournament" });
+			}
+		}
+
+		// Batch get all user identifiers at once
+		var userIdentifiers = rosterData
+			.Select(r => r.User.UniqueId != null
+				? UserIdentifier.Parse(r.User.UniqueId)
+				: UserIdentifier.FromLegacyUserId(r.User.Id))
+			.ToList();
+
+		// Batch get gender data for all users at once (outside the loop)
+		var genderData = await this.GetAccessibleGenderDataAsync(userIdentifiers, userContext);
+
+		// Build roster entries
+		var rosterEntries = rosterData.Select(entry =>
+		{
+			var name = $"{entry.User.FirstName ?? string.Empty} {entry.User.LastName ?? string.Empty}".Trim();
+
+			var userId = entry.User.UniqueId != null
+				? UserIdentifier.Parse(entry.User.UniqueId)
+				: UserIdentifier.FromLegacyUserId(entry.User.Id);
+
+			var gender = genderData.ContainsKey(userId) ? genderData[userId] : null;
+
+			// Get the highest certification
+			var highestCert = entry.User.Certifications.FirstOrDefault();
+
+			return new RosterEntryViewModel
+			{
+				Name = name,
+				Pronouns = entry.User.ShowPronouns == true ? entry.User.Pronouns : null,
+				Gender = gender,
+				JerseyNumber = entry.JerseyNumber,
+				// Role is returned as the enum value (0=Player, 1=Coach, 2=Staff) for type safety
+				// Frontend converts these numeric values to display strings
+				Role = entry.Role,
+				MaxCertification = highestCert?.DisplayName,
+				MaxCertificationDate = highestCert?.ReceivedAt
+			};
+		}).ToList();
+
+		return this.Ok(rosterEntries);
 	}
 
 	// Helper methods
