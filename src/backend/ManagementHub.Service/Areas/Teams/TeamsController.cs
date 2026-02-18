@@ -1,9 +1,17 @@
+using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Ngbs;
+using ManagementHub.Service.Authorization;
+using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,13 +30,25 @@ public class TeamsController : ControllerBase
 {
 	private readonly ITeamContextProvider teamContextProvider;
 	private readonly ISocialAccountsProvider socialAccountsProvider;
+	private readonly IUserContextAccessor contextAccessor;
+	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
+	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
+	private readonly ManagementHubDbContext dbContext;
 
 	public TeamsController(
 		ITeamContextProvider teamContextProvider,
-		ISocialAccountsProvider socialAccountsProvider)
+		ISocialAccountsProvider socialAccountsProvider,
+		IUserContextAccessor contextAccessor,
+		IUpdateUserAvatarCommand updateUserAvatarCommand,
+		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand,
+		ManagementHubDbContext dbContext)
 	{
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
+		this.contextAccessor = contextAccessor;
+		this.updateUserAvatarCommand = updateUserAvatarCommand;
+		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
+		this.dbContext = dbContext;
 	}
 
 	/// <summary>
