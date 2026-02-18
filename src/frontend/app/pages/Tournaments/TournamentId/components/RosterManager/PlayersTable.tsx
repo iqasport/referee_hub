@@ -127,7 +127,7 @@ const PlayersTable: React.FC<PlayersTableProps> = ({
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
               }}>
-                Gender
+                Observations
               </th>
               <th style={{ 
                 width: '40px',
@@ -193,8 +193,8 @@ const PlayersTable: React.FC<PlayersTableProps> = ({
                       value={member.gender || ""}
                       onChange={(e) => onUpdateMember?.(member.userId, "gender", e.target.value)}
                       disabled={disabled}
-                      placeholder="M/F"
-                      maxLength={10}
+                      placeholder="Notes"
+                      maxLength={50}
                       style={{
                         width: '100%',
                         padding: '0.375rem 0.5rem',

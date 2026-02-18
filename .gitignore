@@ -54,3 +54,5 @@ dump.rdb
 stats.json
 
 /config/credentials/development.key
+frontend/dist/
+src/backend/ManagementHub.Service/frontend/

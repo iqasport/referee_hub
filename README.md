@@ -131,14 +131,48 @@ The IQA Management Hub is a modern web application built with a clear separation
 
 ### Local Development Setup
 
-#### 1. Clone the Repository
+#### Quick Setup (Recommended)
+
+For first-time setup, use the automated launch script:
+
+```bash
+# Clone the repository
+git clone https://github.com/iqasport/referee_hub.git
+cd referee_hub
+
+# Build and run the application
+./start.sh
+```
+
+The `start.sh` script automatically handles all setup steps including installing dependencies, building frontend and backend, and starting the application.
+
+#### Updating to Latest Changes
+
+To pull the latest changes from the repository and update dependencies:
+
+```bash
+./update.sh
+```
+
+This script will:
+- Pull the latest code from your current branch
+- Update frontend dependencies if `package.json` changed
+- Update backend dependencies if any `.csproj` files changed
+
+After updating, rebuild and run the application with `./start.sh`.
+
+#### Manual Setup
+
+If you prefer to build manually, follow these steps:
+
+##### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/iqasport/referee_hub.git
 cd referee_hub
 ```
 
-#### 2. Build the Frontend
+##### 2. Build the Frontend
 
 ```bash
 cd src/frontend
@@ -158,7 +192,7 @@ The frontend build includes:
 - CSS compilation with PostCSS and Tailwind
 - Image asset copying
 
-#### 3. Build the Backend
+##### 3. Build the Backend
 
 ```bash
 cd src/backend
@@ -176,20 +210,36 @@ The backend build automatically includes the frontend assets if they're availabl
 
 ### Quick Start Options
 
-**Option 1: In-Memory Mode (Simplest)**
+**Option 1: Automated Launch Script (Recommended for First-Time Setup)**
+
+Use the provided launch script to automatically build and run the application:
+
+```bash
+./start.sh
+```
+
+This script will:
+- Check for required prerequisites (Node.js, Yarn, .NET SDK)
+- Install frontend dependencies and build the frontend
+- Restore backend dependencies and build the backend
+- Start the application at `http://localhost:5000`
+
+The service starts with:
+- In-memory database (auto-seeded with test data)
+- In-memory cache and job queue
+- Debug email output (emails logged to console)
+- Local filesystem blob storage
+
+**Option 2: In-Memory Mode (Manual)**
 
 ```bash
 cd src/backend/ManagementHub.Service
 dotnet run
 ```
 
-The service starts at `http://localhost:5000` with:
-- In-memory database (auto-seeded with test data)
-- In-memory cache and job queue
-- Debug email output (emails logged to console)
-- Local filesystem blob storage
+The service starts at `http://localhost:5000` with the same configuration as Option 1.
 
-**Option 2: Docker Compose with Full Stack**
+**Option 3: Docker Compose with Full Stack**
 
 ```bash
 cd docker/staging
@@ -198,7 +248,7 @@ docker compose up -d
 
 Available at `http://localhost:80` with PostgreSQL, Redis, and MailHog (at `http://localhost:8025`).
 
-**Option 3: Docker Quick Dev Environment**
+**Option 4: Docker Quick Dev Environment**
 
 ```bash
 cd docker/dev

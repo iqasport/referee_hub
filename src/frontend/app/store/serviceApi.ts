@@ -230,6 +230,18 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/certifications/payments` }),
         providesTags: ["Referee"],
       }),
+      getNationalTeams: build.query<GetNationalTeamsApiResponse, GetNationalTeamsApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Teams/national`,
+          params: {
+            Filter: queryArg.filter,
+            Page: queryArg.page,
+            PageSize: queryArg.pageSize,
+            SkipPaging: queryArg.skipPaging,
+          },
+        }),
+        providesTags: ["Team"],
+      }),
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
@@ -482,6 +494,12 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
+      getTeamRoster: build.query<GetTeamRosterApiResponse, GetTeamRosterApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/teams/${queryArg.teamId}/roster`,
+        }),
+        providesTags: ["Tournament"],
+      }),
       getCurrentUser: build.query<GetCurrentUserApiResponse, GetCurrentUserApiArg>({
         query: () => ({ url: `/api/v2/Users/me` }),
         providesTags: ["User"],
@@ -690,6 +708,13 @@ export type GetNgbRefereesApiArg = {
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
+export type GetNationalTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
+export type GetNationalTeamsApiArg = {
+  filter?: string;
+  page?: number;
+  pageSize?: number;
+  skipPaging?: boolean;
+};
 export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNgbTeamsApiArg = {
   ngb: string;
@@ -851,6 +876,11 @@ export type UpdateParticipantRosterApiArg = {
   tournamentId: string;
   teamId: string;
   updateRosterModel: UpdateRosterModel;
+};
+export type GetTeamRosterApiResponse = /** status 200 Success */ RosterEntryViewModel[];
+export type GetTeamRosterApiArg = {
+  tournamentId: string;
+  teamId: string;
 };
 export type GetCurrentUserApiResponse = /** status 200 Success */ CurrentUserViewModel;
 export type GetCurrentUserApiArg = void;
@@ -1164,6 +1194,7 @@ export type RefereeUpdateViewModel = {
   secondaryNgb?: string | null;
   playingTeam?: RefereeTeamUpdater;
   coachingTeam?: RefereeTeamUpdater;
+  nationalTeam?: RefereeTeamUpdater;
 };
 export type TeamIndicator = {
   id?: string;
@@ -1180,6 +1211,7 @@ export type RefereeViewModel = {
   secondaryNgb?: string | null;
   playingTeam?: TeamIndicator;
   coachingTeam?: TeamIndicator;
+  nationalTeam?: TeamIndicator;
   /** Certifications acquired by this referee. */
   acquiredCertifications?: Certification[] | null;
   /** User attributes of this referee. */
@@ -1332,12 +1364,14 @@ export type TournamentViewModel = {
   description?: string | null;
   startDate?: string;
   endDate?: string;
+  registrationEndsDate?: string | null;
   type?: TournamentType;
   country?: string | null;
   city?: string | null;
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
+  isRegistrationOpen?: boolean;
   id?: string;
   bannerImageUrl?: string | null;
   isCurrentUserInvolved?: boolean;
@@ -1354,12 +1388,14 @@ export type TournamentModel = {
   description?: string | null;
   startDate?: string;
   endDate?: string;
+  registrationEndsDate?: string | null;
   type?: TournamentType;
   country?: string | null;
   city?: string | null;
   place?: string | null;
   organizer?: string | null;
   isPrivate?: boolean;
+  isRegistrationOpen?: boolean;
 };
 export type TournamentManagerViewModel = {
   id?: string;
@@ -1408,6 +1444,16 @@ export type UpdateRosterModel = {
   players?: RosterPlayerModel[] | null;
   coaches?: RosterStaffModel[] | null;
   staff?: RosterStaffModel[] | null;
+};
+export type RosterRole = 0 | 1 | 2;
+export type RosterEntryViewModel = {
+  name?: string | null;
+  pronouns?: string | null;
+  gender?: string | null;
+  jerseyNumber?: string | null;
+  role?: RosterRole;
+  maxCertification?: string | null;
+  maxCertificationDate?: string | null;
 };
 export type CurrentUserViewModel = {
   userId?: string;
@@ -1483,6 +1529,7 @@ export const {
   useGetRefereesQuery,
   useGetNgbRefereesQuery,
   useGetAvailablePaymentsQuery,
+  useGetNationalTeamsQuery,
   useGetNgbTeamsQuery,
   useCreateNgbTeamMutation,
   useUpdateNgbTeamMutation,
@@ -1514,6 +1561,7 @@ export const {
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
   useUpdateParticipantRosterMutation,
+  useGetTeamRosterQuery,
   useGetCurrentUserQuery,
   useGetCurrentUserFeatureGatesQuery,
   usePutRootUserAttributeMutation,

@@ -28,12 +28,14 @@ public record DbTournamentContext(
 	string Description,
 	DateOnly StartDate,
 	DateOnly EndDate,
+	DateOnly? RegistrationEndsDate,
 	TournamentType Type,
 	string Country,
 	string City,
 	string? Place,
 	string Organizer,
 	bool IsPrivate,
+	bool IsRegistrationOpen,
 	bool IsCurrentUserInvolved) : ITournamentContext;
 
 public class DbTournamentContextProvider : ITournamentContextProvider
@@ -134,12 +136,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			Description = tournamentData.Description,
 			StartDate = tournamentData.StartDate,
 			EndDate = tournamentData.EndDate,
+			RegistrationEndsDate = tournamentData.RegistrationEndsDate,
 			Type = tournamentData.Type,
 			Country = tournamentData.Country,
 			City = tournamentData.City,
 			Place = tournamentData.Place,
 			Organizer = tournamentData.Organizer,
 			IsPrivate = tournamentData.IsPrivate,
+			IsRegistrationOpen = tournamentData.IsRegistrationOpen,
 			CreatedAt = now,
 			UpdatedAt = now,
 		};
@@ -185,12 +189,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		tournament.Description = tournamentData.Description;
 		tournament.StartDate = tournamentData.StartDate;
 		tournament.EndDate = tournamentData.EndDate;
+		tournament.RegistrationEndsDate = tournamentData.RegistrationEndsDate;
 		tournament.Type = tournamentData.Type;
 		tournament.Country = tournamentData.Country;
 		tournament.City = tournamentData.City;
 		tournament.Place = tournamentData.Place;
 		tournament.Organizer = tournamentData.Organizer;
 		tournament.IsPrivate = tournamentData.IsPrivate;
+		tournament.IsRegistrationOpen = tournamentData.IsRegistrationOpen;
 		tournament.UpdatedAt = DateTime.UtcNow;
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
@@ -447,12 +453,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Description,
 				t.StartDate,
 				t.EndDate,
+				t.RegistrationEndsDate,
 				t.Type,
 				t.Country,
 				t.City,
 				t.Place,
 				t.Organizer,
 				t.IsPrivate,
+				t.IsRegistrationOpen,
 				// IsCurrentUserInvolved: computed via database join
 				// User is involved if they manage this tournament OR manage a participating team
 				// Phase 4 will extend: || user is on a roster
@@ -476,12 +484,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.Description,
 				t.StartDate,
 				t.EndDate,
+				t.RegistrationEndsDate,
 				t.Type,
 				t.Country,
 				t.City,
 				t.Place,
 				t.Organizer,
 				t.IsPrivate,
+				t.IsRegistrationOpen,
 				// IsCurrentUserInvolved: computed via database join
 				// User is involved if they:
 				// - Manage this tournament OR
@@ -492,7 +502,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.TournamentManagers.Any(tm => userDatabaseIds.Contains(tm.UserId)) ||
 				t.TournamentTeamParticipants.Any(p => p.Team.TeamManagers.Any(teamMgr => userDatabaseIds.Contains(teamMgr.UserId))) ||
 				t.TournamentTeamParticipants.Any(p => p.RosterEntries.Any(entry => userDatabaseIds.Contains(entry.UserId))) ||
-				t.TournamentInvites.Any(i => 
+				t.TournamentInvites.Any(i =>
 					i.ParticipantType == "team" &&
 					this.dbContext.TeamManagers
 						.Where(tm => userDatabaseIds.Contains(tm.UserId))
