@@ -71,7 +71,7 @@ const App = () => {
             roles={roles}
             userId={currentUser.userId}
             ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
-            enabledFeatures={/* TODO currentUser?.enabledFeatures*/ undefined}
+            enabledFeatures={/* FUTURE: currentUser?.enabledFeatures when feature flags are implemented */ undefined}
             />}
         </div>
         <Routes>
@@ -127,7 +127,8 @@ const App = () => {
           path="/teams/:teamId/manage"
           element={<TeamManagement/>}
           />
-          {/* TODO {currentUser?.enabledFeatures.includes("i18n") ? (
+          {/* FUTURE: Settings route when i18n feature is implemented
+          {currentUser?.enabledFeatures.includes("i18n") ? (
             <Route
               path="/settings"
               element={<Settings />}

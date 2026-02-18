@@ -275,7 +275,7 @@ const TeamManagement = () => {
         <h2 className="text-2xl font-semibold mb-4 border-b-2 border-green pb-2">
           Pending Invitations
         </h2>
-        {/* TODO: Show pending invites when backend is implemented */}
+        {/* FUTURE Phase 3: Show pending invites when invite-player endpoint is implemented */}
         <p className="text-gray-500">No pending invitations</p>
       </div>
     </div>

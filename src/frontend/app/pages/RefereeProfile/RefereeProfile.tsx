@@ -84,7 +84,7 @@ const RefereeProfile = () => {
   if (refereeGetError) return <p style={{color: "red"}}>{getErrorString(refereeGetError)}</p>;
   if (!referee) return null;
 
-  const isCertificationsVisible = refereeId === "me"; // TODO || isIqaAdmin;
+  const isCertificationsVisible = refereeId === "me"; // FUTURE: || isIqaAdmin when admin visibility is implemented
   //const handleCertificationModalClose = () => setIsCertificationModalOpen(false);
 
   return (
@@ -106,7 +106,7 @@ const RefereeProfile = () => {
                   className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
                   onClick={() => navigate(`/referees/${refereeId}/tests`)}
                 >
-                  {/* TODO - wrap it in a component to modify behavior based on admin/ref/viewer - isIqaAdmin && !referee.isEditable ? "Manage Certifications" : "Take Tests" */}
+                  {/* FUTURE: Customize button text based on admin role - isIqaAdmin && !referee.isEditable ? "Manage Certifications" : "Take Tests" */}
                   Take Tests
                 </button>
               </div>
