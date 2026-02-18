@@ -45,7 +45,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
+		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for '{recordType}' ({identifierId}).", attachmentName, recordType, GetSafeIdentifierId(identifier));
 
 		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
@@ -58,7 +58,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
+		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for '{recordType}' ({identifierId}).", attachmentName, recordType, GetSafeIdentifierId(identifier));
 
 		this.dbContext.ActiveStorageBlobs.Add(blob);
 
@@ -102,5 +102,17 @@ public class AttachmentRepository : IAttachmentRepository
 		}
 
 		return recordType;
+	}
+
+	private static object GetSafeIdentifierId<TId>(TId identifier)
+	{
+		return identifier switch
+		{
+			UserIdentifier userId => userId.UniqueId,
+			NgbIdentifier ngbId => ngbId.NgbCode,
+			TournamentIdentifier tournamentId => tournamentId.UniqueId,
+			TeamIdentifier teamId => teamId.Id,
+			_ => throw new InvalidOperationException($"No safe ID extraction defined for type {typeof(TId)}.")
+		};
 	}
 }
