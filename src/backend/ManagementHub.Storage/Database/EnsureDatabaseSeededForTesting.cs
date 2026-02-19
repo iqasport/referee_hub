@@ -153,7 +153,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				City = "Buenos Aires",
 				Country = "Argentina",
 				Name = "BA Jacks",
-				NationalGoverningBody = ngbs.First(),
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "ARG"),
 				GroupAffiliation = TeamGroupAffiliation.Community,
 				CreatedAt = DateTime.UtcNow,
 				JoinedAt = DateTime.UtcNow,
