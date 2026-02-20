@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -139,5 +140,182 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			member.Name.Should().NotBeNullOrEmpty();
 			// PrimaryTeamName and PrimaryTeamId can be null for members without primary teams
 		}
+	}
+
+	[Fact]
+	public async Task UpdateTeam_AsNgbAdmin_ShouldUpdateTeamSuccessfully()
+	{
+		// Arrange: Sign in as NGB admin (who can also manage teams)
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+
+		// Get a team from the national teams list
+		var teamsResponse = await this._client.GetAsync("/api/v2/Teams/national?SkipPaging=true");
+		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var teamsResult = await teamsResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
+		teamsResult.Should().NotBeNull();
+		var firstTeam = teamsResult!.Items!.First();
+
+		// First, make the NGB admin a manager of this team
+		var addManagerRequest = new
+		{
+			Email = "ngb_admin@example.com",
+			CreateAccountIfNotExists = false
+		};
+		var ngb = "USA"; // Assuming the team is in USA NGB
+		var addManagerResponse = await this._client.PostAsJsonAsync(
+			$"/api/v2/Ngbs/{ngb}/teams/{firstTeam.TeamId}/managers",
+			addManagerRequest);
+
+		if (addManagerResponse.StatusCode != HttpStatusCode.OK)
+		{
+			// Manager might already exist, continue anyway
+		}
+
+		// Prepare updated team data
+		var updatedTeam = new NgbTeamViewModelDto
+		{
+			TeamId = firstTeam.TeamId,
+			Name = "Updated Team Name",
+			City = "Updated City",
+			State = firstTeam.State,
+			Country = firstTeam.Country,
+			Status = firstTeam.Status,
+			GroupAffiliation = firstTeam.GroupAffiliation,
+			JoinedAt = firstTeam.JoinedAt,
+			SocialAccounts = firstTeam.SocialAccounts,
+			LogoUrl = firstTeam.LogoUrl,
+			Description = "Updated description for the team",
+			ContactEmail = "updated.team@example.com"
+		};
+
+		// Act: Update the team
+		var updateResponse = await this._client.PutAsJsonAsync($"/api/v2/Teams/{firstTeam.TeamId}", updatedTeam);
+
+		// Assert: Update should succeed
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+			"team manager should be able to update their own team");
+
+		var updatedTeamResult = await updateResponse.Content.ReadFromJsonAsync<NgbTeamViewModelDto>();
+		updatedTeamResult.Should().NotBeNull();
+		updatedTeamResult!.TeamId.Should().Be(firstTeam.TeamId);
+		updatedTeamResult.Name.Should().Be("Updated Team Name");
+		updatedTeamResult.Description.Should().Be("Updated description for the team");
+		updatedTeamResult.ContactEmail.Should().Be("updated.team@example.com");
+
+		// Verify the changes persisted
+		var verifyResponse = await this._client.GetAsync($"/api/v2/Teams/{firstTeam.TeamId}");
+		verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var verifiedTeam = await verifyResponse.Content.ReadFromJsonAsync<TeamDetailViewModelDto>();
+		verifiedTeam.Should().NotBeNull();
+		verifiedTeam!.Name.Should().Be("Updated Team Name");
+		verifiedTeam.Description.Should().Be("Updated description for the team");
+		verifiedTeam.ContactEmail.Should().Be("updated.team@example.com");
+	}
+
+	[Fact]
+	public async Task UpdateTeam_AsNonTeamManager_ShouldReturnUnauthorized()
+	{
+		// Arrange: Sign in as a regular player who is NOT a manager
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "sarah.player@example.com", "password");
+
+		// Get any team
+		var teamsResponse = await this._client.GetAsync("/api/v2/Teams/national?SkipPaging=true");
+		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var teamsResult = await teamsResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
+		teamsResult.Should().NotBeNull();
+		var firstTeam = teamsResult!.Items!.First();
+
+		// Prepare update data
+		var updatedTeam = new NgbTeamViewModelDto
+		{
+			TeamId = firstTeam.TeamId,
+			Name = "Unauthorized Update",
+			City = firstTeam.City,
+			State = firstTeam.State,
+			Country = firstTeam.Country,
+			Status = firstTeam.Status,
+			GroupAffiliation = firstTeam.GroupAffiliation,
+			JoinedAt = firstTeam.JoinedAt,
+			SocialAccounts = firstTeam.SocialAccounts,
+			LogoUrl = firstTeam.LogoUrl,
+			Description = firstTeam.Description,
+			ContactEmail = firstTeam.ContactEmail
+		};
+
+		// Act: Try to update the team
+		var updateResponse = await this._client.PutAsJsonAsync($"/api/v2/Teams/{firstTeam.TeamId}", updatedTeam);
+
+		// Assert: Should be unauthorized
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+			"non-team-managers should not be able to update teams they don't manage");
+	}
+
+	[Fact]
+	public async Task UpdateTeam_AsUnauthenticated_ShouldReturnUnauthorized()
+	{
+		// Arrange: Create update data without authentication
+		var updatedTeam = new NgbTeamViewModelDto
+		{
+			TeamId = "TM_1",
+			Name = "Unauthorized Update",
+			City = "New York",
+			State = "NY",
+			Country = "USA",
+			Status = "competitive",
+			GroupAffiliation = "community",
+			JoinedAt = "2020-01-01",
+			SocialAccounts = System.Array.Empty<SocialAccountDto>(),
+			LogoUrl = null,
+			Description = "Test",
+			ContactEmail = "test@example.com"
+		};
+
+		// Act: Try to update without authentication
+		var updateResponse = await this._client.PutAsJsonAsync("/api/v2/Teams/TM_1", updatedTeam);
+
+		// Assert: Should be unauthorized
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+			"unauthenticated users should not be able to update teams");
+	}
+
+	[Fact]
+	public async Task UpdateTeam_WithMismatchedTeamId_ShouldReturnBadRequest()
+	{
+		// Arrange: Sign in as NGB admin and make them a manager
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+
+		// Get a team
+		var teamsResponse = await this._client.GetAsync("/api/v2/Teams/national?SkipPaging=true");
+		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var teamsResult = await teamsResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
+		var firstTeam = teamsResult!.Items!.First();
+
+		// Make the user a manager of the team
+		var addManagerRequest = new { Email = "ngb_admin@example.com", CreateAccountIfNotExists = false };
+		await this._client.PostAsJsonAsync($"/api/v2/Ngbs/USA/teams/{firstTeam.TeamId}/managers", addManagerRequest);
+
+		// Prepare update data with mismatched team ID
+		var updatedTeam = new NgbTeamViewModelDto
+		{
+			TeamId = "TM_999", // Different from URL
+			Name = "Test Team",
+			City = "New York",
+			State = "NY",
+			Country = "USA",
+			Status = "competitive",
+			GroupAffiliation = "community",
+			JoinedAt = "2020-01-01",
+			SocialAccounts = System.Array.Empty<SocialAccountDto>(),
+			LogoUrl = null,
+			Description = "Test",
+			ContactEmail = "test@example.com"
+		};
+
+		// Act: Try to update with mismatched ID
+		var updateResponse = await this._client.PutAsJsonAsync($"/api/v2/Teams/{firstTeam.TeamId}", updatedTeam);
+
+		// Assert: Should return bad request
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+			"team ID in URL should match team ID in request body");
 	}
 }
