@@ -145,7 +145,6 @@ const TeamManagement = () => {
         <TeamEditModal
           open={isEditModalOpen}
           showClose={true}
-          ngbId={team.ngbId}
           teamId={team.teamId}
           team={teamForModal}
           onClose={() => setIsEditModalOpen(false)}
