@@ -147,17 +147,32 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     try {
       let createdOrUpdatedTeam;
       if (teamId) {
-        // Edit mode: Use team-specific endpoint (team managers can use this)
-        console.log("Calling updateTeam with:", { teamId, teamObject });
-        const result = await updateTeam({ teamId: teamId, ngbTeamViewModel: teamObject });
-        
-        if ('error' in result) {
-          console.error("Failed to update team:", result.error);
-          setErrors([...(errors || []), "Failed to update team"]);
-          return;
+        // Edit mode: Choose endpoint based on whether we have ngbId
+        if (ngbId) {
+          // NGB manager editing from NgbProfile - use NGB endpoint
+          console.log("Calling updateNgbTeam with:", { ngbId, teamId, teamObject });
+          const result = await updateNgbTeam({ ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject });
+          
+          if ('error' in result) {
+            console.error("Failed to update team:", result.error);
+            setErrors([...(errors || []), "Failed to update team"]);
+            return;
+          }
+          createdOrUpdatedTeam = result.data;
+          console.log("Update result:", createdOrUpdatedTeam);
+        } else {
+          // Team manager editing from TeamManagement - use team endpoint
+          console.log("Calling updateTeam with:", { teamId, teamObject });
+          const result = await updateTeam({ teamId: teamId, ngbTeamViewModel: teamObject });
+          
+          if ('error' in result) {
+            console.error("Failed to update team:", result.error);
+            setErrors([...(errors || []), "Failed to update team"]);
+            return;
+          }
+          createdOrUpdatedTeam = result.data;
+          console.log("Update result:", createdOrUpdatedTeam);
         }
-        createdOrUpdatedTeam = result.data;
-        console.log("Update result:", createdOrUpdatedTeam);
       } else {
         // Create mode: Use NGB endpoint (requires NGB admin permissions)
         console.log("Calling createTeam with:", { ngbId, teamObject });
