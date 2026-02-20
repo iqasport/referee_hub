@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigationParams } from "../../utils/navigationUtils";
 import { 
   useGetTeamDetailsQuery,
@@ -65,6 +65,25 @@ const TeamManagement = () => {
     }
   };
 
+  // Memoize the team object to prevent unnecessary re-renders and form resets
+  const teamForModal = useMemo(() => {
+    if (!team) return undefined;
+    return {
+      teamId: team.teamId,
+      name: team.name,
+      city: team.city,
+      state: team.state,
+      country: team.country,
+      status: team.status,
+      groupAffiliation: team.groupAffiliation,
+      joinedAt: team.joinedAt,
+      socialAccounts: team.socialAccounts,
+      logoUrl: team.logoUrl,
+      description: team.description,
+      contactEmail: team.contactEmail,
+    };
+  }, [team]);
+
   if (isLoading) {
     return (
       <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">
@@ -128,20 +147,7 @@ const TeamManagement = () => {
           showClose={true}
           ngbId={team.ngbId}
           teamId={team.teamId}
-          team={{
-            teamId: team.teamId,
-            name: team.name,
-            city: team.city,
-            state: team.state,
-            country: team.country,
-            status: team.status,
-            groupAffiliation: team.groupAffiliation,
-            joinedAt: team.joinedAt,
-            socialAccounts: team.socialAccounts,
-            logoUrl: team.logoUrl,
-            description: team.description,
-            contactEmail: team.contactEmail,
-          }}
+          team={teamForModal}
           onClose={() => setIsEditModalOpen(false)}
         />
       )}

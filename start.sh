@@ -103,5 +103,6 @@ echo ""
 echo "======================================"
 echo ""
 
-# Run the application
+# Run the application with reduced logging (Warning level and above)
+export ASPNETCORE_ENVIRONMENT=Production
 dotnet run
