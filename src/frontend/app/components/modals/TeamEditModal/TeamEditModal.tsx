@@ -73,6 +73,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formInitialized = useRef(false);
 
   const formType = teamId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
@@ -84,7 +85,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   // upon submit it should wait until *Data is not undefined before closing the modal
 
   useEffect(() => {
-    if (team && teamId) {
+    if (team && teamId && !formInitialized.current) {
       // copy data over to the local state for mutation
       setUrls(team.socialAccounts.map(sa => sa.url))
       setNewTeam({ ...team});
@@ -92,8 +93,16 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       if (team.logoUrl) {
         setLogoPreview(team.logoUrl);
       }
+      formInitialized.current = true;
     }
-  }, [teamId]); // Only run when teamId changes (modal opens), not when team data refetches
+  }, [team, teamId]); // Depend on both team and teamId to initialize when data is available
+
+  // Reset initialization flag when modal closes
+  useEffect(() => {
+    if (!props.open) {
+      formInitialized.current = false;
+    }
+  }, [props.open]);
 
   const handleSubmit = async () => {
     const validationErrors = validateInput(newTeam);
