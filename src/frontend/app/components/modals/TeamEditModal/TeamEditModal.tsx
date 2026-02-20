@@ -56,7 +56,7 @@ const validateInput = (team: NgbTeamViewModel): string[] => {
 
 interface TeamEditModalProps extends Omit<ModalProps, "size"> {
   teamId?: string;
-  ngbId: string;
+  ngbId?: string;
   team?: NgbTeamViewModel;
 }
 
