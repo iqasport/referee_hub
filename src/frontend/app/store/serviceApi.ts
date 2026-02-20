@@ -1717,6 +1717,7 @@ export const {
   useGetAvailablePaymentsQuery,
   useGetNationalTeamsQuery,
   useUploadTeamLogoMutation,
+  useUpdateTeamMutation,
   useGetTeamDetailsQuery,
   useGetNgbTeamsQuery,
   useCreateNgbTeamMutation,
