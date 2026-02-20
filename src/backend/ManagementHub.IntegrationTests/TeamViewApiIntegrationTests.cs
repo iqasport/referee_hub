@@ -70,7 +70,7 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 	}
 
 	[Fact]
-	public async Task GetTeamDetails_AsTeamManager_ShouldHaveIsCurrentUserManagerTrue()
+	public void GetTeamDetails_AsTeamManager_ShouldHaveIsCurrentUserManagerTrue()
 	{
 		// This test is skipped because the Yankees team in the seed data is a Community team,
 		// not a National team, and there's no simple endpoint to get all community teams.

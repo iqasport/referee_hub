@@ -1121,7 +1121,7 @@ public class TournamentsController : ControllerBase
 						(tm, u) => tm),
 					rt => rt.TeamId,
 					tm => tm.TeamId,
-					(rt, tm) => rt.RefereeId.Value)
+					(rt, tm) => rt.RefereeId!.Value)
 				.Distinct()
 				.ToListAsync(this.HttpContext.RequestAborted);
 
