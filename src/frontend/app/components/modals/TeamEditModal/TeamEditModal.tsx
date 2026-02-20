@@ -93,14 +93,22 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       if (team.logoUrl) {
         setLogoPreview(team.logoUrl);
       }
+      // Enable the Done button for edit mode (we have existing data)
+      setHasChangedTeam(true);
       formInitialized.current = true;
     }
   }, [team, teamId]); // Depend on both team and teamId to initialize when data is available
 
-  // Reset initialization flag when modal closes
+  // Reset initialization flag and state when modal closes
   useEffect(() => {
     if (!props.open) {
       formInitialized.current = false;
+      setHasChangedTeam(false);
+      setNewTeam(initialNewTeam);
+      setUrls([]);
+      setLogoFile(null);
+      setLogoPreview(null);
+      setErrors(undefined);
     }
   }, [props.open]);
 
@@ -423,10 +431,10 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <button
             type="button"
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
-              "opacity-50 cursor-default": (!hasChangedTeam && !teamId) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo,
+              "opacity-50 cursor-default": (!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo,
             })}
             onClick={handleSubmit}
-            disabled={(!hasChangedTeam && !teamId) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo}
+            disabled={(!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo}
           >
             {(isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo) ? "Saving..." : "Done"}
           </button>
