@@ -127,8 +127,11 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     if (validationErrors.length) {
       console.log("Validation failed, errors:", validationErrors);
       setErrors(validationErrors);
-      return null;
+      return; // Changed from return null
     }
+
+    // Clear previous errors
+    setErrors(undefined);
 
     const accounts: SocialAccount[] = urls.map(url => ({url, type: urlType(url) }))
     const teamObject: NgbTeamViewModel = {
@@ -137,9 +140,13 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       state: newTeam.state || null // state is nullable but needs to be a string for input value
     };
     
+    console.log("Team object to save:", teamObject);
+    console.log("Is update:", !!teamId);
+    
     try {
       let createdOrUpdatedTeam;
       if (teamId) {
+        console.log("Calling updateTeam with:", { ngbId, teamId, teamObject });
         const result = await updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
         
         if ('error' in result) {
@@ -148,7 +155,9 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           return;
         }
         createdOrUpdatedTeam = result.data;
+        console.log("Update result:", createdOrUpdatedTeam);
       } else {
+        console.log("Calling createTeam with:", { ngbId, teamObject });
         const result = await createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
         
         if ('error' in result) {
@@ -157,15 +166,18 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           return;
         }
         createdOrUpdatedTeam = result.data;
+        console.log("Create result:", createdOrUpdatedTeam);
       }
 
       // Upload logo if a file was selected
       if (logoFile && createdOrUpdatedTeam?.teamId) {
+        console.log("Uploading logo for team:", createdOrUpdatedTeam.teamId);
         try {
           await uploadLogo({
             teamId: createdOrUpdatedTeam.teamId,
             logoBlob: logoFile
           }).unwrap();
+          console.log("Logo upload successful");
         } catch (error) {
           console.error("Failed to upload logo:", error);
           setErrors([...(errors || []), "logoUpload"]);
@@ -174,6 +186,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         }
       }
 
+      console.log("All operations successful, closing modal");
       setHasChangedTeam(false);
       onClose();
     } catch (error) {
