@@ -86,6 +86,8 @@ const TeamEditModal = (props: TeamEditModalProps) => {
 
   useEffect(() => {
     if (team && teamId && !formInitialized.current) {
+      console.log("Initializing form with team data:", team);
+      console.log("teamId:", teamId);
       // copy data over to the local state for mutation
       setUrls(team.socialAccounts?.map(sa => sa.url) || [])
       setNewTeam({ ...team});
@@ -96,6 +98,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       // Enable the Done button for edit mode (we have existing data)
       setHasChangedTeam(true);
       formInitialized.current = true;
+      console.log("Form initialized, hasChangedTeam set to true");
     }
   }, [team, teamId]); // Depend on both team and teamId to initialize when data is available
 
@@ -113,9 +116,16 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   }, [props.open]);
 
   const handleSubmit = async () => {
+    console.log("handleSubmit called!");
+    console.log("newTeam:", newTeam);
+    console.log("teamId:", teamId);
+    console.log("hasChangedTeam:", hasChangedTeam);
+    
     const validationErrors = validateInput(newTeam);
+    console.log("validationErrors:", validationErrors);
     
     if (validationErrors.length) {
+      console.log("Validation failed, errors:", validationErrors);
       setErrors(validationErrors);
       return null;
     }
