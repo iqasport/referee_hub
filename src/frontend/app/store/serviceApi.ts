@@ -283,6 +283,14 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Team"],
       }),
+      updateTeam: build.mutation<NgbTeamViewModel, { teamId: string; ngbTeamViewModel: NgbTeamViewModel }>({
+        query: (queryArg) => ({
+          url: `/api/v2/Teams/${queryArg.teamId}`,
+          method: "PUT",
+          body: queryArg.ngbTeamViewModel,
+        }),
+        invalidatesTags: ["Team"],
+      }),
       deleteNgbTeam: build.mutation<DeleteNgbTeamApiResponse, DeleteNgbTeamApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}`,

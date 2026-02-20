@@ -7,7 +7,7 @@ import { toDateTime } from "../../../utils/dateUtils";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
-import { NgbTeamViewModel, SocialAccount, TeamGroupAffiliation, TeamStatus, useCreateNgbTeamMutation, useUpdateNgbTeamMutation, useUploadTeamLogoMutation } from "../../../store/serviceApi";
+import { NgbTeamViewModel, SocialAccount, TeamGroupAffiliation, TeamStatus, useCreateNgbTeamMutation, useUpdateNgbTeamMutation, useUpdateTeamMutation, useUploadTeamLogoMutation } from "../../../store/serviceApi";
 import { urlType } from "../../../utils/socialUtils";
 
 const STATUS_OPTIONS: TeamStatus[] = ["competitive", "developing", "inactive"];
@@ -79,7 +79,8 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
 
   const [createTeam, {data: createTeamData, error: createTeamError, isLoading: isCreateTeamLoading}] = useCreateNgbTeamMutation();
-  const [updateTeam, {data: updateTeamData, error: updateTeamError, isLoading: isUpdateTeamLoading}] = useUpdateNgbTeamMutation();
+  const [updateNgbTeam, {data: updateNgbTeamData, error: updateNgbTeamError, isLoading: isUpdateNgbTeamLoading}] = useUpdateNgbTeamMutation();
+  const [updateTeam, {data: updateTeamData, error: updateTeamError, isLoading: isUpdateTeamLoading}] = useUpdateTeamMutation();
   const [uploadLogo, {isLoading: isUploadingLogo}] = useUploadTeamLogoMutation();
   // TODO: handle errors and show loading spinner
   // upon submit it should wait until *Data is not undefined before closing the modal
@@ -146,8 +147,9 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     try {
       let createdOrUpdatedTeam;
       if (teamId) {
-        console.log("Calling updateTeam with:", { ngbId, teamId, teamObject });
-        const result = await updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
+        // Edit mode: Use team-specific endpoint (team managers can use this)
+        console.log("Calling updateTeam with:", { teamId, teamObject });
+        const result = await updateTeam({ teamId: teamId, ngbTeamViewModel: teamObject });
         
         if ('error' in result) {
           console.error("Failed to update team:", result.error);
@@ -157,6 +159,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         createdOrUpdatedTeam = result.data;
         console.log("Update result:", createdOrUpdatedTeam);
       } else {
+        // Create mode: Use NGB endpoint (requires NGB admin permissions)
         console.log("Calling createTeam with:", { ngbId, teamObject });
         const result = await createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
         
@@ -454,12 +457,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <button
             type="button"
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
-              "opacity-50 cursor-default": (!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo,
+              "opacity-50 cursor-default": (!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateNgbTeamLoading || isUpdateTeamLoading || isUploadingLogo,
             })}
             onClick={handleSubmit}
-            disabled={(!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo}
+            disabled={(!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateNgbTeamLoading || isUpdateTeamLoading || isUploadingLogo}
           >
-            {(isCreateTeamLoading || isUpdateTeamLoading || isUploadingLogo) ? "Saving..." : "Done"}
+            {(isCreateTeamLoading || isUpdateNgbTeamLoading || isUpdateTeamLoading || isUploadingLogo) ? "Saving..." : "Done"}
           </button>
         </div>
       </form>
