@@ -64,7 +64,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const { team, teamId, onClose, ngbId } = props;
 
   // original urls are used as input to the url editor which needs a constant initial value
-  const originalUrls = useMemo(() => team?.socialAccounts.map(sa => sa.url) || [], [team]);
+  const originalUrls = useMemo(() => team?.socialAccounts?.map(sa => sa.url) || [], [team]);
 
   const [errors, setErrors] = useState<string[]>();
   const [hasChangedTeam, setHasChangedTeam] = useState(false);
@@ -87,7 +87,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   useEffect(() => {
     if (team && teamId && !formInitialized.current) {
       // copy data over to the local state for mutation
-      setUrls(team.socialAccounts.map(sa => sa.url))
+      setUrls(team.socialAccounts?.map(sa => sa.url) || [])
       setNewTeam({ ...team});
       // Set logo preview if team has a logo
       if (team.logoUrl) {
