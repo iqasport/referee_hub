@@ -3,6 +3,7 @@ using System;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260213155149_AddTeamLogoDescriptionContactEmail")]
+    partial class AddTeamLogoDescriptionContactEmail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -1097,18 +1100,6 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<string>("LogoUrl")
-                        .HasColumnType("character varying")
-                        .HasColumnName("logo_url");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<string>("ContactEmail")
-                        .HasColumnType("character varying")
-                        .HasColumnName("contact_email");
-
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "NationalGoverningBodyId" }, "index_teams_on_national_governing_body_id");
@@ -1434,13 +1425,13 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("date")
                         .HasColumnName("registration_ends_date");
 
-                    b.Property<bool>("IsPrivate")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("is_private");
-
                     b.Property<bool>("IsRegistrationOpen")
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_registration_open");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_private");
 
                     b.Property<string>("Name")
                         .IsRequired()

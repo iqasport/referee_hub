@@ -3,6 +3,7 @@ import React from "react";
 
 import DropdownMenu, { ItemConfig } from "../DropdownMenu/DropdownMenu";
 import { useNavigate } from "../../utils/navigationUtils";
+import { useGetManagedTeamsQuery } from "../../store/serviceApi";
 
 interface AvatarProps {
   firstName: string;
@@ -17,6 +18,7 @@ const Avatar = (props: AvatarProps) => {
   const { firstName, lastName, roles, userId, ownedNgbId, enabledFeatures } = props;
 
   const navigate = useNavigate();
+  const { data: managedTeams } = useGetManagedTeamsQuery();
 
   const handleHomeClick = () => {
     navigate("/");
@@ -93,6 +95,17 @@ const Avatar = (props: AvatarProps) => {
   if (roles.includes("NgbAdmin")) items.push(ngbProfile);
   if (roles.includes("Referee")) items.push(refereeProfile);
   //if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite); // TODO: unblock once implemented
+
+  // Add managed teams section
+  if (managedTeams && managedTeams.length > 0) {
+    managedTeams.forEach((team) => {
+      const teamItem: ItemConfig = {
+        content: `${team.teamName} (Team)`,
+        onClick: () => navigate(`/teams/${team.teamId}/manage`),
+      };
+      items.push(teamItem);
+    });
+  }
 
   items.push(tournaments);
   items.push(logout);

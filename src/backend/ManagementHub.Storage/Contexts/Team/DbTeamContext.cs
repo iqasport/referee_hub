@@ -97,6 +97,9 @@ public class DbTeamContextFactory
 			GroupAffiliation = teamData.GroupAffiliation,
 			Status = teamData.Status,
 			JoinedAt = teamData.JoinedAt,
+			LogoUrl = teamData.LogoUrl,
+			Description = teamData.Description,
+			ContactEmail = teamData.ContactEmail,
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		};
@@ -130,6 +133,9 @@ public class DbTeamContextFactory
 		team.GroupAffiliation = teamData.GroupAffiliation;
 		team.Status = teamData.Status;
 		team.JoinedAt = teamData.JoinedAt;
+		team.LogoUrl = teamData.LogoUrl;
+		team.Description = teamData.Description;
+		team.ContactEmail = teamData.ContactEmail;
 		team.UpdatedAt = DateTime.UtcNow;
 
 		if (previousStatus != teamData.Status)
@@ -221,14 +227,28 @@ public class DbTeamContextFactory
 		// Apply pagination
 		usersQuery = usersQuery.Page(this.filteringContext.FilteringParameters);
 
-		// Now project to TeamMemberInfo
+		// Now project to TeamMemberInfo with primary team information
+		// Join with RefereeTeams to get the user's playing team
 		return usersQuery
-			.Select(u => new TeamMemberInfo
+			.GroupJoin(
+				this.dbContext.RefereeTeams
+					.Where(rt => rt.AssociationType == ManagementHub.Models.Enums.RefereeTeamAssociationType.Player)
+					.Join(
+						this.dbContext.Teams,
+						rt => rt.TeamId,
+						t => t.Id,
+						(rt, t) => new { rt.RefereeId, TeamId = t.Id, TeamName = t.Name }),
+				u => u.Id,
+				rt => rt.RefereeId,
+				(u, primaryTeams) => new { User = u, PrimaryTeam = primaryTeams.FirstOrDefault() })
+			.Select(x => new TeamMemberInfo
 			{
-				UserId = u.UniqueId != null
-					? UserIdentifier.Parse(u.UniqueId)
-					: UserIdentifier.FromLegacyUserId(u.Id),
-				Name = $"{u.FirstName} {u.LastName}"
+				UserId = x.User.UniqueId != null
+					? UserIdentifier.Parse(x.User.UniqueId)
+					: UserIdentifier.FromLegacyUserId(x.User.Id),
+				Name = $"{x.User.FirstName} {x.User.LastName}",
+				PrimaryTeamName = x.PrimaryTeam != null ? x.PrimaryTeam.TeamName : null,
+				PrimaryTeamId = x.PrimaryTeam != null ? new TeamIdentifier(x.PrimaryTeam.TeamId) : null
 			});
 	}
 
@@ -241,6 +261,9 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
+		LogoUrl = tt.LogoUrl,
+		Description = tt.Description,
+		ContactEmail = tt.ContactEmail,
 	});
 
 	public static Expression<Func<Models.Data.Team, DbTeamContext>> Selector = tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
@@ -252,6 +275,9 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
+		LogoUrl = tt.LogoUrl,
+		Description = tt.Description,
+		ContactEmail = tt.ContactEmail,
 	});
 
 	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)
