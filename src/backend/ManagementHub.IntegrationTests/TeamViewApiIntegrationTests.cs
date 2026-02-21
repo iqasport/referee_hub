@@ -148,12 +148,13 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 		// Arrange: Sign in as NGB admin (who can also manage teams)
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
-		// Get a team from the national teams list
-		var teamsResponse = await this._client.GetAsync("/api/v2/Teams/national?SkipPaging=true");
+		// Get the Yankees team (a regular team, not a national team)
+		var teamsResponse = await this._client.GetAsync("/api/v2/Ngbs/USA/teams?SkipPaging=true");
 		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 		var teamsResult = await teamsResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
 		teamsResult.Should().NotBeNull();
-		var firstTeam = teamsResult!.Items!.First();
+		var yankeesTeam = teamsResult!.Items!.First(t => t.Name == "Yankees");
+		var teamId = yankeesTeam.TeamId;
 
 		// First, make the NGB admin a manager of this team
 		var addManagerRequest = new
@@ -161,9 +162,9 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			Email = "ngb_admin@example.com",
 			CreateAccountIfNotExists = false
 		};
-		var ngb = "USA"; // Assuming the team is in USA NGB
+		var ngb = "USA";
 		var addManagerResponse = await this._client.PostAsJsonAsync(
-			$"/api/v2/Ngbs/{ngb}/teams/{firstTeam.TeamId}/managers",
+			$"/api/v2/Ngbs/{ngb}/teams/{teamId}/managers",
 			addManagerRequest);
 
 		if (addManagerResponse.StatusCode != HttpStatusCode.OK)
@@ -174,22 +175,22 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 		// Prepare updated team data
 		var updatedTeam = new NgbTeamViewModelDto
 		{
-			TeamId = firstTeam.TeamId,
+			TeamId = teamId,
 			Name = "Updated Team Name",
 			City = "Updated City",
-			State = firstTeam.State,
-			Country = firstTeam.Country,
-			Status = firstTeam.Status,
-			GroupAffiliation = firstTeam.GroupAffiliation,
-			JoinedAt = firstTeam.JoinedAt,
-			SocialAccounts = firstTeam.SocialAccounts,
-			LogoUrl = firstTeam.LogoUrl,
+			State = yankeesTeam.State,
+			Country = yankeesTeam.Country,
+			Status = yankeesTeam.Status,
+			GroupAffiliation = yankeesTeam.GroupAffiliation,
+			JoinedAt = yankeesTeam.JoinedAt,
+			SocialAccounts = yankeesTeam.SocialAccounts,
+			LogoUrl = yankeesTeam.LogoUrl,
 			Description = "Updated description for the team",
 			ContactEmail = "updated.team@example.com"
 		};
 
 		// Act: Update the team
-		var updateResponse = await this._client.PutAsJsonAsync($"/api/v2/Teams/{firstTeam.TeamId}", updatedTeam);
+		var updateResponse = await this._client.PutAsJsonAsync($"/api/v2/Teams/{teamId}", updatedTeam);
 
 		// Assert: Update should succeed
 		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -197,13 +198,13 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 
 		var updatedTeamResult = await updateResponse.Content.ReadFromJsonAsync<NgbTeamViewModelDto>();
 		updatedTeamResult.Should().NotBeNull();
-		updatedTeamResult!.TeamId.Should().Be(firstTeam.TeamId);
+		updatedTeamResult!.TeamId.Should().Be(teamId);
 		updatedTeamResult.Name.Should().Be("Updated Team Name");
 		updatedTeamResult.Description.Should().Be("Updated description for the team");
 		updatedTeamResult.ContactEmail.Should().Be("updated.team@example.com");
 
 		// Verify the changes persisted
-		var verifyResponse = await this._client.GetAsync($"/api/v2/Teams/{firstTeam.TeamId}");
+		var verifyResponse = await this._client.GetAsync($"/api/v2/Teams/{teamId}");
 		verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 		var verifiedTeam = await verifyResponse.Content.ReadFromJsonAsync<TeamDetailViewModelDto>();
 		verifiedTeam.Should().NotBeNull();
