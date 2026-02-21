@@ -211,68 +211,84 @@ public class TeamsController : ControllerBase
 	[HttpPut("{teamId}")]
 	[Tags("Team")]
 	[Authorize] // Team managers can update their own teams
-	public async Task<NgbTeamViewModel> UpdateTeam([FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
+	public async Task<ActionResult<NgbTeamViewModel>> UpdateTeam([FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
 	{
-		// Verify user is a manager of this team
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-		if (userContext == null)
+		try
 		{
-			throw new UnauthorizedAccessException("User context not available");
+			// Check team ID mismatch FIRST before authorization
+			if (viewModel.TeamId != teamId)
+			{
+				throw new ArgumentException("Team id mismatch between URL and request body.");
+			}
+
+			// Verify user is a manager of this team
+			var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+			if (userContext == null)
+			{
+				throw new UnauthorizedAccessException("User context not available");
+			}
+
+			var isTeamManager = userContext.Roles
+				.OfType<TeamManagerRole>()
+				.Any(role => role.Team.AppliesTo(teamId));
+
+			if (!isTeamManager)
+			{
+				throw new UnauthorizedAccessException($"User is not a manager of team {teamId}");
+			}
+
+			// Get the team to find its NGB
+			var existingTeam = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+			if (existingTeam == null)
+			{
+				throw new ManagementHub.Models.Exceptions.NotFoundException($"Team {teamId} not found");
+			}
+
+			var teamData = new TeamData
+			{
+				Name = viewModel.Name,
+				City = viewModel.City,
+				State = viewModel.State,
+				Country = viewModel.Country,
+				Status = viewModel.Status,
+				GroupAffiliation = viewModel.GroupAffiliation,
+				JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
+				LogoUrl = viewModel.LogoUrl,
+				Description = viewModel.Description,
+				ContactEmail = viewModel.ContactEmail,
+			};
+
+			var team = await this.teamContextProvider.UpdateTeamAsync(existingTeam.NgbId, teamId, teamData);
+			var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
+
+			return new NgbTeamViewModel
+			{
+				TeamId = team.TeamId,
+				City = team.TeamData.City,
+				GroupAffiliation = team.TeamData.GroupAffiliation,
+				Name = team.TeamData.Name,
+				Status = team.TeamData.Status,
+				State = team.TeamData.State,
+				Country = team.TeamData.Country,
+				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
+				SocialAccounts = socialAccounts,
+				LogoUrl = team.TeamData.LogoUrl,
+				Description = team.TeamData.Description,
+				ContactEmail = team.TeamData.ContactEmail,
+			};
 		}
-
-		var isTeamManager = userContext.Roles
-			.OfType<TeamManagerRole>()
-			.Any(role => role.Team.AppliesTo(teamId));
-
-		if (!isTeamManager)
+		catch (UnauthorizedAccessException)
 		{
-			throw new UnauthorizedAccessException($"User is not a manager of team {teamId}");
+			return this.Unauthorized();
 		}
-
-		if (viewModel.TeamId != teamId)
+		catch (ManagementHub.Models.Exceptions.NotFoundException)
 		{
-			throw new ArgumentException("Team id mismatch between URL and request body.");
+			return this.NotFound();
 		}
-
-		// Get the team to find its NGB
-		var existingTeam = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
-		if (existingTeam == null)
+		catch (ArgumentException)
 		{
-			throw new ArgumentException($"Team {teamId} not found");
+			return this.BadRequest();
 		}
-
-		var teamData = new TeamData
-		{
-			Name = viewModel.Name,
-			City = viewModel.City,
-			State = viewModel.State,
-			Country = viewModel.Country,
-			Status = viewModel.Status,
-			GroupAffiliation = viewModel.GroupAffiliation,
-			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
-			LogoUrl = viewModel.LogoUrl,
-			Description = viewModel.Description,
-			ContactEmail = viewModel.ContactEmail,
-		};
-
-		var team = await this.teamContextProvider.UpdateTeamAsync(existingTeam.NgbId, teamId, teamData);
-		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
-
-		return new NgbTeamViewModel
-		{
-			TeamId = team.TeamId,
-			City = team.TeamData.City,
-			GroupAffiliation = team.TeamData.GroupAffiliation,
-			Name = team.TeamData.Name,
-			Status = team.TeamData.Status,
-			State = team.TeamData.State,
-			Country = team.TeamData.Country,
-			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-			SocialAccounts = socialAccounts,
-			LogoUrl = team.TeamData.LogoUrl,
-			Description = team.TeamData.Description,
-			ContactEmail = team.TeamData.ContactEmail,
-		};
 	}
 
 	/// <summary>
