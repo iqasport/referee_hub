@@ -418,7 +418,7 @@ const TournamentDetails = () => {
                   )}
 
                   {/* Tournament Stats Card */}
-                  <div className="card">
+                  <div className="card card-mb">
                     <h3 className="card-title">Tournament Stats</h3>
                     <div className="stats-list">
                       <div className="stats-item">
@@ -438,29 +438,115 @@ const TournamentDetails = () => {
                     </div>
                   </div>
 
-                  {/* Manager who also manages teams: show register option */}
-                  {managedTeamsData && managedTeamsData.length > 0 && !isRegistrationClosed && (
-                    <div className="card card-mt">
-                      <h3 className="card-title">Register Your Team</h3>
+                  {/* Manager who also manages teams: pending invites they need to respond to */}
+                  {pendingInvitesForUser.length > 0 && (
+                    <div className="card card-highlighted card-mb">
+                      <h3 className="card-title">You&apos;re Invited!</h3>
                       <p className="card-description">
-                        You also manage teams. You can register them for this tournament.
+                        Your team(s) have been invited to participate in this tournament.
                       </p>
-                      <button
-                        onClick={() =>
-                          registerModalRef.current?.open({
-                            id: tournament.id || "",
-                            name: tournament.name || "",
-                            startDate: tournament.startDate || "",
-                            endDate: tournament.endDate || "",
-                            country: tournament.country || "",
-                            city: tournament.city || "",
-                            type: tournament.type || "",
-                          })
-                        }
-                        className="btn btn-outline btn-full-width"
-                      >
-                        Register a Team
-                      </button>
+                      <div className="invite-list">
+                        {pendingInvitesForUser.map((invite) => (
+                          <div key={invite.participantId} className="invite-item">
+                            <p className="invite-team-name">{invite.participantName}</p>
+                            <ActionButtonPair
+                              onAccept={() =>
+                                handleRespondToInvite(invite.participantId || "", true)
+                              }
+                              onDecline={() =>
+                                handleRespondToInvite(invite.participantId || "", false)
+                              }
+                              isLoading={respondingTo === invite.participantId}
+                              size="sm"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manager who also manages teams: register / roster section */}
+                  {managedTeamsData && managedTeamsData.length > 0 && (
+                    <div className="card card-mb">
+                      {isRegistrationClosed ? (
+                        approvedTeamsForUser.length > 0 ? (
+                          <>
+                            <h3 className="card-title">Your Teams Are Registered</h3>
+                            <p className="card-description">
+                              Your team(s) are registered. Manage your rosters below.
+                            </p>
+                            <button
+                              onClick={() =>
+                                rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
+                              }
+                              className="btn btn-primary btn-full-width"
+                            >
+                              Manage Your Rosters
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="card-title">Registration Closed</h3>
+                            <p className="card-description">
+                              Registration for this tournament is now closed.
+                            </p>
+                          </>
+                        )
+                      ) : approvedTeamsForUser.length > 0 ? (
+                        <>
+                          <h3 className="card-title">Your Teams Are Registered!</h3>
+                          <p className="card-description">
+                            Your team(s) are registered. Manage your rosters or register another team.
+                          </p>
+                          <button
+                            onClick={() =>
+                              rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
+                            }
+                            className="btn btn-primary btn-full-width card-mb"
+                          >
+                            Manage Your Rosters
+                          </button>
+                          <button
+                            onClick={() =>
+                              registerModalRef.current?.open({
+                                id: tournament.id || "",
+                                name: tournament.name || "",
+                                startDate: tournament.startDate || "",
+                                endDate: tournament.endDate || "",
+                                country: tournament.country || "",
+                                city: tournament.city || "",
+                                type: tournament.type || "",
+                              })
+                            }
+                            className="btn btn-outline btn-full-width"
+                          >
+                            Register Another Team
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <h3 className="card-title">Register Your Team</h3>
+                          <p className="card-description">
+                            You also manage teams. You can register them for this tournament.
+                          </p>
+                          <button
+                            onClick={() =>
+                              registerModalRef.current?.open({
+                                id: tournament.id || "",
+                                name: tournament.name || "",
+                                startDate: tournament.startDate || "",
+                                endDate: tournament.endDate || "",
+                                country: tournament.country || "",
+                                city: tournament.city || "",
+                                type: tournament.type || "",
+                              })
+                            }
+                            className="btn btn-outline btn-full-width"
+                          >
+                            Register a Team
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </>

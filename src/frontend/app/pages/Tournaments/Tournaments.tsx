@@ -151,9 +151,7 @@ const Tournament = () => {
               onTypeFilter={handleTypeFilter}
               selectedType={typeFilter}
             />
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer mt-2">
               <input
                 type="checkbox"
                 checked={showPast}
@@ -162,10 +160,10 @@ const Tournament = () => {
               />
               Show past tournaments
             </label>
-            <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
-              Add Tournament
-            </button>
           </div>
+          <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
+            Add Tournament
+          </button>
         </div>
 
         <AddTournamentModal ref={modalRef} />
