@@ -1011,6 +1011,18 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
+			entity.Property(e => e.LogoUrl)
+				.HasColumnType("character varying")
+				.HasColumnName("logo_url");
+
+			entity.Property(e => e.Description)
+				.HasColumnType("text")
+				.HasColumnName("description");
+
+			entity.Property(e => e.ContactEmail)
+				.HasColumnType("character varying")
+				.HasColumnName("contact_email");
+
 			entity.HasOne(d => d.NationalGoverningBody)
 				.WithMany(p => p.Teams)
 				.HasForeignKey(d => d.NationalGoverningBodyId)

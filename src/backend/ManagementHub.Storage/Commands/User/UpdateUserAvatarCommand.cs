@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Database.Transactions;
@@ -44,7 +45,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "avatar";
 			var attachment = this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0x2d0ef100, "Uploading new avatar for user ({userId}) of content type '{contentType}'. User had previously an avatar: {hadAvatar}.", userId, contentType, attachment != null);
+			this.logger.LogInformation(0x2d0ef100, "Uploading new avatar for user ({userId}). User had previously an avatar: {hadAvatar}.", userId, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 			fileUploaded = true;
@@ -89,7 +90,8 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			const string attachmentName = "logo";
 			var attachment = this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
 
-			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbId}) of content type '{contentType}'. NGB had previously an avatar: {hadAvatar}.", ngbId, contentType, attachment != null);
+			var sanitizedNgbCode = ngbId.NgbCode?.Replace("\r", string.Empty).Replace("\n", string.Empty);
+			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB (Code: {ngbCode}). NGB had previously an avatar: {hadAvatar}.", sanitizedNgbCode, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 			fileUploaded = true;
@@ -117,6 +119,50 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 		catch (Exception ex)
 		{
 			this.logger.LogError(0x2d0ef105, ex, "Error occurred during user avatar upload for NGB ({ngbId}). File uploaded = {fileUploaded}.", ngbId, fileUploaded);
+
+			// TODO: if uploaded and not committed, remove file.
+			throw;
+		}
+	}
+
+	public async Task<Uri> UpdateTeamLogoAsync(TeamIdentifier teamId, string contentType, Stream logoStream, CancellationToken cancellationToken)
+	{
+		bool fileUploaded = false;
+		try
+		{
+			await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+
+			const string attachmentName = "logo";
+			var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
+
+			this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team (ID: {teamId}). Team had previously a logo: {hadLogo}.", teamId.Id, attachment != null);
+
+			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, logoStream, cancellationToken);
+			fileUploaded = true;
+			// TODO remove file if transaction fails
+
+			var blob = new ActiveStorageBlob
+			{
+				Checksum = uploadResult.Checksum,
+				ContentType = contentType,
+				CreatedAt = DateTime.UtcNow,
+				Filename = "na",
+				Key = uploadResult.Key,
+			};
+
+			this.logger.LogInformation(0x2d0ef107, "Setting new logo for team (ID: {teamId}) in the database.", teamId.Id);
+			await this.attachmentRepository.UpsertAttachmentAsync(teamId, attachmentName, blob, cancellationToken);
+
+			await transaction.CommitAsync(cancellationToken);
+
+			// TODO: remove old file in blob storage and remove blob from database
+
+			// TODO: put expiration in settings
+			return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			this.logger.LogError(0x2d0ef108, ex, "Error occurred during team logo upload for team (ID: {teamId}). File uploaded = {fileUploaded}.", teamId.Id, fileUploaded);
 
 			// TODO: if uploaded and not committed, remove file.
 			throw;

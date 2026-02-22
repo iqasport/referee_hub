@@ -19,6 +19,8 @@ const RefereeTests = lazy(() => import("./pages/RefereeTests"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Tournament = lazy(() => import("./pages/Tournaments"));
 const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"));
+const TeamView = lazy(() => import("./pages/TeamView"));
+const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
@@ -69,7 +71,7 @@ const App = () => {
             roles={roles}
             userId={currentUser.userId}
             ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
-            enabledFeatures={/* TODO currentUser?.enabledFeatures*/ undefined}
+            enabledFeatures={/* FUTURE: currentUser?.enabledFeatures when feature flags are implemented */ undefined}
             />}
         </div>
         <Routes>
@@ -117,7 +119,16 @@ const App = () => {
           path="/tournaments/:tournamentId"
           element={<TournamentDetails/>}
           />
-          {/* TODO {currentUser?.enabledFeatures.includes("i18n") ? (
+          <Route
+          path="/teams/:teamId"
+          element={<TeamView/>}
+          />
+          <Route
+          path="/teams/:teamId/manage"
+          element={<TeamManagement/>}
+          />
+          {/* FUTURE: Settings route when i18n feature is implemented
+          {currentUser?.enabledFeatures.includes("i18n") ? (
             <Route
               path="/settings"
               element={<Settings />}

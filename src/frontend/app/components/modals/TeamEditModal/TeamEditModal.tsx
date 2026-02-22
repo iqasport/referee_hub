@@ -1,13 +1,13 @@
 import classnames from "classnames";
 import { capitalize } from "lodash";
 import { DateTime } from "luxon";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { toDateTime } from "../../../utils/dateUtils";
 
 import MultiInput from "../../MultiInput";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
-import { NgbTeamViewModel, SocialAccount, TeamGroupAffiliation, TeamStatus, useCreateNgbTeamMutation, useUpdateNgbTeamMutation } from "../../../store/serviceApi";
+import { NgbTeamViewModel, SocialAccount, TeamGroupAffiliation, TeamStatus, useCreateNgbTeamMutation, useUpdateNgbTeamMutation, useUpdateTeamMutation, useUploadTeamLogoMutation } from "../../../store/serviceApi";
 import { urlType } from "../../../utils/socialUtils";
 
 const STATUS_OPTIONS: TeamStatus[] = ["competitive", "developing", "inactive"];
@@ -25,20 +25,38 @@ const initialNewTeam: NgbTeamViewModel = {
   state: "",
   status: null,
   socialAccounts: [],
+  logoUrl: null,
+  description: null,
+  contactEmail: null,
+};
+
+const validateEmail = (email: string): boolean => {
+  if (!email) return true; // Email is optional
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
 
 const validateInput = (team: NgbTeamViewModel): string[] => {
-  return Object.keys(team).filter((dataKey: string) => {
+  const errors: string[] = [];
+  
+  // Check required fields
+  Object.keys(team).forEach((dataKey: string) => {
     if (REQUIRED_FIELDS.includes(dataKey as keyof NgbTeamViewModel) && !team[dataKey]) {
-      return true;
+      errors.push(dataKey);
     }
-    return false;
   });
+  
+  // Validate email format if provided
+  if (team.contactEmail && !validateEmail(team.contactEmail)) {
+    errors.push("contactEmail");
+  }
+  
+  return errors;
 };
 
 interface TeamEditModalProps extends Omit<ModalProps, "size"> {
   teamId?: string;
-  ngbId: string;
+  ngbId?: string;
   team?: NgbTeamViewModel;
 }
 
@@ -46,35 +64,75 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const { team, teamId, onClose, ngbId } = props;
 
   // original urls are used as input to the url editor which needs a constant initial value
-  const originalUrls = useMemo(() => team?.socialAccounts.map(sa => sa.url) || [], [team]);
+  const originalUrls = useMemo(() => team?.socialAccounts?.map(sa => sa.url) || [], [team]);
 
   const [errors, setErrors] = useState<string[]>();
   const [hasChangedTeam, setHasChangedTeam] = useState(false);
   const [newTeam, setNewTeam] = useState<NgbTeamViewModel>(initialNewTeam);
   const [urls, setUrls] = useState<string[]>();
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const formInitialized = useRef(false);
 
   const formType = teamId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
 
   const [createTeam, {data: createTeamData, error: createTeamError, isLoading: isCreateTeamLoading}] = useCreateNgbTeamMutation();
-  const [updateTeam, {data: updateTeamData, error: updateTeamError, isLoading: isUpdateTeamLoading}] = useUpdateNgbTeamMutation();
+  const [updateNgbTeam, {data: updateNgbTeamData, error: updateNgbTeamError, isLoading: isUpdateNgbTeamLoading}] = useUpdateNgbTeamMutation();
+  const [updateTeam, {data: updateTeamData, error: updateTeamError, isLoading: isUpdateTeamLoading}] = useUpdateTeamMutation();
+  const [uploadLogo, {isLoading: isUploadingLogo}] = useUploadTeamLogoMutation();
   // TODO: handle errors and show loading spinner
   // upon submit it should wait until *Data is not undefined before closing the modal
 
   useEffect(() => {
-    if (team && teamId) {
+    if (team && teamId && !formInitialized.current) {
+      console.log("Initializing form with team data:", team);
+      console.log("teamId:", teamId);
       // copy data over to the local state for mutation
-      setUrls(team.socialAccounts.map(sa => sa.url))
+      setUrls(team.socialAccounts?.map(sa => sa.url) || [])
       setNewTeam({ ...team});
+      // Set logo preview if team has a logo
+      if (team.logoUrl) {
+        setLogoPreview(team.logoUrl);
+      }
+      // Enable the Done button for edit mode (we have existing data)
+      setHasChangedTeam(true);
+      formInitialized.current = true;
+      console.log("Form initialized, hasChangedTeam set to true");
     }
-  }, [team]);
+  }, [team, teamId]); // Depend on both team and teamId to initialize when data is available
 
-  const handleSubmit = () => {
-    const validationErrors = validateInput(newTeam);
-    if (validationErrors.length) {
-      setErrors(validationErrors);
-      return null;
+  // Reset initialization flag and state when modal closes
+  useEffect(() => {
+    if (!props.open) {
+      formInitialized.current = false;
+      setHasChangedTeam(false);
+      setNewTeam(initialNewTeam);
+      setUrls([]);
+      setLogoFile(null);
+      setLogoPreview(null);
+      setErrors(undefined);
     }
+  }, [props.open]);
+
+  const handleSubmit = async () => {
+    console.log("handleSubmit called!");
+    console.log("newTeam:", newTeam);
+    console.log("teamId:", teamId);
+    console.log("hasChangedTeam:", hasChangedTeam);
+    
+    const validationErrors = validateInput(newTeam);
+    console.log("validationErrors:", validationErrors);
+    
+    if (validationErrors.length) {
+      console.log("Validation failed, errors:", validationErrors);
+      setErrors(validationErrors);
+      return; // Changed from return null
+    }
+
+    // Clear previous errors
+    setErrors(undefined);
 
     const accounts: SocialAccount[] = urls.map(url => ({url, type: urlType(url) }))
     const teamObject: NgbTeamViewModel = {
@@ -82,17 +140,80 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       socialAccounts: accounts,
       state: newTeam.state || null // state is nullable but needs to be a string for input value
     };
-    if (teamId) {
-      updateTeam({ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject});
-    } else {
-      createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
-    }
+    
+    console.log("Team object to save:", teamObject);
+    console.log("Is update:", !!teamId);
+    
+    try {
+      let createdOrUpdatedTeam;
+      if (teamId) {
+        // Edit mode: Choose endpoint based on whether we have ngbId
+        if (ngbId) {
+          // NGB manager editing from NgbProfile - use NGB endpoint
+          console.log("Calling updateNgbTeam with:", { ngbId, teamId, teamObject });
+          const result = await updateNgbTeam({ ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject });
+          
+          if ('error' in result) {
+            console.error("Failed to update team:", result.error);
+            setErrors([...(errors || []), "Failed to update team"]);
+            return;
+          }
+          createdOrUpdatedTeam = result.data;
+          console.log("Update result:", createdOrUpdatedTeam);
+        } else {
+          // Team manager editing from TeamManagement - use team endpoint
+          console.log("Calling updateTeam with:", { teamId, teamObject });
+          const result = await updateTeam({ teamId: teamId, ngbTeamViewModel: teamObject });
+          
+          if ('error' in result) {
+            console.error("Failed to update team:", result.error);
+            setErrors([...(errors || []), "Failed to update team"]);
+            return;
+          }
+          createdOrUpdatedTeam = result.data;
+          console.log("Update result:", createdOrUpdatedTeam);
+        }
+      } else {
+        // Create mode: Use NGB endpoint (requires NGB admin permissions)
+        console.log("Calling createTeam with:", { ngbId, teamObject });
+        const result = await createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
+        
+        if ('error' in result) {
+          console.error("Failed to create team:", result.error);
+          setErrors([...(errors || []), "Failed to create team"]);
+          return;
+        }
+        createdOrUpdatedTeam = result.data;
+        console.log("Create result:", createdOrUpdatedTeam);
+      }
 
-    setHasChangedTeam(false);
-    onClose();
+      // Upload logo if a file was selected
+      if (logoFile && createdOrUpdatedTeam?.teamId) {
+        console.log("Uploading logo for team:", createdOrUpdatedTeam.teamId);
+        try {
+          await uploadLogo({
+            teamId: createdOrUpdatedTeam.teamId,
+            logoBlob: logoFile
+          }).unwrap();
+          console.log("Logo upload successful");
+        } catch (error) {
+          console.error("Failed to upload logo:", error);
+          setErrors([...(errors || []), "logoUpload"]);
+          // Don't close the modal if logo upload fails
+          return;
+        }
+      }
+
+      console.log("All operations successful, closing modal");
+      setHasChangedTeam(false);
+      onClose();
+    } catch (error) {
+      console.error("Unexpected error during team save:", error);
+      setErrors([...(errors || []), "An unexpected error occurred"]);
+    }
   };
 
-  const handleDataChange = (dataKey: string, newValue: string) => {
+  const handleDataChange = (dataKey: string, newValue: string | null) => {
     setNewTeam({ ...newTeam, [dataKey]: newValue });
   };
 
@@ -109,6 +230,49 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     setUrls(newUrls);
   };
 
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file is an image
+      if (!file.type.startsWith("image/")) {
+        setErrors([...(errors || []), "logoFile"]);
+        return;
+      }
+      
+      // Validate file size (max 5 MB)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setErrors([...(errors || []), "logoSize"]);
+        return;
+      }
+
+      // Clear any previous logo errors
+      if (errors) {
+        setErrors(errors.filter(e => e !== "logoFile" && e !== "logoSize"));
+      }
+
+      setLogoFile(file);
+      setHasChangedTeam(true);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setHasChangedTeam(true);
+    handleDataChange('logoUrl', null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const renderOption = (value: string) => {
     return (
       <option key={value} value={value}>
@@ -121,6 +285,51 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     <Modal {...props} size={ModalSize.Large}>
       <h2 className="text-center text-xl font-semibold my-8">{`${formType} Team`}</h2>
       <form>
+        <div className="w-full my-8">
+          <label>
+            <span className="text-gray-700">Team Logo (Optional)</span>
+            <div className="mt-2">
+              {logoPreview ? (
+                <div className="flex items-center gap-4">
+                  <img 
+                    src={logoPreview} 
+                    alt="Team logo preview" 
+                    className="w-32 h-32 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Remove Logo
+                  </button>
+                </div>
+              ) : (
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                  className={classnames("form-input mt-1 block w-full", {
+                    "border border-red-500": hasError("logoFile") || hasError("logoSize"),
+                  })}
+                />
+              )}
+              {hasError("logoFile") && (
+                <span className="text-red-500 text-sm">Please select an image file</span>
+              )}
+              {hasError("logoSize") && (
+                <span className="text-red-500 text-sm">File size must not exceed 5 MB</span>
+              )}
+              {hasError("logoUpload") && (
+                <span className="text-red-500 text-sm">Failed to upload logo. Please try again.</span>
+              )}
+              <p className="text-sm text-gray-500 mt-1">
+                Max file size: 5 MB. Supported formats: JPG, PNG, GIF
+              </p>
+            </div>
+          </label>
+        </div>
         <label className="block">
           <span className="text-gray-700">Name</span>
           <input
@@ -221,7 +430,41 @@ const TeamEditModal = (props: TeamEditModalProps) => {
         </div>
         <div className="w-full my-8">
           <label>
-            <span className="text-gray-700">Social Media</span>
+            <span className="text-gray-700">Description</span>
+            <textarea
+              className="form-textarea mt-1 block w-full"
+              placeholder="Brief description of the team"
+              name="description"
+              onChange={(e) => {
+                setHasChangedTeam(true);
+                handleDataChange(e.target.name, e.target.value);
+              }}
+              value={newTeam.description || ""}
+              rows={3}
+            />
+          </label>
+        </div>
+        <div className="w-full my-8">
+          <label>
+            <span className="text-gray-700">Contact Email</span>
+            <input
+              type="email"
+              className={classnames("form-input mt-1 block w-full", {
+                "border border-red-500": hasError("contactEmail"),
+              })}
+              placeholder="team@example.com"
+              name="contactEmail"
+              onChange={handleInputChange}
+              value={newTeam.contactEmail || ""}
+            />
+            {hasError("contactEmail") && (
+              <span className="text-red-500">Please enter a valid email address</span>
+            )}
+          </label>
+        </div>
+        <div className="w-full my-8">
+          <label>
+            <span className="text-gray-700">Social Media (Optional)</span>
             <MultiInput onChange={handleUrlChange} values={originalUrls} />
           </label>
         </div>
@@ -229,12 +472,12 @@ const TeamEditModal = (props: TeamEditModalProps) => {
           <button
             type="button"
             className={classnames("uppercase text-xl py-4 px-8 rounded-lg bg-green text-white", {
-              "opacity-50 cursor-default": !hasChangedTeam,
+              "opacity-50 cursor-default": (!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateNgbTeamLoading || isUpdateTeamLoading || isUploadingLogo,
             })}
             onClick={handleSubmit}
-            disabled={!hasChangedTeam}
+            disabled={(!teamId && !hasChangedTeam) || isCreateTeamLoading || isUpdateNgbTeamLoading || isUpdateTeamLoading || isUploadingLogo}
           >
-            Done
+            {(isCreateTeamLoading || isUpdateNgbTeamLoading || isUpdateTeamLoading || isUploadingLogo) ? "Saving..." : "Done"}
           </button>
         </div>
       </form>
