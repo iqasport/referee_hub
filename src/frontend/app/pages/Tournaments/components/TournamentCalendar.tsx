@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TournamentData } from "./TournamentsSection";
@@ -16,8 +16,11 @@ const MONTH_NAMES = [
 ];
 
 function isoToLocalDate(iso: string): Date {
-  // Parse YYYY-MM-DD as local date (avoids UTC-vs-local off-by-one)
-  const [y, m, d] = iso.split("-").map(Number);
+  // Take only the date part (first 10 characters "YYYY-MM-DD") in case the
+  // server ever returns a datetime string like "2026-02-22T00:00:00".
+  const datePart = iso.slice(0, 10);
+  const [y, m, d] = datePart.split("-").map(Number);
+  if (!y || !m || !d) return new Date(NaN);
   return new Date(y, m - 1, d);
 }
 
@@ -52,12 +55,54 @@ const DAY_NAMES = [
 const THIS_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 11 }, (_, i) => THIS_YEAR - 5 + i);
 
+/** Returns sorted {year, month} pairs (0-based month) for months that have at
+ *  least one tournament, starting from the current month. */
+function monthsWithTournaments(tournaments: TournamentData[]): Array<{ year: number; month: number }> {
+  const now = new Date();
+  const todayYM = now.getFullYear() * 12 + now.getMonth();
+  const set = new Map<number, { year: number; month: number }>();
+
+  tournaments.forEach((t) => {
+    if (!t.startDate || !t.endDate) return;
+    const start = isoToLocalDate(t.startDate);
+    const end = isoToLocalDate(t.endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
+
+    let y = start.getFullYear();
+    let mo = start.getMonth();
+    const endYM = end.getFullYear() * 12 + end.getMonth();
+    while (y * 12 + mo <= endYM) {
+      const ym = y * 12 + mo;
+      if (ym >= todayYM) set.set(ym, { year: y, month: mo });
+      if (mo === 11) { mo = 0; y++; } else { mo++; }
+    }
+  });
+
+  return Array.from(set.values()).sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
+}
+
 const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) => {
   const navigate = useNavigate();
-  const today = new Date();
+  const today = useMemo(() => new Date(), []);
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-based
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  // On load, if the current month has no tournaments, jump to the nearest
+  // upcoming month that does so the user sees chips immediately.
+  useEffect(() => {
+    if (tournaments.length === 0) return;
+    const upcoming = monthsWithTournaments(tournaments);
+    if (upcoming.length === 0) return;
+    const currentYM = today.getFullYear() * 12 + today.getMonth();
+    const hasCurrentMonth = upcoming.some((m) => m.year * 12 + m.month === currentYM);
+    if (!hasCurrentMonth) {
+      setYear(upcoming[0].year);
+      setMonth(upcoming[0].month);
+      setSelectedDay(null);
+    }
+  // Only trigger when the tournaments array changes (i.e. data loaded/filtered)
+  }, [tournaments, today]);
 
   function prevMonth() {
     if (month === 0) { setYear(y => y - 1); setMonth(11); }
@@ -86,6 +131,7 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
 
       const start = isoToLocalDate(t.startDate);
       const end = isoToLocalDate(t.endDate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
 
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       for (let day = 1; day <= daysInMonth; day++) {
@@ -114,6 +160,7 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
     today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 
   const selectedTournaments = selectedDay !== null ? (tournamentsByDay.get(selectedDay) ?? []) : [];
+  const monthHasTournaments = tournamentsByDay.size > 0;
 
   return (
     <div className="tournament-calendar">
@@ -208,6 +255,26 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
           );
         })}
       </div>
+
+      {/* Empty-month notice */}
+      {!monthHasTournaments && tournaments.length > 0 && (
+        <div className="tc-empty-month">
+          No tournaments in {MONTH_NAMES[month]} {year}.
+          <button
+            className="tc-empty-jump"
+            onClick={() => {
+              const upcoming = monthsWithTournaments(tournaments);
+              if (upcoming.length > 0) {
+                setYear(upcoming[0].year);
+                setMonth(upcoming[0].month);
+                setSelectedDay(null);
+              }
+            }}
+          >
+            Jump to next tournament →
+          </button>
+        </div>
+      )}
 
       {/* Selected day event list */}
       {selectedDay !== null && selectedTournaments.length > 0 && (

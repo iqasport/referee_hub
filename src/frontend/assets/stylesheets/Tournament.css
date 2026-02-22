@@ -900,3 +900,32 @@
     font-size: 0.6rem;
   }
 }
+
+/* Empty-month notice */
+.tc-empty-month {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.tc-empty-jump {
+  background: none;
+  border: none;
+  color: #16a34a;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.tc-empty-jump:hover {
+  text-decoration: underline;
+}
