@@ -695,12 +695,13 @@
 
 .tc-cell {
   background-color: #fff;
-  min-height: 5rem;
+  min-height: 6.5rem;
   padding: 0.4rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   position: relative;
+  overflow: hidden;
 }
 
 .tc-cell-empty {
@@ -742,25 +743,34 @@
   text-align: center;
 }
 
-.tc-dot-row {
+.tc-chip-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
+  flex-direction: column;
+  gap: 2px;
   margin-top: 3px;
+  width: 100%;
 }
 
-.tc-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+.tc-event-chip {
+  display: block;
   background-color: #16a34a;
-  flex-shrink: 0;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.4;
 }
 
-.tc-dot-overflow {
+.tc-event-more {
   font-size: 0.65rem;
   color: #6b7280;
-  line-height: 6px;
+  padding-left: 2px;
+  line-height: 1.4;
 }
 
 /* Event panel below the grid */
@@ -832,7 +842,7 @@
 
 @media (max-width: 640px) {
   .tc-cell {
-    min-height: 3rem;
+    min-height: 4rem;
     padding: 0.25rem;
   }
 
@@ -840,8 +850,7 @@
     font-size: 0.75rem;
   }
 
-  .tc-dot {
-    width: 5px;
-    height: 5px;
+  .tc-event-chip {
+    font-size: 0.6rem;
   }
 }

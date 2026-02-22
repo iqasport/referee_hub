@@ -128,14 +128,14 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
                 <>
                   <span className="tc-day-number">{day}</span>
                   {hasTournaments && (
-                    <span className="tc-dot-row">
-                      {(tournamentsByDay.get(day) ?? []).slice(0, 3).map((t) => (
-                        <span key={t.id} className="tc-dot" />
+                    <div className="tc-chip-list">
+                      {(tournamentsByDay.get(day) ?? []).slice(0, 2).map((t) => (
+                        <span key={t.id} className="tc-event-chip" title={t.title}>{t.title}</span>
                       ))}
-                      {(tournamentsByDay.get(day)?.length ?? 0) > 3 && (
-                        <span className="tc-dot-overflow">+{(tournamentsByDay.get(day)?.length ?? 0) - 3}</span>
+                      {(tournamentsByDay.get(day)?.length ?? 0) > 2 && (
+                        <span className="tc-event-more">+{(tournamentsByDay.get(day)?.length ?? 0) - 2} more</span>
                       )}
-                    </span>
+                    </div>
                   )}
                 </>
               )}
