@@ -833,8 +833,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.dbContext.TournamentInvites.Remove(invite);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
+		var safeTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+		var safeTeamId = teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+
 		this.logger.LogInformation("Deleted invite for tournament {TournamentId} team {TeamId}",
-			tournamentId, teamId);
+			safeTournamentId, safeTeamId);
 	}
 
 	// Phase 3: Participant management methods
