@@ -98,7 +98,7 @@ const Tournament = () => {
     return paginatedTournaments.filter((t) => t.type === typeFilter);
   }, [paginatedTournaments, typeFilter]);
 
-  const { publicTournaments, privateTournaments, totalCount } = useMemo(() => {
+  const { publicTournaments, privateTournaments, totalCount, calendarTournaments } = useMemo(() => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - PAST_TOURNAMENT_DAYS);
 
@@ -136,10 +136,16 @@ const Tournament = () => {
       (t) => !t.isCurrentUserInvolved && (showPast || !isPast(t))
     ).length;
 
+    // Calendar gets ALL tournaments from the unpaginated query (not just the current page)
+    const allForCalendar = filteredAllTournaments
+      .filter((t) => showPast || !isPast(t))
+      .map(convertToDisplayFormat);
+
     return {
       publicTournaments: otherTournaments,
       privateTournaments: userInvolvedTournaments,
       totalCount: publicTournamentCount,
+      calendarTournaments: allForCalendar,
     };
   }, [filteredAllTournaments, filteredPaginatedTournaments, showPast]);
 
@@ -197,7 +203,7 @@ const Tournament = () => {
         <div className="tournament-error">Error loading tournaments. Please try again.</div>
       ) : viewMode === "calendar" ? (
         <TournamentCalendar
-          tournaments={[...privateTournaments, ...publicTournaments]}
+          tournaments={calendarTournaments}
         />
       ) : (
         <div className="tournament-page-container">
