@@ -21,6 +21,7 @@ import {
   useRespondToInviteMutation,
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
+  useAddTournamentManagerMutation,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
@@ -34,7 +35,11 @@ const TournamentDetails = () => {
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
   const rosterSectionRef = useRef<HTMLDivElement>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [addManagerEmail, setAddManagerEmail] = useState("");
+  const [isAddManagerOpen, setIsAddManagerOpen] = useState(false);
   const { alertState, showAlert, hideAlert } = useAlert();
+
+  const [addTournamentManager, { isLoading: isAddingManager }] = useAddTournamentManagerMutation();
 
   const {
     data: tournament,
@@ -182,6 +187,29 @@ const TournamentDetails = () => {
 
     return false;
   }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
+
+  // Handle add manager
+  async function handleAddManager(e: React.FormEvent) {
+    e.preventDefault();
+    if (!addManagerEmail.trim() || !tournamentId) return;
+    try {
+      await addTournamentManager({
+        tournamentId,
+        addTournamentManagerModel: { email: addManagerEmail.trim() },
+      }).unwrap();
+      showAlert(`Successfully added manager.`, "success");
+      setAddManagerEmail("");
+      setIsAddManagerOpen(false);
+    } catch (error) {
+      console.error("Failed to add manager:", error);
+      showAlert("Failed to add manager. Check that the email belongs to a registered user.", "error");
+    }
+  }
+
+  function handleCancelAddManager() {
+    setIsAddManagerOpen(false);
+    setAddManagerEmail("");
+  }
 
   // Handle accept/decline invite
   async function handleRespondToInvite(participantId: string, approved: boolean) {
@@ -343,11 +371,51 @@ const TournamentDetails = () => {
                     </button>
                     <button
                       onClick={() => inviteTeamsModalRef.current?.open(tournament)}
-                      className="btn btn-secondary btn-full-width"
+                      className="btn btn-secondary btn-full-width card-mb"
                     >
                       Invite Teams
                     </button>
+                    <button
+                      onClick={() => setIsAddManagerOpen(true)}
+                      className="btn btn-secondary btn-full-width"
+                    >
+                      Add Tournament Manager
+                    </button>
                   </div>
+
+                  {/* Add Manager Inline Form */}
+                  {isAddManagerOpen && (
+                    <div className="card card-mb">
+                      <h3 className="card-title">Add Tournament Manager</h3>
+                      <p className="card-description">Enter the email address of the user you want to add as a tournament manager.</p>
+                      <form onSubmit={handleAddManager} className="space-y-3">
+                        <input
+                          type="email"
+                          value={addManagerEmail}
+                          onChange={(e) => setAddManagerEmail(e.target.value)}
+                          placeholder="Email address"
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={isAddingManager || !addManagerEmail.trim()}
+                            className="btn btn-primary"
+                          >
+                            {isAddingManager ? "Adding..." : "Add Manager"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelAddManager}
+                            className="btn btn-secondary"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
 
                   {/* Tournament Stats Card */}
                   <div className="card">
@@ -369,6 +437,32 @@ const TournamentDetails = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Manager who also manages teams: show register option */}
+                  {managedTeamsData && managedTeamsData.length > 0 && !isRegistrationClosed && (
+                    <div className="card card-mt">
+                      <h3 className="card-title">Register Your Team</h3>
+                      <p className="card-description">
+                        You also manage teams. You can register them for this tournament.
+                      </p>
+                      <button
+                        onClick={() =>
+                          registerModalRef.current?.open({
+                            id: tournament.id || "",
+                            name: tournament.name || "",
+                            startDate: tournament.startDate || "",
+                            endDate: tournament.endDate || "",
+                            country: tournament.country || "",
+                            city: tournament.city || "",
+                            type: tournament.type || "",
+                          })
+                        }
+                        className="btn btn-outline btn-full-width"
+                      >
+                        Register a Team
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>

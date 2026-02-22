@@ -4,6 +4,8 @@ import React from "react";
 import {
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
+  useDeleteInviteMutation,
+  TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import StatusBadge from "../../../components/StatusBadge";
 import ActionButtonPair from "../../../components/ActionButtonPair";
@@ -30,6 +32,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
+  const [deleteInvite] = useDeleteInviteMutation();
 
   useImperativeHandle(ref, () => ({
     open: (tournId: string, tournName: string) => {
@@ -81,6 +84,32 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleDeleteInvite(participantId: string, teamName: string) {
+    setIsSubmitting(true);
+    try {
+      await deleteInvite({ tournamentId, participantId }).unwrap();
+      showAlert(`Removed ${teamName}'s invite. You can now re-invite this team.`, "success");
+      refetch();
+      setSelectedInvite(null);
+    } catch (error) {
+      console.error("Failed to delete invite:", error);
+      showAlert("Failed to remove invite. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Returns a descriptive label for "pending" invites in the list view
+  function getPendingLabel(invite: TournamentInviteViewModel): string {
+    if (invite.tournamentManagerApproval?.status === "pending") {
+      return "Awaiting your review";
+    }
+    if (invite.participantApproval?.status === "pending") {
+      return "Awaiting team response";
+    }
+    return "Pending";
   }
 
   const selectedInviteData = invites?.find((i) => i.participantId === selectedInvite);
@@ -207,6 +236,27 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                       </p>
                     </div>
                   )}
+
+                {/* Delete option for rejected invites */}
+                {selectedInviteData.status === "rejected" && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-sm text-red-800 mb-3">
+                      This registration was rejected. You can remove this invite to allow the team to be re-invited.
+                    </p>
+                    <button
+                      onClick={() =>
+                        handleDeleteInvite(
+                          selectedInviteData.participantId,
+                          selectedInviteData.participantName || ""
+                        )
+                      }
+                      disabled={isSubmitting}
+                      className="px-4 py-2 text-sm font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Removing..." : "Remove Invite"}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               // List view
@@ -234,6 +284,11 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                                 year: "numeric",
                               })}
                             </p>
+                            {invite.status === "pending" && (
+                              <p className="text-xs text-amber-700 mt-0.5">
+                                {getPendingLabel(invite)}
+                              </p>
+                            )}
                           </div>
                           <StatusBadge status={invite.status || "unknown"} />
                         </div>
