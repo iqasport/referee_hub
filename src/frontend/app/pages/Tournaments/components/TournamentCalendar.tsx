@@ -8,7 +8,7 @@ interface TournamentCalendarProps {
   tournaments: TournamentData[];
 }
 
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const BASE_DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -20,6 +20,37 @@ function isoToLocalDate(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
+
+/**
+ * Returns the week start day as a JS day index (0=Sun, 1=Mon).
+ * Uses Intl.Locale.weekInfo when available (modern browsers), otherwise
+ * defaults to Monday (used by most of the world).
+ */
+function getWeekStart(): number {
+  try {
+    // weekInfo.firstDay follows ISO 8601: 1=Mon, 2=Tue, ..., 7=Sun
+    // weekInfo is not yet in the TypeScript Intl types, so we use a typed interface
+    interface IntlLocaleWithWeekInfo extends Intl.Locale {
+      weekInfo?: { firstDay: number };
+    }
+    const locale = new Intl.Locale(navigator.language) as IntlLocaleWithWeekInfo;
+    const firstDay = locale.weekInfo?.firstDay ?? 1;
+    return firstDay === 7 ? 0 : firstDay; // convert ISO 7=Sun → JS 0
+  } catch {
+    return 1; // Monday
+  }
+}
+
+// Derive ordered day names starting from week-start (computed once at module load)
+const WEEK_START = getWeekStart();
+const DAY_NAMES = [
+  ...BASE_DAY_NAMES.slice(WEEK_START),
+  ...BASE_DAY_NAMES.slice(0, WEEK_START),
+];
+
+// Year range shown in the year picker: current year ± 5
+const THIS_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: 11 }, (_, i) => THIS_YEAR - 5 + i);
 
 const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) => {
   const navigate = useNavigate();
@@ -40,6 +71,12 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
     setSelectedDay(null);
   }
 
+  function goToToday() {
+    setYear(today.getFullYear());
+    setMonth(today.getMonth());
+    setSelectedDay(null);
+  }
+
   // Map day-of-month → tournaments active on that day
   const tournamentsByDay = useMemo(() => {
     const map = new Map<number, TournamentData[]>();
@@ -50,7 +87,6 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
       const start = isoToLocalDate(t.startDate);
       const end = isoToLocalDate(t.endDate);
 
-      // Iterate every day of this month
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       for (let day = 1; day <= daysInMonth; day++) {
         const cell = new Date(year, month, day);
@@ -66,10 +102,12 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
   }, [tournaments, year, month]);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  // Day-of-week for the 1st of this month (0 = Sun)
-  const firstDayOfWeek = new Date(year, month, 1).getDay();
 
-  // Total cells = leading blanks + days in month, rounded up to full weeks
+  // Offset of the 1st day relative to the current week-start column
+  // e.g. Mon-first (WEEK_START=1): Mon→0, Tue→1, ..., Sun→6
+  const firstDayOfWeek = (new Date(year, month, 1).getDay() - WEEK_START + 7) % 7;
+
+  // Total cells rounded up to full weeks
   const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
 
   const isToday = (day: number) =>
@@ -79,24 +117,51 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
 
   return (
     <div className="tournament-calendar">
-      {/* Header: month navigation */}
+      {/* Header: navigation */}
       <div className="tc-header">
-        <button className="tc-nav-btn" onClick={prevMonth} aria-label="Previous month">
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-        <h2 className="tc-month-title">{MONTH_NAMES[month]} {year}</h2>
-        <button className="tc-nav-btn" onClick={nextMonth} aria-label="Next month">
-          <FontAwesomeIcon icon={faChevronRight} />
+        <div className="tc-header-nav">
+          <button className="tc-nav-btn" onClick={prevMonth} aria-label="Previous month">
+            <FontAwesomeIcon icon={faChevronLeft} />
+          </button>
+          <button className="tc-nav-btn" onClick={nextMonth} aria-label="Next month">
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
+        </div>
+
+        <div className="tc-header-selects">
+          <select
+            className="tc-select"
+            value={month}
+            onChange={(e) => { setMonth(Number(e.target.value)); setSelectedDay(null); }}
+            aria-label="Select month"
+          >
+            {MONTH_NAMES.map((name, idx) => (
+              <option key={name} value={idx}>{name}</option>
+            ))}
+          </select>
+          <select
+            className="tc-select"
+            value={year}
+            onChange={(e) => { setYear(Number(e.target.value)); setSelectedDay(null); }}
+            aria-label="Select year"
+          >
+            {YEAR_OPTIONS.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+
+        <button className="tc-today-btn" onClick={goToToday}>
+          Today
         </button>
       </div>
 
-      {/* Day-of-week row */}
+      {/* Day-of-week row + cells */}
       <div className="tc-grid">
         {DAY_NAMES.map((name) => (
           <div key={name} className="tc-day-name">{name}</div>
         ))}
 
-        {/* Calendar cells */}
         {Array.from({ length: totalCells }).map((_, idx) => {
           const day = idx - firstDayOfWeek + 1;
           const isValid = day >= 1 && day <= daysInMonth;
@@ -144,7 +209,7 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
         })}
       </div>
 
-      {/* Selected day popover / event list */}
+      {/* Selected day event list */}
       {selectedDay !== null && selectedTournaments.length > 0 && (
         <div className="tc-event-panel">
           <div className="tc-event-panel-header">

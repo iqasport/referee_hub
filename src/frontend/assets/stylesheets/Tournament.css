@@ -649,13 +649,59 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
-.tc-month-title {
-  font-size: 1.25rem;
+.tc-header-nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.tc-header-selects {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tc-select {
+  appearance: none;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E") no-repeat right 0.5rem center;
+  background-size: 10px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.4rem 1.75rem 0.4rem 0.6rem;
+  font-size: 0.925rem;
   font-weight: 700;
   color: #111827;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.tc-select:hover,
+.tc-select:focus {
+  border-color: #16a34a;
+  outline: none;
+}
+
+.tc-today-btn {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.tc-today-btn:hover {
+  background-color: #f0fdf4;
+  border-color: #16a34a;
+  color: #16a34a;
 }
 
 .tc-nav-btn {
