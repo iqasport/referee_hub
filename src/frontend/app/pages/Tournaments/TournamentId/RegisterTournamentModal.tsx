@@ -172,6 +172,88 @@ const TeamRegistrationFormSection: React.FC<TeamRegistrationFormSectionProps> = 
   </>
 );
 
+// ── Custom hook: derived invite / availability state ─────────────────────────
+
+interface RegisterInviteState {
+  existingIndividualInvite: TournamentInviteViewModel | undefined;
+  hasExistingIndividualInvite: boolean;
+  availableTeams: ManagedTeam[];
+  registeredManagedTeams: { teamId: string; teamName: string; status: string }[];
+  shouldShowModeToggle: boolean;
+  isAlreadyRegisteredIndividualOnly: boolean;
+  isTeamFormValid: (selectedTeamId: string) => boolean;
+  isIndividualFormValid: boolean;
+}
+
+function useRegisterInviteState(
+  tournament: Tournament | null,
+  managedTeams: ManagedTeam[],
+  existingInvites: TournamentInviteViewModel[] | undefined,
+  currentUserId: string | undefined,
+  registrationMode: "team" | "individual",
+  setRegistrationMode: (m: "team" | "individual") => void,
+): RegisterInviteState {
+  const teamsWithExistingInvites = useMemo(() => {
+    const ids = new Set<string>();
+    existingInvites?.forEach((inv) => { if (inv.participantId) ids.add(inv.participantId); });
+    return ids;
+  }, [existingInvites]);
+
+  const availableTeams = useMemo(() => managedTeams.filter((team) => {
+    if (teamsWithExistingInvites.has(team.teamId)) return false;
+    if (tournament?.type === "Fantasy" && !tournament.allowsTeamRegistration) return false;
+    return isTeamEligible(
+      team.groupAffiliation as Parameters<typeof isTeamEligible>[0],
+      tournament?.type as TournamentType | undefined
+    );
+  }), [managedTeams, teamsWithExistingInvites, tournament?.type, tournament?.allowsTeamRegistration]);
+
+  const registeredManagedTeams = useMemo(
+    () => managedTeams
+      .filter((t) => teamsWithExistingInvites.has(t.teamId))
+      .map((t) => {
+        const invite = existingInvites?.find((i) => i.participantId === t.teamId);
+        return { teamId: t.teamId, teamName: t.teamName, status: invite?.status || "unknown" };
+      }),
+    [managedTeams, teamsWithExistingInvites, existingInvites]
+  );
+
+  const existingIndividualInvite = existingInvites?.find(
+    (i) => i.participantType === "player" && i.participantId === currentUserId
+  );
+  const hasExistingIndividualInvite = !!existingIndividualInvite;
+
+  useEffect(() => {
+    if (hasExistingIndividualInvite && registrationMode === "individual") {
+      setRegistrationMode("team");
+    }
+  }, [hasExistingIndividualInvite, registrationMode, setRegistrationMode]);
+
+  const shouldShowModeToggle =
+    tournament?.type === "Fantasy" &&
+    tournament.allowsIndividualRegistration === true &&
+    tournament.allowsTeamRegistration !== false &&
+    !hasExistingIndividualInvite;
+
+  const isAlreadyRegisteredIndividualOnly =
+    tournament?.type === "Fantasy" &&
+    tournament.allowsIndividualRegistration === true &&
+    tournament.allowsTeamRegistration === false &&
+    hasExistingIndividualInvite;
+
+  return {
+    existingIndividualInvite,
+    hasExistingIndividualInvite,
+    availableTeams,
+    registeredManagedTeams,
+    shouldShowModeToggle,
+    isAlreadyRegisteredIndividualOnly,
+    isTeamFormValid: (selectedTeamId: string) =>
+      !!selectedTeamId && availableTeams.some((t) => t.teamId === selectedTeamId),
+    isIndividualFormValid: !hasExistingIndividualInvite,
+  };
+}
+
 // ── Custom hook: collects teams the current user can register ─────────────────
 function useManagedTeamsForRegistration() {
   const { data: currentUser } = useGetCurrentUserQuery();
@@ -223,6 +305,13 @@ function useManagedTeamsForRegistration() {
   };
 }
 
+// ── Pure helpers ─────────────────────────────────────────────────────────────
+
+function formatTournamentDateRange(startDate: Date | null, endDate: Date | null): string {
+  if (!startDate || !endDate) return "";
+  return `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
 // ── Action buttons row ────────────────────────────────────────────────────────
 interface RegistrationActionButtonsProps {
   isSubmitting: boolean;
@@ -264,173 +353,65 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationMode, setRegistrationMode] = useState<"team" | "individual">("team");
+  const [teamData, setTeamData] = useState<TeamRegistrationData>({ selectedTeamId: "" });
 
   const { currentUser, managedTeams, isLoadingTeams } = useManagedTeamsForRegistration();
-
-  // Fetch existing invites for this tournament to check which teams already registered
   const { data: existingInvites } = useGetTournamentInvitesQuery(
     { tournamentId: tournament?.id || "" },
     { skip: !tournament?.id || !isOpen }
   );
 
-  // Get set of team IDs that already have invites (any status)
-  const teamsWithExistingInvites = useMemo(() => {
-    const teamIds = new Set<string>();
-    if (existingInvites) {
-      existingInvites.forEach((invite) => {
-        if (invite.participantId) {
-          teamIds.add(invite.participantId);
-        }
-      });
-    }
-    return teamIds;
-  }, [existingInvites]);
+  const {
+    existingIndividualInvite,
+    availableTeams,
+    registeredManagedTeams,
+    shouldShowModeToggle,
+    isAlreadyRegisteredIndividualOnly,
+    isTeamFormValid,
+    isIndividualFormValid,
+  } = useRegisterInviteState(tournament, managedTeams, existingInvites, currentUser?.userId, registrationMode, setRegistrationMode);
 
-  // Filter managed teams to only show those without existing invites,
-  // eligible for this tournament type, and respecting allowsTeamRegistration
-  const availableTeams = useMemo(() => {
-    return managedTeams.filter((team) => {
-      if (teamsWithExistingInvites.has(team.teamId)) return false;
-      // Respect allowsTeamRegistration flag for Fantasy tournaments
-      if (tournament?.type === "Fantasy" && !tournament.allowsTeamRegistration) return false;
-      // Filter by tournament type eligibility
-      return isTeamEligible(
-        team.groupAffiliation as Parameters<typeof isTeamEligible>[0],
-        tournament?.type as TournamentType | undefined
-      );
-    });
-  }, [managedTeams, teamsWithExistingInvites, tournament?.type, tournament?.allowsTeamRegistration]);
-
-  // Team registration form data
-  const initialTeamData: TeamRegistrationData = {
-    selectedTeamId: "",
-  };
-  const [teamData, setTeamData] = useState<TeamRegistrationData>(initialTeamData);
-
-  // Create invite mutation
   const [createInvite] = useCreateInviteMutation();
 
   useImperativeHandle(ref, () => ({
     open: (tournamentData: Tournament) => {
       setTournament(tournamentData);
-      setTeamData(initialTeamData);
-      // Default mode: team if allowed, else individual
-      const defaultMode = (tournamentData.allowsTeamRegistration !== false) ? "team" : "individual";
-      setRegistrationMode(defaultMode);
+      setTeamData({ selectedTeamId: "" });
+      setRegistrationMode(tournamentData.allowsTeamRegistration !== false ? "team" : "individual");
       setIsOpen(true);
     },
   }));
 
-  function close() {
-    setIsOpen(false);
-  }
-
-  // Validation - ensure selected team is in availableTeams (not already registered)
-  const isTeamFormValid =
-    !!teamData.selectedTeamId && availableTeams.some((t) => t.teamId === teamData.selectedTeamId);
-
-  // For individual mode: check user is not already registered
-  const existingIndividualInvite = existingInvites?.find(
-    (i) => i.participantType === "player" && i.participantId === currentUser?.userId
-  );
-  const hasExistingIndividualInvite = !!existingIndividualInvite;
-
-  const isIndividualFormValid = !hasExistingIndividualInvite;
-
-  // Pre-computed derived state to reduce JSX complexity
-  const shouldShowModeToggle =
-    tournament?.type === "Fantasy" &&
-    tournament.allowsIndividualRegistration === true &&
-    tournament.allowsTeamRegistration !== false &&
-    !hasExistingIndividualInvite;
-
-  const isAlreadyRegisteredIndividualOnly =
-    tournament?.type === "Fantasy" &&
-    tournament.allowsIndividualRegistration === true &&
-    tournament.allowsTeamRegistration === false &&
-    hasExistingIndividualInvite;
-
-  const registeredManagedTeams = useMemo(
-    () =>
-      managedTeams
-        .filter((t) => teamsWithExistingInvites.has(t.teamId))
-        .map((t) => {
-          const invite = existingInvites?.find((i) => i.participantId === t.teamId);
-          return { teamId: t.teamId, teamName: t.teamName, status: invite?.status || "unknown" };
-        }),
-    [managedTeams, teamsWithExistingInvites, existingInvites]
-  );
-
-  // If existing invites load and reveal the player already registered individually,
-  // and the modal is currently in individual mode, switch back to team mode.
-  useEffect(() => {
-    if (hasExistingIndividualInvite && registrationMode === "individual") {
-      setRegistrationMode("team");
-    }
-  }, [hasExistingIndividualInvite, registrationMode]);
+  function close() { setIsOpen(false); }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      if (registrationMode === "individual") {
-        // Individual player registration (Fantasy tournaments only)
-        await createInvite({
-          tournamentId: tournament?.id || "",
-          createInviteModel: {
-            participantType: "player",
-            participantId: currentUser?.userId || "",
-          },
-        }).unwrap();
-
-        showAlert(
-          `Successfully registered as an individual player for ${tournament?.name}! The tournament organizer will review your request.`,
-          "success"
-        );
-      } else {
-        // Team registration
-        await createInvite({
-          tournamentId: tournament?.id || "",
-          createInviteModel: {
-            participantType: "team",
-            participantId: teamData.selectedTeamId,
-          },
-        }).unwrap();
-
-        const selectedTeam = availableTeams.find((t) => t.teamId === teamData.selectedTeamId);
-        showAlert(
-          `Successfully sent invite for ${selectedTeam?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`,
-          "success"
-        );
-      }
-
+      const isIndividual = registrationMode === "individual";
+      await createInvite({
+        tournamentId: tournament?.id || "",
+        createInviteModel: isIndividual
+          ? { participantType: "player", participantId: currentUser?.userId || "" }
+          : { participantType: "team", participantId: teamData.selectedTeamId },
+      }).unwrap();
+      const msg = isIndividual
+        ? `Successfully registered as an individual player for ${tournament?.name}! The tournament organizer will review your request.`
+        : `Successfully sent invite for ${availableTeams.find((t) => t.teamId === teamData.selectedTeamId)?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`;
+      showAlert(msg, "success");
       close();
     } catch (error: unknown) {
       console.error("Failed to register for tournament:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to register for tournament. Please try again.";
-      showAlert(errorMessage, "error");
+      showAlert(error instanceof Error ? error.message : "Failed to register for tournament. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const startDate = tournament ? new Date(tournament.startDate) : null;
-  const endDate = tournament ? new Date(tournament.endDate) : null;
-  const formattedDateRange =
-    startDate && endDate
-      ? `${startDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })} - ${endDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}`
-      : "";
+  const formattedDateRange = formatTournamentDateRange(
+    tournament ? new Date(tournament.startDate) : null,
+    tournament ? new Date(tournament.endDate) : null
+  );
 
   return (
     <>
@@ -500,7 +481,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
             <RegistrationActionButtons
               isSubmitting={isSubmitting}
-              isFormValid={registrationMode === "team" ? isTeamFormValid : isIndividualFormValid}
+              isFormValid={registrationMode === "team" ? isTeamFormValid(teamData.selectedTeamId) : isIndividualFormValid}
               onClose={close}
             />
             </>
