@@ -37,6 +37,7 @@ public record DbTournamentContext(
 	bool IsPrivate,
 	bool IsRegistrationOpen,
 	bool AllowsIndividualRegistration,
+	bool AllowsTeamRegistration,
 	bool IsCurrentUserInvolved) : ITournamentContext;
 
 public class DbTournamentContextProvider : ITournamentContextProvider
@@ -146,6 +147,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			IsPrivate = tournamentData.IsPrivate,
 			IsRegistrationOpen = tournamentData.IsRegistrationOpen,
 			AllowsIndividualRegistration = tournamentData.AllowsIndividualRegistration,
+			AllowsTeamRegistration = tournamentData.AllowsTeamRegistration,
 			CreatedAt = now,
 			UpdatedAt = now,
 		};
@@ -200,6 +202,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		tournament.IsPrivate = tournamentData.IsPrivate;
 		tournament.IsRegistrationOpen = tournamentData.IsRegistrationOpen;
 		tournament.AllowsIndividualRegistration = tournamentData.AllowsIndividualRegistration;
+		tournament.AllowsTeamRegistration = tournamentData.AllowsTeamRegistration;
 		tournament.UpdatedAt = DateTime.UtcNow;
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
@@ -465,6 +468,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.IsPrivate,
 				t.IsRegistrationOpen,
 				t.AllowsIndividualRegistration,
+				t.AllowsTeamRegistration,
 				// IsCurrentUserInvolved: computed via database join
 				// User is involved if they manage this tournament OR manage a participating team
 				// Phase 4 will extend: || user is on a roster
@@ -497,6 +501,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t.IsPrivate,
 				t.IsRegistrationOpen,
 				t.AllowsIndividualRegistration,
+				t.AllowsTeamRegistration,
 				// IsCurrentUserInvolved: computed via database join
 				// User is involved if they:
 				// - Manage this tournament OR

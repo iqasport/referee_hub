@@ -25,6 +25,8 @@ interface Tournament {
   organizer?: string;
   isPrivate: boolean;
   isRegistrationOpen?: boolean;
+  allowsIndividualRegistration?: boolean;
+  allowsTeamRegistration?: boolean;
   bannerImageUrl?: string;
 }
 
@@ -53,6 +55,8 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     organizer: "",
     isPrivate: false,
     isRegistrationOpen: true,
+    allowsIndividualRegistration: false,
+    allowsTeamRegistration: true,
     bannerImageUrl: "",
   };
   const [formData, setFormData] = useState<Tournament>(initialFormData);
@@ -79,6 +83,12 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
+      // Fantasy tournament: must allow at least one registration type
+      if (formData.type === "Fantasy" &&
+          !formData.allowsTeamRegistration && !formData.allowsIndividualRegistration) {
+        showAlert("A Fantasy tournament must allow at least one registration type (team or individual).", "error");
+        return;
+      }
       if (isEditMode) {
         if (!formData.id) {
           showAlert("Tournament ID is missing", "error");
@@ -99,6 +109,8 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
             isRegistrationOpen: formData.isRegistrationOpen ?? true,
+            allowsIndividualRegistration: formData.allowsIndividualRegistration ?? false,
+            allowsTeamRegistration: formData.allowsTeamRegistration ?? true,
           },
         }).unwrap();
       } else {
@@ -116,6 +128,8 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
             isRegistrationOpen: formData.isRegistrationOpen ?? true,
+            allowsIndividualRegistration: formData.allowsIndividualRegistration ?? false,
+            allowsTeamRegistration: formData.allowsTeamRegistration ?? true,
           },
         }).unwrap();
 
@@ -419,13 +433,50 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                 </label>
               </div>
 
+              {/* Fantasy-only: registration type options */}
+              {formData.type === "Fantasy" && (
+                <div className="p-3 rounded-lg border border-amber-200 bg-amber-50">
+                  <p className="text-xs font-semibold text-amber-800 mb-2">
+                    Fantasy Registration Types <span className="font-normal">(at least one required)</span>
+                  </p>
+                  <div className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      id="allowsTeamRegistration"
+                      checked={formData.allowsTeamRegistration ?? true}
+                      onChange={(e) => setFormData({ ...formData, allowsTeamRegistration: e.target.checked })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="allowsTeamRegistration" className="ml-2 block text-sm text-gray-700">
+                      Allow team registration
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="allowsIndividualRegistration"
+                      checked={formData.allowsIndividualRegistration ?? false}
+                      onChange={(e) => setFormData({ ...formData, allowsIndividualRegistration: e.target.checked })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="allowsIndividualRegistration" className="ml-2 block text-sm text-gray-700">
+                      Allow individual player registration
+                    </label>
+                  </div>
+                  {!formData.allowsTeamRegistration && !formData.allowsIndividualRegistration && (
+                    <p className="mt-2 text-xs text-red-600">At least one registration type must be selected.</p>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
                 <Button type="button" onClick={close} className="btn btn-secondary">
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isCreating || isUpdating}
+                  disabled={isCreating || isUpdating ||
+                    (formData.type === "Fantasy" && !formData.allowsTeamRegistration && !formData.allowsIndividualRegistration)}
                   className="btn btn-primary"
                 >
                   {isCreating || isUpdating

@@ -88,6 +88,9 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
       // Restrict by tournament type eligibility
       if (!isTeamEligible(team.groupAffiliation, tournament?.type)) return false;
 
+      // For Fantasy tournaments, respect the allowsTeamRegistration flag
+      if (tournament?.type === "Fantasy" && tournament.allowsTeamRegistration === false) return false;
+
       // Apply search filter
       if (searchFilter) {
         const name = (team.name || "").toLowerCase();
@@ -96,7 +99,7 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
 
       return true;
     });
-  }, [teamsData, unavailableTeamIds, searchFilter, tournament?.type]);
+  }, [teamsData, unavailableTeamIds, searchFilter, tournament?.type, tournament?.allowsTeamRegistration]);
 
   useImperativeHandle(ref, () => ({
     open: (tournamentData: TournamentViewModel) => {

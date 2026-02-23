@@ -29,6 +29,7 @@ public partial class Tournament : IIdentifiable
 	public bool IsPrivate { get; set; }
 	public bool IsRegistrationOpen { get; set; }
 	public bool AllowsIndividualRegistration { get; set; }
+	public bool AllowsTeamRegistration { get; set; } = true;
 	public DateTime CreatedAt { get; set; }
 	public DateTime UpdatedAt { get; set; }
 

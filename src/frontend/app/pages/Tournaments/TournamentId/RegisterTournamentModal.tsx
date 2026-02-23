@@ -10,9 +10,11 @@ import {
   useGetTournamentInvitesQuery,
   ManagedTeamViewModel,
   NgbTeamViewModel,
+  TournamentType,
 } from "../../../store/serviceApi";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
+import { isTeamEligible, eligibilityLabel } from "../../../utils/tournamentUtils";
 
 // Role type for current user
 interface UserRole {
@@ -31,6 +33,8 @@ interface Tournament {
   country: string;
   city: string;
   type: string;
+  allowsIndividualRegistration?: boolean;
+  allowsTeamRegistration?: boolean;
 }
 
 interface ManagedTeam {
@@ -53,6 +57,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
   const [isOpen, setIsOpen] = useState(false);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationMode, setRegistrationMode] = useState<"team" | "individual">("team");
 
   const { data: currentUser } = useGetCurrentUserQuery();
 
@@ -141,10 +146,20 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
     return teamIds;
   }, [existingInvites]);
 
-  // Filter managed teams to only show those without existing invites
+  // Filter managed teams to only show those without existing invites,
+  // eligible for this tournament type, and respecting allowsTeamRegistration
   const availableTeams = useMemo(() => {
-    return managedTeams.filter((team) => !teamsWithExistingInvites.has(team.teamId));
-  }, [managedTeams, teamsWithExistingInvites]);
+    return managedTeams.filter((team) => {
+      if (teamsWithExistingInvites.has(team.teamId)) return false;
+      // Respect allowsTeamRegistration flag for Fantasy tournaments
+      if (tournament?.type === "Fantasy" && !tournament.allowsTeamRegistration) return false;
+      // Filter by tournament type eligibility
+      return isTeamEligible(
+        team.groupAffiliation as Parameters<typeof isTeamEligible>[0],
+        tournament?.type as TournamentType | undefined
+      );
+    });
+  }, [managedTeams, teamsWithExistingInvites, tournament?.type, tournament?.allowsTeamRegistration]);
 
   // Team registration form data
   const initialTeamData: TeamRegistrationData = {
@@ -162,6 +177,9 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
     open: (tournamentData: Tournament) => {
       setTournament(tournamentData);
       setTeamData(initialTeamData);
+      // Default mode: team if allowed, else individual
+      const defaultMode = (tournamentData.allowsTeamRegistration !== false) ? "team" : "individual";
+      setRegistrationMode(defaultMode);
       setIsOpen(true);
     },
   }));
@@ -174,31 +192,48 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
   const isTeamFormValid =
     !!teamData.selectedTeamId && availableTeams.some((t) => t.teamId === teamData.selectedTeamId);
 
+  // For individual mode: check user is not already registered
+  const hasExistingIndividualInvite = existingInvites?.some(
+    (i) => i.participantType === "player" && i.participantId === currentUser?.userId
+  ) ?? false;
+
+  const isIndividualFormValid = !hasExistingIndividualInvite;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Send team invite to tournament
-      await createInvite({
-        tournamentId: tournament?.id || "",
-        createInviteModel: {
-          participantType: "team",
-          participantId: teamData.selectedTeamId,
-        },
-      }).unwrap();
+      if (registrationMode === "individual") {
+        // Individual player registration (Fantasy tournaments only)
+        await createInvite({
+          tournamentId: tournament?.id || "",
+          createInviteModel: {
+            participantType: "player",
+            participantId: currentUser?.userId || "",
+          },
+        }).unwrap();
 
-      const selectedTeam = availableTeams.find((t) => t.teamId === teamData.selectedTeamId);
-      console.log("Team invite sent:", {
-        tournamentId: tournament?.id,
-        teamId: teamData.selectedTeamId,
-        teamName: selectedTeam?.teamName,
-      });
+        showAlert(
+          `Successfully registered as an individual player for ${tournament?.name}! The tournament organizer will review your request.`,
+          "success"
+        );
+      } else {
+        // Team registration
+        await createInvite({
+          tournamentId: tournament?.id || "",
+          createInviteModel: {
+            participantType: "team",
+            participantId: teamData.selectedTeamId,
+          },
+        }).unwrap();
 
-      showAlert(
-        `Successfully sent invite for ${selectedTeam?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`,
-        "success"
-      );
+        const selectedTeam = availableTeams.find((t) => t.teamId === teamData.selectedTeamId);
+        showAlert(
+          `Successfully sent invite for ${selectedTeam?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`,
+          "success"
+        );
+      }
 
       close();
     } catch (error: unknown) {
@@ -265,87 +300,131 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <>
-              {/* Team Selection */}
-              <div>
-                <h5 className="text-sm font-semibold text-gray-900 mb-3">Team Information</h5>
-                <div className="mb-4">
-                  <label
-                    htmlFor="teamSelect"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Select an existing team you manage
-                  </label>
-                  {isLoadingTeams ? (
-                    <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
-                      Loading teams...
-                    </div>
-                  ) : (
-                    <select
-                      id="teamSelect"
-                      value={teamData.selectedTeamId}
-                      onChange={(e) =>
-                        setTeamData((prev) => ({
-                          ...prev,
-                          selectedTeamId: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
-                    >
-                      <option value="">Select an existing team you manage</option>
-                      {availableTeams.map((team) => (
-                        <option key={team.teamId} value={team.teamId}>
-                          {team.teamName}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {!isLoadingTeams && managedTeams.length === 0 && (
-                    <p className="text-sm text-amber-600 mt-2">
-                      No teams found. You must be an NGB Admin with registered teams or a Team
-                      Manager to register for a tournament.
-                    </p>
-                  )}
-                  {!isLoadingTeams && managedTeams.length > 0 && availableTeams.length === 0 && (
-                    <p className="text-sm text-amber-600 mt-2">
-                      All your teams have already registered for this tournament.
-                    </p>
-                  )}
-                  {/* Show already registered teams */}
-                  {teamsWithExistingInvites.size > 0 &&
-                    managedTeams.some((t) => teamsWithExistingInvites.has(t.teamId)) && (
-                      <div className="mt-3 p-3 rounded" style={{ backgroundColor: "#f3f4f6" }}>
-                        <p className="text-xs text-gray-600 mb-2">Teams already registered:</p>
-                        <div className="text-sm text-gray-700">
-                          {managedTeams
-                            .filter((t) => teamsWithExistingInvites.has(t.teamId))
-                            .map((t) => {
-                              const invite = existingInvites?.find(
-                                (i) => i.participantId === t.teamId
-                              );
-                              const status = invite?.status || "unknown";
-                              return (
-                                <div
-                                  key={t.teamId}
-                                  className="flex items-center justify-between py-1"
-                                >
-                                  <span>{t.teamName}</span>
-                                  <StatusBadge status={status} />
-                                </div>
-                              );
-                            })}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </div>
 
-              {/* Info Note */}
-              <p className="text-xs text-gray-500">
-                Once the tournament organizer approves your invite, you&apos;ll be able to manage
-                your team&apos;s roster and submit your player list.
-              </p>
-            </>
+            {/* Fantasy: mode selector when both types are allowed */}
+            {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && tournament.allowsTeamRegistration !== false && (
+              <div className="flex gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setRegistrationMode("team")}
+                  className={`flex-1 py-2 text-sm font-medium rounded border ${
+                    registrationMode === "team"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Register a Team
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRegistrationMode("individual")}
+                  className={`flex-1 py-2 text-sm font-medium rounded border ${
+                    registrationMode === "individual"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Register as Individual
+                </button>
+              </div>
+            )}
+
+            {/* Individual registration panel */}
+            {registrationMode === "individual" ? (
+              <div>
+                <h5 className="text-sm font-semibold text-gray-900 mb-3">Individual Registration</h5>
+                {hasExistingIndividualInvite ? (
+                  <p className="text-sm text-amber-600">
+                    You are already registered individually for this tournament.
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    You will be registered as an individual player. The tournament organizer will review your request.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Team Selection */}
+                {tournament?.type !== "Fantasy" && (
+                  <p className="text-xs text-amber-700 font-medium">
+                    Eligibility: {eligibilityLabel(tournament?.type as Parameters<typeof eligibilityLabel>[0])}
+                  </p>
+                )}
+                <div>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-3">Team Information</h5>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="teamSelect"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Select an existing team you manage
+                    </label>
+                    {isLoadingTeams ? (
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                        Loading teams...
+                      </div>
+                    ) : (
+                      <select
+                        id="teamSelect"
+                        value={teamData.selectedTeamId}
+                        onChange={(e) =>
+                          setTeamData((prev) => ({
+                            ...prev,
+                            selectedTeamId: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
+                      >
+                        <option value="">Select an existing team you manage</option>
+                        {availableTeams.map((team) => (
+                          <option key={team.teamId} value={team.teamId}>
+                            {team.teamName}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {!isLoadingTeams && availableTeams.length === 0 && (
+                      <p className="text-sm text-amber-600 mt-2">
+                        No eligible teams found for this tournament type.
+                      </p>
+                    )}
+                    {/* Show already registered teams */}
+                    {teamsWithExistingInvites.size > 0 &&
+                      managedTeams.some((t) => teamsWithExistingInvites.has(t.teamId)) && (
+                        <div className="mt-3 p-3 rounded" style={{ backgroundColor: "#f3f4f6" }}>
+                          <p className="text-xs text-gray-600 mb-2">Teams already registered:</p>
+                          <div className="text-sm text-gray-700">
+                            {managedTeams
+                              .filter((t) => teamsWithExistingInvites.has(t.teamId))
+                              .map((t) => {
+                                const invite = existingInvites?.find(
+                                  (i) => i.participantId === t.teamId
+                                );
+                                const status = invite?.status || "unknown";
+                                return (
+                                  <div
+                                    key={t.teamId}
+                                    className="flex items-center justify-between py-1"
+                                  >
+                                    <span>{t.teamName}</span>
+                                    <StatusBadge status={status} />
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                </div>
+
+                {/* Info Note */}
+                <p className="text-xs text-gray-500">
+                  Once the tournament organizer approves your invite, you&apos;ll be able to manage
+                  your team&apos;s roster and submit your player list.
+                </p>
+              </>
+            )}
 
             {/* Action Buttons */}
             <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
@@ -363,13 +442,13 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !isTeamFormValid}
+                disabled={isSubmitting || (registrationMode === "team" ? !isTeamFormValid : !isIndividualFormValid)}
                 className="px-6 py-2 text-sm font-medium rounded"
                 style={{
-                  backgroundColor: isSubmitting || !isTeamFormValid ? "#90cdf4" : "#3182ce",
+                  backgroundColor: (isSubmitting || (registrationMode === "team" ? !isTeamFormValid : !isIndividualFormValid)) ? "#90cdf4" : "#3182ce",
                   color: "#ffffff",
                   border: "1px solid #3182ce",
-                  cursor: isSubmitting || !isTeamFormValid ? "not-allowed" : "pointer",
+                  cursor: (isSubmitting || (registrationMode === "team" ? !isTeamFormValid : !isIndividualFormValid)) ? "not-allowed" : "pointer",
                 }}
               >
                 {isSubmitting ? "Submitting..." : "Submit Registration"}

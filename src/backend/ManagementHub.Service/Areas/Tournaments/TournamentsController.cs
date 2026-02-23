@@ -116,6 +116,7 @@ public class TournamentsController : ControllerBase
 			IsPrivate = t.IsPrivate,
 			IsRegistrationOpen = t.IsRegistrationOpen,
 			AllowsIndividualRegistration = t.AllowsIndividualRegistration,
+			AllowsTeamRegistration = t.AllowsTeamRegistration,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		}).ToList();
 
@@ -161,6 +162,7 @@ public class TournamentsController : ControllerBase
 			IsPrivate = tournament.IsPrivate,
 			IsRegistrationOpen = tournament.IsRegistrationOpen,
 			AllowsIndividualRegistration = tournament.AllowsIndividualRegistration,
+			AllowsTeamRegistration = tournament.AllowsTeamRegistration,
 			IsCurrentUserInvolved = tournament.IsCurrentUserInvolved
 		};
 	}
@@ -174,6 +176,12 @@ public class TournamentsController : ControllerBase
 	public async Task<ActionResult<TournamentIdResponse>> CreateTournament([FromBody] TournamentModel model)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		if (model.Type == TournamentType.Fantasy &&
+			!model.AllowsTeamRegistration && !model.AllowsIndividualRegistration)
+		{
+			return this.BadRequest(new { error = "A Fantasy tournament must allow at least one registration type (team or individual)" });
+		}
 
 		var tournamentData = new TournamentData
 		{
@@ -189,7 +197,8 @@ public class TournamentsController : ControllerBase
 			Organizer = model.Organizer,
 			IsPrivate = model.IsPrivate,
 			IsRegistrationOpen = model.IsRegistrationOpen,
-			AllowsIndividualRegistration = model.AllowsIndividualRegistration
+			AllowsIndividualRegistration = model.AllowsIndividualRegistration,
+			AllowsTeamRegistration = model.AllowsTeamRegistration
 		};
 
 		var tournamentId = await this.tournamentContextProvider
@@ -209,6 +218,12 @@ public class TournamentsController : ControllerBase
 		[FromRoute] TournamentIdentifier tournamentId,
 		[FromBody] TournamentModel model)
 	{
+		if (model.Type == TournamentType.Fantasy &&
+			!model.AllowsTeamRegistration && !model.AllowsIndividualRegistration)
+		{
+			return this.BadRequest(new { error = "A Fantasy tournament must allow at least one registration type (team or individual)" });
+		}
+
 		var tournamentData = new TournamentData
 		{
 			Name = model.Name,
@@ -223,7 +238,8 @@ public class TournamentsController : ControllerBase
 			Organizer = model.Organizer,
 			IsPrivate = model.IsPrivate,
 			IsRegistrationOpen = model.IsRegistrationOpen,
-			AllowsIndividualRegistration = model.AllowsIndividualRegistration
+			AllowsIndividualRegistration = model.AllowsIndividualRegistration,
+			AllowsTeamRegistration = model.AllowsTeamRegistration
 		};
 
 		await this.tournamentContextProvider
@@ -622,6 +638,11 @@ public class TournamentsController : ControllerBase
 		if (tournament.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
 		{
 			return this.BadRequest(new { error = "Cannot modify archived tournament" });
+		}
+
+		if (tournament.Type == TournamentType.Fantasy && !tournament.AllowsTeamRegistration)
+		{
+			return this.BadRequest(new { error = "This Fantasy tournament does not allow team registration" });
 		}
 
 		return null;

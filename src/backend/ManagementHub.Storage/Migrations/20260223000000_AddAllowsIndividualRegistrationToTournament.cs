@@ -6,8 +6,10 @@ namespace ManagementHub.Storage.Migrations;
 
 /// <inheritdoc />
 /// <remarks>
-/// Adds the AllowsIndividualRegistration column to the tournaments table.
-/// Only relevant for Fantasy tournaments; defaults to false for existing rows.
+/// Adds AllowsIndividualRegistration and AllowsTeamRegistration columns to the tournaments table.
+/// Both are only meaningful for Fantasy tournaments.
+/// AllowsTeamRegistration defaults to true so existing tournaments keep team registration behaviour.
+/// AllowsIndividualRegistration defaults to false (opt-in).
 /// </remarks>
 public partial class AddAllowsIndividualRegistrationToTournament : Migration
 {
@@ -20,6 +22,13 @@ public partial class AddAllowsIndividualRegistrationToTournament : Migration
 			type: "boolean",
 			nullable: false,
 			defaultValue: false);
+
+		migrationBuilder.AddColumn<bool>(
+			name: "allows_team_registration",
+			table: "tournaments",
+			type: "boolean",
+			nullable: false,
+			defaultValue: true);
 	}
 
 	/// <inheritdoc />
@@ -27,6 +36,10 @@ public partial class AddAllowsIndividualRegistrationToTournament : Migration
 	{
 		migrationBuilder.DropColumn(
 			name: "allows_individual_registration",
+			table: "tournaments");
+
+		migrationBuilder.DropColumn(
+			name: "allows_team_registration",
 			table: "tournaments");
 	}
 }
