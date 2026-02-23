@@ -293,6 +293,8 @@ const TournamentDetails = () => {
       organizer: tournament.organizer || "",
       isPrivate: tournament.isPrivate || false,
       isRegistrationOpen: tournament.isRegistrationOpen ?? true,
+      allowsIndividualRegistration: tournament.allowsIndividualRegistration ?? false,
+      allowsTeamRegistration: tournament.allowsTeamRegistration ?? true,
       bannerImageUrl: tournament.bannerImageUrl || "",
     });
   };
@@ -516,6 +518,8 @@ const TournamentDetails = () => {
                                 country: tournament.country || "",
                                 city: tournament.city || "",
                                 type: tournament.type || "",
+                                allowsIndividualRegistration: tournament.allowsIndividualRegistration,
+                                allowsTeamRegistration: tournament.allowsTeamRegistration,
                               })
                             }
                             className="btn btn-outline btn-full-width"
@@ -539,6 +543,8 @@ const TournamentDetails = () => {
                                 country: tournament.country || "",
                                 city: tournament.city || "",
                                 type: tournament.type || "",
+                                allowsIndividualRegistration: tournament.allowsIndividualRegistration,
+                                allowsTeamRegistration: tournament.allowsTeamRegistration,
                               })
                             }
                             className="btn btn-outline btn-full-width"
@@ -617,6 +623,8 @@ const TournamentDetails = () => {
                               country: tournament.country || "",
                               city: tournament.city || "",
                               type: tournament.type || "",
+                              allowsIndividualRegistration: tournament.allowsIndividualRegistration,
+                              allowsTeamRegistration: tournament.allowsTeamRegistration,
                             })
                           }
                           className="btn btn-outline btn-full-width"
@@ -640,6 +648,8 @@ const TournamentDetails = () => {
                               country: tournament.country || "",
                               city: tournament.city || "",
                               type: tournament.type || "",
+                              allowsIndividualRegistration: tournament.allowsIndividualRegistration,
+                              allowsTeamRegistration: tournament.allowsTeamRegistration,
                             })
                           }
                           className="btn btn-primary btn-full-width"
