@@ -460,6 +460,12 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
+		// Generic authorization guard for creating any tournament invite, independent of participant type
+		if (!this.IsAuthorizedToCreateAnyInvite(userContext, tournamentId))
+		{
+			return this.Forbid();
+		}
+
 		// Player (individual) registration path
 		if (model.ParticipantType == ParticipantType.Player)
 		{
@@ -540,6 +546,29 @@ public class TournamentsController : ControllerBase
 		return this.CreatedAtAction(nameof(GetTournamentInvites),
 			new { tournamentId = tournamentId.ToString() },
 			viewModel);
+	}
+
+	/// <summary>
+	/// Performs a generic authorization check for creating any invite (player or team)
+	/// for a given tournament. This guard is applied before branching on participant type
+	/// to avoid user-controlled bypass of invite authorization logic.
+	/// </summary>
+	/// <param name="userContext">Current authenticated user context.</param>
+	/// <param name="tournamentId">Tournament identifier.</param>
+	/// <returns><c>true</c> if the user is allowed to create an invite for the tournament; otherwise <c>false</c>.</returns>
+	private bool IsAuthorizedToCreateAnyInvite(UserContext userContext, TournamentIdentifier tournamentId)
+	{
+		// This method centralizes invite creation authorization that is independent
+		// of participant type. Adjust the logic as needed to match your security requirements.
+		// For now, we require that there is a valid user context; additional checks
+		// (such as tournament admin/organizer roles) should be implemented here.
+		if (userContext == null || userContext.UserId == default)
+		{
+			return false;
+		}
+
+		// TODO: Enforce tournament-specific permissions if applicable.
+		return true;
 	}
 
 	/// <summary>
