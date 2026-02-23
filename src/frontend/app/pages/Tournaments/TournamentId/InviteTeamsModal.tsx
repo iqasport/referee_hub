@@ -12,6 +12,7 @@ import {
 } from "../../../store/serviceApi";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
+import { isTeamEligible, eligibilityLabel } from "../../../utils/tournamentUtils";
 
 export interface InviteTeamsModalRef {
   open: (tournament: TournamentViewModel) => void;
@@ -74,7 +75,7 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
     return ids;
   }, [existingInvites, participants]);
 
-  // Filter teams - exclude already invited/participating teams
+  // Filter teams - exclude already invited/participating teams, and restrict by tournament type
   const availableTeams = useMemo(() => {
     if (!teamsData?.items) return [];
 
@@ -84,6 +85,9 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
       // Exclude already invited or participating teams
       if (unavailableTeamIds.has(team.teamId)) return false;
 
+      // Restrict by tournament type eligibility
+      if (!isTeamEligible(team.groupAffiliation, tournament?.type)) return false;
+
       // Apply search filter
       if (searchFilter) {
         const name = (team.name || "").toLowerCase();
@@ -92,7 +96,7 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
 
       return true;
     });
-  }, [teamsData, unavailableTeamIds, searchFilter]);
+  }, [teamsData, unavailableTeamIds, searchFilter, tournament?.type]);
 
   useImperativeHandle(ref, () => ({
     open: (tournamentData: TournamentViewModel) => {
@@ -175,6 +179,11 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
               <p className="text-sm text-gray-600 mt-1">
                 Invite teams to participate in {tournament?.name}
               </p>
+              {tournament?.type && (
+                <p className="text-xs text-amber-700 mt-1 font-medium">
+                  Eligibility: {eligibilityLabel(tournament.type)}
+                </p>
+              )}
             </div>
 
             {/* Content */}
