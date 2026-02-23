@@ -1,6 +1,7 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle, useMemo, useEffect } from "react";
 import React from "react";
+import classnames from "classnames";
 import StatusBadge from "../../../components/StatusBadge";
 import {
   useGetCurrentUserQuery,
@@ -328,26 +329,18 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
             {/* Fantasy: mode selector — only show individual tab when not already registered */}
             {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && tournament.allowsTeamRegistration !== false && !hasExistingIndividualInvite && (
-              <div className="flex gap-2 mb-2">
+              <div className="mb-2">
                 <button
                   type="button"
                   onClick={() => setRegistrationMode("team")}
-                  className={`flex-1 py-2 text-sm font-medium rounded border ${
-                    registrationMode === "team"
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}
+                  className={classnames("button-tab", { ["active-button-tab"]: registrationMode === "team" })}
                 >
                   Register a Team
                 </button>
                 <button
                   type="button"
                   onClick={() => setRegistrationMode("individual")}
-                  className={`flex-1 py-2 text-sm font-medium rounded border ${
-                    registrationMode === "individual"
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}
+                  className={classnames("button-tab", { ["active-button-tab"]: registrationMode === "individual" })}
                 >
                   Register as Individual
                 </button>
