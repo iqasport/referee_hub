@@ -2,54 +2,23 @@ import React, { useState, useMemo } from "react";
 import { useNavigationParams } from "../../utils/navigationUtils";
 import { 
   useGetTeamDetailsQuery,
-  useAddTeamManagerToTeamMutation,
   useDeleteTeamPlayerMutation 
 } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
 import TeamEditModal from "../../components/modals/TeamEditModal/TeamEditModal";
+import AddManagerModal from "./AddManagerModal";
 
 const TeamManagement = () => {
   const { teamId } = useNavigationParams<"teamId">();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
-  const [managerEmail, setManagerEmail] = useState("");
-  const [addManagerError, setAddManagerError] = useState("");
-  const [addManagerSuccess, setAddManagerSuccess] = useState("");
   
   const { data: team, error: teamError, isLoading } = useGetTeamDetailsQuery(
     { teamId: teamId! },
     { skip: !teamId }
   );
 
-  const [addTeamManager, { isLoading: isAddingManager }] = useAddTeamManagerToTeamMutation();
   const [deleteTeamPlayer, { isLoading: isRemovingPlayer }] = useDeleteTeamPlayerMutation();
-
-  const handleAddManager = async () => {
-    if (!teamId) return;
-    
-    setAddManagerError("");
-    setAddManagerSuccess("");
-
-    // Simple email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(managerEmail)) {
-      setAddManagerError("Please enter a valid email address");
-      return;
-    }
-
-    try {
-      await addTeamManager({ teamId, email: managerEmail }).unwrap();
-      setAddManagerSuccess("Manager added successfully!");
-      setManagerEmail("");
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        setIsAddManagerModalOpen(false);
-        setAddManagerSuccess("");
-      }, 2000);
-    } catch (error: any) {
-      setAddManagerError(error?.data || "Failed to add manager. Please try again.");
-    }
-  };
 
   const handleRemovePlayer = async (playerId: string, playerName: string) => {
     if (!teamId) return;
@@ -181,53 +150,11 @@ const TeamManagement = () => {
       </div>
 
       {/* Add Manager Modal */}
-      {isAddManagerModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Add Team Manager</h3>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Email Address</label>
-              <input
-                type="email"
-                className="w-full px-3 py-2 border border-gray-300 rounded"
-                value={managerEmail}
-                onChange={(e) => setManagerEmail(e.target.value)}
-                placeholder="manager@example.com"
-              />
-            </div>
-
-            {addManagerError && (
-              <div className="mb-4 text-red-600 text-sm">{addManagerError}</div>
-            )}
-
-            {addManagerSuccess && (
-              <div className="mb-4 text-green-600 text-sm">{addManagerSuccess}</div>
-            )}
-
-            <div className="flex justify-end space-x-3">
-              <button
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                onClick={() => {
-                  setIsAddManagerModalOpen(false);
-                  setManagerEmail("");
-                  setAddManagerError("");
-                  setAddManagerSuccess("");
-                }}
-                disabled={isAddingManager}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-green text-white rounded hover:bg-green-700 disabled:opacity-50"
-                onClick={handleAddManager}
-                disabled={isAddingManager || !managerEmail}
-              >
-                {isAddingManager ? "Adding..." : "Add Manager"}
-              </button>
-            </div>
-          </div>
-        </div>
+      {isAddManagerModalOpen && teamId && (
+        <AddManagerModal
+          teamId={teamId}
+          onClose={() => setIsAddManagerModalOpen(false)}
+        />
       )}
 
       {/* Team Players/Members Section */}

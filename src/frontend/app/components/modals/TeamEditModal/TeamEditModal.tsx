@@ -54,6 +54,65 @@ const validateInput = (team: NgbTeamViewModel): string[] => {
   return errors;
 };
 
+interface TeamLogoSectionProps {
+  logoPreview: string | null;
+  errors: string[];
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  onLogoChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveLogo: () => void;
+}
+
+const TeamLogoSection = ({ logoPreview, errors, fileInputRef, onLogoChange, onRemoveLogo }: TeamLogoSectionProps) => {
+  const hasError = (key: string) => errors?.includes(key);
+  return (
+    <div className="w-full my-8">
+      <label>
+        <span className="text-gray-700">Team Logo (Optional)</span>
+        <div className="mt-2">
+          {logoPreview ? (
+            <div className="flex items-center gap-4">
+              <img
+                src={logoPreview}
+                alt="Team logo preview"
+                className="w-32 h-32 object-cover rounded border"
+              />
+              <button
+                type="button"
+                onClick={onRemoveLogo}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Remove Logo
+              </button>
+            </div>
+          ) : (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={onLogoChange}
+              className={classnames("form-input mt-1 block w-full", {
+                "border border-red-500": hasError("logoFile") || hasError("logoSize"),
+              })}
+            />
+          )}
+          {hasError("logoFile") && (
+            <span className="text-red-500 text-sm">Please select an image file</span>
+          )}
+          {hasError("logoSize") && (
+            <span className="text-red-500 text-sm">File size must not exceed 5 MB</span>
+          )}
+          {hasError("logoUpload") && (
+            <span className="text-red-500 text-sm">Failed to upload logo. Please try again.</span>
+          )}
+          <p className="text-sm text-gray-500 mt-1">
+            Max file size: 5 MB. Supported formats: JPG, PNG, GIF
+          </p>
+        </div>
+      </label>
+    </div>
+  );
+};
+
 interface TeamEditModalProps extends Omit<ModalProps, "size"> {
   teamId?: string;
   ngbId?: string;
@@ -78,17 +137,15 @@ const TeamEditModal = (props: TeamEditModalProps) => {
   const formType = teamId ? "Edit" : "New";
   const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
 
-  const [createTeam, {data: createTeamData, error: createTeamError, isLoading: isCreateTeamLoading}] = useCreateNgbTeamMutation();
-  const [updateNgbTeam, {data: updateNgbTeamData, error: updateNgbTeamError, isLoading: isUpdateNgbTeamLoading}] = useUpdateNgbTeamMutation();
-  const [updateTeam, {data: updateTeamData, error: updateTeamError, isLoading: isUpdateTeamLoading}] = useUpdateTeamMutation();
+  const [createTeam, {isLoading: isCreateTeamLoading}] = useCreateNgbTeamMutation();
+  const [updateNgbTeam, {isLoading: isUpdateNgbTeamLoading}] = useUpdateNgbTeamMutation();
+  const [updateTeam, {isLoading: isUpdateTeamLoading}] = useUpdateTeamMutation();
   const [uploadLogo, {isLoading: isUploadingLogo}] = useUploadTeamLogoMutation();
   // TODO: handle errors and show loading spinner
   // upon submit it should wait until *Data is not undefined before closing the modal
 
   useEffect(() => {
     if (team && teamId && !formInitialized.current) {
-      console.log("Initializing form with team data:", team);
-      console.log("teamId:", teamId);
       // copy data over to the local state for mutation
       setUrls(team.socialAccounts?.map(sa => sa.url) || [])
       setNewTeam({ ...team});
@@ -99,7 +156,6 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       // Enable the Done button for edit mode (we have existing data)
       setHasChangedTeam(true);
       formInitialized.current = true;
-      console.log("Form initialized, hasChangedTeam set to true");
     }
   }, [team, teamId]); // Depend on both team and teamId to initialize when data is available
 
@@ -116,22 +172,26 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     }
   }, [props.open]);
 
+  const performSave = async (teamObject: NgbTeamViewModel) => {
+    if (teamId && ngbId) {
+      return updateNgbTeam({ ngb: ngbId, teamId, ngbTeamViewModel: teamObject });
+    } else if (teamId) {
+      return updateTeam({ teamId, ngbTeamViewModel: teamObject });
+    } else {
+      return createTeam({ ngb: ngbId, ngbTeamViewModel: teamObject });
+    }
+  };
+
   const handleSubmit = async () => {
-    console.log("handleSubmit called!");
-    console.log("newTeam:", newTeam);
-    console.log("teamId:", teamId);
-    console.log("hasChangedTeam:", hasChangedTeam);
-    
     const validationErrors = validateInput(newTeam);
     console.log("validationErrors:", validationErrors);
     
     if (validationErrors.length) {
       console.log("Validation failed, errors:", validationErrors);
       setErrors(validationErrors);
-      return; // Changed from return null
+      return;
     }
 
-    // Clear previous errors
     setErrors(undefined);
 
     const accounts: SocialAccount[] = urls.map(url => ({url, type: urlType(url) }))
@@ -141,74 +201,30 @@ const TeamEditModal = (props: TeamEditModalProps) => {
       state: newTeam.state || null // state is nullable but needs to be a string for input value
     };
     
-    console.log("Team object to save:", teamObject);
-    console.log("Is update:", !!teamId);
-    
     try {
-      let createdOrUpdatedTeam;
-      if (teamId) {
-        // Edit mode: Choose endpoint based on whether we have ngbId
-        if (ngbId) {
-          // NGB manager editing from NgbProfile - use NGB endpoint
-          console.log("Calling updateNgbTeam with:", { ngbId, teamId, teamObject });
-          const result = await updateNgbTeam({ ngb: ngbId, teamId: teamId, ngbTeamViewModel: teamObject });
-          
-          if ('error' in result) {
-            console.error("Failed to update team:", result.error);
-            setErrors([...(errors || []), "Failed to update team"]);
-            return;
-          }
-          createdOrUpdatedTeam = result.data;
-          console.log("Update result:", createdOrUpdatedTeam);
-        } else {
-          // Team manager editing from TeamManagement - use team endpoint
-          console.log("Calling updateTeam with:", { teamId, teamObject });
-          const result = await updateTeam({ teamId: teamId, ngbTeamViewModel: teamObject });
-          
-          if ('error' in result) {
-            console.error("Failed to update team:", result.error);
-            setErrors([...(errors || []), "Failed to update team"]);
-            return;
-          }
-          createdOrUpdatedTeam = result.data;
-          console.log("Update result:", createdOrUpdatedTeam);
-        }
-      } else {
-        // Create mode: Use NGB endpoint (requires NGB admin permissions)
-        console.log("Calling createTeam with:", { ngbId, teamObject });
-        const result = await createTeam({ngb: ngbId, ngbTeamViewModel: teamObject});
-        
-        if ('error' in result) {
-          console.error("Failed to create team:", result.error);
-          setErrors([...(errors || []), "Failed to create team"]);
-          return;
-        }
-        createdOrUpdatedTeam = result.data;
-        console.log("Create result:", createdOrUpdatedTeam);
+      const result = await performSave(teamObject);
+      if ('error' in result) {
+        const errorMessage = teamId ? "Failed to update team" : "Failed to create team";
+        setErrors([...(errors || []), errorMessage]);
+        return;
       }
 
       // Upload logo if a file was selected
-      if (logoFile && createdOrUpdatedTeam?.teamId) {
-        console.log("Uploading logo for team:", createdOrUpdatedTeam.teamId);
+      if (logoFile && result.data?.teamId) {
         try {
           await uploadLogo({
-            teamId: createdOrUpdatedTeam.teamId,
+            teamId: result.data.teamId,
             logoBlob: logoFile
           }).unwrap();
-          console.log("Logo upload successful");
-        } catch (error) {
-          console.error("Failed to upload logo:", error);
+        } catch {
           setErrors([...(errors || []), "logoUpload"]);
-          // Don't close the modal if logo upload fails
           return;
         }
       }
 
-      console.log("All operations successful, closing modal");
       setHasChangedTeam(false);
       onClose();
-    } catch (error) {
-      console.error("Unexpected error during team save:", error);
+    } catch {
       setErrors([...(errors || []), "An unexpected error occurred"]);
     }
   };
@@ -217,7 +233,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     setNewTeam({ ...newTeam, [dataKey]: newValue });
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { value } = event.target;
     const { name } = event.target;
 
@@ -285,51 +301,13 @@ const TeamEditModal = (props: TeamEditModalProps) => {
     <Modal {...props} size={ModalSize.Large}>
       <h2 className="text-center text-xl font-semibold my-8">{`${formType} Team`}</h2>
       <form>
-        <div className="w-full my-8">
-          <label>
-            <span className="text-gray-700">Team Logo (Optional)</span>
-            <div className="mt-2">
-              {logoPreview ? (
-                <div className="flex items-center gap-4">
-                  <img 
-                    src={logoPreview} 
-                    alt="Team logo preview" 
-                    className="w-32 h-32 object-cover rounded border"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveLogo}
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Remove Logo
-                  </button>
-                </div>
-              ) : (
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoChange}
-                  className={classnames("form-input mt-1 block w-full", {
-                    "border border-red-500": hasError("logoFile") || hasError("logoSize"),
-                  })}
-                />
-              )}
-              {hasError("logoFile") && (
-                <span className="text-red-500 text-sm">Please select an image file</span>
-              )}
-              {hasError("logoSize") && (
-                <span className="text-red-500 text-sm">File size must not exceed 5 MB</span>
-              )}
-              {hasError("logoUpload") && (
-                <span className="text-red-500 text-sm">Failed to upload logo. Please try again.</span>
-              )}
-              <p className="text-sm text-gray-500 mt-1">
-                Max file size: 5 MB. Supported formats: JPG, PNG, GIF
-              </p>
-            </div>
-          </label>
-        </div>
+        <TeamLogoSection
+          logoPreview={logoPreview}
+          errors={errors || []}
+          fileInputRef={fileInputRef}
+          onLogoChange={handleLogoChange}
+          onRemoveLogo={handleRemoveLogo}
+        />
         <label className="block">
           <span className="text-gray-700">Name</span>
           <input
@@ -435,10 +413,7 @@ const TeamEditModal = (props: TeamEditModalProps) => {
               className="form-textarea mt-1 block w-full"
               placeholder="Brief description of the team"
               name="description"
-              onChange={(e) => {
-                setHasChangedTeam(true);
-                handleDataChange(e.target.name, e.target.value);
-              }}
+              onChange={handleInputChange}
               value={newTeam.description || ""}
               rows={3}
             />
