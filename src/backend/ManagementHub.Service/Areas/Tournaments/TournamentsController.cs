@@ -459,8 +459,11 @@ public class TournamentsController : ControllerBase
 			return this.Forbid();
 		}
 
-		// Player (individual) registration path
-		if (model.ParticipantType == ParticipantType.Player)
+		// Route based on the ID format, not the caller-supplied ParticipantType field.
+		// UserIdentifier IDs (U_ prefix) → individual player path.
+		// TeamIdentifier IDs (T_ prefix)  → team path.
+		// This prevents a user-controlled value from bypassing the sensitive action guard.
+		if (UserIdentifier.TryParse(model.ParticipantId, out _))
 		{
 			return await this.CreatePlayerInviteAsync(tournamentId, model, userContext);
 		}
@@ -630,11 +633,6 @@ public class TournamentsController : ControllerBase
 	private ActionResult? ValidateInviteParticipant(CreateInviteModel model, out TeamIdentifier teamId)
 	{
 		teamId = default!;
-
-		if (model.ParticipantType != ParticipantType.Team)
-		{
-			return this.BadRequest(new { error = "Only team participants supported" });
-		}
 
 		if (!TeamIdentifier.TryParse(model.ParticipantId, out teamId))
 		{
