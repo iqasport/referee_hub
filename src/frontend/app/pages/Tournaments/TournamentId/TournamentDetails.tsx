@@ -130,6 +130,15 @@ const TournamentDetails = () => {
       });
   }, [invites, managedTeamIds, managedTeamsData]);
 
+  // Detect if the current user has an individual (player) invite for this tournament.
+  // Used to replace the "Register Now" card with a status-aware notice for individual players.
+  const myIndividualInvite = useMemo(() => {
+    if (!invites || !currentUser?.userId) return null;
+    return invites.find(
+      (i) => i.participantType === "player" && i.participantId === currentUser.userId
+    ) ?? null;
+  }, [invites, currentUser?.userId]);
+
   // Calculate team count (number of teams registered)
   const teamCount = useMemo(() => {
     if (!participants) return 0;
@@ -631,6 +640,30 @@ const TournamentDetails = () => {
                         >
                           Register Another Team
                         </button>
+                      </>
+                    ) : myIndividualInvite ? (
+                      <>
+                        <h3 className="card-title">
+                          {myIndividualInvite.status === "approved"
+                            ? "You're Registered!"
+                            : myIndividualInvite.status === "rejected"
+                            ? "Registration Rejected"
+                            : "Registration Pending"}
+                        </h3>
+                        <div className={`mt-2 p-3 rounded text-sm font-medium ${
+                          myIndividualInvite.status === "approved"
+                            ? "bg-green-50 border border-green-200 text-green-800"
+                            : myIndividualInvite.status === "rejected"
+                            ? "bg-red-50 border border-red-200 text-red-800"
+                            : "bg-yellow-50 border border-yellow-200 text-yellow-800"
+                        }`}>
+                          {myIndividualInvite.status === "approved" &&
+                            "You have been accepted to this tournament as an individual player."}
+                          {myIndividualInvite.status === "rejected" &&
+                            "Your individual registration was rejected by the tournament organizer."}
+                          {(myIndividualInvite.status === "pending" || !myIndividualInvite.status) &&
+                            "Your registration is pending the tournament organizer's decision."}
+                        </div>
                       </>
                     ) : (
                       <>

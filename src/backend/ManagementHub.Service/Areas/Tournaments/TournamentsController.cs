@@ -410,15 +410,8 @@ public class TournamentsController : ControllerBase
 		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
 			.Any(r => r.Tournament.AppliesTo(tournamentId));
 
-		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>().Any();
-
-		// Only tournament managers or team managers can view invites
-		if (!isTournamentManager && !isTeamManager)
-		{
-			return Array.Empty<TournamentInviteViewModel>();
-		}
-
-		// Managers see all invites, team managers see only their own
+		// Tournament managers see all invites; everyone else sees only their own
+		// (team invites for managed teams + individual player invites for themselves).
 		UserIdentifier? filterByParticipant = isTournamentManager ? null : userContext.UserId;
 
 		var invites = await this.tournamentContextProvider.GetTournamentInvitesAsync(
