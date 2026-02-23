@@ -44,6 +44,9 @@ public interface ITournamentContextProvider
 
 	Task<InviteInfo?> GetTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
 
+	/// <summary>Creates an individual-player invite for a Fantasy tournament that allows it.</summary>
+	Task<InviteInfo> CreatePlayerInviteAsync(TournamentIdentifier tournamentId, UserIdentifier playerId, UserIdentifier initiatorUserId, CancellationToken cancellationToken = default);
+
 	Task UpdateInviteApprovalAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, bool isTournamentManager, bool approved, CancellationToken cancellationToken = default);
 
 	Task DeleteTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);

@@ -1453,7 +1453,7 @@ export type TeamMemberViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: TeamMemberViewModel[] | null;
 };
-export type ParticipantType = "team";
+export type ParticipantType = "team" | "player";
 export type InviteStatus = "pending" | "approved" | "rejected";
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 export type ApprovalStatusViewModel = {
@@ -1570,6 +1570,7 @@ export type TournamentViewModel = {
   organizer?: string | null;
   isPrivate?: boolean;
   isRegistrationOpen?: boolean;
+  allowsIndividualRegistration?: boolean;
   id?: string;
   bannerImageUrl?: string | null;
   isCurrentUserInvolved?: boolean;
@@ -1594,6 +1595,7 @@ export type TournamentModel = {
   organizer?: string | null;
   isPrivate?: boolean;
   isRegistrationOpen?: boolean;
+  allowsIndividualRegistration?: boolean;
 };
 export type TournamentManagerViewModel = {
   id?: string;
