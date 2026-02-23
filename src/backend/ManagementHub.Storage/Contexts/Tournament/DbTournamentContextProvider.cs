@@ -861,7 +861,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		};
 	}
 
-
 	private async Task<string> GetTeamNameAsync(string participantId, CancellationToken cancellationToken)
 	{
 		if (!TeamIdentifier.TryParse(participantId, out var teamId))
