@@ -943,6 +943,106 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			safeTournamentId, safeTeamId);
 	}
 
+	public async Task<InviteInfo?> GetPlayerInviteAsync(
+		TournamentIdentifier tournamentId,
+		UserIdentifier playerId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var playerIdString = playerId.ToString();
+
+		var invite = await this.dbContext.TournamentInvites
+			.Include(i => i.Tournament)
+			.Include(i => i.Initiator)
+			.Where(i => i.Tournament.UniqueId == tournamentIdString
+				&& i.ParticipantType == "player"
+				&& i.ParticipantId == playerIdString)
+			.OrderByDescending(i => i.CreatedAt)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invite == null)
+		{
+			return null;
+		}
+
+		return new InviteInfo
+		{
+			TournamentId = TournamentIdentifier.Parse(invite.Tournament.UniqueId),
+			ParticipantType = ParticipantType.Player,
+			ParticipantId = invite.ParticipantId,
+			ParticipantName = invite.ParticipantId,
+			InitiatorUserId = invite.Initiator.UniqueId != null
+				? UserIdentifier.Parse(invite.Initiator.UniqueId)
+				: UserIdentifier.FromLegacyUserId(invite.Initiator.Id),
+			CreatedAt = invite.CreatedAt,
+			TournamentManagerApproval = invite.TournamentManagerApproval,
+			TournamentManagerApprovalDate = invite.TournamentManagerApprovalDate,
+			ParticipantApproval = invite.ParticipantApproval,
+			ParticipantApprovalDate = invite.ParticipantApprovalDate,
+		};
+	}
+
+	public async Task UpdatePlayerInviteApprovalAsync(
+		TournamentIdentifier tournamentId,
+		UserIdentifier playerId,
+		bool approved,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var playerIdString = playerId.ToString();
+
+		var invite = await this.dbContext.TournamentInvites
+			.Where(i => i.Tournament.UniqueId == tournamentIdString
+				&& i.ParticipantType == "player"
+				&& i.ParticipantId == playerIdString)
+			.OrderByDescending(i => i.CreatedAt)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invite == null)
+		{
+			throw new NotFoundException($"Player invite for tournament {tournamentId} and player {playerId}");
+		}
+
+		var now = DateTime.UtcNow;
+		var newStatus = approved ? ApprovalStatus.Approved : ApprovalStatus.Rejected;
+
+		// Tournament manager is always the approver for player invites (player self-approves on register)
+		invite.TournamentManagerApproval = newStatus;
+		invite.TournamentManagerApprovalDate = now;
+
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Updated player invite approval for tournament {TournamentId} player {PlayerId}: {Status}",
+			tournamentId, playerId, newStatus);
+	}
+
+	public async Task DeletePlayerInviteAsync(
+		TournamentIdentifier tournamentId,
+		UserIdentifier playerId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var playerIdString = playerId.ToString();
+
+		var invite = await this.dbContext.TournamentInvites
+			.Where(i => i.Tournament.UniqueId == tournamentIdString
+				&& i.ParticipantType == "player"
+				&& i.ParticipantId == playerIdString)
+			.OrderByDescending(i => i.CreatedAt)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invite == null)
+		{
+			throw new NotFoundException($"Player invite for tournament {tournamentId} and player {playerId}");
+		}
+
+		this.dbContext.TournamentInvites.Remove(invite);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Deleted player invite for tournament {TournamentId} player {PlayerId}",
+			tournamentId, playerId);
+	}
+
 	// Phase 3: Participant management methods
 
 	public async Task<IEnumerable<TeamParticipantInfo>> GetTournamentTeamParticipantsAsync(

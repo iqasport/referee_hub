@@ -741,7 +741,41 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Parse team ID
+		// Check tournament not archived (shared for both team and player paths)
+		var tournament = await this.tournamentContextProvider
+			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+		if (tournament.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
+		{
+			return this.BadRequest(new { error = "Cannot modify archived tournament" });
+		}
+
+		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
+			.Any(r => r.Tournament.AppliesTo(tournamentId));
+
+		// ── Player invite path ──────────────────────────────────────────────────
+		if (UserIdentifier.TryParse(participantId, out var playerId))
+		{
+			var playerInvite = await this.tournamentContextProvider
+				.GetPlayerInviteAsync(tournamentId, playerId, this.HttpContext.RequestAborted);
+
+			if (playerInvite == null || playerInvite.GetStatus() != InviteStatus.Pending)
+			{
+				return this.NotFound(new { error = "No pending invite found" });
+			}
+
+			// Only tournament manager can approve/deny individual player invites
+			if (!isTournamentManager || playerInvite.TournamentManagerApproval != ApprovalStatus.Pending)
+			{
+				return this.Forbid();
+			}
+
+			await this.tournamentContextProvider.UpdatePlayerInviteApprovalAsync(
+				tournamentId, playerId, response.Approved, this.HttpContext.RequestAborted);
+
+			return this.Ok();
+		}
+
+		// ── Team invite path ────────────────────────────────────────────────────
 		if (!TeamIdentifier.TryParse(participantId, out var teamId))
 		{
 			return this.BadRequest(new { error = "Invalid participant ID" });
@@ -755,18 +789,6 @@ public class TournamentsController : ControllerBase
 		{
 			return this.NotFound(new { error = "No pending invite found" });
 		}
-
-		// Check tournament not archived
-		var tournament = await this.tournamentContextProvider
-			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
-		if (tournament.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
-		{
-			return this.BadRequest(new { error = "Cannot modify archived tournament" });
-		}
-
-		// Check authorization and determine which approval to update
-		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
-			.Any(r => r.Tournament.AppliesTo(tournamentId));
 
 		var isParticipant = userContext.Roles.OfType<TeamManagerRole>()
 			.Any(r => r.Team.AppliesTo(teamId));
@@ -829,6 +851,29 @@ public class TournamentsController : ControllerBase
 			return this.Forbid();
 		}
 
+		// ── Player invite path ──────────────────────────────────────────────────
+		if (UserIdentifier.TryParse(participantId, out var playerId))
+		{
+			var playerInvite = await this.tournamentContextProvider
+				.GetPlayerInviteAsync(tournamentId, playerId, this.HttpContext.RequestAborted);
+
+			if (playerInvite == null)
+			{
+				return this.NotFound(new { error = "Invite not found" });
+			}
+
+			if (playerInvite.GetStatus() != InviteStatus.Rejected)
+			{
+				return this.BadRequest(new { error = "Only rejected invites can be deleted" });
+			}
+
+			await this.tournamentContextProvider.DeletePlayerInviteAsync(
+				tournamentId, playerId, this.HttpContext.RequestAborted);
+
+			return this.Ok();
+		}
+
+		// ── Team invite path ────────────────────────────────────────────────────
 		if (!TeamIdentifier.TryParse(participantId, out var teamId))
 		{
 			return this.BadRequest(new { error = "Invalid participant ID" });
