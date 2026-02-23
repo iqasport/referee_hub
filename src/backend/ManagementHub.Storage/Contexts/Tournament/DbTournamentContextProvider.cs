@@ -1012,8 +1012,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
+		var safeTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+		var safePlayerId = playerId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+
 		this.logger.LogInformation("Updated player invite approval for tournament {TournamentId} player {PlayerId}: {Status}",
-			tournamentId, playerId, newStatus);
+			safeTournamentId, safePlayerId, newStatus);
 	}
 
 	public async Task DeletePlayerInviteAsync(
