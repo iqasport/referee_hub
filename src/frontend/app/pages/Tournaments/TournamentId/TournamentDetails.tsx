@@ -427,6 +427,95 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
   </>
 );
 
+// ── Data hook ─────────────────────────────────────────────────────────────────
+
+function useTournamentDetailsData(tournamentId: string | undefined) {
+  const { data: tournament, isLoading, isError } = useGetTournamentQuery(
+    { tournamentId: tournamentId ?? "" },
+  );
+  const { data: currentUser } = useGetCurrentUserQuery();
+  const { data: managedTeamsData } = useGetManagedTeamsQuery();
+
+  const isTournamentManagerOfThis = useMemo(
+    () => currentUser?.roles?.some((role: any) => {
+      if (role.roleType !== "TournamentManager") return false;
+      if (role.tournament === "ANY") return true;
+      if (Array.isArray(role.tournament)) return role.tournament.includes(tournamentId);
+      return role.tournament === tournamentId;
+    }),
+    [currentUser?.roles, tournamentId],
+  );
+
+  const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
+  const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
+    { tournamentId: tournamentId ?? "" },
+    { skip: !shouldFetchManagers },
+  );
+
+  const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
+    { tournamentId: tournamentId ?? "" },
+    { skip: !tournamentId },
+  );
+  const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
+    { tournamentId: tournamentId ?? "" },
+    { skip: !tournamentId },
+  );
+
+  const managedTeamIds = useMemo(() => {
+    const ids = new Set<string>();
+    managedTeamsData?.forEach((t) => { if (t.teamId) ids.add(t.teamId); });
+    return ids;
+  }, [managedTeamsData]);
+
+  const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
+    if (!invites || managedTeamIds.size === 0) return [];
+    return invites.filter((i) =>
+      i.participantId && managedTeamIds.has(i.participantId) && i.participantApproval?.status === "pending",
+    );
+  }, [invites, managedTeamIds]);
+
+  const approvedTeamsForUser = useMemo(() => {
+    if (!invites || managedTeamIds.size === 0 || !managedTeamsData) return [];
+    return invites
+      .filter((i) => i.participantId && managedTeamIds.has(i.participantId) && i.status === "approved")
+      .map((i) => {
+        const td = managedTeamsData.find((t) => t.teamId === i.participantId);
+        return { teamId: i.participantId, teamName: i.participantName ?? td?.teamName ?? "Unknown Team", ngb: td?.ngb ?? "" };
+      });
+  }, [invites, managedTeamIds, managedTeamsData]);
+
+  const myIndividualInvite = useMemo(() => {
+    if (!invites || !currentUser?.userId) return null;
+    return invites.find((i) => i.participantType === "player" && i.participantId === currentUser.userId) ?? null;
+  }, [invites, currentUser?.userId]);
+
+  const totalPlayerCount = useMemo(
+    () => participants?.reduce((sum, t) => sum + (t.players?.length ?? 0), 0) ?? 0,
+    [participants],
+  );
+
+  const isRegistrationClosed = useMemo(() => {
+    if (tournament?.isRegistrationOpen === false) return true;
+    const ref = tournament?.registrationEndsDate ?? tournament?.startDate;
+    if (!ref) return false;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = new Date(ref); d.setHours(0, 0, 0, 0);
+    return today > d;
+  }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
+
+  return {
+    tournament, isLoading, isError,
+    currentUser, managers, managersError,
+    invites, refetchInvites,
+    refetchParticipants,
+    managedTeamsData,
+    pendingInvitesForUser, approvedTeamsForUser,
+    myIndividualInvite, totalPlayerCount, isRegistrationClosed,
+  };
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
   const registerModalRef = useRef<RegisterTournamentModalRef>(null);
@@ -441,162 +530,16 @@ const TournamentDetails = () => {
   const { alertState, showAlert, hideAlert } = useAlert();
 
   const [addTournamentManager, { isLoading: isAddingManager }] = useAddTournamentManagerMutation();
-
-  const {
-    data: tournament,
-    isLoading,
-    isError,
-  } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
-  const { data: currentUser } = useGetCurrentUserQuery();
-
-  // Use the new managed teams endpoint to get teams the user manages
-  const { data: managedTeamsData } = useGetManagedTeamsQuery();
-
-  // Check if user is a tournament manager for this specific tournament
-  // Note: role.tournament can be "ANY", a single tournament ID string, or an array of tournament IDs
-  const isTournamentManagerOfThis = currentUser?.roles?.some((role: any) => {
-    if (role.roleType !== "TournamentManager") return false;
-    if (role.tournament === "ANY") return true;
-    if (Array.isArray(role.tournament)) {
-      return role.tournament.includes(tournamentId);
-    }
-    return role.tournament === tournamentId;
-  });
-
-  // Only fetch managers if user is a tournament manager of this tournament
-  const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
-  const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !shouldFetchManagers }
-  );
-
-  // Fetch tournament invites to check for pending invites for user's teams
-  const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId }
-  );
-
-  // Fetch participants to get roster counts
-  const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId }
-  );
-
   const [respondToInvite] = useRespondToInviteMutation();
 
-  // Get team IDs from the managed teams endpoint
-  const managedTeamIds: Set<string> = useMemo(() => {
-    const teamIds = new Set<string>();
-    if (managedTeamsData) {
-      managedTeamsData.forEach((team) => {
-        if (team.teamId) {
-          teamIds.add(team.teamId);
-        }
-      });
-    }
-    return teamIds;
-  }, [managedTeamsData]);
-
-  // These are invites initiated by tournament managers that the team manager needs to accept/decline
-  const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
-    if (!invites || managedTeamIds.size === 0) return [];
-
-    return invites.filter((invite) => {
-      // Check if this invite is for one of user's teams
-      if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
-
-      // Check if participant approval is pending (user needs to respond)
-      return invite.participantApproval?.status === "pending";
-    });
-  }, [invites, managedTeamIds]);
-
-  // Find teams that are fully approved and participating
-  const approvedTeamsForUser = useMemo(() => {
-    if (!invites || managedTeamIds.size === 0 || !managedTeamsData) return [];
-
-    return invites
-      .filter((invite) => {
-        // Check if this invite is for one of user's teams
-        if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
-        // Check if the invite is fully approved
-        return invite.status === "approved";
-      })
-      .map((invite) => {
-        const teamData = managedTeamsData.find((t) => t.teamId === invite.participantId);
-        return {
-          teamId: invite.participantId,
-          teamName: invite.participantName || teamData?.teamName || "Unknown Team",
-          ngb: teamData?.ngb || "",
-        };
-      });
-  }, [invites, managedTeamIds, managedTeamsData]);
-
-  // Detect if the current user has an individual (player) invite for this tournament.
-  // Used to replace the "Register Now" card with a status-aware notice for individual players.
-  const myIndividualInvite = useMemo(() => {
-    if (!invites || !currentUser?.userId) return null;
-    return invites.find(
-      (i) => i.participantType === "player" && i.participantId === currentUser.userId
-    ) ?? null;
-  }, [invites, currentUser?.userId]);
-
-  // Calculate team count (number of teams registered)
-  const teamCount = useMemo(() => {
-    if (!participants) return 0;
-    return participants.length;
-  }, [participants]);
-
-  // Calculate total participant count from all team rosters (players + coaches + staff)
-  const totalParticipantCount = useMemo(() => {
-    if (!participants) return 0;
-    return participants.reduce((total, team) => {
-      const playerCount = team.players?.length || 0;
-      const coachCount = team.coaches?.length || 0;
-      const staffCount = team.staff?.length || 0;
-      return total + playerCount + coachCount + staffCount;
-    }, 0);
-  }, [participants]);
-  
-  // Calculate total player count (excluding coaches and staff)
-  const totalPlayerCount = useMemo(() => {
-    if (!participants) return 0;
-    return participants.reduce((total, team) => {
-      const playerCount = team.players?.length || 0;
-      return total + playerCount;
-    }, 0);
-  }, [participants]);
-
-  // Determine if registration is closed (manual toggle or date-based)
-  const isRegistrationClosed = useMemo(() => {
-    // Check manual closure first (field may not exist if migration not applied)
-    if (tournament?.isRegistrationOpen === false) {
-      return true;
-    }
-
-    // Check if registration end date has passed
-    if (tournament?.registrationEndsDate) {
-      const regEndsDate = new Date(tournament.registrationEndsDate);
-      const today = new Date();
-      // Reset hours to compare at day level
-      regEndsDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      if (today > regEndsDate) {
-        return true;
-      }
-    } else if (tournament?.startDate) {
-      // Fall back to start date if no registration end date
-      const startDate = new Date(tournament.startDate);
-      const today = new Date();
-      // Reset hours to compare at day level
-      startDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      if (today > startDate) {
-        return true;
-      }
-    }
-
-    return false;
-  }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
+  const {
+    tournament, isLoading, isError,
+    currentUser, managers, managersError,
+    invites, refetchInvites, refetchParticipants,
+    managedTeamsData,
+    pendingInvitesForUser, approvedTeamsForUser,
+    myIndividualInvite, totalPlayerCount, isRegistrationClosed,
+  } = useTournamentDetailsData(tournamentId);
 
   // Handle add manager
   async function handleAddManager(e: React.FormEvent) {

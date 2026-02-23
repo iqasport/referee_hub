@@ -310,9 +310,6 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
   // Create invite mutation
   const [createInvite] = useCreateInviteMutation();
 
-  // Loading state for teams
-  const isLoadingTeams = isLoadingManagedTeams || (isNgbAdmin && isLoadingNgbTeams);
-
   useImperativeHandle(ref, () => ({
     open: (tournamentData: Tournament) => {
       setTournament(tournamentData);
