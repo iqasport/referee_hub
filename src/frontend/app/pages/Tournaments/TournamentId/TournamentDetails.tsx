@@ -30,23 +30,19 @@ import { useNavigationParams } from "../../../utils/navigationUtils";
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildTournamentEditPayload(tournament: TournamentViewModel) {
+  const {
+    id = "", name = "", description = "", startDate = "",
+    endDate = "", registrationEndsDate = "", type = "",
+    country = "", city = "", place = "", organizer = "",
+    isPrivate = false, isRegistrationOpen = true,
+    allowsIndividualRegistration = false, allowsTeamRegistration = true,
+    bannerImageUrl = "",
+  } = tournament;
   return {
-    id: tournament.id || "",
-    name: tournament.name || "",
-    description: tournament.description || "",
-    startDate: tournament.startDate || "",
-    endDate: tournament.endDate || "",
-    registrationEndsDate: tournament.registrationEndsDate || "",
-    type: (tournament.type || "") as "" | import("../../../store/serviceApi").TournamentType,
-    country: tournament.country || "",
-    city: tournament.city || "",
-    place: tournament.place || "",
-    organizer: tournament.organizer || "",
-    isPrivate: tournament.isPrivate || false,
-    isRegistrationOpen: tournament.isRegistrationOpen ?? true,
-    allowsIndividualRegistration: tournament.allowsIndividualRegistration ?? false,
-    allowsTeamRegistration: tournament.allowsTeamRegistration ?? true,
-    bannerImageUrl: tournament.bannerImageUrl || "",
+    id, name, description, startDate, endDate, registrationEndsDate,
+    type: type as "" | import("../../../store/serviceApi").TournamentType,
+    country, city, place, organizer, isPrivate, isRegistrationOpen,
+    allowsIndividualRegistration, allowsTeamRegistration, bannerImageUrl,
   };
 }
 
@@ -225,6 +221,211 @@ const UserRegistrationCard: React.FC<UserRegistrationCardProps> = ({
     </div>
   );
 };
+
+// ── AddManagerForm ────────────────────────────────────────────────────────────
+interface AddManagerFormProps {
+  email: string;
+  isLoading: boolean;
+  onChange: (v: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+}
+const AddManagerForm: React.FC<AddManagerFormProps> = ({ email, isLoading, onChange, onSubmit, onCancel }) => (
+  <div className="card card-mb">
+    <h3 className="card-title">Add Tournament Manager</h3>
+    <p className="card-description">Enter the email address of the user you want to add as a tournament manager.</p>
+    <form onSubmit={onSubmit} className="space-y-3">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Email address"
+        required
+        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+      />
+      <div className="flex gap-2">
+        <button type="submit" disabled={isLoading || !email.trim()} className="btn btn-primary">
+          {isLoading ? "Adding..." : "Add Manager"}
+        </button>
+        <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+);
+
+// ── TournamentStats ───────────────────────────────────────────────────────────
+interface TournamentStatsProps {
+  approvedCount: number;
+  playerCount: number;
+  isPrivate: boolean | null | undefined;
+}
+const TournamentStats: React.FC<TournamentStatsProps> = ({ approvedCount, playerCount, isPrivate }) => (
+  <div className="card card-mb">
+    <h3 className="card-title">Tournament Stats</h3>
+    <div className="stats-list">
+      <div className="stats-item">
+        <span className="stats-label">Teams Registered</span>
+        <span className="stats-value">{approvedCount}</span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">Players Registered</span>
+        <span className="stats-value">{playerCount}</span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">Private Tournament</span>
+        <span className="stats-value">{isPrivate ? "Yes" : "No"}</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ── ManagerSidebar ────────────────────────────────────────────────────────────
+interface ManagerSidebarProps {
+  tournament: TournamentViewModel;
+  inviteCount: number;
+  approvedCount: number;
+  playerCount: number;
+  isAddManagerOpen: boolean;
+  addManagerEmail: string;
+  isAddingManager: boolean;
+  pendingInvitesForUser: TournamentInviteViewModel[];
+  respondingTo: string | null;
+  approvedTeamsForUser: ApprovedTeam[];
+  isRegistrationClosed: boolean;
+  onEdit: () => void;
+  onViewRegistrations: () => void;
+  onInviteTeams: () => void;
+  onAddManagerOpen: () => void;
+  onAddManagerEmailChange: (v: string) => void;
+  onAddManagerSubmit: (e: React.FormEvent) => void;
+  onAddManagerCancel: () => void;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+  onScrollToRoster: () => void;
+  onOpenRegisterModal: () => void;
+  managedTeamsCount: number;
+}
+const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
+  tournament, inviteCount, approvedCount, playerCount,
+  isAddManagerOpen, addManagerEmail, isAddingManager,
+  pendingInvitesForUser, respondingTo, approvedTeamsForUser,
+  isRegistrationClosed, onEdit, onViewRegistrations, onInviteTeams,
+  onAddManagerOpen, onAddManagerEmailChange, onAddManagerSubmit, onAddManagerCancel,
+  onAccept, onDecline, onScrollToRoster, onOpenRegisterModal, managedTeamsCount,
+}) => (
+  <>
+    <div className="card card-highlighted card-mb card-sticky">
+      <h3 className="card-title">Manager Tools</h3>
+      <p className="card-description">
+        You are the manager of this tournament. Use the tools below to manage the tournament.
+      </p>
+      <button onClick={onEdit} className="btn btn-primary btn-full-width btn-with-icon card-mb">
+        <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Edit Tournament Details
+      </button>
+      <button onClick={onViewRegistrations} className="btn btn-secondary btn-full-width card-mb">
+        View Team Registrations ({inviteCount})
+      </button>
+      <button onClick={onInviteTeams} className="btn btn-secondary btn-full-width card-mb">
+        Invite Teams
+      </button>
+      <button onClick={onAddManagerOpen} className="btn btn-secondary btn-full-width">
+        Add Tournament Manager
+      </button>
+    </div>
+
+    {isAddManagerOpen && (
+      <AddManagerForm
+        email={addManagerEmail}
+        isLoading={isAddingManager}
+        onChange={onAddManagerEmailChange}
+        onSubmit={onAddManagerSubmit}
+        onCancel={onAddManagerCancel}
+      />
+    )}
+
+    <TournamentStats
+      approvedCount={approvedCount}
+      playerCount={playerCount}
+      isPrivate={tournament.isPrivate}
+    />
+
+    {pendingInvitesForUser.length > 0 && (
+      <PendingInvitesCard
+        pendingInvites={pendingInvitesForUser}
+        respondingTo={respondingTo}
+        isManager={true}
+        onAccept={onAccept}
+        onDecline={onDecline}
+      />
+    )}
+
+    {managedTeamsCount > 0 && (
+      <ManagerTeamCard
+        isRegistrationClosed={isRegistrationClosed}
+        approvedTeams={approvedTeamsForUser}
+        onScrollToRoster={onScrollToRoster}
+        onOpenRegisterModal={onOpenRegisterModal}
+      />
+    )}
+  </>
+);
+
+// ── UserSidebar ───────────────────────────────────────────────────────────────
+interface UserSidebarProps {
+  pendingInvitesForUser: TournamentInviteViewModel[];
+  respondingTo: string | null;
+  isRegistrationClosed: boolean;
+  approvedTeamsForUser: ApprovedTeam[];
+  myIndividualInvite: TournamentInviteViewModel | null;
+  tournament: TournamentViewModel;
+  contactOrganizerRef: React.RefObject<{ open: (args: { name: string; tournamentName: string; tournamentId?: string | null }) => void }>;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+  onScrollToRoster: () => void;
+  onOpenRegisterModal: () => void;
+}
+const UserSidebar: React.FC<UserSidebarProps> = ({
+  pendingInvitesForUser, respondingTo, isRegistrationClosed,
+  approvedTeamsForUser, myIndividualInvite, tournament, contactOrganizerRef,
+  onAccept, onDecline, onScrollToRoster, onOpenRegisterModal,
+}) => (
+  <>
+    {pendingInvitesForUser.length > 0 && (
+      <PendingInvitesCard
+        pendingInvites={pendingInvitesForUser}
+        respondingTo={respondingTo}
+        isManager={false}
+        onAccept={onAccept}
+        onDecline={onDecline}
+      />
+    )}
+    <UserRegistrationCard
+      isRegistrationClosed={isRegistrationClosed}
+      approvedTeams={approvedTeamsForUser}
+      myIndividualInvite={myIndividualInvite}
+      onScrollToRoster={onScrollToRoster}
+      onOpenRegisterModal={onOpenRegisterModal}
+    />
+    <div className="card">
+      <h3 className="card-title">Need Help?</h3>
+      <p className="card-description">Have questions about this tournament? Contact the organizers.</p>
+      <button
+        onClick={() => contactOrganizerRef.current?.open({
+          name: tournament.organizer ?? "",
+          tournamentName: tournament.name ?? "",
+          tournamentId: tournament.id,
+        })}
+        className="btn btn-outline btn-full-width"
+      >
+        Contact Organizer
+      </button>
+    </div>
+  </>
+);
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
@@ -488,6 +689,8 @@ const TournamentDetails = () => {
 
   const handleEdit = () => editModalRef.current?.openEdit(buildTournamentEditPayload(tournament));
   const openRegisterModal = () => registerModalRef.current?.open(buildRegisterModalPayload(tournament));
+  const scrollToRoster = () => rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  const approvedInviteCount = invites?.filter((i) => i.status === "approved").length ?? 0;
 
   return (
     <>
@@ -501,7 +704,6 @@ const TournamentDetails = () => {
         isManager={isManager}
       />
 
-      {/* Info cards section */}
       <section className="tournament-details-section">
         <div className="tournament-details-wrapper">
           <TournamentInfoCards
@@ -513,9 +715,7 @@ const TournamentDetails = () => {
             tournamentType={tournament.type}
           />
 
-          {/* Main content grid */}
           <div className="tournament-details-grid">
-            {/* Left column - About and Format */}
             <div>
               <TournamentAboutSection
                 place={tournament.place}
@@ -525,199 +725,66 @@ const TournamentDetails = () => {
               />
             </div>
 
-            {/* Right sidebar - Different content for managers vs regular users */}
             <div>
               {isManager ? (
-                <>
-                  {/* Manager Tools Card */}
-                  <div className="card card-highlighted card-mb card-sticky">
-                    <h3 className="card-title">Manager Tools</h3>
-                    <p className="card-description">
-                      You are the manager of this tournament. Use the tools below to manage the
-                      tournament.
-                    </p>
-                    <button
-                      onClick={handleEdit}
-                      className="btn btn-primary btn-full-width btn-with-icon card-mb"
-                    >
-                      <svg
-                        className="btn-icon"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                      Edit Tournament Details
-                    </button>
-                    <button
-                      onClick={() => registrationsModalRef.current?.open(tournament.id || "", tournament.name || "Unknown Tournament")}
-                      className="btn btn-secondary btn-full-width card-mb"
-                    >
-                      View Team Registrations ({invites?.length || 0})
-                    </button>
-                    <button
-                      onClick={() => inviteTeamsModalRef.current?.open(tournament)}
-                      className="btn btn-secondary btn-full-width card-mb"
-                    >
-                      Invite Teams
-                    </button>
-                    <button
-                      onClick={() => setIsAddManagerOpen(true)}
-                      className="btn btn-secondary btn-full-width"
-                    >
-                      Add Tournament Manager
-                    </button>
-                  </div>
-
-                  {/* Add Manager Inline Form */}
-                  {isAddManagerOpen && (
-                    <div className="card card-mb">
-                      <h3 className="card-title">Add Tournament Manager</h3>
-                      <p className="card-description">Enter the email address of the user you want to add as a tournament manager.</p>
-                      <form onSubmit={handleAddManager} className="space-y-3">
-                        <input
-                          type="email"
-                          value={addManagerEmail}
-                          onChange={(e) => setAddManagerEmail(e.target.value)}
-                          placeholder="Email address"
-                          required
-                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            type="submit"
-                            disabled={isAddingManager || !addManagerEmail.trim()}
-                            className="btn btn-primary"
-                          >
-                            {isAddingManager ? "Adding..." : "Add Manager"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleCancelAddManager}
-                            className="btn btn-secondary"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
-
-                  {/* Tournament Stats Card */}
-                  <div className="card card-mb">
-                    <h3 className="card-title">Tournament Stats</h3>
-                    <div className="stats-list">
-                      <div className="stats-item">
-                        <span className="stats-label">Teams Registered</span>
-                        <span className="stats-value">
-                          {invites?.filter((i) => i.status === "approved").length || 0}
-                        </span>
-                      </div>
-                      <div className="stats-item">
-                        <span className="stats-label">Players Registered</span>
-                        <span className="stats-value">{totalPlayerCount}</span>
-                      </div>
-                      <div className="stats-item">
-                        <span className="stats-label">Private Tournament</span>
-                        <span className="stats-value">{tournament.isPrivate ? "Yes" : "No"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Manager who also manages teams: pending invites they need to respond to */}
-                  {pendingInvitesForUser.length > 0 && (
-                    <PendingInvitesCard
-                      pendingInvites={pendingInvitesForUser}
-                      respondingTo={respondingTo}
-                      isManager={true}
-                      onAccept={(id) => handleRespondToInvite(id, true)}
-                      onDecline={(id) => handleRespondToInvite(id, false)}
-                    />
-                  )}
-
-                  {/* Manager who also manages teams: register / roster section */}
-                  {managedTeamsData && managedTeamsData.length > 0 && (
-                    <ManagerTeamCard
-                      isRegistrationClosed={isRegistrationClosed}
-                      approvedTeams={approvedTeamsForUser}
-                      onScrollToRoster={() => rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
-                      onOpenRegisterModal={openRegisterModal}
-                    />
-                  )}
-                </>
+                <ManagerSidebar
+                  tournament={tournament}
+                  inviteCount={invites?.length ?? 0}
+                  approvedCount={approvedInviteCount}
+                  playerCount={totalPlayerCount}
+                  isAddManagerOpen={isAddManagerOpen}
+                  addManagerEmail={addManagerEmail}
+                  isAddingManager={isAddingManager}
+                  pendingInvitesForUser={pendingInvitesForUser}
+                  respondingTo={respondingTo}
+                  approvedTeamsForUser={approvedTeamsForUser}
+                  isRegistrationClosed={isRegistrationClosed}
+                  onEdit={handleEdit}
+                  onViewRegistrations={() => registrationsModalRef.current?.open(tournament.id ?? "", tournament.name ?? "Unknown Tournament")}
+                  onInviteTeams={() => inviteTeamsModalRef.current?.open(tournament)}
+                  onAddManagerOpen={() => setIsAddManagerOpen(true)}
+                  onAddManagerEmailChange={setAddManagerEmail}
+                  onAddManagerSubmit={handleAddManager}
+                  onAddManagerCancel={handleCancelAddManager}
+                  onAccept={(id) => handleRespondToInvite(id, true)}
+                  onDecline={(id) => handleRespondToInvite(id, false)}
+                  onScrollToRoster={scrollToRoster}
+                  onOpenRegisterModal={openRegisterModal}
+                  managedTeamsCount={managedTeamsData?.length ?? 0}
+                />
               ) : (
-                <>
-                  {pendingInvitesForUser.length > 0 && (
-                    <PendingInvitesCard
-                      pendingInvites={pendingInvitesForUser}
-                      respondingTo={respondingTo}
-                      isManager={false}
-                      onAccept={(id) => handleRespondToInvite(id, true)}
-                      onDecline={(id) => handleRespondToInvite(id, false)}
-                    />
-                  )}
-
-                  {/* Register Now / Manage Rosters Card */}
-                  <UserRegistrationCard
-                    isRegistrationClosed={isRegistrationClosed}
-                    approvedTeams={approvedTeamsForUser}
-                    myIndividualInvite={myIndividualInvite}
-                    onScrollToRoster={() => rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
-                    onOpenRegisterModal={openRegisterModal}
-                  />
-
-                  {/* Need Help Card */}
-                  <div className="card">
-                    <h3 className="card-title">Need Help?</h3>
-                    <p className="card-description">
-                      Have questions about this tournament? Contact the organizers.
-                    </p>
-                    <button
-                      onClick={() =>
-                        contactOrganizerModalRef.current?.open({
-                          name: tournament.organizer || "",
-                          tournamentName: tournament.name || "",
-                          tournamentId: tournament.id,
-                        })
-                      }
-                      className="btn btn-outline btn-full-width"
-                    >
-                      Contact Organizer
-                    </button>
-                  </div>
-                </>
+                <UserSidebar
+                  pendingInvitesForUser={pendingInvitesForUser}
+                  respondingTo={respondingTo}
+                  isRegistrationClosed={isRegistrationClosed}
+                  approvedTeamsForUser={approvedTeamsForUser}
+                  myIndividualInvite={myIndividualInvite}
+                  tournament={tournament}
+                  contactOrganizerRef={contactOrganizerModalRef as React.RefObject<{ open: (args: { name: string; tournamentName: string; tournamentId?: string | null }) => void }>}
+                  onAccept={(id) => handleRespondToInvite(id, true)}
+                  onDecline={(id) => handleRespondToInvite(id, false)}
+                  onScrollToRoster={scrollToRoster}
+                  onOpenRegisterModal={openRegisterModal}
+                />
               )}
             </div>
           </div>
 
-          {/* Roster Management Section - Show for team managers with approved teams */}
           {approvedTeamsForUser.length > 0 && (
             <div ref={rosterSectionRef} className="roster-section">
               <h2 className="card-title card-title-lg">Manage Your Team Rosters</h2>
               <RosterManager
-                tournamentId={tournamentId || ""}
+                tournamentId={tournamentId ?? ""}
                 teams={approvedTeamsForUser}
-                onRosterSaved={() => {
-                  refetchInvites();
-                  refetchParticipants();
-                }}
+                onRosterSaved={() => { refetchInvites(); refetchParticipants(); }}
               />
             </div>
           )}
         </div>
       </section>
 
-      {/* Regular user modals */}
       <RegisterTournamentModal ref={registerModalRef} />
       <ContactOrganizerModal ref={contactOrganizerModalRef} />
-
-      {/* Manager modals */}
       <AddTournamentModal ref={editModalRef} />
       <RegistrationsModal ref={registrationsModalRef} />
       <InviteTeamsModal ref={inviteTeamsModalRef} />

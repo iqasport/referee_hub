@@ -172,6 +172,92 @@ const TeamRegistrationFormSection: React.FC<TeamRegistrationFormSectionProps> = 
   </>
 );
 
+// ── Custom hook: collects teams the current user can register ─────────────────
+function useManagedTeamsForRegistration() {
+  const { data: currentUser } = useGetCurrentUserQuery();
+
+  const userNgbs: string[] = useMemo(() => {
+    if (!currentUser?.roles) return [];
+    const ngbAdminRoles = (currentUser.roles as UserRole[]).filter((r) => r.roleType === "NgbAdmin");
+    const ngbs: string[] = [];
+    ngbAdminRoles.forEach((r) => {
+      if (typeof r.ngb === "string" && r.ngb) ngbs.push(r.ngb);
+      else if (Array.isArray(r.ngb)) ngbs.push(...r.ngb);
+    });
+    return [...new Set(ngbs)];
+  }, [currentUser]);
+
+  const isNgbAdmin = userNgbs.length > 0;
+  const primaryNgb = userNgbs[0] ?? "";
+
+  const { data: managedTeamsData, isLoading: isLoadingManagedTeams } = useGetManagedTeamsQuery();
+  const { data: ngbTeamsData, isLoading: isLoadingNgbTeams } = useGetNgbTeamsQuery(
+    { ngb: primaryNgb, skipPaging: true },
+    { skip: !isNgbAdmin || !primaryNgb }
+  );
+
+  const managedTeams: ManagedTeam[] = useMemo(() => {
+    const teams: ManagedTeam[] = [];
+    const addedIds = new Set<string>();
+    managedTeamsData?.forEach((team: ManagedTeamViewModel) => {
+      if (team.teamId && !addedIds.has(team.teamId)) {
+        addedIds.add(team.teamId);
+        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "" });
+      }
+    });
+    if (isNgbAdmin) {
+      ngbTeamsData?.items?.forEach((team: NgbTeamViewModel) => {
+        if (team.teamId && !addedIds.has(team.teamId)) {
+          addedIds.add(team.teamId);
+          teams.push({ teamId: team.teamId, teamName: team.name ?? `Team ${team.teamId}`, ngb: primaryNgb, groupAffiliation: team.groupAffiliation });
+        }
+      });
+    }
+    return teams;
+  }, [managedTeamsData, ngbTeamsData, primaryNgb, isNgbAdmin]);
+
+  return {
+    currentUser,
+    managedTeams,
+    isLoadingTeams: isLoadingManagedTeams || (isNgbAdmin && isLoadingNgbTeams),
+  };
+}
+
+// ── Action buttons row ────────────────────────────────────────────────────────
+interface RegistrationActionButtonsProps {
+  isSubmitting: boolean;
+  isFormValid: boolean;
+  onClose: () => void;
+}
+const RegistrationActionButtons: React.FC<RegistrationActionButtonsProps> = ({ isSubmitting, isFormValid, onClose }) => {
+  const disabled = isSubmitting || !isFormValid;
+  return (
+    <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+      <button
+        type="button"
+        onClick={onClose}
+        className="px-6 py-2 text-sm font-medium rounded mr-3"
+        style={{ backgroundColor: "#edf2f7", color: "#4a5568", border: "1px solid #e2e8f0" }}
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={disabled}
+        className="px-6 py-2 text-sm font-medium rounded"
+        style={{
+          backgroundColor: disabled ? "#90cdf4" : "#3182ce",
+          color: "#ffffff",
+          border: "1px solid #3182ce",
+          cursor: disabled ? "not-allowed" : "pointer",
+        }}
+      >
+        {isSubmitting ? "Submitting..." : "Submit Registration"}
+      </button>
+    </div>
+  );
+};
+
 const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
@@ -179,73 +265,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationMode, setRegistrationMode] = useState<"team" | "individual">("team");
 
-  const { data: currentUser } = useGetCurrentUserQuery();
-
-  // Check if user is NGB Admin and get their NGB(s)
-  const userNgbs: string[] = useMemo(() => {
-    if (!currentUser?.roles) return [];
-    const ngbAdminRoles = (currentUser.roles as UserRole[]).filter(
-      (r) => r.roleType === "NgbAdmin"
-    );
-    const ngbs: string[] = [];
-    ngbAdminRoles.forEach((r) => {
-      if (typeof r.ngb === "string" && r.ngb) {
-        ngbs.push(r.ngb);
-      } else if (Array.isArray(r.ngb)) {
-        ngbs.push(...r.ngb);
-      }
-    });
-    return [...new Set(ngbs)]; // Remove duplicates
-  }, [currentUser]);
-
-  const isNgbAdmin = userNgbs.length > 0;
-  const primaryNgb = userNgbs[0] || "";
-
-  // Use the new managed teams endpoint - directly fetches teams the user manages
-  const { data: managedTeamsData, isLoading: isLoadingManagedTeams } = useGetManagedTeamsQuery();
-
-  // Fetch NGB teams if user is an NGB Admin (for additional teams they can register)
-  const { data: ngbTeamsData, isLoading: isLoadingNgbTeams } = useGetNgbTeamsQuery(
-    { ngb: primaryNgb, skipPaging: true },
-    { skip: !isNgbAdmin || !primaryNgb }
-  );
-
-  // Build managed teams from API response and NGB teams (for NGB Admins)
-  const managedTeams: ManagedTeam[] = useMemo(() => {
-    const teams: ManagedTeam[] = [];
-    const addedTeamIds = new Set<string>();
-
-    // Add teams from the managedTeams endpoint (team managers)
-    if (managedTeamsData) {
-      managedTeamsData.forEach((team: ManagedTeamViewModel) => {
-        if (team.teamId && !addedTeamIds.has(team.teamId)) {
-          addedTeamIds.add(team.teamId);
-          teams.push({
-            teamId: team.teamId,
-            teamName: team.teamName || `Team ${team.teamId}`,
-            ngb: team.ngb || "",
-          });
-        }
-      });
-    }
-
-    // Add NGB teams if user is NGB Admin (avoid duplicates)
-    if (isNgbAdmin && ngbTeamsData?.items) {
-      ngbTeamsData.items.forEach((team: NgbTeamViewModel) => {
-        if (team.teamId && !addedTeamIds.has(team.teamId)) {
-          addedTeamIds.add(team.teamId);
-          teams.push({
-            teamId: team.teamId,
-            teamName: team.name || `Team ${team.teamId}`,
-            ngb: primaryNgb,
-            groupAffiliation: team.groupAffiliation,
-          });
-        }
-      });
-    }
-
-    return teams;
-  }, [managedTeamsData, ngbTeamsData, primaryNgb, isNgbAdmin]);
+  const { currentUser, managedTeams, isLoadingTeams } = useManagedTeamsForRegistration();
 
   // Fetch existing invites for this tournament to check which teams already registered
   const { data: existingInvites } = useGetTournamentInvitesQuery(
@@ -481,34 +501,11 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
               />
             )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={close}
-                className="px-6 py-2 text-sm font-medium rounded mr-3"
-                style={{
-                  backgroundColor: "#edf2f7",
-                  color: "#4a5568",
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || (registrationMode === "team" ? !isTeamFormValid : !isIndividualFormValid)}
-                className="px-6 py-2 text-sm font-medium rounded"
-                style={{
-                  backgroundColor: (isSubmitting || (registrationMode === "team" ? !isTeamFormValid : !isIndividualFormValid)) ? "#90cdf4" : "#3182ce",
-                  color: "#ffffff",
-                  border: "1px solid #3182ce",
-                  cursor: (isSubmitting || (registrationMode === "team" ? !isTeamFormValid : !isIndividualFormValid)) ? "not-allowed" : "pointer",
-                }}
-              >
-                {isSubmitting ? "Submitting..." : "Submit Registration"}
-              </button>
-            </div>
+            <RegistrationActionButtons
+              isSubmitting={isSubmitting}
+              isFormValid={registrationMode === "team" ? isTeamFormValid : isIndividualFormValid}
+              onClose={close}
+            />
             </>
             )}
 
@@ -519,11 +516,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
                 type="button"
                 onClick={close}
                 className="px-6 py-2 text-sm font-medium rounded mr-3"
-                style={{
-                  backgroundColor: "#edf2f7",
-                  color: "#4a5568",
-                  border: "1px solid #e2e8f0",
-                }}
+                style={{ backgroundColor: "#edf2f7", color: "#4a5568", border: "1px solid #e2e8f0" }}
               >
                 Close
               </button>
