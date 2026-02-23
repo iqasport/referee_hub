@@ -556,7 +556,7 @@ public class TournamentsController : ControllerBase
 	/// <param name="userContext">Current authenticated user context.</param>
 	/// <param name="tournamentId">Tournament identifier.</param>
 	/// <returns><c>true</c> if the user is allowed to create an invite for the tournament; otherwise <c>false</c>.</returns>
-	private bool IsAuthorizedToCreateAnyInvite(UserContext userContext, TournamentIdentifier tournamentId)
+	private bool IsAuthorizedToCreateAnyInvite(IUserContext userContext, TournamentIdentifier tournamentId)
 	{
 		// This method centralizes invite creation authorization that is independent
 		// of participant type. Adjust the logic as needed to match your security requirements.

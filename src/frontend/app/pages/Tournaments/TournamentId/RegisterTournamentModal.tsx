@@ -193,9 +193,10 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
     !!teamData.selectedTeamId && availableTeams.some((t) => t.teamId === teamData.selectedTeamId);
 
   // For individual mode: check user is not already registered
-  const hasExistingIndividualInvite = existingInvites?.some(
+  const existingIndividualInvite = existingInvites?.find(
     (i) => i.participantType === "player" && i.participantId === currentUser?.userId
-  ) ?? false;
+  );
+  const hasExistingIndividualInvite = !!existingIndividualInvite;
 
   const isIndividualFormValid = !hasExistingIndividualInvite;
 
@@ -309,6 +310,22 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
+            {/* Individual registration status notice (status-aware, shown whenever player already registered) */}
+            {hasExistingIndividualInvite && existingIndividualInvite && (
+              <div className={`rounded p-3 text-sm font-medium ${
+                existingIndividualInvite.status === "approved"
+                  ? "bg-green-50 border border-green-200 text-green-800"
+                  : existingIndividualInvite.status === "rejected"
+                  ? "bg-red-50 border border-red-200 text-red-800"
+                  : "bg-yellow-50 border border-yellow-200 text-yellow-800"
+              }`}>
+                {existingIndividualInvite.status === "approved" && "✓ You have been accepted to this tournament as an individual player."}
+                {existingIndividualInvite.status === "rejected" && "✗ Your individual registration was rejected by the tournament organizer."}
+                {existingIndividualInvite.status === "pending" && "⏳ Your individual registration is pending the tournament organizer's decision."}
+                {existingIndividualInvite.status === undefined && "⏳ Your individual registration is awaiting review by the tournament organizer."}
+              </div>
+            )}
+
             {/* Fantasy: mode selector — only show individual tab when not already registered */}
             {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && tournament.allowsTeamRegistration !== false && !hasExistingIndividualInvite && (
               <div className="flex gap-2 mb-2">
@@ -337,14 +354,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
               </div>
             )}
 
-            {/* Fantasy individual-only tournament: already registered state */}
-            {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && !tournament.allowsTeamRegistration && hasExistingIndividualInvite ? (
-              <div className="py-4 text-center">
-                <p className="text-sm font-medium text-green-700">
-                  ✓ You are already registered individually for this tournament.
-                </p>
-              </div>
-            ) : (
+            {/* Form fields — hidden when individual-only and player is already registered */}
+            {!(tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && !tournament.allowsTeamRegistration && hasExistingIndividualInvite) && (
             <>
 
             {/* Individual registration panel */}
@@ -467,6 +478,24 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
               </button>
             </div>
             </>
+            )}
+
+            {/* Action Buttons — always shown (Cancel available even when already registered) */}
+            {(tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && !tournament.allowsTeamRegistration && hasExistingIndividualInvite) && (
+            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={close}
+                className="px-6 py-2 text-sm font-medium rounded mr-3"
+                style={{
+                  backgroundColor: "#edf2f7",
+                  color: "#4a5568",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                Close
+              </button>
+            </div>
             )}
           </form>
         </DialogPanel>

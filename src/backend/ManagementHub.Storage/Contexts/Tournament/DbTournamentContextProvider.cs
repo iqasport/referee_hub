@@ -839,8 +839,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.dbContext.TournamentInvites.Add(invite);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
+		var safeTournamentIdCreate = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+		var safePlayerIdCreate = playerId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
 		this.logger.LogInformation("Created player invite for tournament {TournamentId} player {PlayerId}",
-			tournamentId, playerId);
+			safeTournamentIdCreate, safePlayerIdCreate);
 
 		var playerName = $"{player.FirstName} {player.LastName}".Trim();
 
@@ -1043,10 +1045,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var safePlayerId = playerId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
 
 		this.dbContext.TournamentInvites.Remove(invite);
-			safeTournamentId, safePlayerId);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
 
 		this.logger.LogInformation("Deleted player invite for tournament {TournamentId} player {PlayerId}",
-			tournamentId, playerId);
+			safeTournamentId, safePlayerId);
 	}
 
 	// Phase 3: Participant management methods
