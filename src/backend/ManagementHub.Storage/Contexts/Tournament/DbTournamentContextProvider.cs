@@ -1039,8 +1039,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			throw new NotFoundException($"Player invite for tournament {tournamentId} and player {playerId}");
 		}
 
+		var safeTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+		var safePlayerId = playerId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+
 		this.dbContext.TournamentInvites.Remove(invite);
-		await this.dbContext.SaveChangesAsync(cancellationToken);
+			safeTournamentId, safePlayerId);
 
 		this.logger.LogInformation("Deleted player invite for tournament {TournamentId} player {PlayerId}",
 			tournamentId, playerId);
