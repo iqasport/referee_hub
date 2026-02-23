@@ -81,6 +81,61 @@ function monthsWithTournaments(tournaments: TournamentData[]): Array<{ year: num
   return Array.from(set.values()).sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
 }
 
+// ── CalendarDayCell ───────────────────────────────────────────────────────────
+
+interface CalendarDayCellProps {
+  day: number;
+  isValid: boolean;
+  isToday: boolean;
+  hasTournaments: boolean;
+  isSelected: boolean;
+  dayTournaments: { id: string; title: string }[];
+  ariaLabel: string | undefined;
+  onSelect: () => void;
+}
+
+const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
+  day, isValid, isToday, hasTournaments, isSelected, dayTournaments, ariaLabel, onSelect,
+}) => (
+  <div
+    className={[
+      "tc-cell",
+      !isValid ? "tc-cell-empty" : "",
+      isToday ? "tc-cell-today" : "",
+      hasTournaments ? "tc-cell-has-events" : "",
+      isSelected ? "tc-cell-selected" : "",
+    ].filter(Boolean).join(" ")}
+    onClick={isValid && hasTournaments ? onSelect : undefined}
+    role={isValid && hasTournaments ? "button" : undefined}
+    tabIndex={isValid && hasTournaments ? 0 : undefined}
+    onKeyDown={(e) => {
+      if ((e.key === "Enter" || e.key === " ") && isValid && hasTournaments) {
+        e.preventDefault();
+        onSelect();
+      }
+    }}
+    aria-label={ariaLabel}
+  >
+    {isValid && (
+      <>
+        <span className="tc-day-number">{day}</span>
+        {hasTournaments && (
+          <div className="tc-chip-list">
+            {dayTournaments.slice(0, 2).map((t) => (
+              <span key={t.id} className="tc-event-chip" title={t.title}>{t.title}</span>
+            ))}
+            {dayTournaments.length > 2 && (
+              <span className="tc-event-more">+{dayTournaments.length - 2} more</span>
+            )}
+          </div>
+        )}
+      </>
+    )}
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) => {
   const navigate = useNavigate();
   const today = useMemo(() => new Date(), []);
@@ -214,44 +269,19 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
           const isValid = day >= 1 && day <= daysInMonth;
           const hasTournaments = isValid && tournamentsByDay.has(day);
           const isSelected = isValid && selectedDay === day;
-
+          const dayTournaments = tournamentsByDay.get(day) ?? [];
           return (
-            <div
+            <CalendarDayCell
               key={idx}
-              className={[
-                "tc-cell",
-                !isValid ? "tc-cell-empty" : "",
-                isToday(day) ? "tc-cell-today" : "",
-                hasTournaments ? "tc-cell-has-events" : "",
-                isSelected ? "tc-cell-selected" : "",
-              ].filter(Boolean).join(" ")}
-              onClick={() => isValid && hasTournaments && setSelectedDay(isSelected ? null : day)}
-              role={isValid && hasTournaments ? "button" : undefined}
-              tabIndex={isValid && hasTournaments ? 0 : undefined}
-              onKeyDown={(e) => {
-                if ((e.key === "Enter" || e.key === " ") && isValid && hasTournaments) {
-                  e.preventDefault();
-                  setSelectedDay(isSelected ? null : day);
-                }
-              }}
-              aria-label={isValid && hasTournaments ? `${MONTH_NAMES[month]} ${day}: ${tournamentsByDay.get(day)?.length ?? 0} tournament(s)` : undefined}
-            >
-              {isValid && (
-                <>
-                  <span className="tc-day-number">{day}</span>
-                  {hasTournaments && (
-                    <div className="tc-chip-list">
-                      {(tournamentsByDay.get(day) ?? []).slice(0, 2).map((t) => (
-                        <span key={t.id} className="tc-event-chip" title={t.title}>{t.title}</span>
-                      ))}
-                      {(tournamentsByDay.get(day)?.length ?? 0) > 2 && (
-                        <span className="tc-event-more">+{(tournamentsByDay.get(day)?.length ?? 0) - 2} more</span>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+              day={day}
+              isValid={isValid}
+              isToday={isToday(day)}
+              hasTournaments={hasTournaments}
+              isSelected={isSelected}
+              dayTournaments={dayTournaments}
+              ariaLabel={isValid && hasTournaments ? `${MONTH_NAMES[month]} ${day}: ${dayTournaments.length} tournament(s)` : undefined}
+              onSelect={() => setSelectedDay(isSelected ? null : day)}
+            />
           );
         })}
       </div>

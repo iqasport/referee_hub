@@ -774,79 +774,19 @@ public class TournamentsController : ControllerBase
 		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
 			.Any(r => r.Tournament.AppliesTo(tournamentId));
 
-		// ── Player invite path ──────────────────────────────────────────────────
 		if (UserIdentifier.TryParse(participantId, out var playerId))
 		{
-			var playerInvite = await this.tournamentContextProvider
-				.GetPlayerInviteAsync(tournamentId, playerId, this.HttpContext.RequestAborted);
-
-			if (playerInvite == null || playerInvite.GetStatus() != InviteStatus.Pending)
-			{
-				return this.NotFound(new { error = "No pending invite found" });
-			}
-
-			// Only tournament manager can approve/deny individual player invites
-			if (!isTournamentManager || playerInvite.TournamentManagerApproval != ApprovalStatus.Pending)
-			{
-				return this.Forbid();
-			}
-
-			await this.tournamentContextProvider.UpdatePlayerInviteApprovalAsync(
-				tournamentId, playerId, response.Approved, this.HttpContext.RequestAborted);
-
-			return this.Ok();
+			return await this.HandlePlayerInviteResponseAsync(tournamentId, playerId, response, isTournamentManager, this.HttpContext.RequestAborted);
 		}
 
-		// ── Team invite path ────────────────────────────────────────────────────
 		if (!TeamIdentifier.TryParse(participantId, out var teamId))
 		{
 			return this.BadRequest(new { error = "Invalid participant ID" });
 		}
 
-		// Get pending invite
-		var invite = await this.tournamentContextProvider
-			.GetTeamInviteAsync(tournamentId, teamId, this.HttpContext.RequestAborted);
-
-		if (invite == null || invite.GetStatus() != InviteStatus.Pending)
-		{
-			return this.NotFound(new { error = "No pending invite found" });
-		}
-
 		var isParticipant = userContext.Roles.OfType<TeamManagerRole>()
 			.Any(r => r.Team.AppliesTo(teamId));
-
-		// Must be either tournament manager (with pending manager approval)
-		// or participant (with pending participant approval)
-		var canApproveAsManager = isTournamentManager &&
-			invite.TournamentManagerApproval == ApprovalStatus.Pending;
-		var canApproveAsParticipant = isParticipant &&
-			invite.ParticipantApproval == ApprovalStatus.Pending;
-
-		if (!canApproveAsManager && !canApproveAsParticipant)
-		{
-			return this.Forbid();
-		}
-
-		// Update approval
-		await this.tournamentContextProvider.UpdateInviteApprovalAsync(
-			tournamentId,
-			teamId,
-			isTournamentManager,
-			response.Approved,
-			this.HttpContext.RequestAborted);
-
-		// Reload to check if fully approved
-		var updatedInvite = await this.tournamentContextProvider
-			.GetTeamInviteAsync(tournamentId, teamId, this.HttpContext.RequestAborted);
-
-		// If both approved, create participant
-		if (updatedInvite != null && updatedInvite.GetStatus() == InviteStatus.Approved)
-		{
-			await this.tournamentContextProvider.AddTeamParticipantAsync(
-				tournamentId, teamId, this.HttpContext.RequestAborted);
-		}
-
-		return this.Ok();
+		return await this.HandleTeamInviteResponseAsync(tournamentId, teamId, response, isTournamentManager, isParticipant, this.HttpContext.RequestAborted);
 	}
 
 	/// <summary>
@@ -916,6 +856,73 @@ public class TournamentsController : ControllerBase
 
 		await this.tournamentContextProvider.DeleteTeamInviteAsync(
 			tournamentId, teamId, this.HttpContext.RequestAborted);
+
+		return this.Ok();
+	}
+
+	private async Task<IActionResult> HandlePlayerInviteResponseAsync(
+		TournamentIdentifier tournamentId,
+		UserIdentifier playerId,
+		InviteResponseModel response,
+		bool isTournamentManager,
+		CancellationToken cancellationToken)
+	{
+		var playerInvite = await this.tournamentContextProvider
+			.GetPlayerInviteAsync(tournamentId, playerId, cancellationToken);
+
+		if (playerInvite == null || playerInvite.GetStatus() != InviteStatus.Pending)
+		{
+			return this.NotFound(new { error = "No pending invite found" });
+		}
+
+		if (!isTournamentManager || playerInvite.TournamentManagerApproval != ApprovalStatus.Pending)
+		{
+			return this.Forbid();
+		}
+
+		await this.tournamentContextProvider.UpdatePlayerInviteApprovalAsync(
+			tournamentId, playerId, response.Approved, cancellationToken);
+
+		return this.Ok();
+	}
+
+	private async Task<IActionResult> HandleTeamInviteResponseAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		InviteResponseModel response,
+		bool isTournamentManager,
+		bool isParticipant,
+		CancellationToken cancellationToken)
+	{
+		var invite = await this.tournamentContextProvider
+			.GetTeamInviteAsync(tournamentId, teamId, cancellationToken);
+
+		if (invite == null || invite.GetStatus() != InviteStatus.Pending)
+		{
+			return this.NotFound(new { error = "No pending invite found" });
+		}
+
+		var canApproveAsManager = isTournamentManager &&
+			invite.TournamentManagerApproval == ApprovalStatus.Pending;
+		var canApproveAsParticipant = isParticipant &&
+			invite.ParticipantApproval == ApprovalStatus.Pending;
+
+		if (!canApproveAsManager && !canApproveAsParticipant)
+		{
+			return this.Forbid();
+		}
+
+		await this.tournamentContextProvider.UpdateInviteApprovalAsync(
+			tournamentId, teamId, isTournamentManager, response.Approved, cancellationToken);
+
+		var updatedInvite = await this.tournamentContextProvider
+			.GetTeamInviteAsync(tournamentId, teamId, cancellationToken);
+
+		if (updatedInvite != null && updatedInvite.GetStatus() == InviteStatus.Approved)
+		{
+			await this.tournamentContextProvider.AddTeamParticipantAsync(
+				tournamentId, teamId, cancellationToken);
+		}
 
 		return this.Ok();
 	}

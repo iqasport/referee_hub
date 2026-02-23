@@ -12,6 +12,7 @@ import {
   ManagedTeamViewModel,
   NgbTeamViewModel,
   TournamentType,
+  TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
@@ -52,6 +53,73 @@ interface TeamRegistrationData {
 export interface RegisterTournamentModalRef {
   open: (tournament: Tournament) => void;
 }
+
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface RegistrationStatusNoticeProps {
+  invite: TournamentInviteViewModel;
+}
+const RegistrationStatusNotice: React.FC<RegistrationStatusNoticeProps> = ({ invite }) => {
+  const cls =
+    invite.status === "approved"
+      ? "bg-green-50 border border-green-200 text-green-800"
+      : invite.status === "rejected"
+      ? "bg-red-50 border border-red-200 text-red-800"
+      : "bg-yellow-50 border border-yellow-200 text-yellow-800";
+  return (
+    <div className={`rounded p-3 text-sm font-medium ${cls}`}>
+      {invite.status === "approved" && "✓ You have been accepted to this tournament as an individual player."}
+      {invite.status === "rejected" && "✗ Your individual registration was rejected by the tournament organizer."}
+      {(invite.status === "pending" || !invite.status) && "⏳ Your individual registration is pending the tournament organizer's decision."}
+    </div>
+  );
+};
+
+interface RegistrationModeToggleProps {
+  mode: "team" | "individual";
+  setMode: (m: "team" | "individual") => void;
+}
+const RegistrationModeToggle: React.FC<RegistrationModeToggleProps> = ({ mode, setMode }) => (
+  <div className="mb-2">
+    <button type="button" onClick={() => setMode("team")} className={classnames("button-tab", { ["active-button-tab"]: mode === "team" })}>
+      Register a Team
+    </button>
+    <button type="button" onClick={() => setMode("individual")} className={classnames("button-tab", { ["active-button-tab"]: mode === "individual" })}>
+      Register as Individual
+    </button>
+  </div>
+);
+
+const IndividualRegistrationPanel: React.FC = () => (
+  <div>
+    <h5 className="text-sm font-semibold text-gray-900 mb-3">Individual Registration</h5>
+    <p className="text-sm text-gray-600">
+      You will be registered as an individual player. The tournament organizer will review your request.
+    </p>
+  </div>
+);
+
+interface RegisteredTeamsListProps {
+  registeredTeams: { teamId: string; teamName: string; status: string }[];
+}
+const RegisteredTeamsList: React.FC<RegisteredTeamsListProps> = ({ registeredTeams }) => {
+  if (registeredTeams.length === 0) return null;
+  return (
+    <div className="mt-3 p-3 rounded" style={{ backgroundColor: "#f3f4f6" }}>
+      <p className="text-xs text-gray-600 mb-2">Teams already registered:</p>
+      <div className="text-sm text-gray-700">
+        {registeredTeams.map((t) => (
+          <div key={t.teamId} className="flex items-center justify-between py-1">
+            <span>{t.teamName}</span>
+            <StatusBadge status={t.status} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
@@ -201,6 +269,30 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
   const isIndividualFormValid = !hasExistingIndividualInvite;
 
+  // Pre-computed derived state to reduce JSX complexity
+  const shouldShowModeToggle =
+    tournament?.type === "Fantasy" &&
+    tournament.allowsIndividualRegistration === true &&
+    tournament.allowsTeamRegistration !== false &&
+    !hasExistingIndividualInvite;
+
+  const isAlreadyRegisteredIndividualOnly =
+    tournament?.type === "Fantasy" &&
+    tournament.allowsIndividualRegistration === true &&
+    tournament.allowsTeamRegistration === false &&
+    hasExistingIndividualInvite;
+
+  const registeredManagedTeams = useMemo(
+    () =>
+      managedTeams
+        .filter((t) => teamsWithExistingInvites.has(t.teamId))
+        .map((t) => {
+          const invite = existingInvites?.find((i) => i.participantId === t.teamId);
+          return { teamId: t.teamId, teamName: t.teamName, status: invite?.status || "unknown" };
+        }),
+    [managedTeams, teamsWithExistingInvites, existingInvites]
+  );
+
   // If existing invites load and reveal the player already registered individually,
   // and the modal is currently in individual mode, switch back to team mode.
   useEffect(() => {
@@ -311,54 +403,23 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Individual registration status notice (status-aware, shown whenever player already registered) */}
-            {hasExistingIndividualInvite && existingIndividualInvite && (
-              <div className={`rounded p-3 text-sm font-medium ${
-                existingIndividualInvite.status === "approved"
-                  ? "bg-green-50 border border-green-200 text-green-800"
-                  : existingIndividualInvite.status === "rejected"
-                  ? "bg-red-50 border border-red-200 text-red-800"
-                  : "bg-yellow-50 border border-yellow-200 text-yellow-800"
-              }`}>
-                {existingIndividualInvite.status === "approved" && "✓ You have been accepted to this tournament as an individual player."}
-                {existingIndividualInvite.status === "rejected" && "✗ Your individual registration was rejected by the tournament organizer."}
-                {existingIndividualInvite.status === "pending" && "⏳ Your individual registration is pending the tournament organizer's decision."}
-                {existingIndividualInvite.status === undefined && "⏳ Your individual registration is awaiting review by the tournament organizer."}
-              </div>
+            {/* Individual registration status notice */}
+            {existingIndividualInvite && (
+              <RegistrationStatusNotice invite={existingIndividualInvite} />
             )}
 
-            {/* Fantasy: mode selector — only show individual tab when not already registered */}
-            {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && tournament.allowsTeamRegistration !== false && !hasExistingIndividualInvite && (
-              <div className="mb-2">
-                <button
-                  type="button"
-                  onClick={() => setRegistrationMode("team")}
-                  className={classnames("button-tab", { ["active-button-tab"]: registrationMode === "team" })}
-                >
-                  Register a Team
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRegistrationMode("individual")}
-                  className={classnames("button-tab", { ["active-button-tab"]: registrationMode === "individual" })}
-                >
-                  Register as Individual
-                </button>
-              </div>
+            {/* Mode toggle (Fantasy + both types + not already registered) */}
+            {shouldShowModeToggle && (
+              <RegistrationModeToggle mode={registrationMode} setMode={setRegistrationMode} />
             )}
 
             {/* Form fields — hidden when individual-only and player is already registered */}
-            {!(tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && !tournament.allowsTeamRegistration && hasExistingIndividualInvite) && (
+            {!isAlreadyRegisteredIndividualOnly && (
             <>
 
             {/* Individual registration panel */}
             {registrationMode === "individual" ? (
-              <div>
-                <h5 className="text-sm font-semibold text-gray-900 mb-3">Individual Registration</h5>
-                <p className="text-sm text-gray-600">
-                  You will be registered as an individual player. The tournament organizer will review your request.
-                </p>
-              </div>
+              <IndividualRegistrationPanel />
             ) : (
               <>
                 {/* Team Selection */}
@@ -405,32 +466,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
                         No eligible teams found for this tournament type.
                       </p>
                     )}
-                    {/* Show already registered teams */}
-                    {teamsWithExistingInvites.size > 0 &&
-                      managedTeams.some((t) => teamsWithExistingInvites.has(t.teamId)) && (
-                        <div className="mt-3 p-3 rounded" style={{ backgroundColor: "#f3f4f6" }}>
-                          <p className="text-xs text-gray-600 mb-2">Teams already registered:</p>
-                          <div className="text-sm text-gray-700">
-                            {managedTeams
-                              .filter((t) => teamsWithExistingInvites.has(t.teamId))
-                              .map((t) => {
-                                const invite = existingInvites?.find(
-                                  (i) => i.participantId === t.teamId
-                                );
-                                const status = invite?.status || "unknown";
-                                return (
-                                  <div
-                                    key={t.teamId}
-                                    className="flex items-center justify-between py-1"
-                                  >
-                                    <span>{t.teamName}</span>
-                                    <StatusBadge status={status} />
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </div>
-                      )}
+                    <RegisteredTeamsList registeredTeams={registeredManagedTeams} />
                   </div>
                 </div>
 
@@ -473,8 +509,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
             </>
             )}
 
-            {/* Action Buttons — always shown (Cancel available even when already registered) */}
-            {(tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && !tournament.allowsTeamRegistration && hasExistingIndividualInvite) && (
+            {/* Close button — always shown when individual-only and already registered */}
+            {isAlreadyRegisteredIndividualOnly && (
             <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
               <button
                 type="button"

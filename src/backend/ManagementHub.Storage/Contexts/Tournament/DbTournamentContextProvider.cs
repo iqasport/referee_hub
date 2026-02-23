@@ -586,48 +586,18 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			.Distinct()
 			.ToList();
 
-		// Fetch team names in a separate query if there are any team participants
-		Dictionary<string, string> teamNames = new Dictionary<string, string>();
-		if (teamParticipantIds.Any())
-		{
-			// Parse team participant IDs to get the long IDs for database query
-			var teamLongIds = teamParticipantIds
-				.Select(id => TeamIdentifier.Parse(id).Id)
-				.ToList();
-
-			// Query teams by long IDs
-			var teams = await this.dbContext.Teams
-				.Where(t => teamLongIds.Contains(t.Id))
-				.Select(t => new { t.Id, t.Name })
-				.ToListAsync(cancellationToken);
-
-			// Convert back to TeamIdentifier strings for the dictionary
-			teamNames = teams.ToDictionary(
-				t => new TeamIdentifier(t.Id).ToString(),
-				t => t.Name);
-		}
-
-		// Get unique player participant IDs for player invites
+		// Get unique participant IDs for players
 		var playerParticipantIds = dbInvites
 			.Where(i => i.ParticipantType == "player")
 			.Select(i => i.ParticipantId)
 			.Distinct()
 			.ToList();
 
+		// Fetch team names in a separate query if there are any team participants
+		var teamNames = await this.GetTeamNamesAsync(teamParticipantIds, cancellationToken);
+
 		// Fetch player names for individual invites
-		Dictionary<string, string> playerNames = new Dictionary<string, string>();
-		foreach (var playerIdStr in playerParticipantIds)
-		{
-			if (!UserIdentifier.TryParse(playerIdStr, out var uid)) continue;
-			var user = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, uid)
-				.Select(u => new { u.FirstName, u.LastName })
-				.FirstOrDefaultAsync(cancellationToken);
-			if (user != null)
-			{
-				var fullName = $"{user.FirstName} {user.LastName}".Trim();
-				playerNames[playerIdStr] = string.IsNullOrEmpty(fullName) ? playerIdStr : fullName;
-			}
-		}
+		var playerNames = await this.GetPlayerNamesAsync(playerParticipantIds, cancellationToken);
 
 		// Map to InviteInfo
 		return dbInvites.Select(i => new InviteInfo
@@ -649,6 +619,50 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			ParticipantApproval = i.ParticipantApproval,
 			ParticipantApprovalDate = i.ParticipantApprovalDate
 		}).ToList();
+	}
+
+	private async Task<Dictionary<string, string>> GetTeamNamesAsync(
+		IReadOnlyList<string> teamParticipantIds,
+		CancellationToken cancellationToken)
+	{
+		if (!teamParticipantIds.Any())
+		{
+			return new Dictionary<string, string>();
+		}
+
+		var teamLongIds = teamParticipantIds
+			.Select(id => TeamIdentifier.Parse(id).Id)
+			.ToList();
+
+		var teams = await this.dbContext.Teams
+			.Where(t => teamLongIds.Contains(t.Id))
+			.Select(t => new { t.Id, t.Name })
+			.ToListAsync(cancellationToken);
+
+		return teams.ToDictionary(
+			t => new TeamIdentifier(t.Id).ToString(),
+			t => t.Name);
+	}
+
+	private async Task<Dictionary<string, string>> GetPlayerNamesAsync(
+		IReadOnlyList<string> playerParticipantIds,
+		CancellationToken cancellationToken)
+	{
+		var names = new Dictionary<string, string>();
+		foreach (var playerIdStr in playerParticipantIds)
+		{
+			if (!UserIdentifier.TryParse(playerIdStr, out var uid)) continue;
+			var user = await UserCollectionExtensions.WithIdentifier(this.dbContext.Users, uid)
+				.Select(u => new { u.FirstName, u.LastName })
+				.FirstOrDefaultAsync(cancellationToken);
+			if (user != null)
+			{
+				var fullName = $"{user.FirstName} {user.LastName}".Trim();
+				names[playerIdStr] = string.IsNullOrEmpty(fullName) ? playerIdStr : fullName;
+			}
+		}
+
+		return names;
 	}
 
 	public async Task<IEnumerable<InviteInfo>> GetTeamInvitesAsync(

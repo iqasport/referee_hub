@@ -29,6 +29,104 @@ function mercsStatus(playerInvites: TournamentInviteViewModel[]): string {
   return "unknown";
 }
 
+/** Renders a single player invite card inside the Mercs detail view. */
+interface PlayerInviteCardProps {
+  invite: TournamentInviteViewModel;
+  isSubmitting: boolean;
+  getPendingLabel: (invite: TournamentInviteViewModel) => string;
+  onApprove: (id: string, name: string) => void;
+  onDeny: (id: string, name: string) => void;
+  onDelete: (id: string, name: string) => void;
+}
+const PlayerInviteCard: React.FC<PlayerInviteCardProps> = ({
+  invite, isSubmitting, getPendingLabel, onApprove, onDeny, onDelete,
+}) => {
+  const id = invite.participantId ?? "";
+  const name = invite.participantName || "Player";
+  return (
+    <div className="border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <p className="font-medium text-gray-900">{invite.participantName || invite.participantId}</p>
+          <p className="text-xs text-gray-500">
+            Registered{" "}
+            {invite.createdAt
+              ? new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+              : "—"}
+          </p>
+          {invite.status === "pending" && (
+            <p className="text-xs text-amber-700 mt-0.5">{getPendingLabel(invite)}</p>
+          )}
+        </div>
+        <StatusBadge status={invite.status || "unknown"} />
+      </div>
+      {invite.status === "pending" && invite.tournamentManagerApproval?.status === "pending" && (
+        <div className="mt-2">
+          <ActionButtonPair
+            onAccept={() => onApprove(id, name)}
+            onDecline={() => onDeny(id, name)}
+            isLoading={isSubmitting}
+            acceptLabel="Approve"
+            declineLabel="Deny"
+            loadingLabel="Processing..."
+          />
+        </div>
+      )}
+      {invite.status === "rejected" && (
+        <div className="mt-2">
+          <button
+            onClick={() => onDelete(id, name)}
+            disabled={isSubmitting}
+            className="px-3 py-1 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {isSubmitting ? "Removing…" : "Remove"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** Renders a single team invite row in the list view. */
+interface TeamInviteListRowProps {
+  invite: TournamentInviteViewModel;
+  getPendingLabel: (invite: TournamentInviteViewModel) => string;
+  onSelect: (id: string) => void;
+  onViewRoster: () => void;
+}
+const TeamInviteListRow: React.FC<TeamInviteListRowProps> = ({
+  invite, getPendingLabel, onSelect, onViewRoster,
+}) => (
+  <div className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md">
+    <div
+      className="flex items-center justify-between cursor-pointer"
+      onClick={() => onSelect(invite.participantId ?? "")}
+    >
+      <div>
+        <h4 className="font-semibold text-gray-900">{invite.participantName}</h4>
+        <p className="text-sm text-gray-600">
+          Requested{" "}
+          {new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        </p>
+        {invite.status === "pending" && (
+          <p className="text-xs text-amber-700 mt-0.5">{getPendingLabel(invite)}</p>
+        )}
+      </div>
+      <StatusBadge status={invite.status || "unknown"} />
+    </div>
+    {invite.status === "approved" && (
+      <div className="mt-3 pt-3 border-t border-gray-200">
+        <button
+          onClick={(e) => { e.stopPropagation(); onViewRoster(); }}
+          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          View Roster →
+        </button>
+      </div>
+    )}
+  </div>
+);
+
 const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
@@ -194,77 +292,15 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                   ) : (
                     <div className="space-y-3">
                       {playerInvites.map((invite) => (
-                        <div
+                        <PlayerInviteCard
                           key={invite.participantId}
-                          className="border border-gray-200 rounded-lg p-4"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {invite.participantName || invite.participantId}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Registered{" "}
-                                {invite.createdAt
-                                  ? new Date(invite.createdAt).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })
-                                  : "—"}
-                              </p>
-                              {invite.status === "pending" && (
-                                <p className="text-xs text-amber-700 mt-0.5">
-                                  {getPendingLabel(invite)}
-                                </p>
-                              )}
-                            </div>
-                            <StatusBadge status={invite.status || "unknown"} />
-                          </div>
-
-                          {/* Approve / Deny when awaiting tournament manager */}
-                          {invite.status === "pending" &&
-                            invite.tournamentManagerApproval?.status === "pending" && (
-                              <div className="mt-2">
-                                <ActionButtonPair
-                                  onAccept={() =>
-                                    handleApprove(
-                                      invite.participantId ?? "",
-                                      invite.participantName || "Player"
-                                    )
-                                  }
-                                  onDecline={() =>
-                                    handleDeny(
-                                      invite.participantId ?? "",
-                                      invite.participantName || "Player"
-                                    )
-                                  }
-                                  isLoading={isSubmitting}
-                                  acceptLabel="Approve"
-                                  declineLabel="Deny"
-                                  loadingLabel="Processing..."
-                                />
-                              </div>
-                            )}
-
-                          {/* Remove rejected player invite */}
-                          {invite.status === "rejected" && (
-                            <div className="mt-2">
-                              <button
-                                onClick={() =>
-                                  handleDeleteInvite(
-                                    invite.participantId ?? "",
-                                    invite.participantName || "Player"
-                                  )
-                                }
-                                disabled={isSubmitting}
-                                className="px-3 py-1 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-                              >
-                                {isSubmitting ? "Removing…" : "Remove"}
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                          invite={invite}
+                          isSubmitting={isSubmitting}
+                          getPendingLabel={getPendingLabel}
+                          onApprove={handleApprove}
+                          onDeny={handleDeny}
+                          onDelete={handleDeleteInvite}
+                        />
                       ))}
                     </div>
                   )}
@@ -371,53 +407,20 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                     <div>
                       {/* Team invite rows */}
                       {teamInvites.map((invite) => (
-                        <div
+                        <TeamInviteListRow
                           key={invite.participantId}
-                          className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md"
-                        >
-                          <div
-                            className="flex items-center justify-between cursor-pointer"
-                            onClick={() => setSelectedInvite(invite.participantId ?? null)}
-                          >
-                            <div>
-                              <h4 className="font-semibold text-gray-900">
-                                {invite.participantName}
-                              </h4>
-                              <p className="text-sm text-gray-600">
-                                Requested{" "}
-                                {new Date(invite.createdAt).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })}
-                              </p>
-                              {invite.status === "pending" && (
-                                <p className="text-xs text-amber-700 mt-0.5">
-                                  {getPendingLabel(invite)}
-                                </p>
-                              )}
-                            </div>
-                            <StatusBadge status={invite.status || "unknown"} />
-                          </div>
-                          {invite.status === "approved" && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  rosterViewModalRef.current?.open(
-                                    tournamentId,
-                                    invite.participantId ?? "",
-                                    invite.participantName || "Unknown Team",
-                                    tournamentName
-                                  );
-                                }}
-                                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                              >
-                                View Roster →
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                          invite={invite}
+                          getPendingLabel={getPendingLabel}
+                          onSelect={(id) => setSelectedInvite(id)}
+                          onViewRoster={() =>
+                            rosterViewModalRef.current?.open(
+                              tournamentId,
+                              invite.participantId ?? "",
+                              invite.participantName || "Unknown Team",
+                              tournamentName
+                            )
+                          }
+                        />
                       ))}
 
                       {/* Mercs synthetic row */}
