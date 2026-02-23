@@ -562,18 +562,12 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// Build the player ID string for direct individual invite lookup
 			var playerIdString = filterByParticipant.Value.ToString();
 
-			if (!userTeamLongIds.Any())
-			{
-				// Only match player invites
-				query = query.Where(i => i.ParticipantId == playerIdString && i.ParticipantType == "player");
-			}
-			else
-			{
-				// Match team invites for managed teams OR individual player invites for this user
-				query = query.Where(i =>
-					(i.ParticipantType == "team" && userTeamIds.Contains(i.ParticipantId)) ||
-					(i.ParticipantType == "player" && i.ParticipantId == playerIdString));
-			}
+			// Match team invites for managed teams OR individual player invites for this user.
+			// When userTeamIds is empty the team condition is never satisfied, so only player
+			// invites are returned — no need for a separate branch.
+			query = query.Where(i =>
+				(i.ParticipantType == "team" && userTeamIds.Contains(i.ParticipantId)) ||
+				(i.ParticipantType == "player" && i.ParticipantId == playerIdString));
 		}
 
 		// Fetch invites from database
