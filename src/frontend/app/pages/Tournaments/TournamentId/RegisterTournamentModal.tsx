@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { useState, forwardRef, useImperativeHandle, useMemo } from "react";
+import { useState, forwardRef, useImperativeHandle, useMemo, useEffect } from "react";
 import React from "react";
 import StatusBadge from "../../../components/StatusBadge";
 import {
@@ -199,6 +199,14 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
   const isIndividualFormValid = !hasExistingIndividualInvite;
 
+  // If existing invites load and reveal the player already registered individually,
+  // and the modal is currently in individual mode, switch back to team mode.
+  useEffect(() => {
+    if (hasExistingIndividualInvite && registrationMode === "individual") {
+      setRegistrationMode("team");
+    }
+  }, [hasExistingIndividualInvite, registrationMode]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
@@ -301,8 +309,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Fantasy: mode selector when both types are allowed */}
-            {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && tournament.allowsTeamRegistration !== false && (
+            {/* Fantasy: mode selector — only show individual tab when not already registered */}
+            {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && tournament.allowsTeamRegistration !== false && !hasExistingIndividualInvite && (
               <div className="flex gap-2 mb-2">
                 <button
                   type="button"
@@ -329,19 +337,23 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
               </div>
             )}
 
+            {/* Fantasy individual-only tournament: already registered state */}
+            {tournament?.type === "Fantasy" && tournament.allowsIndividualRegistration && !tournament.allowsTeamRegistration && hasExistingIndividualInvite ? (
+              <div className="py-4 text-center">
+                <p className="text-sm font-medium text-green-700">
+                  ✓ You are already registered individually for this tournament.
+                </p>
+              </div>
+            ) : (
+            <>
+
             {/* Individual registration panel */}
             {registrationMode === "individual" ? (
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3">Individual Registration</h5>
-                {hasExistingIndividualInvite ? (
-                  <p className="text-sm text-amber-600">
-                    You are already registered individually for this tournament.
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-600">
-                    You will be registered as an individual player. The tournament organizer will review your request.
-                  </p>
-                )}
+                <p className="text-sm text-gray-600">
+                  You will be registered as an individual player. The tournament organizer will review your request.
+                </p>
               </div>
             ) : (
               <>
@@ -454,6 +466,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
                 {isSubmitting ? "Submitting..." : "Submit Registration"}
               </button>
             </div>
+            </>
+            )}
           </form>
         </DialogPanel>
       </div>
