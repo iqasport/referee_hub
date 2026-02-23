@@ -23,8 +23,208 @@ import {
   useGetParticipantsQuery,
   useAddTournamentManagerMutation,
   TournamentInviteViewModel,
+  TournamentViewModel,
 } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function buildTournamentEditPayload(tournament: TournamentViewModel) {
+  return {
+    id: tournament.id || "",
+    name: tournament.name || "",
+    description: tournament.description || "",
+    startDate: tournament.startDate || "",
+    endDate: tournament.endDate || "",
+    registrationEndsDate: tournament.registrationEndsDate || "",
+    type: (tournament.type || "") as "" | import("../../../store/serviceApi").TournamentType,
+    country: tournament.country || "",
+    city: tournament.city || "",
+    place: tournament.place || "",
+    organizer: tournament.organizer || "",
+    isPrivate: tournament.isPrivate || false,
+    isRegistrationOpen: tournament.isRegistrationOpen ?? true,
+    allowsIndividualRegistration: tournament.allowsIndividualRegistration ?? false,
+    allowsTeamRegistration: tournament.allowsTeamRegistration ?? true,
+    bannerImageUrl: tournament.bannerImageUrl || "",
+  };
+}
+
+function buildRegisterModalPayload(tournament: TournamentViewModel) {
+  return {
+    id: tournament.id || "",
+    name: tournament.name || "",
+    startDate: tournament.startDate || "",
+    endDate: tournament.endDate || "",
+    country: tournament.country || "",
+    city: tournament.city || "",
+    type: tournament.type || "",
+    allowsIndividualRegistration: tournament.allowsIndividualRegistration,
+    allowsTeamRegistration: tournament.allowsTeamRegistration,
+  };
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+interface PendingInvitesCardProps {
+  pendingInvites: TournamentInviteViewModel[];
+  respondingTo: string | null;
+  isManager: boolean;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+}
+const PendingInvitesCard: React.FC<PendingInvitesCardProps> = ({
+  pendingInvites, respondingTo, isManager, onAccept, onDecline,
+}) => (
+  <div className="card card-highlighted card-mb">
+    <h3 className="card-title">You&apos;re Invited!</h3>
+    <p className="card-description">
+      {isManager
+        ? "Your team(s) have been invited to participate in this tournament."
+        : "The tournament organizer has invited your team(s) to participate."}
+    </p>
+    <div className="invite-list">
+      {pendingInvites.map((invite) => (
+        <div key={invite.participantId} className="invite-item">
+          <p className="invite-team-name">{invite.participantName}</p>
+          <ActionButtonPair
+            onAccept={() => onAccept(invite.participantId || "")}
+            onDecline={() => onDecline(invite.participantId || "")}
+            isLoading={respondingTo === invite.participantId}
+            size="sm"
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+interface ApprovedTeam { teamId?: string | null; teamName: string; ngb: string }
+
+interface ManagerTeamCardProps {
+  isRegistrationClosed: boolean;
+  approvedTeams: ApprovedTeam[];
+  onScrollToRoster: () => void;
+  onOpenRegisterModal: () => void;
+}
+const ManagerTeamCard: React.FC<ManagerTeamCardProps> = ({
+  isRegistrationClosed, approvedTeams, onScrollToRoster, onOpenRegisterModal,
+}) => {
+  if (isRegistrationClosed) {
+    return (
+      <div className="card card-mb">
+        {approvedTeams.length > 0 ? (
+          <>
+            <h3 className="card-title">Your Teams Are Registered</h3>
+            <p className="card-description">Your team(s) are registered. Manage your rosters below.</p>
+            <button onClick={onScrollToRoster} className="btn btn-primary btn-full-width">
+              Manage Your Rosters
+            </button>
+          </>
+        ) : (
+          <>
+            <h3 className="card-title">Registration Closed</h3>
+            <p className="card-description">Registration for this tournament is now closed.</p>
+          </>
+        )}
+      </div>
+    );
+  }
+  if (approvedTeams.length > 0) {
+    return (
+      <div className="card card-mb">
+        <h3 className="card-title">Your Teams Are Registered!</h3>
+        <p className="card-description">Your team(s) are registered. Manage your rosters or register another team.</p>
+        <button onClick={onScrollToRoster} className="btn btn-primary btn-full-width card-mb">
+          Manage Your Rosters
+        </button>
+        <button onClick={onOpenRegisterModal} className="btn btn-outline btn-full-width">
+          Register Another Team
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="card card-mb">
+      <h3 className="card-title">Register Your Team</h3>
+      <p className="card-description">You also manage teams. You can register them for this tournament.</p>
+      <button onClick={onOpenRegisterModal} className="btn btn-outline btn-full-width">
+        Register a Team
+      </button>
+    </div>
+  );
+};
+
+interface UserRegistrationCardProps {
+  isRegistrationClosed: boolean;
+  approvedTeams: ApprovedTeam[];
+  myIndividualInvite: TournamentInviteViewModel | null;
+  onScrollToRoster: () => void;
+  onOpenRegisterModal: () => void;
+}
+const UserRegistrationCard: React.FC<UserRegistrationCardProps> = ({
+  isRegistrationClosed, approvedTeams, myIndividualInvite, onScrollToRoster, onOpenRegisterModal,
+}) => {
+  if (isRegistrationClosed) {
+    return (
+      <div className="card card-mb">
+        <h3 className="card-title">Registration Closed</h3>
+        <p className="card-description">
+          Registration for this tournament is now closed. Contact the organizers if you have questions.
+        </p>
+        <div className="mt-4 p-3 bg-gray-100 rounded-md border border-gray-300 text-center">
+          <svg className="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <p className="text-sm font-medium text-gray-700">Registration is now closed</p>
+        </div>
+      </div>
+    );
+  }
+  if (approvedTeams.length > 0) {
+    return (
+      <div className="card card-mb">
+        <h3 className="card-title">You&apos;re Registered!</h3>
+        <p className="card-description">Your team is registered for this tournament. Manage your roster below.</p>
+        <button onClick={onScrollToRoster} className="btn btn-primary btn-full-width card-mb">
+          Manage Your Rosters
+        </button>
+        <button onClick={onOpenRegisterModal} className="btn btn-outline btn-full-width">
+          Register Another Team
+        </button>
+      </div>
+    );
+  }
+  if (myIndividualInvite) {
+    const statusCls =
+      myIndividualInvite.status === "approved" ? "bg-green-50 border border-green-200 text-green-800"
+      : myIndividualInvite.status === "rejected" ? "bg-red-50 border border-red-200 text-red-800"
+      : "bg-yellow-50 border border-yellow-200 text-yellow-800";
+    return (
+      <div className="card card-mb">
+        <h3 className="card-title">
+          {myIndividualInvite.status === "approved" ? "You're Registered!"
+            : myIndividualInvite.status === "rejected" ? "Registration Rejected"
+            : "Registration Pending"}
+        </h3>
+        <div className={`mt-2 p-3 rounded text-sm font-medium ${statusCls}`}>
+          {myIndividualInvite.status === "approved" && "You have been accepted to this tournament as an individual player."}
+          {myIndividualInvite.status === "rejected" && "Your individual registration was rejected by the tournament organizer."}
+          {(myIndividualInvite.status === "pending" || !myIndividualInvite.status) && "Your registration is pending the tournament organizer's decision."}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="card card-mb">
+      <h3 className="card-title">Register Now</h3>
+      <p className="card-description">Secure your spot in this exciting tournament. Limited slots available!</p>
+      <button onClick={onOpenRegisterModal} className="btn btn-primary btn-full-width">
+        Register for Tournament
+      </button>
+    </div>
+  );
+};
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
@@ -286,27 +486,8 @@ const TournamentDetails = () => {
         year: "numeric",
       })}`;
 
-  // Handle edit tournament (for managers)
-  const handleEdit = () => {
-    editModalRef.current?.openEdit({
-      id: tournament.id || "",
-      name: tournament.name || "",
-      description: tournament.description || "",
-      startDate: tournament.startDate || "",
-      endDate: tournament.endDate || "",
-      registrationEndsDate: tournament.registrationEndsDate || "",
-      type: tournament.type || ("" as const),
-      country: tournament.country || "",
-      city: tournament.city || "",
-      place: tournament.place || "",
-      organizer: tournament.organizer || "",
-      isPrivate: tournament.isPrivate || false,
-      isRegistrationOpen: tournament.isRegistrationOpen ?? true,
-      allowsIndividualRegistration: tournament.allowsIndividualRegistration ?? false,
-      allowsTeamRegistration: tournament.allowsTeamRegistration ?? true,
-      bannerImageUrl: tournament.bannerImageUrl || "",
-    });
-  };
+  const handleEdit = () => editModalRef.current?.openEdit(buildTournamentEditPayload(tournament));
+  const openRegisterModal = () => registerModalRef.current?.open(buildRegisterModalPayload(tournament));
 
   return (
     <>
@@ -451,247 +632,45 @@ const TournamentDetails = () => {
 
                   {/* Manager who also manages teams: pending invites they need to respond to */}
                   {pendingInvitesForUser.length > 0 && (
-                    <div className="card card-highlighted card-mb">
-                      <h3 className="card-title">You&apos;re Invited!</h3>
-                      <p className="card-description">
-                        Your team(s) have been invited to participate in this tournament.
-                      </p>
-                      <div className="invite-list">
-                        {pendingInvitesForUser.map((invite) => (
-                          <div key={invite.participantId} className="invite-item">
-                            <p className="invite-team-name">{invite.participantName}</p>
-                            <ActionButtonPair
-                              onAccept={() =>
-                                handleRespondToInvite(invite.participantId || "", true)
-                              }
-                              onDecline={() =>
-                                handleRespondToInvite(invite.participantId || "", false)
-                              }
-                              isLoading={respondingTo === invite.participantId}
-                              size="sm"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <PendingInvitesCard
+                      pendingInvites={pendingInvitesForUser}
+                      respondingTo={respondingTo}
+                      isManager={true}
+                      onAccept={(id) => handleRespondToInvite(id, true)}
+                      onDecline={(id) => handleRespondToInvite(id, false)}
+                    />
                   )}
 
                   {/* Manager who also manages teams: register / roster section */}
                   {managedTeamsData && managedTeamsData.length > 0 && (
-                    <div className="card card-mb">
-                      {isRegistrationClosed ? (
-                        approvedTeamsForUser.length > 0 ? (
-                          <>
-                            <h3 className="card-title">Your Teams Are Registered</h3>
-                            <p className="card-description">
-                              Your team(s) are registered. Manage your rosters below.
-                            </p>
-                            <button
-                              onClick={() =>
-                                rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-                              }
-                              className="btn btn-primary btn-full-width"
-                            >
-                              Manage Your Rosters
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <h3 className="card-title">Registration Closed</h3>
-                            <p className="card-description">
-                              Registration for this tournament is now closed.
-                            </p>
-                          </>
-                        )
-                      ) : approvedTeamsForUser.length > 0 ? (
-                        <>
-                          <h3 className="card-title">Your Teams Are Registered!</h3>
-                          <p className="card-description">
-                            Your team(s) are registered. Manage your rosters or register another team.
-                          </p>
-                          <button
-                            onClick={() =>
-                              rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-                            }
-                            className="btn btn-primary btn-full-width card-mb"
-                          >
-                            Manage Your Rosters
-                          </button>
-                          <button
-                            onClick={() =>
-                              registerModalRef.current?.open({
-                                id: tournament.id || "",
-                                name: tournament.name || "",
-                                startDate: tournament.startDate || "",
-                                endDate: tournament.endDate || "",
-                                country: tournament.country || "",
-                                city: tournament.city || "",
-                                type: tournament.type || "",
-                                allowsIndividualRegistration: tournament.allowsIndividualRegistration,
-                                allowsTeamRegistration: tournament.allowsTeamRegistration,
-                              })
-                            }
-                            className="btn btn-outline btn-full-width"
-                          >
-                            Register Another Team
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <h3 className="card-title">Register Your Team</h3>
-                          <p className="card-description">
-                            You also manage teams. You can register them for this tournament.
-                          </p>
-                          <button
-                            onClick={() =>
-                              registerModalRef.current?.open({
-                                id: tournament.id || "",
-                                name: tournament.name || "",
-                                startDate: tournament.startDate || "",
-                                endDate: tournament.endDate || "",
-                                country: tournament.country || "",
-                                city: tournament.city || "",
-                                type: tournament.type || "",
-                                allowsIndividualRegistration: tournament.allowsIndividualRegistration,
-                                allowsTeamRegistration: tournament.allowsTeamRegistration,
-                              })
-                            }
-                            className="btn btn-outline btn-full-width"
-                          >
-                            Register a Team
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    <ManagerTeamCard
+                      isRegistrationClosed={isRegistrationClosed}
+                      approvedTeams={approvedTeamsForUser}
+                      onScrollToRoster={() => rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      onOpenRegisterModal={openRegisterModal}
+                    />
                   )}
                 </>
               ) : (
                 <>
                   {pendingInvitesForUser.length > 0 && (
-                    <div className="card card-highlighted card-mb">
-                      <h3 className="card-title">You&apos;re Invited!</h3>
-                      <p className="card-description">
-                        The tournament organizer has invited your team(s) to participate.
-                      </p>
-                      <div className="invite-list">
-                        {pendingInvitesForUser.map((invite) => (
-                          <div key={invite.participantId} className="invite-item">
-                            <p className="invite-team-name">{invite.participantName}</p>
-                            <ActionButtonPair
-                              onAccept={() =>
-                                handleRespondToInvite(invite.participantId || "", true)
-                              }
-                              onDecline={() =>
-                                handleRespondToInvite(invite.participantId || "", false)
-                              }
-                              isLoading={respondingTo === invite.participantId}
-                              size="sm"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <PendingInvitesCard
+                      pendingInvites={pendingInvitesForUser}
+                      respondingTo={respondingTo}
+                      isManager={false}
+                      onAccept={(id) => handleRespondToInvite(id, true)}
+                      onDecline={(id) => handleRespondToInvite(id, false)}
+                    />
                   )}
 
                   {/* Register Now / Manage Rosters Card */}
-                  <div className="card card-mb">
-                    {isRegistrationClosed ? (
-                      <>
-                        <h3 className="card-title">Registration Closed</h3>
-                        <p className="card-description">
-                          Registration for this tournament is now closed. Contact the organizers if you have questions.
-                        </p>
-                        <div className="mt-4 p-3 bg-gray-100 rounded-md border border-gray-300 text-center">
-                          <svg className="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                          <p className="text-sm font-medium text-gray-700">Registration is now closed</p>
-                        </div>
-                      </>
-                    ) : approvedTeamsForUser.length > 0 ? (
-                      <>
-                        <h3 className="card-title">You&apos;re Registered!</h3>
-                        <p className="card-description">
-                          Your team is registered for this tournament. Manage your roster below.
-                        </p>
-                        <button
-                          onClick={() =>
-                            rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-                          }
-                          className="btn btn-primary btn-full-width card-mb"
-                        >
-                          Manage Your Rosters
-                        </button>
-                        <button
-                          onClick={() =>
-                            registerModalRef.current?.open({
-                              id: tournament.id || "",
-                              name: tournament.name || "",
-                              startDate: tournament.startDate || "",
-                              endDate: tournament.endDate || "",
-                              country: tournament.country || "",
-                              city: tournament.city || "",
-                              type: tournament.type || "",
-                              allowsIndividualRegistration: tournament.allowsIndividualRegistration,
-                              allowsTeamRegistration: tournament.allowsTeamRegistration,
-                            })
-                          }
-                          className="btn btn-outline btn-full-width"
-                        >
-                          Register Another Team
-                        </button>
-                      </>
-                    ) : myIndividualInvite ? (
-                      <>
-                        <h3 className="card-title">
-                          {myIndividualInvite.status === "approved"
-                            ? "You're Registered!"
-                            : myIndividualInvite.status === "rejected"
-                            ? "Registration Rejected"
-                            : "Registration Pending"}
-                        </h3>
-                        <div className={`mt-2 p-3 rounded text-sm font-medium ${
-                          myIndividualInvite.status === "approved"
-                            ? "bg-green-50 border border-green-200 text-green-800"
-                            : myIndividualInvite.status === "rejected"
-                            ? "bg-red-50 border border-red-200 text-red-800"
-                            : "bg-yellow-50 border border-yellow-200 text-yellow-800"
-                        }`}>
-                          {myIndividualInvite.status === "approved" &&
-                            "You have been accepted to this tournament as an individual player."}
-                          {myIndividualInvite.status === "rejected" &&
-                            "Your individual registration was rejected by the tournament organizer."}
-                          {(myIndividualInvite.status === "pending" || !myIndividualInvite.status) &&
-                            "Your registration is pending the tournament organizer's decision."}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <h3 className="card-title">Register Now</h3>
-                        <p className="card-description">
-                          Secure your spot in this exciting tournament. Limited slots available!
-                        </p>
-                        <button
-                          onClick={() =>
-                            registerModalRef.current?.open({
-                              id: tournament.id || "",
-                              name: tournament.name || "",
-                              startDate: tournament.startDate || "",
-                              endDate: tournament.endDate || "",
-                              country: tournament.country || "",
-                              city: tournament.city || "",
-                              type: tournament.type || "",
-                              allowsIndividualRegistration: tournament.allowsIndividualRegistration,
-                              allowsTeamRegistration: tournament.allowsTeamRegistration,
-                            })
-                          }
-                          className="btn btn-primary btn-full-width"
-                        >
-                          Register for Tournament
-                        </button>
-                      </>
-                    )}
-                  </div>
+                  <UserRegistrationCard
+                    isRegistrationClosed={isRegistrationClosed}
+                    approvedTeams={approvedTeamsForUser}
+                    myIndividualInvite={myIndividualInvite}
+                    onScrollToRoster={() => rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
+                    onOpenRegisterModal={openRegisterModal}
+                  />
 
                   {/* Need Help Card */}
                   <div className="card">

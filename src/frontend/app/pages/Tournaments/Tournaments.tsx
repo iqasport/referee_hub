@@ -14,6 +14,50 @@ const DEFAULT_PAGE_SIZE = 8;
 // Tournaments ended more than this many days ago are considered "past"
 const PAST_TOURNAMENT_DAYS = 30;
 
+// ── Sub-component ─────────────────────────────────────────────────────────────
+
+interface TournamentGridViewProps {
+  privateTournaments: TournamentData[];
+  publicTournaments: TournamentData[];
+  totalCount: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}
+const TournamentGridView: React.FC<TournamentGridViewProps> = ({
+  privateTournaments, publicTournaments, totalCount, currentPage, onPageChange,
+}) => (
+  <div className="tournament-page-container">
+    {privateTournaments.length > 0 && (
+      <TournamentSection tournaments={privateTournaments} visibility="private" layout="carousel" />
+    )}
+    {publicTournaments.length > 0 && (
+      <>
+        <TournamentSection tournaments={publicTournaments} visibility="public" layout="grid" />
+        {totalCount > DEFAULT_PAGE_SIZE && (
+          <div className="flex justify-center py-4">
+            <Pagination
+              current={currentPage}
+              total={totalCount}
+              onChange={onPageChange}
+              pageSize={DEFAULT_PAGE_SIZE}
+              prevIcon={<FontAwesomeIcon icon={faArrowLeft} />}
+              nextIcon={<FontAwesomeIcon icon={faArrowRight} />}
+              className="pagination"
+              hideOnSinglePage={true}
+              jumpPrevIcon={<FontAwesomeIcon icon={faEllipsisH} />}
+              jumpNextIcon={<FontAwesomeIcon icon={faEllipsisH} />}
+              showTitle={false}
+            />
+          </div>
+        )}
+      </>
+    )}
+    {privateTournaments.length === 0 && publicTournaments.length === 0 && (
+      <div className="tournament-empty">No tournaments available.</div>
+    )}
+  </div>
+);
+
 const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("q") || "";
@@ -206,46 +250,13 @@ const Tournament = () => {
           tournaments={calendarTournaments}
         />
       ) : (
-        <div className="tournament-page-container">
-          {privateTournaments.length > 0 && (
-            <TournamentSection
-              tournaments={privateTournaments}
-              visibility="private"
-              layout="carousel"
-            />
-          )}
-
-          {publicTournaments.length > 0 && (
-            <>
-              <TournamentSection
-                tournaments={publicTournaments}
-                visibility="public"
-                layout="grid"
-              />
-              {totalCount > DEFAULT_PAGE_SIZE && (
-                <div className="flex justify-center py-4">
-                  <Pagination
-                    current={currentPage}
-                    total={totalCount}
-                    onChange={handlePageChange}
-                    pageSize={DEFAULT_PAGE_SIZE}
-                    prevIcon={<FontAwesomeIcon icon={faArrowLeft} />}
-                    nextIcon={<FontAwesomeIcon icon={faArrowRight} />}
-                    className="pagination"
-                    hideOnSinglePage={true}
-                    jumpPrevIcon={<FontAwesomeIcon icon={faEllipsisH} />}
-                    jumpNextIcon={<FontAwesomeIcon icon={faEllipsisH} />}
-                    showTitle={false}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {privateTournaments.length === 0 && publicTournaments.length === 0 && (
-            <div className="tournament-empty">No tournaments available.</div>
-          )}
-        </div>
+        <TournamentGridView
+          privateTournaments={privateTournaments}
+          publicTournaments={publicTournaments}
+          totalCount={totalCount}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
       )}
     </>
   );

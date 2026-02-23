@@ -87,7 +87,74 @@ const PlayerInviteCard: React.FC<PlayerInviteCardProps> = ({
   );
 };
 
-/** Renders a single team invite row in the list view. */
+/** Renders the detail view for a single team invite. */
+interface TeamDetailViewProps {
+  invite: TournamentInviteViewModel;
+  isSubmitting: boolean;
+  onApprove: (id: string, name: string) => void;
+  onDeny: (id: string, name: string) => void;
+  onDelete: (id: string, name: string) => void;
+}
+const TeamDetailView: React.FC<TeamDetailViewProps> = ({
+  invite, isSubmitting, onApprove, onDeny, onDelete,
+}) => (
+  <div>
+    <div className="bg-gray-50 rounded-lg p-4 mb-4">
+      <p className="text-sm text-gray-600 mb-1">Team Name</p>
+      <p className="text-lg font-semibold text-gray-900">{invite.participantName}</p>
+    </div>
+    <div className="bg-gray-50 rounded-lg p-4 mb-4">
+      <p className="text-sm text-gray-600 mb-1">Request Submitted</p>
+      <p className="text-sm font-semibold text-gray-900">
+        {new Date(invite.createdAt).toLocaleDateString("en-US", {
+          month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit",
+        })}
+      </p>
+    </div>
+    <div className="bg-gray-50 rounded-lg p-4 mb-6">
+      <p className="text-sm text-gray-600 mb-2">Status</p>
+      <div className="flex items-center">
+        <StatusBadge status={invite.status || "unknown"} />
+        {invite.status !== "pending" && invite.tournamentManagerApproval?.date && (
+          <span className="text-xs text-gray-600 ml-2">
+            on {new Date(invite.tournamentManagerApproval.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          </span>
+        )}
+      </div>
+    </div>
+    {invite.status === "pending" && invite.tournamentManagerApproval?.status === "pending" && (
+      <ActionButtonPair
+        onAccept={() => onApprove(invite.participantId ?? "", invite.participantName || "")}
+        onDecline={() => onDeny(invite.participantId ?? "", invite.participantName || "")}
+        isLoading={isSubmitting}
+        acceptLabel="Approve"
+        declineLabel="Deny"
+        loadingLabel="Processing..."
+      />
+    )}
+    {invite.status === "pending" &&
+      invite.tournamentManagerApproval?.status === "approved" &&
+      invite.participantApproval?.status === "pending" && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">⏳ Waiting for the team to accept or decline this invitation.</p>
+        </div>
+      )}
+    {invite.status === "rejected" && (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-sm text-red-800 mb-3">
+          This registration was rejected. You can remove this invite to allow the team to be re-invited.
+        </p>
+        <button
+          onClick={() => onDelete(invite.participantId ?? "", invite.participantName || "")}
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          {isSubmitting ? "Removing..." : "Remove Invite"}
+        </button>
+      </div>
+    )}
+  </div>
+);
 interface TeamInviteListRowProps {
   invite: TournamentInviteViewModel;
   getPendingLabel: (invite: TournamentInviteViewModel) => string;
@@ -307,99 +374,13 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                 </div>
               ) : selectedInvite && selectedInviteData ? (
                 /* ── Team detail view ── */
-                <div>
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-gray-600 mb-1">Team Name</p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {selectedInviteData.participantName}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-gray-600 mb-1">Request Submitted</p>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {new Date(selectedInviteData.createdAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-gray-600 mb-2">Status</p>
-                    <div className="flex items-center">
-                      <StatusBadge status={selectedInviteData.status || "unknown"} />
-                      {selectedInviteData.status !== "pending" &&
-                        selectedInviteData.tournamentManagerApproval?.date && (
-                          <span className="text-xs text-gray-600 ml-2">
-                            on{" "}
-                            {new Date(
-                              selectedInviteData.tournamentManagerApproval.date
-                            ).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-
-                  {selectedInviteData.status === "pending" &&
-                    selectedInviteData.tournamentManagerApproval?.status === "pending" && (
-                      <ActionButtonPair
-                        onAccept={() =>
-                          handleApprove(
-                            selectedInviteData.participantId ?? "",
-                            selectedInviteData.participantName || ""
-                          )
-                        }
-                        onDecline={() =>
-                          handleDeny(
-                            selectedInviteData.participantId ?? "",
-                            selectedInviteData.participantName || ""
-                          )
-                        }
-                        isLoading={isSubmitting}
-                        acceptLabel="Approve"
-                        declineLabel="Deny"
-                        loadingLabel="Processing..."
-                      />
-                    )}
-
-                  {selectedInviteData.status === "pending" &&
-                    selectedInviteData.tournamentManagerApproval?.status === "approved" &&
-                    selectedInviteData.participantApproval?.status === "pending" && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-800">
-                          ⏳ Waiting for the team to accept or decline this invitation.
-                        </p>
-                      </div>
-                    )}
-
-                  {selectedInviteData.status === "rejected" && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-sm text-red-800 mb-3">
-                        This registration was rejected. You can remove this invite to allow the
-                        team to be re-invited.
-                      </p>
-                      <button
-                        onClick={() =>
-                          handleDeleteInvite(
-                            selectedInviteData.participantId ?? "",
-                            selectedInviteData.participantName || ""
-                          )
-                        }
-                        disabled={isSubmitting}
-                        className="px-4 py-2 text-sm font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-                      >
-                        {isSubmitting ? "Removing..." : "Remove Invite"}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <TeamDetailView
+                  invite={selectedInviteData}
+                  isSubmitting={isSubmitting}
+                  onApprove={handleApprove}
+                  onDeny={handleDeny}
+                  onDelete={handleDeleteInvite}
+                />
               ) : (
                 /* ── List view ── */
                 <>

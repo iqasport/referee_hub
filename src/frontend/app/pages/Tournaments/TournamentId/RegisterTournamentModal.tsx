@@ -119,7 +119,58 @@ const RegisteredTeamsList: React.FC<RegisteredTeamsListProps> = ({ registeredTea
   );
 };
 
-// ── Main component ────────────────────────────────────────────────────────────
+interface TeamRegistrationFormSectionProps {
+  tournamentType: string;
+  isLoadingTeams: boolean;
+  availableTeams: ManagedTeam[];
+  registeredManagedTeams: { teamId: string; teamName: string; status: string }[];
+  selectedTeamId: string;
+  onSelect: (teamId: string) => void;
+}
+const TeamRegistrationFormSection: React.FC<TeamRegistrationFormSectionProps> = ({
+  tournamentType, isLoadingTeams, availableTeams, registeredManagedTeams, selectedTeamId, onSelect,
+}) => (
+  <>
+    {tournamentType !== "Fantasy" && (
+      <p className="text-xs text-amber-700 font-medium">
+        Eligibility: {eligibilityLabel(tournamentType as Parameters<typeof eligibilityLabel>[0])}
+      </p>
+    )}
+    <div>
+      <h5 className="text-sm font-semibold text-gray-900 mb-3">Team Information</h5>
+      <div className="mb-4">
+        <label htmlFor="teamSelect" className="block text-sm font-medium text-gray-700 mb-1">
+          Select an existing team you manage
+        </label>
+        {isLoadingTeams ? (
+          <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+            Loading teams...
+          </div>
+        ) : (
+          <select
+            id="teamSelect"
+            value={selectedTeamId}
+            onChange={(e) => onSelect(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
+          >
+            <option value="">Select an existing team you manage</option>
+            {availableTeams.map((team) => (
+              <option key={team.teamId} value={team.teamId}>{team.teamName}</option>
+            ))}
+          </select>
+        )}
+        {!isLoadingTeams && availableTeams.length === 0 && (
+          <p className="text-sm text-amber-600 mt-2">No eligible teams found for this tournament type.</p>
+        )}
+        <RegisteredTeamsList registeredTeams={registeredManagedTeams} />
+      </div>
+    </div>
+    <p className="text-xs text-gray-500">
+      Once the tournament organizer approves your invite, you&apos;ll be able to manage
+      your team&apos;s roster and submit your player list.
+    </p>
+  </>
+);
 
 const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
@@ -417,65 +468,17 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
             {!isAlreadyRegisteredIndividualOnly && (
             <>
 
-            {/* Individual registration panel */}
             {registrationMode === "individual" ? (
               <IndividualRegistrationPanel />
             ) : (
-              <>
-                {/* Team Selection */}
-                {tournament?.type !== "Fantasy" && (
-                  <p className="text-xs text-amber-700 font-medium">
-                    Eligibility: {eligibilityLabel(tournament?.type as Parameters<typeof eligibilityLabel>[0])}
-                  </p>
-                )}
-                <div>
-                  <h5 className="text-sm font-semibold text-gray-900 mb-3">Team Information</h5>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="teamSelect"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Select an existing team you manage
-                    </label>
-                    {isLoadingTeams ? (
-                      <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
-                        Loading teams...
-                      </div>
-                    ) : (
-                      <select
-                        id="teamSelect"
-                        value={teamData.selectedTeamId}
-                        onChange={(e) =>
-                          setTeamData((prev) => ({
-                            ...prev,
-                            selectedTeamId: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
-                      >
-                        <option value="">Select an existing team you manage</option>
-                        {availableTeams.map((team) => (
-                          <option key={team.teamId} value={team.teamId}>
-                            {team.teamName}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    {!isLoadingTeams && availableTeams.length === 0 && (
-                      <p className="text-sm text-amber-600 mt-2">
-                        No eligible teams found for this tournament type.
-                      </p>
-                    )}
-                    <RegisteredTeamsList registeredTeams={registeredManagedTeams} />
-                  </div>
-                </div>
-
-                {/* Info Note */}
-                <p className="text-xs text-gray-500">
-                  Once the tournament organizer approves your invite, you&apos;ll be able to manage
-                  your team&apos;s roster and submit your player list.
-                </p>
-              </>
+              <TeamRegistrationFormSection
+                tournamentType={tournament?.type || ""}
+                isLoadingTeams={isLoadingTeams}
+                availableTeams={availableTeams}
+                registeredManagedTeams={registeredManagedTeams}
+                selectedTeamId={teamData.selectedTeamId}
+                onSelect={(teamId) => setTeamData((prev) => ({ ...prev, selectedTeamId: teamId }))}
+              />
             )}
 
             {/* Action Buttons */}
