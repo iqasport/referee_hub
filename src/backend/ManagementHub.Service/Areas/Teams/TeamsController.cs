@@ -60,7 +60,11 @@ public class TeamsController : ControllerBase
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Any);
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
-		return this.teamContextProvider.GetTeams(NgbConstraint.Any, TeamGroupAffiliation.National)
+		// Materialize the query before filtering to avoid LINQ translation issues
+		// This is acceptable because national teams are few in number
+		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Any).ToListAsync();
+		return teams
+			.Where(team => team.TeamData.GroupAffiliation == TeamGroupAffiliation.National)
 			.Select(team => new NgbTeamViewModel
 			{
 				TeamId = team.TeamId,

@@ -117,6 +117,7 @@ public class TournamentsController : ControllerBase
 			IsRegistrationOpen = t.IsRegistrationOpen,
 			AllowsIndividualRegistration = t.AllowsIndividualRegistration,
 			AllowsTeamRegistration = t.AllowsTeamRegistration,
+			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		}).ToList();
 
@@ -163,6 +164,7 @@ public class TournamentsController : ControllerBase
 			IsRegistrationOpen = tournament.IsRegistrationOpen,
 			AllowsIndividualRegistration = tournament.AllowsIndividualRegistration,
 			AllowsTeamRegistration = tournament.AllowsTeamRegistration,
+			BannerImageUrl = bannerUri?.ToString(),
 			IsCurrentUserInvolved = tournament.IsCurrentUserInvolved
 		};
 	}
