@@ -12,4 +12,7 @@ public class TeamData
 	public required TeamStatus Status { get; set; }
 	public required TeamGroupAffiliation GroupAffiliation { get; set; }
 	public required DateTime JoinedAt { get; set; }
+	public string? LogoUrl { get; set; }
+	public string? Description { get; set; }
+	public string? ContactEmail { get; set; }
 }

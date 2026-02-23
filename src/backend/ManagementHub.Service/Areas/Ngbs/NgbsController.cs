@@ -276,6 +276,9 @@ public class NgbsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+				LogoUrl = team.TeamData.LogoUrl,
+				Description = team.TeamData.Description,
+				ContactEmail = team.TeamData.ContactEmail,
 			}).AsFiltered();
 	}
 
@@ -306,6 +309,9 @@ public class NgbsController : ControllerBase
 			Status = viewModel.Status,
 			GroupAffiliation = viewModel.GroupAffiliation,
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
+			LogoUrl = viewModel.LogoUrl,
+			Description = viewModel.Description,
+			ContactEmail = viewModel.ContactEmail,
 		};
 		var team = await this.teamContextProvider.CreateTeamAsync(ngb, teamData);
 		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
@@ -320,6 +326,9 @@ public class NgbsController : ControllerBase
 			Country = team.TeamData.Country,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts,
+			LogoUrl = team.TeamData.LogoUrl,
+			Description = team.TeamData.Description,
+			ContactEmail = team.TeamData.ContactEmail,
 		};
 	}
 
@@ -350,6 +359,9 @@ public class NgbsController : ControllerBase
 			Status = viewModel.Status,
 			GroupAffiliation = viewModel.GroupAffiliation,
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
+			LogoUrl = viewModel.LogoUrl,
+			Description = viewModel.Description,
+			ContactEmail = viewModel.ContactEmail,
 		};
 		var team = await this.teamContextProvider.UpdateTeamAsync(ngb, teamId, teamData);
 		var socialAccounts = await this.socialAccountsProvider.UpdateTeamSocialAccounts(team.TeamId, viewModel.SocialAccounts);
@@ -364,6 +376,9 @@ public class NgbsController : ControllerBase
 			Country = team.TeamData.Country,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts,
+			LogoUrl = team.TeamData.LogoUrl,
+			Description = team.TeamData.Description,
+			ContactEmail = team.TeamData.ContactEmail,
 		};
 	}
 

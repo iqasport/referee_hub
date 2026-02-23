@@ -125,13 +125,24 @@ const RefereeTeam = (props: RefereeTeamProps) => {
   };
   const emptyTeam = "Team not selected";
 
+  const renderTeamName = (type: keyof RefereeTeamOptions): JSX.Element => {
+    if (!hasType(type)) {
+      return <span>{emptyTeam}</span>;
+    }
+
+    const teamName = getTeamName(type);
+
+    // Always display the name as plain text (privacy)
+    return <span>{teamName}</span>;
+  };
+
   return (
     <div className="flex flex-col w-1/2 p-4">
       <div className="w-full mb-4">
         <h4 className="text-sm mb-2">Playing Team</h4>
         {!isEditing && (
           <p className="font-bold">
-            {hasType("playingTeam") ? getTeamName("playingTeam") : emptyTeam}
+            {renderTeamName("playingTeam")}
           </p>
         )}
         {isEditing && renderDropdown("playingTeam", "playing")}
@@ -140,7 +151,7 @@ const RefereeTeam = (props: RefereeTeamProps) => {
         <h4 className="text-sm mb-2">Coaching Team</h4>
         {!isEditing && (
           <p className="font-bold">
-            {hasType("coachingTeam") ? getTeamName("coachingTeam") : emptyTeam}
+            {renderTeamName("coachingTeam")}
           </p>
         )}
         {isEditing && renderDropdown("coachingTeam", "coaching")}
