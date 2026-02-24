@@ -22,10 +22,11 @@ import {
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
   useAddTournamentManagerMutation,
+  useDeleteTournamentMutation,
   TournamentInviteViewModel,
   TournamentViewModel,
 } from "../../../store/serviceApi";
-import { useNavigationParams } from "../../../utils/navigationUtils";
+import { useNavigationParams, useNavigate } from "../../../utils/navigationUtils";
 import { getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -294,6 +295,7 @@ interface ManagerSidebarProps {
   approvedTeamsForUser: ApprovedTeam[];
   isRegistrationClosed: boolean;
   onEdit: () => void;
+  onDelete: () => void;
   onViewRegistrations: () => void;
   onInviteTeams: () => void;
   onAddManagerOpen: () => void;
@@ -310,7 +312,7 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
   tournament, inviteCount, approvedCount, playerCount,
   isAddManagerOpen, addManagerEmail, isAddingManager,
   pendingInvitesForUser, respondingTo, approvedTeamsForUser,
-  isRegistrationClosed, onEdit, onViewRegistrations, onInviteTeams,
+  isRegistrationClosed, onEdit, onDelete, onViewRegistrations, onInviteTeams,
   onAddManagerOpen, onAddManagerEmailChange, onAddManagerSubmit, onAddManagerCancel,
   onAccept, onDecline, onScrollToRoster, onOpenRegisterModal, managedTeamsCount,
 }) => (
@@ -335,6 +337,9 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
       </button>
       <button onClick={onAddManagerOpen} className="btn btn-secondary btn-full-width">
         Add Tournament Manager
+      </button>
+      <button onClick={onDelete} className="btn btn-danger btn-full-width" style={{ marginTop: "0.75rem" }}>
+        Delete Tournament
       </button>
     </div>
 
@@ -531,6 +536,8 @@ const TournamentDetails = () => {
   const { alertState, showAlert, hideAlert } = useAlert();
 
   const [addTournamentManager, { isLoading: isAddingManager }] = useAddTournamentManagerMutation();
+  const [deleteTournament] = useDeleteTournamentMutation();
+  const navigate = useNavigate();
   const [respondToInvite] = useRespondToInviteMutation();
 
   const {
@@ -563,6 +570,22 @@ const TournamentDetails = () => {
   function handleCancelAddManager() {
     setIsAddManagerOpen(false);
     setAddManagerEmail("");
+  }
+
+  // Handle delete tournament
+  async function handleDelete() {
+    if (!tournamentId) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+    try {
+      await deleteTournament({ tournamentId }).unwrap();
+      navigate("/tournaments");
+    } catch (error) {
+      console.error("Failed to delete tournament:", error);
+      showAlert(getApiErrorMessage(error, "Failed to delete the tournament. Please try again."), "error");
+    }
   }
 
   // Handle accept/decline invite
@@ -684,6 +707,7 @@ const TournamentDetails = () => {
                   approvedTeamsForUser={approvedTeamsForUser}
                   isRegistrationClosed={isRegistrationClosed}
                   onEdit={handleEdit}
+                  onDelete={handleDelete}
                   onViewRegistrations={() => registrationsModalRef.current?.open(tournament.id ?? "", tournament.name ?? "Unknown Tournament")}
                   onInviteTeams={() => inviteTeamsModalRef.current?.open(tournament)}
                   onAddManagerOpen={() => setIsAddManagerOpen(true)}

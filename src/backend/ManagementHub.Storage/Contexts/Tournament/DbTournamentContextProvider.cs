@@ -210,6 +210,23 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.logger.LogInformation("Updated tournament {TournamentId}", tournamentId);
 	}
 
+	public async Task DeleteTournamentAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
+	{
+		var tournament = await this.dbContext.Tournaments
+			.Where(t => t.UniqueId == tournamentId.ToString())
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		this.dbContext.Tournaments.Remove(tournament);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Deleted tournament {TournamentId}", tournamentId);
+	}
+
 	public async Task<Uri?> GetTournamentBannerUriAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
 	{
 		var attachment = await this.attachmentRepository.GetAttachmentAsync(tournamentId, "banner", cancellationToken);
