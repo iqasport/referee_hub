@@ -224,7 +224,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.dbContext.Tournaments.Remove(tournament);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
-		this.logger.LogInformation("Deleted tournament {TournamentId}", tournamentId);
+		var sanitizedId = tournamentId.UniqueId.ToString();
+		this.logger.LogInformation("Deleted tournament {TournamentId}", sanitizedId);
 	}
 
 	public async Task<Uri?> GetTournamentBannerUriAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
