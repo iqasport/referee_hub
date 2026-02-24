@@ -110,6 +110,13 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}` }),
         providesTags: ["Ngb"],
       }),
+      getEligibleNgbs: build.query<GetEligibleNgbsApiResponse, GetEligibleNgbsApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/with-eligible-teams`,
+          params: { groupAffiliations: queryArg.groupAffiliations },
+        }),
+        providesTags: ["Ngb"],
+      }),
       updateNgb: build.mutation<UpdateNgbApiResponse, UpdateNgbApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}`,
@@ -717,6 +724,10 @@ export type GetNgbsApiArg = {
 export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModelRead;
 export type GetNgbInfoApiArg = {
   ngb: string;
+};
+export type GetEligibleNgbsApiResponse = /** status 200 Success */ string[];
+export type GetEligibleNgbsApiArg = {
+  groupAffiliations: TeamGroupAffiliation[];
 };
 export type UpdateNgbApiResponse = unknown;
 export type UpdateNgbApiArg = {
@@ -1715,6 +1726,7 @@ export const {
   useLoginMutation,
   useGetLanguagesQuery,
   useGetNgbsQuery,
+  useGetEligibleNgbsQuery,
   useGetNgbInfoQuery,
   useUpdateNgbMutation,
   useUpdateNgbAvatarMutation,

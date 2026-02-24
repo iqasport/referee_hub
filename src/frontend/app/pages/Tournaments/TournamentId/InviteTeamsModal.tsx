@@ -4,6 +4,7 @@ import React from "react";
 import {
   useGetNgbTeamsQuery,
   useGetNgbsQuery,
+  useGetEligibleNgbsQuery,
   useCreateInviteMutation,
   useGetTournamentInvitesQuery,
   useGetParticipantsQuery,
@@ -12,7 +13,7 @@ import {
 } from "../../../store/serviceApi";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
-import { isTeamEligible, eligibilityLabel, getApiErrorMessage } from "../../../utils/tournamentUtils";
+import { isTeamEligible, eligibilityLabel, getApiErrorMessage, getEligibleAffiliations } from "../../../utils/tournamentUtils";
 
 export interface InviteTeamsModalRef {
   open: (tournament: TournamentViewModel) => void;
@@ -32,6 +33,20 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
     { skipPaging: true },
     { skip: !isOpen }
   );
+
+  // Compute the required affiliations for this tournament type
+  const eligibleAffiliations = getEligibleAffiliations(tournament?.type);
+
+  // Fetch NGBs that actually have eligible + active teams — skip for Fantasy (all allowed)
+  const { data: eligibleNgbCodes } = useGetEligibleNgbsQuery(
+    { groupAffiliations: eligibleAffiliations ?? [] },
+    { skip: !isOpen || eligibleAffiliations === null }
+  );
+
+  // Filtered NGB list: when we have a restriction, show only NGBs with eligible teams
+  const filteredNgbs = eligibleAffiliations === null
+    ? ngbsData?.items  // Fantasy: all NGBs
+    : ngbsData?.items?.filter((ngb) => eligibleNgbCodes?.includes(ngb.countryCode ?? ""));
 
   // Fetch teams from selected NGB
   const { data: teamsData, isLoading: isLoadingTeams } = useGetNgbTeamsQuery(
@@ -216,7 +231,7 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="">Select a region to browse teams...</option>
-                    {ngbsData?.items?.map((ngb) => (
+                    {filteredNgbs?.map((ngb) => (
                       <option key={ngb.countryCode} value={ngb.countryCode}>
                         {ngb.name} ({ngb.countryCode})
                       </option>
