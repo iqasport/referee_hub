@@ -44,6 +44,7 @@ interface ManagedTeam {
   teamName: string;
   ngb: string;
   groupAffiliation?: string;
+  status?: string;
 }
 
 interface TeamRegistrationData {
@@ -201,6 +202,7 @@ function useRegisterInviteState(
 
   const availableTeams = useMemo(() => managedTeams.filter((team) => {
     if (teamsWithExistingInvites.has(team.teamId)) return false;
+    if (team.status === "inactive") return false;
     if (tournament?.type === "Fantasy" && !tournament.allowsTeamRegistration) return false;
     return isTeamEligible(
       team.groupAffiliation as Parameters<typeof isTeamEligible>[0],
@@ -284,14 +286,14 @@ function useManagedTeamsForRegistration() {
     managedTeamsData?.forEach((team: ManagedTeamViewModel) => {
       if (team.teamId && !addedIds.has(team.teamId)) {
         addedIds.add(team.teamId);
-        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "" });
+        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "", status: team.status });
       }
     });
     if (isNgbAdmin) {
       ngbTeamsData?.items?.forEach((team: NgbTeamViewModel) => {
         if (team.teamId && !addedIds.has(team.teamId)) {
           addedIds.add(team.teamId);
-          teams.push({ teamId: team.teamId, teamName: team.name ?? `Team ${team.teamId}`, ngb: primaryNgb, groupAffiliation: team.groupAffiliation });
+          teams.push({ teamId: team.teamId, teamName: team.name ?? `Team ${team.teamId}`, ngb: primaryNgb, groupAffiliation: team.groupAffiliation, status: team.status });
         }
       });
     }

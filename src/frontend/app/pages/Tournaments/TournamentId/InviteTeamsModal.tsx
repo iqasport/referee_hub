@@ -88,6 +88,9 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
       // Exclude already invited or participating teams
       if (unavailableTeamIds.has(team.teamId)) return false;
 
+      // Exclude inactive teams
+      if (team.status === "inactive") return false;
+
       // Restrict by tournament type eligibility
       if (!isTeamEligible(team.groupAffiliation, tournament?.type)) return false;
 

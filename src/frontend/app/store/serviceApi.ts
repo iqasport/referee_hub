@@ -1691,6 +1691,7 @@ export type ManagedTeamViewModel = {
   teamName?: string | null;
   ngb?: string;
   groupAffiliation?: TeamGroupAffiliation;
+  status?: TeamStatus;
 };
 export type UserDataViewModel = {
   firstName?: string | null;
