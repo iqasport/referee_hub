@@ -4,8 +4,7 @@ import { TeamGroupAffiliation, TournamentType } from "../store/serviceApi";
  * Returns the set of TeamGroupAffiliation values that are eligible to
  * participate in a tournament of the given type.
  *
- * - National  → national + not_applicable (legacy national teams created before
- *               the "national" affiliation value existed use "not_applicable")
+ * - National  → national teams only
  * - Club      → community and university teams
  * - Youth     → youth teams only
  * - Fantasy   → all team types (null = no restriction)
@@ -15,9 +14,7 @@ export function getEligibleAffiliations(
 ): TeamGroupAffiliation[] | null {
   switch (tournamentType) {
     case "National":
-      // Include "not_applicable" because legacy national representative teams
-      // (e.g. Asociación Quádbal España) may pre-date the "national" enum value.
-      return ["national", "not_applicable"];
+      return ["national"];
     case "Club":
       return ["community", "university"];
     case "Youth":
@@ -48,7 +45,7 @@ export function isTeamEligible(
 export function eligibilityLabel(tournamentType: TournamentType | undefined | null): string {
   switch (tournamentType) {
     case "National":
-      return "National teams only (including teams with unspecified affiliation)";
+      return "National teams only";
     case "Club":
       return "Community and University teams only";
     case "Youth":

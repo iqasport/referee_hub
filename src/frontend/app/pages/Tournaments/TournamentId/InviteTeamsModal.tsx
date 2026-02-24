@@ -27,8 +27,11 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
   const [searchFilter, setSearchFilter] = useState("");
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
-  // Fetch list of NGBs
-  const { data: ngbsData, isLoading: isLoadingNgbs } = useGetNgbsQuery({}, { skip: !isOpen });
+  // Fetch ALL NGBs (skip pagination so every region appears in the dropdown)
+  const { data: ngbsData, isLoading: isLoadingNgbs } = useGetNgbsQuery(
+    { skipPaging: true },
+    { skip: !isOpen }
+  );
 
   // Fetch teams from selected NGB
   const { data: teamsData, isLoading: isLoadingTeams } = useGetNgbTeamsQuery(
