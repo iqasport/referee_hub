@@ -16,7 +16,7 @@ import {
 } from "../../../store/serviceApi";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
-import { isTeamEligible, eligibilityLabel } from "../../../utils/tournamentUtils";
+import { isTeamEligible, eligibilityLabel, getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 // Role type for current user
 interface UserRole {
@@ -402,7 +402,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
       close();
     } catch (error: unknown) {
       console.error("Failed to register for tournament:", error);
-      showAlert(error instanceof Error ? error.message : "Failed to register for tournament. Please try again.", "error");
+      showAlert(getApiErrorMessage(error, "Failed to register for tournament. Please try again."), "error");
     } finally {
       setIsSubmitting(false);
     }

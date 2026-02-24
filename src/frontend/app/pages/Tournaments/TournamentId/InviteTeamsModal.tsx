@@ -12,7 +12,7 @@ import {
 } from "../../../store/serviceApi";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
-import { isTeamEligible, eligibilityLabel } from "../../../utils/tournamentUtils";
+import { isTeamEligible, eligibilityLabel, getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 export interface InviteTeamsModalRef {
   open: (tournament: TournamentViewModel) => void;
@@ -136,7 +136,7 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
       setSelectedTeamId("");
     } catch (error) {
       console.error("Failed to invite team:", error);
-      showAlert("Failed to send invite. Please try again.", "error");
+      showAlert(getApiErrorMessage(error, "Failed to send invite. Please try again."), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -243,7 +243,9 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
                   <div className="text-center py-8 text-gray-500">Loading teams...</div>
                 ) : availableTeams.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    {searchFilter ? "No teams match your search" : "No available teams to invite"}
+                    {searchFilter
+                      ? "No teams match your search"
+                      : `No eligible teams found in this region. ${tournament?.type ? `This is a ${tournament.type} tournament — only teams with matching affiliation (${eligibilityLabel(tournament.type)}) will appear here.` : "No available teams to invite."}`}
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto">

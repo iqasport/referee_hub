@@ -26,6 +26,7 @@ import {
   TournamentViewModel,
 } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
+import { getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -555,7 +556,7 @@ const TournamentDetails = () => {
       setIsAddManagerOpen(false);
     } catch (error) {
       console.error("Failed to add manager:", error);
-      showAlert("Failed to add manager. Check that the email belongs to a registered user.", "error");
+      showAlert(getApiErrorMessage(error, "Failed to add manager. Check that the email belongs to a registered user."), "error");
     }
   }
 
@@ -580,7 +581,7 @@ const TournamentDetails = () => {
       refetchInvites();
     } catch (error) {
       console.error("Failed to respond to invite:", error);
-      showAlert("Failed to respond. Please try again.", "error");
+      showAlert(getApiErrorMessage(error, "Failed to respond to the invite. Please try again."), "error");
     } finally {
       setRespondingTo(null);
     }

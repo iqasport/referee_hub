@@ -12,6 +12,7 @@ import ActionButtonPair from "../../../components/ActionButtonPair";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
 import RosterViewModal, { RosterViewModalRef } from "./RosterViewModal";
+import { getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 export interface RegistrationsModalRef {
   open: (tournamentId: string, tournamentName: string) => void;
@@ -249,7 +250,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
       refetch();
     } catch (error) {
       console.error("Failed to approve:", error);
-      showAlert("Failed to approve. Please try again.", "error");
+      showAlert(getApiErrorMessage(error, `Failed to approve ${name}'s registration. Please try again.`), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -267,7 +268,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
       refetch();
     } catch (error) {
       console.error("Failed to deny:", error);
-      showAlert("Failed to deny. Please try again.", "error");
+      showAlert(getApiErrorMessage(error, `Failed to deny ${name}'s registration. Please try again.`), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -282,7 +283,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
       setSelectedInvite(null);
     } catch (error) {
       console.error("Failed to delete invite:", error);
-      showAlert("Failed to remove invite. Please try again.", "error");
+      showAlert(getApiErrorMessage(error, "Failed to remove invite. Please try again."), "error");
     } finally {
       setIsSubmitting(false);
     }
