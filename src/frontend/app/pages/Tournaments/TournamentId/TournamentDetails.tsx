@@ -520,6 +520,84 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
   };
 }
 
+// ── Actions hook ──────────────────────────────────────────────────────────────
+
+function useTournamentActions(
+  tournamentId: string | undefined,
+  tournamentName: string | undefined,
+  showAlert: (msg: string, type: "success" | "error") => void,
+  refetchInvites: () => void,
+) {
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [addManagerEmail, setAddManagerEmail] = useState("");
+  const [isAddManagerOpen, setIsAddManagerOpen] = useState(false);
+  const [addTournamentManager, { isLoading: isAddingManager }] = useAddTournamentManagerMutation();
+  const [deleteTournament] = useDeleteTournamentMutation();
+  const navigate = useNavigate();
+  const [respondToInvite] = useRespondToInviteMutation();
+
+  async function handleAddManager(e: React.FormEvent) {
+    e.preventDefault();
+    if (!addManagerEmail.trim() || !tournamentId) return;
+    try {
+      await addTournamentManager({
+        tournamentId,
+        addTournamentManagerModel: { email: addManagerEmail.trim() },
+      }).unwrap();
+      showAlert("Successfully added manager.", "success");
+      setAddManagerEmail("");
+      setIsAddManagerOpen(false);
+    } catch (error) {
+      console.error("Failed to add manager:", error);
+      showAlert(getApiErrorMessage(error, "Failed to add manager. Check that the email belongs to a registered user."), "error");
+    }
+  }
+
+  async function handleDelete() {
+    if (!tournamentId) return;
+    if (!window.confirm(`Are you sure you want to delete "${tournamentName ?? "this tournament"}"? This action cannot be undone.`)) return;
+    try {
+      await deleteTournament({ tournamentId }).unwrap();
+      navigate("/tournaments");
+    } catch (error) {
+      console.error("Failed to delete tournament:", error);
+      showAlert(getApiErrorMessage(error, "Failed to delete the tournament. Please try again."), "error");
+    }
+  }
+
+  async function handleRespondToInvite(participantId: string, approved: boolean) {
+    if (!tournamentId) return;
+    setRespondingTo(participantId);
+    try {
+      await respondToInvite({ tournamentId, participantId, inviteResponseModel: { approved } }).unwrap();
+      showAlert(approved ? "Successfully accepted the invite!" : "Invite declined.", "success");
+      refetchInvites();
+    } catch (error) {
+      console.error("Failed to respond to invite:", error);
+      showAlert(getApiErrorMessage(error, "Failed to respond to the invite. Please try again."), "error");
+    } finally {
+      setRespondingTo(null);
+    }
+  }
+
+  return {
+    respondingTo, addManagerEmail, setAddManagerEmail,
+    isAddManagerOpen, setIsAddManagerOpen, isAddingManager,
+    handleAddManager,
+    handleCancelAddManager: () => { setIsAddManagerOpen(false); setAddManagerEmail(""); },
+    handleDelete, handleRespondToInvite,
+  };
+}
+
+function formatDateRange(startDateStr?: string | null, endDateStr?: string | null): string {
+  const startDate = new Date(startDateStr || "");
+  const endDate = new Date(endDateStr || "");
+  const isSameDay = startDate.toDateString() === endDate.toDateString();
+  return isSameDay
+    ? startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 const TournamentDetails = () => {
@@ -530,15 +608,7 @@ const TournamentDetails = () => {
   const registrationsModalRef = useRef<RegistrationsModalRef>(null);
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
   const rosterSectionRef = useRef<HTMLDivElement>(null);
-  const [respondingTo, setRespondingTo] = useState<string | null>(null);
-  const [addManagerEmail, setAddManagerEmail] = useState("");
-  const [isAddManagerOpen, setIsAddManagerOpen] = useState(false);
   const { alertState, showAlert, hideAlert } = useAlert();
-
-  const [addTournamentManager, { isLoading: isAddingManager }] = useAddTournamentManagerMutation();
-  const [deleteTournament] = useDeleteTournamentMutation();
-  const navigate = useNavigate();
-  const [respondToInvite] = useRespondToInviteMutation();
 
   const {
     tournament, isLoading, isError,
@@ -549,66 +619,11 @@ const TournamentDetails = () => {
     myIndividualInvite, totalPlayerCount, isRegistrationClosed,
   } = useTournamentDetailsData(tournamentId);
 
-  // Handle add manager
-  async function handleAddManager(e: React.FormEvent) {
-    e.preventDefault();
-    if (!addManagerEmail.trim() || !tournamentId) return;
-    try {
-      await addTournamentManager({
-        tournamentId,
-        addTournamentManagerModel: { email: addManagerEmail.trim() },
-      }).unwrap();
-      showAlert(`Successfully added manager.`, "success");
-      setAddManagerEmail("");
-      setIsAddManagerOpen(false);
-    } catch (error) {
-      console.error("Failed to add manager:", error);
-      showAlert(getApiErrorMessage(error, "Failed to add manager. Check that the email belongs to a registered user."), "error");
-    }
-  }
-
-  function handleCancelAddManager() {
-    setIsAddManagerOpen(false);
-    setAddManagerEmail("");
-  }
-
-  // Handle delete tournament
-  async function handleDelete() {
-    if (!tournamentId) return;
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? This action cannot be undone.`
-    );
-    if (!confirmed) return;
-    try {
-      await deleteTournament({ tournamentId }).unwrap();
-      navigate("/tournaments");
-    } catch (error) {
-      console.error("Failed to delete tournament:", error);
-      showAlert(getApiErrorMessage(error, "Failed to delete the tournament. Please try again."), "error");
-    }
-  }
-
-  // Handle accept/decline invite
-  async function handleRespondToInvite(participantId: string, approved: boolean) {
-    if (!tournamentId) return;
-
-    setRespondingTo(participantId);
-    try {
-      await respondToInvite({
-        tournamentId,
-        participantId,
-        inviteResponseModel: { approved },
-      }).unwrap();
-
-      showAlert(approved ? "Successfully accepted the invite!" : "Invite declined.", "success");
-      refetchInvites();
-    } catch (error) {
-      console.error("Failed to respond to invite:", error);
-      showAlert(getApiErrorMessage(error, "Failed to respond to the invite. Please try again."), "error");
-    } finally {
-      setRespondingTo(null);
-    }
-  }
+  const {
+    respondingTo, addManagerEmail, setAddManagerEmail,
+    isAddManagerOpen, setIsAddManagerOpen, isAddingManager,
+    handleAddManager, handleCancelAddManager, handleDelete, handleRespondToInvite,
+  } = useTournamentActions(tournamentId, tournament?.name, showAlert, refetchInvites);
 
   if (isLoading) {
     return (
@@ -626,33 +641,12 @@ const TournamentDetails = () => {
     );
   }
 
-  // Check if current user is a manager of this tournament
-  // Only consider them a manager if they're in the managers list and we successfully fetched the list
   const isManager =
     !managersError && currentUser?.userId && managers
       ? managers.some((manager) => manager.id === currentUser.userId)
       : false;
 
-  const startDate = new Date(tournament.startDate || "");
-  const endDate = new Date(tournament.endDate || "");
-
-  // Check if start and end dates are the same
-  const isSameDay = startDate.toDateString() === endDate.toDateString();
-
-  const formattedDateRange = isSameDay
-    ? startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : `${startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} - ${endDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`;
+  const formattedDateRange = formatDateRange(tournament.startDate, tournament.endDate);
 
   const handleEdit = () => editModalRef.current?.openEdit(buildTournamentEditPayload(tournament));
   const openRegisterModal = () => registerModalRef.current?.open(buildRegisterModalPayload(tournament));
