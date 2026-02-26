@@ -139,10 +139,13 @@ public class TournamentsController : ControllerBase
 		var tournament = await this.tournamentContextProvider
 			.GetTournamentContextAsync(tournamentId, userId, this.HttpContext.RequestAborted);
 
-		// Check access to private tournament - database layer already enforces this
-		// but we keep this check for consistency and to provide proper NotFound response
+		// Check access to private tournament
 		if (tournament.IsPrivate && !tournament.IsCurrentUserInvolved)
 		{
+			// Unauthenticated users should sign in — they may gain access once logged in.
+			// Authenticated users without access get 404 (don't reveal the tournament exists).
+			if (this.HttpContext.User.Identity?.IsAuthenticated != true)
+				return this.Unauthorized();
 			throw new NotFoundException(tournamentId.ToString());
 		}
 

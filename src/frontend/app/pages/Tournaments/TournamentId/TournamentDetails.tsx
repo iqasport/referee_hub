@@ -444,9 +444,11 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
 // ── Data hook ─────────────────────────────────────────────────────────────────
 
 function useTournamentDetailsData(tournamentId: string | undefined) {
-  const { data: tournament, isLoading, isError } = useGetTournamentQuery(
+  const { data: tournament, isLoading, isError, error: tournamentError } = useGetTournamentQuery(
     { tournamentId: tournamentId ?? "" },
   );
+  // 401 → private tournament that requires sign-in; distinguish from 404 (truly not found)
+  const tournamentRequiresAuth = !isLoading && (tournamentError as any)?.status === 401;
   const { data: currentUser } = useGetCurrentUserQuery();
   const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, { skip: !currentUser });
 
@@ -468,11 +470,11 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
 
   const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
     { tournamentId: tournamentId ?? "" },
-    { skip: !tournamentId },
+    { skip: !tournamentId || isError },
   );
   const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
     { tournamentId: tournamentId ?? "" },
-    { skip: !tournamentId },
+    { skip: !tournamentId || isError },
   );
 
   const managedTeamIds = useMemo(() => {
@@ -518,7 +520,7 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
   }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
 
   return {
-    tournament, isLoading, isError,
+    tournament, isLoading, isError, tournamentRequiresAuth,
     currentUser, managers, managersError,
     invites, refetchInvites,
     refetchParticipants,
@@ -619,7 +621,7 @@ const TournamentDetails = () => {
   const { alertState, showAlert, hideAlert } = useAlert();
 
   const {
-    tournament, isLoading, isError,
+    tournament, isLoading, isError, tournamentRequiresAuth,
     currentUser, managers, managersError,
     invites, refetchInvites, refetchParticipants,
     managedTeamsData,
@@ -637,6 +639,14 @@ const TournamentDetails = () => {
     return (
       <div className="tournament-details-loading">
         <p>Loading tournament...</p>
+      </div>
+    );
+  }
+
+  if (tournamentRequiresAuth) {
+    return (
+      <div className="tournament-details-error">
+        <p>This is a private tournament. Please <a href="/sign_in" className="underline text-blue-600">sign in</a> to view it.</p>
       </div>
     );
   }
