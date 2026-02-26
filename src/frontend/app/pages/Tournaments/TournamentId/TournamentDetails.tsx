@@ -693,7 +693,13 @@ const TournamentDetails = () => {
             </div>
 
             <div>
-              {isManager ? (
+              {!currentUser ? (
+                <div className="card">
+                  <p className="text-center" style={{ padding: "1.5rem", color: "#555" }}>
+                    <a href="/sign_in" className="text-link">Sign in</a> to register for this tournament or contact the organizer.
+                  </p>
+                </div>
+              ) : isManager ? (
                 <ManagerSidebar
                   tournament={tournament}
                   inviteCount={invites?.length ?? 0}

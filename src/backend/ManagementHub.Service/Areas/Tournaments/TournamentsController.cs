@@ -78,16 +78,17 @@ public class TournamentsController : ControllerBase
 	/// </summary>
 	[HttpGet]
 	[Tags("Tournament")]
+	[AllowAnonymous]
 	public async Task<Filtered<TournamentViewModel>> GetTournaments([FromQuery] FilteringParameters filtering)
 	{
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var userId = await this.TryGetCurrentUserIdAsync();
 
 		// QueryTournaments performs all filtering and computation at the database level via joins:
 		// - Filters private tournaments (only shows those the user manages)
 		// - Computes IsCurrentUserInvolved based on tournament manager status
 		// Phase 3 will extend: also check if user is a participant via team manager role
 		// Phase 4 will extend: also check if user is on a roster
-		var tournaments = this.tournamentContextProvider.QueryTournaments(userContext.UserId).ToList();
+		var tournaments = this.tournamentContextProvider.QueryTournaments(userId).ToList();
 
 		// Fetch banner URLs for all tournaments
 		var tournamentIds = tournaments.Select(t => t.Id).ToList();
@@ -131,11 +132,12 @@ public class TournamentsController : ControllerBase
 	/// </summary>
 	[HttpGet("{tournamentId}")]
 	[Tags("Tournament")]
+	[AllowAnonymous]
 	public async Task<ActionResult<TournamentViewModel>> GetTournament([FromRoute] TournamentIdentifier tournamentId)
 	{
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var userId = await this.TryGetCurrentUserIdAsync();
 		var tournament = await this.tournamentContextProvider
-			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+			.GetTournamentContextAsync(tournamentId, userId, this.HttpContext.RequestAborted);
 
 		// Check access to private tournament - database layer already enforces this
 		// but we keep this check for consistency and to provide proper NotFound response
@@ -418,10 +420,15 @@ public class TournamentsController : ControllerBase
 	/// </summary>
 	[HttpGet("{tournamentId}/invites")]
 	[Tags("Tournament")]
-	[Authorize]
+	[AllowAnonymous]
 	public async Task<IEnumerable<TournamentInviteViewModel>> GetTournamentInvites(
 		[FromRoute] TournamentIdentifier tournamentId)
 	{
+		if (this.HttpContext.User.Identity?.IsAuthenticated != true)
+		{
+			return Array.Empty<TournamentInviteViewModel>();
+		}
+
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
 		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
@@ -1377,6 +1384,21 @@ public class TournamentsController : ControllerBase
 	}
 
 	// Helper methods
+
+	/// <summary>
+	/// Returns the current user's identifier, or <c>default</c> when the request is unauthenticated.
+	/// Use this in [AllowAnonymous] endpoints so anonymous callers get an empty userId (no private data).
+	/// </summary>
+	private async Task<UserIdentifier> TryGetCurrentUserIdAsync()
+	{
+		if (this.HttpContext.User.Identity?.IsAuthenticated == true)
+		{
+			var ctx = await this.contextAccessor.GetCurrentUserContextAsync();
+			return ctx.UserId;
+		}
+
+		return default;
+	}
 
 	private static bool CanTeamJoinTournament(TournamentType tournamentType, TeamGroupAffiliation? teamAffiliation)
 	{

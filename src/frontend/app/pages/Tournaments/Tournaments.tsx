@@ -6,7 +6,7 @@ import Pagination from "rc-pagination";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
 import TournamentCalendar from "./components/TournamentCalendar";
-import { useGetTournamentsQuery, TournamentViewModel } from "../../store/serviceApi";
+import { useGetTournamentsQuery, useGetCurrentUserQuery, TournamentViewModel } from "../../store/serviceApi";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
 const DEFAULT_PAGE_SIZE = 8;
@@ -66,6 +66,7 @@ const Tournament = () => {
   const [showPast, setShowPast] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "calendar">("grid");
   const modalRef = useRef<AddTournamentModalRef>(null);
+  const { currentData: currentUser } = useGetCurrentUserQuery();
 
   // Query for user's private tournaments (no pagination - uses lazy loading in carousel)
   const {
@@ -232,9 +233,11 @@ const Tournament = () => {
                 <FontAwesomeIcon icon={faCalendarAlt} />
               </button>
             </div>
-            <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
-              Add Tournament
-            </button>
+            {currentUser && (
+              <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
+                Add Tournament
+              </button>
+            )}
           </div>
         </div>
 
