@@ -440,7 +440,7 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
     { tournamentId: tournamentId ?? "" },
   );
   const { data: currentUser } = useGetCurrentUserQuery();
-  const { data: managedTeamsData } = useGetManagedTeamsQuery();
+  const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, { skip: !currentUser });
 
   const isTournamentManagerOfThis = useMemo(
     () => currentUser?.roles?.some((role: any) => {

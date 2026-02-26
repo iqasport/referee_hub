@@ -57,7 +57,8 @@ const App = () => {
 
   if (currentUser) Bugsnag.setUser(currentUser.userId);
 
-  if (isLoading === true) return <Loader />;
+  const isPublicRoute = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route));
+  if (isLoading && !isPublicRoute) return <Loader />;
 
   return (
   <Suspense fallback={<Loader />}>
