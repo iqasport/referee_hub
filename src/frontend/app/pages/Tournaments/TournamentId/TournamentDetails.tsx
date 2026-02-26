@@ -393,13 +393,21 @@ interface UserSidebarProps {
   onDecline: (id: string) => void;
   onScrollToRoster: () => void;
   onOpenRegisterModal: () => void;
+  approvedCount: number;
+  playerCount: number;
 }
 const UserSidebar: React.FC<UserSidebarProps> = ({
   pendingInvitesForUser, respondingTo, isRegistrationClosed,
   approvedTeamsForUser, myIndividualInvite, tournament, contactOrganizerRef,
   onAccept, onDecline, onScrollToRoster, onOpenRegisterModal,
+  approvedCount, playerCount,
 }) => (
   <>
+    <TournamentStats
+      approvedCount={approvedCount}
+      playerCount={playerCount}
+      isPrivate={tournament.isPrivate ?? false}
+    />
     {pendingInvitesForUser.length > 0 && (
       <PendingInvitesCard
         pendingInvites={pendingInvitesForUser}
@@ -740,6 +748,8 @@ const TournamentDetails = () => {
                   onDecline={(id) => handleRespondToInvite(id, false)}
                   onScrollToRoster={scrollToRoster}
                   onOpenRegisterModal={openRegisterModal}
+                  approvedCount={approvedInviteCount}
+                  playerCount={totalPlayerCount}
                 />
               )}
             </div>
