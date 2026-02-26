@@ -958,14 +958,14 @@ public class TournamentsController : ControllerBase
 	/// </summary>
 	[HttpGet("{tournamentId}/participants")]
 	[Tags("Tournament")]
-	[Authorize]
+	[AllowAnonymous]
 	public async Task<IEnumerable<TournamentParticipantViewModel>> GetParticipants(
 		[FromRoute] TournamentIdentifier tournamentId)
 	{
 		// Check access: public tournament or user is manager/participant
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var userId = await this.TryGetCurrentUserIdAsync();
 		var tournament = await this.tournamentContextProvider
-			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+			.GetTournamentContextAsync(tournamentId, userId, this.HttpContext.RequestAborted);
 
 		if (tournament.IsPrivate && !tournament.IsCurrentUserInvolved)
 		{
@@ -1000,8 +1000,10 @@ public class TournamentsController : ControllerBase
 						: UserIdentifier.FromLegacyUserId(e.UserId))
 					.ToList();
 
-				// Load gender data with access control
-				var genderData = await this.GetAccessibleGenderDataAsync(playerUserIds, userContext);
+				// Load gender data with access control (only for authenticated users; gender is private)
+			var genderData = this.HttpContext.User.Identity?.IsAuthenticated == true
+				? await this.GetAccessibleGenderDataAsync(playerUserIds, await this.contextAccessor.GetCurrentUserContextAsync())
+				: new Dictionary<UserIdentifier, string?>();
 
 				// Build player view models
 				players = participantEntity.RosterEntries
