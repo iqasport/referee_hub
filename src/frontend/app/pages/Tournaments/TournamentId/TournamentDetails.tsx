@@ -464,7 +464,7 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
   );
   const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
     { tournamentId: tournamentId ?? "" },
-    { skip: !tournamentId },
+    { skip: !tournamentId || !currentUser },
   );
 
   const managedTeamIds = useMemo(() => {
