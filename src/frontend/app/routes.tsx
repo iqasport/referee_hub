@@ -66,14 +66,14 @@ const App = () => {
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
-          { currentUser && <Avatar
+          { currentUser ? <Avatar
             firstName={currentUser.firstName}
             lastName={currentUser.lastName}
             roles={roles}
             userId={currentUser.userId}
             ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
             enabledFeatures={/* FUTURE: currentUser?.enabledFeatures when feature flags are implemented */ undefined}
-            />}
+            /> : !isLoading && <a href="/sign_in" className="green-button-outline px-4 py-1">Sign In</a>}
         </div>
         <Routes>
           <Route
