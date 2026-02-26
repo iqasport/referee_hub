@@ -432,7 +432,17 @@ public class TournamentsController : ControllerBase
 			return Array.Empty<TournamentInviteViewModel>();
 		}
 
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		IUserContext userContext;
+		try
+		{
+			userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		}
+		catch (NotFoundException)
+		{
+			// Cookie references a user ID that no longer exists in the DB
+			// (stale session, cross-environment cookie, etc.) — treat as unauthenticated.
+			return Array.Empty<TournamentInviteViewModel>();
+		}
 
 		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
 			.Any(r => r.Tournament.AppliesTo(tournamentId));
