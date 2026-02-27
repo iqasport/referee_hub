@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { useState, forwardRef, useImperativeHandle, useRef, useMemo } from "react";
+import { useState, forwardRef, useImperativeHandle, useRef, useMemo, useCallback } from "react";
 import React from "react";
 import {
   useGetTournamentInvitesQuery,
@@ -156,31 +156,93 @@ const TeamDetailView: React.FC<TeamDetailViewProps> = ({
     )}
   </div>
 );
+/** Bulk-action bar shown above the list when ≥1 item is checked. */
+interface BulkActionBarProps {
+  count: number;
+  total: number;
+  isBulkProcessing: boolean;
+  bulkProgress: string;
+  onSelectAll: () => void;
+  onClearAll: () => void;
+  onApproveAll: () => void;
+  onDenyAll: () => void;
+}
+const BulkActionBar: React.FC<BulkActionBarProps> = ({
+  count, total, isBulkProcessing, bulkProgress,
+  onSelectAll, onClearAll, onApproveAll, onDenyAll,
+}) => (
+  <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+    <span className="text-sm font-medium text-amber-900 mr-1">
+      {count} of {total} selected
+    </span>
+    <button onClick={onSelectAll} className="text-xs text-amber-700 hover:underline" disabled={isBulkProcessing}>
+      Select all
+    </button>
+    <button onClick={onClearAll} className="text-xs text-gray-500 hover:underline" disabled={isBulkProcessing}>
+      Clear
+    </button>
+    <div className="flex-1" />
+    {isBulkProcessing ? (
+      <span className="text-xs text-gray-600 italic">{bulkProgress}</span>
+    ) : (
+      <>
+        <button
+          onClick={onApproveAll}
+          className="px-3 py-1.5 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-700"
+        >
+          ✓ Approve selected
+        </button>
+        <button
+          onClick={onDenyAll}
+          className="px-3 py-1.5 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700"
+        >
+          ✗ Deny selected
+        </button>
+      </>
+    )}
+  </div>
+);
+
 interface TeamInviteListRowProps {
   invite: TournamentInviteViewModel;
   getPendingLabel: (invite: TournamentInviteViewModel) => string;
   onSelect: (id: string) => void;
   onViewRoster: () => void;
+  isCheckable: boolean;
+  isChecked: boolean;
+  onToggleCheck: (id: string) => void;
 }
 const TeamInviteListRow: React.FC<TeamInviteListRowProps> = ({
-  invite, getPendingLabel, onSelect, onViewRoster,
+  invite, getPendingLabel, onSelect, onViewRoster, isCheckable, isChecked, onToggleCheck,
 }) => (
   <div className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md">
-    <div
-      className="flex items-center justify-between cursor-pointer"
-      onClick={() => onSelect(invite.participantId ?? "")}
-    >
-      <div>
-        <h4 className="font-semibold text-gray-900">{invite.participantName}</h4>
-        <p className="text-sm text-gray-600">
-          Requested{" "}
-          {new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-        </p>
-        {invite.status === "pending" && (
-          <p className="text-xs text-amber-700 mt-0.5">{getPendingLabel(invite)}</p>
-        )}
+    <div className="flex items-center gap-3">
+      {isCheckable && (
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onChange={(e) => { e.stopPropagation(); onToggleCheck(invite.participantId ?? ""); }}
+          onClick={(e) => e.stopPropagation()}
+          className="h-4 w-4 rounded border-gray-300 text-green-600 cursor-pointer flex-shrink-0"
+          aria-label={`Select ${invite.participantName}`}
+        />
+      )}
+      <div
+        className="flex items-center justify-between flex-1 cursor-pointer"
+        onClick={() => onSelect(invite.participantId ?? "")}
+      >
+        <div>
+          <h4 className="font-semibold text-gray-900">{invite.participantName}</h4>
+          <p className="text-sm text-gray-600">
+            Requested{" "}
+            {new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          </p>
+          {invite.status === "pending" && (
+            <p className="text-xs text-amber-700 mt-0.5">{getPendingLabel(invite)}</p>
+          )}
+        </div>
+        <StatusBadge status={invite.status || "unknown"} />
       </div>
-      <StatusBadge status={invite.status || "unknown"} />
     </div>
     {invite.status === "approved" && (
       <div className="mt-3 pt-3 border-t border-gray-200">
@@ -202,6 +264,9 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const [tournamentName, setTournamentName] = useState<string>("");
   const [selectedInvite, setSelectedInvite] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState("");
   const rosterViewModalRef = useRef<RosterViewModalRef>(null);
 
   const { data: invites, refetch } = useGetTournamentInvitesQuery(
@@ -224,11 +289,20 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     [invites]
   );
 
+  /** Pending-awaiting-manager-review team invites (the only ones that can be bulk-actioned) */
+  const checkableInvites = useMemo(
+    () => teamInvites.filter(
+      (i) => i.status === "pending" && i.tournamentManagerApproval?.status === "pending"
+    ),
+    [teamInvites]
+  );
+
   useImperativeHandle(ref, () => ({
     open: (tournId: string, tournName: string) => {
       setTournamentId(tournId);
       setTournamentName(tournName);
       setSelectedInvite(null);
+      setCheckedIds(new Set());
       setIsOpen(true);
     },
   }));
@@ -236,7 +310,22 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   function close() {
     setIsOpen(false);
     setSelectedInvite(null);
+    setCheckedIds(new Set());
   }
+
+  const toggleCheck = useCallback((id: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAllCheckable = useCallback(() => {
+    setCheckedIds(new Set(checkableInvites.map((i) => i.participantId ?? "")));
+  }, [checkableInvites]);
+
+  const clearChecked = useCallback(() => setCheckedIds(new Set()), []);
 
   async function handleApprove(participantId: string, name: string) {
     setIsSubmitting(true);
@@ -286,6 +375,39 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
       showAlert(getApiErrorMessage(error, "Failed to remove invite. Please try again."), "error");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleBulkAction(approved: boolean) {
+    const ids = Array.from(checkedIds);
+    if (ids.length === 0) return;
+    setIsBulkProcessing(true);
+    let successCount = 0;
+    let failCount = 0;
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const name = invites?.find((inv) => inv.participantId === id)?.participantName ?? id;
+      setBulkProgress(`Processing ${i + 1} / ${ids.length}: ${name}…`);
+      try {
+        await respondToInvite({
+          tournamentId,
+          participantId: id,
+          inviteResponseModel: { approved },
+        }).unwrap();
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    }
+    setIsBulkProcessing(false);
+    setBulkProgress("");
+    setCheckedIds(new Set());
+    refetch();
+    const action = approved ? "approved" : "denied";
+    if (failCount === 0) {
+      showAlert(`Successfully ${action} ${successCount} registration${successCount !== 1 ? "s" : ""}.`, "success");
+    } else {
+      showAlert(`${action.charAt(0).toUpperCase() + action.slice(1)} ${successCount}, failed ${failCount}.`, "warning");
     }
   }
 
@@ -387,23 +509,44 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                 <>
                   {totalInvites > 0 ? (
                     <div>
-                      {/* Team invite rows */}
-                      {teamInvites.map((invite) => (
-                        <TeamInviteListRow
-                          key={invite.participantId}
-                          invite={invite}
-                          getPendingLabel={getPendingLabel}
-                          onSelect={(id) => setSelectedInvite(id)}
-                          onViewRoster={() =>
-                            rosterViewModalRef.current?.open(
-                              tournamentId,
-                              invite.participantId ?? "",
-                              invite.participantName || "Unknown Team",
-                              tournamentName
-                            )
-                          }
+                      {/* Bulk action bar */}
+                      {checkedIds.size > 0 && (
+                        <BulkActionBar
+                          count={checkedIds.size}
+                          total={checkableInvites.length}
+                          isBulkProcessing={isBulkProcessing}
+                          bulkProgress={bulkProgress}
+                          onSelectAll={selectAllCheckable}
+                          onClearAll={clearChecked}
+                          onApproveAll={() => handleBulkAction(true)}
+                          onDenyAll={() => handleBulkAction(false)}
                         />
-                      ))}
+                      )}
+
+                      {/* Team invite rows */}
+                      {teamInvites.map((invite) => {
+                        const id = invite.participantId ?? "";
+                        const isCheckable = checkableInvites.some((c) => c.participantId === id);
+                        return (
+                          <TeamInviteListRow
+                            key={id}
+                            invite={invite}
+                            getPendingLabel={getPendingLabel}
+                            onSelect={(selId) => setSelectedInvite(selId)}
+                            onViewRoster={() =>
+                              rosterViewModalRef.current?.open(
+                                tournamentId,
+                                id,
+                                invite.participantName || "Unknown Team",
+                                tournamentName
+                              )
+                            }
+                            isCheckable={isCheckable}
+                            isChecked={checkedIds.has(id)}
+                            onToggleCheck={toggleCheck}
+                          />
+                        );
+                      })}
 
                       {/* Mercs synthetic row */}
                       {playerInvites.length > 0 && (
