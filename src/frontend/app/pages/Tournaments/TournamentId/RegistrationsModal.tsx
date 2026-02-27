@@ -407,7 +407,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     if (failCount === 0) {
       showAlert(`Successfully ${action} ${successCount} registration${successCount !== 1 ? "s" : ""}.`, "success");
     } else {
-      showAlert(`${action.charAt(0).toUpperCase() + action.slice(1)} ${successCount}, failed ${failCount}.`, "warning");
+      showAlert(`${action.charAt(0).toUpperCase() + action.slice(1)} ${successCount}, failed ${failCount}.`, "error");
     }
   }
 
