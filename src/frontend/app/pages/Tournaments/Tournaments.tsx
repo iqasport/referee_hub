@@ -6,6 +6,7 @@ import Pagination from "rc-pagination";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
 import TournamentCalendar from "./components/TournamentCalendar";
+import { TournamentCardSkeleton, CalendarSkeleton } from "./components/TournamentSkeletons";
 import { useGetTournamentsQuery, useGetCurrentUserQuery, TournamentViewModel } from "../../store/serviceApi";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
@@ -21,10 +22,15 @@ interface TournamentGridViewProps {
   publicTournaments: TournamentData[];
   totalCount: number;
   currentPage: number;
+  hasActiveFilters: boolean;
+  canAddTournament: boolean;
+  onAddTournament: () => void;
+  onClearFilters: () => void;
   onPageChange: (page: number) => void;
 }
 const TournamentGridView: React.FC<TournamentGridViewProps> = ({
-  privateTournaments, publicTournaments, totalCount, currentPage, onPageChange,
+  privateTournaments, publicTournaments, totalCount, currentPage,
+  hasActiveFilters, canAddTournament, onAddTournament, onClearFilters, onPageChange,
 }) => (
   <div className="tournament-page-container">
     {privateTournaments.length > 0 && (
@@ -53,7 +59,27 @@ const TournamentGridView: React.FC<TournamentGridViewProps> = ({
       </>
     )}
     {privateTournaments.length === 0 && publicTournaments.length === 0 && (
-      <div className="tournament-empty">No tournaments available.</div>
+      <div className="tournament-empty-state">
+        <div className="tournament-empty-state-icon">🏆</div>
+        <h3>{hasActiveFilters ? "No tournaments match your search" : "No upcoming tournaments"}</h3>
+        <p>
+          {hasActiveFilters
+            ? "Try adjusting your search terms or filters."
+            : "Tournaments will appear here once they are created."}
+        </p>
+        <div className="tournament-empty-state-actions">
+          {hasActiveFilters && (
+            <button className="btn-empty-secondary" onClick={onClearFilters}>
+              Clear filters
+            </button>
+          )}
+          {canAddTournament && (
+            <button className="btn-empty-primary" onClick={onAddTournament}>
+              Create Tournament
+            </button>
+          )}
+        </div>
+      </div>
     )}
   </div>
 );
@@ -244,8 +270,10 @@ const Tournament = () => {
         <AddTournamentModal ref={modalRef} />
       </div>
 
-      {isLoading ? (
-        <div className="tournament-loading">Loading tournaments...</div>
+      {isLoading && viewMode === "calendar" ? (
+        <CalendarSkeleton />
+      ) : isLoading ? (
+        <TournamentCardSkeleton count={DEFAULT_PAGE_SIZE} />
       ) : isError ? (
         <div className="tournament-error">Error loading tournaments. Please try again.</div>
       ) : viewMode === "calendar" ? (
@@ -258,6 +286,13 @@ const Tournament = () => {
           publicTournaments={publicTournaments}
           totalCount={totalCount}
           currentPage={currentPage}
+          hasActiveFilters={!!(searchTerm || typeFilter)}
+          canAddTournament={!!currentUser}
+          onAddTournament={() => modalRef.current?.openAdd()}
+          onClearFilters={() => {
+            const params = new URLSearchParams();
+            setSearchParams(params);
+          }}
           onPageChange={handlePageChange}
         />
       )}
