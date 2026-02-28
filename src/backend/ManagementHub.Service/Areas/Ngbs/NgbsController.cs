@@ -13,6 +13,7 @@ using ManagementHub.Service.Filtering;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Ngbs;
 
@@ -264,22 +265,22 @@ public class NgbsController : ControllerBase
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Single(ngb));
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
-		return this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb))
-			.Select(team => new NgbTeamViewModel
-			{
-				TeamId = team.TeamId,
-				City = team.TeamData.City,
-				GroupAffiliation = team.TeamData.GroupAffiliation,
-				Name = team.TeamData.Name,
-				Status = team.TeamData.Status,
-				State = team.TeamData.State,
-				Country = team.TeamData.Country,
-				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
-				LogoUrl = team.TeamData.LogoUrl,
-				Description = team.TeamData.Description,
-				ContactEmail = team.TeamData.ContactEmail,
-			}).AsFiltered();
+		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb)).ToListAsync();
+		return teams.Select(team => new NgbTeamViewModel
+		{
+			TeamId = team.TeamId,
+			City = team.TeamData.City,
+			GroupAffiliation = team.TeamData.GroupAffiliation,
+			Name = team.TeamData.Name,
+			Status = team.TeamData.Status,
+			State = team.TeamData.State,
+			Country = team.TeamData.Country,
+			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
+			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+			LogoUrl = ParseLogoUri(team.TeamData.LogoUrl),
+			Description = team.TeamData.Description,
+			ContactEmail = team.TeamData.ContactEmail,
+		}).AsFiltered();
 	}
 
 	[HttpPost("{ngb}/teams")]
@@ -309,7 +310,7 @@ public class NgbsController : ControllerBase
 			Status = viewModel.Status,
 			GroupAffiliation = viewModel.GroupAffiliation,
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
-			LogoUrl = viewModel.LogoUrl,
+			LogoUrl = viewModel.LogoUrl?.ToString(),
 			Description = viewModel.Description,
 			ContactEmail = viewModel.ContactEmail,
 		};
@@ -326,7 +327,7 @@ public class NgbsController : ControllerBase
 			Country = team.TeamData.Country,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts,
-			LogoUrl = team.TeamData.LogoUrl,
+			LogoUrl = ParseLogoUri(team.TeamData.LogoUrl),
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 		};
@@ -359,7 +360,7 @@ public class NgbsController : ControllerBase
 			Status = viewModel.Status,
 			GroupAffiliation = viewModel.GroupAffiliation,
 			JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
-			LogoUrl = viewModel.LogoUrl,
+			LogoUrl = viewModel.LogoUrl?.ToString(),
 			Description = viewModel.Description,
 			ContactEmail = viewModel.ContactEmail,
 		};
@@ -376,7 +377,7 @@ public class NgbsController : ControllerBase
 			Country = team.TeamData.Country,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts,
-			LogoUrl = team.TeamData.LogoUrl,
+			LogoUrl = ParseLogoUri(team.TeamData.LogoUrl),
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 		};
@@ -627,4 +628,7 @@ public class NgbsController : ControllerBase
 			}
 		});
 	}
+
+	private static Uri? ParseLogoUri(string? logoUrl) =>
+		Uri.TryCreate(logoUrl, UriKind.Absolute, out var uri) ? uri : null;
 }

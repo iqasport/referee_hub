@@ -83,4 +83,20 @@ public static class AuthorizationPolicies
 				new TournamentUserRoleAuthorizationRequirement<TournamentManagerRole>(),
 				new TeamUserRoleAuthorizationRequirement<TeamManagerRole>()));
 		});
+
+	/// <summary>
+	/// Policy that allows national team members (users assigned to any national team) or any admin (IQA, NGB,
+	/// or team manager for the specific team) to view team details including member names.
+	/// </summary>
+	public const string NationalTeamMemberOrAdminPolicy = nameof(NationalTeamMemberOrAdminPolicy);
+
+	public static void AddNationalTeamMemberOrAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(NationalTeamMemberOrAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new CompoundOrAuthorizationRequirement(
+				new UserRoleAuthorizationRequirement<IqaAdminRole>(),
+				new UserRoleAuthorizationRequirement<NgbAdminRole>(),
+				new TeamUserRoleAuthorizationRequirement<TeamManagerRole>(),
+				new NationalTeamMemberAuthorizationRequirement()));
+		});
 }

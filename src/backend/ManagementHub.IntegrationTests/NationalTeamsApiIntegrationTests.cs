@@ -118,8 +118,7 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 		australiaTeamsList.Should().NotBeEmpty("Australia National Team should be in the seeded data");
 
 		var australiaTeam = australiaTeamsList.First();
-		// TeamId should not be null for teams in the database, use null-forgiving operator
-		var australiaTeamId = australiaTeam.TeamId!.ToString();
+		var australiaTeamId = australiaTeam.TeamId;
 
 		// Step 2: Get current user profile to verify current state
 		var profileBeforeResponse = await this._client.GetAsync("/api/v2/Referees/me");

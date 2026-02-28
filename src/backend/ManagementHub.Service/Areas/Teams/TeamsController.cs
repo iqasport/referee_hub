@@ -60,11 +60,15 @@ public class TeamsController : ControllerBase
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Any);
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
-		// Materialize the query before filtering to avoid LINQ translation issues
-		// This is acceptable because national teams are few in number
-		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Any).ToListAsync();
+		// Filter national teams directly in SQL using the groupAffiliation parameter
+		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Any, TeamGroupAffiliation.National).ToListAsync();
+		var logoUris = new Dictionary<TeamIdentifier, Uri?>();
+		foreach (var team in teams)
+		{
+			logoUris[team.TeamId] = await this.teamContextProvider.GetTeamLogoUriAsync(team.TeamId, this.HttpContext.RequestAborted);
+		}
+
 		return teams
-			.Where(team => team.TeamData.GroupAffiliation == TeamGroupAffiliation.National)
 			.Select(team => new NgbTeamViewModel
 			{
 				TeamId = team.TeamId,
@@ -76,7 +80,7 @@ public class TeamsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
-				LogoUrl = team.TeamData.LogoUrl,
+				LogoUrl = logoUris.GetValueOrDefault(team.TeamId) ?? ParseLogoUri(team.TeamData.LogoUrl),
 				Description = team.TeamData.Description,
 				ContactEmail = team.TeamData.ContactEmail,
 			}).AsFiltered();
@@ -90,7 +94,7 @@ public class TeamsController : ControllerBase
 	/// <returns>URL to access the uploaded logo</returns>
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
-	[Authorize] // TODO: Add appropriate authorization policy for team managers and NGB admins
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
 	[IgnoreAntiforgeryToken] // API uses bearer token authentication, not cookies, so CSRF is not a concern
 	public async Task<Uri> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
@@ -107,33 +111,15 @@ public class TeamsController : ControllerBase
 			throw new ArgumentException($"File size must not exceed {maxSize / (1024 * 1024)} MB");
 		}
 
-		var logoUri = await this.updateUserAvatarCommand.UpdateTeamLogoAsync(
+		await this.updateUserAvatarCommand.UpdateTeamLogoAsync(
 			teamId,
 			logoBlob.ContentType,
 			logoBlob.OpenReadStream(),
 			this.HttpContext.RequestAborted);
 
-		// Update the team's LogoUrl field so it's reflected in the team data
-		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
-		if (team != null)
-		{
-			var updatedTeamData = new TeamData
-			{
-				Name = team.TeamData.Name,
-				City = team.TeamData.City,
-				State = team.TeamData.State,
-				Country = team.TeamData.Country,
-				Status = team.TeamData.Status,
-				GroupAffiliation = team.TeamData.GroupAffiliation,
-				JoinedAt = team.TeamData.JoinedAt,
-				LogoUrl = logoUri.ToString(),
-				Description = team.TeamData.Description,
-				ContactEmail = team.TeamData.ContactEmail,
-			};
-			await this.teamContextProvider.UpdateTeamAsync(team.NgbId, teamId, updatedTeamData);
-		}
-
-		return logoUri;
+		// Return a fresh URI generated from the attachment — temporary URLs are NOT stored in team data
+		var logoUri = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted);
+		return logoUri ?? throw new InvalidOperationException($"Logo for team {teamId} was uploaded but could not be accessed");
 	}
 
 	/// <summary>
@@ -143,10 +129,10 @@ public class TeamsController : ControllerBase
 	/// <returns>Team details with managers and members</returns>
 	[HttpGet("{teamId}")]
 	[Tags("Team")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.NationalTeamMemberOrAdminPolicy)]
 	public async Task<TeamDetailViewModel> GetTeamDetails([FromRoute] TeamIdentifier teamId)
 	{
-		// Get team details - any authenticated user can view team details
+		// Get team details - accessible to national team members and admins (see NationalTeamMemberOrAdminPolicy)
 		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
 
 		if (team == null)
@@ -181,7 +167,8 @@ public class TeamsController : ControllerBase
 			Status = team.TeamData.Status,
 			GroupAffiliation = team.TeamData.GroupAffiliation,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-			LogoUrl = team.TeamData.LogoUrl,
+			LogoUrl = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted)
+				?? ParseLogoUri(team.TeamData.LogoUrl),
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 			SocialAccounts = socialAccounts,
@@ -189,7 +176,8 @@ public class TeamsController : ControllerBase
 			{
 				Id = m.UserId,
 				Name = m.Name,
-				Email = m.Email
+				// Email is intentionally omitted here — this endpoint is accessible to national team members
+				// who should not see manager contact details. Use the team management endpoint for full access.
 			}),
 			Members = members.Select(m => new TeamMemberViewModel
 			{
@@ -210,7 +198,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Updated team data</returns>
 	[HttpPut("{teamId}")]
 	[Tags("Team")]
-	[Authorize] // Team managers can update their own teams
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
 	public async Task<ActionResult<NgbTeamViewModel>> UpdateTeam([FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
 	{
 		try
@@ -219,22 +207,6 @@ public class TeamsController : ControllerBase
 			if (viewModel.TeamId != teamId)
 			{
 				throw new ArgumentException("Team id mismatch between URL and request body.");
-			}
-
-			// Verify user is a manager of this team
-			var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-			if (userContext == null)
-			{
-				throw new UnauthorizedAccessException("User context not available");
-			}
-
-			var isTeamManager = userContext.Roles
-				.OfType<TeamManagerRole>()
-				.Any(role => role.Team.AppliesTo(teamId));
-
-			if (!isTeamManager)
-			{
-				throw new UnauthorizedAccessException($"User is not a manager of team {teamId}");
 			}
 
 			// Get the team to find its NGB
@@ -253,7 +225,8 @@ public class TeamsController : ControllerBase
 				Status = viewModel.Status,
 				GroupAffiliation = viewModel.GroupAffiliation,
 				JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
-				LogoUrl = viewModel.LogoUrl,
+				// Logo URL is managed exclusively through the dedicated upload endpoint — ignore client-supplied value
+				LogoUrl = existingTeam.TeamData.LogoUrl,
 				Description = viewModel.Description,
 				ContactEmail = viewModel.ContactEmail,
 			};
@@ -272,14 +245,11 @@ public class TeamsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts,
-				LogoUrl = team.TeamData.LogoUrl,
+				LogoUrl = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted)
+					?? ParseLogoUri(team.TeamData.LogoUrl),
 				Description = team.TeamData.Description,
 				ContactEmail = team.TeamData.ContactEmail,
 			};
-		}
-		catch (UnauthorizedAccessException)
-		{
-			return this.Unauthorized();
 		}
 		catch (ManagementHub.Models.Exceptions.NotFoundException)
 		{
@@ -341,7 +311,8 @@ public class TeamsController : ControllerBase
 			Country = team.TeamData.Country,
 			Status = team.TeamData.Status,
 			GroupAffiliation = team.TeamData.GroupAffiliation,
-			LogoUrl = team.TeamData.LogoUrl,
+			LogoUrl = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted)
+				?? ParseLogoUri(team.TeamData.LogoUrl),
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 			SocialAccounts = socialAccounts,
@@ -360,36 +331,6 @@ public class TeamsController : ControllerBase
 			}),
 			PendingInvites = pendingInvites
 		};
-	}
-
-	/// <summary>
-	/// Promote a team player to team manager.
-	/// </summary>
-	/// <param name="teamId">Team identifier</param>
-	/// <param name="playerId">Player user identifier</param>
-	/// <returns>Success status</returns>
-	[HttpPost("{teamId}/players/{playerId}/make-manager")]
-	[Tags("TeamManagement")]
-	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
-	public async Task<IActionResult> MakePlayerManager(
-		[FromRoute] TeamIdentifier teamId,
-		[FromRoute] UserIdentifier playerId)
-	{
-		// Verify user is a manager of this team
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-		var isTeamManager = userContext.Roles
-			.OfType<TeamManagerRole>()
-			.Any(role => role.Team.AppliesTo(teamId));
-
-		if (!isTeamManager)
-		{
-			return this.Unauthorized($"User is not a manager of team {teamId}");
-		}
-
-		// Get the player's email to use for adding manager role
-		// TODO: This requires looking up the user's email - for now, skip this implementation
-		// The proper way would be to use UserContext to get the email
-		return this.StatusCode(501, "Make player manager not yet fully implemented - needs user email lookup");
 	}
 
 	/// <summary>
@@ -477,4 +418,7 @@ public class TeamsController : ControllerBase
 
 		return this.NoContent();
 	}
+
+	private static Uri? ParseLogoUri(string? logoUrl) =>
+		Uri.TryCreate(logoUrl, UriKind.Absolute, out var uri) ? uri : null;
 }

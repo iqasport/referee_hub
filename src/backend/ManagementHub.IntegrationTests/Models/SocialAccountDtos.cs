@@ -27,7 +27,7 @@ public class NgbUpdateModelDto
 
 public class NgbTeamViewModelDto
 {
-	public string? TeamId { get; set; }
+	public required string TeamId { get; set; }
 	public required string Name { get; set; }
 	public required string City { get; set; }
 	public string? State { get; set; }
@@ -52,7 +52,7 @@ public class SocialAccountDto
 /// </summary>
 public class TeamDetailViewModelDto
 {
-	public string? TeamId { get; set; }
+	public required string TeamId { get; set; }
 	public required string Name { get; set; }
 	public required string City { get; set; }
 	public string? State { get; set; }

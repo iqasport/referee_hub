@@ -2,6 +2,7 @@
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User.Roles;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ManagementHub.Service.Authorization;
@@ -94,4 +95,11 @@ public class CompoundOrAuthorizationRequirement : UserRoleAuthorizationRequireme
 	}
 
 	public override string ToString() => $"Compound authorization requirement ({string.Join(" OR ", this.requirements.Select(r => r.ToString()))})";
+}
+
+// Checks if the user is a member of any national team (has NationalTeam set in their RefereeRole)
+public class NationalTeamMemberAuthorizationRequirement : UserRoleAuthorizationRequirement<RefereeRole>
+{
+	public override bool Satisfies(RefereeRole role, AuthorizationContext context) =>
+		role.NationalTeam != null;
 }

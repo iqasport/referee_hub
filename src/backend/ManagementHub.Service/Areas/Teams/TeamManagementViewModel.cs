@@ -48,7 +48,7 @@ public class TeamManagementViewModel
 	/// <summary>
 	/// URL to the team's logo image.
 	/// </summary>
-	public string? LogoUrl { get; set; }
+	public Uri? LogoUrl { get; set; }
 
 	/// <summary>
 	/// Team description.
