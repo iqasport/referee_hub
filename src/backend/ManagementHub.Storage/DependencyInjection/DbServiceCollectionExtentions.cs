@@ -90,7 +90,8 @@ public static class DbServiceCollectionExtentions
 			{
 				var connectionStringBuilder = serviceProvider.GetRequiredService<IOptionsSnapshot<NpgsqlConnectionStringBuilder>>();
 				var connectionString = connectionStringBuilder.Value.ConnectionString;
-				options.UseNpgsql(connectionString);
+				options.UseNpgsql(connectionString, npgsqlOptions =>
+					npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null));
 			});
 
 			// for hosted database we run migration script

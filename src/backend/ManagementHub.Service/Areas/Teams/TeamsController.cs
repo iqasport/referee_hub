@@ -198,15 +198,26 @@ public class TeamsController : ControllerBase
 	/// <returns>Updated team data</returns>
 	[HttpPut("{teamId}")]
 	[Tags("Team")]
-	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
+	[Authorize]
 	public async Task<ActionResult<NgbTeamViewModel>> UpdateTeam([FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
 	{
 		try
 		{
-			// Check team ID mismatch FIRST before authorization
+			// Validate team ID mismatch BEFORE authorization so BadRequest takes precedence over Forbidden
 			if (viewModel.TeamId != teamId)
 			{
-				throw new ArgumentException("Team id mismatch between URL and request body.");
+				return this.BadRequest("Team id mismatch between URL and request body.");
+			}
+
+			// Authorization: user must be a team manager for the specified team
+			var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+			var isTeamManager = userContext.Roles
+				.OfType<TeamManagerRole>()
+				.Any(role => role.Team.AppliesTo(teamId));
+
+			if (!isTeamManager)
+			{
+				return this.Forbid();
 			}
 
 			// Get the team to find its NGB
