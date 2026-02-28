@@ -94,10 +94,23 @@ public class TeamsController : ControllerBase
 	/// <returns>URL to access the uploaded logo</returns>
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
-	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	[Authorize]
 	[IgnoreAntiforgeryToken] // API uses bearer token authentication, not cookies, so CSRF is not a concern
-	public async Task<Uri> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
+	public async Task<ActionResult<Uri>> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
+		// Authorization: user must be a team manager OR an NGB admin of the team's NGB
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>().Any(r => r.Team.AppliesTo(teamId));
+		if (!isTeamManager)
+		{
+			var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+			var isNgbAdmin = team != null && userContext.Roles.OfType<NgbAdminRole>().Any(r => r.Ngb.AppliesTo(team.NgbId));
+			if (!isNgbAdmin)
+			{
+				return this.Forbid();
+			}
+		}
+
 		// Validate file is an image
 		if (!logoBlob.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
 		{

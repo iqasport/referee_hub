@@ -17,6 +17,11 @@ internal class DatabaseTransactionProvider : IDatabaseTransactionProvider
 		this.dbContext = dbContext;
 	}
 
+	public IExecutionStrategy GetExecutionStrategy()
+	{
+		return this.dbContext.Database.CreateExecutionStrategy();
+	}
+
 	public Task<IDbContextTransaction> BeginAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
 	{
 		// if a transaction is already in progress in the outer scope operations will be included in that one,

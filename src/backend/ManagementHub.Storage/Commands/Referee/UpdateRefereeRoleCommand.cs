@@ -37,7 +37,10 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 	{
 		this.logger.LogInformation(0x5fd20700, "Performing update on referee ({userId})", userId);
 
-		await using var transaction = await this.transactionProvider.BeginAsync();
+		var executionStrategy = this.dbContext.Database.CreateExecutionStrategy();
+		await executionStrategy.ExecuteAsync(async () =>
+		{
+			await using var transaction = await this.transactionProvider.BeginAsync();
 
 		var currentRefereeRole = await this.dbContext.Users.WithIdentifier(userId)
 			.Include(u => u.Roles).Where(u => u.Roles.Any(r => r.AccessType == UserAccessType.Referee))
@@ -367,7 +370,8 @@ public class UpdateRefereeRoleCommand : IUpdateRefereeRoleCommand
 
 		await transaction.CommitAsync(cancellationToken);
 
-		this.logger.LogInformation(0x5fd2070f, "Successfully updated referee ({userId})", userId);
+			this.logger.LogInformation(0x5fd2070f, "Successfully updated referee ({userId})", userId);
+		});
 	}
 
 	private Task<long> GetNgbIdForUpdate(NgbIdentifier ngbIdentifier, CancellationToken cancellationToken)

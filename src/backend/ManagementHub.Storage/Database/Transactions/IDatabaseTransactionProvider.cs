@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ManagementHub.Storage.Database.Transactions;
@@ -12,4 +13,9 @@ public interface IDatabaseTransactionProvider
 	/// <param name="isolationLevel">Isolation level of the transaction which describes how data of other workers will be viewable in the current context.</param>
 	/// <returns>A disposable transaction object.</returns>
 	Task<IDbContextTransaction> BeginAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
+
+	/// <summary>
+	/// Returns the execution strategy for the current database, required when using explicit transactions with a resilient execution strategy.
+	/// </summary>
+	IExecutionStrategy GetExecutionStrategy();
 }
