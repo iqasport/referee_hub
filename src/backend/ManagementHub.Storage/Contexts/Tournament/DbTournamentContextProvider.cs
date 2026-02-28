@@ -418,7 +418,9 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 			await transaction.CommitAsync(cancellationToken);
 
-			this.logger.LogInformation("Removed manager {UserId} from tournament {TournamentId}", userId, tournamentId);
+			this.logger.LogInformation("Removed manager {UserId} from tournament {TournamentId}",
+				userId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
+				tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty));
 
 			return true;
 		});
@@ -1045,7 +1047,9 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 			this.logger.LogInformation(
 				"Updated roster for team {TeamId} in tournament {TournamentId}: {PlayerCount} players, {CoachCount} coaches, {StaffCount} staff",
-				teamId, tournamentId, rosterData.Players.Count, rosterData.Coaches.Count, rosterData.Staff.Count);
+				teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
+				tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
+				rosterData.Players.Count, rosterData.Coaches.Count, rosterData.Staff.Count);
 		});
 	}
 

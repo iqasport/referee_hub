@@ -114,7 +114,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 					Key = uploadResult.Key,
 				};
 
-				this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbId}) in the database.", ngbId);
+				this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbCode}) in the database.", sanitizedNgbCode);
 				await this.attachmentRepository.UpsertAttachmentAsync(ngbId, attachmentName, blob, cancellationToken);
 
 				await transaction.CommitAsync(cancellationToken);
