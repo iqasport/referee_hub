@@ -142,22 +142,37 @@ public class TeamsController : ControllerBase
 	/// <returns>Team details with managers and members</returns>
 	[HttpGet("{teamId}")]
 	[Tags("Team")]
-	[Authorize(AuthorizationPolicies.NationalTeamMemberOrAdminPolicy)]
-	public async Task<TeamDetailViewModel> GetTeamDetails([FromRoute] TeamIdentifier teamId)
+	[Authorize]
+	public async Task<ActionResult<TeamDetailViewModel>> GetTeamDetails([FromRoute] TeamIdentifier teamId)
 	{
-		// Get team details - accessible to national team members and admins (see NationalTeamMemberOrAdminPolicy)
-		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+		// Authorization: check IQA admin and team manager status before any DB lookup
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var isIqaAdmin = userContext.Roles.OfType<IqaAdminRole>().Any();
+		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>().Any(r => r.Team.AppliesTo(teamId));
 
-		if (team == null)
+		ITeamContext? team = null;
+		if (!isIqaAdmin && !isTeamManager)
 		{
-			throw new ArgumentException($"Team {teamId} not found");
+			// Need to load the team to check if the user is an NGB admin for its NGB
+			team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+			if (team == null)
+			{
+				return this.NotFound();
+			}
+
+			var isNgbAdmin = userContext.Roles.OfType<NgbAdminRole>().Any(r => r.Ngb.AppliesTo(team.NgbId));
+			if (!isNgbAdmin)
+			{
+				return this.Forbid();
+			}
 		}
 
-		// Check if current user is a manager of this team
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-		var isTeamManager = userContext.Roles
-			.OfType<TeamManagerRole>()
-			.Any(role => role.Team.AppliesTo(teamId));
+		// Load team if not already loaded above
+		team ??= await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+		if (team == null)
+		{
+			return this.NotFound();
+		}
 
 		// Get social accounts for this specific team
 		var socialAccounts = await this.socialAccountsProvider.GetTeamSocialAccounts(teamId);
@@ -189,8 +204,7 @@ public class TeamsController : ControllerBase
 			{
 				Id = m.UserId,
 				Name = m.Name,
-				// Email is intentionally omitted here — this endpoint is accessible to national team members
-				// who should not see manager contact details. Use the team management endpoint for full access.
+				// Email is intentionally omitted here — use the team management endpoint for full access.
 			}),
 			Members = members.Select(m => new TeamMemberViewModel
 			{
