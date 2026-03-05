@@ -83,5 +83,4 @@ public static class AuthorizationPolicies
 				new TournamentUserRoleAuthorizationRequirement<TournamentManagerRole>(),
 				new TeamUserRoleAuthorizationRequirement<TeamManagerRole>()));
 		});
-
 }
