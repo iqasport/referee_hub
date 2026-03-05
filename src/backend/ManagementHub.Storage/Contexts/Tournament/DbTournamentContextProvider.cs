@@ -97,6 +97,13 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 						|| (t.Place != null && EF.Functions.Like(t.Place, filter)));
 		}
 
+		// Apply tournament-type filter at the database level so pagination counts are accurate
+		var typeFilter = this.filteringContext.FilteringParameters.TournamentTypeFilter;
+		if (typeFilter.HasValue)
+		{
+			filteredTournaments = filteredTournaments.Where(t => t.Type == typeFilter.Value);
+		}
+
 		if (this.filteringContext.FilteringMetadata != null)
 		{
 			this.filteringContext.FilteringMetadata.TotalCount = filteredTournaments.Count();

@@ -101,6 +101,7 @@ const Tournament = () => {
     isError: isErrorAll,
   } = useGetTournamentsQuery({
     filter: searchTerm || undefined,
+    tournamentType: typeFilter || undefined,
     skipPaging: true,
   });
 
@@ -111,6 +112,7 @@ const Tournament = () => {
     isError: isErrorPaginated,
   } = useGetTournamentsQuery({
     filter: searchTerm || undefined,
+    tournamentType: typeFilter || undefined,
     page: currentPage,
     pageSize: DEFAULT_PAGE_SIZE,
   });
@@ -153,22 +155,8 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
-  // Type filtering is applied client-side since the API doesn't support it yet
-  // Note: For better performance, type filtering should be added to the API
-  const filteredAllTournaments = useMemo(() => {
-    if (!typeFilter) {
-      return allTournaments;
-    }
-    return allTournaments.filter((t) => t.type === typeFilter);
-  }, [allTournaments, typeFilter]);
-
-  const filteredPaginatedTournaments = useMemo(() => {
-    if (!typeFilter) {
-      return paginatedTournaments;
-    }
-    return paginatedTournaments.filter((t) => t.type === typeFilter);
-  }, [paginatedTournaments, typeFilter]);
-
+  // Type filtering is now applied server-side — allTournaments and paginatedTournaments
+  // are already filtered by type before they arrive here.
   const { publicTournaments, privateTournaments, totalCount, calendarTournaments } = useMemo(() => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - PAST_TOURNAMENT_DAYS);
@@ -193,22 +181,22 @@ const Tournament = () => {
     });
 
     // Private tournaments come from the unpaginated query (all tournaments)
-    const userInvolvedTournaments = filteredAllTournaments
+    const userInvolvedTournaments = allTournaments
       .filter((t) => t.isCurrentUserInvolved && (showPast || !isPast(t)))
       .map(convertToDisplayFormat);
 
     // Public tournaments come from the paginated query
-    const otherTournaments = filteredPaginatedTournaments
+    const otherTournaments = paginatedTournaments
       .filter((t) => !t.isCurrentUserInvolved && (showPast || !isPast(t)))
       .map(convertToDisplayFormat);
 
     // Calculate public tournament count from all tournaments (for correct pagination)
-    const publicTournamentCount = filteredAllTournaments.filter(
+    const publicTournamentCount = allTournaments.filter(
       (t) => !t.isCurrentUserInvolved && (showPast || !isPast(t))
     ).length;
 
     // Calendar gets ALL tournaments from the unpaginated query (not just the current page)
-    const allForCalendar = filteredAllTournaments
+    const allForCalendar = allTournaments
       .filter((t) => showPast || !isPast(t))
       .map(convertToDisplayFormat);
 
@@ -218,7 +206,7 @@ const Tournament = () => {
       totalCount: publicTournamentCount,
       calendarTournaments: allForCalendar,
     };
-  }, [filteredAllTournaments, filteredPaginatedTournaments, showPast]);
+  }, [allTournaments, paginatedTournaments, showPast]);
 
   return (
     <>
