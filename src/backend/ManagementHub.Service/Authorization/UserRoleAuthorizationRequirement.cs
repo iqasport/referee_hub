@@ -96,4 +96,3 @@ public class CompoundOrAuthorizationRequirement : UserRoleAuthorizationRequireme
 
 	public override string ToString() => $"Compound authorization requirement ({string.Join(" OR ", this.requirements.Select(r => r.ToString()))})";
 }
-
