@@ -100,28 +100,8 @@ const TeamTable = (props: TeamTableProps) => {
 
   const renderEmpty = () => <h2>No teams found</h2>;
 
-  const HEADER_CELLS = ["logo", "name", "city", "joined date", "type", "status", "actions"];
+  const HEADER_CELLS = ["name", "city", "joined date", "type", "status", "actions"];
   const rowConfig: CellConfig<NgbTeamViewModel>[] = [
-    {
-      cellRenderer: (item: NgbTeamViewModel) => {
-        return (
-          <Link to={`/teams/${item.teamId}`} className="block">
-            {item.logoUrl ? (
-              <img 
-                src={item.logoUrl} 
-                alt={`${item.name} logo`} 
-                className="w-12 h-12 object-cover rounded hover:opacity-80 transition-opacity"
-              />
-            ) : (
-              <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 hover:bg-gray-300 transition-colors">
-                <span className="text-xs">No logo</span>
-              </div>
-            )}
-          </Link>
-        );
-      },
-      dataKey: "logoUrl",
-    },
     {
       cellRenderer: (item: NgbTeamViewModel) => {
         return (
