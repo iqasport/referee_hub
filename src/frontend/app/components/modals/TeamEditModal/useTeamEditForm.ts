@@ -24,7 +24,6 @@ export const initialNewTeam: NgbTeamViewModel = {
   state: "",
   status: null,
   socialAccounts: [],
-  logoUrl: null,
   description: null,
   contactEmail: null,
 };
@@ -104,9 +103,6 @@ export const useTeamEditForm = ({ team, teamId, ngbId, open, onClose }: UseTeamE
     if (team && teamId && !formInitialized.current) {
       setUrls(team.socialAccounts?.map((sa) => sa.url) || []);
       setNewTeam({ ...team });
-      if (team.logoUrl) {
-        setLogoPreview(team.logoUrl);
-      }
       setHasChangedTeam(true);
       formInitialized.current = true;
     }
@@ -226,7 +222,6 @@ export const useTeamEditForm = ({ team, teamId, ngbId, open, onClose }: UseTeamE
     setLogoFile(null);
     setLogoPreview(null);
     setHasChangedTeam(true);
-    handleDataChange("logoUrl", null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }

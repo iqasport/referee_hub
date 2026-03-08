@@ -12,6 +12,7 @@ using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Storage;
+using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,8 @@ public class TeamsController : ControllerBase
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
 	private readonly ManagementHubDbContext dbContext;
+	private readonly IAttachmentRepository attachmentRepository;
+	private readonly IAccessFileCommand accessFileCommand;
 
 	public TeamsController(
 		ITeamContextProvider teamContextProvider,
@@ -41,7 +44,9 @@ public class TeamsController : ControllerBase
 		IUserContextAccessor contextAccessor,
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
 		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand,
-		ManagementHubDbContext dbContext)
+		ManagementHubDbContext dbContext,
+		IAttachmentRepository attachmentRepository,
+		IAccessFileCommand accessFileCommand)
 	{
 		this.teamContextProvider = teamContextProvider;
 		this.socialAccountsProvider = socialAccountsProvider;
@@ -49,6 +54,8 @@ public class TeamsController : ControllerBase
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
 		this.dbContext = dbContext;
+		this.attachmentRepository = attachmentRepository;
+		this.accessFileCommand = accessFileCommand;
 	}
 
 	/// <summary>
@@ -199,7 +206,7 @@ public class TeamsController : ControllerBase
 			Status = team.TeamData.Status,
 			GroupAffiliation = team.TeamData.GroupAffiliation,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-			LogoUrl = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted),
+			LogoUri = await this.GetTeamLogoUriAsync(teamId),
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 			SocialAccounts = socialAccounts,
@@ -351,7 +358,7 @@ public class TeamsController : ControllerBase
 			Country = team.TeamData.Country,
 			Status = team.TeamData.Status,
 			GroupAffiliation = team.TeamData.GroupAffiliation,
-			LogoUrl = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted),
+			LogoUri = await this.GetTeamLogoUriAsync(teamId),
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 			SocialAccounts = socialAccounts,
@@ -456,5 +463,17 @@ public class TeamsController : ControllerBase
 		}
 
 		return this.NoContent();
+	}
+
+	private async Task<Uri?> GetTeamLogoUriAsync(TeamIdentifier teamId)
+	{
+		const string attachmentName = "logo";
+		var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, this.HttpContext.RequestAborted);
+		if (attachment == null)
+		{
+			return null;
+		}
+
+		return await this.accessFileCommand.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromMinutes(5), this.HttpContext.RequestAborted);
 	}
 }

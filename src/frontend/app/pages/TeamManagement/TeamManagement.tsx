@@ -48,7 +48,6 @@ const TeamManagement = () => {
       groupAffiliation: team.groupAffiliation,
       joinedAt: team.joinedAt,
       socialAccounts: team.socialAccounts,
-      logoUrl: team.logoUrl,
       description: team.description,
       contactEmail: team.contactEmail,
     };
@@ -88,9 +87,9 @@ const TeamManagement = () => {
       {/* Team Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
-          {team.logoUrl && (
+          {team.logoUri && (
             <img
-              src={team.logoUrl}
+              src={team.logoUri}
               alt={`${team.name} logo`}
               className="w-20 h-20 object-cover rounded mr-4"
             />
