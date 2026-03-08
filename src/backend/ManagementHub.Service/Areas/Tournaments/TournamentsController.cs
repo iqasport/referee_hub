@@ -1014,9 +1014,9 @@ public class TournamentsController : ControllerBase
 					.ToList();
 
 				// Load gender data with access control (only for authenticated users; gender is private)
-			var genderData = this.HttpContext.User.Identity?.IsAuthenticated == true
-				? await this.GetAccessibleGenderDataAsync(playerUserIds, await this.contextAccessor.GetCurrentUserContextAsync())
-				: new Dictionary<UserIdentifier, string?>();
+				var genderData = this.HttpContext.User.Identity?.IsAuthenticated == true
+					? await this.GetAccessibleGenderDataAsync(playerUserIds, await this.contextAccessor.GetCurrentUserContextAsync())
+					: new Dictionary<UserIdentifier, string?>();
 
 				// Build player view models
 				players = participantEntity.RosterEntries
