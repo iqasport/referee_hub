@@ -85,9 +85,7 @@ public class TournamentsController : ControllerBase
 
 		// QueryTournaments performs all filtering and computation at the database level via joins:
 		// - Filters private tournaments (only shows those the user manages)
-		// - Computes IsCurrentUserInvolved based on tournament manager status
-		// Phase 3 will extend: also check if user is a participant via team manager role
-		// Phase 4 will extend: also check if user is on a roster
+		// - Computes IsCurrentUserInvolved based on tournament manager status and participant records
 		var tournaments = this.tournamentContextProvider.QueryTournaments(userId).ToList();
 
 		// Fetch banner URLs for all tournaments
@@ -294,6 +292,15 @@ public class TournamentsController : ControllerBase
 	/// <summary>
 	/// Get tournament managers.
 	/// </summary>
+	/// <remarks>
+	/// Returns name and email of each manager.
+	/// Email exposure is intentional: co-managers of the same tournament need
+	/// contact information for coordination. Access is gated by
+	/// <see cref="AuthorizationPolicies.TournamentManagerPolicy"/>, which uses
+	/// <c>TournamentUserRoleAuthorizationRequirement&lt;TournamentManagerRole&gt;</c>
+	/// to verify the caller holds a <c>TournamentManagerRole</c> for this specific
+	/// tournament — so only co-managers of the same tournament can see this list.
+	/// </remarks>
 	[HttpGet("{tournamentId}/managers")]
 	[Tags("Tournament")]
 	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
@@ -490,12 +497,6 @@ public class TournamentsController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		// Generic authorization guard for creating any tournament invite, independent of participant type
-		if (!this.IsAuthorizedToCreateAnyInvite(userContext, tournamentId))
-		{
-			return this.Forbid();
-		}
-
 		// Route based on the ID format, not the caller-supplied ParticipantType field.
 		// UserIdentifier IDs (U_ prefix) → individual player path.
 		// TeamIdentifier IDs (T_ prefix)  → team path.
@@ -579,29 +580,6 @@ public class TournamentsController : ControllerBase
 		return this.CreatedAtAction(nameof(GetTournamentInvites),
 			new { tournamentId = tournamentId.ToString() },
 			viewModel);
-	}
-
-	/// <summary>
-	/// Performs a generic authorization check for creating any invite (player or team)
-	/// for a given tournament. This guard is applied before branching on participant type
-	/// to avoid user-controlled bypass of invite authorization logic.
-	/// </summary>
-	/// <param name="userContext">Current authenticated user context.</param>
-	/// <param name="tournamentId">Tournament identifier.</param>
-	/// <returns><c>true</c> if the user is allowed to create an invite for the tournament; otherwise <c>false</c>.</returns>
-	private bool IsAuthorizedToCreateAnyInvite(IUserContext userContext, TournamentIdentifier tournamentId)
-	{
-		// This method centralizes invite creation authorization that is independent
-		// of participant type. Adjust the logic as needed to match your security requirements.
-		// For now, we require that there is a valid user context; additional checks
-		// (such as tournament admin/organizer roles) should be implemented here.
-		if (userContext == null || userContext.UserId == default)
-		{
-			return false;
-		}
-
-		// TODO: Enforce tournament-specific permissions if applicable.
-		return true;
 	}
 
 	/// <summary>
