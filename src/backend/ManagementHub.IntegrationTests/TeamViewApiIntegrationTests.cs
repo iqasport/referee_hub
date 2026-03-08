@@ -340,6 +340,9 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 		verifiedTeam!.Name.Should().Be("Updated Team Name");
 		verifiedTeam.Description.Should().Be("Updated description for the team");
 		verifiedTeam.ContactEmail.Should().Be("updated.team@example.com");
+
+		// Cleanup: Remove NGB admin from team managers to avoid polluting other tests
+		await this._client.DeleteAsync($"/api/v2/Ngbs/{ngb}/teams/{teamId}/managers?email=ngb_admin%40example.com");
 	}
 
 	[Fact]
@@ -447,5 +450,8 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 		// Assert: Should return bad request
 		updateResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
 			"team ID in URL should match team ID in request body");
+
+		// Cleanup: Remove NGB admin from team managers to avoid polluting other tests
+		await this._client.DeleteAsync($"/api/v2/Ngbs/USA/teams/{firstTeam.TeamId}/managers?email=ngb_admin%40example.com");
 	}
 }
