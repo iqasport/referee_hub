@@ -29,6 +29,8 @@ internal class DatabaseTransactionProvider : IDatabaseTransactionProvider
 		return this.dbContext.Database.BeginTransactionAsync(isolationLevel);
 	}
 
+	public IExecutionStrategy GetExecutionStrategy() => this.dbContext.Database.CreateExecutionStrategy();
+
 	private class InnerTransaction : IDbContextTransaction
 	{
 		private readonly IDbContextTransaction outerTransaction;

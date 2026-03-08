@@ -46,11 +46,6 @@ public class TeamManagementViewModel
 	public required TeamGroupAffiliation GroupAffiliation { get; set; }
 
 	/// <summary>
-	/// URL to the team's logo image.
-	/// </summary>
-	public string? LogoUrl { get; set; }
-
-	/// <summary>
 	/// Team description.
 	/// </summary>
 	public string? Description { get; set; }

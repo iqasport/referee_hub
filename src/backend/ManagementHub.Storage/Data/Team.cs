@@ -26,7 +26,6 @@ public partial class Team : IIdentifiable
 	public DateTime CreatedAt { get; set; }
 	public DateTime UpdatedAt { get; set; }
 	public DateTime? JoinedAt { get; set; }
-	public string? LogoUrl { get; set; }
 	public string? Description { get; set; }
 	public string? ContactEmail { get; set; }
 

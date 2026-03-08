@@ -76,7 +76,6 @@ public class TeamsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
-				LogoUrl = team.TeamData.LogoUrl,
 				Description = team.TeamData.Description,
 				ContactEmail = team.TeamData.ContactEmail,
 			}).AsFiltered();
@@ -90,7 +89,7 @@ public class TeamsController : ControllerBase
 	/// <returns>URL to access the uploaded logo</returns>
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
-	[Authorize] // TODO: Add appropriate authorization policy for team managers and NGB admins
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
 	[IgnoreAntiforgeryToken] // API uses bearer token authentication, not cookies, so CSRF is not a concern
 	public async Task<Uri> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
@@ -112,26 +111,6 @@ public class TeamsController : ControllerBase
 			logoBlob.ContentType,
 			logoBlob.OpenReadStream(),
 			this.HttpContext.RequestAborted);
-
-		// Update the team's LogoUrl field so it's reflected in the team data
-		var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
-		if (team != null)
-		{
-			var updatedTeamData = new TeamData
-			{
-				Name = team.TeamData.Name,
-				City = team.TeamData.City,
-				State = team.TeamData.State,
-				Country = team.TeamData.Country,
-				Status = team.TeamData.Status,
-				GroupAffiliation = team.TeamData.GroupAffiliation,
-				JoinedAt = team.TeamData.JoinedAt,
-				LogoUrl = logoUri.ToString(),
-				Description = team.TeamData.Description,
-				ContactEmail = team.TeamData.ContactEmail,
-			};
-			await this.teamContextProvider.UpdateTeamAsync(team.NgbId, teamId, updatedTeamData);
-		}
 
 		return logoUri;
 	}
@@ -181,7 +160,6 @@ public class TeamsController : ControllerBase
 			Status = team.TeamData.Status,
 			GroupAffiliation = team.TeamData.GroupAffiliation,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-			LogoUrl = team.TeamData.LogoUrl,
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 			SocialAccounts = socialAccounts,
@@ -210,7 +188,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Updated team data</returns>
 	[HttpPut("{teamId}")]
 	[Tags("Team")]
-	[Authorize] // Team managers can update their own teams
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
 	public async Task<ActionResult<NgbTeamViewModel>> UpdateTeam([FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
 	{
 		try
@@ -253,7 +231,6 @@ public class TeamsController : ControllerBase
 				Status = viewModel.Status,
 				GroupAffiliation = viewModel.GroupAffiliation,
 				JoinedAt = viewModel.JoinedAt.ToDateTime(default, DateTimeKind.Utc),
-				LogoUrl = viewModel.LogoUrl,
 				Description = viewModel.Description,
 				ContactEmail = viewModel.ContactEmail,
 			};
@@ -272,7 +249,6 @@ public class TeamsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts,
-				LogoUrl = team.TeamData.LogoUrl,
 				Description = team.TeamData.Description,
 				ContactEmail = team.TeamData.ContactEmail,
 			};
@@ -341,7 +317,6 @@ public class TeamsController : ControllerBase
 			Country = team.TeamData.Country,
 			Status = team.TeamData.Status,
 			GroupAffiliation = team.TeamData.GroupAffiliation,
-			LogoUrl = team.TeamData.LogoUrl,
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 			SocialAccounts = socialAccounts,

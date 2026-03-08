@@ -35,7 +35,6 @@ public class NgbTeamViewModelDto
 	public required string Status { get; set; }
 	public required string GroupAffiliation { get; set; }
 	public required string JoinedAt { get; set; }
-	public string? LogoUrl { get; set; }
 	public string? Description { get; set; }
 	public string? ContactEmail { get; set; }
 	public SocialAccountDto[] SocialAccounts { get; set; } = Array.Empty<SocialAccountDto>();
@@ -60,7 +59,6 @@ public class TeamDetailViewModelDto
 	public required string Status { get; set; }
 	public required string GroupAffiliation { get; set; }
 	public required string JoinedAt { get; set; }
-	public string? LogoUrl { get; set; }
 	public string? Description { get; set; }
 	public string? ContactEmail { get; set; }
 	public SocialAccountDto[] SocialAccounts { get; set; } = Array.Empty<SocialAccountDto>();

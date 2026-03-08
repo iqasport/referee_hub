@@ -1097,10 +1097,6 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<string>("LogoUrl")
-                        .HasColumnType("character varying")
-                        .HasColumnName("logo_url");
-
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("description");
