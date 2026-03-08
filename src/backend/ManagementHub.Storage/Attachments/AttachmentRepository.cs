@@ -45,7 +45,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}'.", SanitizeAttachmentName(attachmentName));
+		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
 
 		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
@@ -58,7 +58,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}'.", SanitizeAttachmentName(attachmentName));
+		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
 
 		this.dbContext.ActiveStorageBlobs.Add(blob);
 
@@ -102,24 +102,5 @@ public class AttachmentRepository : IAttachmentRepository
 		}
 
 		return recordType;
-	}
-
-	private static object GetSafeIdentifierId<TId>(TId identifier)
-	{
-		return identifier switch
-		{
-			UserIdentifier userId => userId.UniqueId,
-			NgbIdentifier ngbId => ngbId.NgbCode,
-			TournamentIdentifier tournamentId => tournamentId.UniqueId,
-			TeamIdentifier teamId => teamId.Id,
-			_ => throw new InvalidOperationException($"No safe ID extraction defined for type {typeof(TId)}.")
-		};
-	}
-
-	private static string SanitizeAttachmentName(string attachmentName)
-	{
-		// Replace any character that is not alphanumeric, underscore, or hyphen with underscore
-		// This prevents log injection while preserving useful debug information
-		return System.Text.RegularExpressions.Regex.Replace(attachmentName, "[^a-zA-Z0-9_-]", "_");
 	}
 }

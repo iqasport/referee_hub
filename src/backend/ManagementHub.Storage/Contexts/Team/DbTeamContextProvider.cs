@@ -89,6 +89,6 @@ public class DbTeamContextProvider : ITeamContextProvider
 		}
 
 		// TODO: put expiration in settings
-		return await this.accessFileCommand.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromSeconds(20), cancellationToken);
+		return await this.accessFileCommand.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromMinutes(5), cancellationToken);
 	}
 }

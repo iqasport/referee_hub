@@ -15,7 +15,10 @@ public interface IDatabaseTransactionProvider
 	Task<IDbContextTransaction> BeginAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
 
 	/// <summary>
-	/// Returns the execution strategy for the current database, required when using explicit transactions with a resilient execution strategy.
+	/// Returns the execution strategy for the current database. This is required when using explicit transactions
+	/// alongside a resilient retry execution strategy (e.g. <see cref="Microsoft.EntityFrameworkCore.Storage.IExecutionStrategy"/>
+	/// configured via EnableRetryOnFailure), because EF Core does not allow starting user-initiated transactions without
+	/// wrapping them inside an execution strategy callback.
 	/// </summary>
 	IExecutionStrategy GetExecutionStrategy();
 }

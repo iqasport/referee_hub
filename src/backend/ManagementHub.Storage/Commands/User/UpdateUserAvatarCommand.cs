@@ -98,8 +98,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 				const string attachmentName = "logo";
 				var attachment = this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
 
-				var sanitizedNgbCode = ngbId.NgbCode?.Replace("\r", string.Empty).Replace("\n", string.Empty);
-				this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB (Code: {ngbCode}). NGB had previously an avatar: {hadAvatar}.", sanitizedNgbCode, attachment != null);
+				this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbId}). NGB had previously an avatar: {hadAvatar}.", ngbId, attachment != null);
 
 				var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 				fileUploaded = true;
@@ -114,7 +113,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 					Key = uploadResult.Key,
 				};
 
-				this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbCode}) in the database.", sanitizedNgbCode);
+				this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbId}) in the database.", ngbId);
 				await this.attachmentRepository.UpsertAttachmentAsync(ngbId, attachmentName, blob, cancellationToken);
 
 				await transaction.CommitAsync(cancellationToken);
