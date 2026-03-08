@@ -57,9 +57,9 @@ public class TeamDetailViewModel
 	public required DateOnly JoinedAt { get; set; }
 
 	/// <summary>
-	/// URL to the team's logo image.
+	/// URL to the team's logo image (fetched from attachment storage).
 	/// </summary>
-	public string? LogoUrl { get; set; }
+	public Uri? LogoUri { get; set; }
 
 	/// <summary>
 	/// Team description.

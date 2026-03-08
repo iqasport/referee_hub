@@ -1398,8 +1398,6 @@ export type NgbTeamViewModel = {
   groupAffiliation?: TeamGroupAffiliation;
   joinedAt?: string;
   socialAccounts?: SocialAccount[] | null;
-  /** URL to the team's logo image. */
-  logoUrl?: string | null;
   /** Team description. */
   description?: string | null;
   /** Team contact email. */
@@ -1437,8 +1435,8 @@ export type TeamDetailViewModel = {
   groupAffiliation?: TeamGroupAffiliation;
   /** Date when the team joined. */
   joinedAt?: string;
-  /** URL to the team's logo image. */
-  logoUrl?: string | null;
+  /** URL to the team's logo image (fetched from attachment storage). */
+  logoUri?: string | null;
   /** Team description. */
   description?: string | null;
   /** Team contact email. */
@@ -1513,8 +1511,8 @@ export type TeamManagementViewModel = {
   country?: string | null;
   status?: TeamStatus;
   groupAffiliation?: TeamGroupAffiliation;
-  /** URL to the team's logo image. */
-  logoUrl?: string | null;
+  /** URL to the team's logo image (fetched from attachment storage). */
+  logoUri?: string | null;
   /** Team description. */
   description?: string | null;
   /** Team contact email. */

@@ -43,9 +43,9 @@ const TeamView = () => {
     <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">
       {/* Team Header */}
       <div className="flex items-center mb-8">
-        {team.logoUrl && (
+        {team.logoUri && (
           <img
-            src={team.logoUrl}
+            src={team.logoUri}
             alt={`${team.name} logo`}
             className="w-24 h-24 object-cover rounded mr-6"
           />

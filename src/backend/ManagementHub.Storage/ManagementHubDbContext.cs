@@ -1011,10 +1011,6 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
-			entity.Property(e => e.LogoUrl)
-				.HasColumnType("character varying")
-				.HasColumnName("logo_url");
-
 			entity.Property(e => e.Description)
 				.HasColumnType("text")
 				.HasColumnName("description");

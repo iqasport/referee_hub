@@ -97,7 +97,6 @@ public class DbTeamContextFactory
 			GroupAffiliation = teamData.GroupAffiliation,
 			Status = teamData.Status,
 			JoinedAt = teamData.JoinedAt,
-			LogoUrl = teamData.LogoUrl,
 			Description = teamData.Description,
 			ContactEmail = teamData.ContactEmail,
 			CreatedAt = DateTime.UtcNow,
@@ -133,7 +132,6 @@ public class DbTeamContextFactory
 		team.GroupAffiliation = teamData.GroupAffiliation;
 		team.Status = teamData.Status;
 		team.JoinedAt = teamData.JoinedAt;
-		team.LogoUrl = teamData.LogoUrl;
 		team.Description = teamData.Description;
 		team.ContactEmail = teamData.ContactEmail;
 		team.UpdatedAt = DateTime.UtcNow;
@@ -261,7 +259,6 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
-		LogoUrl = tt.LogoUrl,
 		Description = tt.Description,
 		ContactEmail = tt.ContactEmail,
 	});
@@ -275,7 +272,6 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
-		LogoUrl = tt.LogoUrl,
 		Description = tt.Description,
 		ContactEmail = tt.ContactEmail,
 	});
