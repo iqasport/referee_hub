@@ -59,7 +59,7 @@ public class TeamLogoUploadIntegrationTests : IClassFixture<TestWebApplicationFa
 		// Verify the logo URL is persisted in team data
 		var teamDetails = await this._client.GetFromJsonAsync<TeamDetailViewModelDto>($"/api/v2/teams/{yankeesTeam.TeamId}");
 		teamDetails.Should().NotBeNull();
-		teamDetails!.LogoUrl.Should().NotBeNullOrEmpty("team should have logo URL after upload");
+		teamDetails!.LogoUri.Should().NotBeNullOrEmpty("team should have logo URL after upload");
 	}
 
 	[Fact]

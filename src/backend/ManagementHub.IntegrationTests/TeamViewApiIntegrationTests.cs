@@ -414,8 +414,8 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 		// Arrange: Sign in as NGB admin and make them a manager
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
-		// Get a team
-		var teamsResponse = await this._client.GetAsync("/api/v2/Teams/national?SkipPaging=true");
+		// Get a team from USA NGB (use NGB-specific endpoint to ensure the team belongs to USA NGB)
+		var teamsResponse = await this._client.GetAsync("/api/v2/Ngbs/USA/teams?SkipPaging=true");
 		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 		var teamsResult = await teamsResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
 		var firstTeam = teamsResult!.Items!.First();
