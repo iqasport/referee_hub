@@ -266,6 +266,12 @@ public class NgbsController : ControllerBase
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Single(ngb));
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
 		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb)).ToListAsync();
+		var logoUris = new Dictionary<TeamIdentifier, Uri?>();
+		foreach (var team in teams)
+		{
+			logoUris[team.TeamId] = await this.teamContextProvider.GetTeamLogoUriAsync(team.TeamId, this.HttpContext.RequestAborted);
+		}
+
 		return teams.Select(team => new NgbTeamViewModel
 		{
 			TeamId = team.TeamId,
@@ -277,6 +283,7 @@ public class NgbsController : ControllerBase
 			Country = team.TeamData.Country,
 			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+			LogoUrl = logoUris.GetValueOrDefault(team.TeamId),
 			Description = team.TeamData.Description,
 			ContactEmail = team.TeamData.ContactEmail,
 		}).AsFiltered();
