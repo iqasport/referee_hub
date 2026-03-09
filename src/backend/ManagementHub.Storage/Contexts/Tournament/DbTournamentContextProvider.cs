@@ -919,6 +919,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		TournamentIdentifier tournamentId,
 		UserIdentifier playerId,
 		UserIdentifier initiatorUserId,
+		string? observations = null,
 		CancellationToken cancellationToken = default)
 	{
 		var tournamentIdString = tournamentId.ToString();
@@ -956,6 +957,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			TournamentManagerApprovalDate = null,
 			ParticipantApproval = ApprovalStatus.Approved,
 			ParticipantApprovalDate = now,
+			Observations = observations,
 		};
 
 		this.dbContext.TournamentInvites.Add(invite);
@@ -980,6 +982,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			TournamentManagerApprovalDate = null,
 			ParticipantApproval = ApprovalStatus.Approved,
 			ParticipantApprovalDate = now,
+			Observations = observations,
 		};
 	}
 
@@ -1019,6 +1022,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			TournamentManagerApprovalDate = invite.TournamentManagerApprovalDate,
 			ParticipantApproval = invite.ParticipantApproval,
 			ParticipantApprovalDate = invite.ParticipantApprovalDate,
+			Observations = invite.Observations,
 		};
 	}
 

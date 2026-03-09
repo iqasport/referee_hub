@@ -1575,6 +1575,11 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("participant_approval_date");
 
+			entity.Property(e => e.Observations)
+				.HasMaxLength(1000)
+				.HasColumnType("character varying")
+				.HasColumnName("observations");
+
 			entity.HasOne(d => d.Tournament)
 				.WithMany(p => p.TournamentInvites)
 				.HasForeignKey(d => d.TournamentId)

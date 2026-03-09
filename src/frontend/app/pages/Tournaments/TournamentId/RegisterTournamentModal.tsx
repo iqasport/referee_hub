@@ -259,7 +259,11 @@ const RegistrationModeToggle: React.FC<RegistrationModeToggleProps> = ({ mode, s
 );
 
 // ── Individual registration panel ─────────────────────────────────────────────
-const IndividualRegistrationPanel: React.FC = () => (
+interface IndividualRegistrationPanelProps {
+  observations: string;
+  onObservationsChange: (value: string) => void;
+}
+const IndividualRegistrationPanel: React.FC<IndividualRegistrationPanelProps> = ({ observations, onObservationsChange }) => (
   <div className="space-y-3">
     <p className="text-sm text-gray-700">
       You are registering as an <strong>individual player</strong>. The tournament organizer will
@@ -268,6 +272,21 @@ const IndividualRegistrationPanel: React.FC = () => (
     <p className="text-xs text-gray-500">
       Individual players may be placed on a &quot;free-agent&quot; roster at the organizer&apos;s discretion.
     </p>
+    <div>
+      <label htmlFor="individual-observations" className="block text-sm font-medium text-gray-700 mb-1">
+        Observations <span className="text-gray-400 font-normal">(optional)</span>
+      </label>
+      <textarea
+        id="individual-observations"
+        value={observations}
+        onChange={(e) => onObservationsChange(e.target.value)}
+        rows={3}
+        maxLength={1000}
+        placeholder="Any notes or information for the tournament organizer…"
+        className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+      />
+      <p className="text-xs text-gray-400 text-right mt-1">{observations.length}/1000</p>
+    </div>
   </div>
 );
 
@@ -310,6 +329,8 @@ interface RegistrationModalViewProps {
   registeredManagedTeams: { teamId: string; teamName: string; status: string }[];
   teamData: TeamRegistrationData;
   setTeamData: React.Dispatch<React.SetStateAction<TeamRegistrationData>>;
+  observations: string;
+  onObservationsChange: (v: string) => void;
   isSubmitting: boolean;
   isTeamFormValid: (id: string) => boolean;
   isIndividualFormValid: boolean;
@@ -321,6 +342,7 @@ const RegistrationModalView: React.FC<RegistrationModalViewProps> = ({
   existingIndividualInvite, shouldShowModeToggle, registrationMode, setRegistrationMode,
   isAlreadyRegisteredIndividualOnly, effectiveMode, isLoadingTeams,
   availableTeams, registeredManagedTeams, teamData, setTeamData,
+  observations, onObservationsChange,
   isSubmitting, isTeamFormValid, isIndividualFormValid, onSubmit, onClose,
 }) => (
   <>
@@ -358,7 +380,7 @@ const RegistrationModalView: React.FC<RegistrationModalViewProps> = ({
             {!isAlreadyRegisteredIndividualOnly && (
               <>
                 {effectiveMode === "individual" ? (
-                  <IndividualRegistrationPanel />
+                  <IndividualRegistrationPanel observations={observations} onObservationsChange={onObservationsChange} />
                 ) : (
                   <TeamRegistrationFormSection
                     tournamentType={tournament?.type || ""}
@@ -437,6 +459,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [teamData, setTeamData] = useState<TeamRegistrationData>({ selectedTeamId: "" });
   const [registrationMode, setRegistrationMode] = useState<"team" | "individual">("team");
+  const [observations, setObservations] = useState("");
 
   const { managedTeams, isLoadingTeams } = useManagedTeamsForRegistration();
   const { data: currentUser } = useGetCurrentUserQuery();
@@ -474,6 +497,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
       setTournament(tournamentData);
       setTeamData({ selectedTeamId: "" });
       setRegistrationMode("team");
+      setObservations("");
       setIsOpen(true);
     },
   }));
@@ -487,7 +511,7 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
     }
     await createInvite({
       tournamentId: tournament?.id || "",
-      createInviteModel: { participantType: "player", participantId: currentUser.userId },
+      createInviteModel: { participantType: "player", participantId: currentUser.userId, observations: observations || null },
     }).unwrap();
     showAlert(
       `Your registration for ${tournament?.name} has been submitted! The organizer will review your application.`,
@@ -548,6 +572,8 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
       registeredManagedTeams={registeredManagedTeams}
       teamData={teamData}
       setTeamData={setTeamData}
+      observations={observations}
+      onObservationsChange={setObservations}
       isSubmitting={isSubmitting}
       isTeamFormValid={isTeamFormValid}
       isIndividualFormValid={isIndividualFormValid}

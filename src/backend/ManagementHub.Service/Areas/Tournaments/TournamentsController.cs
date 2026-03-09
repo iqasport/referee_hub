@@ -635,6 +635,7 @@ public class TournamentsController : ControllerBase
 			tournamentId,
 			userContext.UserId,
 			userContext.UserId,
+			model.Observations,
 			this.HttpContext.RequestAborted);
 
 		var viewModel = MapInviteToViewModel(invite);
@@ -756,7 +757,8 @@ public class TournamentsController : ControllerBase
 			{
 				Status = invite.ParticipantApproval,
 				Date = invite.ParticipantApprovalDate
-			}
+			},
+			Observations = invite.Observations,
 		};
 	}
 

@@ -16,6 +16,7 @@ public class InviteInfo
 	public DateTime? TournamentManagerApprovalDate { get; set; }
 	public required ApprovalStatus ParticipantApproval { get; set; }
 	public DateTime? ParticipantApprovalDate { get; set; }
+	public string? Observations { get; set; }
 
 	public InviteStatus GetStatus()
 	{

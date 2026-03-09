@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
@@ -15,6 +16,7 @@ public class TournamentInviteViewModel
 	public required DateTime CreatedAt { get; set; }
 	public required ApprovalStatusViewModel TournamentManagerApproval { get; set; }
 	public required ApprovalStatusViewModel ParticipantApproval { get; set; }
+	public string? Observations { get; set; }
 }
 
 public class ApprovalStatusViewModel
@@ -27,6 +29,8 @@ public class CreateInviteModel
 {
 	public required ParticipantType ParticipantType { get; set; }
 	public required string ParticipantId { get; set; }
+	[MaxLength(1000)]
+	public string? Observations { get; set; }
 }
 
 public class InviteResponseModel

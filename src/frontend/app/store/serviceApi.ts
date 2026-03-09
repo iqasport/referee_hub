@@ -1487,6 +1487,7 @@ export type TournamentInviteViewModel = {
   createdAt?: string;
   tournamentManagerApproval?: ApprovalStatusViewModel;
   participantApproval?: ApprovalStatusViewModel;
+  observations?: string | null;
 };
 export type TeamInvitationViewModel = {
   /** Invitation identifier. */
@@ -1631,6 +1632,7 @@ export type ContactTournamentRequest = {
 export type CreateInviteModel = {
   participantType?: ParticipantType;
   participantId?: string | null;
+  observations?: string | null;
 };
 export type InviteResponseModel = {
   approved?: boolean;

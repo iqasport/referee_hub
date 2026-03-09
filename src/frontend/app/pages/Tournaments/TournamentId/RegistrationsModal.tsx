@@ -61,6 +61,12 @@ const PlayerInviteCard: React.FC<PlayerInviteCardProps> = ({
         </div>
         <StatusBadge status={invite.status || "unknown"} />
       </div>
+      {invite.observations && (
+        <div className="mt-2 p-2 rounded bg-gray-50 border border-gray-200">
+          <p className="text-xs text-gray-500 font-medium mb-0.5">Observations</p>
+          <p className="text-sm text-gray-700">{invite.observations}</p>
+        </div>
+      )}
       {invite.status === "pending" && invite.tournamentManagerApproval?.status === "pending" && (
         <div className="mt-2">
           <ActionButtonPair
