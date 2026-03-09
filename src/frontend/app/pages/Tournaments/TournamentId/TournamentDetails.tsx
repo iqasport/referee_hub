@@ -37,14 +37,13 @@ function buildTournamentEditPayload(tournament: TournamentViewModel) {
     endDate = "", registrationEndsDate = "", type = "",
     country = "", city = "", place = "", organizer = "",
     isPrivate = false, isRegistrationOpen = true,
-    allowsIndividualRegistration = false, allowsTeamRegistration = true,
     bannerImageUrl = "",
   } = tournament;
   return {
     id, name, description, startDate, endDate, registrationEndsDate,
     type: type as "" | import("../../../store/serviceApi").TournamentType,
     country, city, place, organizer, isPrivate, isRegistrationOpen,
-    allowsIndividualRegistration, allowsTeamRegistration, bannerImageUrl,
+    bannerImageUrl,
   };
 }
 
@@ -57,8 +56,6 @@ function buildRegisterModalPayload(tournament: TournamentViewModel) {
     country: tournament.country || "",
     city: tournament.city || "",
     type: tournament.type || "",
-    allowsIndividualRegistration: tournament.allowsIndividualRegistration,
-    allowsTeamRegistration: tournament.allowsTeamRegistration,
   };
 }
 
@@ -477,7 +474,7 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
       });
   }, [invites, managedTeamIds, managedTeamsData]);
 
-  const totalPlayerCount = useMemo( = useMemo(
+  const totalPlayerCount = useMemo(
     () => participants?.reduce((sum, t) => sum + (t.players?.length ?? 0), 0) ?? 0,
     [participants],
   );

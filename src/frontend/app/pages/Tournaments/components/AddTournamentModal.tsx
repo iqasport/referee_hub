@@ -396,8 +396,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isCreating || isUpdating ||
-                    (formData.type === "Fantasy" && !formData.allowsTeamRegistration && !formData.allowsIndividualRegistration)}
+                  disabled={isCreating || isUpdating}
                   className="btn btn-primary"
                 >
                   {isCreating || isUpdating
