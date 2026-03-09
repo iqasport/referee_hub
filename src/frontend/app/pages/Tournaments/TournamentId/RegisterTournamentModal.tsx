@@ -13,7 +13,7 @@ import {
   TournamentType,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
-import CustomAlert from "../../../components/CustomAlert";
+import CustomAlert, { AlertType } from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
 import { isTeamEligible, eligibilityLabel, getApiErrorMessage } from "../../../utils/tournamentUtils";
 
@@ -292,6 +292,109 @@ const RegistrationStatusNotice: React.FC<RegistrationStatusNoticeProps> = ({ inv
   );
 };
 
+// ── Modal view (pure presentation) ───────────────────────────────────────────
+interface RegistrationModalViewProps {
+  isOpen: boolean;
+  tournament: Tournament | null;
+  alertState: { isVisible: boolean; message: string; type: AlertType };
+  hideAlert: () => void;
+  formattedDateRange: string;
+  existingIndividualInvite: TournamentInviteViewModel | null;
+  shouldShowModeToggle: boolean;
+  registrationMode: "team" | "individual";
+  setRegistrationMode: (m: "team" | "individual") => void;
+  isAlreadyRegisteredIndividualOnly: boolean;
+  effectiveMode: "team" | "individual";
+  isLoadingTeams: boolean;
+  availableTeams: { teamId: string; teamName: string; ngb: string; groupAffiliation?: string }[];
+  registeredManagedTeams: { teamId: string; teamName: string; status: string }[];
+  teamData: TeamRegistrationData;
+  setTeamData: React.Dispatch<React.SetStateAction<TeamRegistrationData>>;
+  isSubmitting: boolean;
+  isTeamFormValid: (id: string) => boolean;
+  isIndividualFormValid: boolean;
+  onSubmit: (e: React.FormEvent) => void;
+  onClose: () => void;
+}
+const RegistrationModalView: React.FC<RegistrationModalViewProps> = ({
+  isOpen, tournament, alertState, hideAlert, formattedDateRange,
+  existingIndividualInvite, shouldShowModeToggle, registrationMode, setRegistrationMode,
+  isAlreadyRegisteredIndividualOnly, effectiveMode, isLoadingTeams,
+  availableTeams, registeredManagedTeams, teamData, setTeamData,
+  isSubmitting, isTeamFormValid, isIndividualFormValid, onSubmit, onClose,
+}) => (
+  <>
+    {alertState.isVisible && (
+      <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
+    )}
+    <Dialog open={isOpen && !!tournament} as="div" className="relative z-50" onClose={onClose}>
+      <div className="fixed inset-0" style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }} aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
+        <DialogPanel
+          className="relative w-full max-w-2xl rounded bg-white p-6 shadow-xl my-8 overflow-y-auto"
+          style={{ maxHeight: "90vh" }}
+        >
+          <DialogTitle as="h3" className="text-xl font-semibold text-gray-900 mb-1">
+            Register for Tournament
+          </DialogTitle>
+
+          <div className="text-sm text-gray-600 mb-4 flex flex-wrap items-center gap-2">
+            <span className="font-medium text-gray-800">{tournament?.name}</span>
+            <span className="text-gray-400">•</span>
+            <span>{formattedDateRange}</span>
+            {tournament?.city && (
+              <>
+                <span className="text-gray-400">•</span>
+                <span>{tournament.city}</span>
+              </>
+            )}
+          </div>
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            {existingIndividualInvite && <RegistrationStatusNotice invite={existingIndividualInvite} />}
+            {shouldShowModeToggle && (
+              <RegistrationModeToggle mode={registrationMode} setMode={setRegistrationMode} />
+            )}
+            {!isAlreadyRegisteredIndividualOnly && (
+              <>
+                {effectiveMode === "individual" ? (
+                  <IndividualRegistrationPanel />
+                ) : (
+                  <TeamRegistrationFormSection
+                    tournamentType={tournament?.type || ""}
+                    isLoadingTeams={isLoadingTeams}
+                    availableTeams={availableTeams}
+                    registeredManagedTeams={registeredManagedTeams}
+                    selectedTeamId={teamData.selectedTeamId}
+                    onSelect={(teamId) => setTeamData((prev) => ({ ...prev, selectedTeamId: teamId }))}
+                  />
+                )}
+                <RegistrationActionButtons
+                  isSubmitting={isSubmitting}
+                  isFormValid={effectiveMode === "team" ? isTeamFormValid(teamData.selectedTeamId) : isIndividualFormValid}
+                  onClose={onClose}
+                />
+              </>
+            )}
+            {isAlreadyRegisteredIndividualOnly && (
+              <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-2 text-sm font-medium rounded mr-3"
+                  style={{ backgroundColor: "#edf2f7", color: "#4a5568", border: "1px solid #e2e8f0" }}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </form>
+        </DialogPanel>
+      </div>
+    </Dialog>
+  </>
+);
+
 // ── Action buttons row ────────────────────────────────────────────────────────
 interface RegistrationActionButtonsProps {
   isSubmitting: boolean;
@@ -350,30 +453,20 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
   const [createInvite] = useCreateInviteMutation();
 
-  // Whether the current user already has a pending/approved individual invite
   const existingIndividualInvite = useMemo(() => {
     if (!existingInvites || !currentUser?.userId) return null;
     return existingInvites.find((i) => i.participantType === "player" && i.participantId === currentUser.userId) ?? null;
   }, [existingInvites, currentUser?.userId]);
 
-  // Whether the individual registration form is ready to submit (no duplicate invite)
   const isIndividualFormValid = !existingIndividualInvite;
-
-  // Show the mode toggle only for Fantasy tournaments that support both types and user isn't already individually registered
+  const isIndividualOnly = tournament?.type === "Fantasy"
+    && tournament.allowsIndividualRegistration !== false
+    && tournament.allowsTeamRegistration === false;
+  const effectiveMode: "team" | "individual" = isIndividualOnly ? "individual" : registrationMode;
   const shouldShowModeToggle = tournament?.type === "Fantasy"
     && tournament.allowsTeamRegistration !== false
     && tournament.allowsIndividualRegistration !== false
     && !existingIndividualInvite;
-
-  // Individual-only Fantasy: user can't register via team path
-  const isIndividualOnly = tournament?.type === "Fantasy"
-    && tournament.allowsIndividualRegistration !== false
-    && tournament.allowsTeamRegistration === false;
-
-  // When only individual is possible, force that mode
-  const effectiveMode: "team" | "individual" = isIndividualOnly ? "individual" : registrationMode;
-
-  // Whether the already-individually-registered notice should prevent showing the form
   const isAlreadyRegisteredIndividualOnly = isIndividualOnly && !!existingIndividualInvite;
 
   useImperativeHandle(ref, () => ({
@@ -387,34 +480,42 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
 
   function close() { setIsOpen(false); }
 
+  async function handleIndividualSubmit() {
+    if (!currentUser?.userId) {
+      showAlert("Unable to determine your user ID. Please refresh and try again.", "error");
+      return;
+    }
+    await createInvite({
+      tournamentId: tournament?.id || "",
+      createInviteModel: { participantType: "player", participantId: currentUser.userId },
+    }).unwrap();
+    showAlert(
+      `Your registration for ${tournament?.name} has been submitted! The organizer will review your application.`,
+      "success"
+    );
+    close();
+  }
+
+  async function handleTeamSubmit() {
+    await createInvite({
+      tournamentId: tournament?.id || "",
+      createInviteModel: { participantType: "team", participantId: teamData.selectedTeamId },
+    }).unwrap();
+    showAlert(
+      `Successfully sent invite for ${availableTeams.find((t) => t.teamId === teamData.selectedTeamId)?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`,
+      "success"
+    );
+    close();
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       if (effectiveMode === "individual") {
-        if (!currentUser?.userId) {
-          showAlert("Unable to determine your user ID. Please refresh and try again.", "error");
-          return;
-        }
-        await createInvite({
-          tournamentId: tournament?.id || "",
-          createInviteModel: { participantType: "player", participantId: currentUser.userId },
-        }).unwrap();
-        showAlert(
-          `Your registration for ${tournament?.name} has been submitted! The organizer will review your application.`,
-          "success"
-        );
-        close();
+        await handleIndividualSubmit();
       } else {
-        await createInvite({
-          tournamentId: tournament?.id || "",
-          createInviteModel: { participantType: "team", participantId: teamData.selectedTeamId },
-        }).unwrap();
-        showAlert(
-          `Successfully sent invite for ${availableTeams.find((t) => t.teamId === teamData.selectedTeamId)?.teamName} to ${tournament?.name}! The tournament organizer will review your request.`,
-          "success"
-        );
-        close();
+        await handleTeamSubmit();
       }
     } catch (error: unknown) {
       console.error("Failed to register for tournament:", error);
@@ -430,97 +531,29 @@ const RegisterTournamentModal = forwardRef<RegisterTournamentModalRef>((_props, 
   );
 
   return (
-    <>
-      {alertState.isVisible && (
-        <CustomAlert
-          message={alertState.message}
-          type={alertState.type}
-          onClose={hideAlert}
-        />
-      )}
-      <Dialog open={isOpen && !!tournament} as="div" className="relative z-50" onClose={close}>
-      <div
-        className="fixed inset-0"
-        style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
-        aria-hidden="true"
-      />
-      <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-        <DialogPanel
-          className="relative w-full max-w-2xl rounded bg-white p-6 shadow-xl my-8 overflow-y-auto"
-          style={{ maxHeight: "90vh" }}
-        >
-          <DialogTitle as="h3" className="text-xl font-semibold text-gray-900 mb-1">
-            Register for Tournament
-          </DialogTitle>
-
-          {/* Tournament Info */}
-          <div className="text-sm text-gray-600 mb-4 flex flex-wrap items-center gap-2">
-            <span className="font-medium text-gray-800">{tournament?.name}</span>
-            <span className="text-gray-400">•</span>
-            <span>{formattedDateRange}</span>
-            {tournament?.city && (
-              <>
-                <span className="text-gray-400">•</span>
-                <span>{tournament.city}</span>
-              </>
-            )}
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            {/* Individual registration status notice */}
-            {existingIndividualInvite && (
-              <RegistrationStatusNotice invite={existingIndividualInvite} />
-            )}
-
-            {/* Mode toggle (Fantasy + both types + not already registered) */}
-            {shouldShowModeToggle && (
-              <RegistrationModeToggle mode={registrationMode} setMode={setRegistrationMode} />
-            )}
-
-            {/* Form fields — hidden when individual-only and player is already registered */}
-            {!isAlreadyRegisteredIndividualOnly && (
-            <>
-
-            {effectiveMode === "individual" ? (
-              <IndividualRegistrationPanel />
-            ) : (
-              <TeamRegistrationFormSection
-                tournamentType={tournament?.type || ""}
-                isLoadingTeams={isLoadingTeams}
-                availableTeams={availableTeams}
-                registeredManagedTeams={registeredManagedTeams}
-                selectedTeamId={teamData.selectedTeamId}
-                onSelect={(teamId) => setTeamData((prev) => ({ ...prev, selectedTeamId: teamId }))}
-              />
-            )}
-
-            <RegistrationActionButtons
-              isSubmitting={isSubmitting}
-              isFormValid={effectiveMode === "team" ? isTeamFormValid(teamData.selectedTeamId) : isIndividualFormValid}
-              onClose={close}
-            />
-            </>
-            )}
-
-            {/* Close button — always shown when individual-only and already registered */}
-            {isAlreadyRegisteredIndividualOnly && (
-            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={close}
-                className="px-6 py-2 text-sm font-medium rounded mr-3"
-                style={{ backgroundColor: "#edf2f7", color: "#4a5568", border: "1px solid #e2e8f0" }}
-              >
-                Close
-              </button>
-            </div>
-            )}
-          </form>
-        </DialogPanel>
-      </div>
-      </Dialog>
-    </>
+    <RegistrationModalView
+      isOpen={isOpen}
+      tournament={tournament}
+      alertState={alertState}
+      hideAlert={hideAlert}
+      formattedDateRange={formattedDateRange}
+      existingIndividualInvite={existingIndividualInvite}
+      shouldShowModeToggle={shouldShowModeToggle}
+      registrationMode={registrationMode}
+      setRegistrationMode={setRegistrationMode}
+      isAlreadyRegisteredIndividualOnly={isAlreadyRegisteredIndividualOnly}
+      effectiveMode={effectiveMode}
+      isLoadingTeams={isLoadingTeams}
+      availableTeams={availableTeams}
+      registeredManagedTeams={registeredManagedTeams}
+      teamData={teamData}
+      setTeamData={setTeamData}
+      isSubmitting={isSubmitting}
+      isTeamFormValid={isTeamFormValid}
+      isIndividualFormValid={isIndividualFormValid}
+      onSubmit={handleSubmit}
+      onClose={close}
+    />
   );
 });
 
