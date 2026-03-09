@@ -313,7 +313,7 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			GroupAffiliation = yankeesTeam.GroupAffiliation,
 			JoinedAt = yankeesTeam.JoinedAt,
 			SocialAccounts = yankeesTeam.SocialAccounts,
-			LogoUrl = yankeesTeam.LogoUrl,
+			LogoUri = yankeesTeam.LogoUri,
 			Description = "Updated description for the team",
 			ContactEmail = "updated.team@example.com"
 		};
@@ -370,7 +370,7 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			GroupAffiliation = firstTeam.GroupAffiliation,
 			JoinedAt = firstTeam.JoinedAt,
 			SocialAccounts = firstTeam.SocialAccounts,
-			LogoUrl = firstTeam.LogoUrl,
+			LogoUri = firstTeam.LogoUri,
 			Description = firstTeam.Description,
 			ContactEmail = firstTeam.ContactEmail
 		};
@@ -398,7 +398,7 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			GroupAffiliation = "community",
 			JoinedAt = "2020-01-01",
 			SocialAccounts = System.Array.Empty<SocialAccountDto>(),
-			LogoUrl = null,
+			LogoUri = null,
 			Description = "Test",
 			ContactEmail = "test@example.com"
 		};
@@ -439,7 +439,7 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			GroupAffiliation = "community",
 			JoinedAt = "2020-01-01",
 			SocialAccounts = System.Array.Empty<SocialAccountDto>(),
-			LogoUrl = null,
+			LogoUri = null,
 			Description = "Test",
 			ContactEmail = "test@example.com"
 		};

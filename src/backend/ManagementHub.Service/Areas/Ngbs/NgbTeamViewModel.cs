@@ -46,9 +46,9 @@ public class NgbTeamViewModel
 	public required IEnumerable<SocialAccount> SocialAccounts { get; set; }
 
 	/// <summary>
-	/// URL to the team's logo image.
+	/// URI to the team's logo image.
 	/// </summary>
-	public Uri? LogoUrl { get; set; }
+	public Uri? LogoUri { get; set; }
 
 	/// <summary>
 	/// Team description.

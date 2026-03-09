@@ -106,9 +106,9 @@ const TeamTable = (props: TeamTableProps) => {
       cellRenderer: (item: NgbTeamViewModel) => {
         return (
           <Link to={`/teams/${item.teamId}`} className="flex items-center gap-2 text-blue-600 hover:underline">
-            {item.logoUrl && (
+            {item.logoUri && (
               <img
-                src={item.logoUrl}
+                src={item.logoUri}
                 alt={`${item.name} logo`}
                 className="w-8 h-8 object-cover rounded"
               />

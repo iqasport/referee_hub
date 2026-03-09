@@ -87,7 +87,7 @@ public class TeamsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
-				LogoUrl = logoUris.GetValueOrDefault(team.TeamId),
+				LogoUri = logoUris.GetValueOrDefault(team.TeamId),
 				Description = team.TeamData.Description,
 				ContactEmail = team.TeamData.ContactEmail,
 			}).AsFiltered();
@@ -293,7 +293,7 @@ public class TeamsController : ControllerBase
 				Country = team.TeamData.Country,
 				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
 				SocialAccounts = socialAccounts,
-				LogoUrl = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted),
+				LogoUri = await this.teamContextProvider.GetTeamLogoUriAsync(teamId, this.HttpContext.RequestAborted),
 				Description = team.TeamData.Description,
 				ContactEmail = team.TeamData.ContactEmail,
 			};
