@@ -50,6 +50,7 @@ const TeamManagement = () => {
       socialAccounts: team.socialAccounts,
       description: team.description,
       contactEmail: team.contactEmail,
+      logoUri: team.logoUri,
     };
   }, [team]);
 

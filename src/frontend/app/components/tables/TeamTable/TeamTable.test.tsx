@@ -45,7 +45,7 @@ describe("TeamTable", () => {
     expect(screen.queryByRole("img", { name: /yankees logo/i })).not.toBeInTheDocument();
   });
 
-  test("renders team logo when logoUri is set", () => {
+  test("renders team logo as the first column when logoUri is set", () => {
     const logoUri = "/logos/yankees.png";
 
     mockUseGetNgbTeamsQuery.mockReturnValue({
@@ -60,10 +60,15 @@ describe("TeamTable", () => {
 
     expect(screen.getByText("Yankees")).toBeInTheDocument();
 
-    // Logo image should be rendered with the correct src
+    // Logo image should be rendered with the correct src, separate from the name
     const logoImg = screen.getByRole("img", { name: /yankees logo/i });
     expect(logoImg).toBeInTheDocument();
     expect(logoImg).toHaveAttribute("src", logoUri);
+
+    // The logo should NOT be inside the team name link
+    const nameLink = screen.getByRole("link", { name: "Yankees" });
+    expect(nameLink).toBeInTheDocument();
+    expect(nameLink).not.toContainElement(logoImg);
   });
 
   test("renders multiple teams, showing logos only for those with logoUri", () => {
