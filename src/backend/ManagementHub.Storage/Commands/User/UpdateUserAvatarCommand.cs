@@ -41,39 +41,35 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 		bool fileUploaded = false;
 		try
 		{
-			var executionStrategy = this.databaseTransactionProvider.GetExecutionStrategy();
-			return await executionStrategy.ExecuteAsync(async () =>
+			await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+
+			const string attachmentName = "avatar";
+			var attachment = this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
+
+			this.logger.LogInformation(0x2d0ef100, "Uploading new avatar for user ({userId}). User had previously an avatar: {hadAvatar}.", userId, attachment != null);
+
+			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
+			fileUploaded = true;
+			// TODO remove file if transaction fails
+
+			var blob = new ActiveStorageBlob
 			{
-				await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+				Checksum = uploadResult.Checksum,
+				ContentType = contentType,
+				CreatedAt = DateTime.UtcNow,
+				Filename = "na",
+				Key = uploadResult.Key,
+			};
 
-				const string attachmentName = "avatar";
-				var attachment = this.attachmentRepository.GetAttachmentAsync(userId, attachmentName, cancellationToken);
+			this.logger.LogInformation(0x2d0ef101, "Setting new avatar for user ({userId}) in the database.", userId);
+			await this.attachmentRepository.UpsertAttachmentAsync(userId, attachmentName, blob, cancellationToken);
 
-				this.logger.LogInformation(0x2d0ef100, "Uploading new avatar for user ({userId}). User had previously an avatar: {hadAvatar}.", userId, attachment != null);
+			await transaction.CommitAsync(cancellationToken);
 
-				var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
-				fileUploaded = true;
-				// TODO remove file if transaction fails
+			// TODO: remove old file in blob storage and remove blob from database
 
-				var blob = new ActiveStorageBlob
-				{
-					Checksum = uploadResult.Checksum,
-					ContentType = contentType,
-					CreatedAt = DateTime.UtcNow,
-					Filename = "na",
-					Key = uploadResult.Key,
-				};
-
-				this.logger.LogInformation(0x2d0ef101, "Setting new avatar for user ({userId}) in the database.", userId);
-				await this.attachmentRepository.UpsertAttachmentAsync(userId, attachmentName, blob, cancellationToken);
-
-				await transaction.CommitAsync(cancellationToken);
-
-				// TODO: remove old file in blob storage and remove blob from database
-
-				// TODO: put expiration in settings
-				return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
-			});
+			// TODO: put expiration in settings
+			return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
 		}
 		catch (Exception ex)
 		{
@@ -90,40 +86,36 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 		bool fileUploaded = false;
 		try
 		{
-			var executionStrategy = this.databaseTransactionProvider.GetExecutionStrategy();
-			return await executionStrategy.ExecuteAsync(async () =>
+			await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+
+			const string attachmentName = "logo";
+			var attachment = this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
+
+			var sanitizedNgbCode = ngbId.NgbCode?.Replace("\r", string.Empty).Replace("\n", string.Empty);
+			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbCode}). NGB had previously an avatar: {hadAvatar}.", sanitizedNgbCode, attachment != null);
+
+			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
+			fileUploaded = true;
+			// TODO remove file if transaction fails
+
+			var blob = new ActiveStorageBlob
 			{
-				await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+				Checksum = uploadResult.Checksum,
+				ContentType = contentType,
+				CreatedAt = DateTime.UtcNow,
+				Filename = "na",
+				Key = uploadResult.Key,
+			};
 
-				const string attachmentName = "logo";
-				var attachment = this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
+			this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbCode}) in the database.", sanitizedNgbCode);
+			await this.attachmentRepository.UpsertAttachmentAsync(ngbId, attachmentName, blob, cancellationToken);
 
-				var sanitizedNgbCode = ngbId.NgbCode?.Replace("\r", string.Empty).Replace("\n", string.Empty);
-				this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbCode}). NGB had previously an avatar: {hadAvatar}.", sanitizedNgbCode, attachment != null);
+			await transaction.CommitAsync(cancellationToken);
 
-				var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
-				fileUploaded = true;
-				// TODO remove file if transaction fails
+			// TODO: remove old file in blob storage and remove blob from database
 
-				var blob = new ActiveStorageBlob
-				{
-					Checksum = uploadResult.Checksum,
-					ContentType = contentType,
-					CreatedAt = DateTime.UtcNow,
-					Filename = "na",
-					Key = uploadResult.Key,
-				};
-
-				this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbCode}) in the database.", sanitizedNgbCode);
-				await this.attachmentRepository.UpsertAttachmentAsync(ngbId, attachmentName, blob, cancellationToken);
-
-				await transaction.CommitAsync(cancellationToken);
-
-				// TODO: remove old file in blob storage and remove blob from database
-
-				// TODO: put expiration in settings
-				return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
-			});
+			// TODO: put expiration in settings
+			return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
 		}
 		catch (Exception ex)
 		{
@@ -139,39 +131,35 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 		bool fileUploaded = false;
 		try
 		{
-			var executionStrategy = this.databaseTransactionProvider.GetExecutionStrategy();
-			return await executionStrategy.ExecuteAsync(async () =>
+			await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+
+			const string attachmentName = "logo";
+			var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
+
+			this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team (ID: {teamId}). Team had previously a logo: {hadLogo}.", teamId.Id, attachment != null);
+
+			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, logoStream, cancellationToken);
+			fileUploaded = true;
+			// TODO remove file if transaction fails
+
+			var blob = new ActiveStorageBlob
 			{
-				await using var transaction = await this.databaseTransactionProvider.BeginAsync();
+				Checksum = uploadResult.Checksum,
+				ContentType = contentType,
+				CreatedAt = DateTime.UtcNow,
+				Filename = "na",
+				Key = uploadResult.Key,
+			};
 
-				const string attachmentName = "logo";
-				var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
+			this.logger.LogInformation(0x2d0ef107, "Setting new logo for team (ID: {teamId}) in the database.", teamId.Id);
+			await this.attachmentRepository.UpsertAttachmentAsync(teamId, attachmentName, blob, cancellationToken);
 
-				this.logger.LogInformation(0x2d0ef106, "Uploading new logo for team (ID: {teamId}). Team had previously a logo: {hadLogo}.", teamId.Id, attachment != null);
+			await transaction.CommitAsync(cancellationToken);
 
-				var uploadResult = await this.uploadFile.UploadFileAsync(contentType, logoStream, cancellationToken);
-				fileUploaded = true;
-				// TODO remove file if transaction fails
+			// TODO: remove old file in blob storage and remove blob from database
 
-				var blob = new ActiveStorageBlob
-				{
-					Checksum = uploadResult.Checksum,
-					ContentType = contentType,
-					CreatedAt = DateTime.UtcNow,
-					Filename = "na",
-					Key = uploadResult.Key,
-				};
-
-				this.logger.LogInformation(0x2d0ef107, "Setting new logo for team (ID: {teamId}) in the database.", teamId.Id);
-				await this.attachmentRepository.UpsertAttachmentAsync(teamId, attachmentName, blob, cancellationToken);
-
-				await transaction.CommitAsync(cancellationToken);
-
-				// TODO: remove old file in blob storage and remove blob from database
-
-				// TODO: put expiration in settings
-				return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
-			});
+			// TODO: put expiration in settings
+			return await this.accessFile.GetFileAccessUriAsync(uploadResult.Key, TimeSpan.FromMinutes(5), cancellationToken);
 		}
 		catch (Exception ex)
 		{
