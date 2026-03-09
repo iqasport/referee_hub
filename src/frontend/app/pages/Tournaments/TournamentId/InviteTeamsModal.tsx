@@ -64,10 +64,11 @@ function useInviteTeamsData(
       if (!team.teamId || unavailableTeamIds.has(team.teamId)) return false;
       if (team.status === "inactive") return false;
       if (!isTeamEligible(team.groupAffiliation, tournament?.type)) return false;
+      if (tournament?.type === "Fantasy" && tournament.allowsTeamRegistration === false) return false;
       if (searchFilter) return (team.name || "").toLowerCase().includes(searchFilter.toLowerCase());
       return true;
     });
-  }, [teamsData, unavailableTeamIds, searchFilter, tournament?.type]);
+  }, [teamsData, unavailableTeamIds, searchFilter, tournament?.type, tournament?.allowsTeamRegistration]);
 
   return { isLoadingNgbs, filteredNgbs, eligibleAffiliations, isLoadingTeams, existingInvites, availableTeams };
 }

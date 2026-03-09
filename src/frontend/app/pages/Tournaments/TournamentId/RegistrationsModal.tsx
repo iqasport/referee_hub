@@ -18,6 +18,76 @@ export interface RegistrationsModalRef {
   open: (tournamentId: string, tournamentName: string) => void;
 }
 
+/** Sentinel ID used to represent the synthetic "Mercs" group row. */
+const MERCS_ID = "__mercs__";
+
+/** Derive a single aggregate status for the Mercs group. */
+function mercsStatus(playerInvites: TournamentInviteViewModel[]): string {
+  if (playerInvites.length === 0) return "unknown";
+  if (playerInvites.some((i) => i.status === "pending")) return "pending";
+  if (playerInvites.every((i) => i.status === "approved")) return "approved";
+  if (playerInvites.some((i) => i.status === "rejected")) return "rejected";
+  return "unknown";
+}
+
+/** Renders a single player invite card inside the Mercs detail view. */
+interface PlayerInviteCardProps {
+  invite: TournamentInviteViewModel;
+  isSubmitting: boolean;
+  getPendingLabel: (invite: TournamentInviteViewModel) => string;
+  onApprove: (id: string, name: string) => void;
+  onDeny: (id: string, name: string) => void;
+  onDelete: (id: string, name: string) => void;
+}
+const PlayerInviteCard: React.FC<PlayerInviteCardProps> = ({
+  invite, isSubmitting, getPendingLabel, onApprove, onDeny, onDelete,
+}) => {
+  const id = invite.participantId ?? "";
+  const name = invite.participantName || "Player";
+  return (
+    <div className="border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <p className="font-medium text-gray-900">{invite.participantName || invite.participantId}</p>
+          <p className="text-xs text-gray-500">
+            Registered{" "}
+            {invite.createdAt
+              ? new Date(invite.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+              : "—"}
+          </p>
+          {invite.status === "pending" && (
+            <p className="text-xs text-amber-700 mt-0.5">{getPendingLabel(invite)}</p>
+          )}
+        </div>
+        <StatusBadge status={invite.status || "unknown"} />
+      </div>
+      {invite.status === "pending" && invite.tournamentManagerApproval?.status === "pending" && (
+        <div className="mt-2">
+          <ActionButtonPair
+            onAccept={() => onApprove(id, name)}
+            onDecline={() => onDeny(id, name)}
+            isLoading={isSubmitting}
+            acceptLabel="Approve"
+            declineLabel="Deny"
+            loadingLabel="Processing..."
+          />
+        </div>
+      )}
+      {invite.status === "rejected" && (
+        <div className="mt-2">
+          <button
+            onClick={() => onDelete(id, name)}
+            disabled={isSubmitting}
+            className="px-3 py-1 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {isSubmitting ? "Removing…" : "Remove"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /** Renders a single team invite card inside the detail view. */
 interface TeamDetailViewProps {
   invite: TournamentInviteViewModel;
@@ -213,6 +283,12 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     [invites]
   );
 
+  /** All individual-player invites */
+  const playerInvites = useMemo(
+    () => (invites ?? []).filter((i) => i.participantType === "player"),
+    [invites]
+  );
+
   /** Pending-awaiting-manager-review team invites (the only ones that can be bulk-actioned) */
   const checkableInvites = useMemo(
     () => teamInvites.filter(
@@ -342,8 +418,9 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   }
 
   const selectedInviteData = invites?.find((i) => i.participantId === selectedInvite);
+  const isMercsSelected = selectedInvite === MERCS_ID;
 
-  const totalInvites = teamInvites.length;
+  const totalInvites = (invites?.length ?? 0);
 
   return (
     <>
@@ -367,7 +444,11 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <DialogTitle as="h3" className="text-xl font-semibold text-gray-900">
-                  {selectedInvite ? "Registration Details" : "Team Registrations"}
+                  {isMercsSelected
+                    ? "Mercs — Individual Players"
+                    : selectedInvite
+                    ? "Registration Details"
+                    : "Team Registrations"}
                 </DialogTitle>
                 <button
                   onClick={close}
@@ -389,7 +470,32 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
 
             {/* Content */}
             <div className="p-6 overflow-y-auto" style={{ maxHeight: "60vh" }}>
-              {selectedInvite && selectedInviteData ? (
+              {/* ── Mercs detail view ── */}
+              {isMercsSelected ? (
+                <div>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Individual players registered for this tournament are grouped here as a
+                    free-agent roster called <strong>Mercs</strong>.
+                  </p>
+                  {playerInvites.length === 0 ? (
+                    <p className="text-gray-600 text-center py-8">No individual players yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {playerInvites.map((invite) => (
+                        <PlayerInviteCard
+                          key={invite.participantId}
+                          invite={invite}
+                          isSubmitting={isSubmitting}
+                          getPendingLabel={getPendingLabel}
+                          onApprove={handleApprove}
+                          onDeny={handleDeny}
+                          onDelete={handleDeleteInvite}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : selectedInvite && selectedInviteData ? (
                 /* ── Team detail view ── */
                 <TeamDetailView
                   invite={selectedInviteData}
@@ -441,6 +547,28 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                           />
                         );
                       })}
+
+                      {/* Mercs synthetic row */}
+                      {playerInvites.length > 0 && (
+                        <div
+                          className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md cursor-pointer"
+                          onClick={() => setSelectedInvite(MERCS_ID)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">
+                                Mercs{" "}
+                                <span className="text-xs font-normal text-gray-500">
+                                  ({playerInvites.length} individual player
+                                  {playerInvites.length !== 1 ? "s" : ""})
+                                </span>
+                              </h4>
+                              <p className="text-sm text-gray-600">Individual registrations</p>
+                            </div>
+                            <StatusBadge status={mercsStatus(playerInvites)} />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-gray-600 text-center py-8">No team registrations yet.</p>

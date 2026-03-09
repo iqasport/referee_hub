@@ -1476,6 +1476,14 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.IsRegistrationOpen)
 				.HasColumnName("is_registration_open");
 
+			entity.Property(e => e.AllowsIndividualRegistration)
+				.HasColumnName("allows_individual_registration")
+				.HasDefaultValue(false);
+
+			entity.Property(e => e.AllowsTeamRegistration)
+				.HasColumnName("allows_team_registration")
+				.HasDefaultValue(true);
+
 			entity.Property(e => e.CreatedAt)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");

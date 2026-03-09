@@ -819,4 +819,96 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var errorContent = await approveResponse.Content.ReadAsStringAsync();
 		errorContent.Should().Contain("archived", "error message should indicate tournament is archived");
 	}
+
+	[Fact]
+	public async Task CreateFantasyTournament_WithBothRegistrationTypes_ShouldSucceed()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var createModel = new TournamentModel
+		{
+			Name = "Fantasy Tournament Test",
+			Description = "Test fantasy tournament",
+			StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
+			EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(32)),
+			Type = TournamentType.Fantasy,
+			Country = "USA",
+			City = "Portland",
+			Organizer = "Test Organizer",
+			IsPrivate = false,
+			AllowsTeamRegistration = true,
+			AllowsIndividualRegistration = true,
+		};
+
+		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
+		createResponse.StatusCode.Should().Be(HttpStatusCode.OK, "creating a Fantasy tournament with both registration types should succeed");
+
+		var tournamentIdResponse = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
+		tournamentIdResponse.Should().NotBeNull();
+
+		var getResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentIdResponse!.Id}");
+		getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var tournament = await getResponse.Content.ReadFromJsonAsync<TournamentViewModelDto>();
+		tournament!.AllowsTeamRegistration.Should().BeTrue();
+		tournament!.AllowsIndividualRegistration.Should().BeTrue();
+	}
+
+	[Fact]
+	public async Task CreateFantasyTournament_WithNoRegistrationTypes_ShouldReturnBadRequest()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var createModel = new TournamentModel
+		{
+			Name = "Invalid Fantasy Tournament",
+			Description = "Test fantasy tournament with no registration types",
+			StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
+			EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(32)),
+			Type = TournamentType.Fantasy,
+			Country = "USA",
+			City = "Portland",
+			Organizer = "Test Organizer",
+			IsPrivate = false,
+			AllowsTeamRegistration = false,
+			AllowsIndividualRegistration = false,
+		};
+
+		var createResponse = await this._client.PostAsJsonAsync("/api/v2/tournaments", createModel);
+		createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+			"creating a Fantasy tournament with no registration types should be rejected");
+
+		var errorContent = await createResponse.Content.ReadAsStringAsync();
+		errorContent.Should().Contain("registration type", "error message should mention registration type");
+	}
+
+	[Fact]
+	public async Task GetFantasyTournament_ShouldReturnRegistrationTypeFields()
+	{
+		// Use the seeded Fantasy tournament
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		// Get all tournaments and find the Fantasy one
+		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
+		listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var listJson = await listResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var items = listJson.GetProperty("items").EnumerateArray().ToList();
+
+		var fantasyTournament = items.FirstOrDefault(t =>
+			t.TryGetProperty("type", out var typeEl) &&
+			typeEl.GetString() == "Fantasy");
+
+		fantasyTournament.ValueKind.Should().NotBe(JsonValueKind.Undefined, "seeded Fantasy tournament should be present");
+
+		var fantasyId = fantasyTournament.GetProperty("id").GetString();
+		fantasyId.Should().NotBeNullOrEmpty();
+
+		var getResponse = await this._client.GetAsync($"/api/v2/tournaments/{fantasyId}");
+		getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var tournament = await getResponse.Content.ReadFromJsonAsync<TournamentViewModelDto>();
+		tournament!.AllowsTeamRegistration.Should().BeTrue("seeded Fantasy tournament allows team registration");
+		tournament!.AllowsIndividualRegistration.Should().BeTrue("seeded Fantasy tournament allows individual registration");
+	}
 }

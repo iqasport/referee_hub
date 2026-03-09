@@ -37,13 +37,14 @@ function buildTournamentEditPayload(tournament: TournamentViewModel) {
     endDate = "", registrationEndsDate = "", type = "",
     country = "", city = "", place = "", organizer = "",
     isPrivate = false, isRegistrationOpen = true,
+    allowsIndividualRegistration = false, allowsTeamRegistration = true,
     bannerImageUrl = "",
   } = tournament;
   return {
     id, name, description, startDate, endDate, registrationEndsDate,
     type: type as "" | import("../../../store/serviceApi").TournamentType,
     country, city, place, organizer, isPrivate, isRegistrationOpen,
-    bannerImageUrl,
+    allowsIndividualRegistration, allowsTeamRegistration, bannerImageUrl,
   };
 }
 
@@ -56,6 +57,8 @@ function buildRegisterModalPayload(tournament: TournamentViewModel) {
     country: tournament.country || "",
     city: tournament.city || "",
     type: tournament.type || "",
+    allowsIndividualRegistration: tournament.allowsIndividualRegistration,
+    allowsTeamRegistration: tournament.allowsTeamRegistration,
   };
 }
 
@@ -153,11 +156,12 @@ const ManagerTeamCard: React.FC<ManagerTeamCardProps> = ({
 interface UserRegistrationCardProps {
   isRegistrationClosed: boolean;
   approvedTeams: ApprovedTeam[];
+  myIndividualInvite: TournamentInviteViewModel | null;
   onScrollToRoster: () => void;
   onOpenRegisterModal: () => void;
 }
 const UserRegistrationCard: React.FC<UserRegistrationCardProps> = ({
-  isRegistrationClosed, approvedTeams, onScrollToRoster, onOpenRegisterModal,
+  isRegistrationClosed, approvedTeams, myIndividualInvite, onScrollToRoster, onOpenRegisterModal,
 }) => {
   if (isRegistrationClosed) {
     return (
@@ -186,6 +190,26 @@ const UserRegistrationCard: React.FC<UserRegistrationCardProps> = ({
         <button onClick={onOpenRegisterModal} className="btn btn-outline btn-full-width">
           Register Another Team
         </button>
+      </div>
+    );
+  }
+  if (myIndividualInvite) {
+    const statusCls =
+      myIndividualInvite.status === "approved" ? "bg-green-50 border border-green-200 text-green-800"
+      : myIndividualInvite.status === "rejected" ? "bg-red-50 border border-red-200 text-red-800"
+      : "bg-yellow-50 border border-yellow-200 text-yellow-800";
+    return (
+      <div className="card card-mb">
+        <h3 className="card-title">
+          {myIndividualInvite.status === "approved" ? "You're Registered!"
+            : myIndividualInvite.status === "rejected" ? "Registration Rejected"
+            : "Registration Pending"}
+        </h3>
+        <div className={`mt-2 p-3 rounded text-sm font-medium ${statusCls}`}>
+          {myIndividualInvite.status === "approved" && "You have been accepted to this tournament as an individual player."}
+          {myIndividualInvite.status === "rejected" && "Your individual registration was rejected by the tournament organizer."}
+          {(myIndividualInvite.status === "pending" || !myIndividualInvite.status) && "Your registration is pending the tournament organizer's decision."}
+        </div>
       </div>
     );
   }
@@ -362,6 +386,7 @@ interface UserSidebarProps {
   respondingTo: string | null;
   isRegistrationClosed: boolean;
   approvedTeamsForUser: ApprovedTeam[];
+  myIndividualInvite: TournamentInviteViewModel | null;
   tournament: TournamentViewModel;
   contactOrganizerRef: React.RefObject<{ open: (args: { name: string; tournamentName: string; tournamentId?: string | null }) => void }>;
   onAccept: (id: string) => void;
@@ -373,7 +398,7 @@ interface UserSidebarProps {
 }
 const UserSidebar: React.FC<UserSidebarProps> = ({
   pendingInvitesForUser, respondingTo, isRegistrationClosed,
-  approvedTeamsForUser, tournament, contactOrganizerRef,
+  approvedTeamsForUser, myIndividualInvite, tournament, contactOrganizerRef,
   onAccept, onDecline, onScrollToRoster, onOpenRegisterModal,
   approvedCount, playerCount,
 }) => (
@@ -395,6 +420,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
     <UserRegistrationCard
       isRegistrationClosed={isRegistrationClosed}
       approvedTeams={approvedTeamsForUser}
+      myIndividualInvite={myIndividualInvite}
       onScrollToRoster={onScrollToRoster}
       onOpenRegisterModal={onOpenRegisterModal}
     />
@@ -474,6 +500,11 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
       });
   }, [invites, managedTeamIds, managedTeamsData]);
 
+  const myIndividualInvite = useMemo(() => {
+    if (!invites || !currentUser?.userId) return null;
+    return invites.find((i) => i.participantType === "player" && i.participantId === currentUser.userId) ?? null;
+  }, [invites, currentUser?.userId]);
+
   const totalPlayerCount = useMemo(
     () => participants?.reduce((sum, t) => sum + (t.players?.length ?? 0), 0) ?? 0,
     [participants],
@@ -495,7 +526,7 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
     refetchParticipants,
     managedTeamsData,
     pendingInvitesForUser, approvedTeamsForUser,
-    totalPlayerCount, isRegistrationClosed,
+    myIndividualInvite, totalPlayerCount, isRegistrationClosed,
   };
 }
 
@@ -595,7 +626,7 @@ const TournamentDetails = () => {
     invites, refetchInvites, refetchParticipants,
     managedTeamsData,
     pendingInvitesForUser, approvedTeamsForUser,
-    totalPlayerCount, isRegistrationClosed,
+    myIndividualInvite, totalPlayerCount, isRegistrationClosed,
   } = useTournamentDetailsData(tournamentId);
 
   const {
@@ -720,6 +751,7 @@ const TournamentDetails = () => {
                   respondingTo={respondingTo}
                   isRegistrationClosed={isRegistrationClosed}
                   approvedTeamsForUser={approvedTeamsForUser}
+                  myIndividualInvite={myIndividualInvite}
                   tournament={tournament}
                   contactOrganizerRef={contactOrganizerModalRef as React.RefObject<{ open: (args: { name: string; tournamentName: string; tournamentId?: string | null }) => void }>}
                   onAccept={(id) => handleRespondToInvite(id, true)}
