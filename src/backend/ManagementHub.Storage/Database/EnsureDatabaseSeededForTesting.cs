@@ -283,8 +283,6 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Organizer = "Fantasy Quadball League",
 				IsPrivate = false,
 				IsRegistrationOpen = true,
-				AllowsTeamRegistration = true,
-				AllowsIndividualRegistration = true,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
 			},

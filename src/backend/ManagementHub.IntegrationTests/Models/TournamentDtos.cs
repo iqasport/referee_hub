@@ -29,6 +29,4 @@ public class TournamentViewModelDto
 	public required bool IsPrivate { get; set; }
 	public string? BannerImageUrl { get; set; }
 	public bool IsCurrentUserInvolved { get; set; }
-	public bool AllowsTeamRegistration { get; set; }
-	public bool AllowsIndividualRegistration { get; set; }
 }

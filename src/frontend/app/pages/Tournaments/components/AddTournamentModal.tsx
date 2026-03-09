@@ -25,8 +25,6 @@ interface Tournament {
   organizer?: string;
   isPrivate: boolean;
   isRegistrationOpen?: boolean;
-  allowsIndividualRegistration?: boolean;
-  allowsTeamRegistration?: boolean;
   bannerImageUrl?: string;
 }
 
@@ -51,8 +49,6 @@ function buildTournamentPayload(formData: Tournament) {
     organizer: formData.organizer,
     isPrivate: formData.isPrivate,
     isRegistrationOpen: formData.isRegistrationOpen ?? true,
-    allowsIndividualRegistration: formData.allowsIndividualRegistration ?? false,
-    allowsTeamRegistration: formData.allowsTeamRegistration ?? true,
   };
 }
 
@@ -61,50 +57,6 @@ async function uploadBannerImage(tournamentId: string, file: File): Promise<void
   payload.append("bannerBlob", file);
   await fetch(`/api/v2/Tournaments/${tournamentId}/banner`, { method: "PUT", body: payload });
 }
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-interface FantasyRegistrationOptionsProps {
-  allowsTeamRegistration: boolean;
-  allowsIndividualRegistration: boolean;
-  onChange: (field: "allowsTeamRegistration" | "allowsIndividualRegistration", value: boolean) => void;
-}
-const FantasyRegistrationOptions: React.FC<FantasyRegistrationOptionsProps> = ({
-  allowsTeamRegistration, allowsIndividualRegistration, onChange,
-}) => (
-  <div className="p-3 rounded-lg border border-amber-200 bg-amber-50">
-    <p className="text-xs font-semibold text-amber-800 mb-2">
-      Fantasy Registration Types <span className="font-normal">(at least one required)</span>
-    </p>
-    <div className="flex items-center mb-2">
-      <input
-        type="checkbox"
-        id="allowsTeamRegistration"
-        checked={allowsTeamRegistration}
-        onChange={(e) => onChange("allowsTeamRegistration", e.target.checked)}
-        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-      />
-      <label htmlFor="allowsTeamRegistration" className="ml-2 block text-sm text-gray-700">
-        Allow team registration
-      </label>
-    </div>
-    <div className="flex items-center">
-      <input
-        type="checkbox"
-        id="allowsIndividualRegistration"
-        checked={allowsIndividualRegistration}
-        onChange={(e) => onChange("allowsIndividualRegistration", e.target.checked)}
-        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-      />
-      <label htmlFor="allowsIndividualRegistration" className="ml-2 block text-sm text-gray-700">
-        Allow individual player registration
-      </label>
-    </div>
-    {!allowsTeamRegistration && !allowsIndividualRegistration && (
-      <p className="mt-2 text-xs text-red-600">At least one registration type must be selected.</p>
-    )}
-  </div>
-);
 
 const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
@@ -126,8 +78,6 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     organizer: "",
     isPrivate: false,
     isRegistrationOpen: true,
-    allowsIndividualRegistration: false,
-    allowsTeamRegistration: true,
     bannerImageUrl: "",
   };
   const [formData, setFormData] = useState<Tournament>(initialFormData);
@@ -153,11 +103,6 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (formData.type === "Fantasy" &&
-        !formData.allowsTeamRegistration && !formData.allowsIndividualRegistration) {
-      showAlert("A Fantasy tournament must allow at least one registration type (team or individual).", "error");
-      return;
-    }
     try {
       if (isEditMode) {
         if (!formData.id) { showAlert("Tournament ID is missing", "error"); return; }
@@ -365,15 +310,6 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                   <option value="Fantasy">Fantasy</option>
                 </select>
               </div>
-
-              {/* Fantasy-only: registration type options — shown right after type selector */}
-              {formData.type === "Fantasy" && (
-                <FantasyRegistrationOptions
-                  allowsTeamRegistration={formData.allowsTeamRegistration ?? true}
-                  allowsIndividualRegistration={formData.allowsIndividualRegistration ?? false}
-                  onChange={(field, value) => setFormData({ ...formData, [field]: value })}
-                />
-              )}
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
