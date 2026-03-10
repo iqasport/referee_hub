@@ -103,6 +103,7 @@ export const useTeamEditForm = ({ team, teamId, ngbId, open, onClose }: UseTeamE
     if (team && teamId && !formInitialized.current) {
       setUrls(team.socialAccounts?.map((sa) => sa.url) || []);
       setNewTeam({ ...team });
+      setLogoPreview(team.logoUri || null);
       setHasChangedTeam(true);
       formInitialized.current = true;
     }

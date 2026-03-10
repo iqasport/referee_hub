@@ -116,14 +116,17 @@ public class DbTeamContextFactory
 
 	public async Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)
 	{
-		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
-		var team = this.QueryTeamsInternal(NgbConstraint.Single(ngb)).Where(t => t.Id == teamId.Id).SingleOrDefault();
-		if (team == null)
+		var executionStrategy = this.dbContext.Database.CreateExecutionStrategy();
+		return await executionStrategy.ExecuteAsync(async () =>
 		{
-			throw new ArgumentException($"Team {teamId} was not found in NGB {ngb}");
-		}
+			using var transaction = await this.dbContext.Database.BeginTransactionAsync();
+			var team = this.QueryTeamsInternal(NgbConstraint.Single(ngb)).Where(t => t.Id == teamId.Id).SingleOrDefault();
+			if (team == null)
+			{
+				throw new ArgumentException($"Team {teamId} was not found in NGB {ngb}");
+			}
 
-		var previousStatus = team.Status!.Value;
+			var previousStatus = team.Status!.Value;
 
 		team.Name = teamData.Name;
 		team.City = teamData.City;
@@ -136,36 +139,41 @@ public class DbTeamContextFactory
 		team.ContactEmail = teamData.ContactEmail;
 		team.UpdatedAt = DateTime.UtcNow;
 
-		if (previousStatus != teamData.Status)
-		{
-			team.TeamStatusChangesets.Add(new Models.Data.TeamStatusChangeset
+			if (previousStatus != teamData.Status)
 			{
-				TeamId = team.Id,
-				PreviousStatus = previousStatus.ToString(),
-				NewStatus = teamData.Status.ToString(),
-				CreatedAt = DateTime.UtcNow,
-				UpdatedAt = DateTime.UtcNow,
-			});
-		}
+				team.TeamStatusChangesets.Add(new Models.Data.TeamStatusChangeset
+				{
+					TeamId = team.Id,
+					PreviousStatus = previousStatus.ToString(),
+					NewStatus = teamData.Status.ToString(),
+					CreatedAt = DateTime.UtcNow,
+					UpdatedAt = DateTime.UtcNow,
+				});
+			}
 
-		await this.dbContext.SaveChangesAsync();
-		await transaction.CommitAsync();
+			await this.dbContext.SaveChangesAsync();
+			await transaction.CommitAsync();
 
-		return FromDatabase(team, ngb);
+			return (ITeamContext)FromDatabase(team, ngb);
+		});
 	}
 
 	public async Task DeleteTeamAsync(TeamIdentifier teamId)
 	{
-		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
+		var executionStrategy = this.dbContext.Database.CreateExecutionStrategy();
+		await executionStrategy.ExecuteAsync(async () =>
+		{
+			using var transaction = await this.dbContext.Database.BeginTransactionAsync();
 
-		await this.dbContext.RefereeTeams.Where(rt => rt.TeamId == teamId.Id).ExecuteDeleteAsync();
+			await this.dbContext.RefereeTeams.Where(rt => rt.TeamId == teamId.Id).ExecuteDeleteAsync();
 
-		await this.dbContext.TeamStatusChangesets.Where(tsc => tsc.TeamId == teamId.Id).ExecuteDeleteAsync();
+			await this.dbContext.TeamStatusChangesets.Where(tsc => tsc.TeamId == teamId.Id).ExecuteDeleteAsync();
 
-		var deleted = await this.dbContext.Teams.Where(t => t.Id == teamId.Id).ExecuteDeleteAsync();
+			var deleted = await this.dbContext.Teams.Where(t => t.Id == teamId.Id).ExecuteDeleteAsync();
 
-		Debug.Assert(deleted == 1);
-		await transaction.CommitAsync();
+			Debug.Assert(deleted == 1);
+			await transaction.CommitAsync();
+		});
 	}
 
 	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)

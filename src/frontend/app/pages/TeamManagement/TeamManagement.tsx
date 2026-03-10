@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useNavigationParams } from "../../utils/navigationUtils";
+import { useNavigationParams, useNavigate } from "../../utils/navigationUtils";
 import { 
   useGetTeamDetailsQuery,
   useDeleteTeamPlayerMutation 
@@ -10,6 +10,7 @@ import AddManagerModal from "./AddManagerModal";
 
 const TeamManagement = () => {
   const { teamId } = useNavigationParams<"teamId">();
+  const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
   
@@ -49,6 +50,7 @@ const TeamManagement = () => {
       socialAccounts: team.socialAccounts,
       description: team.description,
       contactEmail: team.contactEmail,
+      logoUri: team.logoUri,
     };
   }, [team]);
 
@@ -74,6 +76,11 @@ const TeamManagement = () => {
         <p>Team not found</p>
       </div>
     );
+  }
+
+  if (!team.isCurrentUserManager) {
+    navigate(`/teams/${teamId}`, { replace: true });
+    return null;
   }
 
   return (

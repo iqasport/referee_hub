@@ -1398,6 +1398,8 @@ export type NgbTeamViewModel = {
   groupAffiliation?: TeamGroupAffiliation;
   joinedAt?: string;
   socialAccounts?: SocialAccount[] | null;
+  /** URI to the team's logo image. */
+  logoUri?: string | null;
   /** Team description. */
   description?: string | null;
   /** Team contact email. */

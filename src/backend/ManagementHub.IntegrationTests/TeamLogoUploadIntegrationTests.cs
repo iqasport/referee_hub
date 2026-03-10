@@ -56,11 +56,10 @@ public class TeamLogoUploadIntegrationTests : IClassFixture<TestWebApplicationFa
 		logoUrl.Should().NotBeNullOrEmpty("logo URL should be returned");
 		logoUrl.Should().StartWith("http", "logo URL should be a valid HTTP URL");
 
-		// Verify the logo upload response is a valid URL
+		// Verify the logo URL is persisted in team data
 		var teamDetails = await this._client.GetFromJsonAsync<TeamDetailViewModelDto>($"/api/v2/teams/{yankeesTeam.TeamId}");
 		teamDetails.Should().NotBeNull();
-		// The logo URL is returned by the upload endpoint but is not stored in the team record;
-		// it is persisted as an attachment blob accessible via a separate endpoint.
+		teamDetails!.LogoUri.Should().NotBeNullOrEmpty("team should have logo URL after upload");
 	}
 
 	[Fact]
@@ -109,6 +108,41 @@ public class TeamLogoUploadIntegrationTests : IClassFixture<TestWebApplicationFa
 
 		// Assert
 		response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "files larger than 5 MB should be rejected");
+	}
+
+	[Fact]
+	public async Task UploadTeamLogo_ShouldBeVisibleInNgbTeamsList()
+	{
+		// Arrange: Sign in as NGB admin
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+
+		// Get the Yankees team ID from the NGB manager page endpoint (the one used by the frontend)
+		var teamsResponse = await this._client.GetAsync("/api/v2/ngbs/USA/teams?SkipPaging=true");
+		teamsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var teamsResult = await teamsResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
+		var yankeesTeam = teamsResult!.Items!.FirstOrDefault(t => t.Name == "Yankees");
+		yankeesTeam.Should().NotBeNull("Yankees team should exist in test data");
+
+		// Upload a logo
+		var pngBytes = CreateTestPngImage();
+		var content = new MultipartFormDataContent();
+		var fileContent = new ByteArrayContent(pngBytes);
+		fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+		content.Add(fileContent, "logoBlob", "test-logo.png");
+
+		var uploadResponse = await this._client.PutAsync($"/api/v2/teams/{yankeesTeam!.TeamId}/logo", content);
+		uploadResponse.StatusCode.Should().Be(HttpStatusCode.OK, "logo upload should succeed");
+
+		// Act: Re-fetch the NGB teams list (the endpoint used by the NGB manager page)
+		var teamsAfterResponse = await this._client.GetAsync("/api/v2/ngbs/USA/teams?SkipPaging=true");
+		teamsAfterResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var teamsAfterResult = await teamsAfterResponse.Content.ReadFromJsonAsync<Filtered<NgbTeamViewModelDto>>();
+
+		// Assert: The Yankees team in the list should now have a logoUri
+		var yankeesAfter = teamsAfterResult!.Items!.FirstOrDefault(t => t.Name == "Yankees");
+		yankeesAfter.Should().NotBeNull();
+		yankeesAfter!.LogoUri.Should().NotBeNullOrEmpty(
+			"the NGB manager teams list should include the logoUri so it can be shown in the UI");
 	}
 
 	[Fact]
