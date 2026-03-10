@@ -205,6 +205,24 @@ jobs:
       run: dotnet test ManagementHub.IntegrationTests/ManagementHub.IntegrationTests.csproj --no-build -c Release --verbosity normal --logger:"junit;LogFilePath=dotnet-integration-test-result.xml"
       working-directory: src/backend
 
+    - name: Create placeholder test result if missing
+      if: success() || failure()
+      working-directory: src/backend
+      run: |
+        if [ ! -f "ManagementHub.IntegrationTests/dotnet-integration-test-result.xml" ]; then
+          echo "Test result file not found, creating placeholder..."
+          mkdir -p ManagementHub.IntegrationTests
+          cat > ManagementHub.IntegrationTests/dotnet-integration-test-result.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <testsuites tests="0" failures="0" errors="0" time="0">
+          <testsuite name="Placeholder" tests="0" failures="0" errors="0" time="0">
+            <properties/>
+          </testsuite>
+        </testsuites>
+        EOF
+          echo "Placeholder test result created"
+        fi
+
     - name: Print summary header for Integration Test Summary
       if: success() || failure()
       run: echo "### Integration test results for the backend" >> $GITHUB_STEP_SUMMARY

@@ -112,9 +112,13 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 		nationalTeamsResult!.Items.Should().NotBeNull();
 
 		// Find Australia National Team (which is from AUS NGB, different from sarah's USA NGB)
-		var australiaTeam = nationalTeamsResult.Items!
-			.FirstOrDefault(t => t.Name.Contains("Australia", StringComparison.OrdinalIgnoreCase));
-		australiaTeam.Should().NotBeNull("Australia National Team should be in the seeded data");
+		var australiaTeamsList = nationalTeamsResult.Items!
+			.Where(t => t.Name.Contains("Australia", StringComparison.OrdinalIgnoreCase))
+			.ToList();
+		australiaTeamsList.Should().NotBeEmpty("Australia National Team should be in the seeded data");
+
+		var australiaTeam = australiaTeamsList.First();
+		var australiaTeamId = australiaTeam.TeamId;
 
 		// Step 2: Get current user profile to verify current state
 		var profileBeforeResponse = await this._client.GetAsync("/api/v2/Referees/me");
@@ -130,7 +134,7 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 			coachingTeam = (object?)null,
 			nationalTeam = new
 			{
-				id = australiaTeam!.TeamId.ToString()
+				id = australiaTeamId
 			}
 		};
 

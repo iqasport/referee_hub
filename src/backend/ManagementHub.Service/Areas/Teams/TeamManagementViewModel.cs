@@ -1,15 +1,19 @@
-﻿using ManagementHub.Models.Domain.General;
+using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Enums;
+using ManagementHub.Service.Areas.Ngbs;
 
-namespace ManagementHub.Service.Areas.Ngbs;
+namespace ManagementHub.Service.Areas.Teams;
 
-public class NgbTeamViewModel
+/// <summary>
+/// View model for team management page with all necessary data.
+/// </summary>
+public class TeamManagementViewModel
 {
 	/// <summary>
 	/// Team identifier.
 	/// </summary>
-	public TeamIdentifier TeamId { get; set; }
+	public required TeamIdentifier TeamId { get; set; }
 
 	/// <summary>
 	/// Team name.
@@ -27,7 +31,7 @@ public class NgbTeamViewModel
 	public string? State { get; set; }
 
 	/// <summary>
-	/// The country the team is based in (for multi country Ngbs).
+	/// The country the team is based in.
 	/// </summary>
 	public required string Country { get; set; }
 
@@ -41,12 +45,8 @@ public class NgbTeamViewModel
 	/// </summary>
 	public required TeamGroupAffiliation GroupAffiliation { get; set; }
 
-	public required DateOnly JoinedAt { get; set; }
-
-	public required IEnumerable<SocialAccount> SocialAccounts { get; set; }
-
 	/// <summary>
-	/// URI to the team's logo image.
+	/// URL to the team's logo image (fetched from attachment storage).
 	/// </summary>
 	public Uri? LogoUri { get; set; }
 
@@ -60,4 +60,23 @@ public class NgbTeamViewModel
 	/// </summary>
 	public string? ContactEmail { get; set; }
 
+	/// <summary>
+	/// Team social media accounts.
+	/// </summary>
+	public required IEnumerable<SocialAccount> SocialAccounts { get; set; }
+
+	/// <summary>
+	/// Team managers.
+	/// </summary>
+	public required IEnumerable<TeamManagerViewModel> Managers { get; set; }
+
+	/// <summary>
+	/// Team members (players).
+	/// </summary>
+	public required IEnumerable<TeamMemberViewModel> Members { get; set; }
+
+	/// <summary>
+	/// Pending invitations for this team.
+	/// </summary>
+	public required IEnumerable<TeamInvitationViewModel> PendingInvites { get; set; }
 }

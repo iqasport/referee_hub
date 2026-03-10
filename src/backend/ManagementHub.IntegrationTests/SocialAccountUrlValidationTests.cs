@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
@@ -152,19 +150,16 @@ public class SocialAccountUrlValidationTests : IClassFixture<TestWebApplicationF
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
 		// Act: Try to create a team with an invalid social account URL
-		var createTeamModel = new NgbTeamViewModelDto
+		var createTeamModel = new
 		{
-			Name = "Test Team",
-			City = "Test City",
-			Country = "USA",
-			State = "NY",
-			Status = "competitive",
-			GroupAffiliation = "community",
-			JoinedAt = "2024-01-01",
-			SocialAccounts = new[]
-			{
-				new SocialAccountDto { Url = "invalid url here", Type = "other" }
-			}
+			name = "Test Team",
+			city = "Test City",
+			country = "USA",
+			state = "NY",
+			status = "competitive",
+			groupAffiliation = "community",
+			joinedAt = "2024-01-01",
+			socialAccounts = new[] { new { url = "invalid url here", type = "other" } }
 		};
 
 		var createResponse = await this._client.PostAsJsonAsync("/api/v2/Ngbs/USA/teams", createTeamModel);
@@ -181,38 +176,23 @@ public class SocialAccountUrlValidationTests : IClassFixture<TestWebApplicationF
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
 		// Act: Create a team with a URL missing https://
-		var createTeamModel = new NgbTeamViewModelDto
+		var createTeamModel = new
 		{
-			Name = "Test Team 2",
-			City = "Test City",
-			Country = "USA",
-			State = "NY",
-			Status = "competitive",
-			GroupAffiliation = "community",
-			JoinedAt = "2024-01-01",
-			SocialAccounts = new[]
-			{
-				new SocialAccountDto { Url = "instagram.com/testteam", Type = "instagram" }
-			}
+			name = "Test Team 2",
+			city = "Test City",
+			country = "USA",
+			state = "NY",
+			status = "competitive",
+			groupAffiliation = "community",
+			joinedAt = "2024-01-01",
+			socialAccounts = new[] { new { url = "instagram.com/testteam", type = "instagram" } }
 		};
 
-		// Serialize manually to omit null teamId
-		var json = System.Text.Json.JsonSerializer.Serialize(createTeamModel, new System.Text.Json.JsonSerializerOptions
-		{
-			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-			PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-		});
-		var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-		var createResponse = await this._client.PostAsync("/api/v2/Ngbs/USA/teams", content);
-
-		// Log the response content for debugging
-		var responseContent = await createResponse.Content.ReadAsStringAsync();
-		Console.WriteLine($"Response status: {createResponse.StatusCode}");
-		Console.WriteLine($"Response content: {responseContent}");
+		var createResponse = await this._client.PostAsJsonAsync("/api/v2/Ngbs/USA/teams", createTeamModel);
 
 		// Assert: Should succeed
 		createResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-			$"URLs missing protocol should have https:// added automatically. Response: {responseContent}");
+			"URLs missing protocol should have https:// added automatically");
 
 		var createdTeam = await createResponse.Content.ReadFromJsonAsync<NgbTeamViewModelDto>();
 		createdTeam.Should().NotBeNull();

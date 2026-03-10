@@ -8,4 +8,6 @@ public class TeamMemberViewModelDto
 {
 	public required string UserId { get; set; }
 	public required string Name { get; set; }
+	public string? PrimaryTeamName { get; set; }
+	public string? PrimaryTeamId { get; set; }
 }
