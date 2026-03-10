@@ -101,8 +101,7 @@ public class TeamsController : ControllerBase
 	/// <returns>URL to access the uploaded logo</returns>
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
-	[Authorize]
-	[IgnoreAntiforgeryToken] // API uses bearer token authentication, not cookies, so CSRF is not a concern
+	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
 	public async Task<ActionResult<Uri>> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
 		// Authorization: user must be a team manager OR an NGB admin of the team's NGB
@@ -387,7 +386,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Success message</returns>
 	[HttpPost("{teamId}/managers")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
 	public async Task<ActionResult<string>> AddTeamManager(
 		[FromRoute] TeamIdentifier teamId,
 		[FromBody] AddTeamManagerRequest request)
@@ -436,7 +435,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Success status</returns>
 	[HttpDelete("{teamId}/players/{playerId}")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
 	public async Task<IActionResult> RemovePlayer(
 		[FromRoute] TeamIdentifier teamId,
 		[FromRoute] UserIdentifier playerId)
