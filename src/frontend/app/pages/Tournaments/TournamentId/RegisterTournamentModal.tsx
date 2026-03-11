@@ -203,7 +203,7 @@ function useManagedTeamsForRegistration() {
     managedTeamsData?.forEach((team: ManagedTeamViewModel) => {
       if (team.teamId && !addedIds.has(team.teamId)) {
         addedIds.add(team.teamId);
-        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "", status: team.status });
+        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "", groupAffiliation: team.groupAffiliation, status: team.status });
       }
     });
     if (isNgbAdmin) {
