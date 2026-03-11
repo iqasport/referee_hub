@@ -157,6 +157,13 @@ const TeamInviteListRow: React.FC<TeamInviteListRowProps> = ({
           aria-label={`Select ${invite.participantName}`}
         />
       )}
+      {invite.logoUri && (
+        <img
+          src={invite.logoUri}
+          alt={`${invite.participantName} logo`}
+          className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200"
+        />
+      )}
       <div
         className="flex items-center justify-between flex-1 cursor-pointer"
         onClick={() => onSelect(invite.participantId ?? "")}
@@ -432,7 +439,8 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                                 tournamentId,
                                 id,
                                 invite.participantName || "Unknown Team",
-                                tournamentName
+                                tournamentName,
+                                invite.logoUri ?? undefined,
                               )
                             }
                             isCheckable={isCheckable}

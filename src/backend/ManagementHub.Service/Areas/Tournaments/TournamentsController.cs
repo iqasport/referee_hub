@@ -438,14 +438,34 @@ public class TournamentsController : ControllerBase
 		// (team invites for managed teams + individual player invites for themselves).
 		UserIdentifier? filterByParticipant = isTournamentManager ? null : userContext.UserId;
 
-		var invites = await this.tournamentContextProvider.GetTournamentInvitesAsync(
-			tournamentId, filterByParticipant, this.HttpContext.RequestAborted);
+		var invites = (await this.tournamentContextProvider.GetTournamentInvitesAsync(
+			tournamentId, filterByParticipant, this.HttpContext.RequestAborted)).ToList();
+
+		// Concurrently fetch logo URIs for all team invites
+		var teamInviteIds = invites
+			.Where(i => i.ParticipantType == ParticipantType.Team && TeamIdentifier.TryParse(i.ParticipantId, out _))
+			.Select(i => i.ParticipantId)
+			.Distinct()
+			.ToList();
+
+		var logoTasks = teamInviteIds.ToDictionary(
+			pid => pid,
+			pid =>
+			{
+				TeamIdentifier.TryParse(pid, out var tid);
+				return this.teamContextProvider.GetTeamLogoUriAsync(tid, this.HttpContext.RequestAborted);
+			});
+
+		await Task.WhenAll(logoTasks.Values);
+
+		var logoUris = logoTasks.ToDictionary(kv => kv.Key, kv => kv.Value.Result);
 
 		return invites.Select(i => new TournamentInviteViewModel
 		{
 			ParticipantType = i.ParticipantType,
 			ParticipantId = i.ParticipantId,
 			ParticipantName = i.ParticipantName,
+			LogoUri = logoUris.GetValueOrDefault(i.ParticipantId ?? ""),
 			Status = i.GetStatus(),
 			InitiatorUserId = i.InitiatorUserId,
 			CreatedAt = i.CreatedAt,
@@ -813,8 +833,15 @@ public class TournamentsController : ControllerBase
 			throw new NotFoundException(tournamentId.ToString());
 		}
 
-		var participants = await this.tournamentContextProvider
-			.GetTournamentTeamParticipantsAsync(tournamentId, this.HttpContext.RequestAborted);
+		var participants = (await this.tournamentContextProvider
+			.GetTournamentTeamParticipantsAsync(tournamentId, this.HttpContext.RequestAborted)).ToList();
+
+		// Concurrently fetch logo URIs for all participant teams
+		var logoUriTasks = participants.ToDictionary(
+			p => p.TeamId,
+			p => this.teamContextProvider.GetTeamLogoUriAsync(p.TeamId, this.HttpContext.RequestAborted));
+		await Task.WhenAll(logoUriTasks.Values);
+		var participantLogoUris = logoUriTasks.ToDictionary(kv => kv.Key, kv => kv.Value.Result);
 
 		var result = new List<TournamentParticipantViewModel>();
 
@@ -893,6 +920,7 @@ public class TournamentsController : ControllerBase
 			{
 				TeamId = participant.TeamId,
 				TeamName = participant.TeamName,
+				LogoUri = participantLogoUris.GetValueOrDefault(participant.TeamId),
 				Players = players,
 				Coaches = coaches,
 				Staff = staff

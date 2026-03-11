@@ -104,9 +104,18 @@ const TeamPickerSection: React.FC<TeamPickerSectionProps> = ({
             className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedTeamId === team.teamId ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
           >
             <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-gray-900">{team.name}</p>
-                <p className="text-xs text-gray-500">{team.groupAffiliation || "Team"}</p>
+              <div className="flex items-center gap-3">
+                {team.logoUri && (
+                  <img
+                    src={team.logoUri}
+                    alt={`${team.name} logo`}
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                  />
+                )}
+                <div>
+                  <p className="font-medium text-gray-900">{team.name}</p>
+                  <p className="text-xs text-gray-500">{team.groupAffiliation || "Team"}</p>
+                </div>
               </div>
               {selectedTeamId === team.teamId && (
                 <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
