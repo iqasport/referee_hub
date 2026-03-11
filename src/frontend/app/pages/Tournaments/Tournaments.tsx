@@ -84,177 +84,134 @@ const TournamentGridView: React.FC<TournamentGridViewProps> = ({
   </div>
 );
 
-const Tournament = () => {
+// ── useTournamentFilters ──────────────────────────────────────────────────────
+// Encapsulates URL search param state and the three handlers that mutate it.
+
+function useTournamentFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("q") || "";
   const typeFilter = searchParams.get("type") || "";
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const [showPast, setShowPast] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "calendar">("grid");
-  const modalRef = useRef<AddTournamentModalRef>(null);
-  const { currentData: currentUser } = useGetCurrentUserQuery();
-
-  // Query for user's private tournaments (no pagination - uses lazy loading in carousel)
-  const {
-    data: allTournamentsData,
-    isLoading: isLoadingAll,
-    isError: isErrorAll,
-  } = useGetTournamentsQuery({
-    filter: searchTerm || undefined,
-    tournamentType: typeFilter || undefined,
-    skipPaging: true,
-  });
-
-  // Query for public tournaments with pagination
-  const {
-    data: paginatedData,
-    isLoading: isLoadingPaginated,
-    isError: isErrorPaginated,
-  } = useGetTournamentsQuery({
-    filter: searchTerm || undefined,
-    tournamentType: typeFilter || undefined,
-    page: currentPage,
-    pageSize: DEFAULT_PAGE_SIZE,
-  });
-
-  const isLoading = isLoadingAll || isLoadingPaginated;
-  const isError = isErrorAll || isErrorPaginated;
-
-  const allTournaments = allTournamentsData?.items || [];
-  const paginatedTournaments = paginatedData?.items || [];
 
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
-    if (term.trim()) {
-      params.set("q", term.trim());
-    } else {
-      params.delete("q");
-    }
-    params.delete("page"); // Reset to first page on search
+    if (term.trim()) { params.set("q", term.trim()); } else { params.delete("q"); }
+    params.delete("page");
     setSearchParams(params);
   };
 
   const handleTypeFilter = (type: string) => {
     const params = new URLSearchParams(searchParams);
-    if (type) {
-      params.set("type", type);
-    } else {
-      params.delete("type");
-    }
-    params.delete("page"); // Reset to first page on filter change
+    if (type) { params.set("type", type); } else { params.delete("type"); }
+    params.delete("page");
     setSearchParams(params);
   };
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
-    if (page > 1) {
-      params.set("page", page.toString());
-    } else {
-      params.delete("page");
-    }
+    if (page > 1) { params.set("page", page.toString()); } else { params.delete("page"); }
     setSearchParams(params);
   };
 
-  // Type filtering is now applied server-side — allTournaments and paginatedTournaments
-  // are already filtered by type before they arrive here.
-  const { publicTournaments, privateTournaments, totalCount, calendarTournaments } = useMemo(() => {
+  const clearFilters = () => setSearchParams(new URLSearchParams());
+
+  return { searchTerm, typeFilter, currentPage, handleSearch, handleTypeFilter, handlePageChange, clearFilters };
+}
+
+// ── useTournamentData ─────────────────────────────────────────────────────────
+// Fetches tournaments and derives display-ready lists from the raw API data.
+
+function useTournamentData(searchTerm: string, typeFilter: string, currentPage: number, showPast: boolean) {
+  const { data: allTournamentsData, isLoading: isLoadingAll, isError: isErrorAll } =
+    useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, skipPaging: true });
+
+  const { data: paginatedData, isLoading: isLoadingPaginated, isError: isErrorPaginated } =
+    useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, page: currentPage, pageSize: DEFAULT_PAGE_SIZE });
+
+  const allTournaments = allTournamentsData?.items || [];
+  const paginatedTournaments = paginatedData?.items || [];
+
+  const derived = useMemo(() => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - PAST_TOURNAMENT_DAYS);
-
-    const isPast = (t: TournamentViewModel) => {
-      if (!t.endDate) return false;
-      return new Date(t.endDate) < cutoffDate;
-    };
-
-    const convertToDisplayFormat = (t: TournamentViewModel): TournamentData => ({
-      id: t.id,
-      title: t.name || "",
-      description: t.description || "",
-      startDate: t.startDate || "",
-      endDate: t.endDate || "",
-      type: t.type,
-      country: t.country || "",
-      location: [t.place, t.city].filter(Boolean).join(", "),
-      bannerImageUrl: t.bannerImageUrl || undefined,
-      organizer: t.organizer || undefined,
+    const isPast = (t: TournamentViewModel) => !!t.endDate && new Date(t.endDate) < cutoffDate;
+    const toDisplay = (t: TournamentViewModel): TournamentData => ({
+      id: t.id, title: t.name || "", description: t.description || "",
+      startDate: t.startDate || "", endDate: t.endDate || "", type: t.type,
+      country: t.country || "", location: [t.place, t.city].filter(Boolean).join(", "),
+      bannerImageUrl: t.bannerImageUrl || undefined, organizer: t.organizer || undefined,
       isPrivate: Boolean(t.isCurrentUserInvolved),
     });
-
-    // Private tournaments come from the unpaginated query (all tournaments)
-    const userInvolvedTournaments = allTournaments
-      .filter((t) => t.isCurrentUserInvolved && (showPast || !isPast(t)))
-      .map(convertToDisplayFormat);
-
-    // Public tournaments come from the paginated query
-    const otherTournaments = paginatedTournaments
-      .filter((t) => !t.isCurrentUserInvolved && (showPast || !isPast(t)))
-      .map(convertToDisplayFormat);
-
-    // Calculate public tournament count from all tournaments (for correct pagination)
-    const publicTournamentCount = allTournaments.filter(
-      (t) => !t.isCurrentUserInvolved && (showPast || !isPast(t))
-    ).length;
-
-    // Calendar gets ALL tournaments from the unpaginated query (not just the current page)
-    const allForCalendar = allTournaments
-      .filter((t) => showPast || !isPast(t))
-      .map(convertToDisplayFormat);
-
+    const visible = (t: TournamentViewModel) => showPast || !isPast(t);
     return {
-      publicTournaments: otherTournaments,
-      privateTournaments: userInvolvedTournaments,
-      totalCount: publicTournamentCount,
-      calendarTournaments: allForCalendar,
+      privateTournaments: allTournaments.filter((t) => t.isCurrentUserInvolved && visible(t)).map(toDisplay),
+      publicTournaments: paginatedTournaments.filter((t) => !t.isCurrentUserInvolved && visible(t)).map(toDisplay),
+      totalCount: allTournaments.filter((t) => !t.isCurrentUserInvolved && visible(t)).length,
+      calendarTournaments: allTournaments.filter(visible).map(toDisplay),
     };
   }, [allTournaments, paginatedTournaments, showPast]);
+
+  return { ...derived, isLoading: isLoadingAll || isLoadingPaginated, isError: isErrorAll || isErrorPaginated };
+}
+
+// ── TournamentHeader ──────────────────────────────────────────────────────────
+
+interface TournamentHeaderProps {
+  searchTerm: string; typeFilter: string; showPast: boolean; viewMode: "grid" | "calendar";
+  canAdd: boolean;
+  onSearch: (t: string) => void; onTypeFilter: (t: string) => void;
+  onShowPastChange: (v: boolean) => void; onViewModeChange: (m: "grid" | "calendar") => void;
+  onAdd: () => void;
+}
+const TournamentHeader: React.FC<TournamentHeaderProps> = ({
+  typeFilter, showPast, viewMode, canAdd,
+  onSearch, onTypeFilter, onShowPastChange, onViewModeChange, onAdd,
+}) => (
+  <div className="tournament-page-header">
+    <div className="tournament-search-wrapper">
+      <Search onSearch={onSearch} onTypeFilter={onTypeFilter} selectedType={typeFilter} />
+      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer mt-2">
+        <input type="checkbox" checked={showPast} onChange={(e) => onShowPastChange(e.target.checked)} className="rounded" />
+        Show past tournaments
+      </label>
+    </div>
+    <div className="flex items-center gap-3">
+      <div className="view-toggle">
+        <button className={`view-toggle-btn${viewMode === "grid" ? " active" : ""}`} onClick={() => onViewModeChange("grid")} aria-label="Grid view" title="Grid view">
+          <FontAwesomeIcon icon={faList} />
+        </button>
+        <button className={`view-toggle-btn${viewMode === "calendar" ? " active" : ""}`} onClick={() => onViewModeChange("calendar")} aria-label="Calendar view" title="Calendar view">
+          <FontAwesomeIcon icon={faCalendarAlt} />
+        </button>
+      </div>
+      {canAdd && <button onClick={onAdd} className="btn btn-primary">Add Tournament</button>}
+    </div>
+  </div>
+);
+
+// ── Tournament (page root) ────────────────────────────────────────────────────
+
+const Tournament = () => {
+  const [showPast, setShowPast] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "calendar">("grid");
+  const modalRef = useRef<AddTournamentModalRef>(null);
+  const { currentData: currentUser } = useGetCurrentUserQuery();
+
+  const { searchTerm, typeFilter, currentPage, handleSearch, handleTypeFilter, handlePageChange, clearFilters } =
+    useTournamentFilters();
+
+  const { privateTournaments, publicTournaments, totalCount, calendarTournaments, isLoading, isError } =
+    useTournamentData(searchTerm, typeFilter, currentPage, showPast);
 
   return (
     <>
       <div className="tournament-page-container">
-        <div className="tournament-page-header">
-          <div className="tournament-search-wrapper">
-            <Search
-              onSearch={handleSearch}
-              onTypeFilter={handleTypeFilter}
-              selectedType={typeFilter}
-            />
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer mt-2">
-              <input
-                type="checkbox"
-                checked={showPast}
-                onChange={(e) => setShowPast(e.target.checked)}
-                className="rounded"
-              />
-              Show past tournaments
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="view-toggle">
-              <button
-                className={`view-toggle-btn${viewMode === "grid" ? " active" : ""}`}
-                onClick={() => setViewMode("grid")}
-                aria-label="Grid view"
-                title="Grid view"
-              >
-                <FontAwesomeIcon icon={faList} />
-              </button>
-              <button
-                className={`view-toggle-btn${viewMode === "calendar" ? " active" : ""}`}
-                onClick={() => setViewMode("calendar")}
-                aria-label="Calendar view"
-                title="Calendar view"
-              >
-                <FontAwesomeIcon icon={faCalendarAlt} />
-              </button>
-            </div>
-            {currentUser && (
-              <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
-                Add Tournament
-              </button>
-            )}
-          </div>
-        </div>
-
+        <TournamentHeader
+          searchTerm={searchTerm} typeFilter={typeFilter} showPast={showPast} viewMode={viewMode}
+          canAdd={!!currentUser} onSearch={handleSearch} onTypeFilter={handleTypeFilter}
+          onShowPastChange={setShowPast} onViewModeChange={setViewMode}
+          onAdd={() => modalRef.current?.openAdd()}
+        />
         <AddTournamentModal ref={modalRef} />
       </div>
 
@@ -265,23 +222,14 @@ const Tournament = () => {
       ) : isError ? (
         <div className="tournament-error">Error loading tournaments. Please try again.</div>
       ) : viewMode === "calendar" ? (
-        <TournamentCalendar
-          tournaments={calendarTournaments}
-        />
+        <TournamentCalendar tournaments={calendarTournaments} />
       ) : (
         <TournamentGridView
-          privateTournaments={privateTournaments}
-          publicTournaments={publicTournaments}
-          totalCount={totalCount}
-          currentPage={currentPage}
-          hasActiveFilters={!!(searchTerm || typeFilter)}
-          canAddTournament={!!currentUser}
+          privateTournaments={privateTournaments} publicTournaments={publicTournaments}
+          totalCount={totalCount} currentPage={currentPage}
+          hasActiveFilters={!!(searchTerm || typeFilter)} canAddTournament={!!currentUser}
           onAddTournament={() => modalRef.current?.openAdd()}
-          onClearFilters={() => {
-            const params = new URLSearchParams();
-            setSearchParams(params);
-          }}
-          onPageChange={handlePageChange}
+          onClearFilters={clearFilters} onPageChange={handlePageChange}
         />
       )}
     </>
