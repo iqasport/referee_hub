@@ -29,8 +29,15 @@ interface TournamentGridViewProps {
   onPageChange: (page: number) => void;
 }
 const TournamentGridView: React.FC<TournamentGridViewProps> = ({
-  privateTournaments, publicTournaments, totalCount, currentPage,
-  hasActiveFilters, canAddTournament, onAddTournament, onClearFilters, onPageChange,
+  privateTournaments,
+  publicTournaments,
+  totalCount,
+  currentPage,
+  hasActiveFilters,
+  canAddTournament,
+  onAddTournament,
+  onClearFilters,
+  onPageChange,
 }) => (
   <div className="tournament-page-container">
     {privateTournaments.length > 0 && (
@@ -95,38 +102,64 @@ function useTournamentFilters() {
 
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
-    if (term.trim()) { params.set("q", term.trim()); } else { params.delete("q"); }
-    params.delete("page");
+    if (term.trim()) {
+      params.set("q", term.trim());
+    } else {
+      params.delete("q");
+    }
+    params.delete("page"); // Reset to first page on search
     setSearchParams(params);
   };
 
   const handleTypeFilter = (type: string) => {
     const params = new URLSearchParams(searchParams);
-    if (type) { params.set("type", type); } else { params.delete("type"); }
-    params.delete("page");
+    if (type) {
+      params.set("type", type);
+    } else {
+      params.delete("type");
+    }
+    params.delete("page"); // Reset to first page on filter change
     setSearchParams(params);
   };
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
-    if (page > 1) { params.set("page", page.toString()); } else { params.delete("page"); }
+    if (page > 1) {
+      params.set("page", page.toString());
+    } else {
+      params.delete("page");
+    }
     setSearchParams(params);
   };
 
   const clearFilters = () => setSearchParams(new URLSearchParams());
 
-  return { searchTerm, typeFilter, currentPage, handleSearch, handleTypeFilter, handlePageChange, clearFilters };
+  return {
+    searchTerm,
+    typeFilter,
+    currentPage,
+    handleSearch,
+    handleTypeFilter,
+    handlePageChange,
+    clearFilters,
+  };
 }
 
 // ── useTournamentData ─────────────────────────────────────────────────────────
 // Fetches tournaments and derives display-ready lists from the raw API data.
 
 function useTournamentData(searchTerm: string, typeFilter: string, currentPage: number, showPast: boolean) {
-  const { data: allTournamentsData, isLoading: isLoadingAll, isError: isErrorAll } =
-    useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, skipPaging: true });
+  const {
+    data: allTournamentsData,
+    isLoading: isLoadingAll,
+    isError: isErrorAll,
+  } = useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, skipPaging: true });
 
-  const { data: paginatedData, isLoading: isLoadingPaginated, isError: isErrorPaginated } =
-    useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, page: currentPage, pageSize: DEFAULT_PAGE_SIZE });
+  const {
+    data: paginatedData,
+    isLoading: isLoadingPaginated,
+    isError: isErrorPaginated,
+  } = useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, page: currentPage, pageSize: DEFAULT_PAGE_SIZE });
 
   const allTournaments = allTournamentsData?.items || [];
   const paginatedTournaments = paginatedData?.items || [];
@@ -136,10 +169,16 @@ function useTournamentData(searchTerm: string, typeFilter: string, currentPage: 
     cutoffDate.setDate(cutoffDate.getDate() - PAST_TOURNAMENT_DAYS);
     const isPast = (t: TournamentViewModel) => !!t.endDate && new Date(t.endDate) < cutoffDate;
     const toDisplay = (t: TournamentViewModel): TournamentData => ({
-      id: t.id, title: t.name || "", description: t.description || "",
-      startDate: t.startDate || "", endDate: t.endDate || "", type: t.type,
-      country: t.country || "", location: [t.place, t.city].filter(Boolean).join(", "),
-      bannerImageUrl: t.bannerImageUrl || undefined, organizer: t.organizer || undefined,
+      id: t.id,
+      title: t.name || "",
+      description: t.description || "",
+      startDate: t.startDate || "",
+      endDate: t.endDate || "",
+      type: t.type,
+      country: t.country || "",
+      location: [t.place, t.city].filter(Boolean).join(", "),
+      bannerImageUrl: t.bannerImageUrl || undefined,
+      organizer: t.organizer || undefined,
       isPrivate: Boolean(t.isCurrentUserInvolved),
     });
     const visible = (t: TournamentViewModel) => showPast || !isPast(t);
@@ -151,36 +190,67 @@ function useTournamentData(searchTerm: string, typeFilter: string, currentPage: 
     };
   }, [allTournaments, paginatedTournaments, showPast]);
 
-  return { ...derived, isLoading: isLoadingAll || isLoadingPaginated, isError: isErrorAll || isErrorPaginated };
+  return {
+    ...derived,
+    isLoading: isLoadingAll || isLoadingPaginated,
+    isError: isErrorAll || isErrorPaginated,
+  };
 }
 
 // ── TournamentHeader ──────────────────────────────────────────────────────────
 
 interface TournamentHeaderProps {
-  searchTerm: string; typeFilter: string; showPast: boolean; viewMode: "grid" | "calendar";
+  searchTerm: string;
+  typeFilter: string;
+  showPast: boolean;
+  viewMode: "grid" | "calendar";
   canAdd: boolean;
-  onSearch: (t: string) => void; onTypeFilter: (t: string) => void;
-  onShowPastChange: (v: boolean) => void; onViewModeChange: (m: "grid" | "calendar") => void;
+  onSearch: (t: string) => void;
+  onTypeFilter: (t: string) => void;
+  onShowPastChange: (v: boolean) => void;
+  onViewModeChange: (m: "grid" | "calendar") => void;
   onAdd: () => void;
 }
 const TournamentHeader: React.FC<TournamentHeaderProps> = ({
-  typeFilter, showPast, viewMode, canAdd,
-  onSearch, onTypeFilter, onShowPastChange, onViewModeChange, onAdd,
+  typeFilter,
+  showPast,
+  viewMode,
+  canAdd,
+  onSearch,
+  onTypeFilter,
+  onShowPastChange,
+  onViewModeChange,
+  onAdd,
 }) => (
   <div className="tournament-page-header">
     <div className="tournament-search-wrapper">
       <Search onSearch={onSearch} onTypeFilter={onTypeFilter} selectedType={typeFilter} />
       <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer mt-2">
-        <input type="checkbox" checked={showPast} onChange={(e) => onShowPastChange(e.target.checked)} className="rounded" />
+        <input
+          type="checkbox"
+          checked={showPast}
+          onChange={(e) => onShowPastChange(e.target.checked)}
+          className="rounded"
+        />
         Show past tournaments
       </label>
     </div>
     <div className="flex items-center gap-3">
       <div className="view-toggle">
-        <button className={`view-toggle-btn${viewMode === "grid" ? " active" : ""}`} onClick={() => onViewModeChange("grid")} aria-label="Grid view" title="Grid view">
+        <button
+          className={`view-toggle-btn${viewMode === "grid" ? " active" : ""}`}
+          onClick={() => onViewModeChange("grid")}
+          aria-label="Grid view"
+          title="Grid view"
+        >
           <FontAwesomeIcon icon={faList} />
         </button>
-        <button className={`view-toggle-btn${viewMode === "calendar" ? " active" : ""}`} onClick={() => onViewModeChange("calendar")} aria-label="Calendar view" title="Calendar view">
+        <button
+          className={`view-toggle-btn${viewMode === "calendar" ? " active" : ""}`}
+          onClick={() => onViewModeChange("calendar")}
+          aria-label="Calendar view"
+          title="Calendar view"
+        >
           <FontAwesomeIcon icon={faCalendarAlt} />
         </button>
       </div>
@@ -197,19 +267,38 @@ const Tournament = () => {
   const modalRef = useRef<AddTournamentModalRef>(null);
   const { currentData: currentUser } = useGetCurrentUserQuery();
 
-  const { searchTerm, typeFilter, currentPage, handleSearch, handleTypeFilter, handlePageChange, clearFilters } =
-    useTournamentFilters();
+  const {
+    searchTerm,
+    typeFilter,
+    currentPage,
+    handleSearch,
+    handleTypeFilter,
+    handlePageChange,
+    clearFilters,
+  } = useTournamentFilters();
 
-  const { privateTournaments, publicTournaments, totalCount, calendarTournaments, isLoading, isError } =
-    useTournamentData(searchTerm, typeFilter, currentPage, showPast);
+  const {
+    privateTournaments,
+    publicTournaments,
+    totalCount,
+    calendarTournaments,
+    isLoading,
+    isError,
+  } = useTournamentData(searchTerm, typeFilter, currentPage, showPast);
 
   return (
     <>
       <div className="tournament-page-container">
         <TournamentHeader
-          searchTerm={searchTerm} typeFilter={typeFilter} showPast={showPast} viewMode={viewMode}
-          canAdd={!!currentUser} onSearch={handleSearch} onTypeFilter={handleTypeFilter}
-          onShowPastChange={setShowPast} onViewModeChange={setViewMode}
+          searchTerm={searchTerm}
+          typeFilter={typeFilter}
+          showPast={showPast}
+          viewMode={viewMode}
+          canAdd={!!currentUser}
+          onSearch={handleSearch}
+          onTypeFilter={handleTypeFilter}
+          onShowPastChange={setShowPast}
+          onViewModeChange={setViewMode}
           onAdd={() => modalRef.current?.openAdd()}
         />
         <AddTournamentModal ref={modalRef} />
@@ -225,11 +314,15 @@ const Tournament = () => {
         <TournamentCalendar tournaments={calendarTournaments} />
       ) : (
         <TournamentGridView
-          privateTournaments={privateTournaments} publicTournaments={publicTournaments}
-          totalCount={totalCount} currentPage={currentPage}
-          hasActiveFilters={!!(searchTerm || typeFilter)} canAddTournament={!!currentUser}
+          privateTournaments={privateTournaments}
+          publicTournaments={publicTournaments}
+          totalCount={totalCount}
+          currentPage={currentPage}
+          hasActiveFilters={!!(searchTerm || typeFilter)}
+          canAddTournament={!!currentUser}
           onAddTournament={() => modalRef.current?.openAdd()}
-          onClearFilters={clearFilters} onPageChange={handlePageChange}
+          onClearFilters={clearFilters}
+          onPageChange={handlePageChange}
         />
       )}
     </>

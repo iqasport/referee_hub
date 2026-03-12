@@ -27,7 +27,11 @@ interface TeamDetailViewProps {
   onDelete: (id: string, name: string) => void;
 }
 const TeamDetailView: React.FC<TeamDetailViewProps> = ({
-  invite, isSubmitting, onApprove, onDeny, onDelete,
+  invite,
+  isSubmitting,
+  onApprove,
+  onDeny,
+  onDelete,
 }) => (
   <div>
     <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -98,8 +102,14 @@ interface BulkActionBarProps {
   onDenyAll: () => void;
 }
 const BulkActionBar: React.FC<BulkActionBarProps> = ({
-  count, total, isBulkProcessing, bulkProgress,
-  onSelectAll, onClearAll, onApproveAll, onDenyAll,
+  count,
+  total,
+  isBulkProcessing,
+  bulkProgress,
+  onSelectAll,
+  onClearAll,
+  onApproveAll,
+  onDenyAll,
 }) => (
   <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
     <span className="text-sm font-medium text-amber-900 mr-1">
@@ -143,7 +153,13 @@ interface TeamInviteListRowProps {
   onToggleCheck: (id: string) => void;
 }
 const TeamInviteListRow: React.FC<TeamInviteListRowProps> = ({
-  invite, getPendingLabel, onSelect, onViewRoster, isCheckable, isChecked, onToggleCheck,
+  invite,
+  getPendingLabel,
+  onSelect,
+  onViewRoster,
+  isCheckable,
+  isChecked,
+  onToggleCheck,
 }) => (
   <div className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md">
     <div className="flex items-center gap-3">
@@ -151,7 +167,10 @@ const TeamInviteListRow: React.FC<TeamInviteListRowProps> = ({
         <input
           type="checkbox"
           checked={isChecked}
-          onChange={(e) => { e.stopPropagation(); onToggleCheck(invite.participantId ?? ""); }}
+          onChange={(e) => {
+            e.stopPropagation();
+            onToggleCheck(invite.participantId ?? "");
+          }}
           onClick={(e) => e.stopPropagation()}
           className="h-4 w-4 rounded border-gray-300 text-green-600 cursor-pointer flex-shrink-0"
           aria-label={`Select ${invite.participantName}`}
@@ -184,7 +203,10 @@ const TeamInviteListRow: React.FC<TeamInviteListRowProps> = ({
     {invite.status === "approved" && (
       <div className="mt-3 pt-3 border-t border-gray-200">
         <button
-          onClick={(e) => { e.stopPropagation(); onViewRoster(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewRoster();
+          }}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium"
         >
           View Roster →

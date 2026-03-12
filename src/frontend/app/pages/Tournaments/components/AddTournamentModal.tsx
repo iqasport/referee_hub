@@ -105,7 +105,10 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     e.preventDefault();
     try {
       if (isEditMode) {
-        if (!formData.id) { showAlert("Tournament ID is missing", "error"); return; }
+        if (!formData.id) {
+          showAlert("Tournament ID is missing", "error");
+          return;
+        }
         await updateTournament({
           tournamentId: formData.id,
           tournamentModel: buildTournamentPayload(formData),
@@ -115,8 +118,12 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
           tournamentModel: buildTournamentPayload(formData),
         }).unwrap();
         if (pendingBannerFile && result.id) {
-          try { await uploadBannerImage(result.id, pendingBannerFile); }
-          catch (bannerError) { console.error("Failed to upload banner:", bannerError); }
+          try {
+            await uploadBannerImage(result.id, pendingBannerFile);
+          } catch (bannerError) {
+            console.error("Failed to upload banner:", bannerError);
+            // Don't fail the whole operation, tournament was created successfully
+          }
         }
       }
       close();
@@ -139,16 +146,29 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
   async function handleBannerUpload(file: File) {
     if (!formData.id) {
       setPendingBannerFile(file);
-      setFormData((prev) => ({ ...prev, bannerImageUrl: URL.createObjectURL(file) }));
+      // Update preview with temporary URL
+      setFormData((prev) => ({
+        ...prev,
+        bannerImageUrl: URL.createObjectURL(file),
+      }));
       return;
     }
     try {
+      // RTK Query code gen doesn't support multipart form requests, so use native fetch
+      const payload = new FormData();
+      payload.append("bannerBlob", file);
       const response = await fetch(`/api/v2/Tournaments/${formData.id}/banner`, {
         method: "PUT",
-        body: (() => { const p = new FormData(); p.append("bannerBlob", file); return p; })(),
+        body: payload,
       });
-      if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
-      setFormData((prev) => ({ ...prev, bannerImageUrl: URL.createObjectURL(file) }));
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+      // Update local state with a temporary URL for preview
+      setFormData((prev) => ({
+        ...prev,
+        bannerImageUrl: URL.createObjectURL(file),
+      }));
     } catch (error) {
       console.error("Failed to upload banner:", error);
       showAlert("Failed to upload banner image. Please try again.", "error");

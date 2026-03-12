@@ -128,16 +128,16 @@ public class DbTeamContextFactory
 
 			var previousStatus = team.Status!.Value;
 
-		team.Name = teamData.Name;
-		team.City = teamData.City;
-		team.State = teamData.State;
-		team.Country = teamData.Country;
-		team.GroupAffiliation = teamData.GroupAffiliation;
-		team.Status = teamData.Status;
-		team.JoinedAt = teamData.JoinedAt;
-		team.Description = teamData.Description;
-		team.ContactEmail = teamData.ContactEmail;
-		team.UpdatedAt = DateTime.UtcNow;
+			team.Name = teamData.Name;
+			team.City = teamData.City;
+			team.State = teamData.State;
+			team.Country = teamData.Country;
+			team.GroupAffiliation = teamData.GroupAffiliation;
+			team.Status = teamData.Status;
+			team.JoinedAt = teamData.JoinedAt;
+			team.Description = teamData.Description;
+			team.ContactEmail = teamData.ContactEmail;
+			team.UpdatedAt = DateTime.UtcNow;
 
 			if (previousStatus != teamData.Status)
 			{

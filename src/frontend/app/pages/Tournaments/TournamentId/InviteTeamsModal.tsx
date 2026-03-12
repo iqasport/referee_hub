@@ -53,8 +53,12 @@ function useInviteTeamsData(
 
   const unavailableTeamIds = useMemo(() => {
     const ids = new Set<string>();
-    existingInvites?.forEach((invite) => { if (invite.participantId) ids.add(invite.participantId); });
-    participants?.forEach((participant) => { if (participant.teamId) ids.add(participant.teamId); });
+    existingInvites?.forEach((invite) => {
+      if (invite.participantId) ids.add(invite.participantId);
+    });
+    participants?.forEach((participant) => {
+      if (participant.teamId) ids.add(participant.teamId);
+    });
     return ids;
   }, [existingInvites, participants]);
 
@@ -69,7 +73,14 @@ function useInviteTeamsData(
     });
   }, [teamsData, unavailableTeamIds, searchFilter, tournament?.type]);
 
-  return { isLoadingNgbs, filteredNgbs, eligibleAffiliations, isLoadingTeams, existingInvites, availableTeams };
+  return {
+    isLoadingNgbs,
+    filteredNgbs,
+    eligibleAffiliations,
+    isLoadingTeams,
+    existingInvites,
+    availableTeams,
+  };
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -83,7 +94,12 @@ interface TeamPickerSectionProps {
   onSelectTeam: (id: string) => void;
 }
 const TeamPickerSection: React.FC<TeamPickerSectionProps> = ({
-  selectedNgb, isLoadingTeams, availableTeams, selectedTeamId, tournament, onSelectTeam,
+  selectedNgb,
+  isLoadingTeams,
+  availableTeams,
+  selectedTeamId,
+  tournament,
+  onSelectTeam,
 }) => (
   <div className="mb-6">
     <h4 className="text-sm font-semibold text-gray-700 mb-3">Available Teams</h4>
@@ -135,7 +151,9 @@ const statusStyle = (status?: string) =>
   : status === "approved" ? { bg: "#d1fae5", color: "#065f46" }
   : { bg: "#fee2e2", color: "#991b1b" };
 
-interface SentInvitesListProps { invites: TournamentInviteViewModel[] }
+interface SentInvitesListProps {
+  invites: TournamentInviteViewModel[];
+}
 const SentInvitesList: React.FC<SentInvitesListProps> = ({ invites }) => (
   <div>
     <h4 className="text-sm font-semibold text-gray-700 mb-3">Sent Invites</h4>
@@ -236,7 +254,10 @@ const InviteTeamsModal = forwardRef<InviteTeamsModalRef>((_props, ref) => {
                 ) : (
                   <select
                     value={selectedNgb}
-                    onChange={(e) => { setSelectedNgb(e.target.value); setSelectedTeamId(""); }}
+                    onChange={(e) => {
+                      setSelectedNgb(e.target.value);
+                      setSelectedTeamId("");
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="">Select a region to browse teams...</option>
