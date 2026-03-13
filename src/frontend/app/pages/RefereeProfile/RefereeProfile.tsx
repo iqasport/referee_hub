@@ -400,7 +400,7 @@ const RefereeProfile = () => {
                 onCancel={handleDetailsCancel}
               />
             )}
-            <UpcomingEvents refereeId={refereeId} />
+            {isEditable && <UpcomingEvents refereeId={refereeId} />}
           </div>
         </div>
       </div>

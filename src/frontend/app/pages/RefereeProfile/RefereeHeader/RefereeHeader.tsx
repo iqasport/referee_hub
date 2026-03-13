@@ -2,7 +2,7 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalize } from "lodash";
-import React from "react";
+import React, { useState } from "react";
 
 import { getRefereeCertVersion } from "../../../utils/certUtils";
 import { toDateTime } from "../../../utils/dateUtils";
@@ -68,7 +68,15 @@ const RefereeHeader = (props: HeaderProps) => {
   const { data: userAvatar } = useGetUserAvatarQuery({ userId: refereeId });
   const { data: user } = useGetUserDataQuery({ userId: refereeId });
 
+  const [showTooltip, setShowTooltip] = useState(false);
+
   const headerCerts = pickHeaderCerts(certifications ?? []);
+
+  // Certs that are not shown as explicit badges (all beyond the max-2 selection).
+  const displayedKeys = new Set(headerCerts.map((c) => `${c.level}-${c.version}`));
+  const hiddenCerts = (certifications ?? []).filter(
+    (c) => !displayedKeys.has(`${c.level}-${c.version}`)
+  );
 
   const renderCertLabel = (cert: Certification) =>
     `${capitalize(cert.level === "snitch" ? "flag" : cert.level)} (${getRefereeCertVersion(cert)})`;
@@ -94,6 +102,57 @@ const RefereeHeader = (props: HeaderProps) => {
             {renderCertLabel(cert)}
           </span>
         ))}
+
+        {/* Overflow badge — shows remaining cert count with a hover tooltip */}
+        {hiddenCerts.length > 0 && (
+          <span
+            style={{ position: "relative", display: "inline-flex" }}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            <span
+              style={{
+                background: "#e5e7eb",
+                color: "#374151",
+                border: "1px solid #d1d5db",
+                padding: "0.2rem 0.6rem",
+                borderRadius: "9999px",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                cursor: "default",
+              }}
+              aria-label={`${hiddenCerts.length} more certifications`}
+            >
+              +{hiddenCerts.length}
+            </span>
+
+            {showTooltip && (
+              <div
+                role="tooltip"
+                style={{
+                  position: "absolute",
+                  bottom: "calc(100% + 6px)",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  background: "#1f2937",
+                  color: "#f9fafb",
+                  borderRadius: "0.375rem",
+                  padding: "0.4rem 0.6rem",
+                  fontSize: "0.75rem",
+                  whiteSpace: "nowrap",
+                  zIndex: 10,
+                  pointerEvents: "none",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                }}
+              >
+                {hiddenCerts.map((cert) => (
+                  <div key={`${cert.level}-${cert.version}`}>{renderCertLabel(cert)}</div>
+                ))}
+              </div>
+            )}
+          </span>
+        )}
+
         {onTakeTests && (
           <button
             type="button"
