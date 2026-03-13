@@ -1,9 +1,48 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import {
+  faFacebookSquare,
+  faInstagramSquare,
+  faTwitterSquare,
+  faYoutubeSquare,
+} from "@fortawesome/free-brands-svg-icons";
+import { faComments } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigationParams } from "../../utils/navigationUtils";
-import { useGetTeamDetailsQuery } from "../../store/serviceApi";
+import { SocialAccount, useGetTeamDetailsQuery } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
 import { toDateTime } from "../../utils/dateUtils";
+
+type SocialConfig = {
+  [key: string]: {
+    color: string;
+    icon: typeof faFacebookSquare;
+  };
+};
+
+const socialConfig: SocialConfig = {
+  facebook: { color: "hover:text-blue-600", icon: faFacebookSquare },
+  instagram: { color: "hover:text-pink-400", icon: faInstagramSquare },
+  twitter: { color: "hover:text-blue-400", icon: faTwitterSquare },
+  youtube: { color: "hover:text-red-600", icon: faYoutubeSquare },
+  other: { color: "hover:text-green", icon: faComments },
+};
+
+const renderSocialIcon = (account: SocialAccount, index: number) => {
+  const config = socialConfig[account.type] ?? socialConfig.other;
+  return (
+    <a
+      key={`${account.type}-${index}`}
+      href={account.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`mr-4 text-gray-600 ${config.color}`}
+      title={account.type}
+    >
+      <FontAwesomeIcon icon={config.icon} className="text-3xl" />
+    </a>
+  );
+};
 
 const TeamView = () => {
   const { teamId } = useNavigationParams<"teamId">();
@@ -93,17 +132,7 @@ const TeamView = () => {
         <div className="bg-gray-100 rounded-lg p-4 mb-8">
           <h2 className="text-xl font-semibold mb-2">Social Media</h2>
           <div className="flex flex-wrap gap-2">
-            {team.socialAccounts.map((account, index) => (
-              <a
-                key={index}
-                href={account.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                {account.type}
-              </a>
-            ))}
+            {team.socialAccounts.map((account, index) => renderSocialIcon(account, index))}
           </div>
         </div>
       )}
