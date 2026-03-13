@@ -7,8 +7,52 @@ import React from "react";
 import { getRefereeCertVersion } from "../../../utils/certUtils";
 import { toDateTime } from "../../../utils/dateUtils";
 import HeaderImage from "./HeaderImage";
-import { Certification, useGetUserAvatarQuery, useGetUserDataQuery } from "../../../store/serviceApi";
+import { Certification, CertificationLevel, CertificationVersion, useGetUserAvatarQuery, useGetUserDataQuery } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
+
+/** Rank used to pick the "highest level" certification for the header. */
+const LEVEL_RANK: Record<CertificationLevel, number> = {
+  scorekeeper: 0,
+  assistant: 1,
+  snitch: 2,
+  head: 3,
+  field: 4,
+};
+
+/** Rank used to pick the "most recent version" certification for the header. */
+const VERSION_RANK: Record<CertificationVersion, number> = {
+  eighteen: 0,
+  twenty: 1,
+  twentytwo: 2,
+  twentyfour: 3,
+};
+
+/**
+ * Returns at most two representative certifications to display in the header:
+ * - the one with the highest level (e.g. Head)
+ * - the one with the most recent rulebook version (e.g. 2024)
+ * Duplicates (same level+version) are collapsed to a single badge.
+ */
+function pickHeaderCerts(certs: Certification[]): Certification[] {
+  if (!certs?.length) return [];
+
+  const byLevel = [...certs].sort(
+    (a, b) => (LEVEL_RANK[b.level] ?? -1) - (LEVEL_RANK[a.level] ?? -1)
+  )[0];
+
+  const byVersion = [...certs].sort(
+    (a, b) => (VERSION_RANK[b.version] ?? -1) - (VERSION_RANK[a.version] ?? -1)
+  )[0];
+
+  // Deduplicate when max-level and most-recent-version happen to be the same cert.
+  const seen = new Set<string>();
+  return [byLevel, byVersion].filter((cert) => {
+    const key = `${cert.level}-${cert.version}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 type HeaderProps = {
   name: string;
@@ -24,14 +68,19 @@ const RefereeHeader = (props: HeaderProps) => {
   const { data: userAvatar } = useGetUserAvatarQuery({ userId: refereeId });
   const { data: user } = useGetUserDataQuery({ userId: refereeId });
 
+  const headerCerts = pickHeaderCerts(certifications ?? []);
+
+  const renderCertLabel = (cert: Certification) =>
+    `${capitalize(cert.level === "snitch" ? "flag" : cert.level)} (${getRefereeCertVersion(cert)})`;
+
   const renderCertifications = () => {
-    if (!certifications?.length && !onTakeTests) return null;
+    if (!headerCerts.length && !onTakeTests) return null;
 
     return (
       <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
-        {certifications?.map((certification) => (
+        {headerCerts.map((cert) => (
           <span
-            key={`${certification.level}-${certification.version}`}
+            key={`${cert.level}-${cert.version}`}
             style={{
               background: "#dcfce7",
               color: "#166534",
@@ -42,7 +91,7 @@ const RefereeHeader = (props: HeaderProps) => {
               fontWeight: 600,
             }}
           >
-            {`${capitalize(certification.level === "snitch" ? "flag" : certification.level)} (${getRefereeCertVersion(certification)})`}
+            {renderCertLabel(cert)}
           </span>
         ))}
         {onTakeTests && (

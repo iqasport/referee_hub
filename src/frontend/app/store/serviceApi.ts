@@ -623,7 +623,11 @@ const injectedRtkApi = api
         providesTags: ["UserInfo"],
       }),
       getUpcomingTournaments: build.query<GetUpcomingTournamentsApiResponse, GetUpcomingTournamentsApiArg>({
-        query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/upcomingTournaments` }),
+        query: (queryArg) => ({
+          url: queryArg.userId === "me"
+            ? `/api/v2/Users/me/upcomingTournaments`
+            : `/api/v2/Users/${queryArg.userId}/upcomingTournaments`,
+        }),
         providesTags: ["User"],
       }),
     }),
