@@ -64,6 +64,10 @@ public partial class User : IIdentifiable
 	public bool? ExportName { get; set; }
 	public string? StripeCustomerId { get; set; }
 	public long? LanguageId { get; set; }
+	public DateOnly? DateOfBirth { get; set; }
+	public string? FoodRestrictions { get; set; }
+	public string? MedicalInformation { get; set; }
+	public string? EmergencyContact { get; set; }
 
 	public virtual Language? Language { get; set; }
 	public virtual NationalGoverningBodyAdmin NationalGoverningBodyAdmin { get; set; } = null!;

@@ -1,16 +1,207 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import TestResultCards from "../../components/TestResultCards";
 
 import RefereeHeader from "./RefereeHeader";
 import RefereeLocation from "./RefereeLocation";
 import RefereeTeam from "./RefereeTeam";
-import { IdParams } from "./types";
-import { useGetRefereeQuery, useGetTestAttemptsQuery, useUpdateCurrentRefereeMutation } from "../../store/serviceApi";
+import {
+  useGetRefereeQuery,
+  useGetTestAttemptsQuery,
+  useUpdateCurrentRefereeMutation,
+  useGetUserDataQuery,
+  useUpdateCurrentUserDataMutation,
+  useGetUpcomingTournamentsQuery,
+  UserDataViewModel,
+} from "../../store/serviceApi";
 import { RefereeLocationOptions } from "./RefereeLocation/RefereeLocation";
 import { RefereeTeamOptions } from "./RefereeTeam/RefereeTeam";
 import { getErrorString } from "../../utils/errorUtils";
 import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
+import Toggle from "../../components/Toggle";
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Basic Details section (pronouns, bio + new private fields)
+// ──────────────────────────────────────────────────────────────────────────────
+
+interface BasicDetailsProps {
+  userData: UserDataViewModel;
+  isEditing: boolean;
+  isEditable: boolean;
+  onChange: (updated: Partial<UserDataViewModel>) => void;
+  onEdit: () => void;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
+const BasicDetails = ({
+  userData,
+  isEditing,
+  isEditable,
+  onChange,
+  onEdit,
+  onSave,
+  onCancel,
+}: BasicDetailsProps) => {
+  const handleStringChange =
+    (key: keyof UserDataViewModel) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      onChange({ [key]: e.currentTarget.value });
+
+  const handleToggleChange =
+    (key: keyof UserDataViewModel) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      onChange({ [key]: e.currentTarget.checked });
+
+  return (
+    <div className="card card-mb">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="card-title" style={{ marginBottom: 0 }}>
+          Basic Details
+        </h3>
+        {isEditable && (
+          <div className="flex gap-2">
+            {isEditing ? (
+              <>
+                <button
+                  type="reset"
+                  className="btn btn-secondary"
+                  onClick={onCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  onClick={onSave}
+                >
+                  Save
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn btn-primary" onClick={onEdit}>
+                Edit
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Pronouns */}
+      <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
+        <span className="stats-label">Pronouns</span>
+        {isEditing ? (
+          <div className="flex items-center gap-3 w-full">
+            <Toggle
+              name="showPronouns"
+              label="Show?"
+              onChange={handleToggleChange("showPronouns")}
+              checked={userData.showPronouns ?? false}
+            />
+            <input
+              className="form-input flex-1"
+              type="text"
+              value={userData.pronouns ?? ""}
+              onChange={handleStringChange("pronouns")}
+              placeholder="Pronouns"
+            />
+          </div>
+        ) : (
+          <span className="stats-value">
+            {userData.showPronouns && userData.pronouns ? userData.pronouns : "—"}
+          </span>
+        )}
+      </div>
+
+      {/* Bio / Comments */}
+      <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
+        <span className="stats-label">Bio</span>
+        {isEditing ? (
+          <textarea
+            className="bg-gray-100 rounded p-2 text-sm w-full"
+            style={{ resize: "vertical", minHeight: "4rem" }}
+            onChange={handleStringChange("bio")}
+            value={userData.bio ?? ""}
+            placeholder="Tell us about yourself…"
+          />
+        ) : (
+          <span className="stats-value">{userData.bio || "—"}</span>
+        )}
+      </div>
+
+      {/* Private fields — visible only when isEditable (current user) */}
+      {isEditable && (
+        <>
+          {/* Date of birth */}
+          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
+            <span className="stats-label">Date of Birth</span>
+            {isEditing ? (
+              <input
+                className="form-input"
+                type="date"
+                value={userData.dateOfBirth ?? ""}
+                onChange={handleStringChange("dateOfBirth")}
+              />
+            ) : (
+              <span className="stats-value">{userData.dateOfBirth || "—"}</span>
+            )}
+          </div>
+
+          {/* Food restrictions / allergies */}
+          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
+            <span className="stats-label">Food Restrictions / Allergies</span>
+            {isEditing ? (
+              <textarea
+                className="bg-gray-100 rounded p-2 text-sm w-full"
+                style={{ resize: "vertical", minHeight: "3rem" }}
+                onChange={handleStringChange("foodRestrictions")}
+                value={userData.foodRestrictions ?? ""}
+                placeholder="Any food restrictions or allergies…"
+              />
+            ) : (
+              <span className="stats-value">{userData.foodRestrictions || "—"}</span>
+            )}
+          </div>
+
+          {/* Medical information */}
+          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
+            <span className="stats-label">Medical Information</span>
+            {isEditing ? (
+              <textarea
+                className="bg-gray-100 rounded p-2 text-sm w-full"
+                style={{ resize: "vertical", minHeight: "3rem" }}
+                onChange={handleStringChange("medicalInformation")}
+                value={userData.medicalInformation ?? ""}
+                placeholder="Relevant medical information…"
+              />
+            ) : (
+              <span className="stats-value">{userData.medicalInformation || "—"}</span>
+            )}
+          </div>
+
+          {/* Emergency contact */}
+          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
+            <span className="stats-label">Emergency Contact</span>
+            {isEditing ? (
+              <input
+                className="form-input"
+                type="text"
+                value={userData.emergencyContact ?? ""}
+                onChange={handleStringChange("emergencyContact")}
+                placeholder="Name and phone number…"
+              />
+            ) : (
+              <span className="stats-value">{userData.emergencyContact || "—"}</span>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Referee Details (location + teams) section
+// ──────────────────────────────────────────────────────────────────────────────
 
 const RefereeDetails = () => {
   const { refereeId } = useNavigationParams<"refereeId">();
@@ -21,107 +212,232 @@ const RefereeDetails = () => {
   const [updateReferee, { error: updateRefereeError }] = useUpdateCurrentRefereeMutation();
 
   const handleChange = (newState: RefereeLocationOptions | RefereeTeamOptions) => {
-    setReferee({...editableReferee, ...newState});
-  }
+    setReferee({ ...editableReferee, ...newState });
+  };
 
   const buttonClick = () => {
     if (isEditing) {
       setIsEditing(false);
       updateReferee({ refereeUpdateViewModel: editableReferee });
-    }
-    else {
+    } else {
       setIsEditing(true);
     }
-  }
+  };
 
-  return (<div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 mb-8">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="border-b-2 border-green text-xl text-center">Details</h3>
-      { refereeId == "me" && <button
-        type="button"
-        className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
-        onClick={buttonClick}
-      >
-        { isEditing ? "Save" : "Edit" }
-      </button>}
+  return (
+    <div className="card card-mb">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="card-title" style={{ marginBottom: 0 }}>
+          Referee Details
+        </h3>
+        {refereeId === "me" && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={buttonClick}
+          >
+            {isEditing ? "Save" : "Edit"}
+          </button>
+        )}
+      </div>
+
+      {updateRefereeError && (
+        <p style={{ color: "#dc2626", marginBottom: "0.5rem" }}>
+          Error: {getErrorString(updateRefereeError)}
+        </p>
+      )}
+
+      <div className="flex flex-col lg:flex-row">
+        <RefereeLocation
+          locations={{
+            primaryNgb: editableReferee?.primaryNgb,
+            secondaryNgb: editableReferee?.secondaryNgb,
+          }}
+          isEditing={isEditing}
+          onChange={handleChange}
+        />
+        <RefereeTeam
+          teams={{
+            coachingTeam: editableReferee?.coachingTeam,
+            playingTeam: editableReferee?.playingTeam,
+            nationalTeam: editableReferee?.nationalTeam,
+          }}
+          locations={{
+            primaryNgb: editableReferee?.primaryNgb,
+            secondaryNgb: editableReferee?.secondaryNgb,
+          }}
+          isEditing={isEditing}
+          onChange={handleChange}
+        />
+      </div>
     </div>
-    { updateRefereeError && <div>
-      Error: {getErrorString(updateRefereeError)}
-    </div>}
-    <RefereeLocation
-      locations={{
-        primaryNgb: editableReferee.primaryNgb,
-        secondaryNgb: editableReferee.secondaryNgb,
-      }}
-      isEditing={isEditing}
-      onChange={handleChange}
-    />
-    <RefereeTeam
-      teams={{
-        coachingTeam: editableReferee.coachingTeam,
-        playingTeam: editableReferee.playingTeam,
-        nationalTeam: editableReferee.nationalTeam,
-      }}
-      locations={{
-        primaryNgb: editableReferee.primaryNgb,
-        secondaryNgb: editableReferee.secondaryNgb,
-      }}
-      isEditing={isEditing}
-      onChange={handleChange}
-    />
-  </div>);
+  );
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Upcoming Events section
+// ──────────────────────────────────────────────────────────────────────────────
+
+interface UpcomingEventsProps {
+  refereeId: string;
 }
+
+const UpcomingEvents = ({ refereeId }: UpcomingEventsProps) => {
+  const navigate = useNavigate();
+  const { data: tournaments, isLoading } = useGetUpcomingTournamentsQuery(
+    { userId: refereeId },
+    { skip: !refereeId }
+  );
+
+  return (
+    <div className="card card-mb">
+      <h3 className="card-title">Upcoming Events</h3>
+      {isLoading && <p className="card-description">Loading…</p>}
+      {!isLoading && (!tournaments || tournaments.length === 0) && (
+        <p className="card-description">No upcoming tournaments found.</p>
+      )}
+      {!isLoading && tournaments && tournaments.length > 0 && (
+        <div className="invite-list">
+          {tournaments.map((tournament) => (
+            <div
+              key={tournament.id}
+              className="invite-item"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/tournaments/${tournament.id}`)}
+            >
+              <div className="invite-team-name">{tournament.name}</div>
+              <div style={{ display: "flex", gap: "1rem", fontSize: "0.875rem", color: "#4b5563" }}>
+                <span>
+                  {tournament.startDate
+                    ? new Date(tournament.startDate).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "TBD"}
+                </span>
+                {tournament.endDate && tournament.endDate !== tournament.startDate && (
+                  <span>
+                    →{" "}
+                    {new Date(tournament.endDate).toLocaleDateString(undefined, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Main RefereeProfile page
+// ──────────────────────────────────────────────────────────────────────────────
 
 const RefereeProfile = () => {
   const navigate = useNavigate();
   const { refereeId } = useNavigationParams<"refereeId">();
 
-  //const [isCertificationModalOpen, setIsCertificationModalOpen] = useState(false);
-  
   const { currentData: referee, error: refereeGetError } = useGetRefereeQuery({ userId: refereeId });
-  const { data: testAttempts, error: testAttemptsError } = useGetTestAttemptsQuery(undefined, {skip: refereeId !== "me"})
+  const { data: testAttempts } = useGetTestAttemptsQuery(undefined, { skip: refereeId !== "me" });
+  const { data: userData } = useGetUserDataQuery({ userId: refereeId });
+  const [updateUser, { error: updateUserError }] = useUpdateCurrentUserDataMutation();
 
-  if (refereeGetError) return <p style={{color: "red"}}>{getErrorString(refereeGetError)}</p>;
+  const [editableUser, setEditableUser] = useState<UserDataViewModel>(userData ?? {});
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+
+  useEffect(() => {
+    if (userData) setEditableUser(userData);
+  }, [userData]);
+
+  if (refereeGetError) return <p style={{ color: "red" }}>{getErrorString(refereeGetError)}</p>;
   if (!referee) return null;
 
-  const isCertificationsVisible = refereeId === "me"; // FUTURE: || isIqaAdmin when admin visibility is implemented
-  //const handleCertificationModalClose = () => setIsCertificationModalOpen(false);
+  const isEditable = refereeId === "me";
+  const isCertificationsVisible = isEditable;
+
+  const handleDetailsChange = (partial: Partial<UserDataViewModel>) =>
+    setEditableUser((prev) => ({ ...prev, ...partial }));
+
+  const handleDetailsSave = () => {
+    setIsEditingDetails(false);
+    updateUser({ userDataViewModel: editableUser });
+  };
+
+  const handleDetailsCancel = () => {
+    setIsEditingDetails(false);
+    setEditableUser(userData ?? {});
+  };
 
   return (
-    <>
-      <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">
+    <section className="tournament-details-section">
+      <div className="tournament-details-wrapper">
+        {/* Page header */}
         <RefereeHeader
           name={referee.name}
           certifications={referee.acquiredCertifications}
-          isEditable={refereeId === "me"}
+          isEditable={isEditable}
         />
-        <div className="flex flex-col lg:flex-row xl:flex-row w-full">
-          <RefereeDetails />
+
+        {updateUserError && (
+          <div style={{ color: "#dc2626", marginBottom: "1rem" }}>
+            Error: {getErrorString(updateUserError)}
+          </div>
+        )}
+
+        {/* Two-column grid (mirrors tournament details layout) */}
+        <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
+          {/* Left column */}
+          <div>
+            {/* Basic details (bio, pronouns, private fields) */}
+            {editableUser && (
+              <BasicDetails
+                userData={editableUser}
+                isEditing={isEditingDetails}
+                isEditable={isEditable}
+                onChange={handleDetailsChange}
+                onEdit={() => setIsEditingDetails(true)}
+                onSave={handleDetailsSave}
+                onCancel={handleDetailsCancel}
+              />
+            )}
+
+            {/* Location + Teams */}
+            <RefereeDetails />
+
+            {/* Upcoming events */}
+            <UpcomingEvents refereeId={refereeId} />
+          </div>
+
+          {/* Right column — certifications */}
           {isCertificationsVisible && testAttempts && (
-            <div className="flex flex-col w-full lg:w-1/2 xl:w-1/2 rounded-lg bg-gray-100 p-4 lg:ml-8 xl:ml-8">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="border-b-2 border-green text-xl text-center">Certifications</h3>
+            <div>
+              <div className="card card-highlighted card-mb card-sticky">
+                <h3 className="card-title">Certifications</h3>
+                <p className="card-description">
+                  View your certification history and take new tests.
+                </p>
                 <button
                   type="button"
-                  className="border-2 border-green text-green text-center px-4 py-2 rounded bg-white"
+                  className="btn btn-primary btn-full-width card-mb"
                   onClick={() => navigate(`/referees/${refereeId}/tests`)}
                 >
-                  {/* FUTURE: Customize button text based on admin role - isIqaAdmin && !referee.isEditable ? "Manage Certifications" : "Take Tests" */}
                   Take Tests
                 </button>
+                <TestResultCards testResults={testAttempts} />
               </div>
-              <TestResultCards testResults={testAttempts} />
             </div>
           )}
         </div>
       </div>
-      {/* <AdminCertificationsModal
-        open={isCertificationModalOpen}
-        refereeId={id}
-        onClose={handleCertificationModalClose}
-      /> */}
-    </>
+    </section>
   );
 };
 
 export default RefereeProfile;
+

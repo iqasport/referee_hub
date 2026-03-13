@@ -28,6 +28,13 @@ public class UserDataViewModel
 		this.ExportName = userDataContext.ExtendedUserData.ExportName;
 		this.Language = userDataContext.ExtendedUserData.UserLang;
 		this.CreatedAt = userDataContext.ExtendedUserData.CreatedAt;
+		if (isCurrentUser)
+		{
+			this.DateOfBirth = userDataContext.ExtendedUserData.DateOfBirth;
+			this.FoodRestrictions = userDataContext.ExtendedUserData.FoodRestrictions;
+			this.MedicalInformation = userDataContext.ExtendedUserData.MedicalInformation;
+			this.EmergencyContact = userDataContext.ExtendedUserData.EmergencyContact;
+		}
 	}
 
 	public string? FirstName { get; set; }
@@ -38,4 +45,8 @@ public class UserDataViewModel
 	public bool? ExportName { get; set; }
 	public LanguageIdentifier? Language { get; set; }
 	public DateOnly CreatedAt { get; set; }
+	public DateOnly? DateOfBirth { get; set; }
+	public string? FoodRestrictions { get; set; }
+	public string? MedicalInformation { get; set; }
+	public string? EmergencyContact { get; set; }
 }

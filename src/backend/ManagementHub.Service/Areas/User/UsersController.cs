@@ -119,11 +119,11 @@ public class UsersController : ControllerBase
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		static string? DefaultIfEmpty(string? value, string? defaultValue) => string.IsNullOrWhiteSpace(value) ? defaultValue : value;
-
 		// TODO: move it to a processor
 		await this.updateUserDataCommand.UpdateUserDataAsync(userContext.UserId, (data) =>
 		{
+			static string? DefaultIfEmpty(string? value, string? defaultValue) => string.IsNullOrWhiteSpace(value) ? defaultValue : value;
+
 			var firstName = DefaultIfEmpty(userData.FirstName, data.FirstName);
 			var lastName = DefaultIfEmpty(userData.LastName, data.LastName);
 			var bio = userData.Bio ?? data.Bio;
@@ -138,6 +138,10 @@ public class UsersController : ControllerBase
 				Pronouns = pronouns,
 				ShowPronouns = showPronouns,
 				UserLang = lang,
+				DateOfBirth = userData.DateOfBirth ?? data.DateOfBirth,
+				FoodRestrictions = userData.FoodRestrictions ?? data.FoodRestrictions,
+				MedicalInformation = userData.MedicalInformation ?? data.MedicalInformation,
+				EmergencyContact = userData.EmergencyContact ?? data.EmergencyContact,
 			};
 		}, this.HttpContext.RequestAborted);
 	}
@@ -339,5 +343,47 @@ public class UsersController : ControllerBase
 			.ToListAsync(this.HttpContext.RequestAborted);
 
 		return managedTeams;
+	}
+
+	/// <summary>
+	/// Get upcoming tournaments for a specific user based on team roster entries.
+	/// Returns tournaments where the user is on a team roster and the tournament start date is in the future.
+	/// </summary>
+	[HttpGet("{userId}/upcomingTournaments")]
+	[Tags("User")]
+	public async Task<List<TournamentReferenceViewModel>> GetUpcomingTournaments([FromRoute] UserIdentifier userId)
+	{
+		var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+		var dbUserId = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => u.Id)
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (dbUserId == 0)
+		{
+			return [];
+		}
+
+		var tournaments = await this.dbContext.TournamentTeamRosterEntries
+			.Where(entry => entry.UserId == dbUserId)
+			.Join(
+				this.dbContext.TournamentTeamParticipants,
+				entry => entry.TournamentTeamParticipantId,
+				participant => participant.Id,
+				(entry, participant) => participant.Tournament)
+			.Where(t => t.StartDate >= today)
+			.OrderBy(t => t.StartDate)
+			.Distinct()
+			.Select(t => new TournamentReferenceViewModel
+			{
+				Id = t.UniqueId,
+				Name = t.Name,
+				StartDate = t.StartDate,
+				EndDate = t.EndDate
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		return tournaments;
 	}
 }

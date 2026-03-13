@@ -622,6 +622,10 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
         providesTags: ["UserInfo"],
       }),
+      getUpcomingTournaments: build.query<GetUpcomingTournamentsApiResponse, GetUpcomingTournamentsApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/upcomingTournaments` }),
+        providesTags: ["User"],
+      }),
     }),
     overrideExisting: false,
   });
@@ -1036,6 +1040,10 @@ export type UpdateCurrentUserDataApiArg = {
 };
 export type GetUserDataApiResponse = /** status 200 Success */ UserDataViewModel;
 export type GetUserDataApiArg = {
+  userId: string;
+};
+export type GetUpcomingTournamentsApiResponse = /** status 200 Success */ TournamentReferenceViewModel[];
+export type GetUpcomingTournamentsApiArg = {
   userId: string;
 };
 export type CheckoutSession = {
@@ -1685,6 +1693,10 @@ export type UserDataViewModel = {
   exportName?: boolean | null;
   language?: string | null;
   createdAt?: string;
+  dateOfBirth?: string | null;
+  foodRestrictions?: string | null;
+  medicalInformation?: string | null;
+  emergencyContact?: string | null;
 };
 export const {
   useCreatePaymentSessionMutation,
@@ -1769,4 +1781,5 @@ export const {
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
+  useGetUpcomingTournamentsQuery,
 } = enhancedApi;
