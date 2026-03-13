@@ -14,6 +14,7 @@ using ManagementHub.Service.Filtering;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -451,9 +452,22 @@ public class TeamsController : ControllerBase
 			return this.Forbid();
 		}
 
+		// Resolve the UserIdentifier to the actual database User.Id
+		// (UserIdentifier.Id uses ToLegacyUserId() which is only correct for legacy users,
+		//  so we must use WithIdentifier to handle modern users with real GUIDs as well)
+		var userDbId = await this.dbContext.Users
+			.WithIdentifier(playerId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync();
+
+		if (userDbId == null)
+		{
+			return this.NotFound("Player not found");
+		}
+
 		// Remove the RefereeTeam association
 		var deleted = await this.dbContext.RefereeTeams
-			.Where(rt => rt.TeamId == teamId.Id && rt.RefereeId == playerId.Id)
+			.Where(rt => rt.TeamId == teamId.Id && rt.RefereeId == userDbId)
 			.ExecuteDeleteAsync();
 
 		if (deleted == 0)
