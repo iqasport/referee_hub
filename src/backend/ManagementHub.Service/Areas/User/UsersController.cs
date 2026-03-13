@@ -354,26 +354,10 @@ public class UsersController : ControllerBase
 	public async Task<List<TournamentReferenceViewModel>> GetMyUpcomingTournaments()
 	{
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
-		return await this.QueryUpcomingTournamentsAsync(currentUser.UserId);
-	}
-
-	/// <summary>
-	/// Get upcoming tournaments for a specific user based on team roster entries.
-	/// Returns tournaments where the user is on a team roster and the tournament start date is today or in the future.
-	/// </summary>
-	[HttpGet("{userId}/upcomingTournaments")]
-	[Tags("User")]
-	public async Task<List<TournamentReferenceViewModel>> GetUpcomingTournaments([FromRoute] UserIdentifier userId)
-	{
-		return await this.QueryUpcomingTournamentsAsync(userId);
-	}
-
-	private async Task<List<TournamentReferenceViewModel>> QueryUpcomingTournamentsAsync(UserIdentifier userId)
-	{
 		var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
 		var dbUserId = await this.dbContext.Users
-			.WithIdentifier(userId)
+			.WithIdentifier(currentUser.UserId)
 			.Select(u => u.Id)
 			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
 
@@ -382,7 +366,7 @@ public class UsersController : ControllerBase
 			return [];
 		}
 
-		var tournaments = await this.dbContext.TournamentTeamRosterEntries
+		return await this.dbContext.TournamentTeamRosterEntries
 			.Where(entry => entry.UserId == dbUserId)
 			.Select(entry => entry.Participant.Tournament)
 			.Where(t => t.StartDate >= today)
@@ -396,7 +380,5 @@ public class UsersController : ControllerBase
 				EndDate = t.EndDate
 			})
 			.ToListAsync(this.HttpContext.RequestAborted);
-
-		return tournaments;
 	}
 }

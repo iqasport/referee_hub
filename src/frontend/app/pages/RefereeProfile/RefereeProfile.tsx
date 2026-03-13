@@ -272,19 +272,12 @@ const PlayerDetails = () => {
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Upcoming Events section
+// Upcoming Events section (only shown on own profile)
 // ──────────────────────────────────────────────────────────────────────────────
 
-interface UpcomingEventsProps {
-  refereeId: string;
-}
-
-const UpcomingEvents = ({ refereeId }: UpcomingEventsProps) => {
+const UpcomingEvents = () => {
   const navigate = useNavigate();
-  const { data: tournaments, isLoading } = useGetUpcomingTournamentsQuery(
-    { userId: refereeId },
-    { skip: !refereeId }
-  );
+  const { data: tournaments, isLoading } = useGetUpcomingTournamentsQuery();
 
   const formatDate = (dateStr: string | undefined): string => {
     if (!dateStr) return "TBD";
@@ -400,7 +393,7 @@ const RefereeProfile = () => {
                 onCancel={handleDetailsCancel}
               />
             )}
-            {isEditable && <UpcomingEvents refereeId={refereeId} />}
+            {isEditable && <UpcomingEvents />}
           </div>
         </div>
       </div>
