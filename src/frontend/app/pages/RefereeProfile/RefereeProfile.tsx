@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
 
-import TestResultCards from "../../components/TestResultCards";
-
 import RefereeHeader from "./RefereeHeader";
 import RefereeLocation from "./RefereeLocation";
 import RefereeTeam from "./RefereeTeam";
 import {
   useGetRefereeQuery,
-  useGetTestAttemptsQuery,
   useUpdateCurrentRefereeMutation,
   useGetUserDataQuery,
   useUpdateCurrentUserDataMutation,
@@ -200,10 +197,10 @@ const BasicDetails = ({
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Referee Details (location + teams) section
+// Player Details (location + teams) section
 // ──────────────────────────────────────────────────────────────────────────────
 
-const RefereeDetails = () => {
+const PlayerDetails = () => {
   const { refereeId } = useNavigationParams<"refereeId">();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -228,7 +225,7 @@ const RefereeDetails = () => {
     <div className="card card-mb">
       <div className="flex items-center justify-between mb-4">
         <h3 className="card-title" style={{ marginBottom: 0 }}>
-          Referee Details
+          Player Details
         </h3>
         {refereeId === "me" && (
           <button
@@ -338,7 +335,6 @@ const RefereeProfile = () => {
   const { refereeId } = useNavigationParams<"refereeId">();
 
   const { currentData: referee, error: refereeGetError } = useGetRefereeQuery({ userId: refereeId });
-  const { data: testAttempts } = useGetTestAttemptsQuery(undefined, { skip: refereeId !== "me" });
   const { data: userData } = useGetUserDataQuery({ userId: refereeId });
   const [updateUser, { error: updateUserError }] = useUpdateCurrentUserDataMutation();
 
@@ -353,7 +349,6 @@ const RefereeProfile = () => {
   if (!referee) return null;
 
   const isEditable = refereeId === "me";
-  const isCertificationsVisible = isEditable;
 
   const handleDetailsChange = (partial: Partial<UserDataViewModel>) =>
     setEditableUser((prev) => ({ ...prev, ...partial }));
@@ -371,11 +366,12 @@ const RefereeProfile = () => {
   return (
     <section className="tournament-details-section">
       <div className="tournament-details-wrapper">
-        {/* Page header */}
+        {/* Page header — certifications badges + Take Tests button */}
         <RefereeHeader
           name={referee.name}
           certifications={referee.acquiredCertifications}
           isEditable={isEditable}
+          onTakeTests={isEditable ? () => navigate("/referees/me/tests") : undefined}
         />
 
         {updateUserError && (
@@ -384,11 +380,15 @@ const RefereeProfile = () => {
           </div>
         )}
 
-        {/* Two-column grid (mirrors tournament details layout) */}
+        {/* Two-column grid */}
         <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
-          {/* Left column */}
+          {/* Column 1: Player Details (location + teams) */}
           <div>
-            {/* Basic details (bio, pronouns, private fields) */}
+            <PlayerDetails />
+          </div>
+
+          {/* Column 2: Basic Details + Upcoming Events */}
+          <div>
             {editableUser && (
               <BasicDetails
                 userData={editableUser}
@@ -400,33 +400,8 @@ const RefereeProfile = () => {
                 onCancel={handleDetailsCancel}
               />
             )}
-
-            {/* Location + Teams */}
-            <RefereeDetails />
-
-            {/* Upcoming events */}
             <UpcomingEvents refereeId={refereeId} />
           </div>
-
-          {/* Right column — certifications */}
-          {isCertificationsVisible && testAttempts && (
-            <div>
-              <div className="card card-highlighted card-mb card-sticky">
-                <h3 className="card-title">Certifications</h3>
-                <p className="card-description">
-                  View your certification history and take new tests.
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-full-width card-mb"
-                  onClick={() => navigate(`/referees/${refereeId}/tests`)}
-                >
-                  Take Tests
-                </button>
-                <TestResultCards testResults={testAttempts} />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </section>

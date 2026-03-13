@@ -14,21 +14,22 @@ type HeaderProps = {
   name: string;
   certifications: Certification[];
   isEditable: boolean;
+  onTakeTests?: () => void;
 };
 
 const RefereeHeader = (props: HeaderProps) => {
   const { refereeId } = useNavigationParams<"refereeId">();
-  const { certifications, name, isEditable } = props;
+  const { certifications, name, isEditable, onTakeTests } = props;
 
   const { data: userAvatar } = useGetUserAvatarQuery({ userId: refereeId });
   const { data: user } = useGetUserDataQuery({ userId: refereeId });
 
   const renderCertifications = () => {
-    if (!certifications?.length) return null;
+    if (!certifications?.length && !onTakeTests) return null;
 
     return (
-      <div className="flex flex-wrap gap-2 mt-2">
-        {certifications.map((certification) => (
+      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+        {certifications?.map((certification) => (
           <span
             key={`${certification.level}-${certification.version}`}
             style={{
@@ -44,6 +45,16 @@ const RefereeHeader = (props: HeaderProps) => {
             {`${capitalize(certification.level === "snitch" ? "flag" : certification.level)} (${getRefereeCertVersion(certification)})`}
           </span>
         ))}
+        {onTakeTests && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ fontSize: "0.75rem", padding: "0.2rem 0.75rem" }}
+            onClick={onTakeTests}
+          >
+            Take Tests
+          </button>
+        )}
       </div>
     );
   };
