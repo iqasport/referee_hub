@@ -192,6 +192,7 @@ interface UserRegistrationCardProps {
 const UserRegistrationCard: React.FC<UserRegistrationCardProps> = ({
   isRegistrationClosed,
   approvedTeams,
+  myIndividualInvite,
   onScrollToRoster,
   onOpenRegisterModal,
 }) => {
@@ -451,6 +452,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
   respondingTo,
   isRegistrationClosed,
   approvedTeamsForUser,
+  myIndividualInvite,
   tournament,
   contactOrganizerRef,
   onAccept,
@@ -599,6 +601,7 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
     approvedTeamsForUser,
     totalPlayerCount,
     isRegistrationClosed,
+    myIndividualInvite,
   };
 }
 
@@ -716,6 +719,7 @@ const TournamentDetails = () => {
     approvedTeamsForUser,
     totalPlayerCount,
     isRegistrationClosed,
+    myIndividualInvite,
   } = useTournamentDetailsData(tournamentId);
 
   const {
