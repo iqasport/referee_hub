@@ -24,6 +24,48 @@ import Toggle from "../../components/Toggle";
 // Basic Details section (pronouns, bio + new private fields)
 // ──────────────────────────────────────────────────────────────────────────────
 
+// Shared row wrapper — handles the stats-item container and label, then renders
+// either the editContent (when editing) or a plain value span.
+interface DetailsRowProps {
+  label: string;
+  isEditing: boolean;
+  value: string | null | undefined;
+  editContent: React.ReactNode;
+}
+
+const DetailsRow = ({ label, isEditing, value, editContent }: DetailsRowProps) => (
+  <div
+    className="stats-item"
+    style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}
+  >
+    <span className="stats-label">{label}</span>
+    {isEditing ? editContent : <span className="stats-value">{value || "—"}</span>}
+  </div>
+);
+
+// Special pronouns row — includes a visibility toggle alongside the text input.
+interface PronounsRowProps {
+  isEditing: boolean;
+  pronouns: string | null | undefined;
+  showPronouns: boolean | null | undefined;
+  onPronounsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onShowPronounsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const PronounsRow = ({ isEditing, pronouns, showPronouns, onPronounsChange, onShowPronounsChange }: PronounsRowProps) => (
+  <DetailsRow
+    label="Pronouns"
+    isEditing={isEditing}
+    value={showPronouns && pronouns ? pronouns : null}
+    editContent={
+      <div className="flex items-center gap-3 w-full">
+        <Toggle name="showPronouns" label="Show?" onChange={onShowPronounsChange} checked={showPronouns ?? false} />
+        <input className="form-input flex-1" type="text" value={pronouns ?? ""} onChange={onPronounsChange} placeholder="Pronouns" />
+      </div>
+    }
+  />
+);
+
 interface BasicDetailsProps {
   userData: UserDataViewModel;
   isEditing: boolean;
@@ -34,15 +76,7 @@ interface BasicDetailsProps {
   onCancel: () => void;
 }
 
-const BasicDetails = ({
-  userData,
-  isEditing,
-  isEditable,
-  onChange,
-  onEdit,
-  onSave,
-  onCancel,
-}: BasicDetailsProps) => {
+const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSave, onCancel }: BasicDetailsProps) => {
   const handleStringChange =
     (key: keyof UserDataViewModel) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -55,144 +89,79 @@ const BasicDetails = ({
   return (
     <div className="card card-mb">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="card-title" style={{ marginBottom: 0 }}>
-          Basic Details
-        </h3>
+        <h3 className="card-title" style={{ marginBottom: 0 }}>Basic Details</h3>
         {isEditable && (
           <div className="flex gap-2">
             {isEditing ? (
               <>
-                <button
-                  type="reset"
-                  className="btn btn-secondary"
-                  onClick={onCancel}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  onClick={onSave}
-                >
-                  Save
-                </button>
+                <button type="reset" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+                <button type="submit" className="btn btn-primary" onClick={onSave}>Save</button>
               </>
             ) : (
-              <button type="button" className="btn btn-primary" onClick={onEdit}>
-                Edit
-              </button>
+              <button type="button" className="btn btn-primary" onClick={onEdit}>Edit</button>
             )}
           </div>
         )}
       </div>
 
-      {/* Pronouns */}
-      <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
-        <span className="stats-label">Pronouns</span>
-        {isEditing ? (
-          <div className="flex items-center gap-3 w-full">
-            <Toggle
-              name="showPronouns"
-              label="Show?"
-              onChange={handleToggleChange("showPronouns")}
-              checked={userData.showPronouns ?? false}
-            />
-            <input
-              className="form-input flex-1"
-              type="text"
-              value={userData.pronouns ?? ""}
-              onChange={handleStringChange("pronouns")}
-              placeholder="Pronouns"
-            />
-          </div>
-        ) : (
-          <span className="stats-value">
-            {userData.showPronouns && userData.pronouns ? userData.pronouns : "—"}
-          </span>
-        )}
-      </div>
+      <PronounsRow
+        isEditing={isEditing}
+        pronouns={userData.pronouns}
+        showPronouns={userData.showPronouns}
+        onPronounsChange={handleStringChange("pronouns")}
+        onShowPronounsChange={handleToggleChange("showPronouns")}
+      />
 
-      {/* Bio / Comments */}
-      <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
-        <span className="stats-label">Bio</span>
-        {isEditing ? (
-          <textarea
-            className="bg-gray-100 rounded p-2 text-sm w-full"
-            style={{ resize: "vertical", minHeight: "4rem" }}
-            onChange={handleStringChange("bio")}
-            value={userData.bio ?? ""}
-            placeholder="Tell us about yourself…"
-          />
-        ) : (
-          <span className="stats-value">{userData.bio || "—"}</span>
-        )}
-      </div>
+      <DetailsRow
+        label="Bio"
+        isEditing={isEditing}
+        value={userData.bio}
+        editContent={
+          <textarea className="bg-gray-100 rounded p-2 text-sm w-full" style={{ resize: "vertical", minHeight: "4rem" }}
+            onChange={handleStringChange("bio")} value={userData.bio ?? ""} placeholder="Tell us about yourself…" />
+        }
+      />
 
       {/* Private fields — visible only when isEditable (current user) */}
       {isEditable && (
         <>
-          {/* Date of birth */}
-          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
-            <span className="stats-label">Date of Birth</span>
-            {isEditing ? (
-              <input
-                className="form-input"
-                type="date"
-                value={userData.dateOfBirth ?? ""}
-                onChange={handleStringChange("dateOfBirth")}
-              />
-            ) : (
-              <span className="stats-value">{userData.dateOfBirth || "—"}</span>
-            )}
-          </div>
+          <DetailsRow
+            label="Date of Birth"
+            isEditing={isEditing}
+            value={userData.dateOfBirth}
+            editContent={
+              <input className="form-input" type="date" value={userData.dateOfBirth ?? ""} onChange={handleStringChange("dateOfBirth")} />
+            }
+          />
 
-          {/* Food restrictions / allergies */}
-          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
-            <span className="stats-label">Food Restrictions / Allergies</span>
-            {isEditing ? (
-              <textarea
-                className="bg-gray-100 rounded p-2 text-sm w-full"
-                style={{ resize: "vertical", minHeight: "3rem" }}
-                onChange={handleStringChange("foodRestrictions")}
-                value={userData.foodRestrictions ?? ""}
-                placeholder="Any food restrictions or allergies…"
-              />
-            ) : (
-              <span className="stats-value">{userData.foodRestrictions || "—"}</span>
-            )}
-          </div>
+          <DetailsRow
+            label="Food Restrictions / Allergies"
+            isEditing={isEditing}
+            value={userData.foodRestrictions}
+            editContent={
+              <textarea className="bg-gray-100 rounded p-2 text-sm w-full" style={{ resize: "vertical", minHeight: "3rem" }}
+                onChange={handleStringChange("foodRestrictions")} value={userData.foodRestrictions ?? ""} placeholder="Any food restrictions or allergies…" />
+            }
+          />
 
-          {/* Medical information */}
-          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
-            <span className="stats-label">Medical Information</span>
-            {isEditing ? (
-              <textarea
-                className="bg-gray-100 rounded p-2 text-sm w-full"
-                style={{ resize: "vertical", minHeight: "3rem" }}
-                onChange={handleStringChange("medicalInformation")}
-                value={userData.medicalInformation ?? ""}
-                placeholder="Relevant medical information…"
-              />
-            ) : (
-              <span className="stats-value">{userData.medicalInformation || "—"}</span>
-            )}
-          </div>
+          <DetailsRow
+            label="Medical Information"
+            isEditing={isEditing}
+            value={userData.medicalInformation}
+            editContent={
+              <textarea className="bg-gray-100 rounded p-2 text-sm w-full" style={{ resize: "vertical", minHeight: "3rem" }}
+                onChange={handleStringChange("medicalInformation")} value={userData.medicalInformation ?? ""} placeholder="Relevant medical information…" />
+            }
+          />
 
-          {/* Emergency contact */}
-          <div className="stats-item" style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}>
-            <span className="stats-label">Emergency Contact</span>
-            {isEditing ? (
-              <input
-                className="form-input"
-                type="text"
-                value={userData.emergencyContact ?? ""}
-                onChange={handleStringChange("emergencyContact")}
-                placeholder="Name and phone number…"
-              />
-            ) : (
-              <span className="stats-value">{userData.emergencyContact || "—"}</span>
-            )}
-          </div>
+          <DetailsRow
+            label="Emergency Contact"
+            isEditing={isEditing}
+            value={userData.emergencyContact}
+            editContent={
+              <input className="form-input" type="text" value={userData.emergencyContact ?? ""} onChange={handleStringChange("emergencyContact")} placeholder="Name and phone number…" />
+            }
+          />
         </>
       )}
     </div>
