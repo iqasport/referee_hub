@@ -275,7 +275,10 @@ public class UsersController : ControllerBase
 					Id = t.UniqueId,
 					Name = t.Name,
 					StartDate = t.StartDate,
-					EndDate = t.EndDate
+					EndDate = t.EndDate,
+					Country = t.Country,
+					City = t.City,
+					Place = t.Place
 				})
 				.ToListAsync(this.HttpContext.RequestAborted);
 		}
@@ -377,7 +380,10 @@ public class UsersController : ControllerBase
 				Id = t.UniqueId,
 				Name = t.Name,
 				StartDate = t.StartDate,
-				EndDate = t.EndDate
+				EndDate = t.EndDate,
+				Country = t.Country,
+				City = t.City,
+				Place = t.Place
 			})
 			.ToListAsync(this.HttpContext.RequestAborted);
 	}

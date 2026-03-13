@@ -3,13 +3,16 @@ import React, { useEffect, useState } from "react";
 import RefereeHeader from "./RefereeHeader";
 import RefereeLocation from "./RefereeLocation";
 import RefereeTeam from "./RefereeTeam";
+import { capitalize } from "lodash";
 import {
   useGetRefereeQuery,
   useUpdateCurrentRefereeMutation,
   useGetUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUpcomingTournamentsQuery,
+  useGetTestAttemptsQuery,
   UserDataViewModel,
+  TestAttemptViewModelRead,
 } from "../../store/serviceApi";
 import { RefereeLocationOptions } from "./RefereeLocation/RefereeLocation";
 import { RefereeTeamOptions } from "./RefereeTeam/RefereeTeam";
@@ -301,7 +304,7 @@ const UpcomingEvents = () => {
             <div
               key={tournament.id}
               className="invite-item"
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", flexDirection: "column", alignItems: "flex-start", gap: "0.25rem" }}
               onClick={() => navigate(`/tournaments/${tournament.id}`)}
             >
               <div className="invite-team-name">{tournament.name}</div>
@@ -311,6 +314,11 @@ const UpcomingEvents = () => {
                   <span>→ {formatDate(tournament.endDate)}</span>
                 )}
               </div>
+              {(tournament.place || tournament.city || tournament.country) && (
+                <div style={{ fontSize: "0.8125rem", color: "#6b7280" }}>
+                  {[tournament.place, tournament.city, tournament.country].filter(Boolean).join(", ")}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -320,8 +328,91 @@ const UpcomingEvents = () => {
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Main RefereeProfile page
+// Certification Attempt History section (only shown on own profile)
 // ──────────────────────────────────────────────────────────────────────────────
+
+const VERSION_LABELS: Record<string, string> = {
+  eighteen: "18",
+  twenty: "20",
+  twentytwo: "22",
+  twentyfour: "24",
+};
+
+const formatAttemptLevel = (attempt: TestAttemptViewModelRead): string => {
+  const level = attempt.level === "snitch" ? "flag" : (attempt.level ?? "");
+  const version = attempt.version ? ` (${VERSION_LABELS[attempt.version] ?? attempt.version})` : "";
+  return capitalize(level) + version;
+};
+
+const CertificationHistory = () => {
+  const { data: attempts, isLoading } = useGetTestAttemptsQuery();
+
+  const sortedAttempts = attempts
+    ? [...attempts].sort((a, b) => {
+        const aDate = a.startedAt ? new Date(a.startedAt).getTime() : 0;
+        const bDate = b.startedAt ? new Date(b.startedAt).getTime() : 0;
+        return bDate - aDate;
+      })
+    : [];
+
+  return (
+    <div className="card card-mb">
+      <h3 className="card-title">Certification History</h3>
+      {isLoading && <p className="card-description">Loading…</p>}
+      {!isLoading && sortedAttempts.length === 0 && (
+        <p className="card-description">No test attempts yet.</p>
+      )}
+      {!isLoading && sortedAttempts.length > 0 && (
+        <div>
+          {sortedAttempts.map((attempt) => {
+            const date = attempt.startedAt
+              ? new Date(attempt.startedAt).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
+              : "—";
+            const score = attempt.score != null ? `${attempt.score}%` : "—";
+            const isPassed = attempt.passed === true;
+            const isFailed = attempt.passed === false;
+            const isInProgress = attempt.isInProgress === true;
+
+            return (
+              <div
+                key={attempt.attemptId}
+                className="invite-item"
+                style={{ justifyContent: "space-between", cursor: "default" }}
+              >
+                <div style={{ fontWeight: 500 }}>{formatAttemptLevel(attempt)}</div>
+                <div style={{ display: "flex", gap: "1rem", alignItems: "center", fontSize: "0.875rem", color: "#4b5563" }}>
+                  <span>{date}</span>
+                  <span>{score}</span>
+                  {isInProgress && (
+                    <span style={{ background: "#e5e7eb", color: "#374151", borderRadius: "0.25rem", padding: "0.125rem 0.5rem", fontSize: "0.75rem", fontWeight: 600 }}>
+                      In Progress
+                    </span>
+                  )}
+                  {!isInProgress && isPassed && (
+                    <span style={{ background: "#d1fae5", color: "#065f46", borderRadius: "0.25rem", padding: "0.125rem 0.5rem", fontSize: "0.75rem", fontWeight: 600 }}>
+                      Passed
+                    </span>
+                  )}
+                  {!isInProgress && isFailed && (
+                    <span style={{ background: "#fee2e2", color: "#991b1b", borderRadius: "0.25rem", padding: "0.125rem 0.5rem", fontSize: "0.75rem", fontWeight: 600 }}>
+                      Failed
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 
 const RefereeProfile = () => {
   const navigate = useNavigate();
@@ -375,12 +466,13 @@ const RefereeProfile = () => {
 
         {/* Two-column grid */}
         <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
-          {/* Column 1: Player Details (location + teams) */}
+          {/* Column 1: Player Details + Upcoming Events */}
           <div>
             <PlayerDetails />
+            {isEditable && <UpcomingEvents />}
           </div>
 
-          {/* Column 2: Basic Details + Upcoming Events */}
+          {/* Column 2: Basic Details + Certification History */}
           <div>
             {editableUser && (
               <BasicDetails
@@ -393,7 +485,7 @@ const RefereeProfile = () => {
                 onCancel={handleDetailsCancel}
               />
             )}
-            {isEditable && <UpcomingEvents />}
+            {isEditable && <CertificationHistory />}
           </div>
         </div>
       </div>

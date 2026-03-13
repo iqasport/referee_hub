@@ -15,4 +15,7 @@ public class TournamentReferenceViewModel
 	public required string Name { get; set; }
 	public required DateOnly StartDate { get; set; }
 	public required DateOnly EndDate { get; set; }
+	public required string Country { get; set; }
+	public required string City { get; set; }
+	public string? Place { get; set; }
 }
