@@ -14,6 +14,7 @@ using ManagementHub.Service.Filtering;
 using ManagementHub.Storage.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Ngbs;
 
@@ -282,21 +283,28 @@ public class NgbsController : ControllerBase
 	{
 		var socialAccounts = await this.socialAccountsProvider.QueryTeamSocialAccounts(NgbConstraint.Single(ngb));
 		var emptySocialAccounts = Enumerable.Empty<SocialAccount>();
-		return this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb))
-			.Select(team => new NgbTeamViewModel
-			{
-				TeamId = team.TeamId,
-				City = team.TeamData.City,
-				GroupAffiliation = team.TeamData.GroupAffiliation,
-				Name = team.TeamData.Name,
-				Status = team.TeamData.Status,
-				State = team.TeamData.State,
-				Country = team.TeamData.Country,
-				JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
-				SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
-				Description = team.TeamData.Description,
-				ContactEmail = team.TeamData.ContactEmail,
-			}).AsFiltered();
+		var teams = await this.teamContextProvider.GetTeams(NgbConstraint.Single(ngb)).ToListAsync();
+		var logoUris = new Dictionary<TeamIdentifier, Uri?>();
+		foreach (var team in teams)
+		{
+			logoUris[team.TeamId] = await this.teamContextProvider.GetTeamLogoUriAsync(team.TeamId, this.HttpContext.RequestAborted);
+		}
+
+		return teams.Select(team => new NgbTeamViewModel
+		{
+			TeamId = team.TeamId,
+			City = team.TeamData.City,
+			GroupAffiliation = team.TeamData.GroupAffiliation,
+			Name = team.TeamData.Name,
+			Status = team.TeamData.Status,
+			State = team.TeamData.State,
+			Country = team.TeamData.Country,
+			JoinedAt = DateOnly.FromDateTime(team.TeamData.JoinedAt),
+			SocialAccounts = socialAccounts.GetValueOrDefault(team.TeamId, emptySocialAccounts),
+			LogoUri = logoUris.GetValueOrDefault(team.TeamId),
+			Description = team.TeamData.Description,
+			ContactEmail = team.TeamData.ContactEmail,
+		}).AsFiltered();
 	}
 
 	[HttpPost("{ngb}/teams")]

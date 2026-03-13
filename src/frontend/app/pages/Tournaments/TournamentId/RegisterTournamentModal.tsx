@@ -85,7 +85,12 @@ interface TeamRegistrationFormSectionProps {
   onSelect: (teamId: string) => void;
 }
 const TeamRegistrationFormSection: React.FC<TeamRegistrationFormSectionProps> = ({
-  tournamentType, isLoadingTeams, availableTeams, registeredManagedTeams, selectedTeamId, onSelect,
+  tournamentType,
+  isLoadingTeams,
+  availableTeams,
+  registeredManagedTeams,
+  selectedTeamId,
+  onSelect,
 }) => (
   <>
     {tournamentType !== "Fantasy" && (
@@ -144,7 +149,9 @@ function useRegisterInviteState(
 ): RegisterInviteState {
   const teamsWithExistingInvites = useMemo(() => {
     const ids = new Set<string>();
-    existingInvites?.forEach((inv) => { if (inv.participantId) ids.add(inv.participantId); });
+    existingInvites?.forEach((inv) => {
+      if (inv.participantId) ids.add(inv.participantId);
+    });
     return ids;
   }, [existingInvites]);
 
@@ -162,7 +169,11 @@ function useRegisterInviteState(
       .filter((t) => teamsWithExistingInvites.has(t.teamId))
       .map((t) => {
         const invite = existingInvites?.find((i) => i.participantId === t.teamId);
-        return { teamId: t.teamId, teamName: t.teamName, status: invite?.status || "unknown" };
+        return {
+          teamId: t.teamId,
+          teamName: t.teamName,
+          status: invite?.status || "unknown",
+        };
       }),
     [managedTeams, teamsWithExistingInvites, existingInvites]
   );
@@ -205,7 +216,7 @@ function useManagedTeamsForRegistration() {
     managedTeamsData?.forEach((team: ManagedTeamViewModel) => {
       if (team.teamId && !addedIds.has(team.teamId)) {
         addedIds.add(team.teamId);
-        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "", status: team.status });
+        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "", groupAffiliation: team.groupAffiliation, status: team.status });
       }
     });
     if (isNgbAdmin) {

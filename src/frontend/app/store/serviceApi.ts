@@ -1398,6 +1398,8 @@ export type NgbTeamViewModel = {
   groupAffiliation?: TeamGroupAffiliation;
   joinedAt?: string;
   socialAccounts?: SocialAccount[] | null;
+  /** URI to the team's logo image. */
+  logoUri?: string | null;
   /** Team description. */
   description?: string | null;
   /** Team contact email. */
@@ -1482,6 +1484,7 @@ export type TournamentInviteViewModel = {
   participantType?: ParticipantType;
   participantId?: string | null;
   participantName?: string | null;
+  logoUri?: string | null;
   status?: InviteStatus;
   initiatorUserId?: string;
   createdAt?: string;
@@ -1650,6 +1653,7 @@ export type StaffViewModel = {
 export type TournamentParticipantViewModel = {
   teamId?: string;
   teamName?: string | null;
+  logoUri?: string | null;
   players?: PlayerViewModel[] | null;
   coaches?: StaffViewModel[] | null;
   staff?: StaffViewModel[] | null;

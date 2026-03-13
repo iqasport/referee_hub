@@ -33,18 +33,36 @@ import { getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 function buildTournamentEditPayload(tournament: TournamentViewModel) {
   const {
-    id = "", name = "", description = "", startDate = "",
-    endDate = "", registrationEndsDate = "", type = "",
-    country = "", city = "", place = "", organizer = "",
-    isPrivate = false, isRegistrationOpen = true,
-    allowsIndividualRegistration = false, allowsTeamRegistration = true,
+    id = "",
+    name = "",
+    description = "",
+    startDate = "",
+    endDate = "",
+    registrationEndsDate = "",
+    type = "",
+    country = "",
+    city = "",
+    place = "",
+    organizer = "",
+    isPrivate = false,
+    isRegistrationOpen = true,
     bannerImageUrl = "",
   } = tournament;
   return {
-    id, name, description, startDate, endDate, registrationEndsDate,
+    id,
+    name,
+    description,
+    startDate,
+    endDate,
+    registrationEndsDate,
     type: type as "" | import("../../../store/serviceApi").TournamentType,
-    country, city, place, organizer, isPrivate, isRegistrationOpen,
-    allowsIndividualRegistration, allowsTeamRegistration, bannerImageUrl,
+    country,
+    city,
+    place,
+    organizer,
+    isPrivate,
+    isRegistrationOpen,
+    bannerImageUrl,
   };
 }
 
@@ -72,7 +90,11 @@ interface PendingInvitesCardProps {
   onDecline: (id: string) => void;
 }
 const PendingInvitesCard: React.FC<PendingInvitesCardProps> = ({
-  pendingInvites, respondingTo, isManager, onAccept, onDecline,
+  pendingInvites,
+  respondingTo,
+  isManager,
+  onAccept,
+  onDecline,
 }) => (
   <div className="card card-highlighted card-mb">
     <h3 className="card-title">You&apos;re Invited!</h3>
@@ -97,7 +119,11 @@ const PendingInvitesCard: React.FC<PendingInvitesCardProps> = ({
   </div>
 );
 
-interface ApprovedTeam { teamId?: string | null; teamName: string; ngb: string }
+interface ApprovedTeam {
+  teamId?: string | null;
+  teamName: string;
+  ngb: string;
+}
 
 interface ManagerTeamCardProps {
   isRegistrationClosed: boolean;
@@ -106,7 +132,10 @@ interface ManagerTeamCardProps {
   onOpenRegisterModal: () => void;
 }
 const ManagerTeamCard: React.FC<ManagerTeamCardProps> = ({
-  isRegistrationClosed, approvedTeams, onScrollToRoster, onOpenRegisterModal,
+  isRegistrationClosed,
+  approvedTeams,
+  onScrollToRoster,
+  onOpenRegisterModal,
 }) => {
   if (isRegistrationClosed) {
     return (
@@ -161,7 +190,10 @@ interface UserRegistrationCardProps {
   onOpenRegisterModal: () => void;
 }
 const UserRegistrationCard: React.FC<UserRegistrationCardProps> = ({
-  isRegistrationClosed, approvedTeams, myIndividualInvite, onScrollToRoster, onOpenRegisterModal,
+  isRegistrationClosed,
+  approvedTeams,
+  onScrollToRoster,
+  onOpenRegisterModal,
 }) => {
   if (isRegistrationClosed) {
     return (
@@ -309,12 +341,30 @@ interface ManagerSidebarProps {
   managedTeamsCount: number;
 }
 const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
-  tournament, inviteCount, approvedCount, playerCount,
-  isAddManagerOpen, addManagerEmail, isAddingManager,
-  pendingInvitesForUser, respondingTo, approvedTeamsForUser,
-  isRegistrationClosed, onEdit, onDelete, onViewRegistrations, onInviteTeams,
-  onAddManagerOpen, onAddManagerEmailChange, onAddManagerSubmit, onAddManagerCancel,
-  onAccept, onDecline, onScrollToRoster, onOpenRegisterModal, managedTeamsCount,
+  tournament,
+  inviteCount,
+  approvedCount,
+  playerCount,
+  isAddManagerOpen,
+  addManagerEmail,
+  isAddingManager,
+  pendingInvitesForUser,
+  respondingTo,
+  approvedTeamsForUser,
+  isRegistrationClosed,
+  onEdit,
+  onDelete,
+  onViewRegistrations,
+  onInviteTeams,
+  onAddManagerOpen,
+  onAddManagerEmailChange,
+  onAddManagerSubmit,
+  onAddManagerCancel,
+  onAccept,
+  onDecline,
+  onScrollToRoster,
+  onOpenRegisterModal,
+  managedTeamsCount,
 }) => (
   <>
     <div className="card card-highlighted card-mb card-sticky">
@@ -397,10 +447,18 @@ interface UserSidebarProps {
   playerCount: number;
 }
 const UserSidebar: React.FC<UserSidebarProps> = ({
-  pendingInvitesForUser, respondingTo, isRegistrationClosed,
-  approvedTeamsForUser, myIndividualInvite, tournament, contactOrganizerRef,
-  onAccept, onDecline, onScrollToRoster, onOpenRegisterModal,
-  approvedCount, playerCount,
+  pendingInvitesForUser,
+  respondingTo,
+  isRegistrationClosed,
+  approvedTeamsForUser,
+  tournament,
+  contactOrganizerRef,
+  onAccept,
+  onDecline,
+  onScrollToRoster,
+  onOpenRegisterModal,
+  approvedCount,
+  playerCount,
 }) => (
   <>
     <TournamentStats
@@ -479,7 +537,9 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
 
   const managedTeamIds = useMemo(() => {
     const ids = new Set<string>();
-    managedTeamsData?.forEach((t) => { if (t.teamId) ids.add(t.teamId); });
+    managedTeamsData?.forEach((t) => {
+      if (t.teamId) ids.add(t.teamId);
+    });
     return ids;
   }, [managedTeamsData]);
 
@@ -496,7 +556,11 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
       .filter((i) => i.participantId && managedTeamIds.has(i.participantId) && i.status === "approved")
       .map((i) => {
         const td = managedTeamsData.find((t) => t.teamId === i.participantId);
-        return { teamId: i.participantId, teamName: i.participantName ?? td?.teamName ?? "Unknown Team", ngb: td?.ngb ?? "" };
+        return {
+          teamId: i.participantId,
+          teamName: i.participantName ?? td?.teamName ?? "Unknown Team",
+          ngb: td?.ngb ?? "",
+        };
       });
   }, [invites, managedTeamIds, managedTeamsData]);
 
@@ -520,13 +584,21 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
   }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
 
   return {
-    tournament, isLoading, isError, tournamentRequiresAuth,
-    currentUser, managers, managersError,
-    invites, refetchInvites,
+    tournament,
+    isLoading,
+    isError,
+    tournamentRequiresAuth,
+    currentUser,
+    managers,
+    managersError,
+    invites,
+    refetchInvites,
     refetchParticipants,
     managedTeamsData,
-    pendingInvitesForUser, approvedTeamsForUser,
-    myIndividualInvite, totalPlayerCount, isRegistrationClosed,
+    pendingInvitesForUser,
+    approvedTeamsForUser,
+    totalPlayerCount,
+    isRegistrationClosed,
   };
 }
 
@@ -591,11 +663,19 @@ function useTournamentActions(
   }
 
   return {
-    respondingTo, addManagerEmail, setAddManagerEmail,
-    isAddManagerOpen, setIsAddManagerOpen, isAddingManager,
+    respondingTo,
+    addManagerEmail,
+    setAddManagerEmail,
+    isAddManagerOpen,
+    setIsAddManagerOpen,
+    isAddingManager,
     handleAddManager,
-    handleCancelAddManager: () => { setIsAddManagerOpen(false); setAddManagerEmail(""); },
-    handleDelete, handleRespondToInvite,
+    handleCancelAddManager: () => {
+      setIsAddManagerOpen(false);
+      setAddManagerEmail("");
+    },
+    handleDelete,
+    handleRespondToInvite,
   };
 }
 
@@ -621,18 +701,34 @@ const TournamentDetails = () => {
   const { alertState, showAlert, hideAlert } = useAlert();
 
   const {
-    tournament, isLoading, isError, tournamentRequiresAuth,
-    currentUser, managers, managersError,
-    invites, refetchInvites, refetchParticipants,
+    tournament,
+    isLoading,
+    isError,
+    tournamentRequiresAuth,
+    currentUser,
+    managers,
+    managersError,
+    invites,
+    refetchInvites,
+    refetchParticipants,
     managedTeamsData,
-    pendingInvitesForUser, approvedTeamsForUser,
-    myIndividualInvite, totalPlayerCount, isRegistrationClosed,
+    pendingInvitesForUser,
+    approvedTeamsForUser,
+    totalPlayerCount,
+    isRegistrationClosed,
   } = useTournamentDetailsData(tournamentId);
 
   const {
-    respondingTo, addManagerEmail, setAddManagerEmail,
-    isAddManagerOpen, setIsAddManagerOpen, isAddingManager,
-    handleAddManager, handleCancelAddManager, handleDelete, handleRespondToInvite,
+    respondingTo,
+    addManagerEmail,
+    setAddManagerEmail,
+    isAddManagerOpen,
+    setIsAddManagerOpen,
+    isAddingManager,
+    handleAddManager,
+    handleCancelAddManager,
+    handleDelete,
+    handleRespondToInvite,
   } = useTournamentActions(tournamentId, tournament?.name, showAlert, refetchInvites);
 
   if (isLoading) {
@@ -771,7 +867,10 @@ const TournamentDetails = () => {
               <RosterManager
                 tournamentId={tournamentId ?? ""}
                 teams={approvedTeamsForUser}
-                onRosterSaved={() => { refetchInvites(); refetchParticipants(); }}
+                onRosterSaved={() => {
+                  refetchInvites();
+                  refetchParticipants();
+                }}
               />
             </div>
           )}

@@ -9,6 +9,7 @@ using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Database.Transactions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Storage.Commands.User;
@@ -91,7 +92,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 			var attachment = this.attachmentRepository.GetAttachmentAsync(ngbId, attachmentName, cancellationToken);
 
 			var sanitizedNgbCode = ngbId.NgbCode?.Replace("\r", string.Empty).Replace("\n", string.Empty);
-			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB (Code: {ngbCode}). NGB had previously an avatar: {hadAvatar}.", sanitizedNgbCode, attachment != null);
+			this.logger.LogInformation(0x2d0ef103, "Uploading new avatar for NGB ({ngbCode}). NGB had previously an avatar: {hadAvatar}.", sanitizedNgbCode, attachment != null);
 
 			var uploadResult = await this.uploadFile.UploadFileAsync(contentType, avatarStream, cancellationToken);
 			fileUploaded = true;
@@ -106,7 +107,7 @@ public class UpdateUserAvatarCommand : IUpdateUserAvatarCommand
 				Key = uploadResult.Key,
 			};
 
-			this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbId}) in the database.", ngbId);
+			this.logger.LogInformation(0x2d0ef104, "Setting new avatar for NGB ({ngbCode}) in the database.", sanitizedNgbCode);
 			await this.attachmentRepository.UpsertAttachmentAsync(ngbId, attachmentName, blob, cancellationToken);
 
 			await transaction.CommitAsync(cancellationToken);
