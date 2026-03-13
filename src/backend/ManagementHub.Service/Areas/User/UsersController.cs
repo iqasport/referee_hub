@@ -367,11 +367,7 @@ public class UsersController : ControllerBase
 
 		var tournaments = await this.dbContext.TournamentTeamRosterEntries
 			.Where(entry => entry.UserId == dbUserId)
-			.Join(
-				this.dbContext.TournamentTeamParticipants,
-				entry => entry.TournamentTeamParticipantId,
-				participant => participant.Id,
-				(entry, participant) => participant.Tournament)
+			.Select(entry => entry.Participant.Tournament)
 			.Where(t => t.StartDate >= today)
 			.OrderBy(t => t.StartDate)
 			.Distinct()

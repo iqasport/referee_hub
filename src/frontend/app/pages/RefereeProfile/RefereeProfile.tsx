@@ -289,6 +289,15 @@ const UpcomingEvents = ({ refereeId }: UpcomingEventsProps) => {
     { skip: !refereeId }
   );
 
+  const formatDate = (dateStr: string | undefined): string => {
+    if (!dateStr) return "TBD";
+    return new Date(dateStr).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="card card-mb">
       <h3 className="card-title">Upcoming Events</h3>
@@ -307,24 +316,9 @@ const UpcomingEvents = ({ refereeId }: UpcomingEventsProps) => {
             >
               <div className="invite-team-name">{tournament.name}</div>
               <div style={{ display: "flex", gap: "1rem", fontSize: "0.875rem", color: "#4b5563" }}>
-                <span>
-                  {tournament.startDate
-                    ? new Date(tournament.startDate).toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })
-                    : "TBD"}
-                </span>
+                <span>{formatDate(tournament.startDate)}</span>
                 {tournament.endDate && tournament.endDate !== tournament.startDate && (
-                  <span>
-                    →{" "}
-                    {new Date(tournament.endDate).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
+                  <span>→ {formatDate(tournament.endDate)}</span>
                 )}
               </div>
             </div>
