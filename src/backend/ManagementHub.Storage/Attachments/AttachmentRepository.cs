@@ -46,7 +46,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for {recordType} '{identifier}'.", SanitizeLogValue(attachmentName), recordType, SanitizeLogValue(identifier!.ToString()));
+		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for {recordType} '{identifier}'.", attachmentName, recordType, identifier!.ToString());
 
 		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
@@ -59,7 +59,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for {recordType} '{identifier}'.", SanitizeLogValue(attachmentName), recordType, SanitizeLogValue(identifier!.ToString()));
+		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for {recordType} '{identifier}'.", attachmentName, recordType, identifier!.ToString());
 
 		this.dbContext.ActiveStorageBlobs.Add(blob);
 
@@ -110,10 +110,4 @@ public class AttachmentRepository : IAttachmentRepository
 		return recordType;
 	}
 
-	private static string SanitizeLogValue(string? value)
-	{
-		// Replace any character that is not alphanumeric, underscore, or hyphen with underscore
-		// This prevents log injection while preserving useful debug information
-		return value is null ? string.Empty : System.Text.RegularExpressions.Regex.Replace(value, "[^a-zA-Z0-9_-]", "_");
-	}
 }

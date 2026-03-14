@@ -225,8 +225,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.dbContext.Tournaments.Remove(tournament);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
-		var sanitizedId = tournamentId.UniqueId.ToString();
-		this.logger.LogInformation("Deleted tournament {TournamentId}", sanitizedId);
+		this.logger.LogInformation("Deleted tournament {TournamentId}", tournamentId);
 	}
 
 	public async Task<Uri?> GetTournamentBannerUriAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
@@ -444,8 +443,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			await transaction.CommitAsync(cancellationToken);
 
 			this.logger.LogInformation("Removed manager {UserId} from tournament {TournamentId}",
-				userId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
-				tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty));
+				userId, tournamentId);
 
 			return true;
 		});
@@ -904,11 +902,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.dbContext.TournamentInvites.Remove(invite);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
-		var safeTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
-		var safeTeamId = teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
-
 		this.logger.LogInformation("Deleted invite for tournament {TournamentId} team {TeamId}",
-			safeTournamentId, safeTeamId);
+			tournamentId, teamId);
 	}
 
 	// Phase 3: Participant management methods
@@ -1140,8 +1135,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 			this.logger.LogInformation(
 				"Updated roster for team {TeamId} in tournament {TournamentId}: {PlayerCount} players, {CoachCount} coaches, {StaffCount} staff",
-				teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
-				tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
+				teamId, tournamentId,
 				rosterData.Players.Count, rosterData.Coaches.Count, rosterData.Staff.Count);
 		});
 	}

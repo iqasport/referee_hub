@@ -51,9 +51,7 @@ const DAY_NAMES = [
   ...BASE_DAY_NAMES.slice(0, WEEK_START),
 ];
 
-// Year range shown in the year picker: current year ± 5
-const THIS_YEAR = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: 11 }, (_, i) => THIS_YEAR - 5 + i);
+// Year range shown in the year picker: current year ± 5 (computed inside component to stay current)
 
 /** Returns sorted {year, month} pairs (0-based month) for months that have at
  *  least one tournament, starting from the current month. */
@@ -142,6 +140,10 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-based
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const yearOptions = useMemo(
+    () => Array.from({ length: 11 }, (_, i) => today.getFullYear() - 5 + i),
+    [today]
+  );
 
   // On load, if the current month has no tournaments, jump to the nearest
   // upcoming month that does so the user sees chips immediately.
@@ -247,7 +249,7 @@ const TournamentCalendar: React.FC<TournamentCalendarProps> = ({ tournaments }) 
             onChange={(e) => { setYear(Number(e.target.value)); setSelectedDay(null); }}
             aria-label="Select year"
           >
-            {YEAR_OPTIONS.map((y) => (
+            {yearOptions.map((y) => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
