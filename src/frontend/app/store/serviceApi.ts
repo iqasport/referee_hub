@@ -414,6 +414,7 @@ const injectedRtkApi = api
             Page: queryArg.page,
             PageSize: queryArg.pageSize,
             SkipPaging: queryArg.skipPaging,
+            TournamentTypeFilter: queryArg.tournamentType,
           },
         }),
         providesTags: ["Tournament"],
@@ -921,6 +922,7 @@ export type GetTournamentsApiArg = {
   page?: number;
   pageSize?: number;
   skipPaging?: boolean;
+  tournamentType?: string;
 };
 export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
 export type CreateTournamentApiArg = {
@@ -1453,7 +1455,7 @@ export type TeamMemberViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: TeamMemberViewModel[] | null;
 };
-export type ParticipantType = "team";
+export type ParticipantType = "team" | "player";
 export type InviteStatus = "pending" | "approved" | "rejected";
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 export type ApprovalStatusViewModel = {

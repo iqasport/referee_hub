@@ -151,13 +151,13 @@ function useTournamentData(searchTerm: string, typeFilter: string, currentPage: 
     data: allTournamentsData,
     isLoading: isLoadingAll,
     isError: isErrorAll,
-  } = useGetTournamentsQuery({ filter: searchTerm || undefined, skipPaging: true });
+  } = useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, skipPaging: true });
 
   const {
     data: paginatedData,
     isLoading: isLoadingPaginated,
     isError: isErrorPaginated,
-  } = useGetTournamentsQuery({ filter: searchTerm || undefined, page: currentPage, pageSize: DEFAULT_PAGE_SIZE });
+  } = useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, page: currentPage, pageSize: DEFAULT_PAGE_SIZE });
 
   const allTournaments = allTournamentsData?.items || [];
   const paginatedTournaments = paginatedData?.items || [];
@@ -180,14 +180,13 @@ function useTournamentData(searchTerm: string, typeFilter: string, currentPage: 
       isPrivate: Boolean(t.isCurrentUserInvolved),
     });
     const visible = (t: TournamentViewModel) => showPast || !isPast(t);
-    const typeMatch = (t: TournamentViewModel) => !typeFilter || t.type === typeFilter;
     return {
-      privateTournaments: allTournaments.filter((t) => t.isCurrentUserInvolved && visible(t) && typeMatch(t)).map(toDisplay),
-      publicTournaments: paginatedTournaments.filter((t) => !t.isCurrentUserInvolved && visible(t) && typeMatch(t)).map(toDisplay),
-      totalCount: allTournaments.filter((t) => !t.isCurrentUserInvolved && visible(t) && typeMatch(t)).length,
-      calendarTournaments: allTournaments.filter((t) => visible(t) && typeMatch(t)).map(toDisplay),
+      privateTournaments: allTournaments.filter((t) => t.isCurrentUserInvolved && visible(t)).map(toDisplay),
+      publicTournaments: paginatedTournaments.filter((t) => !t.isCurrentUserInvolved && visible(t)).map(toDisplay),
+      totalCount: allTournaments.filter((t) => !t.isCurrentUserInvolved && visible(t)).length,
+      calendarTournaments: allTournaments.filter(visible).map(toDisplay),
     };
-  }, [allTournaments, paginatedTournaments, showPast, typeFilter]);
+  }, [allTournaments, paginatedTournaments, showPast]);
 
   return {
     ...derived,
@@ -240,7 +239,7 @@ const TournamentHeader: React.FC<TournamentHeaderProps> = ({
 const Tournament = () => {
   const [showPast, setShowPast] = useState(false);
   const modalRef = useRef<AddTournamentModalRef>(null);
-  const { data: currentUser } = useGetCurrentUserQuery();
+  const { currentData: currentUser } = useGetCurrentUserQuery();
 
   const {
     searchTerm,
