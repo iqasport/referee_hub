@@ -4,6 +4,8 @@ import React from "react";
 import {
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
+  useDeleteInviteMutation,
+  TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import StatusBadge from "../../../components/StatusBadge";
 import ActionButtonPair from "../../../components/ActionButtonPair";
@@ -30,6 +32,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
+  const [deleteInvite] = useDeleteInviteMutation();
 
   useImperativeHandle(ref, () => ({
     open: (tournId: string, tournName: string) => {
@@ -81,6 +84,32 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleDeleteInvite(participantId: string, teamName: string) {
+    setIsSubmitting(true);
+    try {
+      await deleteInvite({ tournamentId, participantId }).unwrap();
+      showAlert(`Removed ${teamName}'s invite. You can now re-invite this team.`, "success");
+      refetch();
+      setSelectedInvite(null);
+    } catch (error) {
+      console.error("Failed to delete invite:", error);
+      showAlert("Failed to remove invite. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Returns a descriptive label for "pending" invites in the list view
+  function getPendingLabel(invite: TournamentInviteViewModel): string {
+    if (invite.tournamentManagerApproval?.status === "pending") {
+      return "Awaiting your review";
+    }
+    if (invite.participantApproval?.status === "pending") {
+      return "Awaiting team response";
+    }
+    return "Pending";
   }
 
   const selectedInviteData = invites?.find((i) => i.participantId === selectedInvite);

@@ -711,6 +711,54 @@ public class TournamentsController : ControllerBase
 		return this.Ok();
 	}
 
+	/// <summary>
+	/// Delete a rejected team invite from a tournament (allows re-inviting the team).
+	/// </summary>
+	[HttpDelete("{tournamentId}/invites/{participantId}")]
+	[Tags("Tournament")]
+	[Authorize]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> DeleteInvite(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromRoute] string participantId)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
+			.Any(r => r.Tournament.AppliesTo(tournamentId));
+
+		if (!isTournamentManager)
+		{
+			return this.Forbid();
+		}
+
+		if (!TeamIdentifier.TryParse(participantId, out var teamId))
+		{
+			return this.BadRequest(new { error = "Invalid participant ID" });
+		}
+
+		var invite = await this.tournamentContextProvider
+			.GetTeamInviteAsync(tournamentId, teamId, this.HttpContext.RequestAborted);
+
+		if (invite == null)
+		{
+			return this.NotFound(new { error = "Invite not found" });
+		}
+
+		if (invite.GetStatus() != InviteStatus.Rejected)
+		{
+			return this.BadRequest(new { error = "Only rejected invites can be deleted" });
+		}
+
+		await this.tournamentContextProvider.DeleteTeamInviteAsync(
+			tournamentId, teamId, this.HttpContext.RequestAborted);
+
+		return this.Ok();
+	}
+
 	// Phase 3: Participant endpoints
 
 	/// <summary>

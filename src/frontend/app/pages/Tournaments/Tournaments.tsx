@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { faArrowLeft, faArrowRight, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,7 +8,10 @@ import Search from "./components/Search";
 import { useGetTournamentsQuery, TournamentViewModel } from "../../store/serviceApi";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
-const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 8;
+
+// Tournaments ended more than this many days ago are considered "past"
+const PAST_TOURNAMENT_DAYS = 30;
 
 const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
