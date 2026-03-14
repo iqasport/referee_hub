@@ -840,7 +840,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
 		this.logger.LogInformation("Deleted invite for tournament {TournamentId} team {TeamId}",
-			tournamentId, teamId);
+			safeTournamentId, safeTeamId);
 	}
 
 	// Phase 3: Participant management methods
