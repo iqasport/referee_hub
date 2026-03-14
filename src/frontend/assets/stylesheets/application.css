@@ -189,7 +189,7 @@ body {
     @apply font-bold;
 }
 
-.active-button-tab {
+.button-tab.active-button-tab {
     @apply bg-navy-blue;
     @apply text-white;
     @apply border-navy-blue;

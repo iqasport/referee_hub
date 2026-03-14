@@ -334,7 +334,8 @@ public class UsersController : ControllerBase
 					TeamId = new TeamIdentifier(combined.t.Id),
 					TeamName = combined.t.Name,
 					Ngb = new NgbIdentifier(ngb.CountryCode),
-					GroupAffiliation = combined.t.GroupAffiliation
+					GroupAffiliation = combined.t.GroupAffiliation,
+					Status = combined.t.Status,
 				})
 			.ToListAsync(this.HttpContext.RequestAborted);
 

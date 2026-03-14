@@ -33,6 +33,31 @@ export interface AddTournamentModalRef {
   openEdit: (tournament: Tournament) => void;
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function buildTournamentPayload(formData: Tournament) {
+  return {
+    name: formData.name,
+    description: formData.description,
+    startDate: formData.startDate,
+    endDate: formData.endDate,
+    registrationEndsDate: formData.registrationEndsDate || undefined,
+    type: formData.type || undefined,
+    country: formData.country,
+    city: formData.city,
+    place: formData.place,
+    organizer: formData.organizer,
+    isPrivate: formData.isPrivate,
+    isRegistrationOpen: formData.isRegistrationOpen ?? true,
+  };
+}
+
+async function uploadBannerImage(tournamentId: string, file: File): Promise<void> {
+  const payload = new FormData();
+  payload.append("bannerBlob", file);
+  await fetch(`/api/v2/Tournaments/${tournamentId}/banner`, { method: "PUT", body: payload });
+}
+
 const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
@@ -86,48 +111,15 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
         }
         await updateTournament({
           tournamentId: formData.id,
-          tournamentModel: {
-            name: formData.name,
-            description: formData.description,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            registrationEndsDate: formData.registrationEndsDate || undefined,
-            type: formData.type || undefined,
-            country: formData.country,
-            city: formData.city,
-            place: formData.place,
-            organizer: formData.organizer,
-            isPrivate: formData.isPrivate,
-            isRegistrationOpen: formData.isRegistrationOpen ?? true,
-          },
+          tournamentModel: buildTournamentPayload(formData),
         }).unwrap();
       } else {
         const result = await createTournament({
-          tournamentModel: {
-            name: formData.name,
-            description: formData.description,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            registrationEndsDate: formData.registrationEndsDate || undefined,
-            type: formData.type || undefined,
-            country: formData.country,
-            city: formData.city,
-            place: formData.place,
-            organizer: formData.organizer,
-            isPrivate: formData.isPrivate,
-            isRegistrationOpen: formData.isRegistrationOpen ?? true,
-          },
+          tournamentModel: buildTournamentPayload(formData),
         }).unwrap();
-
-        // Upload banner image if one was selected during creation
         if (pendingBannerFile && result.id) {
           try {
-            const payload = new FormData();
-            payload.append("bannerBlob", pendingBannerFile);
-            await fetch(`/api/v2/Tournaments/${result.id}/banner`, {
-              method: "PUT",
-              body: payload,
-            });
+            await uploadBannerImage(result.id, pendingBannerFile);
           } catch (bannerError) {
             console.error("Failed to upload banner:", bannerError);
             // Don't fail the whole operation, tournament was created successfully
@@ -153,7 +145,6 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
 
   async function handleBannerUpload(file: File) {
     if (!formData.id) {
-      // In create mode, store the file to upload after tournament creation
       setPendingBannerFile(file);
       // Update preview with temporary URL
       setFormData((prev) => ({

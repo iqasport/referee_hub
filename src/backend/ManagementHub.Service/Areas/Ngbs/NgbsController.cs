@@ -5,6 +5,7 @@ using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User.Roles;
+using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Authorization;
@@ -73,6 +74,23 @@ public class NgbsController : ControllerBase
 			Region = ngb.NgbData.Region,
 			Website = ngb.NgbData.Website,
 		}).AsFiltered();
+	}
+
+	/// <summary>
+	/// Get NGB country codes that have at least one team with the specified group affiliations.
+	/// Used to filter the NGB selector to only show regions with eligible teams for a tournament type.
+	/// </summary>
+	[HttpGet("with-eligible-teams")]
+	[Tags("Ngb")]
+	public ActionResult<IEnumerable<string>> GetNgbsWithEligibleTeams([FromQuery] TeamGroupAffiliation[] groupAffiliations)
+	{
+		if (groupAffiliations == null || groupAffiliations.Length == 0)
+		{
+			return this.Ok(Array.Empty<string>());
+		}
+
+		var codes = this.teamContextProvider.GetNgbCodesWithTeams(groupAffiliations);
+		return this.Ok(codes);
 	}
 
 	/// <summary>

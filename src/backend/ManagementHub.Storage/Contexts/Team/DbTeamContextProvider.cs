@@ -59,6 +59,28 @@ public class DbTeamContextProvider : ITeamContextProvider
 		return this.dbTeamContextFactory.QueryTeams(ngbs, groupAffiliation);
 	}
 
+	public IEnumerable<string> GetNgbCodesWithTeams(IEnumerable<TeamGroupAffiliation> affiliations)
+	{
+		var affiliationList = affiliations.ToList();
+		IQueryable<Models.Data.Team> query;
+
+		if (affiliationList.Count == 1)
+		{
+			query = this.dbTeamContextFactory.QueryTeamsInternal(NgbConstraint.Any, affiliationList[0]);
+		}
+		else
+		{
+			query = this.dbTeamContextFactory.QueryTeamsInternal(NgbConstraint.Any)
+				.Where(t => t.GroupAffiliation.HasValue && affiliationList.Contains(t.GroupAffiliation.Value));
+		}
+
+		return query
+			.Where(t => t.Status != Models.Enums.TeamStatus.Inactive)
+			.Select(t => t.NationalGoverningBody!.CountryCode)
+			.Distinct()
+			.ToList();
+	}
+
 	public Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)
 	{
 		return this.dbTeamContextFactory.UpdateTeamAsync(ngb, teamId, teamData);
