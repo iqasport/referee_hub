@@ -479,6 +479,12 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
 
 // ── Data hook ─────────────────────────────────────────────────────────────────
 
+/** Extended role shape returned by the API (tournament field is not in the generated type). */
+interface UserRole {
+  roleType?: string;
+  tournament?: string | string[];
+}
+
 function useTournamentDetailsData(tournamentId: string | undefined) {
   const { data: tournament, isLoading, isError } = useGetTournamentQuery(
     { tournamentId: tournamentId ?? "" },
@@ -487,10 +493,10 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
   const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, { skip: !currentUser });
 
   const isTournamentManagerOfThis = useMemo(
-    () => currentUser?.roles?.some((role: any) => {
+    () => (currentUser?.roles as UserRole[] | undefined)?.some((role) => {
       if (role.roleType !== "TournamentManager") return false;
       if (role.tournament === "ANY") return true;
-      if (Array.isArray(role.tournament)) return role.tournament.includes(tournamentId);
+      if (Array.isArray(role.tournament)) return role.tournament.includes(tournamentId ?? "");
       return role.tournament === tournamentId;
     }),
     [currentUser?.roles, tournamentId],
