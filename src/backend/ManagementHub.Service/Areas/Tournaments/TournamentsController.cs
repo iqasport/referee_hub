@@ -750,7 +750,7 @@ public class TournamentsController : ControllerBase
 
 		if (invite.GetStatus() != InviteStatus.Rejected)
 		{
-			return this.BadRequest(new { error = "Only rejected invites can be deleted" });
+			return this.BadRequest(new { error = $"Cannot delete invite with status '{invite.GetStatus()}'. Only rejected invites can be deleted." });
 		}
 
 		await this.tournamentContextProvider.DeleteTeamInviteAsync(

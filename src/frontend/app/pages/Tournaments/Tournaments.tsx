@@ -18,6 +18,7 @@ const Tournament = () => {
   const searchTerm = searchParams.get("q") || "";
   const typeFilter = searchParams.get("type") || "";
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [showPast, setShowPast] = useState(false);
   const modalRef = useRef<AddTournamentModalRef>(null);
 
   // Query for user's private tournaments (no pagination - uses lazy loading in carousel)
@@ -96,6 +97,14 @@ const Tournament = () => {
   }, [paginatedTournaments, typeFilter]);
 
   const { publicTournaments, privateTournaments, totalCount } = useMemo(() => {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - PAST_TOURNAMENT_DAYS);
+
+    const isPast = (t: TournamentViewModel) => {
+      if (!t.endDate) return false;
+      return new Date(t.endDate) < cutoffDate;
+    };
+
     const convertToDisplayFormat = (t: TournamentViewModel): TournamentData => ({
       id: t.id,
       title: t.name || "",
@@ -112,17 +121,17 @@ const Tournament = () => {
 
     // Private tournaments come from the unpaginated query (all tournaments)
     const userInvolvedTournaments = filteredAllTournaments
-      .filter((t) => t.isCurrentUserInvolved)
+      .filter((t) => t.isCurrentUserInvolved && (showPast || !isPast(t)))
       .map(convertToDisplayFormat);
 
     // Public tournaments come from the paginated query
     const otherTournaments = filteredPaginatedTournaments
-      .filter((t) => !t.isCurrentUserInvolved)
+      .filter((t) => !t.isCurrentUserInvolved && (showPast || !isPast(t)))
       .map(convertToDisplayFormat);
 
     // Calculate public tournament count from all tournaments (for correct pagination)
     const publicTournamentCount = filteredAllTournaments.filter(
-      (t) => !t.isCurrentUserInvolved
+      (t) => !t.isCurrentUserInvolved && (showPast || !isPast(t))
     ).length;
 
     return {
@@ -130,7 +139,7 @@ const Tournament = () => {
       privateTournaments: userInvolvedTournaments,
       totalCount: publicTournamentCount,
     };
-  }, [filteredAllTournaments, filteredPaginatedTournaments]);
+  }, [filteredAllTournaments, filteredPaginatedTournaments, showPast]);
 
   return (
     <>
@@ -142,6 +151,15 @@ const Tournament = () => {
               onTypeFilter={handleTypeFilter}
               selectedType={typeFilter}
             />
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer mt-2">
+              <input
+                type="checkbox"
+                checked={showPast}
+                onChange={(e) => setShowPast(e.target.checked)}
+                className="rounded"
+              />
+              Show past tournaments
+            </label>
           </div>
           <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
             Add Tournament
