@@ -8,7 +8,7 @@ import Search from "./components/Search";
 import { useGetTournamentsQuery, TournamentViewModel } from "../../store/serviceApi";
 import TournamentSection, { TournamentData } from "./components/TournamentsSection";
 
-const DEFAULT_PAGE_SIZE = 8;
+const DEFAULT_PAGE_SIZE = 20;
 
 // Tournaments ended more than this many days ago are considered "past"
 const PAST_TOURNAMENT_DAYS = 30;
