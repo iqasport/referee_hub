@@ -92,14 +92,6 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 				.Select(u => u.Id)
 				.FirstOrDefaultAsync();
 
-			if (existingManager != null)
-			{
-				this.logger.LogInformation("User {UserId} already is a manager of team {TeamId}",
-					user.Id, teamId.Id);
-				return userCreated
-					? IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole
-					: IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded;
-			}
 			if (currentUserDbId == 0)
 			{
 				throw new InvalidOperationException("Current user not found");
@@ -118,9 +110,6 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 				AddedByUserId = currentUserDbId,
 			});
 
-			// Add team manager
-			this.logger.LogInformation("Adding team manager for user {UserId} to team {TeamId}",
-				user.Id, teamId.Id);
 			await this.dbContext.SaveChangesAsync();
 			await transaction.CommitAsync();
 

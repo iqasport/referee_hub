@@ -99,9 +99,6 @@ const ContactOrganizerModal = forwardRef<ContactOrganizerModalRef>((_props, ref)
               Send a message to the tournament organizers. They will receive your message via email
               and can respond to you directly.
             </p>
-            <p className="text-xs bg-blue-50 border border-blue-200 rounded p-2 text-blue-800">
-              ℹ️ The organizers will receive your <strong>name</strong> and <strong>email address</strong> along with your message.
-            </p>
           </div>
 
           {/* Message Input */}

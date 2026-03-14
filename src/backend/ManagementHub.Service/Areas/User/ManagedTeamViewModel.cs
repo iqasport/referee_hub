@@ -10,5 +10,4 @@ public class ManagedTeamViewModel
 	public required string TeamName { get; set; }
 	public required NgbIdentifier Ngb { get; set; }
 	public TeamGroupAffiliation? GroupAffiliation { get; set; }
-	public TeamStatus? Status { get; set; }
 }

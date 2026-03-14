@@ -7,8 +7,5 @@ namespace ManagementHub.Models.Enums;
 public enum ParticipantType
 {
 	[EnumMember(Value = "team")]
-	Team = 0,
-
-	[EnumMember(Value = "player")]
-	Player = 1
+	Team = 0
 }

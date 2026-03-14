@@ -1,6 +1,4 @@
-﻿using ManagementHub.Models.Enums;
-
-namespace ManagementHub.Storage.Collections;
+﻿namespace ManagementHub.Storage.Collections;
 
 /// <summary>
 /// Common query parameters for collection filtering.
@@ -26,9 +24,4 @@ public class FilteringParameters
 	/// if true, paging is skipped.
 	/// </summary>
 	public bool? SkipPaging { get; set; }
-
-	/// <summary>
-	/// Optional tournament type filter. Only used by tournament endpoints.
-	/// </summary>
-	public TournamentType? TournamentTypeFilter { get; set; }
 }

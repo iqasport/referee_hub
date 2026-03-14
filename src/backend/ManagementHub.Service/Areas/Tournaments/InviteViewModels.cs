@@ -10,7 +10,6 @@ public class TournamentInviteViewModel
 	public required ParticipantType ParticipantType { get; set; }
 	public required string ParticipantId { get; set; }
 	public required string ParticipantName { get; set; }
-	public Uri? LogoUri { get; set; }
 	public required InviteStatus Status { get; set; }
 	public required UserIdentifier InitiatorUserId { get; set; }
 	public required DateTime CreatedAt { get; set; }
@@ -39,7 +38,6 @@ public class TournamentParticipantViewModel
 {
 	public required TeamIdentifier TeamId { get; set; }
 	public required string TeamName { get; set; }
-	public Uri? LogoUri { get; set; }
 	public required List<PlayerViewModel> Players { get; set; }
 	public required List<StaffViewModel> Coaches { get; set; }
 	public required List<StaffViewModel> Staff { get; set; }
