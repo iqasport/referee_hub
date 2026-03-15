@@ -1647,7 +1647,7 @@ export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
   lastName?: string | null;
-  avatarUrl?: string | null;
+  avatarUri?: string | null;
   languageId?: string | null;
   roles?:
     | {
