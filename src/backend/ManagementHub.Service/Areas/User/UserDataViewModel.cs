@@ -14,11 +14,7 @@ public class UserDataViewModel
 	/// Creates a new instance of view model based on the <paramref name="userDataContext"/>.
 	/// </summary>
 	/// <param name="userDataContext">Context of the user data.</param>
-	/// <param name="isCurrentUser">
-	/// When <c>true</c> the full data set is returned.
-	/// When <c>false</c> only publicly visible fields are returned (pronouns are included only if
-	/// the user has opted in via <c>ShowPronouns</c>).
-	/// </param>
+	/// <param name="isCurrentUser">If true full data is returned, else pronouns are returned only if permitted.</param>
 	public UserDataViewModel(IUserDataContext userDataContext, bool isCurrentUser)
 	{
 		this.FirstName = userDataContext.ExtendedUserData.FirstName;
