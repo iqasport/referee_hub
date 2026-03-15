@@ -3,7 +3,7 @@ import React from "react";
 
 import DropdownMenu, { ItemConfig } from "../DropdownMenu/DropdownMenu";
 import { useNavigate } from "../../utils/navigationUtils";
-import { useGetManagedTeamsQuery } from "../../store/serviceApi";
+import { useGetCurrentUserAvatarQuery, useGetManagedTeamsQuery } from "../../store/serviceApi";
 
 interface AvatarProps {
   firstName: string;
@@ -19,6 +19,7 @@ const Avatar = (props: AvatarProps) => {
 
   const navigate = useNavigate();
   const { data: managedTeams } = useGetManagedTeamsQuery();
+  const { data: avatarUrl } = useGetCurrentUserAvatarQuery();
 
   const handleHomeClick = () => {
     navigate("/");
@@ -54,7 +55,9 @@ const Avatar = (props: AvatarProps) => {
 
     return (
       <button onClick={onClick} className="avatar" type="button">
-        {`${firstLetter}${lastLetter}`}
+        {avatarUrl
+          ? <img src={avatarUrl} alt={`Profile picture of ${firstName} ${lastName}`} className="rounded-full w-full h-full object-cover" />
+          : `${firstLetter}${lastLetter}`}
       </button>
     );
   };
