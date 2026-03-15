@@ -36,24 +36,4 @@ public class ExtendedUserData : UserData
 	/// Date when the user signed up.
 	/// </summary>
 	public DateOnly CreatedAt { get; set; }
-
-	/// <summary>
-	/// Date of birth of the user.
-	/// </summary>
-	public DateOnly? DateOfBirth { get; set; }
-
-	/// <summary>
-	/// Food restrictions or allergies of the user.
-	/// </summary>
-	public string? FoodRestrictions { get; set; }
-
-	/// <summary>
-	/// Medical information relevant for event participation.
-	/// </summary>
-	public string? MedicalInformation { get; set; }
-
-	/// <summary>
-	/// Emergency contact details for the user.
-	/// </summary>
-	public string? EmergencyContact { get; set; }
 }

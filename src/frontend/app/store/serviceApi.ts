@@ -1693,10 +1693,6 @@ export type UserDataViewModel = {
   exportName?: boolean | null;
   language?: string | null;
   createdAt?: string;
-  dateOfBirth?: string | null;
-  foodRestrictions?: string | null;
-  medicalInformation?: string | null;
-  emergencyContact?: string | null;
 };
 export const {
   useCreatePaymentSessionMutation,

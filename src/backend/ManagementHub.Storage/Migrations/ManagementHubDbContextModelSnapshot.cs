@@ -1696,18 +1696,12 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("current_sign_in_ip");
 
-                    b.Property<DateOnly?>("DateOfBirth")
-                        .HasColumnType("date");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("character varying")
                         .HasColumnName("email")
                         .HasDefaultValueSql("''");
-
-                    b.Property<string>("EmergencyContact")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("EncryptedPassword")
                         .IsRequired()
@@ -1729,9 +1723,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("character varying")
                         .HasColumnName("first_name");
-
-                    b.Property<string>("FoodRestrictions")
-                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("InvitationAcceptedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1786,9 +1777,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Property<DateTime?>("LockedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("locked_at");
-
-                    b.Property<string>("MedicalInformation")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Pronouns")
                         .HasColumnType("character varying")

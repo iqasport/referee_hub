@@ -54,7 +54,7 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 
 		var newUserData = updater(userData);
 
-		const int numberOfPropertiesOfExtendedUserData = 12;
+		const int numberOfPropertiesOfExtendedUserData = 8;
 		var propertySetters = new List<Expr>(capacity: numberOfPropertiesOfExtendedUserData);
 		var propertyNames = new List<string>(capacity: numberOfPropertiesOfExtendedUserData);
 
@@ -115,34 +115,6 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 				.Select(l => l.Id)
 				.SingleAsync(cancellationToken);
 			propertySetters.Add(s => s.SetProperty(u => u.LanguageId, newLangId));
-		}
-
-		if (newUserData.DateOfBirth != userData.DateOfBirth)
-		{
-			propertyNames.Add(nameof(newUserData.DateOfBirth));
-			var value = newUserData.DateOfBirth;
-			propertySetters.Add(s => s.SetProperty(u => u.DateOfBirth, value));
-		}
-
-		if (!string.Equals(newUserData.FoodRestrictions, userData.FoodRestrictions, StringComparison.InvariantCulture))
-		{
-			propertyNames.Add(nameof(newUserData.FoodRestrictions));
-			var value = newUserData.FoodRestrictions;
-			propertySetters.Add(s => s.SetProperty(u => u.FoodRestrictions, value));
-		}
-
-		if (!string.Equals(newUserData.MedicalInformation, userData.MedicalInformation, StringComparison.InvariantCulture))
-		{
-			propertyNames.Add(nameof(newUserData.MedicalInformation));
-			var value = newUserData.MedicalInformation;
-			propertySetters.Add(s => s.SetProperty(u => u.MedicalInformation, value));
-		}
-
-		if (!string.Equals(newUserData.EmergencyContact, userData.EmergencyContact, StringComparison.InvariantCulture))
-		{
-			propertyNames.Add(nameof(newUserData.EmergencyContact));
-			var value = newUserData.EmergencyContact;
-			propertySetters.Add(s => s.SetProperty(u => u.EmergencyContact, value));
 		}
 
 		// if any property has been changed we also want to update the last update time

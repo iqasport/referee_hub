@@ -63,10 +63,6 @@ public class DbUserDataContextFactory
 				ShowPronouns = user.ShowPronouns ?? false,
 				UserLang = user.Language != null ? new LanguageIdentifier(user.Language.ShortName, user.Language.ShortRegion) : LanguageIdentifier.Default,
 				CreatedAt = DateOnly.FromDateTime(user.CreatedAt),
-				DateOfBirth = user.DateOfBirth,
-				FoodRestrictions = user.FoodRestrictions,
-				MedicalInformation = user.MedicalInformation,
-				EmergencyContact = user.EmergencyContact,
 			});
 	}
 }

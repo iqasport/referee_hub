@@ -21,7 +21,7 @@ import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 import Toggle from "../../components/Toggle";
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Basic Details section (pronouns, bio + new private fields)
+// Basic Details section (pronouns, bio)
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Shared row wrapper — handles the stats-item container and label, then renders
@@ -122,48 +122,6 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
         }
       />
 
-      {/* Private fields — visible only when isEditable (current user) */}
-      {isEditable && (
-        <>
-          <DetailsRow
-            label="Date of Birth"
-            isEditing={isEditing}
-            value={userData.dateOfBirth}
-            editContent={
-              <input className="form-input" type="date" value={userData.dateOfBirth ?? ""} onChange={handleStringChange("dateOfBirth")} />
-            }
-          />
-
-          <DetailsRow
-            label="Food Restrictions / Allergies"
-            isEditing={isEditing}
-            value={userData.foodRestrictions}
-            editContent={
-              <textarea className="bg-gray-100 rounded p-2 text-sm w-full" style={{ resize: "vertical", minHeight: "3rem" }}
-                onChange={handleStringChange("foodRestrictions")} value={userData.foodRestrictions ?? ""} placeholder="Any food restrictions or allergies…" />
-            }
-          />
-
-          <DetailsRow
-            label="Medical Information"
-            isEditing={isEditing}
-            value={userData.medicalInformation}
-            editContent={
-              <textarea className="bg-gray-100 rounded p-2 text-sm w-full" style={{ resize: "vertical", minHeight: "3rem" }}
-                onChange={handleStringChange("medicalInformation")} value={userData.medicalInformation ?? ""} placeholder="Relevant medical information…" />
-            }
-          />
-
-          <DetailsRow
-            label="Emergency Contact"
-            isEditing={isEditing}
-            value={userData.emergencyContact}
-            editContent={
-              <input className="form-input" type="text" value={userData.emergencyContact ?? ""} onChange={handleStringChange("emergencyContact")} placeholder="Name and phone number…" />
-            }
-          />
-        </>
-      )}
     </div>
   );
 };

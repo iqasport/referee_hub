@@ -138,10 +138,6 @@ public class UsersController : ControllerBase
 				Pronouns = pronouns,
 				ShowPronouns = showPronouns,
 				UserLang = lang,
-				DateOfBirth = userData.DateOfBirth ?? data.DateOfBirth,
-				FoodRestrictions = userData.FoodRestrictions ?? data.FoodRestrictions,
-				MedicalInformation = userData.MedicalInformation ?? data.MedicalInformation,
-				EmergencyContact = userData.EmergencyContact ?? data.EmergencyContact,
 			};
 		}, this.HttpContext.RequestAborted);
 	}
