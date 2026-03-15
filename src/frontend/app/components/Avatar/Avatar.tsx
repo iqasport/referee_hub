@@ -83,7 +83,6 @@ const Avatar = (props: AvatarProps) => {
   const items: ItemConfig[] = [];
 
   if (roles.includes("Referee")) items.push(refereeProfile);
-  if (enabledFeatures?.includes("i18n")) items.push(settings);
   if (roles.includes("NgbAdmin")) items.push(ngbProfile);
   //if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite); // TODO: unblock once implemented
 
@@ -98,7 +97,8 @@ const Avatar = (props: AvatarProps) => {
     });
   }
 
-  items.push(tournaments);
+  items.push(tournaments);  
+  if (enabledFeatures?.includes("i18n")) items.push(settings);
   items.push(logout);
 
   return <DropdownMenu renderTrigger={renderTrigger} items={items} />;
