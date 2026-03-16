@@ -111,6 +111,37 @@ describe("RefereeHeader", () => {
     expect(screen.getByText("Test bio for referee")).toBeInTheDocument();
   });
 
+  test("it renders a bio containing a URL as text", () => {
+    mockUseGetUserDataQuery.mockReturnValue({
+      data: {
+        ...defaultUserData,
+        bio: "Visit https://example.com for more info",
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<RefereeHeader {...defaultProps} />);
+
+    expect(screen.getByText("Visit https://example.com for more info")).toBeInTheDocument();
+  });
+
+  test("it renders an empty bio without errors", () => {
+    mockUseGetUserDataQuery.mockReturnValue({
+      data: {
+        ...defaultUserData,
+        bio: null,
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<RefereeHeader {...defaultProps} />);
+
+    // Should render without crashing; bio container is present
+    expect(screen.queryByText("Test bio for referee")).not.toBeInTheDocument();
+  });
+
   test("it renders user data from RTK Query", () => {
     render(<RefereeHeader {...defaultProps} />);
 

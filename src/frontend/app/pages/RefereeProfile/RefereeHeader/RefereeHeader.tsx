@@ -3,6 +3,8 @@ import { faMapPin } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { PickByValue } from "utility-types";
 
 import Toggle from "../../../components/Toggle";
@@ -116,7 +118,26 @@ const RefereeHeader = (props: HeaderProps) => {
 
   const renderBio = () => {
     if (!isEditing) {
-      return user.bio;
+      return (
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            // eslint-disable-next-line react/prop-types
+            a: ({ href, children }) => (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                {children}
+              </a>
+            ),
+          }}
+        >
+          {user.bio ?? ''}
+        </ReactMarkdown>
+      );
     } else {
       return (
         <textarea
