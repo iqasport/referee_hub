@@ -1,3 +1,5 @@
+import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import React from "react";
 
@@ -54,10 +56,13 @@ const Avatar = (props: AvatarProps) => {
     const lastLetter = lastName ? lastName[0] : "R";
 
     return (
-      <button onClick={onClick} className="avatar" type="button">
-        {avatarUrl
-          ? <img src={avatarUrl} alt={`Profile picture of ${firstName} ${lastName}`} className="rounded-full w-full h-full object-cover" />
-          : `${firstLetter}${lastLetter}`}
+      <button onClick={onClick} className="flex items-center gap-2 cursor-pointer" type="button">
+        <span className="avatar">
+          {avatarUrl
+            ? <img src={avatarUrl} alt={`Profile picture of ${firstName} ${lastName}`} className="rounded-full w-full h-full object-cover" />
+            : `${firstLetter}${lastLetter}`}
+        </span>
+        <FontAwesomeIcon icon={faBars} className="text-white" />
       </button>
     );
   };
