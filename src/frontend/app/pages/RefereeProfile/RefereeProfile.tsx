@@ -241,11 +241,6 @@ const UpcomingEvents = () => {
                   <span>→ {formatDate(tournament.endDate)}</span>
                 )}
               </div>
-              {(tournament.place || tournament.city || tournament.country) && (
-                <div style={{ fontSize: "0.8125rem", color: "#6b7280" }}>
-                  {[tournament.place, tournament.city, tournament.country].filter(Boolean).join(", ")}
-                </div>
-              )}
             </div>
           ))}
         </div>

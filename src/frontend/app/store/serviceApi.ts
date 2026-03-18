@@ -1670,9 +1670,6 @@ export type TournamentReferenceViewModel = {
   name?: string | null;
   startDate?: string;
   endDate?: string;
-  country?: string | null;
-  city?: string | null;
-  place?: string | null;
 };
 export type UserGenderViewModel = {
   gender?: string | null;
