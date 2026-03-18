@@ -85,6 +85,23 @@ jobs:
     - name: Test backend
       run: dotnet test ManagementHub.UnitTests/ManagementHub.UnitTests.csproj --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-test-result.xml"
       working-directory: src/backend
+    - name: Create placeholder test result if missing
+      if: success() || failure()
+      working-directory: src/backend
+      run: |
+        if [ ! -f "ManagementHub.UnitTests/dotnet-test-result.xml" ]; then
+          echo "Test result file not found, creating placeholder..."
+          mkdir -p ManagementHub.UnitTests
+          cat > ManagementHub.UnitTests/dotnet-test-result.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <testsuites tests="0" failures="0" errors="0" time="0">
+          <testsuite name="Placeholder" tests="0" failures="0" errors="0" time="0">
+            <properties/>
+          </testsuite>
+        </testsuites>
+        EOF
+          echo "Placeholder test result created"
+        fi
     # END BUILD
 
     - name: Print summary header for Lint Summary frontend

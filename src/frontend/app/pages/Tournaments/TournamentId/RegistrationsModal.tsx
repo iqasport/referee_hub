@@ -220,7 +220,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
 
   /** All team-type invites */
   const teamInvites = useMemo(
-    () => (invites ?? []).filter((i) => i.participantType !== "player"),
+    () => (invites ?? []).filter((i) => i.participantType === "team"),
     [invites]
   );
 
