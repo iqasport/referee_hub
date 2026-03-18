@@ -211,24 +211,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		this.logger.LogInformation("Updated tournament {TournamentId}", tournamentId);
 	}
 
-	public async Task DeleteTournamentAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
-	{
-		var tournament = await this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentId.ToString())
-			.SingleOrDefaultAsync(cancellationToken);
-
-		if (tournament == null)
-		{
-			throw new NotFoundException(tournamentId.ToString());
-		}
-
-		this.dbContext.Tournaments.Remove(tournament);
-		await this.dbContext.SaveChangesAsync(cancellationToken);
-
-		var sanitizedId = tournamentId.UniqueId.ToString();
-		this.logger.LogInformation("Deleted tournament {TournamentId}", sanitizedId);
-	}
-
 	public async Task<Uri?> GetTournamentBannerUriAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
 	{
 		var attachment = await this.attachmentRepository.GetAttachmentAsync(tournamentId, "banner", cancellationToken);
@@ -881,34 +863,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 		this.logger.LogInformation("Updated invite approval for tournament {TournamentId} team {TeamId}: {ApproverType} = {Status}",
 			tournamentId, teamId, isTournamentManager ? "TournamentManager" : "Participant", newStatus);
-	}
-
-	public async Task DeleteTeamInviteAsync(
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		CancellationToken cancellationToken = default)
-	{
-		var tournamentIdString = tournamentId.ToString();
-		var participantId = teamId.ToString();
-
-		var invite = await this.dbContext.TournamentInvites
-			.Where(i => i.Tournament.UniqueId == tournamentIdString && i.ParticipantId == participantId)
-			.OrderByDescending(i => i.CreatedAt)
-			.FirstOrDefaultAsync(cancellationToken);
-
-		if (invite == null)
-		{
-			throw new NotFoundException($"Invite for tournament {tournamentId} and team {teamId}");
-		}
-
-		this.dbContext.TournamentInvites.Remove(invite);
-		await this.dbContext.SaveChangesAsync(cancellationToken);
-
-		var safeTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
-		var safeTeamId = teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
-
-		this.logger.LogInformation("Deleted invite for tournament {TournamentId} team {TeamId}",
-			safeTournamentId, safeTeamId);
 	}
 
 	// Phase 3: Participant management methods

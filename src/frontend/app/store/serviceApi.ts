@@ -446,13 +446,6 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
-      deleteTournament: build.mutation<void, { tournamentId: string }>({
-        query: (queryArg) => ({
-          url: `/api/v2/Tournaments/${queryArg.tournamentId}`,
-          method: "DELETE",
-        }),
-        invalidatesTags: ["Tournament"],
-      }),
       updateTournamentBanner: build.mutation<
         UpdateTournamentBannerApiResponse,
         UpdateTournamentBannerApiArg
@@ -523,13 +516,6 @@ const injectedRtkApi = api
           url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
           method: "POST",
           body: queryArg.inviteResponseModel,
-        }),
-        invalidatesTags: ["Tournament"],
-      }),
-      deleteInvite: build.mutation<DeleteInviteApiResponse, DeleteInviteApiArg>({
-        query: (queryArg) => ({
-          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
-          method: "DELETE",
         }),
         invalidatesTags: ["Tournament"],
       }),
@@ -996,11 +982,6 @@ export type RespondToInviteApiArg = {
   tournamentId: string;
   participantId: string;
   inviteResponseModel: InviteResponseModel;
-};
-export type DeleteInviteApiResponse = /** status 200 Success */ void;
-export type DeleteInviteApiArg = {
-  tournamentId: string;
-  participantId: string;
 };
 export type GetParticipantsApiResponse = /** status 200 Success */ TournamentParticipantViewModel[];
 export type GetParticipantsApiArg = {
@@ -1780,7 +1761,6 @@ export const {
   useCreateTournamentMutation,
   useGetTournamentQuery,
   useUpdateTournamentMutation,
-  useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
   useGetTournamentManagersQuery,
   useAddTournamentManagerMutation,
@@ -1789,7 +1769,6 @@ export const {
   useGetTournamentInvitesQuery,
   useCreateInviteMutation,
   useRespondToInviteMutation,
-  useDeleteInviteMutation,
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
   useUpdateParticipantRosterMutation,
