@@ -637,33 +637,6 @@ const injectedRtkApi = api
     overrideExisting: false,
   });
 export { injectedRtkApi as serviceApi };
-export const {
-  useUploadTeamLogoMutation: useUploadTeamLogoFormDataMutation,
-  useDeleteTeamPlayerMutation,
-} = injectedRtkApi.injectEndpoints({
-  endpoints: (build) => ({
-    uploadTeamLogo: build.mutation<string, { teamId: string; logoBlob: File }>({
-      query: ({ teamId, logoBlob }) => {
-        const formData = new FormData();
-        formData.append('logoBlob', logoBlob);
-        return {
-          url: `/api/v2/Teams/${teamId}/logo`,
-          method: 'PUT',
-          body: formData,
-        };
-      },
-      invalidatesTags: ['Team'],
-    }),
-    deleteTeamPlayer: build.mutation<void, { teamId: string; playerId: string }>({
-      query: ({ teamId, playerId }) => ({
-        url: `/api/v2/Teams/${teamId}/players/${playerId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Team'],
-    }),
-  }),
-  overrideExisting: true,
-});
 export type CreatePaymentSessionApiResponse = /** status 200 Success */ CheckoutSession;
 export type CreatePaymentSessionApiArg = {
   level?: CertificationLevel;
