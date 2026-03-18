@@ -210,7 +210,7 @@ const TournamentDetails = () => {
 
   async function handleDelete() {
     if (!tournamentId) return;
-    if (!window.confirm(`Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? This action cannot be undone.`)) return;
+    if (!window.confirm(`Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? It will be removed from view.`)) return;
     try {
       await deleteTournament({ tournamentId }).unwrap();
       navigate("/tournaments");
