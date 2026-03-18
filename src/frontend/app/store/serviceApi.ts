@@ -438,6 +438,13 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
+      deleteTournament: build.mutation<void, { tournamentId: string }>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
       updateTournamentBanner: build.mutation<
         UpdateTournamentBannerApiResponse,
         UpdateTournamentBannerApiArg
@@ -1746,6 +1753,7 @@ export const {
   useCreateTournamentMutation,
   useGetTournamentQuery,
   useUpdateTournamentMutation,
+  useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
   useGetTournamentManagersQuery,
   useAddTournamentManagerMutation,
