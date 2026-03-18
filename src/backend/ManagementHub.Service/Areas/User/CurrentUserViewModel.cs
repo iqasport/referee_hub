@@ -21,7 +21,7 @@ public class CurrentUserViewModel
 	public UserIdentifier UserId { get; set; }
 	public string? FirstName { get; set; }
 	public string? LastName { get; set; }
-	public Uri? AvatarUrl { get; set; }
+	public Uri? AvatarUri { get; set; }
 	public LanguageIdentifier? LanguageId { get; set; }
 	public IReadOnlyCollection<IUserRole> Roles { get; set; }
 	public IReadOnlyDictionary<string, JsonDocument> Attributes { get; set; }
