@@ -389,6 +389,7 @@ public class TeamsController : ControllerBase
 	[HttpPost("{teamId}/managers")]
 	[Tags("TeamManagement")]
 	[Authorize]
+	[ActionName("AddTeamManagerToTeam")]
 	public async Task<ActionResult<string>> AddTeamManager(
 		[FromRoute] TeamIdentifier teamId,
 		[FromBody] AddTeamManagerRequest request)
