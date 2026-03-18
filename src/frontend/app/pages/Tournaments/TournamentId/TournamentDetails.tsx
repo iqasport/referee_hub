@@ -22,11 +22,10 @@ import {
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
   useAddTournamentManagerMutation,
-  useDeleteTournamentMutation,
   TournamentInviteViewModel,
   TournamentViewModel,
 } from "../../../store/serviceApi";
-import { useNavigationParams, useNavigate } from "../../../utils/navigationUtils";
+import { useNavigationParams } from "../../../utils/navigationUtils";
 import { getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -328,7 +327,6 @@ interface ManagerSidebarProps {
   approvedTeamsForUser: ApprovedTeam[];
   isRegistrationClosed: boolean;
   onEdit: () => void;
-  onDelete: () => void;
   onViewRegistrations: () => void;
   onInviteTeams: () => void;
   onAddManagerOpen: () => void;
@@ -354,7 +352,6 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
   approvedTeamsForUser,
   isRegistrationClosed,
   onEdit,
-  onDelete,
   onViewRegistrations,
   onInviteTeams,
   onAddManagerOpen,
@@ -388,9 +385,6 @@ const ManagerSidebar: React.FC<ManagerSidebarProps> = ({
       </button>
       <button onClick={onAddManagerOpen} className="btn btn-secondary btn-full-width">
         Add Tournament Manager
-      </button>
-      <button onClick={onDelete} className="btn btn-danger btn-full-width" style={{ marginTop: "0.75rem" }}>
-        Delete Tournament
       </button>
     </div>
 
@@ -609,7 +603,6 @@ function useTournamentDetailsData(tournamentId: string | undefined) {
 
 function useTournamentActions(
   tournamentId: string | undefined,
-  tournamentName: string | undefined,
   showAlert: (msg: string, type: "success" | "error") => void,
   refetchInvites: () => void,
 ) {
@@ -617,8 +610,6 @@ function useTournamentActions(
   const [addManagerEmail, setAddManagerEmail] = useState("");
   const [isAddManagerOpen, setIsAddManagerOpen] = useState(false);
   const [addTournamentManager, { isLoading: isAddingManager }] = useAddTournamentManagerMutation();
-  const [deleteTournament] = useDeleteTournamentMutation();
-  const navigate = useNavigate();
   const [respondToInvite] = useRespondToInviteMutation();
 
   async function handleAddManager(e: React.FormEvent) {
@@ -635,18 +626,6 @@ function useTournamentActions(
     } catch (error) {
       console.error("Failed to add manager:", error);
       showAlert(getApiErrorMessage(error, "Failed to add manager. Check that the email belongs to a registered user."), "error");
-    }
-  }
-
-  async function handleDelete() {
-    if (!tournamentId) return;
-    if (!window.confirm(`Are you sure you want to delete "${tournamentName ?? "this tournament"}"? This action cannot be undone.`)) return;
-    try {
-      await deleteTournament({ tournamentId }).unwrap();
-      navigate("/tournaments");
-    } catch (error) {
-      console.error("Failed to delete tournament:", error);
-      showAlert(getApiErrorMessage(error, "Failed to delete the tournament. Please try again."), "error");
     }
   }
 
@@ -677,7 +656,6 @@ function useTournamentActions(
       setIsAddManagerOpen(false);
       setAddManagerEmail("");
     },
-    handleDelete,
     handleRespondToInvite,
   };
 }
@@ -731,9 +709,8 @@ const TournamentDetails = () => {
     isAddingManager,
     handleAddManager,
     handleCancelAddManager,
-    handleDelete,
     handleRespondToInvite,
-  } = useTournamentActions(tournamentId, tournament?.name, showAlert, refetchInvites);
+  } = useTournamentActions(tournamentId, showAlert, refetchInvites);
 
   if (isLoading) {
     return (
@@ -832,7 +809,6 @@ const TournamentDetails = () => {
                   approvedTeamsForUser={approvedTeamsForUser}
                   isRegistrationClosed={isRegistrationClosed}
                   onEdit={handleEdit}
-                  onDelete={handleDelete}
                   onViewRegistrations={() => registrationsModalRef.current?.open(tournament.id ?? "", tournament.name ?? "Unknown Tournament")}
                   onInviteTeams={() => inviteTeamsModalRef.current?.open(tournament)}
                   onAddManagerOpen={() => setIsAddManagerOpen(true)}

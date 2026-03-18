@@ -148,6 +148,7 @@ public class UsersController : ControllerBase
 	/// <returns><c>null</c> if user has no avatar, a uri to the image otherwise</returns>
 	[HttpGet("me/avatar")]
 	[Tags("UserAvatar")]
+	[ProducesResponseType(typeof(Uri), StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	public async Task<Uri?> GetCurrentUserAvatar()
 	{

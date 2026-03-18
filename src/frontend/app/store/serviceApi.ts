@@ -446,13 +446,6 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Tournament"],
       }),
-      deleteTournament: build.mutation<void, { tournamentId: string }>({
-        query: (queryArg) => ({
-          url: `/api/v2/Tournaments/${queryArg.tournamentId}`,
-          method: "DELETE",
-        }),
-        invalidatesTags: ["Tournament"],
-      }),
       updateTournamentBanner: build.mutation<
         UpdateTournamentBannerApiResponse,
         UpdateTournamentBannerApiArg
@@ -523,13 +516,6 @@ const injectedRtkApi = api
           url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
           method: "POST",
           body: queryArg.inviteResponseModel,
-        }),
-        invalidatesTags: ["Tournament"],
-      }),
-      deleteInvite: build.mutation<DeleteInviteApiResponse, DeleteInviteApiArg>({
-        query: (queryArg) => ({
-          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
-          method: "DELETE",
         }),
         invalidatesTags: ["Tournament"],
       }),
@@ -997,11 +983,6 @@ export type RespondToInviteApiArg = {
   participantId: string;
   inviteResponseModel: InviteResponseModel;
 };
-export type DeleteInviteApiResponse = /** status 200 Success */ void;
-export type DeleteInviteApiArg = {
-  tournamentId: string;
-  participantId: string;
-};
 export type GetParticipantsApiResponse = /** status 200 Success */ TournamentParticipantViewModel[];
 export type GetParticipantsApiArg = {
   tournamentId: string;
@@ -1045,7 +1026,9 @@ export type DeleteMyGenderApiResponse = unknown;
 export type DeleteMyGenderApiArg = void;
 export type GetManagedTeamsApiResponse = /** status 200 Success */ ManagedTeamViewModel[];
 export type GetManagedTeamsApiArg = void;
-export type GetCurrentUserAvatarApiResponse = unknown;
+export type GetCurrentUserAvatarApiResponse =
+  | /** status 200 Success */ string
+  | /** status 204 No Content */ void;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
 export type UpdateCurrentUserAvatarApiArg = {
@@ -1685,7 +1668,7 @@ export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
   lastName?: string | null;
-  avatarUrl?: string | null;
+  avatarUri?: string | null;
   languageId?: string | null;
   roles?:
     | {
@@ -1786,7 +1769,6 @@ export const {
   useCreateTournamentMutation,
   useGetTournamentQuery,
   useUpdateTournamentMutation,
-  useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
   useGetTournamentManagersQuery,
   useAddTournamentManagerMutation,
@@ -1795,7 +1777,6 @@ export const {
   useGetTournamentInvitesQuery,
   useCreateInviteMutation,
   useRespondToInviteMutation,
-  useDeleteInviteMutation,
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
   useUpdateParticipantRosterMutation,

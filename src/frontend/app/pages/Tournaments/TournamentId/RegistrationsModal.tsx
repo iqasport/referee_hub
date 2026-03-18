@@ -4,7 +4,6 @@ import React from "react";
 import {
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
-  useDeleteInviteMutation,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import StatusBadge from "../../../components/StatusBadge";
@@ -100,14 +99,12 @@ interface TeamDetailViewProps {
   isSubmitting: boolean;
   onApprove: (id: string, name: string) => void;
   onDeny: (id: string, name: string) => void;
-  onDelete: (id: string, name: string) => void;
 }
 const TeamDetailView: React.FC<TeamDetailViewProps> = ({
   invite,
   isSubmitting,
   onApprove,
   onDeny,
-  onDelete,
 }) => (
   <div>
     <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -150,20 +147,6 @@ const TeamDetailView: React.FC<TeamDetailViewProps> = ({
           <p className="text-sm text-blue-800">⏳ Waiting for the team to accept or decline this invitation.</p>
         </div>
       )}
-    {invite.status === "rejected" && (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-sm text-red-800 mb-3">
-          This registration was rejected. You can remove this invite to allow the team to be re-invited.
-        </p>
-        <button
-          onClick={() => onDelete(invite.participantId ?? "", invite.participantName || "")}
-          disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-        >
-          {isSubmitting ? "Removing..." : "Remove Invite"}
-        </button>
-      </div>
-    )}
   </div>
 );
 /** Bulk-action bar shown above the list when ≥1 item is checked. */
@@ -310,7 +293,6 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
-  const [deleteInvite] = useDeleteInviteMutation();
 
   /** All team-type invites */
   const teamInvites = useMemo(
@@ -393,21 +375,6 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     } catch (error) {
       console.error("Failed to deny:", error);
       showAlert(getApiErrorMessage(error, `Failed to deny ${name}'s registration. Please try again.`), "error");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function handleDeleteInvite(participantId: string, name: string) {
-    setIsSubmitting(true);
-    try {
-      await deleteInvite({ tournamentId, participantId }).unwrap();
-      showAlert(`Removed ${name}'s invite. You can now re-invite them.`, "success");
-      refetch();
-      setSelectedInvite(null);
-    } catch (error) {
-      console.error("Failed to delete invite:", error);
-      showAlert(getApiErrorMessage(error, "Failed to remove invite. Please try again."), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -537,7 +504,6 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                   isSubmitting={isSubmitting}
                   onApprove={handleApprove}
                   onDeny={handleDeny}
-                  onDelete={handleDeleteInvite}
                 />
               ) : (
                 /* ── List view ── */

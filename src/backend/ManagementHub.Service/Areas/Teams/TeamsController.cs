@@ -103,6 +103,7 @@ public class TeamsController : ControllerBase
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
 	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	[IgnoreAntiforgeryToken]
 	public async Task<ActionResult<Uri>> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
 		// Authorization: user must be a team manager OR an NGB admin of the team's NGB

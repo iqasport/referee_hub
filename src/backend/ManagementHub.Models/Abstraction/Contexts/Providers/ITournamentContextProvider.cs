@@ -25,8 +25,6 @@ public interface ITournamentContextProvider
 
 	Task UpdateTournamentAsync(TournamentIdentifier tournamentId, TournamentData tournamentData, CancellationToken cancellationToken = default);
 
-	Task DeleteTournamentAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
-
 	Task<Uri?> GetTournamentBannerUriAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
 
 	Task<HashSet<TournamentIdentifier>> GetUserInvolvedTournamentIdsAsync(IEnumerable<TournamentIdentifier> tournamentIds, UserIdentifier userId, CancellationToken cancellationToken = default);
