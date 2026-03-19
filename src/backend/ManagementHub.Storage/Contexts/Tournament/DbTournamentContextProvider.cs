@@ -113,8 +113,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var userDatabaseIds = UserCollectionExtensions.WithIdentifier(this.dbContext.Users, userId)
 			.Select(u => u.Id);
 
-		var constrainedQuery = this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentId.ToString() && t.DeletedAt == null);
+		var constrainedQuery = this.QueryActiveTournament(tournamentId.ToString());
 
 		var tournament = await this.BuildTournamentContextQuery(constrainedQuery, userDatabaseIds)
 			.SingleOrDefaultAsync(cancellationToken);
@@ -179,8 +178,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	public async Task UpdateTournamentAsync(TournamentIdentifier tournamentId, TournamentData tournamentData, CancellationToken cancellationToken = default)
 	{
-		var tournament = await this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentId.ToString() && t.DeletedAt == null)
+		var tournament = await this.QueryActiveTournament(tournamentId.ToString())
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
@@ -209,8 +207,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 
 	public async Task DeleteTournamentAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default)
 	{
-		var tournament = await this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentId.ToString() && t.DeletedAt == null)
+		var tournament = await this.QueryActiveTournament(tournamentId.ToString())
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (tournament == null)
@@ -317,8 +314,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var tournamentIdString = tournamentId.ToString();
 
 		// Verify tournament exists
-		var tournament = await this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentIdString && t.DeletedAt == null)
+		var tournament = await this.QueryActiveTournament(tournamentIdString)
 			.Select(t => new { t.Id })
 			.FirstOrDefaultAsync(cancellationToken);
 
@@ -392,8 +388,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			var tournamentIdString = tournamentId.ToString();
 
 			// Get tournament database ID
-			var tournament = await this.dbContext.Tournaments
-				.Where(t => t.UniqueId == tournamentIdString && t.DeletedAt == null)
+			var tournament = await this.QueryActiveTournament(tournamentIdString)
 				.Select(t => new { t.Id })
 				.FirstOrDefaultAsync(cancellationToken);
 
@@ -445,6 +440,9 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			return true;
 		});
 	}
+
+	private IQueryable<Models.Data.Tournament> QueryActiveTournament(string tournamentIdString)
+		=> this.dbContext.Tournaments.Where(t => t.UniqueId == tournamentIdString && t.DeletedAt == null);
 
 	private IQueryable<ITournamentContext> QueryTournamentsInternal(IQueryable<Models.Data.Tournament> tournaments, UserIdentifier userId)
 	{
@@ -690,8 +688,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var participantId = teamId.ToString();
 
 		// Get tournament database ID
-		var tournament = await this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentIdString && t.DeletedAt == null)
+		var tournament = await this.QueryActiveTournament(tournamentIdString)
 			.Select(t => new { t.Id })
 			.FirstOrDefaultAsync(cancellationToken);
 
@@ -867,8 +864,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var tournamentIdString = tournamentId.ToString();
 
 		// Get tournament database ID
-		var tournament = await this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentIdString && t.DeletedAt == null)
+		var tournament = await this.QueryActiveTournament(tournamentIdString)
 			.Select(t => new { t.Id })
 			.FirstOrDefaultAsync(cancellationToken);
 
@@ -925,8 +921,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		var tournamentIdString = tournamentId.ToString();
 
 		// Get tournament database ID
-		var tournament = await this.dbContext.Tournaments
-			.Where(t => t.UniqueId == tournamentIdString && t.DeletedAt == null)
+		var tournament = await this.QueryActiveTournament(tournamentIdString)
 			.Select(t => new { t.Id })
 			.FirstOrDefaultAsync(cancellationToken);
 
