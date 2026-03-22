@@ -1027,7 +1027,9 @@ export type DeleteMyGenderApiResponse = unknown;
 export type DeleteMyGenderApiArg = void;
 export type GetManagedTeamsApiResponse = /** status 200 Success */ ManagedTeamViewModel[];
 export type GetManagedTeamsApiArg = void;
-export type GetCurrentUserAvatarApiResponse = unknown;
+export type GetCurrentUserAvatarApiResponse =
+  | /** status 200 Success */ string
+  | /** status 204 No Content */ void;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
 export type UpdateCurrentUserAvatarApiArg = {
@@ -1659,7 +1661,7 @@ export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
   lastName?: string | null;
-  avatarUrl?: string | null;
+  avatarUri?: string | null;
   languageId?: string | null;
   roles?:
     | {
