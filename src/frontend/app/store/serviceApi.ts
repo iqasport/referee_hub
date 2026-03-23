@@ -592,6 +592,13 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/Users/me/managedTeams` }),
         providesTags: ["User"],
       }),
+      getMyUpcomingTournaments: build.query<
+        GetMyUpcomingTournamentsApiResponse,
+        GetMyUpcomingTournamentsApiArg
+      >({
+        query: () => ({ url: `/api/v2/Users/me/upcomingTournaments` }),
+        providesTags: ["User"],
+      }),
       getCurrentUserAvatar: build.query<
         GetCurrentUserAvatarApiResponse,
         GetCurrentUserAvatarApiArg
@@ -632,10 +639,6 @@ const injectedRtkApi = api
       getUserData: build.query<GetUserDataApiResponse, GetUserDataApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
         providesTags: ["UserInfo"],
-      }),
-      getUpcomingTournaments: build.query<GetUpcomingTournamentsApiResponse, void>({
-        query: () => ({ url: `/api/v2/Users/me/upcomingTournaments` }),
-        providesTags: ["User"],
       }),
     }),
     overrideExisting: false,
@@ -1009,6 +1012,9 @@ export type DeleteMyGenderApiResponse = unknown;
 export type DeleteMyGenderApiArg = void;
 export type GetManagedTeamsApiResponse = /** status 200 Success */ ManagedTeamViewModel[];
 export type GetManagedTeamsApiArg = void;
+export type GetMyUpcomingTournamentsApiResponse =
+  /** status 200 Success */ TournamentReferenceViewModel[];
+export type GetMyUpcomingTournamentsApiArg = void;
 export type GetCurrentUserAvatarApiResponse = /** status 200 Success */
   | string
   | /** status 204 No Content */ void;
@@ -1036,7 +1042,6 @@ export type GetUserDataApiResponse = /** status 200 Success */ UserDataViewModel
 export type GetUserDataApiArg = {
   userId: string;
 };
-export type GetUpcomingTournamentsApiResponse = /** status 200 Success */ TournamentReferenceViewModel[];
 export type CheckoutSession = {
   sessionId?: string | null;
 };
@@ -1765,11 +1770,11 @@ export const {
   useGetMyGenderQuery,
   useDeleteMyGenderMutation,
   useGetManagedTeamsQuery,
+  useGetMyUpcomingTournamentsQuery,
   useGetCurrentUserAvatarQuery,
   useUpdateCurrentUserAvatarMutation,
   useGetUserAvatarQuery,
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
-  useGetUpcomingTournamentsQuery,
 } = injectedRtkApi;
