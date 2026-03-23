@@ -1483,6 +1483,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.UpdatedAt)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
+
+			entity.Property(e => e.DeletedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("deleted_at");
 		});
 
 		modelBuilder.Entity<TournamentManager>(entity =>
