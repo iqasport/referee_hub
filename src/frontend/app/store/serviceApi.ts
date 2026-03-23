@@ -622,6 +622,10 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
         providesTags: ["UserInfo"],
       }),
+      getUpcomingTournaments: build.query<GetUpcomingTournamentsApiResponse, void>({
+        query: () => ({ url: `/api/v2/Users/me/upcomingTournaments` }),
+        providesTags: ["User"],
+      }),
     }),
     overrideExisting: false,
   });
@@ -1040,6 +1044,7 @@ export type GetUserDataApiResponse = /** status 200 Success */ UserDataViewModel
 export type GetUserDataApiArg = {
   userId: string;
 };
+export type GetUpcomingTournamentsApiResponse = /** status 200 Success */ TournamentReferenceViewModel[];
 export type CheckoutSession = {
   sessionId?: string | null;
 };
@@ -1771,4 +1776,5 @@ export const {
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
+  useGetUpcomingTournamentsQuery,
 } = enhancedApi;
