@@ -2,10 +2,9 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalize } from "lodash";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { PickByValue } from "utility-types";
 
 import { getRefereeCertVersion } from "../../../utils/certUtils";
 import { toDateTime } from "../../../utils/dateUtils";
@@ -170,41 +169,27 @@ const RefereeHeader = (props: HeaderProps) => {
     );
   };
 
-  const renderBio = () => {
-    if (!isEditing) {
-      return (
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            // eslint-disable-next-line react/prop-types
-            a: ({ href, children }) => (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                {children}
-              </a>
-            ),
-          }}
-        >
-          {user.bio ?? ''}
-        </ReactMarkdown>
-      );
-    } else {
-      return (
-        <textarea
-          aria-multiline="true"
-          className="bg-gray-200 rounded p-4 text-lg block w-full mb-4"
-          style={{ resize: "none" }}
-          onChange={handleStringChange("bio")}
-          value={editableUser.bio ?? ""}
-          placeholder="Bio"
-        />
-      );
-    }
-  };
+  const renderBio = () => (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // eslint-disable-next-line react/prop-types
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            {children}
+          </a>
+        ),
+      }}
+    >
+      {user.bio ?? ''}
+    </ReactMarkdown>
+  );
+
   if (!user) return null;
 
   const joinYear = toDateTime(user.createdAt).year;
@@ -246,7 +231,7 @@ const RefereeHeader = (props: HeaderProps) => {
         {renderCertifications()}
 
         {user.bio && (
-          <p
+          <div
             style={{
               marginTop: "0.75rem",
               fontSize: "1rem",
@@ -254,8 +239,8 @@ const RefereeHeader = (props: HeaderProps) => {
               maxWidth: "48rem",
             }}
           >
-            {user.bio}
-          </p>
+            {renderBio()}
+          </div>
         )}
       </div>
     </div>
