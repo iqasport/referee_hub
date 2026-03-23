@@ -622,6 +622,10 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
         providesTags: ["UserInfo"],
       }),
+      getUpcomingTournaments: build.query<GetUpcomingTournamentsApiResponse, void>({
+        query: () => ({ url: `/api/v2/Users/me/upcomingTournaments` }),
+        providesTags: ["User"],
+      }),
     }),
     overrideExisting: false,
   });
@@ -1013,7 +1017,9 @@ export type DeleteMyGenderApiResponse = unknown;
 export type DeleteMyGenderApiArg = void;
 export type GetManagedTeamsApiResponse = /** status 200 Success */ ManagedTeamViewModel[];
 export type GetManagedTeamsApiArg = void;
-export type GetCurrentUserAvatarApiResponse = unknown;
+export type GetCurrentUserAvatarApiResponse =
+  | /** status 200 Success */ string
+  | /** status 204 No Content */ void;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
 export type UpdateCurrentUserAvatarApiArg = {
@@ -1038,6 +1044,7 @@ export type GetUserDataApiResponse = /** status 200 Success */ UserDataViewModel
 export type GetUserDataApiArg = {
   userId: string;
 };
+export type GetUpcomingTournamentsApiResponse = /** status 200 Success */ TournamentReferenceViewModel[];
 export type CheckoutSession = {
   sessionId?: string | null;
 };
@@ -1645,7 +1652,7 @@ export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
   lastName?: string | null;
-  avatarUrl?: string | null;
+  avatarUri?: string | null;
   languageId?: string | null;
   roles?:
     | {
@@ -1769,4 +1776,5 @@ export const {
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
+  useGetUpcomingTournamentsQuery,
 } = enhancedApi;
