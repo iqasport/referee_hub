@@ -127,9 +127,8 @@ describe("RefereeHeader", () => {
   });
 
   test("it shows +N badge when there are more than 2 certifications", () => {
-    // head/twentyfour is both max-level AND most-recent-version → deduplicated to 1 badge.
-    // snitch/twentytwo becomes the second displayed badge.
-    // assistant/twentyfour is the hidden one → +1.
+    // head/twentyfour is both max-level AND most-recent-version → deduplicated to 1 explicit badge.
+    // hiddenCerts = [snitch/twentytwo, assistant/twentyfour] → +2
     const manyCerts: Certification[] = [
       { level: "head", version: "twentyfour" },
       { level: "snitch", version: "twentytwo" },
@@ -138,11 +137,22 @@ describe("RefereeHeader", () => {
 
     render(<RefereeHeader {...defaultProps} certifications={manyCerts} />);
 
-    // head (highest level, rank 3) and snitch (second, rank 2) are shown.
-    // byVersion = head/twentyfour (same as byLevel) → deduped → headerCerts = [head/twentyfour]
-    // Wait: byVersion top = head/twentyfour (same as byLevel), deduplicated.
-    // So headerCerts = [head/twentyfour], hiddenCerts = [snitch/twentytwo, assistant/twentyfour] → +2
     expect(screen.getByText("+2")).toBeInTheDocument();
+  });
+
+  test("it picks the most recent version when multiple certs share the highest level", () => {
+    // Regression: without a version tiebreaker, byLevel could return Head (2020-2021) instead
+    // of Head (2024) when the older entry happened to appear first in the array.
+    const certs: Certification[] = [
+      { level: "head", version: "twenty" },      // older head cert — should NOT be shown
+      { level: "head", version: "twentyfour" },  // newer head cert — should be shown
+      { level: "assistant", version: "twenty" },
+    ];
+
+    render(<RefereeHeader {...defaultProps} certifications={certs} />);
+
+    expect(screen.getByText(/Head \(2024\)/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Head \(2020-2021\)/i)).not.toBeInTheDocument();
   });
 
   test("it reveals hidden certifications on hover of the +N badge", () => {
