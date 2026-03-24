@@ -23,6 +23,7 @@ import {
   useGetParticipantsQuery,
   useAddTournamentManagerMutation,
   TournamentInviteViewModel,
+  TournamentType,
 } from "../../../store/serviceApi";
 import { useNavigationParams } from "../../../utils/navigationUtils";
 import { getApiErrorMessage } from "../../../utils/tournamentUtils";
@@ -265,7 +266,7 @@ const TournamentDetails = () => {
                         startDate: tournament.startDate || "",
                         endDate: tournament.endDate || "",
                         registrationEndsDate: tournament.registrationEndsDate || "",
-                        type: tournament.type as any,
+                        type: tournament.type as "" | TournamentType,
                         country: tournament.country || "",
                         city: tournament.city || "",
                         place: tournament.place || "",
