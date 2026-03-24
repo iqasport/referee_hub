@@ -57,10 +57,12 @@ const Avatar = (props: AvatarProps) => {
 
   const refereeProfile: ItemConfig = {
     content: "My Profile",
+    href: `/referees/${userId}`,
     onClick: handleRefProfileClick,
   };
   const ngbProfile: ItemConfig = {
     content: "NGB Profile",
+    href: `/national_governing_bodies/${ownedNgbId}`,
     onClick: handleNgbProfileClick,
   };
   const invite: ItemConfig = {
@@ -73,10 +75,12 @@ const Avatar = (props: AvatarProps) => {
   };
   const settings: ItemConfig = {
     content: "Settings",
+    href: "/settings",
     onClick: handleSettingsClick,
   };
   const tournaments: ItemConfig = {
     content: "Tournaments",
+    href: "/tournaments",
     onClick: handleTournamentsClick,
   };
 
@@ -91,6 +95,7 @@ const Avatar = (props: AvatarProps) => {
     managedTeams.forEach((team) => {
       const teamItem: ItemConfig = {
         content: `${team.teamName} (Team)`,
+        href: `/teams/${team.teamId}/manage`,
         onClick: () => navigate(`/teams/${team.teamId}/manage`),
       };
       items.push(teamItem);
