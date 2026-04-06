@@ -21,7 +21,6 @@ import {
   useRespondToInviteMutation,
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
-  useAddTournamentManagerMutation,
   TournamentInviteViewModel,
   TournamentType,
 } from "../../../store/serviceApi";
@@ -52,8 +51,6 @@ const TournamentDetails = () => {
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
   const rosterSectionRef = useRef<HTMLDivElement>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
-  const [addManagerEmail, setAddManagerEmail] = useState("");
-  const [isAddManagerOpen, setIsAddManagerOpen] = useState(false);
   const { alertState, showAlert, hideAlert } = useAlert();
 
   const {
@@ -98,7 +95,6 @@ const TournamentDetails = () => {
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
-  const [addTournamentManager, { isLoading: isAddingManager }] = useAddTournamentManagerMutation();
 
   // Get team IDs from the managed teams endpoint
   const managedTeamIds: Set<string> = useMemo(() => {
@@ -163,23 +159,6 @@ const TournamentDetails = () => {
       showAlert(getApiErrorMessage(error, "Failed to respond to the invite. Please try again."), "error");
     } finally {
       setRespondingTo(null);
-    }
-  }
-
-  async function handleAddManager(e: React.FormEvent) {
-    e.preventDefault();
-    if (!addManagerEmail.trim() || !tournamentId) return;
-    try {
-      await addTournamentManager({
-        tournamentId,
-        addTournamentManagerModel: { email: addManagerEmail.trim() },
-      }).unwrap();
-      showAlert("Successfully added manager.", "success");
-      setAddManagerEmail("");
-      setIsAddManagerOpen(false);
-    } catch (error) {
-      console.error("Failed to add manager:", error);
-      showAlert(getApiErrorMessage(error, "Failed to add manager. Check that the email belongs to a registered user."), "error");
     }
   }
 
@@ -299,37 +278,7 @@ const TournamentDetails = () => {
                     >
                       Invite Teams
                     </button>
-                    <button
-                      onClick={() => setIsAddManagerOpen(!isAddManagerOpen)}
-                      className="btn btn-secondary btn-full-width"
-                    >
-                      Add Tournament Manager
-                    </button>
                   </div>
-
-                  {/* Add Manager Form */}
-                  {isAddManagerOpen && (
-                    <div className="card card-mb">
-                      <h3 className="card-title">Add Tournament Manager</h3>
-                      <p className="card-description">Enter the email address of the user you want to add as a tournament manager.</p>
-                      <form onSubmit={handleAddManager} className="space-y-3">
-                        <input
-                          type="email"
-                          value={addManagerEmail}
-                          onChange={(e) => setAddManagerEmail(e.target.value)}
-                          placeholder="Email address"
-                          required
-                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                        />
-                        <div className="flex gap-2">
-                          <button type="submit" disabled={isAddingManager || !addManagerEmail.trim()} className="btn btn-primary">
-                            {isAddingManager ? "Adding..." : "Add Manager"}
-                          </button>
-                          <button type="button" onClick={() => { setIsAddManagerOpen(false); setAddManagerEmail(""); }} className="btn btn-secondary">Cancel</button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
 
                   {/* Tournament Stats Card */}
                   <div className="card">
