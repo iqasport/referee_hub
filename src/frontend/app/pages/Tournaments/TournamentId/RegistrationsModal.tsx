@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { useState, forwardRef, useImperativeHandle, useRef, useMemo } from "react";
+import { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import React from "react";
 import {
   useGetTournamentInvitesQuery,
@@ -34,12 +34,6 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
 
   const [respondToInvite] = useRespondToInviteMutation();
   const [deleteInvite] = useDeleteInviteMutation();
-
-  /** All team-type invites (excludes player invites) */
-  const teamInvites = useMemo(
-    () => (invites ?? []).filter((i) => i.participantType !== "player"),
-    [invites]
-  );
 
   useImperativeHandle(ref, () => ({
     open: (tournId: string, tournName: string) => {
@@ -256,9 +250,9 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
             ) : (
               // List view
               <>
-                {teamInvites.length > 0 ? (
+                {(invites ?? []).length > 0 ? (
                   <div>
-                    {teamInvites.map((invite) => (
+                    {(invites ?? []).map((invite) => (
                       <div
                         key={invite.participantId}
                         className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md"
