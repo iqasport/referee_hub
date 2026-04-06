@@ -12,6 +12,7 @@ import {
   NgbTeamViewModel,
   TournamentType,
   TournamentInviteViewModel,
+  TeamGroupAffiliation,
 } from "../../../store/serviceApi";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
@@ -93,7 +94,7 @@ const TeamRegistrationFormSection: React.FC<TeamRegistrationFormSectionProps> = 
   <>
     {tournamentType !== "Fantasy" && (
       <p className="text-xs text-amber-700 font-medium">
-        Eligibility: {eligibilityLabel(tournamentType as Parameters<typeof eligibilityLabel>[0])}
+        Eligibility: {eligibilityLabel(tournamentType as TournamentType | undefined)}
       </p>
     )}
     <div>
@@ -157,7 +158,7 @@ function useRegisterInviteState(
     if (teamsWithExistingInvites.has(team.teamId)) return false;
     if (team.status === "inactive") return false;
     return isTeamEligible(
-      team.groupAffiliation as Parameters<typeof isTeamEligible>[0],
+      team.groupAffiliation as TeamGroupAffiliation | undefined,
       tournament?.type as TournamentType | undefined
     );
   }), [managedTeams, teamsWithExistingInvites, tournament?.type]);
