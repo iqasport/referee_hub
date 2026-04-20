@@ -27,7 +27,7 @@ const AddManagerModal = ({ teamId, onClose }: AddManagerModalProps) => {
     }
 
     try {
-      await addTeamManager({ teamId, email }).unwrap();
+      await addTeamManager({ teamId, addTeamManagerRequest: { email } }).unwrap();
       setSuccess("Manager added successfully!");
       setEmail("");
       setTimeout(() => {
