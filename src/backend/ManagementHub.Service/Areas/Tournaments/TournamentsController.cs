@@ -231,6 +231,23 @@ public class TournamentsController : ControllerBase
 	}
 
 	/// <summary>
+	/// Delete a tournament. Only allowed by tournament managers.
+	/// </summary>
+	[HttpDelete("{tournamentId}")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> DeleteTournament(
+		[FromRoute] TournamentIdentifier tournamentId)
+	{
+		await this.tournamentContextProvider
+			.DeleteTournamentAsync(tournamentId, this.HttpContext.RequestAborted);
+
+		return this.NoContent();
+	}
+
+	/// <summary>
 	/// Upload tournament banner image.
 	/// </summary>
 	[HttpPut("{tournamentId}/banner")]
@@ -1121,7 +1138,7 @@ public class TournamentsController : ControllerBase
 						(tm, u) => tm),
 					rt => rt.TeamId,
 					tm => tm.TeamId,
-					(rt, tm) => rt.RefereeId.Value)
+					(rt, tm) => rt.RefereeId!.Value)
 				.Distinct()
 				.ToListAsync(this.HttpContext.RequestAborted);
 

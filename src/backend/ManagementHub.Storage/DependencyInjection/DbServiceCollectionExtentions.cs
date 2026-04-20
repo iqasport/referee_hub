@@ -12,6 +12,7 @@ using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Processing.Contexts;
@@ -143,6 +144,7 @@ public static class DbServiceCollectionExtentions
 		services.AddTransient<IDbAccessorProvider, DbAccessorProvider>();
 		services.AddTransient<IDbAccessor<UserIdentifier>, UserDbAccessor>();
 		services.AddTransient<IDbAccessor<NgbIdentifier>, NgbDbAccessor>();
+		services.AddTransient<IDbAccessor<TeamIdentifier>, TeamDbAccessor>();
 		services.AddTransient<IDbAccessor<TournamentIdentifier>, TournamentDbAccessor>();
 
 		services.AddScoped<CollectionFilteringContext>();

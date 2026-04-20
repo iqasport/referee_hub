@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toDateTime } from "../../../utils/dateUtils";
+import { Link } from "react-router-dom";
 
 import FilterToolbar from "../../../components/FilterToolbar";
 import TeamEditModal from "../../../components/modals/TeamEditModal";
@@ -99,11 +100,28 @@ const TeamTable = (props: TeamTableProps) => {
 
   const renderEmpty = () => <h2>No teams found</h2>;
 
-  const HEADER_CELLS = ["name", "city", "joined date", "type", "status", "actions"];
+  const HEADER_CELLS = ["logo", "name", "city", "joined date", "type", "status", "actions"];
   const rowConfig: CellConfig<NgbTeamViewModel>[] = [
     {
       cellRenderer: (item: NgbTeamViewModel) => {
-        return item.name;
+        if (!item.logoUri) return <></>;
+        return (
+          <img
+            src={item.logoUri}
+            alt={`${item.name} logo`}
+            className="w-10 h-10 object-cover rounded"
+          />
+        );
+      },
+      dataKey: "logoUri",
+    },
+    {
+      cellRenderer: (item: NgbTeamViewModel) => {
+        return (
+          <Link to={`/teams/${item.teamId}`} className="text-blue-600 hover:underline">
+            {item.name}
+          </Link>
+        );
       },
       dataKey: "name",
     },

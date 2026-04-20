@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Enums;
+using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Collections;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,13 +20,21 @@ namespace ManagementHub.Storage.Contexts.Team;
 public class DbTeamContextProvider : ITeamContextProvider
 {
 	private readonly DbTeamContextFactory dbTeamContextFactory;
+	private readonly IAttachmentRepository attachmentRepository;
+	private readonly IAccessFileCommand accessFileCommand;
 
-	public DbTeamContextProvider(ManagementHubDbContext dbContext, CollectionFilteringContext filteringContext)
+	public DbTeamContextProvider(
+		ManagementHubDbContext dbContext,
+		CollectionFilteringContext filteringContext,
+		IAttachmentRepository attachmentRepository,
+		IAccessFileCommand accessFileCommand)
 	{
 		this.dbTeamContextFactory = new DbTeamContextFactory(
 			dbContext,
 			filteringContext
 		);
+		this.attachmentRepository = attachmentRepository;
+		this.accessFileCommand = accessFileCommand;
 	}
 
 	public async Task<bool> CheckTeamExistsInNgbAsync(NgbIdentifier ngb, TeamIdentifier teamId)
@@ -66,5 +77,18 @@ public class DbTeamContextProvider : ITeamContextProvider
 	public Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs)
 	{
 		return this.dbTeamContextFactory.GetTeamManagersAsync(teamId, ngbs);
+	}
+
+	public async Task<Uri?> GetTeamLogoUriAsync(TeamIdentifier teamId, CancellationToken cancellationToken = default)
+	{
+		const string attachmentName = "logo";
+		var attachment = await this.attachmentRepository.GetAttachmentAsync(teamId, attachmentName, cancellationToken);
+		if (attachment == null)
+		{
+			return null;
+		}
+
+		// TODO: put expiration in settings
+		return await this.accessFileCommand.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromMinutes(5), cancellationToken);
 	}
 }

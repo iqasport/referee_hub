@@ -1011,6 +1011,14 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
 
+			entity.Property(e => e.Description)
+				.HasColumnType("text")
+				.HasColumnName("description");
+
+			entity.Property(e => e.ContactEmail)
+				.HasColumnType("character varying")
+				.HasColumnName("contact_email");
+
 			entity.HasOne(d => d.NationalGoverningBody)
 				.WithMany(p => p.Teams)
 				.HasForeignKey(d => d.NationalGoverningBodyId)
@@ -1475,6 +1483,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.UpdatedAt)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("updated_at");
+
+			entity.Property(e => e.DeletedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("deleted_at");
 		});
 
 		modelBuilder.Entity<TournamentManager>(entity =>

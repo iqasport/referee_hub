@@ -129,6 +129,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				JoinedAt = DateTime.UtcNow,
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
+				Description = "New York's premier community quidditch team",
+				ContactEmail = "contact@yankees-quidditch.example.com",
 			},
 			new Team
 			{
@@ -141,18 +143,22 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				JoinedAt = DateTime.UtcNow,
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
+				Description = "University of Los Angeles competitive quidditch team",
+				ContactEmail = "labisons@university.example.edu",
 			},
 			new Team
 			{
 				City = "Buenos Aires",
 				Country = "Argentina",
 				Name = "BA Jacks",
-				NationalGoverningBody = ngbs.First(),
+				NationalGoverningBody = ngbs.Single(n => n.CountryCode == "ARG"),
 				GroupAffiliation = TeamGroupAffiliation.Community,
 				CreatedAt = DateTime.UtcNow,
 				JoinedAt = DateTime.UtcNow,
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
+				Description = "Buenos Aires community quidditch team",
+				ContactEmail = "info@bajacks.example.com.ar",
 			},
 			new Team
 			{
@@ -165,6 +171,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				JoinedAt = DateTime.UtcNow,
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
+				Description = "Youth development quidditch program in Chicago",
+				ContactEmail = "youth@chicagoquidditch.example.org",
 			},
 			new Team
 			{
@@ -177,6 +185,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				JoinedAt = DateTime.UtcNow,
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
+				Description = "United States National Quidditch Team",
+				ContactEmail = "teamusa@usquadball.example.org",
 			},
 			new Team
 			{
@@ -189,6 +199,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				JoinedAt = DateTime.UtcNow,
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
+				Description = "Australian National Quidditch Team",
+				ContactEmail = "teamaus@quidditch.example.au",
 			},
 			new Team
 			{
@@ -201,6 +213,8 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				JoinedAt = DateTime.UtcNow,
 				Status = TeamStatus.Competitive,
 				UpdatedAt = DateTime.UtcNow,
+				Description = "German National Quidditch Team",
+				ContactEmail = "teamgermany@qbund.example.de",
 			},
 		};
 
@@ -259,11 +273,11 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			new Tournament
 			{
 				UniqueId = Models.Domain.Tournament.TournamentIdentifier.NewTournamentId().ToString(),
-				Name = "Fantasy Tournament 2024",
-				Description = "Fun fantasy league tournament",
+				Name = "Fantasy Tournament 2027",
+				Description = "Fun fantasy league tournament - Future event for testing team registration",
 				Type = TournamentType.Fantasy,
-				StartDate = new DateOnly(2024, 9, 5),
-				EndDate = new DateOnly(2024, 9, 7),
+				StartDate = new DateOnly(2027, 9, 5),
+				EndDate = new DateOnly(2027, 9, 7),
 				Country = "USA",
 				City = "Portland",
 				Organizer = "Fantasy Quadball League",

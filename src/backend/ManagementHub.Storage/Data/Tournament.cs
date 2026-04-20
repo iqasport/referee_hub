@@ -30,6 +30,7 @@ public partial class Tournament : IIdentifiable
 	public bool IsRegistrationOpen { get; set; }
 	public DateTime CreatedAt { get; set; }
 	public DateTime UpdatedAt { get; set; }
+	public DateTime? DeletedAt { get; set; }
 
 	public virtual ICollection<TournamentManager> TournamentManagers { get; set; }
 	public virtual ICollection<TournamentInvite> TournamentInvites { get; set; }

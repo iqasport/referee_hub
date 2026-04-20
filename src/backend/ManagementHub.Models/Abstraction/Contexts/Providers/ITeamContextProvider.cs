@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
@@ -18,4 +20,5 @@ public interface ITeamContextProvider
 	IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs, TeamGroupAffiliation? groupAffiliation = null);
 	IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs);
 	Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs);
+	Task<Uri?> GetTeamLogoUriAsync(TeamIdentifier teamId, CancellationToken cancellationToken = default);
 }

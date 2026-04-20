@@ -97,6 +97,8 @@ public class DbTeamContextFactory
 			GroupAffiliation = teamData.GroupAffiliation,
 			Status = teamData.Status,
 			JoinedAt = teamData.JoinedAt,
+			Description = teamData.Description,
+			ContactEmail = teamData.ContactEmail,
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		};
@@ -114,54 +116,64 @@ public class DbTeamContextFactory
 
 	public async Task<ITeamContext> UpdateTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId, TeamData teamData)
 	{
-		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
-		var team = this.QueryTeamsInternal(NgbConstraint.Single(ngb)).Where(t => t.Id == teamId.Id).SingleOrDefault();
-		if (team == null)
+		var executionStrategy = this.dbContext.Database.CreateExecutionStrategy();
+		return await executionStrategy.ExecuteAsync(async () =>
 		{
-			throw new ArgumentException($"Team {teamId} was not found in NGB {ngb}");
-		}
-
-		var previousStatus = team.Status!.Value;
-
-		team.Name = teamData.Name;
-		team.City = teamData.City;
-		team.State = teamData.State;
-		team.Country = teamData.Country;
-		team.GroupAffiliation = teamData.GroupAffiliation;
-		team.Status = teamData.Status;
-		team.JoinedAt = teamData.JoinedAt;
-		team.UpdatedAt = DateTime.UtcNow;
-
-		if (previousStatus != teamData.Status)
-		{
-			team.TeamStatusChangesets.Add(new Models.Data.TeamStatusChangeset
+			using var transaction = await this.dbContext.Database.BeginTransactionAsync();
+			var team = this.QueryTeamsInternal(NgbConstraint.Single(ngb)).Where(t => t.Id == teamId.Id).SingleOrDefault();
+			if (team == null)
 			{
-				TeamId = team.Id,
-				PreviousStatus = previousStatus.ToString(),
-				NewStatus = teamData.Status.ToString(),
-				CreatedAt = DateTime.UtcNow,
-				UpdatedAt = DateTime.UtcNow,
-			});
-		}
+				throw new ArgumentException($"Team {teamId} was not found in NGB {ngb}");
+			}
 
-		await this.dbContext.SaveChangesAsync();
-		await transaction.CommitAsync();
+			var previousStatus = team.Status!.Value;
 
-		return FromDatabase(team, ngb);
+			team.Name = teamData.Name;
+			team.City = teamData.City;
+			team.State = teamData.State;
+			team.Country = teamData.Country;
+			team.GroupAffiliation = teamData.GroupAffiliation;
+			team.Status = teamData.Status;
+			team.JoinedAt = teamData.JoinedAt;
+			team.Description = teamData.Description;
+			team.ContactEmail = teamData.ContactEmail;
+			team.UpdatedAt = DateTime.UtcNow;
+
+			if (previousStatus != teamData.Status)
+			{
+				team.TeamStatusChangesets.Add(new Models.Data.TeamStatusChangeset
+				{
+					TeamId = team.Id,
+					PreviousStatus = previousStatus.ToString(),
+					NewStatus = teamData.Status.ToString(),
+					CreatedAt = DateTime.UtcNow,
+					UpdatedAt = DateTime.UtcNow,
+				});
+			}
+
+			await this.dbContext.SaveChangesAsync();
+			await transaction.CommitAsync();
+
+			return (ITeamContext)FromDatabase(team, ngb);
+		});
 	}
 
 	public async Task DeleteTeamAsync(TeamIdentifier teamId)
 	{
-		using var transaction = await this.dbContext.Database.BeginTransactionAsync();
+		var executionStrategy = this.dbContext.Database.CreateExecutionStrategy();
+		await executionStrategy.ExecuteAsync(async () =>
+		{
+			using var transaction = await this.dbContext.Database.BeginTransactionAsync();
 
-		await this.dbContext.RefereeTeams.Where(rt => rt.TeamId == teamId.Id).ExecuteDeleteAsync();
+			await this.dbContext.RefereeTeams.Where(rt => rt.TeamId == teamId.Id).ExecuteDeleteAsync();
 
-		await this.dbContext.TeamStatusChangesets.Where(tsc => tsc.TeamId == teamId.Id).ExecuteDeleteAsync();
+			await this.dbContext.TeamStatusChangesets.Where(tsc => tsc.TeamId == teamId.Id).ExecuteDeleteAsync();
 
-		var deleted = await this.dbContext.Teams.Where(t => t.Id == teamId.Id).ExecuteDeleteAsync();
+			var deleted = await this.dbContext.Teams.Where(t => t.Id == teamId.Id).ExecuteDeleteAsync();
 
-		Debug.Assert(deleted == 1);
-		await transaction.CommitAsync();
+			Debug.Assert(deleted == 1);
+			await transaction.CommitAsync();
+		});
 	}
 
 	public IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs)
@@ -221,14 +233,28 @@ public class DbTeamContextFactory
 		// Apply pagination
 		usersQuery = usersQuery.Page(this.filteringContext.FilteringParameters);
 
-		// Now project to TeamMemberInfo
+		// Now project to TeamMemberInfo with primary team information
+		// Join with RefereeTeams to get the user's playing team
 		return usersQuery
-			.Select(u => new TeamMemberInfo
+			.GroupJoin(
+				this.dbContext.RefereeTeams
+					.Where(rt => rt.AssociationType == ManagementHub.Models.Enums.RefereeTeamAssociationType.Player)
+					.Join(
+						this.dbContext.Teams,
+						rt => rt.TeamId,
+						t => t.Id,
+						(rt, t) => new { rt.RefereeId, TeamId = t.Id, TeamName = t.Name }),
+				u => u.Id,
+				rt => rt.RefereeId,
+				(u, primaryTeams) => new { User = u, PrimaryTeam = primaryTeams.FirstOrDefault() })
+			.Select(x => new TeamMemberInfo
 			{
-				UserId = u.UniqueId != null
-					? UserIdentifier.Parse(u.UniqueId)
-					: UserIdentifier.FromLegacyUserId(u.Id),
-				Name = $"{u.FirstName} {u.LastName}"
+				UserId = x.User.UniqueId != null
+					? UserIdentifier.Parse(x.User.UniqueId)
+					: UserIdentifier.FromLegacyUserId(x.User.Id),
+				Name = $"{x.User.FirstName} {x.User.LastName}",
+				PrimaryTeamName = x.PrimaryTeam != null ? x.PrimaryTeam.TeamName : null,
+				PrimaryTeamId = x.PrimaryTeam != null ? new TeamIdentifier(x.PrimaryTeam.TeamId) : null
 			});
 	}
 
@@ -241,6 +267,8 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
+		Description = tt.Description,
+		ContactEmail = tt.ContactEmail,
 	});
 
 	public static Expression<Func<Models.Data.Team, DbTeamContext>> Selector = tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
@@ -252,6 +280,8 @@ public class DbTeamContextFactory
 		GroupAffiliation = tt.GroupAffiliation!.Value,
 		Status = tt.Status!.Value,
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
+		Description = tt.Description,
+		ContactEmail = tt.ContactEmail,
 	});
 
 	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)

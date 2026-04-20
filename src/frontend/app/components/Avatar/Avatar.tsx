@@ -1,8 +1,11 @@
+import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import React from "react";
 
 import DropdownMenu, { ItemConfig } from "../DropdownMenu/DropdownMenu";
 import { useNavigate } from "../../utils/navigationUtils";
+import { useGetCurrentUserAvatarQuery, useGetManagedTeamsQuery } from "../../store/serviceApi";
 
 interface AvatarProps {
   firstName: string;
@@ -17,6 +20,8 @@ const Avatar = (props: AvatarProps) => {
   const { firstName, lastName, roles, userId, ownedNgbId, enabledFeatures } = props;
 
   const navigate = useNavigate();
+  const { data: managedTeams } = useGetManagedTeamsQuery();
+  const { data: avatarUrl } = useGetCurrentUserAvatarQuery();
 
   const handleHomeClick = () => {
     navigate("/");
@@ -51,8 +56,13 @@ const Avatar = (props: AvatarProps) => {
     const lastLetter = lastName ? lastName[0] : "R";
 
     return (
-      <button onClick={onClick} className="avatar" type="button">
-        {`${firstLetter}${lastLetter}`}
+      <button onClick={onClick} className="flex items-center gap-2 cursor-pointer" type="button">
+        <span className="avatar">
+          {avatarUrl
+            ? <img src={avatarUrl} alt={`Profile picture of ${firstName} ${lastName}`} className="rounded-full w-full h-full object-cover" />
+            : `${firstLetter}${lastLetter}`}
+        </span>
+        <FontAwesomeIcon icon={faBars} className="text-white" />
       </button>
     );
   };
@@ -93,6 +103,17 @@ const Avatar = (props: AvatarProps) => {
   if (roles.includes("NgbAdmin")) items.push(ngbProfile);
   if (roles.includes("Referee")) items.push(refereeProfile);
   //if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite); // TODO: unblock once implemented
+
+  // Add managed teams section
+  if (managedTeams && managedTeams.length > 0) {
+    managedTeams.forEach((team) => {
+      const teamItem: ItemConfig = {
+        content: `${team.teamName} (Team)`,
+        onClick: () => navigate(`/teams/${team.teamId}/manage`),
+      };
+      items.push(teamItem);
+    });
+  }
 
   items.push(tournaments);
   items.push(logout);

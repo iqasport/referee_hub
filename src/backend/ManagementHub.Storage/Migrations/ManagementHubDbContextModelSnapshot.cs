@@ -1053,6 +1053,10 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("city");
 
+                    b.Property<string>("ContactEmail")
+                        .HasColumnType("character varying")
+                        .HasColumnName("contact_email");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("character varying")
@@ -1061,6 +1065,10 @@ namespace ManagementHub.Storage.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<int?>("GroupAffiliation")
                         .ValueGeneratedOnAdd()
@@ -1409,6 +1417,10 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1417,10 +1429,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date")
                         .HasColumnName("end_date");
-
-                    b.Property<DateOnly?>("RegistrationEndsDate")
-                        .HasColumnType("date")
-                        .HasColumnName("registration_ends_date");
 
                     b.Property<bool>("IsPrivate")
                         .HasColumnType("INTEGER")
@@ -1443,6 +1451,10 @@ namespace ManagementHub.Storage.Migrations
                     b.Property<string>("Place")
                         .HasColumnType("character varying")
                         .HasColumnName("place");
+
+                    b.Property<DateOnly?>("RegistrationEndsDate")
+                        .HasColumnType("date")
+                        .HasColumnName("registration_ends_date");
 
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date")
