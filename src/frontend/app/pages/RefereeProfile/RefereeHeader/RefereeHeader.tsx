@@ -31,16 +31,19 @@ const VERSION_RANK: Record<CertificationVersion, number> = {
 
 /**
  * Returns at most two representative certifications to display in the header:
- * - the one with the highest level (e.g. Head)
+ * - the one with the highest level (e.g. Head), breaking ties by most-recent version
  * - the one with the most recent rulebook version (e.g. 2024)
  * Duplicates (same level+version) are collapsed to a single badge.
  */
 function pickHeaderCerts(certs: Certification[]): Certification[] {
   if (!certs?.length) return [];
 
-  const byLevel = [...certs].sort(
-    (a, b) => (LEVEL_RANK[b.level] ?? -1) - (LEVEL_RANK[a.level] ?? -1)
-  )[0];
+  const byLevel = [...certs].sort((a, b) => {
+    const levelDiff = (LEVEL_RANK[b.level] ?? -1) - (LEVEL_RANK[a.level] ?? -1);
+    if (levelDiff !== 0) return levelDiff;
+    // Tiebreak: prefer the most recent version at the same level.
+    return (VERSION_RANK[b.version] ?? -1) - (VERSION_RANK[a.version] ?? -1);
+  })[0];
 
   const byVersion = [...certs].sort(
     (a, b) => (VERSION_RANK[b.version] ?? -1) - (VERSION_RANK[a.version] ?? -1)
