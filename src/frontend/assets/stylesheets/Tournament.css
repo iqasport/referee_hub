@@ -430,6 +430,16 @@
   background-color: #f9fafb;
 }
 
+.btn-danger {
+  background-color: #dc2626;
+  border: none;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
 .btn-full-width {
   width: 100%;
 }

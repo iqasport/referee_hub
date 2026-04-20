@@ -21,10 +21,11 @@ import {
   useRespondToInviteMutation,
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
+  useDeleteTournamentMutation,
   TournamentInviteViewModel,
   TournamentType,
 } from "../../../store/serviceApi";
-import { useNavigationParams } from "../../../utils/navigationUtils";
+import { useNavigationParams, useNavigate } from "../../../utils/navigationUtils";
 import { getApiErrorMessage } from "../../../utils/tournamentUtils";
 
 function formatDateRange(startDateStr?: string | null, endDateStr?: string | null): string {
@@ -95,6 +96,8 @@ const TournamentDetails = () => {
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
+  const [deleteTournament] = useDeleteTournamentMutation();
+  const navigate = useNavigate();
 
   // Get team IDs from the managed teams endpoint
   const managedTeamIds: Set<string> = useMemo(() => {
@@ -159,6 +162,18 @@ const TournamentDetails = () => {
       showAlert(getApiErrorMessage(error, "Failed to respond to the invite. Please try again."), "error");
     } finally {
       setRespondingTo(null);
+    }
+  }
+
+  async function handleDelete() {
+    if (!tournamentId) return;
+    if (!window.confirm(`Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? It will be removed from view.`)) return;
+    try {
+      await deleteTournament({ tournamentId }).unwrap();
+      navigate("/tournaments");
+    } catch (error) {
+      console.error("Failed to delete tournament:", error);
+      showAlert("Failed to delete the tournament. Please try again.", "error");
     }
   }
 
@@ -277,6 +292,13 @@ const TournamentDetails = () => {
                       className="btn btn-secondary btn-full-width card-mb"
                     >
                       Invite Teams
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="btn btn-danger btn-full-width"
+                      style={{ marginTop: "0.75rem" }}
+                    >
+                      Delete Tournament
                     </button>
                   </div>
 

@@ -9,7 +9,7 @@ import {
   useUpdateCurrentRefereeMutation,
   useGetUserDataQuery,
   useUpdateCurrentUserDataMutation,
-  useGetUpcomingTournamentsQuery,
+  useGetMyUpcomingTournamentsQuery,
   useGetTestAttemptsQuery,
   UserDataViewModel,
   TestAttemptViewModelRead,
@@ -207,7 +207,7 @@ const PlayerDetails = () => {
 
 const UpcomingEvents = () => {
   const navigate = useNavigate();
-  const { data: tournaments, isLoading } = useGetUpcomingTournamentsQuery();
+  const { data: tournaments, isLoading } = useGetMyUpcomingTournamentsQuery();
 
   const formatDate = (dateStr: string | undefined): string => {
     if (!dateStr) return "TBD";
