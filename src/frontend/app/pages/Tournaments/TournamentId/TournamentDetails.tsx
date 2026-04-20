@@ -369,6 +369,8 @@ const TournamentDetails = () => {
                       className="btn btn-secondary btn-full-width"
                     >
                       Add Tournament Manager
+                    </button>
+                    <button
                       onClick={handleDelete}
                       className="btn btn-danger btn-full-width"
                       style={{ marginTop: "0.75rem" }}
