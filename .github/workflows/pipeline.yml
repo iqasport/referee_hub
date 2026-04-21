@@ -81,7 +81,6 @@ jobs:
     - name: Test frontend
       run: yarn test:ci
       working-directory: src/frontend
-      continue-on-error: true # perform frontend testing, but ignore failure while it's broken
     - name: Test backend
       run: dotnet test ManagementHub.UnitTests/ManagementHub.UnitTests.csproj --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-test-result.xml"
       working-directory: src/backend
