@@ -4,6 +4,7 @@ import ContactOrganizerModal, { ContactOrganizerModalRef } from "./ContactOrgani
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
 import RegistrationsModal, { RegistrationsModalRef } from "./RegistrationsModal";
 import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
+import AddTournamentManagerModal from "./AddTournamentManagerModal";
 import ActionButtonPair from "../../../components/ActionButtonPair";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
@@ -21,9 +22,10 @@ import {
   useRespondToInviteMutation,
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
+  useDeleteTournamentMutation,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
-import { useNavigationParams } from "../../../utils/navigationUtils";
+import { useNavigationParams, useNavigate } from "../../../utils/navigationUtils";
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
@@ -34,6 +36,7 @@ const TournamentDetails = () => {
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
   const rosterSectionRef = useRef<HTMLDivElement>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
   const { alertState, showAlert, hideAlert } = useAlert();
 
   const {
@@ -77,6 +80,8 @@ const TournamentDetails = () => {
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
+  const [deleteTournament] = useDeleteTournamentMutation();
+  const navigate = useNavigate();
 
   // Get team IDs from the managed teams endpoint
   const managedTeamIds: Set<string> = useMemo(() => {
@@ -202,6 +207,18 @@ const TournamentDetails = () => {
       showAlert("Failed to respond. Please try again.", "error");
     } finally {
       setRespondingTo(null);
+    }
+  }
+
+  async function handleDelete() {
+    if (!tournamentId) return;
+    if (!window.confirm(`Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? It will be removed from view.`)) return;
+    try {
+      await deleteTournament({ tournamentId }).unwrap();
+      navigate("/tournaments");
+    } catch (error) {
+      console.error("Failed to delete tournament:", error);
+      showAlert("Failed to delete the tournament. Please try again.", "error");
     }
   }
 
@@ -343,9 +360,22 @@ const TournamentDetails = () => {
                     </button>
                     <button
                       onClick={() => inviteTeamsModalRef.current?.open(tournament)}
-                      className="btn btn-secondary btn-full-width"
+                      className="btn btn-secondary btn-full-width card-mb"
                     >
                       Invite Teams
+                    </button>
+                    <button
+                      onClick={() => setIsAddManagerModalOpen(true)}
+                      className="btn btn-secondary btn-full-width"
+                    >
+                      Add Tournament Manager
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="btn btn-danger btn-full-width"
+                      style={{ marginTop: "0.75rem" }}
+                    >
+                      Delete Tournament
                     </button>
                   </div>
 
@@ -519,6 +549,12 @@ const TournamentDetails = () => {
       <AddTournamentModal ref={editModalRef} />
       <RegistrationsModal ref={registrationsModalRef} />
       <InviteTeamsModal ref={inviteTeamsModalRef} />
+      {isAddManagerModalOpen && tournamentId && (
+        <AddTournamentManagerModal
+          tournamentId={tournamentId}
+          onClose={() => setIsAddManagerModalOpen(false)}
+        />
+      )}
     </>
   );
 };

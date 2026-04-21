@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useNavigationParams, useNavigate } from "../../utils/navigationUtils";
 import { 
   useGetTeamDetailsQuery,
-  useDeleteTeamPlayerMutation 
+  useRemovePlayerMutation,
 } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
 import TeamEditModal from "../../components/modals/TeamEditModal/TeamEditModal";
@@ -19,7 +19,7 @@ const TeamManagement = () => {
     { skip: !teamId }
   );
 
-  const [deleteTeamPlayer, { isLoading: isRemovingPlayer }] = useDeleteTeamPlayerMutation();
+  const [removePlayer, { isLoading: isRemovingPlayer }] = useRemovePlayerMutation();
 
   const handleRemovePlayer = async (playerId: string, playerName: string) => {
     if (!teamId) return;
@@ -29,7 +29,7 @@ const TeamManagement = () => {
     }
 
     try {
-      await deleteTeamPlayer({ teamId, playerId }).unwrap();
+      await removePlayer({ teamId, playerId }).unwrap();
     } catch (error: any) {
       alert(error?.data || "Failed to remove player. Please try again.");
     }
