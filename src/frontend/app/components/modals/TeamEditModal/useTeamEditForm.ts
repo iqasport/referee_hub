@@ -134,7 +134,9 @@ export const useTeamEditForm = ({ team, teamId, ngbId, open, onClose }: UseTeamE
   const uploadLogoIfNeeded = async (savedTeamId: string): Promise<boolean> => {
     if (!logoFile) return true;
     try {
-      await uploadLogo({ teamId: savedTeamId, logoBlob: logoFile }).unwrap();
+      const formData = new FormData();
+      formData.append('logoBlob', logoFile);
+      await uploadLogo({ teamId: savedTeamId, body: formData as any }).unwrap();
       return true;
     } catch {
       setErrors((prev) => [...prev, "logoUpload"]);
