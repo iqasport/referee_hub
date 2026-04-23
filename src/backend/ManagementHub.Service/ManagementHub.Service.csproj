@@ -43,23 +43,25 @@
   <!-- FRONTEND BUILD AND INCLUDE -->
 
   <PropertyGroup>
-    <!-- only build front end if it hasn't been built already -->
-    <BuildFrontend Condition=" ! Exists('$(SolutionDir)/../frontend/dist/index.html')">true</BuildFrontend>
+    <FrontendProjectDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\frontend'))</FrontendProjectDir>
+    <!-- only build front end if the frontend folder exists and it hasn't been built already -->
+    <BuildFrontend>false</BuildFrontend>
+    <BuildFrontend Condition="Exists('$(FrontendProjectDir)') and !Exists('$(FrontendProjectDir)\dist\index.html')">true</BuildFrontend>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(BuildFrontend)' == 'true'">
-    <YarnWorkingDir>$(SolutionDir)/../frontend</YarnWorkingDir>
+    <YarnWorkingDir>$(FrontendProjectDir)</YarnWorkingDir>
     <YarnBuildCommand>run build:dev</YarnBuildCommand>
     <YarnBuildCommand Condition="'$(Configuration)' == 'Release'">run build:prod</YarnBuildCommand>
   </PropertyGroup>
 
   <Target Name="YarnInstall" Condition="'$(BuildFrontend)' == 'true'" BeforeTargets="YarnBuild">
-    <Yarn Command="install --immutable" Condition=" ! Exists('$(SolutionDir)/../frontend/node_modules/')" WorkingDirectory="$(YarnWorkingDir)" />
+    <Yarn Command="install --immutable" Condition=" ! Exists('$(FrontendProjectDir)\node_modules\')" WorkingDirectory="$(YarnWorkingDir)" />
   </Target>
 
-  <Target Name="IncludeFrontendDist" AfterTargets="YarnBuild" Condition="'$(BuildFrontend)' != 'false'">
+  <Target Name="IncludeFrontendDist" AfterTargets="YarnBuild" Condition="Exists('$(FrontendProjectDir)\dist\index.html')">
     <ItemGroup>
-      <FrontendFiles Include="$(SolutionDir)/../frontend/dist/**/*" />
+      <FrontendFiles Include="$(FrontendProjectDir)\dist\**\*" />
       <Content Include="@(FrontendFiles)">
         <TargetPath>wwwroot/%(FrontendFiles.RecursiveDir)%(FrontendFiles.Filename)%(FrontendFiles.Extension)</TargetPath>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
