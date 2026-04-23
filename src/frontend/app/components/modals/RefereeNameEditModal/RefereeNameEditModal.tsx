@@ -1,7 +1,7 @@
 import classnames from "classnames";
 import React, { useEffect, useState } from "react";
 
-import { useGetUserDataQuery, useUpdateNgbRefereeNameMutation } from "../../../store/serviceApi";
+import { useGetUserDataQuery, useUpdateRefereeNameMutation } from "../../../store/serviceApi";
 import { getErrorString } from "../../../utils/errorUtils";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
 
@@ -16,7 +16,7 @@ const RefereeNameEditModal = ({ ngbId, onClose, open, showClose, userId }: Refer
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { data: userData, isLoading } = useGetUserDataQuery({ userId: userId || "" }, { skip: !open || !userId });
-  const [updateRefereeName, { error, isLoading: isSaving }] = useUpdateNgbRefereeNameMutation();
+  const [updateRefereeName, { error, isLoading: isSaving }] = useUpdateRefereeNameMutation();
 
   useEffect(() => {
     if (!open) {
