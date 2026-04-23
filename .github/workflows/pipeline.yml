@@ -81,11 +81,28 @@ jobs:
     - name: Test frontend
       run: yarn test:ci
       working-directory: src/frontend
-      continue-on-error: true # perform frontend testing, but ignore failure while it's broken
     - name: Test backend
       run: dotnet test ManagementHub.UnitTests/ManagementHub.UnitTests.csproj --no-build --verbosity normal --logger:"junit;LogFilePath=dotnet-test-result.xml"
       working-directory: src/backend
     # END BUILD
+
+    - name: Create placeholder test result if missing
+      if: success() || failure()
+      working-directory: src/backend
+      run: |
+        if [ ! -f "ManagementHub.UnitTests/dotnet-test-result.xml" ]; then
+          echo "Test result file not found, creating placeholder..."
+          mkdir -p ManagementHub.UnitTests
+          cat > ManagementHub.UnitTests/dotnet-test-result.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <testsuites tests="0" failures="0" errors="0" time="0">
+          <testsuite name="Placeholder" tests="0" failures="0" errors="0" time="0">
+            <properties/>
+          </testsuite>
+        </testsuites>
+        EOF
+          echo "Placeholder test result created"
+        fi
 
     - name: Print summary header for Lint Summary frontend
       run: echo "### Lint results for the frontend" >> $GITHUB_STEP_SUMMARY
@@ -291,14 +308,14 @@ jobs:
     # TODO: execute tests
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: arn:aws:iam::558550744343:role/ManagementHubGitHubActionsRole
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v2
       with:
         registry-type: public
 

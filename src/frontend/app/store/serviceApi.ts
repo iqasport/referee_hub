@@ -255,6 +255,14 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Teams/${queryArg.teamId}` }),
         providesTags: ["Team"],
       }),
+      updateTeam: build.mutation<UpdateTeamApiResponse, UpdateTeamApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Teams/${queryArg.teamId}`,
+          method: "PUT",
+          body: queryArg.ngbTeamViewModel,
+        }),
+        invalidatesTags: ["Team"],
+      }),
       getNgbTeams: build.query<GetNgbTeamsApiResponse, GetNgbTeamsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams`,
@@ -278,14 +286,6 @@ const injectedRtkApi = api
       updateNgbTeam: build.mutation<UpdateNgbTeamApiResponse, UpdateNgbTeamApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}/teams/${queryArg.teamId}`,
-          method: "PUT",
-          body: queryArg.ngbTeamViewModel,
-        }),
-        invalidatesTags: ["Team"],
-      }),
-      updateTeam: build.mutation<NgbTeamViewModel, { teamId: string; ngbTeamViewModel: NgbTeamViewModel }>({
-        query: (queryArg) => ({
-          url: `/api/v2/Teams/${queryArg.teamId}`,
           method: "PUT",
           body: queryArg.ngbTeamViewModel,
         }),
@@ -345,10 +345,14 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Teams/${queryArg.teamId}/management` }),
         providesTags: ["TeamManagement"],
       }),
-      makePlayerManager: build.mutation<MakePlayerManagerApiResponse, MakePlayerManagerApiArg>({
+      addTeamManagerToTeam: build.mutation<
+        AddTeamManagerToTeamApiResponse,
+        AddTeamManagerToTeamApiArg
+      >({
         query: (queryArg) => ({
-          url: `/api/v2/Teams/${queryArg.teamId}/players/${queryArg.playerId}/make-manager`,
+          url: `/api/v2/Teams/${queryArg.teamId}/managers`,
           method: "POST",
+          body: queryArg.addTeamManagerRequest,
         }),
         invalidatesTags: ["TeamManagement"],
       }),
@@ -435,6 +439,13 @@ const injectedRtkApi = api
           url: `/api/v2/Tournaments/${queryArg.tournamentId}`,
           method: "PUT",
           body: queryArg.tournamentModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      deleteTournament: build.mutation<DeleteTournamentApiResponse, DeleteTournamentApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}`,
+          method: "DELETE",
         }),
         invalidatesTags: ["Tournament"],
       }),
@@ -581,6 +592,13 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/v2/Users/me/managedTeams` }),
         providesTags: ["User"],
       }),
+      getMyUpcomingTournaments: build.query<
+        GetMyUpcomingTournamentsApiResponse,
+        GetMyUpcomingTournamentsApiArg
+      >({
+        query: () => ({ url: `/api/v2/Users/me/upcomingTournaments` }),
+        providesTags: ["User"],
+      }),
       getCurrentUserAvatar: build.query<
         GetCurrentUserAvatarApiResponse,
         GetCurrentUserAvatarApiArg
@@ -625,44 +643,7 @@ const injectedRtkApi = api
     }),
     overrideExisting: false,
   });
-
-// Custom overrides for team management endpoints
-const enhancedApi = injectedRtkApi.injectEndpoints({
-  endpoints: (build) => ({
-    uploadTeamLogo: build.mutation<string, { teamId: string; logoBlob: File }>({
-      query: ({ teamId, logoBlob }) => {
-        const formData = new FormData();
-        formData.append('logoBlob', logoBlob);
-        return {
-          url: `/api/v2/Teams/${teamId}/logo`,
-          method: 'PUT',
-          body: formData,
-        };
-      },
-      invalidatesTags: ['Team'],
-    }),
-    addTeamManagerToTeam: build.mutation<string, { teamId: string; email: string }>({
-      query: ({ teamId, email }) => ({
-        url: `/api/v2/Teams/${teamId}/managers`,
-        method: 'POST',
-        body: { email },
-      }),
-      invalidatesTags: ['Team'],
-    }),
-    deleteTeamPlayer: build.mutation<void, { teamId: string; playerId: string }>({
-      query: ({ teamId, playerId }) => ({
-        url: `/api/v2/Teams/${teamId}/players/${playerId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Team'],
-    }),
-  }),
-  overrideExisting: true,
-});
-
-export { enhancedApi as serviceApi };
-// Re-export all the generated types
-export type { injectedRtkApi };
+export { injectedRtkApi as serviceApi };
 export type CreatePaymentSessionApiResponse = /** status 200 Success */ CheckoutSession;
 export type CreatePaymentSessionApiArg = {
   level?: CertificationLevel;
@@ -796,13 +777,27 @@ export type UploadTeamLogoApiArg = {
   /** Team identifier */
   teamId: string;
   body: {
-    logoBlob?: Blob;
+    ContentType?: string;
+    ContentDisposition?: string;
+    Headers?: {
+      [key: string]: string[];
+    };
+    Length?: number;
+    Name?: string;
+    FileName?: string;
   };
 };
 export type GetTeamDetailsApiResponse = /** status 200 Success */ TeamDetailViewModel;
 export type GetTeamDetailsApiArg = {
   /** Team identifier */
   teamId: string;
+};
+export type UpdateTeamApiResponse = /** status 200 Success */ NgbTeamViewModel;
+export type UpdateTeamApiArg = {
+  /** Team identifier */
+  teamId: string;
+  /** Updated team data */
+  ngbTeamViewModel: NgbTeamViewModel;
 };
 export type GetNgbTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNgbTeamsApiArg = {
@@ -865,12 +860,12 @@ export type GetTeamManagementApiArg = {
   /** Team identifier */
   teamId: string;
 };
-export type MakePlayerManagerApiResponse = unknown;
-export type MakePlayerManagerApiArg = {
+export type AddTeamManagerToTeamApiResponse = /** status 200 Success */ string;
+export type AddTeamManagerToTeamApiArg = {
   /** Team identifier */
   teamId: string;
-  /** Player user identifier */
-  playerId: string;
+  /** Request containing user email */
+  addTeamManagerRequest: AddTeamManagerRequest;
 };
 export type RemovePlayerApiResponse = unknown;
 export type RemovePlayerApiArg = {
@@ -927,6 +922,10 @@ export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentId
 export type UpdateTournamentApiArg = {
   tournamentId: string;
   tournamentModel: TournamentModel;
+};
+export type DeleteTournamentApiResponse = /** status 204 No Content */ void;
+export type DeleteTournamentApiArg = {
+  tournamentId: string;
 };
 export type UpdateTournamentBannerApiResponse = /** status 200 Success */ string;
 export type UpdateTournamentBannerApiArg = {
@@ -1013,7 +1012,12 @@ export type DeleteMyGenderApiResponse = unknown;
 export type DeleteMyGenderApiArg = void;
 export type GetManagedTeamsApiResponse = /** status 200 Success */ ManagedTeamViewModel[];
 export type GetManagedTeamsApiArg = void;
-export type GetCurrentUserAvatarApiResponse = unknown;
+export type GetMyUpcomingTournamentsApiResponse =
+  /** status 200 Success */ TournamentReferenceViewModel[];
+export type GetMyUpcomingTournamentsApiArg = void;
+export type GetCurrentUserAvatarApiResponse = /** status 200 Success */
+  | string
+  | /** status 204 No Content */ void;
 export type GetCurrentUserAvatarApiArg = void;
 export type UpdateCurrentUserAvatarApiResponse = /** status 200 Success */ string;
 export type UpdateCurrentUserAvatarApiArg = {
@@ -1496,6 +1500,10 @@ export type TeamManagementViewModel = {
   /** Pending invitations for this team. */
   pendingInvites?: TeamInvitationViewModel[] | null;
 };
+export type AddTeamManagerRequest = {
+  /** Email address of the user to add as manager. */
+  email: string;
+};
 export type RefereeTestDetailsViewModel = {
   testId?: string;
   title?: string | null;
@@ -1645,7 +1653,7 @@ export type CurrentUserViewModel = {
   userId?: string;
   firstName?: string | null;
   lastName?: string | null;
-  avatarUrl?: string | null;
+  avatarUri?: string | null;
   languageId?: string | null;
   roles?:
     | {
@@ -1717,8 +1725,8 @@ export const {
   useGetAvailablePaymentsQuery,
   useGetNationalTeamsQuery,
   useUploadTeamLogoMutation,
-  useUpdateTeamMutation,
   useGetTeamDetailsQuery,
+  useUpdateTeamMutation,
   useGetNgbTeamsQuery,
   useCreateNgbTeamMutation,
   useUpdateNgbTeamMutation,
@@ -1729,10 +1737,8 @@ export const {
   useGetTeamMembersQuery,
   useGetTeamTournamentInvitesQuery,
   useGetTeamManagementQuery,
-  useMakePlayerManagerMutation,
-  useRemovePlayerMutation,
   useAddTeamManagerToTeamMutation,
-  useDeleteTeamPlayerMutation,
+  useRemovePlayerMutation,
   useGetTestDetailsQuery,
   useCreateNewTestMutation,
   useEditTestMutation,
@@ -1744,6 +1750,7 @@ export const {
   useCreateTournamentMutation,
   useGetTournamentQuery,
   useUpdateTournamentMutation,
+  useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
   useGetTournamentManagersQuery,
   useAddTournamentManagerMutation,
@@ -1763,10 +1770,11 @@ export const {
   useGetMyGenderQuery,
   useDeleteMyGenderMutation,
   useGetManagedTeamsQuery,
+  useGetMyUpcomingTournamentsQuery,
   useGetCurrentUserAvatarQuery,
   useUpdateCurrentUserAvatarMutation,
   useGetUserAvatarQuery,
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
-} = enhancedApi;
+} = injectedRtkApi;

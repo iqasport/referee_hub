@@ -1,9 +1,11 @@
+import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import React from "react";
 
 import DropdownMenu, { ItemConfig } from "../DropdownMenu/DropdownMenu";
 import { useNavigate } from "../../utils/navigationUtils";
-import { useGetManagedTeamsQuery } from "../../store/serviceApi";
+import { useGetCurrentUserAvatarQuery, useGetManagedTeamsQuery } from "../../store/serviceApi";
 
 interface AvatarProps {
   firstName: string;
@@ -19,6 +21,7 @@ const Avatar = (props: AvatarProps) => {
 
   const navigate = useNavigate();
   const { data: managedTeams } = useGetManagedTeamsQuery();
+  const { data: avatarUrl } = useGetCurrentUserAvatarQuery();
 
   const handleLogoutClick = () => {
     window.location.href = `${window.location.origin}/sign_out`;
@@ -49,8 +52,13 @@ const Avatar = (props: AvatarProps) => {
     const lastLetter = lastName ? lastName[0] : "R";
 
     return (
-      <button onClick={onClick} className="avatar" type="button">
-        {`${firstLetter}${lastLetter}`}
+      <button onClick={onClick} className="flex items-center gap-2 cursor-pointer" type="button">
+        <span className="avatar">
+          {avatarUrl
+            ? <img src={avatarUrl} alt={`Profile picture of ${firstName} ${lastName}`} className="rounded-full w-full h-full object-cover" />
+            : `${firstLetter}${lastLetter}`}
+        </span>
+        <FontAwesomeIcon icon={faBars} className="text-white" />
       </button>
     );
   };

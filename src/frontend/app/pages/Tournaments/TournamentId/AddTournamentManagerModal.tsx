@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 
-import { useAddTeamManagerToTeamMutation } from "../../store/serviceApi";
+import { useAddTournamentManagerMutation } from "../../../store/serviceApi";
 
-interface AddManagerModalProps {
-  teamId: string;
+interface AddTournamentManagerModalProps {
+  tournamentId: string;
   onClose: () => void;
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUCCESS_MESSAGE_DURATION = 2000;
 
-const AddManagerModal = ({ teamId, onClose }: AddManagerModalProps) => {
+const AddTournamentManagerModal = ({ tournamentId, onClose }: AddTournamentManagerModalProps) => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [addTeamManager, { isLoading }] = useAddTeamManagerToTeamMutation();
+  const [addTournamentManager, { isLoading }] = useAddTournamentManagerMutation();
 
   const handleAdd = async () => {
     setError("");
@@ -27,14 +27,19 @@ const AddManagerModal = ({ teamId, onClose }: AddManagerModalProps) => {
     }
 
     try {
-      await addTeamManager({ teamId, addTeamManagerRequest: { email } }).unwrap();
+      await addTournamentManager({
+        tournamentId,
+        addTournamentManagerModel: { email },
+      }).unwrap();
       setSuccess("Manager added successfully!");
       setEmail("");
       setTimeout(() => {
         onClose();
       }, SUCCESS_MESSAGE_DURATION);
     } catch (err: any) {
-      setError(err?.data || "Failed to add manager. Please try again.");
+      const errorMessage =
+        err?.data?.error || err?.data || "Failed to add manager. Please try again.";
+      setError(errorMessage);
     }
   };
 
@@ -48,7 +53,7 @@ const AddManagerModal = ({ teamId, onClose }: AddManagerModalProps) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-xl font-bold mb-4">Add Team Manager</h3>
+        <h3 className="text-xl font-bold mb-4">Add Tournament Manager</h3>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">Email Address</label>
           <input
@@ -82,4 +87,4 @@ const AddManagerModal = ({ teamId, onClose }: AddManagerModalProps) => {
   );
 };
 
-export default AddManagerModal;
+export default AddTournamentManagerModal;

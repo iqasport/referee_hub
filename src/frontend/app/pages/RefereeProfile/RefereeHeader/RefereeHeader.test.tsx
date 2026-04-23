@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "../../../utils/test-utils";
+import { render, screen, fireEvent } from "../../../utils/test-utils";
 import RefereeHeader from "./RefereeHeader";
 import { Certification } from "../../../store/serviceApi";
 
@@ -111,11 +111,91 @@ describe("RefereeHeader", () => {
     expect(screen.getByText("Test bio for referee")).toBeInTheDocument();
   });
 
+  test("it renders a bio containing a URL as text", () => {
+    mockUseGetUserDataQuery.mockReturnValue({
+      data: {
+        ...defaultUserData,
+        bio: "Visit https://example.com for more info",
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<RefereeHeader {...defaultProps} />);
+
+    expect(screen.getByText("Visit https://example.com for more info")).toBeInTheDocument();
+  });
+
+  test("it renders an empty bio without errors", () => {
+    mockUseGetUserDataQuery.mockReturnValue({
+      data: {
+        ...defaultUserData,
+        bio: null,
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<RefereeHeader {...defaultProps} />);
+
+    // Should render without crashing; bio container is present
+    expect(screen.queryByText("Test bio for referee")).not.toBeInTheDocument();
+  });
+
   test("it renders user data from RTK Query", () => {
     render(<RefereeHeader {...defaultProps} />);
 
     // Verify the hook was called with correct params
     expect(mockUseGetUserDataQuery).toHaveBeenCalledWith({ userId: "123" });
     expect(mockUseGetUserAvatarQuery).toHaveBeenCalledWith({ userId: "123" });
+  });
+
+  test("it does not show +N badge when all certs fit in the header", () => {
+    // Two certs → both displayed, no overflow
+    render(<RefereeHeader {...defaultProps} />);
+
+    expect(screen.queryByText(/^\+\d+$/)).not.toBeInTheDocument();
+  });
+
+  test("it shows +N badge when there are more than 2 certifications", () => {
+    // head/twentyfour is both max-level AND most-recent-version → deduplicated to 1 badge.
+    // snitch/twentytwo becomes the second displayed badge.
+    // assistant/twentyfour is the hidden one → +1.
+    const manyCerts: Certification[] = [
+      { level: "head", version: "twentyfour" },
+      { level: "snitch", version: "twentytwo" },
+      { level: "assistant", version: "twentyfour" },
+    ];
+
+    render(<RefereeHeader {...defaultProps} certifications={manyCerts} />);
+
+    // head (highest level, rank 3) and snitch (second, rank 2) are shown.
+    // byVersion = head/twentyfour (same as byLevel) → deduped → headerCerts = [head/twentyfour]
+    // Wait: byVersion top = head/twentyfour (same as byLevel), deduplicated.
+    // So headerCerts = [head/twentyfour], hiddenCerts = [snitch/twentytwo, assistant/twentyfour] → +2
+    expect(screen.getByText("+2")).toBeInTheDocument();
+  });
+
+  test("it reveals hidden certifications on hover of the +N badge", () => {
+    const manyCerts: Certification[] = [
+      { level: "head", version: "twentyfour" },
+      { level: "snitch", version: "twentytwo" },
+      { level: "assistant", version: "twentyfour" },
+    ];
+
+    render(<RefereeHeader {...defaultProps} certifications={manyCerts} />);
+
+    const overflowBadge = screen.getByText("+2");
+
+    // Tooltip should not be visible before hover
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+
+    // Hover over the outer wrapper span (parentElement has the onMouseEnter handler)
+    fireEvent.mouseEnter(overflowBadge.parentElement!);
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    // Mouse leave hides the tooltip
+    fireEvent.mouseLeave(overflowBadge.parentElement!);
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 });

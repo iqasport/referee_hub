@@ -4,6 +4,7 @@ import React from "react";
 import {
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
+  TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import StatusBadge from "../../../components/StatusBadge";
 import ActionButtonPair from "../../../components/ActionButtonPair";
@@ -84,6 +85,12 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   }
 
   const selectedInviteData = invites?.find((i) => i.participantId === selectedInvite);
+
+  function getPendingLabel(invite: TournamentInviteViewModel): string {
+    if (invite.tournamentManagerApproval?.status === "pending") return "Awaiting your review";
+    if (invite.participantApproval?.status === "pending") return "Awaiting team response";
+    return "Pending";
+  }
 
   return (
     <>
@@ -234,6 +241,9 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                                 year: "numeric",
                               })}
                             </p>
+                            {invite.status === "pending" && (
+                              <p className="text-xs text-amber-700 mt-0.5">{getPendingLabel(invite)}</p>
+                            )}
                           </div>
                           <StatusBadge status={invite.status || "unknown"} />
                         </div>
