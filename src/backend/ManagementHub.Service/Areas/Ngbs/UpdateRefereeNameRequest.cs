@@ -6,6 +6,5 @@ namespace ManagementHub.Service.Areas.Ngbs;
 public class UpdateRefereeNameRequest
 {
 	public string? FirstName { get; init; }
-
 	public string? LastName { get; init; }
 }
