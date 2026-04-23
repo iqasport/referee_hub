@@ -6,7 +6,7 @@ import Avatar from "./components/Avatar";
 import Loader from "./components/Loader";
 import { useGetCurrentUserQuery } from "./store/serviceApi";
 
-const PUBLIC_ROUTES = ["/privacy", "/tournaments"];
+const PUBLIC_ROUTES = ["/privacy"];
 
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const RefereeProfile = lazy(() => import("./pages/RefereeProfile"));
@@ -57,8 +57,7 @@ const App = () => {
 
   if (currentUser) Bugsnag.setUser(currentUser.userId);
 
-  const isPublicRoute = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route));
-  if (isLoading && !isPublicRoute) return <Loader />;
+  if (isLoading === true) return <Loader />;
 
   return (
   <Suspense fallback={<Loader />}>
@@ -73,7 +72,7 @@ const App = () => {
             userId={currentUser.userId}
             ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
             enabledFeatures={/* FUTURE: currentUser?.enabledFeatures when feature flags are implemented */ undefined}
-            /> : !isLoading && <a href="/sign_in" className="green-button-outline px-4 py-1">Sign In</a>}
+            />}
         </div>
         <Routes>
           <Route
