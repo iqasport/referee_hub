@@ -142,17 +142,6 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Ngb"],
       }),
-      updateNgbRefereeName: build.mutation<
-        UpdateNgbRefereeNameApiResponse,
-        UpdateNgbRefereeNameApiArg
-      >({
-        query: (queryArg) => ({
-          url: `/api/v2/Ngbs/${queryArg.ngb}/referees/${queryArg.userId}/name`,
-          method: "PATCH",
-          body: queryArg.updateRefereeNameRequest,
-        }),
-        invalidatesTags: ["Referee", "User", "UserInfo"],
-      }),
       adminUpdateNgb: build.mutation<AdminUpdateNgbApiResponse, AdminUpdateNgbApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/api/v2/admin/Ngbs/${queryArg.ngb}`,
@@ -241,6 +230,14 @@ const injectedRtkApi = api
       >({
         query: () => ({ url: `/api/v2/certifications/payments` }),
         providesTags: ["Referee"],
+      }),
+      updateRefereeName: build.mutation<UpdateRefereeNameApiResponse, UpdateRefereeNameApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/referees/${queryArg.userId}/name`,
+          method: "PATCH",
+          body: queryArg.updateRefereeNameRequest,
+        }),
+        invalidatesTags: ["Referee", "UserInfo"],
       }),
       getNationalTeams: build.query<GetNationalTeamsApiResponse, GetNationalTeamsApiArg>({
         query: (queryArg) => ({
@@ -725,12 +722,6 @@ export type DeleteNgbAdminApiArg = {
   ngb: string;
   email?: string;
 };
-export type UpdateNgbRefereeNameApiResponse = unknown;
-export type UpdateNgbRefereeNameApiArg = {
-  ngb: string;
-  userId: string;
-  updateRefereeNameRequest: UpdateRefereeNameRequest;
-};
 export type AdminUpdateNgbApiResponse = unknown;
 export type AdminUpdateNgbApiArg = {
   ngb: string;
@@ -782,6 +773,12 @@ export type GetNgbRefereesApiArg = {
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
+export type UpdateRefereeNameApiResponse = /** status 204 No Content */ void;
+export type UpdateRefereeNameApiArg = {
+  ngb: string;
+  userId: string;
+  updateRefereeNameRequest: UpdateRefereeNameRequest;
+};
 export type GetNationalTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNationalTeamsApiArg = {
   filter?: string;
@@ -1365,6 +1362,18 @@ export type CertificationProduct = {
   price?: Price;
   status?: ProductStatus;
 };
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type UpdateRefereeNameRequest = {
+  firstName?: string | null;
+  lastName?: string | null;
+};
 export type TeamStatus = "competitive" | "developing" | "inactive" | "other";
 export type TeamGroupAffiliation =
   | "university"
@@ -1449,14 +1458,6 @@ export type TeamManagerCreationStatus =
 export type TeamManagerCreationModel = {
   email?: string | null;
   createAccountIfNotExists?: boolean;
-};
-export type ProblemDetails = {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  [key: string]: any;
 };
 export type TeamMemberViewModelFiltered = {
   metadata?: FilteringMetadata;
@@ -1711,10 +1712,6 @@ export type UserDataViewModel = {
   language?: string | null;
   createdAt?: string;
 };
-export type UpdateRefereeNameRequest = {
-  firstName?: string | null;
-  lastName?: string | null;
-};
 export const {
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
@@ -1732,7 +1729,6 @@ export const {
   useUpdateNgbAvatarMutation,
   useAddNgbAdminMutation,
   useDeleteNgbAdminMutation,
-  useUpdateNgbRefereeNameMutation,
   useAdminUpdateNgbMutation,
   useAdminCreateNgbMutation,
   useGetAvailableTestsQuery,
@@ -1745,6 +1741,7 @@ export const {
   useGetRefereesQuery,
   useGetNgbRefereesQuery,
   useGetAvailablePaymentsQuery,
+  useUpdateRefereeNameMutation,
   useGetNationalTeamsQuery,
   useUploadTeamLogoMutation,
   useGetTeamDetailsQuery,
