@@ -79,7 +79,14 @@ const RefereeNameEditModal = ({ ngbId, onClose, open, showClose, userId }: Refer
           <button className="green-button-outline h-10 px-4" onClick={onClose} type="button" disabled={isSaving}>
             Cancel
           </button>
-          <button className="green-button h-10 px-4" onClick={handleSubmit} type="button" disabled={isLoading || isSaving}>
+          <button
+            className={classnames("uppercase h-10 px-4 rounded-lg bg-green text-white", {
+              "opacity-50 cursor-default": isLoading || isSaving,
+            })}
+            onClick={handleSubmit}
+            type="button"
+            disabled={isLoading || isSaving}
+          >
             Save
           </button>
         </div>
