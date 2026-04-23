@@ -142,6 +142,17 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Ngb"],
       }),
+      updateNgbRefereeName: build.mutation<
+        UpdateNgbRefereeNameApiResponse,
+        UpdateNgbRefereeNameApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/referees/${queryArg.userId}/name`,
+          method: "PATCH",
+          body: queryArg.updateRefereeNameRequest,
+        }),
+        invalidatesTags: ["Referee", "User", "UserInfo"],
+      }),
       adminUpdateNgb: build.mutation<AdminUpdateNgbApiResponse, AdminUpdateNgbApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/api/v2/admin/Ngbs/${queryArg.ngb}`,
@@ -713,6 +724,12 @@ export type DeleteNgbAdminApiResponse = /** status 200 Success */ any;
 export type DeleteNgbAdminApiArg = {
   ngb: string;
   email?: string;
+};
+export type UpdateNgbRefereeNameApiResponse = unknown;
+export type UpdateNgbRefereeNameApiArg = {
+  ngb: string;
+  userId: string;
+  updateRefereeNameRequest: UpdateRefereeNameRequest;
 };
 export type AdminUpdateNgbApiResponse = unknown;
 export type AdminUpdateNgbApiArg = {
@@ -1694,6 +1711,10 @@ export type UserDataViewModel = {
   language?: string | null;
   createdAt?: string;
 };
+export type UpdateRefereeNameRequest = {
+  firstName?: string | null;
+  lastName?: string | null;
+};
 export const {
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
@@ -1711,6 +1732,7 @@ export const {
   useUpdateNgbAvatarMutation,
   useAddNgbAdminMutation,
   useDeleteNgbAdminMutation,
+  useUpdateNgbRefereeNameMutation,
   useAdminUpdateNgbMutation,
   useAdminCreateNgbMutation,
   useGetAvailableTestsQuery,
