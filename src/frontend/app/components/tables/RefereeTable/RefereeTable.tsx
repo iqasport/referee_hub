@@ -2,12 +2,15 @@ import { capitalize } from "lodash";
 import React, { useState } from "react";
 import { getVersion } from "../../../utils/certUtils";
 import FilterToolbar from "../../FilterToolbar";
+import RefereeNameEditModal from "../../modals/RefereeNameEditModal/RefereeNameEditModal";
 import Table, { CellConfig } from "../Table/Table";
 import { useNavigate } from "../../../utils/navigationUtils";
 import { RefereeViewModel, useGetNgbRefereesQuery, useGetRefereesQuery } from "../../../store/serviceApi";
+import ActionDropdown from "./ActionDropdown";
 
 const HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB"];
-const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs"];
+const NGB_HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB", "actions"];
+const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs", "actions"];
 
 // sorts the levels by string length resulting in: ['head', 'snitch', 'assistant']
 // this also happens to be the hierarchy order of the levels.
@@ -26,7 +29,6 @@ const findHighestCert = (referee: RefereeViewModel): string => {
   });
   if (!Object.keys(certHashMap).length) return "Uncertified";
 
-  // TODO: use correct comparison between cert levels
   const snitchAsFlag = (level?: string) => level === "snitch" ? "flag" : level;
   const highestTwenty = snitchAsFlag(certHashMap.twenty?.sort(sortByLength)[0]);
   const highestTwentyTwo = snitchAsFlag(certHashMap.twentytwo?.sort(sortByLength)[0]);
@@ -60,13 +62,14 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
+  const [selectedRefereeId, setSelectedRefereeId] = useState<string | undefined>(undefined);
   
   const { data: referees, isLoading } =
     ngbId === undefined
       ? useGetRefereesQuery({filter, page, pageSize: 25})
       : useGetNgbRefereesQuery({ngb: ngbId, filter, page, pageSize: 25})
 
-  const headerCells = ngbId ? HEADER_CELLS : ADMIN_HEADER_CELLS;
+  const headerCells = ngbId ? NGB_HEADER_CELLS : ADMIN_HEADER_CELLS;
 
   const handleRowClick = (id: string) => {
     navigate(`/referees/${id}`);
@@ -80,6 +83,14 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
 
   const handlePageSelect = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleOpenRenameModal = (userId: string) => {
+    setSelectedRefereeId(userId);
+  };
+
+  const handleCloseRenameModal = () => {
+    setSelectedRefereeId(undefined);
   };
 
   const renderEmpty = () => {
@@ -113,12 +124,26 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
       },
       dataKey: "locations",
     });
+    rowConfig.push({
+      cellRenderer: (item: RefereeViewModel) => {
+        return <ActionDropdown userId={item.userId} onRenameClick={handleOpenRenameModal} />;
+      },
+      dataKey: "actions",
+      customStyle: "text-right",
+    });
   } else {
     rowConfig.push({
       cellRenderer: (item: RefereeViewModel) => {
         return [item.primaryNgb, item.secondaryNgb].filter(t => !!t).join(", ");
       },
       dataKey: "locations",
+    });
+    rowConfig.push({
+      cellRenderer: (item: RefereeViewModel) => {
+        return <ActionDropdown userId={item.userId} onRenameClick={handleOpenRenameModal} />;
+      },
+      dataKey: "actions",
+      customStyle: "text-right",
     });
   }
 
@@ -141,6 +166,16 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
         isHeightRestricted={isHeightRestricted}
         getId={ref => ref.userId}
       />
+      {selectedRefereeId && (
+        <RefereeNameEditModal
+          open={!!selectedRefereeId}
+          onClose={handleCloseRenameModal}
+          showClose={true}
+          ngbId={ngbId}
+          userId={selectedRefereeId}
+          isAdmin={!ngbId}
+        />
+      )}
     </div>
   );
 };
