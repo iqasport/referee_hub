@@ -48,8 +48,6 @@ public interface ITournamentContextProvider
 
 	Task UpdateInviteApprovalAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, bool isTournamentManager, bool approved, CancellationToken cancellationToken = default);
 
-	Task DeleteTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
-
 	// Phase 3: Team participant management
 	Task<IEnumerable<TeamParticipantInfo>> GetTournamentTeamParticipantsAsync(TournamentIdentifier tournamentId, CancellationToken cancellationToken = default);
 

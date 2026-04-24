@@ -835,31 +835,6 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			tournamentId, teamId, isTournamentManager ? "TournamentManager" : "Participant", newStatus);
 	}
 
-	public async Task DeleteTeamInviteAsync(
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		CancellationToken cancellationToken = default)
-	{
-		var tournamentIdString = tournamentId.ToString();
-		var participantId = teamId.ToString();
-
-		var invite = await this.dbContext.TournamentInvites
-			.Where(i => i.Tournament.UniqueId == tournamentIdString && i.ParticipantId == participantId)
-			.OrderByDescending(i => i.CreatedAt)
-			.FirstOrDefaultAsync(cancellationToken);
-
-		if (invite == null)
-		{
-			throw new NotFoundException($"Invite for tournament {tournamentId} and team {teamId}");
-		}
-
-		this.dbContext.TournamentInvites.Remove(invite);
-		await this.dbContext.SaveChangesAsync(cancellationToken);
-
-		this.logger.LogInformation("Deleted invite for tournament {TournamentId} team {TeamId}",
-			tournamentId.UniqueId.ToString(), teamId.ToString());
-	}
-
 	// Phase 3: Participant management methods
 
 	public async Task<IEnumerable<TeamParticipantInfo>> GetTournamentTeamParticipantsAsync(
