@@ -80,8 +80,12 @@
     <ContainerPort Include="443" Type="tcp" />
   </ItemGroup>
   
-  <Target Name="AddVolumeToContainer" AfterTargets="PublishContainer">
-    <Exec Command="docker build -t iqasport/management-hub:latest ." WorkingDirectory="$(SolutionDir)/../../docker/build" />
+  <PropertyGroup>
+    <DockerBuildDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../../../docker/build'))</DockerBuildDir>
+  </PropertyGroup>
+
+  <Target Name="AddVolumeToContainer" AfterTargets="PublishContainer" Condition="Exists('$(DockerBuildDir)')">
+    <Exec Command="docker build -t iqasport/management-hub:latest ." WorkingDirectory="$(DockerBuildDir)" />
   </Target>
 
 </Project>
