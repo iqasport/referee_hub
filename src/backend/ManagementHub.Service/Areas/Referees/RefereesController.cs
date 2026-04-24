@@ -3,12 +3,16 @@ using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
+using ManagementHub.Service.Areas.Ngbs;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Referees;
 
@@ -23,12 +27,21 @@ public class RefereesController : ControllerBase
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly IUpdateRefereeRoleCommand updateRefereeRoleCommand;
 	private readonly IRefereeContextAccessor refereeContextAccessor;
+	private readonly IUpdateUserDataCommand updateUserDataCommand;
+	private readonly ManagementHubDbContext dbContext;
 
-	public RefereesController(IUserContextAccessor contextAccessor, IUpdateRefereeRoleCommand updateRefereeRoleCommand, IRefereeContextAccessor refereeContextAccessor)
+	public RefereesController(
+		IUserContextAccessor contextAccessor,
+		IUpdateRefereeRoleCommand updateRefereeRoleCommand,
+		IRefereeContextAccessor refereeContextAccessor,
+		IUpdateUserDataCommand updateUserDataCommand,
+		ManagementHubDbContext dbContext)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateRefereeRoleCommand = updateRefereeRoleCommand;
 		this.refereeContextAccessor = refereeContextAccessor;
+		this.updateUserDataCommand = updateUserDataCommand;
+		this.dbContext = dbContext;
 	}
 
 	/// <summary>
@@ -108,6 +121,50 @@ public class RefereesController : ControllerBase
 		var collection = await this.refereeContextAccessor.GetRefereeViewContextListAsync(ngb);
 		var viewerPermissionConstraint = GetViewerPerimissionConstraint(userContext);
 		return collection.Select(x => MapRefereeViewContextToViewModel(x, viewerPermissionConstraint)).AsFiltered();
+	}
+
+	/// <summary>
+	/// Updates a referee's name (admin operation - no NGB scope restrictions).
+	/// </summary>
+	[HttpPatch("{userId}/name")]
+	[Tags("Referee", "UserInfo")]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> UpdateRefereeNameAdmin(
+		[FromRoute] UserIdentifier userId,
+		[FromBody] UpdateRefereeNameRequest request)
+	{
+		if (string.IsNullOrWhiteSpace(request.FirstName) && string.IsNullOrWhiteSpace(request.LastName))
+		{
+			return this.BadRequest("At least one of FirstName or LastName must be provided.");
+		}
+
+		// Verify the user exists
+		var userExists = await this.dbContext.Users.WithIdentifier(userId)
+			.AnyAsync(u => true, this.HttpContext.RequestAborted);
+
+		if (!userExists)
+		{
+			return this.NotFound();
+		}
+
+		await this.updateUserDataCommand.UpdateUserDataAsync(userId, data =>
+		{
+			var firstName = string.IsNullOrWhiteSpace(request.FirstName) ? data.FirstName : request.FirstName;
+			var lastName = string.IsNullOrWhiteSpace(request.LastName) ? data.LastName : request.LastName;
+			return new ManagementHub.Models.Domain.User.ExtendedUserData(data.Email, firstName, lastName)
+			{
+				Bio = data.Bio,
+				ExportName = data.ExportName,
+				Pronouns = data.Pronouns,
+				ShowPronouns = data.ShowPronouns,
+				UserLang = data.UserLang,
+			};
+		}, this.HttpContext.RequestAborted);
+
+		return this.NoContent();
 	}
 
 	private static NgbConstraint GetViewerPerimissionConstraint(IUserContext userContext) =>

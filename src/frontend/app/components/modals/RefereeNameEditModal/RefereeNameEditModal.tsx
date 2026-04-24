@@ -1,22 +1,27 @@
 import classnames from "classnames";
 import React, { useEffect, useState } from "react";
 
-import { useGetUserDataQuery, useUpdateRefereeNameMutation } from "../../../store/serviceApi";
+import { useGetUserDataQuery, useUpdateRefereeNameMutation, useUpdateRefereeNameAdminMutation } from "../../../store/serviceApi";
 import { getErrorString } from "../../../utils/errorUtils";
 import Modal, { ModalProps, ModalSize } from "../Modal/Modal";
 
 interface RefereeNameEditModalProps extends Omit<ModalProps, "size"> {
-  ngbId: string;
+  ngbId?: string;
   userId?: string;
+  isAdmin?: boolean;
 }
 
-const RefereeNameEditModal = ({ ngbId, onClose, open, showClose, userId }: RefereeNameEditModalProps) => {
+const RefereeNameEditModal = ({ ngbId, onClose, open, showClose, userId, isAdmin }: RefereeNameEditModalProps) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { data: userData, isLoading } = useGetUserDataQuery({ userId: userId || "" }, { skip: !open || !userId });
-  const [updateRefereeName, { error, isLoading: isSaving }] = useUpdateRefereeNameMutation();
+  const [updateRefereeName, { error: ngbError, isLoading: ngbSaving }] = useUpdateRefereeNameMutation();
+  const [updateRefereeNameAdmin, { error: adminError, isLoading: adminSaving }] = useUpdateRefereeNameAdminMutation();
+
+  const error = isAdmin ? adminError : ngbError;
+  const isSaving = isAdmin ? adminSaving : ngbSaving;
 
   useEffect(() => {
     if (!open) {
@@ -37,14 +42,25 @@ const RefereeNameEditModal = ({ ngbId, onClose, open, showClose, userId }: Refer
     }
 
     setValidationError(null);
-    await updateRefereeName({
-      ngb: ngbId,
-      userId,
-      updateRefereeNameRequest: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-      },
-    }).unwrap();
+
+    if (isAdmin) {
+      await updateRefereeNameAdmin({
+        userId,
+        updateRefereeNameRequest: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        },
+      }).unwrap();
+    } else if (ngbId) {
+      await updateRefereeName({
+        ngb: ngbId,
+        userId,
+        updateRefereeNameRequest: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        },
+      }).unwrap();
+    }
     onClose();
   };
 

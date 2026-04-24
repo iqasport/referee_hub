@@ -224,6 +224,17 @@ const injectedRtkApi = api
         }),
         providesTags: ["Referee"],
       }),
+      updateRefereeNameAdmin: build.mutation<
+        UpdateRefereeNameAdminApiResponse,
+        UpdateRefereeNameAdminApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Referees/${queryArg.userId}/name`,
+          method: "PATCH",
+          body: queryArg.updateRefereeNameRequest,
+        }),
+        invalidatesTags: ["Referee", "UserInfo"],
+      }),
       getAvailablePayments: build.query<
         GetAvailablePaymentsApiResponse,
         GetAvailablePaymentsApiArg
@@ -770,6 +781,11 @@ export type GetNgbRefereesApiArg = {
   page?: number;
   pageSize?: number;
   skipPaging?: boolean;
+};
+export type UpdateRefereeNameAdminApiResponse = /** status 204 No Content */ void;
+export type UpdateRefereeNameAdminApiArg = {
+  userId: string;
+  updateRefereeNameRequest: UpdateRefereeNameRequest;
 };
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
@@ -1349,6 +1365,18 @@ export type RefereeViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: RefereeViewModel[] | null;
 };
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type UpdateRefereeNameRequest = {
+  firstName?: string | null;
+  lastName?: string | null;
+};
 export type Price = {
   priceId?: string | null;
   unitPrice?: number;
@@ -1361,18 +1389,6 @@ export type CertificationProduct = {
   item?: Certification;
   price?: Price;
   status?: ProductStatus;
-};
-export type ProblemDetails = {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  [key: string]: any;
-};
-export type UpdateRefereeNameRequest = {
-  firstName?: string | null;
-  lastName?: string | null;
 };
 export type TeamStatus = "competitive" | "developing" | "inactive" | "other";
 export type TeamGroupAffiliation =
@@ -1740,6 +1756,7 @@ export const {
   useGetRefereeQuery,
   useGetRefereesQuery,
   useGetNgbRefereesQuery,
+  useUpdateRefereeNameAdminMutation,
   useGetAvailablePaymentsQuery,
   useUpdateRefereeNameMutation,
   useGetNationalTeamsQuery,

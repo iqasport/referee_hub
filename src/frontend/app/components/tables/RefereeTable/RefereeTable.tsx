@@ -10,7 +10,7 @@ import ActionDropdown from "./ActionDropdown";
 
 const HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB"];
 const NGB_HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB", "actions"];
-const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs"];
+const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs", "actions"];
 
 // sorts the levels by string length resulting in: ['head', 'snitch', 'assistant']
 // this also happens to be the hierarchy order of the levels.
@@ -139,6 +139,13 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
       },
       dataKey: "locations",
     });
+    rowConfig.push({
+      cellRenderer: (item: RefereeViewModel) => {
+        return <ActionDropdown userId={item.userId} onRenameClick={handleOpenRenameModal} />;
+      },
+      dataKey: "actions",
+      customStyle: "text-right",
+    });
   }
 
   return (
@@ -160,13 +167,14 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
         isHeightRestricted={isHeightRestricted}
         getId={ref => ref.userId}
       />
-      {ngbId && (
+      {selectedRefereeId && (
         <RefereeNameEditModal
           open={!!selectedRefereeId}
           onClose={handleCloseRenameModal}
           showClose={true}
           ngbId={ngbId}
           userId={selectedRefereeId}
+          isAdmin={!ngbId}
         />
       )}
     </div>
