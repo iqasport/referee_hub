@@ -29,7 +29,6 @@ const findHighestCert = (referee: RefereeViewModel): string => {
   });
   if (!Object.keys(certHashMap).length) return "Uncertified";
 
-  // TODO: use correct comparison between cert levels
   const snitchAsFlag = (level?: string) => level === "snitch" ? "flag" : level;
   const highestTwenty = snitchAsFlag(certHashMap.twenty?.sort(sortByLength)[0]);
   const highestTwentyTwo = snitchAsFlag(certHashMap.twentytwo?.sort(sortByLength)[0]);
