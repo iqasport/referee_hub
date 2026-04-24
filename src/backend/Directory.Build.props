@@ -5,6 +5,7 @@
     <GitVersionUseSolutionDir>true</GitVersionUseSolutionDir>
     <GitVersion_CommandLineArguments>-config ../GitVersion.yml</GitVersion_CommandLineArguments>
     <GitVersion_NoFetchEnabled>true</GitVersion_NoFetchEnabled>
+    <DisableGitVersion Condition="'$(DisableGitVersion)' == '' and !Exists('$(MSBuildThisFileDirectory)..\\.git')">true</DisableGitVersion>
 
     <!-- Do not warn about contextual being an experimental API -->
     <NoWarn>EXTEXP0017</NoWarn>

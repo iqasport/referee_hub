@@ -224,12 +224,31 @@ const injectedRtkApi = api
         }),
         providesTags: ["Referee"],
       }),
+      updateRefereeNameAdmin: build.mutation<
+        UpdateRefereeNameAdminApiResponse,
+        UpdateRefereeNameAdminApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Referees/${queryArg.userId}/name`,
+          method: "PATCH",
+          body: queryArg.updateRefereeNameRequest,
+        }),
+        invalidatesTags: ["Referee", "UserInfo"],
+      }),
       getAvailablePayments: build.query<
         GetAvailablePaymentsApiResponse,
         GetAvailablePaymentsApiArg
       >({
         query: () => ({ url: `/api/v2/certifications/payments` }),
         providesTags: ["Referee"],
+      }),
+      updateRefereeName: build.mutation<UpdateRefereeNameApiResponse, UpdateRefereeNameApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/${queryArg.ngb}/referees/${queryArg.userId}/name`,
+          method: "PATCH",
+          body: queryArg.updateRefereeNameRequest,
+        }),
+        invalidatesTags: ["Referee", "UserInfo"],
       }),
       getNationalTeams: build.query<GetNationalTeamsApiResponse, GetNationalTeamsApiArg>({
         query: (queryArg) => ({
@@ -763,8 +782,19 @@ export type GetNgbRefereesApiArg = {
   pageSize?: number;
   skipPaging?: boolean;
 };
+export type UpdateRefereeNameAdminApiResponse = /** status 204 No Content */ void;
+export type UpdateRefereeNameAdminApiArg = {
+  userId: string;
+  updateRefereeNameRequest: UpdateRefereeNameRequest;
+};
 export type GetAvailablePaymentsApiResponse = /** status 200 Success */ CertificationProduct[];
 export type GetAvailablePaymentsApiArg = void;
+export type UpdateRefereeNameApiResponse = /** status 204 No Content */ void;
+export type UpdateRefereeNameApiArg = {
+  ngb: string;
+  userId: string;
+  updateRefereeNameRequest: UpdateRefereeNameRequest;
+};
 export type GetNationalTeamsApiResponse = /** status 200 Success */ NgbTeamViewModelFiltered;
 export type GetNationalTeamsApiArg = {
   filter?: string;
@@ -1335,6 +1365,18 @@ export type RefereeViewModelFiltered = {
   metadata?: FilteringMetadata;
   items?: RefereeViewModel[] | null;
 };
+export type ProblemDetails = {
+  type?: string | null;
+  title?: string | null;
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+};
+export type UpdateRefereeNameRequest = {
+  firstName?: string | null;
+  lastName?: string | null;
+};
 export type Price = {
   priceId?: string | null;
   unitPrice?: number;
@@ -1432,14 +1474,6 @@ export type TeamManagerCreationStatus =
 export type TeamManagerCreationModel = {
   email?: string | null;
   createAccountIfNotExists?: boolean;
-};
-export type ProblemDetails = {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  [key: string]: any;
 };
 export type TeamMemberViewModelFiltered = {
   metadata?: FilteringMetadata;
@@ -1722,7 +1756,9 @@ export const {
   useGetRefereeQuery,
   useGetRefereesQuery,
   useGetNgbRefereesQuery,
+  useUpdateRefereeNameAdminMutation,
   useGetAvailablePaymentsQuery,
+  useUpdateRefereeNameMutation,
   useGetNationalTeamsQuery,
   useUploadTeamLogoMutation,
   useGetTeamDetailsQuery,
