@@ -4,13 +4,16 @@ using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +37,8 @@ public class NgbsController : ControllerBase
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand;
 	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
+	private readonly IUpdateUserDataCommand updateUserDataCommand;
+	private readonly ManagementHubDbContext dbContext;
 
 	public NgbsController(
 		IUserContextAccessor contextAccessor,
@@ -43,7 +48,9 @@ public class NgbsController : ControllerBase
 		ISocialAccountsProvider socialAccountsProvider,
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
 		IUpdateNgbAdminRoleCommand updateNgbAdminRoleCommand,
-		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand)
+		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand,
+		IUpdateUserDataCommand updateUserDataCommand,
+		ManagementHubDbContext dbContext)
 	{
 		this.contextAccessor = contextAccessor;
 		this.ngbContextProvider = ngbContextProvider;
@@ -53,6 +60,8 @@ public class NgbsController : ControllerBase
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.updateNgbAdminRoleCommand = updateNgbAdminRoleCommand;
 		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
+		this.updateUserDataCommand = updateUserDataCommand;
+		this.dbContext = dbContext;
 	}
 
 	/// <summary>
@@ -629,5 +638,51 @@ public class NgbsController : ControllerBase
 				Date = i.ParticipantApprovalDate
 			}
 		});
+	}
+
+	/// <summary>
+	/// Updates the first and/or last name of a referee on behalf of an NGB admin.
+	/// Only referees whose primary or secondary NGB matches the admin's jurisdiction can be renamed.
+	/// </summary>
+	[HttpPatch("{ngb}/referees/{userId}/name")]
+	[Tags("Referee", "UserInfo")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> UpdateRefereeName(
+		[FromRoute] NgbIdentifier ngb,
+		[FromRoute] UserIdentifier userId,
+		[FromBody] UpdateRefereeNameRequest request)
+	{
+		if (string.IsNullOrWhiteSpace(request.FirstName) && string.IsNullOrWhiteSpace(request.LastName))
+		{
+			return this.BadRequest("At least one of FirstName or LastName must be provided.");
+		}
+
+		// Verify the target referee belongs to this NGB (primary or secondary)
+		var belongsToNgb = await this.dbContext.Users.WithIdentifier(userId)
+			.AnyAsync(u => u.RefereeLocations.Any(rl => rl.NationalGoverningBody.CountryCode == ngb.NgbCode), this.HttpContext.RequestAborted);
+
+		if (!belongsToNgb)
+		{
+			return this.NotFound();
+		}
+
+		await this.updateUserDataCommand.UpdateUserDataAsync(userId, data =>
+		{
+			var firstName = string.IsNullOrWhiteSpace(request.FirstName) ? data.FirstName : request.FirstName;
+			var lastName = string.IsNullOrWhiteSpace(request.LastName) ? data.LastName : request.LastName;
+			return new ExtendedUserData(data.Email, firstName, lastName)
+			{
+				Bio = data.Bio,
+				ExportName = data.ExportName,
+				Pronouns = data.Pronouns,
+				ShowPronouns = data.ShowPronouns,
+				UserLang = data.UserLang,
+			};
+		}, this.HttpContext.RequestAborted);
+
+		return this.NoContent();
 	}
 }
