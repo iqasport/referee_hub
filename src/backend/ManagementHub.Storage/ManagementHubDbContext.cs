@@ -563,7 +563,6 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasForeignKey(d => d.NationalGoverningBodyId)
 				.HasConstraintName("national_governing_body_stats__national_governing_body_fkey");
 		});
-
 		
 modelBuilder.Entity<Notification>(entity =>
 {
