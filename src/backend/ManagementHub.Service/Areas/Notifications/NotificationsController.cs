@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ManagementHub.Service.Hubs;
 using ManagementHub.Service.Services;
 using ManagementHub.Service.ViewModels;
+using ManagementHub.Service.Contexts;
 using ManagementHub.Storage;
+using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Notifications;
@@ -22,21 +22,18 @@ namespace ManagementHub.Service.Areas.Notifications;
 [Produces("application/json")]
 public class NotificationsController : ControllerBase
 {
+	private readonly IUserContextAccessor contextAccessor;
 	private readonly ManagementHubDbContext dbContext;
 	private readonly INotificationService notificationService;
-	private readonly IHubContext<NotificationsHub> hubContext;
-	private readonly ILogger<NotificationsController> logger;
 
 	public NotificationsController(
+		IUserContextAccessor contextAccessor,
 		ManagementHubDbContext dbContext,
-		INotificationService notificationService,
-		IHubContext<NotificationsHub> hubContext,
-		ILogger<NotificationsController> logger)
+		INotificationService notificationService)
 	{
+		this.contextAccessor = contextAccessor;
 		this.dbContext = dbContext;
 		this.notificationService = notificationService;
-		this.hubContext = hubContext;
-		this.logger = logger;
 	}
 
 	/// <summary>
@@ -46,12 +43,12 @@ public class NotificationsController : ControllerBase
 	[Tags("Notifications")]
 	public async Task<ActionResult<NotificationListResponse>> GetNotifications(CancellationToken cancellationToken)
 	{
-		var userIdClaim = this.User.FindFirst("sub")?.Value;
-		if (!long.TryParse(userIdClaim, out var userId))
+		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
+		if (!userDbId.HasValue)
 			return this.Unauthorized();
 
-		var notifications = await this.notificationService.GetActiveNotificationsAsync(userId, cancellationToken);
-		var unreadCount = await this.notificationService.GetUnreadCountAsync(userId, cancellationToken);
+		var notifications = await this.notificationService.GetActiveNotificationsAsync(userDbId.Value, cancellationToken);
+		var unreadCount = await this.notificationService.GetUnreadCountAsync(userDbId.Value, cancellationToken);
 
 		var viewModels = notifications.Select(MapToViewModel).ToList();
 
@@ -69,11 +66,11 @@ public class NotificationsController : ControllerBase
 	[Tags("Notifications")]
 	public async Task<ActionResult<object>> GetUnreadCount(CancellationToken cancellationToken)
 	{
-		var userIdClaim = this.User.FindFirst("sub")?.Value;
-		if (!long.TryParse(userIdClaim, out var userId))
+		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
+		if (!userDbId.HasValue)
 			return this.Unauthorized();
 
-		var unreadCount = await this.notificationService.GetUnreadCountAsync(userId, cancellationToken);
+		var unreadCount = await this.notificationService.GetUnreadCountAsync(userDbId.Value, cancellationToken);
 
 		return this.Ok(new { unreadCount });
 	}
@@ -87,19 +84,15 @@ public class NotificationsController : ControllerBase
 		long id,
 		CancellationToken cancellationToken)
 	{
-		var userIdClaim = this.User.FindFirst("sub")?.Value;
-		if (!long.TryParse(userIdClaim, out var userId))
+		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
+		if (!userDbId.HasValue)
 			return this.Unauthorized();
 
-		var notification = await this.notificationService.MarkAsReadAsync(userId, id, cancellationToken);
+		var notification = await this.notificationService.MarkAsReadAsync(userDbId.Value, id, cancellationToken);
 		if (notification is null)
 			return this.NotFound();
 
 		var viewModel = MapToViewModel(notification);
-
-		// Notify via SignalR
-		await this.hubContext.Clients.User(userId.ToString())
-			.SendAsync("NotificationRead", viewModel, cancellationToken);
 
 		return this.Ok(viewModel);
 	}
@@ -111,15 +104,11 @@ public class NotificationsController : ControllerBase
 	[Tags("Notifications")]
 	public async Task<ActionResult<object>> MarkAllAsRead(CancellationToken cancellationToken)
 	{
-		var userIdClaim = this.User.FindFirst("sub")?.Value;
-		if (!long.TryParse(userIdClaim, out var userId))
+		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
+		if (!userDbId.HasValue)
 			return this.Unauthorized();
 
-		var count = await this.notificationService.MarkAllAsReadAsync(userId, cancellationToken);
-
-		// Notify via SignalR
-		await this.hubContext.Clients.User(userId.ToString())
-			.SendAsync("AllNotificationsRead", cancellationToken);
+		var count = await this.notificationService.MarkAllAsReadAsync(userDbId.Value, cancellationToken);
 
 		return this.Ok(new { markedAsReadCount = count });
 	}
@@ -133,19 +122,24 @@ public class NotificationsController : ControllerBase
 		long id,
 		CancellationToken cancellationToken)
 	{
-		var userIdClaim = this.User.FindFirst("sub")?.Value;
-		if (!long.TryParse(userIdClaim, out var userId))
+		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
+		if (!userDbId.HasValue)
 			return this.Unauthorized();
 
-		var success = await this.notificationService.DeleteNotificationAsync(userId, id, cancellationToken);
+		var success = await this.notificationService.DeleteNotificationAsync(userDbId.Value, id, cancellationToken);
 		if (!success)
 			return this.NotFound();
 
-		// Notify via SignalR
-		await this.hubContext.Clients.User(userId.ToString())
-			.SendAsync("NotificationDeleted", id, cancellationToken);
-
 		return this.Ok();
+	}
+
+	private async Task<long?> GetCurrentUserDbIdAsync(CancellationToken cancellationToken)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		return await this.dbContext.Users
+			.WithIdentifier(userContext.UserId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync(cancellationToken);
 	}
 
 	/// <summary>

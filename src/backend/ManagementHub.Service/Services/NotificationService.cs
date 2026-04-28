@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Notification;
+using ManagementHub.Service.Hubs;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 using NotificationEntity = ManagementHub.Models.Data.Notification;
 
 namespace ManagementHub.Service.Services;
@@ -81,11 +83,16 @@ public interface INotificationService
 public class NotificationService : INotificationService
 {
 	private readonly ManagementHubDbContext dbContext;
+	private readonly IHubContext<NotificationsHub> hubContext;
 	private readonly ILogger<NotificationService> logger;
 
-	public NotificationService(ManagementHubDbContext dbContext, ILogger<NotificationService> logger)
+	public NotificationService(
+		ManagementHubDbContext dbContext,
+		IHubContext<NotificationsHub> hubContext,
+		ILogger<NotificationService> logger)
 	{
 		this.dbContext = dbContext;
+		this.hubContext = hubContext;
 		this.logger = logger;
 	}
 
@@ -121,6 +128,10 @@ public class NotificationService : INotificationService
 		this.dbContext.Notifications.Add(notification);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
+		await this.hubContext.Clients.Group($"user-{userId}")
+			.SendAsync("NotificationCreated", notification.UniqueId ?? notification.Id.ToString(), cancellationToken);
+		await this.PublishUnreadCountAsync(userId, cancellationToken);
+
 		this.logger.LogInformation(
 			"Created notification {NotificationId} for user {UserId} with type {Type}",
 			notification.UniqueId,
@@ -135,11 +146,41 @@ public class NotificationService : INotificationService
 		CancellationToken cancellationToken = default)
 	{
 		var notifications = await this.dbContext.Notifications
+			.AsNoTracking()
 			.Where(n => n.UserId == userId && !n.IsArchived)
 			.OrderByDescending(n => n.CreatedAt)
 			.ToListAsync(cancellationToken);
 
-		return notifications;
+		return notifications
+			.GroupBy(n => this.GetGroupKey(n))
+			.Select(g =>
+			{
+				var latest = g.OrderByDescending(n => n.CreatedAt).First();
+				if (g.Count() <= 1)
+					return latest;
+
+				return new NotificationEntity
+				{
+					Id = latest.Id,
+					UniqueId = latest.UniqueId,
+					UserId = latest.UserId,
+					Type = latest.Type,
+					GroupType = latest.GroupType,
+					Title = latest.Title,
+					Message = $"{g.Count()} similar notifications. Latest: {latest.Message}",
+					RelatedEntityId = latest.RelatedEntityId,
+					RelatedEntityType = latest.RelatedEntityType,
+					SecondaryEntityId = latest.SecondaryEntityId,
+					SecondaryEntityType = latest.SecondaryEntityType,
+					IsRead = g.All(n => n.IsRead),
+					IsArchived = latest.IsArchived,
+					CreatedAt = latest.CreatedAt,
+					ReadAt = latest.ReadAt,
+					ArchivedAt = latest.ArchivedAt,
+				};
+			})
+			.OrderByDescending(n => n.CreatedAt)
+			.ToList();
 	}
 
 	public async Task<int> GetUnreadCountAsync(
@@ -169,6 +210,10 @@ public class NotificationService : INotificationService
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
+		await this.hubContext.Clients.Group($"user-{userId}")
+			.SendAsync("NotificationRead", notification.UniqueId ?? notification.Id.ToString(), cancellationToken);
+		await this.PublishUnreadCountAsync(userId, cancellationToken);
+
 		this.logger.LogInformation(
 			"Marked notification {NotificationId} as read for user {UserId}",
 			notification.UniqueId,
@@ -192,6 +237,10 @@ public class NotificationService : INotificationService
 		}
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		await this.hubContext.Clients.Group($"user-{userId}")
+			.SendAsync("AllNotificationsRead", cancellationToken);
+		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
 			"Marked {Count} notifications as read for user {UserId}",
@@ -218,6 +267,10 @@ public class NotificationService : INotificationService
 		notification.ArchivedAt = DateTime.UtcNow;
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		await this.hubContext.Clients.Group($"user-{userId}")
+			.SendAsync("NotificationDeleted", notification.UniqueId ?? notification.Id.ToString(), cancellationToken);
+		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
 			"Archived notification {NotificationId} for user {UserId}",
@@ -247,5 +300,23 @@ public class NotificationService : INotificationService
 		this.logger.LogInformation(
 			"Archived {Count} notifications older than 30 days",
 			oldNotifications.Count);
+	}
+
+	private string GetGroupKey(NotificationEntity notification)
+	{
+		var groupType = (NotificationGroupType)notification.GroupType;
+		return groupType switch
+		{
+			NotificationGroupType.ByType => $"type:{notification.Type}",
+			NotificationGroupType.ByTypeAndEntity => $"type:{notification.Type};entity:{notification.RelatedEntityType}:{notification.RelatedEntityId}",
+			_ => $"none:{notification.Id}",
+		};
+	}
+
+	private async Task PublishUnreadCountAsync(long userId, CancellationToken cancellationToken)
+	{
+		var unreadCount = await this.GetUnreadCountAsync(userId, cancellationToken);
+		await this.hubContext.Clients.Group($"user-{userId}")
+			.SendAsync("UnreadCountChanged", unreadCount, cancellationToken);
 	}
 }
