@@ -3,8 +3,10 @@ import React, { useEffect, useState, lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Avatar from "./components/Avatar";
+import NotificationCenter from "./components/NotificationCenter/NotificationCenter";
 import Loader from "./components/Loader";
 import { useGetCurrentUserQuery } from "./store/serviceApi";
+import { useGetUnreadCountQuery } from "./store/notificationsApi";
 
 const PUBLIC_ROUTES = ["/privacy"];
 
@@ -16,7 +18,6 @@ const StartTest = lazy(() => import("./pages/StartTest"));
 const NgbProfile = lazy(() => import("./pages/NgbProfile"));
 const ImportWizard = lazy(() => import("./pages/ImportWizard"));
 const RefereeTests = lazy(() => import("./pages/RefereeTests"));
-const Settings = lazy(() => import("./pages/Settings"));
 const Tournament = lazy(() => import("./pages/Tournaments"));
 const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"));
 const TeamView = lazy(() => import("./pages/TeamView"));
@@ -25,6 +26,10 @@ const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
   const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery();
+  const { data: unread } = useGetUnreadCountQuery(undefined, {
+    skip: !currentUser,
+    pollingInterval: 15000,
+  });
   const roles = currentUser?.roles?.map(r => r.roleType);
 
   const ownedNgbIds = currentUser ? (() => {
@@ -65,12 +70,14 @@ const App = () => {
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
+          {currentUser && <NotificationCenter currentUserId={currentUser.userId} />}
           { currentUser && <Avatar
             firstName={currentUser.firstName}
             lastName={currentUser.lastName}
             roles={roles}
             userId={currentUser.userId}
             ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
+            unreadNotifications={unread?.unreadCount ?? 0}
             enabledFeatures={/* FUTURE: currentUser?.enabledFeatures when feature flags are implemented */ undefined}
             />}
         </div>

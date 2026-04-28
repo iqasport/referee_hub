@@ -149,7 +149,7 @@ public class NotificationsController : ControllerBase
 	{
 		return new NotificationViewModel
 		{
-			Id = notification.UniqueId ?? notification.Id.ToString(),
+			Id = notification.Id.ToString(),
 			Type = ((ManagementHub.Models.Domain.Notification.NotificationType)notification.Type).ToString(),
 			Title = notification.Title,
 			Message = notification.Message,

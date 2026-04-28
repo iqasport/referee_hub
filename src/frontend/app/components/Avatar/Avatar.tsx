@@ -1,6 +1,5 @@
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import axios from "axios";
 import React from "react";
 
 import DropdownMenu, { ItemConfig } from "../DropdownMenu/DropdownMenu";
@@ -13,11 +12,12 @@ interface AvatarProps {
   roles: string[];
   userId: string;
   ownedNgbId: number;
+  unreadNotifications: number;
   enabledFeatures: string[];
 }
 
 const Avatar = (props: AvatarProps) => {
-  const { firstName, lastName, roles, userId, ownedNgbId, enabledFeatures } = props;
+  const { firstName, lastName, roles, userId, ownedNgbId, unreadNotifications, enabledFeatures } = props;
 
   const navigate = useNavigate();
   const { data: managedTeams } = useGetManagedTeamsQuery();
@@ -29,10 +29,6 @@ const Avatar = (props: AvatarProps) => {
 
   const handleLogoutClick = () => {
     window.location.href = `${window.location.origin}/sign_out`;
-  };
-
-  const handleInviteClick = () => {
-    window.location.href = `${window.location.origin}/invitation`;
   };
 
   const handleRefProfileClick = () => {
@@ -61,6 +57,11 @@ const Avatar = (props: AvatarProps) => {
           {avatarUrl
             ? <img src={avatarUrl} alt={`Profile picture of ${firstName} ${lastName}`} className="rounded-full w-full h-full object-cover" />
             : `${firstLetter}${lastLetter}`}
+          {unreadNotifications > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
+              {unreadNotifications > 99 ? "99+" : unreadNotifications}
+            </span>
+          )}
         </span>
         <FontAwesomeIcon icon={faBars} className="text-white" />
       </button>
@@ -78,10 +79,6 @@ const Avatar = (props: AvatarProps) => {
   const ngbProfile: ItemConfig = {
     content: "NGB Profile",
     onClick: handleNgbProfileClick,
-  };
-  const invite: ItemConfig = {
-    content: "Invite NGB Admin",
-    onClick: handleInviteClick,
   };
   const logout: ItemConfig = {
     content: "Logout",
