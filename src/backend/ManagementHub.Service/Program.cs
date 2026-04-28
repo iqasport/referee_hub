@@ -138,6 +138,7 @@ public partial class Program
 
 		services.AddHostedService<EnsureMonthlyStatsSnapshot>();
 		services.AddHostedService<CleanupStaleGenderDataJob>();
+		services.AddHostedService<NotificationArchivalJob>();
 
 		services.Configure<GenderDataRetentionSettings>(
 			context.Configuration.GetSection("GenderDataRetention"));
