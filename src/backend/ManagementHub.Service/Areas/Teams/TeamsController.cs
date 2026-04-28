@@ -3,6 +3,7 @@ using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Notification;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
@@ -11,6 +12,7 @@ using ManagementHub.Service.Areas.Ngbs;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Service.Services;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Attachments;
 using ManagementHub.Storage.Collections;
@@ -35,6 +37,7 @@ public class TeamsController : ControllerBase
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand;
+	private readonly INotificationService notificationService;
 	private readonly ManagementHubDbContext dbContext;
 	private readonly IAttachmentRepository attachmentRepository;
 	private readonly IAccessFileCommand accessFileCommand;
@@ -45,6 +48,7 @@ public class TeamsController : ControllerBase
 		IUserContextAccessor contextAccessor,
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
 		IUpdateTeamManagerRoleCommand updateTeamManagerRoleCommand,
+		INotificationService notificationService,
 		ManagementHubDbContext dbContext,
 		IAttachmentRepository attachmentRepository,
 		IAccessFileCommand accessFileCommand)
@@ -54,6 +58,7 @@ public class TeamsController : ControllerBase
 		this.contextAccessor = contextAccessor;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.updateTeamManagerRoleCommand = updateTeamManagerRoleCommand;
+		this.notificationService = notificationService;
 		this.dbContext = dbContext;
 		this.attachmentRepository = attachmentRepository;
 		this.accessFileCommand = accessFileCommand;
@@ -416,6 +421,27 @@ public class TeamsController : ControllerBase
 			email,
 			createUserIfNotExists: false,
 			userContext.UserId);
+
+		if (result is IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole)
+		{
+			var userDbId = await this.dbContext.Users
+				.WithEmail(email)
+				.Select(u => (long?)u.Id)
+				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+			if (userDbId.HasValue)
+			{
+				await this.notificationService.CreateNotificationAsync(
+					userDbId.Value,
+					NotificationType.ManagerAssignment,
+					NotificationGroupType.ByTypeAndEntity,
+					"You were added as team manager",
+					$"You can now manage team {teamId}.",
+					teamId.ToString(),
+					"Team",
+					cancellationToken: this.HttpContext.RequestAborted);
+			}
+		}
 
 		return result switch
 		{

@@ -8,8 +8,10 @@ using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Domain.General;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.Notification;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
 using ManagementHub.Models.Enums;
@@ -18,6 +20,7 @@ using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Extensions;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Service.Services;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
@@ -45,6 +48,7 @@ public class TournamentsController : ControllerBase
 	private readonly IUserDelicateInfoService userDelicateInfoService;
 	private readonly ISendTournamentContactEmail sendTournamentContactEmail;
 	private readonly ISendTournamentInviteEmail sendTournamentInviteEmail;
+	private readonly INotificationService notificationService;
 	private readonly ManagementHubDbContext dbContext;
 	private readonly Microsoft.Extensions.Logging.ILogger<TournamentsController> logger;
 
@@ -57,6 +61,7 @@ public class TournamentsController : ControllerBase
 		IUserDelicateInfoService userDelicateInfoService,
 		ISendTournamentContactEmail sendTournamentContactEmail,
 		ISendTournamentInviteEmail sendTournamentInviteEmail,
+		INotificationService notificationService,
 		ManagementHubDbContext dbContext,
 		Microsoft.Extensions.Logging.ILogger<TournamentsController> logger)
 	{
@@ -68,6 +73,7 @@ public class TournamentsController : ControllerBase
 		this.userDelicateInfoService = userDelicateInfoService;
 		this.sendTournamentContactEmail = sendTournamentContactEmail;
 		this.sendTournamentInviteEmail = sendTournamentInviteEmail;
+		this.notificationService = notificationService;
 		this.dbContext = dbContext;
 		this.logger = logger;
 	}
@@ -325,6 +331,20 @@ public class TournamentsController : ControllerBase
 		await this.tournamentContextProvider.AddTournamentManagerAsync(
 			tournamentId, userId.Value, currentUser.UserId, this.HttpContext.RequestAborted);
 
+		var newManagerDbId = await this.ResolveUserDbIdAsync(userId.Value, this.HttpContext.RequestAborted);
+		if (newManagerDbId.HasValue)
+		{
+			await this.notificationService.CreateNotificationAsync(
+				newManagerDbId.Value,
+				NotificationType.ManagerAssignment,
+				NotificationGroupType.ByTypeAndEntity,
+				"You were added as tournament manager",
+				$"You can now manage tournament {tournamentId}.",
+				tournamentId.ToString(),
+				"Tournament",
+				cancellationToken: this.HttpContext.RequestAborted);
+		}
+
 		return this.Ok();
 	}
 
@@ -464,8 +484,13 @@ public class TournamentsController : ControllerBase
 			return validationError;
 		}
 
+		var isTournamentManager = userContext.Roles.OfType<TournamentManagerRole>()
+			.Any(r => r.Tournament.AppliesTo(tournamentId));
+		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>()
+			.Any(r => r.Team.AppliesTo(teamId));
+
 		// Check authorization
-		if (!this.IsAuthorizedToCreateInvite(userContext, tournamentId, teamId))
+		if (!isTournamentManager && !isTeamManager)
 		{
 			return this.Forbid();
 		}
@@ -521,6 +546,55 @@ public class TournamentsController : ControllerBase
 				// Log but don't fail the invite creation if email fails
 				// The invite is already created successfully
 				this.logger.LogError(ex, "Failed to send tournament invite email for tournament {TournamentId} to team {TeamId}", tournamentId, teamId);
+			}
+
+			if (isTournamentManager)
+			{
+				var teamManagers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
+				foreach (var manager in teamManagers.Where(m => !m.UserId.Equals(userContext.UserId)))
+				{
+					var managerDbId = await this.ResolveUserDbIdAsync(manager.UserId, this.HttpContext.RequestAborted);
+					if (!managerDbId.HasValue)
+					{
+						continue;
+					}
+
+					await this.notificationService.CreateNotificationAsync(
+						managerDbId.Value,
+						NotificationType.TournamentInvite,
+						NotificationGroupType.ByTypeAndEntity,
+						"Your team was invited",
+						$"{tournament.Name} invited your team to join.",
+						tournamentId.ToString(),
+						"Tournament",
+						teamId.ToString(),
+						"Team",
+						this.HttpContext.RequestAborted);
+				}
+			}
+			else
+			{
+				var tournamentManagers = await this.tournamentContextProvider.GetTournamentManagersAsync(tournamentId, this.HttpContext.RequestAborted);
+				foreach (var manager in tournamentManagers.Where(m => !m.UserId.Equals(userContext.UserId)))
+				{
+					var managerDbId = await this.ResolveUserDbIdAsync(manager.UserId, this.HttpContext.RequestAborted);
+					if (!managerDbId.HasValue)
+					{
+						continue;
+					}
+
+					await this.notificationService.CreateNotificationAsync(
+						managerDbId.Value,
+						NotificationType.TeamTournamentJoinRequest,
+						NotificationGroupType.ByTypeAndEntity,
+						"New team join request",
+						$"A team requested to join {tournament.Name}.",
+						tournamentId.ToString(),
+						"Tournament",
+						teamId.ToString(),
+						"Team",
+						this.HttpContext.RequestAborted);
+				}
 			}
 		}
 
@@ -647,6 +721,14 @@ public class TournamentsController : ControllerBase
 		};
 	}
 
+	private async Task<long?> ResolveUserDbIdAsync(UserIdentifier userId, CancellationToken cancellationToken)
+	{
+		return await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync(cancellationToken);
+	}
+
 	/// <summary>
 	/// Respond to a tournament invite.
 	/// </summary>
@@ -713,6 +795,55 @@ public class TournamentsController : ControllerBase
 			isTournamentManager,
 			response.Approved,
 			this.HttpContext.RequestAborted);
+
+		if (canApproveAsManager)
+		{
+			var teamManagers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
+			foreach (var manager in teamManagers.Where(m => !m.UserId.Equals(userContext.UserId)))
+			{
+				var managerDbId = await this.ResolveUserDbIdAsync(manager.UserId, this.HttpContext.RequestAborted);
+				if (!managerDbId.HasValue)
+				{
+					continue;
+				}
+
+				await this.notificationService.CreateNotificationAsync(
+					managerDbId.Value,
+					response.Approved ? NotificationType.RequestAccepted : NotificationType.RequestRejected,
+					NotificationGroupType.ByTypeAndEntity,
+					response.Approved ? "Join request approved" : "Join request rejected",
+					$"Your team's request for {tournament.Name} was {(response.Approved ? "approved" : "rejected")}.",
+					tournamentId.ToString(),
+					"Tournament",
+					teamId.ToString(),
+					"Team",
+					this.HttpContext.RequestAborted);
+			}
+		}
+		else if (canApproveAsParticipant)
+		{
+			var tournamentManagers = await this.tournamentContextProvider.GetTournamentManagersAsync(tournamentId, this.HttpContext.RequestAborted);
+			foreach (var manager in tournamentManagers.Where(m => !m.UserId.Equals(userContext.UserId)))
+			{
+				var managerDbId = await this.ResolveUserDbIdAsync(manager.UserId, this.HttpContext.RequestAborted);
+				if (!managerDbId.HasValue)
+				{
+					continue;
+				}
+
+				await this.notificationService.CreateNotificationAsync(
+					managerDbId.Value,
+					response.Approved ? NotificationType.InviteAccepted : NotificationType.InviteRejected,
+					NotificationGroupType.ByTypeAndEntity,
+					response.Approved ? "Tournament invite accepted" : "Tournament invite rejected",
+					$"Team {teamId} {(response.Approved ? "accepted" : "rejected")} the invite to {tournament.Name}.",
+					tournamentId.ToString(),
+					"Tournament",
+					teamId.ToString(),
+					"Team",
+					this.HttpContext.RequestAborted);
+			}
+		}
 
 		// Reload to check if fully approved
 		var updatedInvite = await this.tournamentContextProvider

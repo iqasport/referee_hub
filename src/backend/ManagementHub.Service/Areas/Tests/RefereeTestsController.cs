@@ -11,9 +11,14 @@ using ManagementHub.Processing.Domain.Tests.Policies.Eligibility;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Extensions;
+using ManagementHub.Service.Services;
+using ManagementHub.Models.Domain.Notification;
+using ManagementHub.Storage;
+using ManagementHub.Storage.Extensions;
 using ManagementHub.Storage.Database.Transactions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Tests;
 
@@ -33,6 +38,8 @@ public class RefereeTestsController : ControllerBase
 	private readonly ILogger logger;
 	private readonly ISaveSubmittedTestCommand saveSubmittedTestCommand;
 	private readonly IBackgroundJobClient backgroundJob;
+	private readonly INotificationService notificationService;
+	private readonly ManagementHubDbContext dbContext;
 
 	public RefereeTestsController(
 		IUserContextAccessor userContextAccessor,
@@ -42,7 +49,9 @@ public class RefereeTestsController : ControllerBase
 		IDatabaseTransactionProvider databaseTransactionProvider,
 		ILogger<RefereeTestsController> logger,
 		ISaveSubmittedTestCommand saveSubmittedTestCommand,
-		IBackgroundJobClient backgroundJob)
+		IBackgroundJobClient backgroundJob,
+		INotificationService notificationService,
+		ManagementHubDbContext dbContext)
 	{
 		this.userContextAccessor = userContextAccessor;
 		this.refereeContextAccessor = refereeContextAccessor;
@@ -52,6 +61,8 @@ public class RefereeTestsController : ControllerBase
 		this.logger = logger;
 		this.saveSubmittedTestCommand = saveSubmittedTestCommand;
 		this.backgroundJob = backgroundJob;
+		this.notificationService = notificationService;
+		this.dbContext = dbContext;
 	}
 
 	/// <summary>
@@ -267,6 +278,24 @@ public class RefereeTestsController : ControllerBase
 		var attemptId = testResult.Id;
 		var hostUri = this.GetHostBaseUri();
 		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(this.logger, cmd => cmd.SendTestFeedbackEmailAsync(attemptId, hostUri, false, CancellationToken.None));
+
+		var userDbId = await this.dbContext.Users
+			.WithIdentifier(user.UserId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (userDbId.HasValue)
+		{
+			await this.notificationService.CreateNotificationAsync(
+				userDbId.Value,
+				NotificationType.ExamResult,
+				NotificationGroupType.ByType,
+				"Exam result available",
+				$"Your result for {test.Title} is {score}% ({(passed ? "Passed" : "Failed")}).",
+				testId.ToString(),
+				"Test",
+				cancellationToken: this.HttpContext.RequestAborted);
+		}
 
 		return new RefereeTestSubmitResponse
 		{
