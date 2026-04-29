@@ -92,15 +92,17 @@ const NotificationCenter = ({ currentUserId }: Props) => {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="relative text-white hover:text-gray-200"
+        className="text-white hover:text-gray-200"
         aria-label="Open notifications"
       >
-        <FontAwesomeIcon icon={faBell} className="text-lg" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
-        )}
+        <span className="relative inline-flex">
+          <FontAwesomeIcon icon={faBell} className="text-lg" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 translate-x-1/3 -translate-y-1/3 bg-red-600 text-white text-xs font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </span>
       </button>
 
       {open && (
