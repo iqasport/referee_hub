@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -31,7 +32,7 @@ public class NotificationsHub : Hub
 	/// </summary>
 	public override async Task OnConnectedAsync()
 	{
-		var userId = this.Context.User?.FindFirst("sub")?.Value;
+		var userId = this.Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 		if (userId is null)
 		{
 			this.logger.LogWarning("Notification hub connection attempted without valid userId");
@@ -54,7 +55,7 @@ public class NotificationsHub : Hub
 	/// </summary>
 	public override async Task OnDisconnectedAsync(Exception? exception)
 	{
-		var userId = this.Context.User?.FindFirst("sub")?.Value;
+		var userId = this.Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 		this.logger.LogInformation(
 			"User {UserId} disconnected from notifications hub. ConnectionId: {ConnectionId}",
 			userId,

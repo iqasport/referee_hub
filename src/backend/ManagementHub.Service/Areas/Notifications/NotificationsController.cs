@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ManagementHub.Models.Domain.Notification;
 using ManagementHub.Service.Services;
 using ManagementHub.Service.ViewModels;
 using ManagementHub.Service.Contexts;
@@ -49,8 +50,11 @@ public class NotificationsController : ControllerBase
 
 		var notifications = await this.notificationService.GetActiveNotificationsAsync(userDbId.Value, cancellationToken);
 		var unreadCount = await this.notificationService.GetUnreadCountAsync(userDbId.Value, cancellationToken);
+		var tournamentNamesById = await this.GetTournamentNamesByIdAsync(notifications, cancellationToken);
 
-		var viewModels = notifications.Select(MapToViewModel).ToList();
+		var viewModels = notifications
+			.Select(notification => this.MapToViewModel(notification, tournamentNamesById))
+			.ToList();
 
 		return this.Ok(new NotificationListResponse
 		{
@@ -92,7 +96,8 @@ public class NotificationsController : ControllerBase
 		if (notification is null)
 			return this.NotFound();
 
-		var viewModel = MapToViewModel(notification);
+		var tournamentNamesById = await this.GetTournamentNamesByIdAsync(new[] { notification }, cancellationToken);
+		var viewModel = this.MapToViewModel(notification, tournamentNamesById);
 
 		return this.Ok(viewModel);
 	}
@@ -145,14 +150,49 @@ public class NotificationsController : ControllerBase
 	/// <summary>
 	/// Maps Notification entity to ViewModel.
 	/// </summary>
-	private static NotificationViewModel MapToViewModel(ManagementHub.Models.Data.Notification notification)
+	private async Task<Dictionary<string, string>> GetTournamentNamesByIdAsync(
+		IEnumerable<ManagementHub.Models.Data.Notification> notifications,
+		CancellationToken cancellationToken)
 	{
+		var tournamentIds = notifications
+			.Where(n => n.Type == (int)NotificationType.ManagerAssignment)
+			.Where(n => string.Equals(n.RelatedEntityType, "Tournament", StringComparison.Ordinal))
+			.Select(n => n.RelatedEntityId)
+			.Where(id => !string.IsNullOrWhiteSpace(id))
+			.Select(id => id!)
+			.Distinct()
+			.ToList();
+
+		if (tournamentIds.Count == 0)
+		{
+			return new Dictionary<string, string>();
+		}
+
+		return await this.dbContext.Tournaments
+			.Where(t => t.UniqueId != null && tournamentIds.Contains(t.UniqueId))
+			.Select(t => new { t.UniqueId, t.Name })
+			.ToDictionaryAsync(t => t.UniqueId!, t => t.Name, cancellationToken);
+	}
+
+	private NotificationViewModel MapToViewModel(
+		ManagementHub.Models.Data.Notification notification,
+		IReadOnlyDictionary<string, string> tournamentNamesById)
+	{
+		var message = notification.Message;
+		if (notification.Type == (int)NotificationType.ManagerAssignment
+			&& string.Equals(notification.RelatedEntityType, "Tournament", StringComparison.Ordinal)
+			&& !string.IsNullOrWhiteSpace(notification.RelatedEntityId)
+			&& tournamentNamesById.TryGetValue(notification.RelatedEntityId, out var tournamentName))
+		{
+			message = $"You can now manage tournament {tournamentName}.";
+		}
+
 		return new NotificationViewModel
 		{
 			Id = notification.Id.ToString(),
 			Type = ((ManagementHub.Models.Domain.Notification.NotificationType)notification.Type).ToString(),
 			Title = notification.Title,
-			Message = notification.Message,
+			Message = message,
 			RelatedEntityId = notification.RelatedEntityId,
 			RelatedEntityType = notification.RelatedEntityType,
 			SecondaryEntityId = notification.SecondaryEntityId,

@@ -22,6 +22,7 @@ const Tournament = lazy(() => import("./pages/Tournaments"));
 const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"));
 const TeamView = lazy(() => import("./pages/TeamView"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
+const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
@@ -60,13 +61,17 @@ const App = () => {
     }
   }, [currentUser, roles]);
 
-  if (currentUser) Bugsnag.setUser(currentUser.userId);
+  useEffect(() => {
+    if (bugsnagEnabled && currentUser) {
+      Bugsnag.setUser(currentUser.userId);
+    }
+  }, [currentUser]);
 
   if (isLoading === true) return <Loader />;
 
   return (
   <Suspense fallback={<Loader />}>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
@@ -77,7 +82,6 @@ const App = () => {
             roles={roles}
             userId={currentUser.userId}
             ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
-            unreadNotifications={unread?.unreadCount ?? 0}
             enabledFeatures={/* FUTURE: currentUser?.enabledFeatures when feature flags are implemented */ undefined}
             />}
         </div>

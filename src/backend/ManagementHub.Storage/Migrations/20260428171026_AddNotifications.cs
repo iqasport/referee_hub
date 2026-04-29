@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,20 +16,20 @@ namespace ManagementHub.Storage.Migrations
                 name: "notifications",
                 columns: table => new
                 {
-                    id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     unique_id = table.Column<string>(type: "character varying", nullable: true),
-                    user_id = table.Column<long>(type: "INTEGER", nullable: false),
-                    type = table.Column<int>(type: "INTEGER", nullable: false),
-                    group_type = table.Column<int>(type: "INTEGER", nullable: false),
+                    user_id = table.Column<long>(type: "bigint", nullable: false),
+                    type = table.Column<int>(type: "integer", nullable: false),
+                    group_type = table.Column<int>(type: "integer", nullable: false),
                     title = table.Column<string>(type: "character varying", nullable: false),
                     message = table.Column<string>(type: "text", nullable: false),
                     related_entity_id = table.Column<string>(type: "character varying", nullable: true),
                     related_entity_type = table.Column<string>(type: "character varying", nullable: true),
                     secondary_entity_id = table.Column<string>(type: "character varying", nullable: true),
                     secondary_entity_type = table.Column<string>(type: "character varying", nullable: true),
-                    is_read = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    is_archived = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    is_read = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    is_archived = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     read_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     archived_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)

@@ -12,7 +12,7 @@ interface AvatarProps {
   roles: string[];
   userId: string;
   ownedNgbId: number;
-  unreadNotifications: number;
+  unreadNotifications?: number;
   enabledFeatures: string[];
 }
 

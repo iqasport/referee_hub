@@ -108,26 +108,42 @@ const NotificationCenter = ({ currentUserId }: Props) => {
           <button
             type="button"
             className="fixed inset-0"
+            style={{ zIndex: 2999 }}
             onClick={() => setOpen(false)}
             aria-label="Close notifications"
           />
-          <div className="absolute right-0 mt-3 w-96 bg-white text-black rounded shadow-xl z-10 max-h-[70vh] overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <h3 className="font-semibold">Notifications</h3>
-              <button
-                type="button"
-                onClick={handleMarkAllRead}
-                className="text-sm text-blue-700 hover:text-blue-900"
-              >
-                Mark all read
-              </button>
+          <div
+            className="absolute right-0 mt-2 bg-white text-black rounded-lg shadow-2xl max-h-80 overflow-hidden border border-gray-200"
+            style={{
+              width: "min(24rem, calc(100vw - 1rem))",
+              minWidth: "20rem",
+              zIndex: 3000,
+            }}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllRead}
+                  className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+                >
+                  Mark all read
+                </button>
+              )}
             </div>
 
-            <div className="overflow-y-auto max-h-[60vh]">
-              {isLoading && <p className="px-4 py-3 text-sm">Loading notifications...</p>}
+            <div className="overflow-y-auto max-h-64">
+              {isLoading && (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-xs text-gray-500">Loading...</p>
+                </div>
+              )}
 
               {!isLoading && notifications.length === 0 && (
-                <p className="px-4 py-8 text-sm text-gray-600">You are all caught up.</p>
+                <div className="px-4 py-8 text-center">
+                  <p className="text-xs text-gray-500">You are all caught up.</p>
+                </div>
               )}
 
               {!isLoading && notifications.map((item) => (
@@ -135,21 +151,25 @@ const NotificationCenter = ({ currentUserId }: Props) => {
                   type="button"
                   key={item.id}
                   onClick={() => navigateFromNotification(item)}
-                  className={`w-full text-left px-4 py-3 border-b hover:bg-gray-50 ${item.isRead ? "opacity-70" : "bg-blue-50"}`}
+                  className={`w-full text-left px-4 py-2 border-b border-gray-100 transition-colors text-xs ${
+                    item.isRead
+                      ? "bg-white hover:bg-gray-50"
+                      : "bg-blue-50 hover:bg-blue-100"
+                  }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-sm">{item.title}</p>
-                      <p className="text-sm text-gray-700">{item.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{formatDate(item.createdAt)}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 line-clamp-1">{item.title}</p>
+                      <p className="text-gray-600 line-clamp-2 leading-tight mt-0.5">{item.message}</p>
+                      <p className="text-gray-400 mt-1">{formatDate(item.createdAt)}</p>
                     </div>
                     <button
                       type="button"
                       onClick={(event) => handleDelete(event, item.id)}
-                      className="text-gray-500 hover:text-red-600"
+                      className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors mt-0.5"
                       aria-label="Delete notification"
                     >
-                      <FontAwesomeIcon icon={faTrashCan} />
+                      <FontAwesomeIcon icon={faTrashCan} className="text-xs" />
                     </button>
                   </div>
                 </button>
