@@ -603,10 +603,19 @@ public class TournamentsController : ControllerBase
 		}
 		catch (Exception ex)
 		{
+			var safeTournamentId = tournamentId
+				.ToString()
+				.Replace("\r", string.Empty)
+				.Replace("\n", string.Empty);
+			var safeTeamId = teamId
+				.ToString()
+				.Replace("\r", string.Empty)
+				.Replace("\n", string.Empty);
+
 			this.logger.LogError(ex,
 				"Failed to send tournament invite email for tournament {TournamentId} to team {TeamId}",
-				tournamentId,
-				teamId);
+				safeTournamentId,
+				safeTeamId);
 		}
 	}
 
