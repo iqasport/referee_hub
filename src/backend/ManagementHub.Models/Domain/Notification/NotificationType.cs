@@ -15,4 +15,5 @@ public enum NotificationType
 	RequestRejected,
 	TeamApprovalNeeded,
 	NgbApprovalNeeded,
+	RosterRegistration,
 }

@@ -1105,6 +1105,14 @@ public class TournamentsController : ControllerBase
 			return this.BadRequest(new { error = "Cannot modify roster of archived tournament" });
 		}
 
+		var existingRosterEntries = (await this.dbContext.TournamentTeamParticipants
+			.Where(p => p.TeamId == teamId.Id && p.Tournament.UniqueId == tournamentId.ToString())
+			.SelectMany(p => p.RosterEntries)
+			.Select(e => new { e.UserId, e.Role })
+			.ToListAsync(this.HttpContext.RequestAborted))
+			.Select(e => (e.UserId, e.Role))
+			.ToHashSet();
+
 		// Convert to domain models
 		var players = model.Players.Select(p => new RosterPlayerData
 		{
@@ -1160,6 +1168,13 @@ public class TournamentsController : ControllerBase
 		{
 			return this.BadRequest(new { error = ex.Message });
 		}
+
+		await this.NotifyNewRosterRegistrationsAsync(
+			tournamentId,
+			teamId,
+			tournament.Name,
+			model,
+			existingRosterEntries);
 
 		return this.Ok();
 	}
@@ -1266,6 +1281,81 @@ public class TournamentsController : ControllerBase
 	}
 
 	// Helper methods
+
+	private async Task NotifyNewRosterRegistrationsAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		UpdateRosterModel model,
+		HashSet<(long UserId, RosterRole Role)> existingRosterEntries)
+	{
+		var requestedEntries = model.Players
+			.Select(p => (p.UserId, Role: RosterRole.Player))
+			.Concat(model.Coaches.Select(c => (c.UserId, Role: RosterRole.Coach)))
+			.Concat(model.Staff.Select(s => (s.UserId, Role: RosterRole.Staff)))
+			.ToList();
+
+		if (!requestedEntries.Any())
+		{
+			return;
+		}
+
+		var requestedUserIds = requestedEntries
+			.Select(e => e.UserId)
+			.Distinct()
+			.ToList();
+
+		var userMappings = await this.dbContext.Users
+			.WithIdentifiers(requestedUserIds)
+			.Select(u => new
+			{
+				DbId = u.Id,
+				Identifier = u.UniqueId != null
+					? UserIdentifier.Parse(u.UniqueId)
+					: UserIdentifier.FromLegacyUserId(u.Id)
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var userIdToDbId = userMappings.ToDictionary(m => m.Identifier, m => m.DbId);
+
+		var newlyAddedEntries = requestedEntries
+			.Where(e => userIdToDbId.TryGetValue(e.UserId, out var dbId)
+				&& !existingRosterEntries.Contains((dbId, e.Role)))
+			.Select(e => new
+			{
+				UserId = userIdToDbId[e.UserId],
+				e.Role,
+			})
+			.Distinct()
+			.ToList();
+
+		foreach (var entry in newlyAddedEntries)
+		{
+			var roleName = GetRosterRoleDisplayName(entry.Role);
+			await this.notificationService.CreateNotificationAsync(
+				entry.UserId,
+				NotificationType.RosterRegistration,
+				NotificationGroupType.ByTypeAndEntity,
+				"Tournament roster registration",
+				$"You have been signed up to {tournamentName} as {roleName}.",
+				tournamentId.ToString(),
+				"Tournament",
+				teamId.ToString(),
+				"Team",
+				this.HttpContext.RequestAborted);
+		}
+	}
+
+	private static string GetRosterRoleDisplayName(RosterRole role)
+	{
+		return role switch
+		{
+			RosterRole.Player => "player",
+			RosterRole.Coach => "coach",
+			RosterRole.Staff => "staff",
+			_ => "participant",
+		};
+	}
 
 	private async Task<Dictionary<UserIdentifier, string?>> GetAccessibleGenderDataAsync(
 		List<UserIdentifier> userIds,

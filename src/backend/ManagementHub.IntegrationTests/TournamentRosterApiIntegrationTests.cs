@@ -458,6 +458,69 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		tournament.GetProperty("name").GetString().Should().Be("Private Tournament");
 	}
 
+	[Fact]
+	public async Task UpdateRoster_NewEntries_ShouldCreateRosterRegistrationNotificationsWithRoleSpecificMessages()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Notification Role Test", TournamentType.Club, "USA", "NYC");
+
+		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
+		var participantId = await this.AddTeamToTournamentAsync(tournamentId, yankeesTeamId);
+
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+
+		var sarahPlayerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
+		var mikeCoachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
+
+		var updateRosterModel = new UpdateRosterDto
+		{
+			Players = new List<RosterPlayerDto>
+			{
+				new RosterPlayerDto { UserId = sarahPlayerId.ToString(), Number = "11", Gender = "Female" }
+			},
+			Coaches = new List<RosterStaffDto>
+			{
+				new RosterStaffDto { UserId = mikeCoachId.ToString() }
+			},
+			Staff = new List<RosterStaffDto>()
+		};
+
+		var updateResponse = await this._client.PutAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
+			updateRosterModel);
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "sarah.player@example.com", "password");
+		var sarahNotificationsResponse = await this._client.GetAsync("/api/v2/notifications");
+		sarahNotificationsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var sarahNotificationsJson = await sarahNotificationsResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var sarahNotifications = sarahNotificationsJson.GetProperty("notifications").EnumerateArray().ToList();
+
+		var playerNotification = sarahNotifications.FirstOrDefault(n =>
+			n.TryGetProperty("type", out var type) && type.GetString() == "RosterRegistration" &&
+			n.TryGetProperty("relatedEntityId", out var relatedEntityId) && relatedEntityId.GetString() == tournamentId &&
+			n.TryGetProperty("message", out var message) && message.GetString() == "You have been signed up to Notification Role Test as player.");
+
+		playerNotification.ValueKind.Should().NotBe(JsonValueKind.Undefined,
+			"player should receive roster registration notification with player role message");
+
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "mike.coach@example.com", "password");
+		var mikeNotificationsResponse = await this._client.GetAsync("/api/v2/notifications");
+		mikeNotificationsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var mikeNotificationsJson = await mikeNotificationsResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var mikeNotifications = mikeNotificationsJson.GetProperty("notifications").EnumerateArray().ToList();
+
+		var coachNotification = mikeNotifications.FirstOrDefault(n =>
+			n.TryGetProperty("type", out var type) && type.GetString() == "RosterRegistration" &&
+			n.TryGetProperty("relatedEntityId", out var relatedEntityId) && relatedEntityId.GetString() == tournamentId &&
+			n.TryGetProperty("message", out var message) && message.GetString() == "You have been signed up to Notification Role Test as coach.");
+
+		coachNotification.ValueKind.Should().NotBe(JsonValueKind.Undefined,
+			"coach should receive roster registration notification with coach role message");
+	}
+
 	// Helper methods
 	private async Task<string> CreateTestTournamentAsync(
 		string name,
