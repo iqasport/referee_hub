@@ -48,7 +48,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		tournamentId.Should().StartWith("TR_", "tournament ID should have TR_ prefix");
 
 		// Step 3: Get tournaments and check the tournament is there
-		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
+		var listResponse = await this._client.GetAsync("/api/v2/tournaments?SkipPaging=true");
 
 		if (listResponse.StatusCode != HttpStatusCode.OK)
 		{
@@ -122,7 +122,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var tournamentId = await this.CreateTestTournamentAsync("Private Tournament", TournamentType.Club, "Private Country", "Private City", isPrivate: true, place: "Private Place");
 
 		// Verify it appears in the list (since creator is a manager)
-		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
+		var listResponse = await this._client.GetAsync("/api/v2/tournaments?SkipPaging=true");
 		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		var tournaments = tournamentsResponse!.Items.ToList();
 		tournaments.Should().Contain(t => t.Id == tournamentId,
@@ -137,7 +137,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
 		// Verify private tournament is NOT in the list for other user
-		var otherListResponse = await this._client.GetAsync("/api/v2/tournaments");
+		var otherListResponse = await this._client.GetAsync("/api/v2/tournaments?SkipPaging=true");
 		var otherTournamentsResponse = await otherListResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		var otherTournaments = otherTournamentsResponse!.Items.ToList();
 		otherTournaments.Should().NotContain(t => t.Id == tournamentId,
