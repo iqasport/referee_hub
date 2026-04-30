@@ -63,12 +63,6 @@ public class PublicTournamentsController : ControllerBase
 	public async Task<ActionResult<object>> GetPublicTournamentById([FromRoute] string tournamentId)
 	{
 		var snapshot = await this.GetSnapshotOrDefaultAsync();
-		this.ApplyCacheHeaders(snapshot.UpdatedAt);
-
-		if (this.Request.Headers.IfNoneMatch == this.Response.Headers.ETag)
-		{
-			return this.StatusCode(StatusCodes.Status304NotModified);
-		}
 
 		var tournament = snapshot.Payload.Tournaments.FirstOrDefault(t =>
 			string.Equals(t.Id, tournamentId, StringComparison.OrdinalIgnoreCase));
@@ -76,6 +70,13 @@ public class PublicTournamentsController : ControllerBase
 		if (tournament == null)
 		{
 			throw new NotFoundException(tournamentId);
+		}
+
+		this.ApplyCacheHeaders(snapshot.UpdatedAt, tournamentId);
+
+		if (this.Request.Headers.IfNoneMatch == this.Response.Headers.ETag)
+		{
+			return this.StatusCode(StatusCodes.Status304NotModified);
 		}
 
 		return this.Ok(tournament);
@@ -119,10 +120,14 @@ public class PublicTournamentsController : ControllerBase
 			.SingleOrDefaultAsync(s => s.Key == RefreshPublicTournamentSnapshotCommand.SnapshotKey, this.HttpContext.RequestAborted);
 	}
 
-	private void ApplyCacheHeaders(DateTime updatedAt)
+	private void ApplyCacheHeaders(DateTime updatedAt, string? scope = null)
 	{
+		var suffix = string.IsNullOrWhiteSpace(scope)
+			? ""
+			: $"-{scope.ToLowerInvariant()}";
+
 		this.Response.Headers.CacheControl = "public,max-age=300,s-maxage=86400,stale-while-revalidate=600";
-		this.Response.Headers.ETag = $"W/\"public-tournaments-{updatedAt.ToFileTimeUtc()}\"";
+		this.Response.Headers.ETag = $"W/\"public-tournaments{suffix}-{updatedAt.ToFileTimeUtc()}\"";
 		this.Response.Headers.LastModified = updatedAt.ToUniversalTime().ToString("R");
 	}
 }
