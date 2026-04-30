@@ -219,6 +219,71 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 	}
 
 	[Fact]
+	public async Task PublicTournaments_AnonymousAccess_ShouldReturnOnlyPublicTournaments()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var publicTournamentId = await this.CreateTestTournamentAsync(
+			"Public Calendar Tournament",
+			TournamentType.Club,
+			"France",
+			"Paris",
+			isPrivate: false);
+
+		var privateTournamentId = await this.CreateTestTournamentAsync(
+			"Private Hidden Tournament",
+			TournamentType.Club,
+			"France",
+			"Lyon",
+			isPrivate: true);
+
+		this._client.DefaultRequestHeaders.Authorization = null;
+
+		var listResponse = await this._client.GetAsync("/api/v2/public/tournaments");
+		listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		listResponse.Headers.CacheControl.Should().NotBeNull();
+		listResponse.Headers.CacheControl!.Public.Should().BeTrue();
+
+		var tournaments = await listResponse.Content.ReadFromJsonAsync<List<PublicTournamentViewModelDto>>();
+		tournaments.Should().NotBeNull();
+		tournaments!.Select(t => t.Id).Should().Contain(publicTournamentId);
+		tournaments!.Select(t => t.Id).Should().NotContain(privateTournamentId);
+	}
+
+	[Fact]
+	public async Task PublicTournamentDetails_AnonymousAccess_ShouldReturnPublicAndHidePrivate()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var publicTournamentId = await this.CreateTestTournamentAsync(
+			"Public Details Tournament",
+			TournamentType.Club,
+			"USA",
+			"Austin",
+			isPrivate: false);
+
+		var privateTournamentId = await this.CreateTestTournamentAsync(
+			"Private Details Tournament",
+			TournamentType.Club,
+			"USA",
+			"Dallas",
+			isPrivate: true);
+
+		this._client.DefaultRequestHeaders.Authorization = null;
+
+		var publicResponse = await this._client.GetAsync($"/api/v2/public/tournaments/{publicTournamentId}");
+		publicResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var publicTournament = await publicResponse.Content.ReadFromJsonAsync<PublicTournamentViewModelDto>();
+		publicTournament.Should().NotBeNull();
+		publicTournament!.Id.Should().Be(publicTournamentId);
+
+		var privateResponse = await this._client.GetAsync($"/api/v2/public/tournaments/{privateTournamentId}");
+		privateResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+	}
+
+	[Fact]
 	public async Task AddTournamentManager_WithInvalidEmail_ShouldReturnBadRequest()
 	{
 		// Sign in and create a tournament
