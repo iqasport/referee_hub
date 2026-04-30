@@ -13,6 +13,10 @@ using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage;
+using ManagementHub.Storage.Commands.Tournament;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ManagementHub.IntegrationTests;
@@ -281,6 +285,41 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 
 		var privateResponse = await this._client.GetAsync($"/api/v2/public/tournaments/{privateTournamentId}");
 		privateResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+	}
+
+	[Fact]
+	public async Task PublicTournaments_WhenSnapshotMissing_ShouldGenerateFallbackSnapshot()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var publicTournamentId = await this.CreateTestTournamentAsync(
+			"Public Tournament For Snapshot Fallback",
+			TournamentType.Club,
+			"Canada",
+			"Toronto",
+			isPrivate: false);
+
+		using (var scope = this._factory.Services.CreateScope())
+		{
+			var dbContext = scope.ServiceProvider.GetRequiredService<ManagementHubDbContext>();
+			var existingSnapshot = await dbContext.PublicTournamentSnapshots
+				.SingleOrDefaultAsync(s => s.Key == RefreshPublicTournamentSnapshotCommand.SnapshotKey);
+
+			if (existingSnapshot != null)
+			{
+				dbContext.PublicTournamentSnapshots.Remove(existingSnapshot);
+				await dbContext.SaveChangesAsync();
+			}
+		}
+
+		this._client.DefaultRequestHeaders.Authorization = null;
+
+		var listResponse = await this._client.GetAsync("/api/v2/public/tournaments");
+		listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var tournaments = await listResponse.Content.ReadFromJsonAsync<List<PublicTournamentViewModelDto>>();
+		tournaments.Should().NotBeNull();
+		tournaments!.Select(t => t.Id).Should().Contain(publicTournamentId);
 	}
 
 	[Fact]

@@ -2,14 +2,16 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Data;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage;
-using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Storage.Commands.Tournament;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ManagementHub.Service.Areas.Tournaments;
 
@@ -26,13 +28,16 @@ public class PublicTournamentsController : ControllerBase
 
 	private readonly ManagementHubDbContext dbContext;
 	private readonly IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand;
+	private readonly ILogger<PublicTournamentsController> logger;
 
 	public PublicTournamentsController(
 		ManagementHubDbContext dbContext,
-		IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand)
+		IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand,
+		ILogger<PublicTournamentsController> logger)
 	{
 		this.dbContext = dbContext;
 		this.refreshPublicTournamentSnapshotCommand = refreshPublicTournamentSnapshotCommand;
+		this.logger = logger;
 	}
 
 	[HttpGet]
@@ -82,6 +87,7 @@ public class PublicTournamentsController : ControllerBase
 
 		if (row == null)
 		{
+			this.logger.LogInformation("Public tournament snapshot was missing; triggering one-time refresh fallback.");
 			await this.refreshPublicTournamentSnapshotCommand.RefreshPublicTournamentSnapshot(this.HttpContext.RequestAborted);
 			row = await this.TryGetSnapshotRowAsync();
 		}
@@ -106,7 +112,7 @@ public class PublicTournamentsController : ControllerBase
 		}, row.UpdatedAt);
 	}
 
-	private Task<Models.Data.PublicTournamentSnapshot?> TryGetSnapshotRowAsync()
+	private Task<PublicTournamentSnapshot?> TryGetSnapshotRowAsync()
 	{
 		return this.dbContext.PublicTournamentSnapshots
 			.AsNoTracking()
