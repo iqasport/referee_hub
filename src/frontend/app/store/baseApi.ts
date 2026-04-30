@@ -1,7 +1,31 @@
 import { FetchArgs, createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
 
+const PUBLIC_TOURNAMENT_ROUTE_PATTERN = /^\/tournaments(?:\/[^/]+)?$/;
+
+function isPublicTournamentRoute(): boolean {
+  return PUBLIC_TOURNAMENT_ROUTE_PATTERN.test(window.location.pathname);
+}
+
+function isCurrentUserEndpoint(args: string | FetchArgs): boolean {
+  if (typeof args === "string") {
+    return args.startsWith("/api/v2/Users/me");
+  }
+
+  return typeof args.url === "string" && args.url.startsWith("/api/v2/Users/me");
+}
+
 /** if the query URL contains impersonate query we forward it with the API calls */
 const fetchWithImpersonationQuery = (fetchFn: ReturnType<typeof fetchBaseQuery>) => (args: string | FetchArgs, api, extraOptions) => {
+  // Public tournament pages are anonymous-capable and should never hit Users/me.
+  if (isPublicTournamentRoute() && isCurrentUserEndpoint(args)) {
+    return Promise.resolve({
+      error: {
+        data: { message: "Users/me skipped on public tournament route" },
+        status: 401,
+      },
+    });
+  }
+
   const impersonateKey = "impersonate";
   const impersonate = new URLSearchParams(location.search).get(impersonateKey);
   if (impersonate) {
