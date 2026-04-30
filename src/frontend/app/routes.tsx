@@ -66,6 +66,14 @@ const App = () => {
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
+          {!currentUser && (
+            <a
+              href="/sign_in"
+              className="inline-flex items-center px-4 py-2 mr-4 text-sm font-semibold rounded bg-white text-navy-blue hover:bg-gray-100"
+            >
+              Sign In
+            </a>
+          )}
           { currentUser && <Avatar
             firstName={currentUser.firstName}
             lastName={currentUser.lastName}

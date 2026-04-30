@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage;
+using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Storage.Commands.Tournament;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -24,10 +25,14 @@ public class PublicTournamentsController : ControllerBase
 	};
 
 	private readonly ManagementHubDbContext dbContext;
+	private readonly IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand;
 
-	public PublicTournamentsController(ManagementHubDbContext dbContext)
+	public PublicTournamentsController(
+		ManagementHubDbContext dbContext,
+		IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand)
 	{
 		this.dbContext = dbContext;
+		this.refreshPublicTournamentSnapshotCommand = refreshPublicTournamentSnapshotCommand;
 	}
 
 	[HttpGet]
@@ -73,9 +78,13 @@ public class PublicTournamentsController : ControllerBase
 
 	private async Task<(Models.Domain.Tournament.PublicTournamentSnapshotPayload Payload, DateTime UpdatedAt)> GetSnapshotOrDefaultAsync()
 	{
-		var row = await this.dbContext.PublicTournamentSnapshots
-			.AsNoTracking()
-			.SingleOrDefaultAsync(s => s.Key == RefreshPublicTournamentSnapshotCommand.SnapshotKey, this.HttpContext.RequestAborted);
+		var row = await this.TryGetSnapshotRowAsync();
+
+		if (row == null)
+		{
+			await this.refreshPublicTournamentSnapshotCommand.RefreshPublicTournamentSnapshot(this.HttpContext.RequestAborted);
+			row = await this.TryGetSnapshotRowAsync();
+		}
 
 		if (row == null)
 		{
@@ -95,6 +104,13 @@ public class PublicTournamentsController : ControllerBase
 			GeneratedAtUtc = row.UpdatedAt,
 			Tournaments = Array.Empty<Models.Domain.Tournament.PublicTournamentSnapshotTournament>(),
 		}, row.UpdatedAt);
+	}
+
+	private Task<Models.Data.PublicTournamentSnapshot?> TryGetSnapshotRowAsync()
+	{
+		return this.dbContext.PublicTournamentSnapshots
+			.AsNoTracking()
+			.SingleOrDefaultAsync(s => s.Key == RefreshPublicTournamentSnapshotCommand.SnapshotKey, this.HttpContext.RequestAborted);
 	}
 
 	private void ApplyCacheHeaders(DateTime updatedAt)
