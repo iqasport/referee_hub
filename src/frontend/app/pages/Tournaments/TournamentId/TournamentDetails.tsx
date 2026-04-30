@@ -16,6 +16,7 @@ import {
 } from "./components";
 import {
   useGetTournamentQuery,
+  useGetPublicTournamentQuery,
   useGetTournamentManagersQuery,
   useGetCurrentUserQuery,
   useGetTournamentInvitesQuery,
@@ -40,14 +41,41 @@ const TournamentDetails = () => {
   const { alertState, showAlert, hideAlert } = useAlert();
 
   const {
-    data: tournament,
-    isLoading,
-    isError,
-  } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
-  const { data: currentUser } = useGetCurrentUserQuery();
+    data: currentUser,
+    isLoading: isCurrentUserLoading,
+    isError: isCurrentUserError,
+  } = useGetCurrentUserQuery();
+  const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
+  const shouldUseAuthenticatedTournamentQuery = !isCurrentUserLoading && !isAnonymous;
+
+  const {
+    data: authenticatedTournament,
+    isLoading: isLoadingAuthenticatedTournament,
+    isError: isAuthenticatedTournamentError,
+  } = useGetTournamentQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !tournamentId || !shouldUseAuthenticatedTournamentQuery }
+  );
+
+  const {
+    data: publicTournament,
+    isLoading: isLoadingPublicTournament,
+    isError: isPublicTournamentError,
+  } = useGetPublicTournamentQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !tournamentId || !isAnonymous }
+  );
+
+  const tournament = isAnonymous
+    ? (publicTournament ? { ...publicTournament, isCurrentUserInvolved: false } : undefined)
+    : authenticatedTournament;
+  const isLoading = isCurrentUserLoading || isLoadingAuthenticatedTournament || isLoadingPublicTournament;
+  const isError = isAnonymous ? isPublicTournamentError : isAuthenticatedTournamentError;
 
   // Use the new managed teams endpoint to get teams the user manages
-  const { data: managedTeamsData } = useGetManagedTeamsQuery();
+  const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, {
+    skip: isAnonymous,
+  });
 
   // Check if user is a tournament manager for this specific tournament
   // Note: role.tournament can be "ANY", a single tournament ID string, or an array of tournament IDs
@@ -70,13 +98,13 @@ const TournamentDetails = () => {
   // Fetch tournament invites to check for pending invites for user's teams
   const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
     { tournamentId: tournamentId || "" },
-    { skip: !tournamentId }
+    { skip: !tournamentId || isAnonymous }
   );
 
   // Fetch participants to get roster counts
   const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
     { tournamentId: tournamentId || "" },
-    { skip: !tournamentId }
+    { skip: !tournamentId || isAnonymous }
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
@@ -400,6 +428,17 @@ const TournamentDetails = () => {
                     </div>
                   </div>
                 </>
+              ) : isAnonymous ? (
+                <div className="card card-highlighted card-mb card-sticky">
+                  <h3 className="card-title">Sign In To Participate</h3>
+                  <p className="card-description">
+                    This tournament is visible publicly. Sign in to register teams, manage rosters,
+                    or contact organizers.
+                  </p>
+                  <a className="btn btn-primary btn-full-width" href="/sign_in">
+                    Sign In
+                  </a>
+                </div>
               ) : (
                 <>
                   {pendingInvitesForUser.length > 0 && (
@@ -542,14 +581,14 @@ const TournamentDetails = () => {
       </section>
 
       {/* Regular user modals */}
-      <RegisterTournamentModal ref={registerModalRef} />
-      <ContactOrganizerModal ref={contactOrganizerModalRef} />
+      {!isAnonymous && <RegisterTournamentModal ref={registerModalRef} />}
+      {!isAnonymous && <ContactOrganizerModal ref={contactOrganizerModalRef} />}
 
       {/* Manager modals */}
-      <AddTournamentModal ref={editModalRef} />
-      <RegistrationsModal ref={registrationsModalRef} />
-      <InviteTeamsModal ref={inviteTeamsModalRef} />
-      {isAddManagerModalOpen && tournamentId && (
+      {!isAnonymous && <AddTournamentModal ref={editModalRef} />}
+      {!isAnonymous && <RegistrationsModal ref={registrationsModalRef} />}
+      {!isAnonymous && <InviteTeamsModal ref={inviteTeamsModalRef} />}
+      {!isAnonymous && isAddManagerModalOpen && tournamentId && (
         <AddTournamentManagerModal
           tournamentId={tournamentId}
           onClose={() => setIsAddManagerModalOpen(false)}
