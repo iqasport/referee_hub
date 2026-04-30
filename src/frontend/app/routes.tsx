@@ -23,8 +23,11 @@ const TeamView = lazy(() => import("./pages/TeamView"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
 const App = () => {
+  const isPublicRoute = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route));
   const [redirectTo, setRedirectTo] = useState<string>();
-  const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery();
+  const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery(undefined, {
+    skip: isPublicRoute,
+  });
   const roles = currentUser?.roles?.map(r => r.roleType);
 
   const ownedNgbIds = currentUser ? (() => {
@@ -42,12 +45,10 @@ const App = () => {
   };
 
   useEffect(() => {
-    const isPublic = PUBLIC_ROUTES.some((route) => window.location.pathname.match(route));
-
-    if (isError && !isPublic) {
+    if (isError && !isPublicRoute) {
       window.location.href = `${window.location.origin}/sign_in`;
     }
-  }, [isError]);
+  }, [isError, isPublicRoute]);
 
   useEffect(() => {
     if (currentUser) {
@@ -61,7 +62,7 @@ const App = () => {
 
   return (
   <Suspense fallback={<Loader />}>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
