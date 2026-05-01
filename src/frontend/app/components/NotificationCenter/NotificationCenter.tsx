@@ -50,7 +50,7 @@ const NotificationCenter = ({ currentUserId }: Props) => {
 
   const navigateFromNotification = async (item: NotificationItem) => {
     if (!item.isRead) {
-      await markRead(item.id);
+      await markRead({ id: item.id });
     }
 
     if (item.relatedEntityType === "Tournament" && item.relatedEntityId) {
@@ -83,7 +83,7 @@ const NotificationCenter = ({ currentUserId }: Props) => {
 
   const handleDelete = async (event: React.MouseEvent, id: string) => {
     event.stopPropagation();
-    await deleteNotification(id);
+    await deleteNotification({ id });
     refetch();
   };
 
