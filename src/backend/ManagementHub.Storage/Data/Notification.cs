@@ -17,8 +17,6 @@ public partial class Notification : IIdentifiable
 
 	public int Type { get; set; }
 
-	public int GroupType { get; set; }
-
 	public string Title { get; set; } = null!;
 
 	public string Message { get; set; } = null!;
@@ -30,10 +28,6 @@ public partial class Notification : IIdentifiable
 	public string? SecondaryEntityId { get; set; }
 
 	public string? SecondaryEntityType { get; set; }
-
-	public bool IsRead { get; set; }
-
-	public bool IsArchived { get; set; }
 
 	public DateTime CreatedAt { get; set; }
 

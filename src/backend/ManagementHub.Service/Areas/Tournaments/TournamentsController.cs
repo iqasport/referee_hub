@@ -335,19 +335,14 @@ public class TournamentsController : ControllerBase
 		await this.tournamentContextProvider.AddTournamentManagerAsync(
 			tournamentId, userId.Value, currentUser.UserId, this.HttpContext.RequestAborted);
 
-		var newManagerDbId = await this.ResolveUserDbIdAsync(userId.Value, this.HttpContext.RequestAborted);
-		if (newManagerDbId.HasValue)
-		{
-			await this.notificationService.CreateNotificationAsync(
-				newManagerDbId.Value,
-				NotificationType.ManagerAssignment,
-				NotificationGroupType.ByTypeAndEntity,
-				"You were added as tournament manager",
-				$"You can now manage tournament {tournament.Name}.",
-				tournamentId.ToString(),
-				"Tournament",
-				cancellationToken: this.HttpContext.RequestAborted);
-		}
+		await this.notificationService.CreateNotificationAsync(
+			userId.Value,
+			NotificationType.ManagerAssignment,
+			"You were added as tournament manager",
+			$"You can now manage tournament {tournament.Name}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: this.HttpContext.RequestAborted);
 
 		return this.Ok();
 	}
@@ -746,14 +741,6 @@ public class TournamentsController : ControllerBase
 		};
 	}
 
-	private async Task<long?> ResolveUserDbIdAsync(UserIdentifier userId, CancellationToken cancellationToken)
-	{
-		return await this.dbContext.Users
-			.WithIdentifier(userId)
-			.Select(u => (long?)u.Id)
-			.FirstOrDefaultAsync(cancellationToken);
-	}
-
 	private async Task CreateNotificationForManagerAsync(
 		UserIdentifier managerUserId,
 		NotificationType notificationType,
@@ -762,16 +749,9 @@ public class TournamentsController : ControllerBase
 		TournamentIdentifier tournamentId,
 		TeamIdentifier teamId)
 	{
-		var managerDbId = await this.ResolveUserDbIdAsync(managerUserId, this.HttpContext.RequestAborted);
-		if (!managerDbId.HasValue)
-		{
-			return;
-		}
-
 		await this.notificationService.CreateNotificationAsync(
-			managerDbId.Value,
+			managerUserId,
 			notificationType,
-			NotificationGroupType.ByTypeAndEntity,
 			title,
 			body,
 			tournamentId.ToString(),
@@ -1323,7 +1303,7 @@ public class TournamentsController : ControllerBase
 				&& !existingRosterEntries.Contains((dbId, e.Role)))
 			.Select(e => new
 			{
-				UserId = userIdToDbId[e.UserId],
+				UserId = e.UserId,
 				e.Role,
 			})
 			.Distinct()
@@ -1335,7 +1315,6 @@ public class TournamentsController : ControllerBase
 			await this.notificationService.CreateNotificationAsync(
 				entry.UserId,
 				NotificationType.RosterRegistration,
-				NotificationGroupType.ByTypeAndEntity,
 				"Tournament roster registration",
 				$"You have been signed up to {tournamentName} as {roleName}.",
 				tournamentId.ToString(),

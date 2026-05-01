@@ -6,7 +6,6 @@ import Avatar from "./components/Avatar";
 import NotificationCenter from "./components/NotificationCenter/NotificationCenter";
 import Loader from "./components/Loader";
 import { useGetCurrentUserQuery } from "./store/serviceApi";
-import { useGetUnreadCountQuery } from "./store/notificationsApi";
 
 const PUBLIC_ROUTES = ["/privacy"];
 
@@ -27,10 +26,6 @@ const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
   const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery();
-  const { data: unread } = useGetUnreadCountQuery(undefined, {
-    skip: !currentUser,
-    pollingInterval: 15000,
-  });
   const roles = currentUser?.roles?.map(r => r.roleType);
 
   const ownedNgbIds = currentUser ? (() => {

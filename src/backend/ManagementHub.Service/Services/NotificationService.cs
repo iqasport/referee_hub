@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Notification;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Service.Hubs;
 using ManagementHub.Storage;
+using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using NotificationEntity = ManagementHub.Models.Data.Notification;
@@ -22,9 +24,8 @@ public interface INotificationService
 	/// Creates a new notification for a user.
 	/// </summary>
 	Task<NotificationEntity> CreateNotificationAsync(
-		long userId,
+		UserIdentifier userId,
 		NotificationType type,
-		NotificationGroupType groupType,
 		string title,
 		string message,
 		string? relatedEntityId = null,
@@ -34,24 +35,24 @@ public interface INotificationService
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
-	/// Gets active (non-archived) notifications for a user, grouped if applicable.
+	/// Gets active (non-archived) notifications for a user.
 	/// </summary>
 	Task<IEnumerable<NotificationEntity>> GetActiveNotificationsAsync(
-		long userId,
+		UserIdentifier userId,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Gets unread notification count for a user.
 	/// </summary>
 	Task<int> GetUnreadCountAsync(
-		long userId,
+		UserIdentifier userId,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Marks a notification as read.
 	/// </summary>
 	Task<NotificationEntity?> MarkAsReadAsync(
-		long userId,
+		UserIdentifier userId,
 		long notificationId,
 		CancellationToken cancellationToken = default);
 
@@ -59,14 +60,14 @@ public interface INotificationService
 	/// Marks all notifications as read for a user.
 	/// </summary>
 	Task<int> MarkAllAsReadAsync(
-		long userId,
+		UserIdentifier userId,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Deletes (soft-deletes) a notification.
 	/// </summary>
 	Task<bool> DeleteNotificationAsync(
-		long userId,
+		UserIdentifier userId,
 		long notificationId,
 		CancellationToken cancellationToken = default);
 
@@ -97,9 +98,8 @@ public class NotificationService : INotificationService
 	}
 
 	public async Task<NotificationEntity> CreateNotificationAsync(
-		long userId,
+		UserIdentifier userId,
 		NotificationType type,
-		NotificationGroupType groupType,
 		string title,
 		string message,
 		string? relatedEntityId = null,
@@ -108,20 +108,23 @@ public class NotificationService : INotificationService
 		string? secondaryEntityType = null,
 		CancellationToken cancellationToken = default)
 	{
+		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
+		if (!userDbId.HasValue)
+		{
+			throw new InvalidOperationException($"Could not resolve database user for {nameof(UserIdentifier)} {userId}");
+		}
+
 		var notification = new NotificationEntity
 		{
-			UserId = userId,
+			UserId = userDbId.Value,
 			UniqueId = NotificationIdentifier.NewNotificationId().ToString(),
 			Type = (int)type,
-			GroupType = (int)groupType,
 			Title = title,
 			Message = message,
 			RelatedEntityId = relatedEntityId,
 			RelatedEntityType = relatedEntityType,
 			SecondaryEntityId = secondaryEntityId,
 			SecondaryEntityType = secondaryEntityType,
-			IsRead = false,
-			IsArchived = false,
 			CreatedAt = DateTime.UtcNow,
 		};
 
@@ -142,71 +145,53 @@ public class NotificationService : INotificationService
 	}
 
 	public async Task<IEnumerable<NotificationEntity>> GetActiveNotificationsAsync(
-		long userId,
+		UserIdentifier userId,
 		CancellationToken cancellationToken = default)
 	{
+		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
+		if (!userDbId.HasValue)
+			return Enumerable.Empty<NotificationEntity>();
+
 		var notifications = await this.dbContext.Notifications
 			.AsNoTracking()
-			.Where(n => n.UserId == userId && !n.IsArchived)
+			.Where(n => n.UserId == userDbId.Value && n.ArchivedAt == null)
 			.OrderByDescending(n => n.CreatedAt)
 			.ToListAsync(cancellationToken);
 
-		return notifications
-			.GroupBy(n => this.GetGroupKey(n))
-			.Select(g =>
-			{
-				var latest = g.OrderByDescending(n => n.CreatedAt).First();
-				if (g.Count() <= 1)
-					return latest;
-
-				return new NotificationEntity
-				{
-					Id = latest.Id,
-					UniqueId = latest.UniqueId,
-					UserId = latest.UserId,
-					Type = latest.Type,
-					GroupType = latest.GroupType,
-					Title = latest.Title,
-					Message = $"{g.Count()} similar notifications. Latest: {latest.Message}",
-					RelatedEntityId = latest.RelatedEntityId,
-					RelatedEntityType = latest.RelatedEntityType,
-					SecondaryEntityId = latest.SecondaryEntityId,
-					SecondaryEntityType = latest.SecondaryEntityType,
-					IsRead = g.All(n => n.IsRead),
-					IsArchived = latest.IsArchived,
-					CreatedAt = latest.CreatedAt,
-					ReadAt = latest.ReadAt,
-					ArchivedAt = latest.ArchivedAt,
-				};
-			})
-			.OrderByDescending(n => n.CreatedAt)
-			.ToList();
+		return notifications;
 	}
 
 	public async Task<int> GetUnreadCountAsync(
-		long userId,
+		UserIdentifier userId,
 		CancellationToken cancellationToken = default)
 	{
+		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
+		if (!userDbId.HasValue)
+			return 0;
+
 		return await this.dbContext.Notifications
-			.Where(n => n.UserId == userId && !n.IsArchived && !n.IsRead)
+			.Where(n => n.UserId == userDbId.Value && n.ArchivedAt == null && n.ReadAt == null)
 			.CountAsync(cancellationToken);
 	}
 
 	public async Task<NotificationEntity?> MarkAsReadAsync(
-		long userId,
+		UserIdentifier userId,
 		long notificationId,
 		CancellationToken cancellationToken = default)
 	{
+		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
+		if (!userDbId.HasValue)
+			return null;
+
 		var notification = await this.dbContext.Notifications
 			.FirstOrDefaultAsync(
-				n => n.Id == notificationId && n.UserId == userId,
+				n => n.Id == notificationId && n.UserId == userDbId.Value,
 				cancellationToken);
 
 		if (notification is null)
 			return null;
 
-		notification.IsRead = true;
-		notification.ReadAt = DateTime.UtcNow;
+		notification.ReadAt ??= DateTime.UtcNow;
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
@@ -223,16 +208,19 @@ public class NotificationService : INotificationService
 	}
 
 	public async Task<int> MarkAllAsReadAsync(
-		long userId,
+		UserIdentifier userId,
 		CancellationToken cancellationToken = default)
 	{
+		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
+		if (!userDbId.HasValue)
+			return 0;
+
 		var unreadNotifications = await this.dbContext.Notifications
-			.Where(n => n.UserId == userId && !n.IsArchived && !n.IsRead)
+			.Where(n => n.UserId == userDbId.Value && n.ArchivedAt == null && n.ReadAt == null)
 			.ToListAsync(cancellationToken);
 
 		foreach (var notification in unreadNotifications)
 		{
-			notification.IsRead = true;
 			notification.ReadAt = DateTime.UtcNow;
 		}
 
@@ -251,20 +239,23 @@ public class NotificationService : INotificationService
 	}
 
 	public async Task<bool> DeleteNotificationAsync(
-		long userId,
+		UserIdentifier userId,
 		long notificationId,
 		CancellationToken cancellationToken = default)
 	{
+		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
+		if (!userDbId.HasValue)
+			return false;
+
 		var notification = await this.dbContext.Notifications
 			.FirstOrDefaultAsync(
-				n => n.Id == notificationId && n.UserId == userId,
+				n => n.Id == notificationId && n.UserId == userDbId.Value,
 				cancellationToken);
 
 		if (notification is null)
 			return false;
 
-		notification.IsArchived = true;
-		notification.ArchivedAt = DateTime.UtcNow;
+		notification.ArchivedAt ??= DateTime.UtcNow;
 
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
@@ -286,12 +277,11 @@ public class NotificationService : INotificationService
 		var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
 
 		var oldNotifications = await this.dbContext.Notifications
-			.Where(n => !n.IsArchived && n.CreatedAt < thirtyDaysAgo)
+			.Where(n => n.ArchivedAt == null && n.CreatedAt < thirtyDaysAgo)
 			.ToListAsync(cancellationToken);
 
 		foreach (var notification in oldNotifications)
 		{
-			notification.IsArchived = true;
 			notification.ArchivedAt = DateTime.UtcNow;
 		}
 
@@ -302,21 +292,18 @@ public class NotificationService : INotificationService
 			oldNotifications.Count);
 	}
 
-	private string GetGroupKey(NotificationEntity notification)
-	{
-		var groupType = (NotificationGroupType)notification.GroupType;
-		return groupType switch
-		{
-			NotificationGroupType.ByType => $"type:{notification.Type}",
-			NotificationGroupType.ByTypeAndEntity => $"type:{notification.Type};entity:{notification.RelatedEntityType}:{notification.RelatedEntityId}",
-			_ => $"none:{notification.Id}",
-		};
-	}
-
-	private async Task PublishUnreadCountAsync(long userId, CancellationToken cancellationToken)
+	private async Task PublishUnreadCountAsync(UserIdentifier userId, CancellationToken cancellationToken)
 	{
 		var unreadCount = await this.GetUnreadCountAsync(userId, cancellationToken);
 		await this.hubContext.Clients.Group($"user-{userId}")
 			.SendAsync("UnreadCountChanged", unreadCount, cancellationToken);
+	}
+
+	private async Task<long?> ResolveUserDbIdAsync(UserIdentifier userId, CancellationToken cancellationToken)
+	{
+		return await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync(cancellationToken);
 	}
 }

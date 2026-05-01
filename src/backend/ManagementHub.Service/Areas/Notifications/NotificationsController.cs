@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Domain.Notification;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Service.Services;
 using ManagementHub.Service.ViewModels;
 using ManagementHub.Service.Contexts;
@@ -44,12 +45,10 @@ public class NotificationsController : ControllerBase
 	[Tags("Notifications")]
 	public async Task<ActionResult<NotificationListResponse>> GetNotifications(CancellationToken cancellationToken)
 	{
-		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
-		if (!userDbId.HasValue)
-			return this.Unauthorized();
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var notifications = await this.notificationService.GetActiveNotificationsAsync(userDbId.Value, cancellationToken);
-		var unreadCount = await this.notificationService.GetUnreadCountAsync(userDbId.Value, cancellationToken);
+		var notifications = await this.notificationService.GetActiveNotificationsAsync(currentUser.UserId, cancellationToken);
+		var unreadCount = await this.notificationService.GetUnreadCountAsync(currentUser.UserId, cancellationToken);
 		var tournamentNamesById = await this.GetTournamentNamesByIdAsync(notifications, cancellationToken);
 
 		var viewModels = notifications
@@ -70,11 +69,9 @@ public class NotificationsController : ControllerBase
 	[Tags("Notifications")]
 	public async Task<ActionResult<object>> GetUnreadCount(CancellationToken cancellationToken)
 	{
-		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
-		if (!userDbId.HasValue)
-			return this.Unauthorized();
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var unreadCount = await this.notificationService.GetUnreadCountAsync(userDbId.Value, cancellationToken);
+		var unreadCount = await this.notificationService.GetUnreadCountAsync(currentUser.UserId, cancellationToken);
 
 		return this.Ok(new { unreadCount });
 	}
@@ -88,11 +85,9 @@ public class NotificationsController : ControllerBase
 		long id,
 		CancellationToken cancellationToken)
 	{
-		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
-		if (!userDbId.HasValue)
-			return this.Unauthorized();
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var notification = await this.notificationService.MarkAsReadAsync(userDbId.Value, id, cancellationToken);
+		var notification = await this.notificationService.MarkAsReadAsync(currentUser.UserId, id, cancellationToken);
 		if (notification is null)
 			return this.NotFound();
 
@@ -109,11 +104,9 @@ public class NotificationsController : ControllerBase
 	[Tags("Notifications")]
 	public async Task<ActionResult<object>> MarkAllAsRead(CancellationToken cancellationToken)
 	{
-		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
-		if (!userDbId.HasValue)
-			return this.Unauthorized();
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var count = await this.notificationService.MarkAllAsReadAsync(userDbId.Value, cancellationToken);
+		var count = await this.notificationService.MarkAllAsReadAsync(currentUser.UserId, cancellationToken);
 
 		return this.Ok(new { markedAsReadCount = count });
 	}
@@ -127,24 +120,13 @@ public class NotificationsController : ControllerBase
 		long id,
 		CancellationToken cancellationToken)
 	{
-		var userDbId = await this.GetCurrentUserDbIdAsync(cancellationToken);
-		if (!userDbId.HasValue)
-			return this.Unauthorized();
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var success = await this.notificationService.DeleteNotificationAsync(userDbId.Value, id, cancellationToken);
+		var success = await this.notificationService.DeleteNotificationAsync(currentUser.UserId, id, cancellationToken);
 		if (!success)
 			return this.NotFound();
 
 		return this.Ok();
-	}
-
-	private async Task<long?> GetCurrentUserDbIdAsync(CancellationToken cancellationToken)
-	{
-		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-		return await this.dbContext.Users
-			.WithIdentifier(userContext.UserId)
-			.Select(u => (long?)u.Id)
-			.FirstOrDefaultAsync(cancellationToken);
 	}
 
 	/// <summary>
@@ -197,7 +179,7 @@ public class NotificationsController : ControllerBase
 			RelatedEntityType = notification.RelatedEntityType,
 			SecondaryEntityId = notification.SecondaryEntityId,
 			SecondaryEntityType = notification.SecondaryEntityType,
-			IsRead = notification.IsRead,
+			IsRead = notification.ReadAt.HasValue,
 			CreatedAt = notification.CreatedAt,
 			ReadAt = notification.ReadAt,
 		};

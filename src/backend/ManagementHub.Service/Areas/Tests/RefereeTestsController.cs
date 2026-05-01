@@ -279,23 +279,14 @@ public class RefereeTestsController : ControllerBase
 		var hostUri = this.GetHostBaseUri();
 		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(this.logger, cmd => cmd.SendTestFeedbackEmailAsync(attemptId, hostUri, false, CancellationToken.None));
 
-		var userDbId = await this.dbContext.Users
-			.WithIdentifier(user.UserId)
-			.Select(u => (long?)u.Id)
-			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
-
-		if (userDbId.HasValue)
-		{
-			await this.notificationService.CreateNotificationAsync(
-				userDbId.Value,
-				NotificationType.ExamResult,
-				NotificationGroupType.ByType,
-				"Exam result available",
-				$"Your result for {test.Title} is {score}% ({(passed ? "Passed" : "Failed")}).",
-				testId.ToString(),
-				"Test",
-				cancellationToken: this.HttpContext.RequestAborted);
-		}
+		await this.notificationService.CreateNotificationAsync(
+			user.UserId,
+			NotificationType.ExamResult,
+			"Exam result available",
+			$"Your result for {test.Title} is {score}% ({(passed ? "Passed" : "Failed")}).",
+			testId.ToString(),
+			"Test",
+			cancellationToken: this.HttpContext.RequestAborted);
 
 		return new RefereeTestSubmitResponse
 		{

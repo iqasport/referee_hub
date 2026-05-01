@@ -189,13 +189,12 @@ public class NgbsController : ControllerBase
 				return NgbAdminCreationStatus.UserDoesNotExist;
 			case IUpdateNgbAdminRoleCommand.AddRoleResult.RoleAdded:
 			{
-				var userDbId = await this.dbContext.Users.WithEmail(email).Select(u => (long?)u.Id).FirstOrDefaultAsync();
-				if (userDbId.HasValue)
+				var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
+				if (userId.HasValue)
 				{
 					await this.notificationService.CreateNotificationAsync(
-						userDbId.Value,
+						userId.Value,
 						NotificationType.ManagerAssignment,
-						NotificationGroupType.ByTypeAndEntity,
 						"You were added as NGB admin",
 						$"You can now manage NGB {ngb}.",
 						ngb.ToString(),
@@ -206,13 +205,12 @@ public class NgbsController : ControllerBase
 			}
 			case IUpdateNgbAdminRoleCommand.AddRoleResult.UserCreatedWithRole:
 			{
-				var userDbId = await this.dbContext.Users.WithEmail(email).Select(u => (long?)u.Id).FirstOrDefaultAsync();
-				if (userDbId.HasValue)
+				var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
+				if (userId.HasValue)
 				{
 					await this.notificationService.CreateNotificationAsync(
-						userDbId.Value,
+						userId.Value,
 						NotificationType.ManagerAssignment,
-						NotificationGroupType.ByTypeAndEntity,
 						"You were added as NGB admin",
 						$"You can now manage NGB {ngb}.",
 						ngb.ToString(),
@@ -506,13 +504,12 @@ public class NgbsController : ControllerBase
 
 		if (result is IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole)
 		{
-			var userDbId = await this.dbContext.Users.WithEmail(email).Select(u => (long?)u.Id).FirstOrDefaultAsync();
-			if (userDbId.HasValue)
+			var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
+			if (userId.HasValue)
 			{
 				await this.notificationService.CreateNotificationAsync(
-					userDbId.Value,
+					userId.Value,
 					NotificationType.ManagerAssignment,
-					NotificationGroupType.ByTypeAndEntity,
 					"You were added as team manager",
 					$"You can now manage team {teamId}.",
 					teamId.ToString(),
@@ -531,6 +528,19 @@ public class NgbsController : ControllerBase
 				TeamManagerCreationStatus.ManagerUserCreated,
 			_ => throw new InvalidOperationException($"Unexpected result {result}")
 		};
+	}
+
+	private async Task<UserIdentifier?> GetUserIdentifierByEmailAsync(Email email, CancellationToken cancellationToken)
+	{
+		var user = await this.dbContext.Users
+			.WithEmail(email)
+			.Select(u => new { u.Id, u.UniqueId })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (user == null)
+			return null;
+
+		return user.UniqueId != null ? UserIdentifier.Parse(user.UniqueId) : UserIdentifier.FromLegacyUserId(user.Id);
 	}
 
 	/// <summary>

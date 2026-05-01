@@ -635,22 +635,6 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<int>("GroupType")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("group_type");
-
-                    b.Property<bool>("IsArchived")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_archived");
-
-                    b.Property<bool>("IsRead")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_read");
-
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("text")
@@ -695,10 +679,10 @@ namespace ManagementHub.Storage.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex(new[] { "UserId", "IsArchived", "CreatedAt" }, "index_notifications_on_user_archived_created")
-                        .HasFilter("\"is_archived\" = false");
+                    b.HasIndex(new[] { "UserId", "CreatedAt" }, "index_notifications_on_user_active_created")
+                        .HasFilter("\"archived_at\" IS NULL");
 
-                    b.HasIndex(new[] { "UserId", "IsRead" }, "index_notifications_on_user_read");
+                    b.HasIndex(new[] { "UserId", "ReadAt" }, "index_notifications_on_user_read_at");
 
                     b.ToTable("notifications", (string)null);
                 });

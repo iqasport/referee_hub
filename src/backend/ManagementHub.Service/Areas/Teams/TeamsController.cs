@@ -424,17 +424,17 @@ public class TeamsController : ControllerBase
 
 		if (result is IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole)
 		{
-			var userDbId = await this.dbContext.Users
+			var user = await this.dbContext.Users
 				.WithEmail(email)
-				.Select(u => (long?)u.Id)
+				.Select(u => new { u.Id, u.UniqueId })
 				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
 
-			if (userDbId.HasValue)
+			if (user != null)
 			{
+				var userId = user.UniqueId != null ? UserIdentifier.Parse(user.UniqueId) : UserIdentifier.FromLegacyUserId(user.Id);
 				await this.notificationService.CreateNotificationAsync(
-					userDbId.Value,
+					userId,
 					NotificationType.ManagerAssignment,
-					NotificationGroupType.ByTypeAndEntity,
 					"You were added as team manager",
 					$"You can now manage team {teamId}.",
 					teamId.ToString(),
