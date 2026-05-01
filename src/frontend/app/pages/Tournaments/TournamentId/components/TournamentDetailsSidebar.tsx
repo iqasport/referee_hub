@@ -1,6 +1,6 @@
 import React from "react";
-import ActionButtonPair from "../../../components/ActionButtonPair";
-import { TournamentInviteViewModel } from "../../../store/serviceApi";
+import ActionButtonPair from "../../../../components/ActionButtonPair";
+import { TournamentInviteViewModel } from "../../../../store/serviceApi";
 
 interface SidebarProps {
   isTournamentManager: boolean;
