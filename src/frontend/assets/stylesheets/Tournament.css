@@ -1030,9 +1030,9 @@
   border-radius: 0.25rem;
 }
 
-/* ── Empty state ─────────────────────────────────────────────────────────────── */
-   Enhanced empty states
-   ======================== */
+/* ========================
+  Empty State
+  ======================== */
 .tournament-empty-state {
   display: flex;
   flex-direction: column;
