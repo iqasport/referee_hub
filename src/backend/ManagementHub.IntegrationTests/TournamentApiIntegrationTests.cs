@@ -146,6 +146,34 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 	}
 
 	[Fact]
+	public async Task GetTournaments_WithTournamentTypeFilter_ShouldReturnOnlyMatchingType()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var clubTournamentId = await this.CreateTestTournamentAsync(
+			"Filter Club Tournament",
+			TournamentType.Club,
+			"USA",
+			"Austin");
+		var nationalTournamentId = await this.CreateTestTournamentAsync(
+			"Filter National Tournament",
+			TournamentType.National,
+			"USA",
+			"Dallas");
+
+		var response = await this._client.GetAsync("/api/v2/tournaments?TournamentTypeFilter=Club&SkipPaging=true");
+		response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var tournamentsResponse = await response.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
+		tournamentsResponse.Should().NotBeNull();
+
+		var tournaments = tournamentsResponse!.Items.ToList();
+		tournaments.Should().Contain(t => t.Id == clubTournamentId);
+		tournaments.Should().NotContain(t => t.Id == nationalTournamentId);
+		tournaments.Should().OnlyContain(t => t.Type == TournamentType.Club);
+	}
+
+	[Fact]
 	public async Task TournamentManagers_FullWorkflow_ShouldSucceed()
 	{
 		// Step 1: Sign in as referee (who will create the tournament)
