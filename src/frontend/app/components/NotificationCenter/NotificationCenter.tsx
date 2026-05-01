@@ -9,7 +9,7 @@ import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
-} from "../../store/notificationsApi";
+} from "../../store/serviceApi";
 import { useNotificationsRealtime } from "../../hooks/useNotificationsRealtime";
 
 type Props = {

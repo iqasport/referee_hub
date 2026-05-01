@@ -74,12 +74,15 @@ public class NotificationsController : ControllerBase
 	[HttpPatch("{id}/read")]
 	[Tags("Notifications")]
 	public async Task<ActionResult<NotificationViewModel>> MarkAsRead(
-		long id,
+		string id,
 		CancellationToken cancellationToken)
 	{
+		if (!NotificationIdentifier.TryParse(id, out var notificationId))
+			return this.BadRequest();
+
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var notification = await this.notificationService.MarkAsReadAsync(currentUser.UserId, id, cancellationToken);
+		var notification = await this.notificationService.MarkAsReadAsync(currentUser.UserId, notificationId, cancellationToken);
 		if (notification is null)
 			return this.NotFound();
 
@@ -108,12 +111,15 @@ public class NotificationsController : ControllerBase
 	[HttpDelete("{id}")]
 	[Tags("Notifications")]
 	public async Task<IActionResult> DeleteNotification(
-		long id,
+		string id,
 		CancellationToken cancellationToken)
 	{
+		if (!NotificationIdentifier.TryParse(id, out var notificationId))
+			return this.BadRequest();
+
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var success = await this.notificationService.DeleteNotificationAsync(currentUser.UserId, id, cancellationToken);
+		var success = await this.notificationService.DeleteNotificationAsync(currentUser.UserId, notificationId, cancellationToken);
 		if (!success)
 			return this.NotFound();
 
@@ -124,8 +130,8 @@ public class NotificationsController : ControllerBase
 	{
 		return new NotificationViewModel
 		{
-			Id = notification.Id.ToString(),
-			Type = ((NotificationType)notification.Type).ToString(),
+			Id = NotificationIdentifier.Parse(notification.UniqueId!),
+			Type = notification.Type,
 			Title = notification.Title,
 			Message = notification.Message,
 			RelatedEntityId = notification.RelatedEntityId,

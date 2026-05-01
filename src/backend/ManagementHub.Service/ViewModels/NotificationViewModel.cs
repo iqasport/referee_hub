@@ -1,4 +1,5 @@
 using System;
+using ManagementHub.Models.Domain.Notification;
 
 namespace ManagementHub.Service.ViewModels;
 
@@ -10,12 +11,12 @@ public class NotificationViewModel
 	/// <summary>
 	/// Strongly-typed notification identifier.
 	/// </summary>
-	public required string Id { get; init; }
+	public required NotificationIdentifier Id { get; init; }
 
 	/// <summary>
 	/// Notification type (e.g., ExamResult, TournamentInvite).
 	/// </summary>
-	public required string Type { get; init; }
+	public required NotificationType Type { get; init; }
 
 	/// <summary>
 	/// Display title.

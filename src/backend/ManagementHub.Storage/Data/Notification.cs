@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ManagementHub.Models.Abstraction;
+using ManagementHub.Models.Domain.Notification;
 
 namespace ManagementHub.Models.Data;
 
@@ -15,7 +16,7 @@ public partial class Notification : IIdentifiable
 
 	public long UserId { get; set; }
 
-	public int Type { get; set; }
+	public NotificationType Type { get; set; }
 
 	public string Title { get; set; } = null!;
 

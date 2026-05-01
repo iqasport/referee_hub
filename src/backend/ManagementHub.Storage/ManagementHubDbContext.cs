@@ -581,8 +581,9 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 			entity.Property(e => e.UserId).HasColumnName("user_id");
 
-			entity.Property(e => e.Type).HasColumnName("type");
-
+			entity.Property(e => e.Type)
+				.HasConversion<int>()
+				.HasColumnName("type");
 			entity.Property(e => e.Title)
 				.HasColumnType("character varying")
 				.HasColumnName("title");

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,117 +18,6 @@ using Microsoft.AspNetCore.SignalR;
 using NotificationEntity = ManagementHub.Models.Data.Notification;
 
 namespace ManagementHub.Service.Services;
-
-/// <summary>
-/// Service for managing notifications.
-/// </summary>
-public interface INotificationService
-{
-	Task<NotificationEntity> CreateNgbAdminAssignmentNotificationAsync(
-		UserIdentifier userId,
-		NgbIdentifier ngb,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateTeamManagerAssignmentNotificationAsync(
-		UserIdentifier userId,
-		TeamIdentifier teamId,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateTournamentManagerAssignmentNotificationAsync(
-		UserIdentifier userId,
-		TournamentIdentifier tournamentId,
-		string tournamentName,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateTournamentInviteNotificationAsync(
-		UserIdentifier userId,
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		string tournamentName,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateTeamTournamentJoinRequestNotificationAsync(
-		UserIdentifier userId,
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		string tournamentName,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateRequestResponseNotificationAsync(
-		UserIdentifier userId,
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		string tournamentName,
-		bool approved,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateInviteResponseNotificationAsync(
-		UserIdentifier userId,
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		string tournamentName,
-		bool approved,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateRosterRegistrationNotificationAsync(
-		UserIdentifier userId,
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		string tournamentName,
-		RosterRole role,
-		CancellationToken cancellationToken = default);
-
-	Task<NotificationEntity> CreateExamResultNotificationAsync(
-		UserIdentifier userId,
-		TestIdentifier testId,
-		string testTitle,
-		int score,
-		bool passed,
-		CancellationToken cancellationToken = default);
-
-	/// <summary>
-	/// Gets active (non-archived) notifications for a user.
-	/// </summary>
-	Task<IEnumerable<NotificationEntity>> GetActiveNotificationsAsync(
-		UserIdentifier userId,
-		CancellationToken cancellationToken = default);
-
-	/// <summary>
-	/// Gets unread notification count for a user.
-	/// </summary>
-	Task<int> GetUnreadCountAsync(
-		UserIdentifier userId,
-		CancellationToken cancellationToken = default);
-
-	/// <summary>
-	/// Marks a notification as read.
-	/// </summary>
-	Task<NotificationEntity?> MarkAsReadAsync(
-		UserIdentifier userId,
-		long notificationId,
-		CancellationToken cancellationToken = default);
-
-	/// <summary>
-	/// Marks all notifications as read for a user.
-	/// </summary>
-	Task<int> MarkAllAsReadAsync(
-		UserIdentifier userId,
-		CancellationToken cancellationToken = default);
-
-	/// <summary>
-	/// Deletes (soft-deletes) a notification.
-	/// </summary>
-	Task<bool> DeleteNotificationAsync(
-		UserIdentifier userId,
-		long notificationId,
-		CancellationToken cancellationToken = default);
-
-	/// <summary>
-	/// Archives notifications older than 30 days. Called by scheduled job.
-	/// </summary>
-	Task ArchiveOldNotificationsAsync(
-		CancellationToken cancellationToken = default);
-}
 
 /// <summary>
 /// Implementation of INotificationService.
@@ -282,14 +170,14 @@ public class NotificationService : INotificationService
 		UserIdentifier userId,
 		TestIdentifier testId,
 		string testTitle,
-		int score,
+		Percentage score,
 		bool passed,
 		CancellationToken cancellationToken = default) =>
 		this.CreateNotificationCoreAsync(
 			userId,
 			NotificationType.ExamResult,
 			"Exam result available",
-			$"Your result for {testTitle} is {score}% ({(passed ? "Passed" : "Failed")}).",
+			$"Your result for {testTitle} is {score.Value}% ({(passed ? "Passed" : "Failed")}).",
 			testId.ToString(),
 			"Test",
 			cancellationToken: cancellationToken);
@@ -315,7 +203,7 @@ public class NotificationService : INotificationService
 		{
 			UserId = userDbId.Value,
 			UniqueId = NotificationIdentifier.NewNotificationId().ToString(),
-			Type = (int)type,
+			Type = type,
 			Title = title,
 			Message = message,
 			RelatedEntityId = relatedEntityId,
@@ -329,7 +217,7 @@ public class NotificationService : INotificationService
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
 		await this.hubContext.Clients.Group($"user-{userId}")
-			.SendAsync("NotificationCreated", notification.UniqueId ?? notification.Id.ToString(), cancellationToken);
+			.SendAsync("NotificationCreated", GetNotificationIdentifier(notification).ToString(), cancellationToken);
 		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
@@ -373,7 +261,7 @@ public class NotificationService : INotificationService
 
 	public async Task<NotificationEntity?> MarkAsReadAsync(
 		UserIdentifier userId,
-		long notificationId,
+		NotificationIdentifier notificationId,
 		CancellationToken cancellationToken = default)
 	{
 		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
@@ -382,7 +270,7 @@ public class NotificationService : INotificationService
 
 		var notification = await this.dbContext.Notifications
 			.FirstOrDefaultAsync(
-				n => n.Id == notificationId && n.UserId == userDbId.Value,
+				n => n.UniqueId == notificationId.ToString() && n.UserId == userDbId.Value,
 				cancellationToken);
 
 		if (notification is null)
@@ -393,7 +281,7 @@ public class NotificationService : INotificationService
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
 		await this.hubContext.Clients.Group($"user-{userId}")
-			.SendAsync("NotificationRead", notification.UniqueId ?? notification.Id.ToString(), cancellationToken);
+			.SendAsync("NotificationRead", GetNotificationIdentifier(notification).ToString(), cancellationToken);
 		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
@@ -437,7 +325,7 @@ public class NotificationService : INotificationService
 
 	public async Task<bool> DeleteNotificationAsync(
 		UserIdentifier userId,
-		long notificationId,
+		NotificationIdentifier notificationId,
 		CancellationToken cancellationToken = default)
 	{
 		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
@@ -446,7 +334,7 @@ public class NotificationService : INotificationService
 
 		var notification = await this.dbContext.Notifications
 			.FirstOrDefaultAsync(
-				n => n.Id == notificationId && n.UserId == userDbId.Value,
+				n => n.UniqueId == notificationId.ToString() && n.UserId == userDbId.Value,
 				cancellationToken);
 
 		if (notification is null)
@@ -457,7 +345,7 @@ public class NotificationService : INotificationService
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
 		await this.hubContext.Clients.Group($"user-{userId}")
-			.SendAsync("NotificationDeleted", notification.UniqueId ?? notification.Id.ToString(), cancellationToken);
+			.SendAsync("NotificationDeleted", GetNotificationIdentifier(notification).ToString(), cancellationToken);
 		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
@@ -502,6 +390,17 @@ public class NotificationService : INotificationService
 			.WithIdentifier(userId)
 			.Select(u => (long?)u.Id)
 			.FirstOrDefaultAsync(cancellationToken);
+	}
+
+	private static NotificationIdentifier GetNotificationIdentifier(NotificationEntity notification)
+	{
+		if (!string.IsNullOrWhiteSpace(notification.UniqueId)
+			&& NotificationIdentifier.TryParse(notification.UniqueId, out var notificationId))
+		{
+			return notificationId;
+		}
+
+		throw new InvalidOperationException($"Notification {notification.Id} is missing a valid unique identifier.");
 	}
 
 	private static string GetRosterRoleDisplayName(RosterRole role) => role switch
