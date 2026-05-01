@@ -7,11 +7,8 @@ using ManagementHub.Models.Domain.User;
 using ManagementHub.Service.Services;
 using ManagementHub.Service.ViewModels;
 using ManagementHub.Service.Contexts;
-using ManagementHub.Storage;
-using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Service.Areas.Notifications;
 
@@ -25,16 +22,13 @@ namespace ManagementHub.Service.Areas.Notifications;
 public class NotificationsController : ControllerBase
 {
 	private readonly IUserContextAccessor contextAccessor;
-	private readonly ManagementHubDbContext dbContext;
 	private readonly INotificationService notificationService;
 
 	public NotificationsController(
 		IUserContextAccessor contextAccessor,
-		ManagementHubDbContext dbContext,
 		INotificationService notificationService)
 	{
 		this.contextAccessor = contextAccessor;
-		this.dbContext = dbContext;
 		this.notificationService = notificationService;
 	}
 
@@ -49,10 +43,8 @@ public class NotificationsController : ControllerBase
 
 		var notifications = await this.notificationService.GetActiveNotificationsAsync(currentUser.UserId, cancellationToken);
 		var unreadCount = await this.notificationService.GetUnreadCountAsync(currentUser.UserId, cancellationToken);
-		var tournamentNamesById = await this.GetTournamentNamesByIdAsync(notifications, cancellationToken);
-
 		var viewModels = notifications
-			.Select(notification => this.MapToViewModel(notification, tournamentNamesById))
+			.Select(this.MapToViewModel)
 			.ToList();
 
 		return this.Ok(new NotificationListResponse
@@ -91,8 +83,7 @@ public class NotificationsController : ControllerBase
 		if (notification is null)
 			return this.NotFound();
 
-		var tournamentNamesById = await this.GetTournamentNamesByIdAsync(new[] { notification }, cancellationToken);
-		var viewModel = this.MapToViewModel(notification, tournamentNamesById);
+		var viewModel = this.MapToViewModel(notification);
 
 		return this.Ok(viewModel);
 	}
@@ -129,52 +120,14 @@ public class NotificationsController : ControllerBase
 		return this.Ok();
 	}
 
-	/// <summary>
-	/// Maps Notification entity to ViewModel.
-	/// </summary>
-	private async Task<Dictionary<string, string>> GetTournamentNamesByIdAsync(
-		IEnumerable<ManagementHub.Models.Data.Notification> notifications,
-		CancellationToken cancellationToken)
+	private NotificationViewModel MapToViewModel(ManagementHub.Models.Data.Notification notification)
 	{
-		var tournamentIds = notifications
-			.Where(n => n.Type == (int)NotificationType.ManagerAssignment)
-			.Where(n => string.Equals(n.RelatedEntityType, "Tournament", StringComparison.Ordinal))
-			.Select(n => n.RelatedEntityId)
-			.Where(id => !string.IsNullOrWhiteSpace(id))
-			.Select(id => id!)
-			.Distinct()
-			.ToList();
-
-		if (tournamentIds.Count == 0)
-		{
-			return new Dictionary<string, string>();
-		}
-
-		return await this.dbContext.Tournaments
-			.Where(t => t.UniqueId != null && tournamentIds.Contains(t.UniqueId))
-			.Select(t => new { t.UniqueId, t.Name })
-			.ToDictionaryAsync(t => t.UniqueId!, t => t.Name, cancellationToken);
-	}
-
-	private NotificationViewModel MapToViewModel(
-		ManagementHub.Models.Data.Notification notification,
-		IReadOnlyDictionary<string, string> tournamentNamesById)
-	{
-		var message = notification.Message;
-		if (notification.Type == (int)NotificationType.ManagerAssignment
-			&& string.Equals(notification.RelatedEntityType, "Tournament", StringComparison.Ordinal)
-			&& !string.IsNullOrWhiteSpace(notification.RelatedEntityId)
-			&& tournamentNamesById.TryGetValue(notification.RelatedEntityId, out var tournamentName))
-		{
-			message = $"You can now manage tournament {tournamentName}.";
-		}
-
 		return new NotificationViewModel
 		{
 			Id = notification.Id.ToString(),
-			Type = ((ManagementHub.Models.Domain.Notification.NotificationType)notification.Type).ToString(),
+			Type = ((NotificationType)notification.Type).ToString(),
 			Title = notification.Title,
-			Message = message,
+			Message = notification.Message,
 			RelatedEntityId = notification.RelatedEntityId,
 			RelatedEntityType = notification.RelatedEntityType,
 			SecondaryEntityId = notification.SecondaryEntityId,

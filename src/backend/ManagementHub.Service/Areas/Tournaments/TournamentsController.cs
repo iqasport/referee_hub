@@ -335,13 +335,10 @@ public class TournamentsController : ControllerBase
 		await this.tournamentContextProvider.AddTournamentManagerAsync(
 			tournamentId, userId.Value, currentUser.UserId, this.HttpContext.RequestAborted);
 
-		await this.notificationService.CreateNotificationAsync(
+		await this.notificationService.CreateTournamentManagerAssignmentNotificationAsync(
 			userId.Value,
-			NotificationType.ManagerAssignment,
-			"You were added as tournament manager",
-			$"You can now manage tournament {tournament.Name}.",
-			tournamentId.ToString(),
-			"Tournament",
+			tournamentId,
+			tournament.Name,
 			cancellationToken: this.HttpContext.RequestAborted);
 
 		return this.Ok();
@@ -626,10 +623,9 @@ public class TournamentsController : ControllerBase
 			await this.CreateNotificationForManagerAsync(
 				manager.UserId,
 				NotificationType.TournamentInvite,
-				"Your team was invited",
-				$"{tournamentName} invited your team to join.",
 				tournamentId,
-				teamId);
+				teamId,
+				tournamentName);
 		}
 	}
 
@@ -648,10 +644,9 @@ public class TournamentsController : ControllerBase
 			await this.CreateNotificationForManagerAsync(
 				manager.UserId,
 				NotificationType.TeamTournamentJoinRequest,
-				"New team join request",
-				$"A team requested to join {tournamentName}.",
 				tournamentId,
-				teamId);
+				teamId,
+				tournamentName);
 		}
 	}
 
@@ -744,21 +739,51 @@ public class TournamentsController : ControllerBase
 	private async Task CreateNotificationForManagerAsync(
 		UserIdentifier managerUserId,
 		NotificationType notificationType,
-		string title,
-		string body,
 		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId)
+		TeamIdentifier teamId,
+		string tournamentName)
 	{
-		await this.notificationService.CreateNotificationAsync(
-			managerUserId,
-			notificationType,
-			title,
-			body,
-			tournamentId.ToString(),
-			"Tournament",
-			teamId.ToString(),
-			"Team",
-			this.HttpContext.RequestAborted);
+		switch (notificationType)
+		{
+			case NotificationType.TournamentInvite:
+				await this.notificationService.CreateTournamentInviteNotificationAsync(
+					managerUserId,
+					tournamentId,
+					teamId,
+					tournamentName,
+					this.HttpContext.RequestAborted);
+				break;
+			case NotificationType.TeamTournamentJoinRequest:
+				await this.notificationService.CreateTeamTournamentJoinRequestNotificationAsync(
+					managerUserId,
+					tournamentId,
+					teamId,
+					tournamentName,
+					this.HttpContext.RequestAborted);
+				break;
+			case NotificationType.RequestAccepted:
+			case NotificationType.RequestRejected:
+				await this.notificationService.CreateRequestResponseNotificationAsync(
+					managerUserId,
+					tournamentId,
+					teamId,
+					tournamentName,
+					notificationType == NotificationType.RequestAccepted,
+					this.HttpContext.RequestAborted);
+				break;
+			case NotificationType.InviteAccepted:
+			case NotificationType.InviteRejected:
+				await this.notificationService.CreateInviteResponseNotificationAsync(
+					managerUserId,
+					tournamentId,
+					teamId,
+					tournamentName,
+					notificationType == NotificationType.InviteAccepted,
+					this.HttpContext.RequestAborted);
+				break;
+			default:
+				throw new InvalidOperationException($"Unsupported manager notification type {notificationType}");
+		}
 	}
 
 	private enum InviteResponderRole
@@ -806,10 +831,9 @@ public class TournamentsController : ControllerBase
 				await this.CreateNotificationForManagerAsync(
 					manager.UserId,
 					approved ? NotificationType.RequestAccepted : NotificationType.RequestRejected,
-					approved ? "Join request approved" : "Join request rejected",
-					$"Your team's request for {tournamentName} was {(approved ? "approved" : "rejected")}.",
 					tournamentId,
-					teamId);
+					teamId,
+					tournamentName);
 			}
 
 			return;
@@ -823,10 +847,9 @@ public class TournamentsController : ControllerBase
 			await this.CreateNotificationForManagerAsync(
 				manager.UserId,
 				approved ? NotificationType.InviteAccepted : NotificationType.InviteRejected,
-				approved ? "Tournament invite accepted" : "Tournament invite rejected",
-				$"Team {teamId} {(approved ? "accepted" : "rejected")} the invite to {tournamentName}.",
 				tournamentId,
-				teamId);
+				teamId,
+				tournamentName);
 		}
 	}
 
@@ -1312,15 +1335,12 @@ public class TournamentsController : ControllerBase
 		foreach (var entry in newlyAddedEntries)
 		{
 			var roleName = GetRosterRoleDisplayName(entry.Role);
-			await this.notificationService.CreateNotificationAsync(
+			await this.notificationService.CreateRosterRegistrationNotificationAsync(
 				entry.UserId,
-				NotificationType.RosterRegistration,
-				"Tournament roster registration",
-				$"You have been signed up to {tournamentName} as {roleName}.",
-				tournamentId.ToString(),
-				"Tournament",
-				teamId.ToString(),
-				"Team",
+				tournamentId,
+				teamId,
+				tournamentName,
+				entry.Role,
 				this.HttpContext.RequestAborted);
 		}
 	}

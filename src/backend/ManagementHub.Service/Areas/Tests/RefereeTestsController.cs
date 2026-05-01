@@ -279,13 +279,12 @@ public class RefereeTestsController : ControllerBase
 		var hostUri = this.GetHostBaseUri();
 		this.backgroundJob.Enqueue<ISendTestFeedbackEmail>(this.logger, cmd => cmd.SendTestFeedbackEmailAsync(attemptId, hostUri, false, CancellationToken.None));
 
-		await this.notificationService.CreateNotificationAsync(
+		await this.notificationService.CreateExamResultNotificationAsync(
 			user.UserId,
-			NotificationType.ExamResult,
-			"Exam result available",
-			$"Your result for {test.Title} is {score}% ({(passed ? "Passed" : "Failed")}).",
-			testId.ToString(),
-			"Test",
+			testId,
+			test.Title,
+			score,
+			passed,
 			cancellationToken: this.HttpContext.RequestAborted);
 
 		return new RefereeTestSubmitResponse

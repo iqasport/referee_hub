@@ -432,13 +432,9 @@ public class TeamsController : ControllerBase
 			if (user != null)
 			{
 				var userId = user.UniqueId != null ? UserIdentifier.Parse(user.UniqueId) : UserIdentifier.FromLegacyUserId(user.Id);
-				await this.notificationService.CreateNotificationAsync(
+				await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
 					userId,
-					NotificationType.ManagerAssignment,
-					"You were added as team manager",
-					$"You can now manage team {teamId}.",
-					teamId.ToString(),
-					"Team",
+					teamId,
 					cancellationToken: this.HttpContext.RequestAborted);
 			}
 		}

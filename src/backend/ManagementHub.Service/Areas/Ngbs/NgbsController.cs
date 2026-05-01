@@ -182,44 +182,34 @@ public class NgbsController : ControllerBase
 		}
 
 		var result = await this.updateNgbAdminRoleCommand.AddNgbAdminRoleAsync(ngb, email, adminModel.CreateAccountIfNotExists);
-		switch (result)
+		switch (result.Result)
 		{
 			case IUpdateNgbAdminRoleCommand.AddRoleResult.UserDoesNotExist:
 				this.Response.StatusCode = StatusCodes.Status404NotFound;
 				return NgbAdminCreationStatus.UserDoesNotExist;
 			case IUpdateNgbAdminRoleCommand.AddRoleResult.RoleAdded:
 			{
-				var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
-				if (userId.HasValue)
+				if (result.UserId.HasValue)
 				{
-					await this.notificationService.CreateNotificationAsync(
-						userId.Value,
-						NotificationType.ManagerAssignment,
-						"You were added as NGB admin",
-						$"You can now manage NGB {ngb}.",
-						ngb.ToString(),
-						"Ngb",
-						cancellationToken: this.HttpContext.RequestAborted);
+					await this.notificationService.CreateNgbAdminAssignmentNotificationAsync(
+						result.UserId.Value,
+						ngb,
+						this.HttpContext.RequestAborted);
 				}
 				return NgbAdminCreationStatus.AdminRoleAdded;
 			}
 			case IUpdateNgbAdminRoleCommand.AddRoleResult.UserCreatedWithRole:
 			{
-				var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
-				if (userId.HasValue)
+				if (result.UserId.HasValue)
 				{
-					await this.notificationService.CreateNotificationAsync(
-						userId.Value,
-						NotificationType.ManagerAssignment,
-						"You were added as NGB admin",
-						$"You can now manage NGB {ngb}.",
-						ngb.ToString(),
-						"Ngb",
-						cancellationToken: this.HttpContext.RequestAborted);
+					await this.notificationService.CreateNgbAdminAssignmentNotificationAsync(
+						result.UserId.Value,
+						ngb,
+						this.HttpContext.RequestAborted);
 				}
 				return NgbAdminCreationStatus.AdminUserCreated;
 			}
-			default: throw new InvalidOperationException($"Unexpected result {result}");
+			default: throw new InvalidOperationException($"Unexpected result {result.Result}");
 		}
 	}
 
@@ -507,13 +497,9 @@ public class NgbsController : ControllerBase
 			var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
 			if (userId.HasValue)
 			{
-				await this.notificationService.CreateNotificationAsync(
+				await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
 					userId.Value,
-					NotificationType.ManagerAssignment,
-					"You were added as team manager",
-					$"You can now manage team {teamId}.",
-					teamId.ToString(),
-					"Team",
+					teamId,
 					cancellationToken: this.HttpContext.RequestAborted);
 			}
 		}

@@ -4,8 +4,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Notification;
+using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tests;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Enums;
 using ManagementHub.Service.Hubs;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Extensions;
@@ -20,18 +25,66 @@ namespace ManagementHub.Service.Services;
 /// </summary>
 public interface INotificationService
 {
-	/// <summary>
-	/// Creates a new notification for a user.
-	/// </summary>
-	Task<NotificationEntity> CreateNotificationAsync(
+	Task<NotificationEntity> CreateNgbAdminAssignmentNotificationAsync(
 		UserIdentifier userId,
-		NotificationType type,
-		string title,
-		string message,
-		string? relatedEntityId = null,
-		string? relatedEntityType = null,
-		string? secondaryEntityId = null,
-		string? secondaryEntityType = null,
+		NgbIdentifier ngb,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateTeamManagerAssignmentNotificationAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateTournamentManagerAssignmentNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateTournamentInviteNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateTeamTournamentJoinRequestNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateRequestResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateInviteResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateRosterRegistrationNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		RosterRole role,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateExamResultNotificationAsync(
+		UserIdentifier userId,
+		TestIdentifier testId,
+		string testTitle,
+		int score,
+		bool passed,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -97,7 +150,151 @@ public class NotificationService : INotificationService
 		this.logger = logger;
 	}
 
-	public async Task<NotificationEntity> CreateNotificationAsync(
+	public Task<NotificationEntity> CreateNgbAdminAssignmentNotificationAsync(
+		UserIdentifier userId,
+		NgbIdentifier ngb,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.ManagerAssignment,
+			"You were added as NGB admin",
+			$"You can now manage NGB {ngb}.",
+			ngb.ToString(),
+			"Ngb",
+			cancellationToken: cancellationToken);
+
+	public Task<NotificationEntity> CreateTeamManagerAssignmentNotificationAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.ManagerAssignment,
+			"You were added as team manager",
+			$"You can now manage team {teamId}.",
+			teamId.ToString(),
+			"Team",
+			cancellationToken: cancellationToken);
+
+	public Task<NotificationEntity> CreateTournamentManagerAssignmentNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.ManagerAssignment,
+			"You were added as tournament manager",
+			$"You can now manage tournament {tournamentName}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: cancellationToken);
+
+	public Task<NotificationEntity> CreateTournamentInviteNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.TournamentInvite,
+			"Your team was invited",
+			$"{tournamentName} invited your team to join.",
+			tournamentId.ToString(),
+			"Tournament",
+			teamId.ToString(),
+			"Team",
+			cancellationToken);
+
+	public Task<NotificationEntity> CreateTeamTournamentJoinRequestNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.TeamTournamentJoinRequest,
+			"New team join request",
+			$"A team requested to join {tournamentName}.",
+			tournamentId.ToString(),
+			"Tournament",
+			teamId.ToString(),
+			"Team",
+			cancellationToken);
+
+	public Task<NotificationEntity> CreateRequestResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			approved ? NotificationType.RequestAccepted : NotificationType.RequestRejected,
+			approved ? "Join request approved" : "Join request rejected",
+			$"Your team's request for {tournamentName} was {(approved ? "approved" : "rejected")}.",
+			tournamentId.ToString(),
+			"Tournament",
+			teamId.ToString(),
+			"Team",
+			cancellationToken);
+
+	public Task<NotificationEntity> CreateInviteResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			approved ? NotificationType.InviteAccepted : NotificationType.InviteRejected,
+			approved ? "Tournament invite accepted" : "Tournament invite rejected",
+			$"Team {teamId} {(approved ? "accepted" : "rejected")} the invite to {tournamentName}.",
+			tournamentId.ToString(),
+			"Tournament",
+			teamId.ToString(),
+			"Team",
+			cancellationToken);
+
+	public Task<NotificationEntity> CreateRosterRegistrationNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		RosterRole role,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.RosterRegistration,
+			"Tournament roster registration",
+			$"You have been signed up to {tournamentName} as {GetRosterRoleDisplayName(role)}.",
+			tournamentId.ToString(),
+			"Tournament",
+			teamId.ToString(),
+			"Team",
+			cancellationToken);
+
+	public Task<NotificationEntity> CreateExamResultNotificationAsync(
+		UserIdentifier userId,
+		TestIdentifier testId,
+		string testTitle,
+		int score,
+		bool passed,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.ExamResult,
+			"Exam result available",
+			$"Your result for {testTitle} is {score}% ({(passed ? "Passed" : "Failed")}).",
+			testId.ToString(),
+			"Test",
+			cancellationToken: cancellationToken);
+
+	private async Task<NotificationEntity> CreateNotificationCoreAsync(
 		UserIdentifier userId,
 		NotificationType type,
 		string title,
@@ -306,4 +503,12 @@ public class NotificationService : INotificationService
 			.Select(u => (long?)u.Id)
 			.FirstOrDefaultAsync(cancellationToken);
 	}
+
+	private static string GetRosterRoleDisplayName(RosterRole role) => role switch
+	{
+		RosterRole.Player => "player",
+		RosterRole.Coach => "coach",
+		RosterRole.Staff => "staff",
+		_ => "participant",
+	};
 }
