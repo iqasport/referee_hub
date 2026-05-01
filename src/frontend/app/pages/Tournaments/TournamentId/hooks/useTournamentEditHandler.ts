@@ -1,5 +1,5 @@
 import { useRef, useCallback } from "react";
-import { AddTournamentModalRef } from "../AddTournamentModal";
+import { AddTournamentModalRef } from "../../components/AddTournamentModal";
 import { TournamentViewModel } from "../../../../store/serviceApi";
 
 export const useTournamentEditHandler = (tournament: TournamentViewModel | undefined) => {
