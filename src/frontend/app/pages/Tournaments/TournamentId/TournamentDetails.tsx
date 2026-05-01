@@ -210,6 +210,140 @@ const UserSidebar = ({
   </>
 );
 
+type TournamentDetailsContentProps = {
+  alertState: {
+    isVisible: boolean;
+    message: string;
+    type: "success" | "error";
+  };
+  hideAlert: () => void;
+  tournament: any;
+  isManager: boolean;
+  formattedDateRange: string;
+  invites?: TournamentInviteViewModel[];
+  totalPlayerCount: number;
+  isRegistrationClosed: boolean;
+  pendingInvitesForUser: TournamentInviteViewModel[];
+  approvedTeamsForUser: TeamSummary[];
+  respondingTo: string | null;
+  rosterSectionRef: React.RefObject<HTMLDivElement>;
+  tournamentId: string;
+  onEdit: () => void;
+  onOpenRegistrations: () => void;
+  onOpenInviteTeams: () => void;
+  onOpenAddManager: () => void;
+  onDelete: () => void;
+  onRespondToInvite: (participantId: string, approved: boolean) => void;
+  onScrollToRosters: () => void;
+  onOpenRegister: () => void;
+  onOpenContactOrganizer: () => void;
+  onRosterSaved: () => void;
+};
+
+const TournamentDetailsContent = ({
+  alertState,
+  hideAlert,
+  tournament,
+  isManager,
+  formattedDateRange,
+  invites,
+  totalPlayerCount,
+  isRegistrationClosed,
+  pendingInvitesForUser,
+  approvedTeamsForUser,
+  respondingTo,
+  rosterSectionRef,
+  tournamentId,
+  onEdit,
+  onOpenRegistrations,
+  onOpenInviteTeams,
+  onOpenAddManager,
+  onDelete,
+  onRespondToInvite,
+  onScrollToRosters,
+  onOpenRegister,
+  onOpenContactOrganizer,
+  onRosterSaved,
+}: TournamentDetailsContentProps) => (
+  <>
+    {alertState.isVisible && (
+      <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
+    )}
+
+    <TournamentHeader
+      bannerImageUrl={tournament.bannerImageUrl}
+      name={tournament.name}
+      isManager={isManager}
+    />
+
+    {/* Info cards section */}
+    <section className="tournament-details-section">
+      <div className="tournament-details-wrapper">
+        <TournamentInfoCards
+          formattedDateRange={formattedDateRange}
+          organizer={tournament.organizer}
+          startDate={tournament.startDate}
+          registrationEndsDate={tournament.registrationEndsDate}
+          isRegistrationOpen={tournament.isRegistrationOpen}
+          tournamentType={tournament.type}
+        />
+
+        {/* Main content grid */}
+        <div className="tournament-details-grid">
+          {/* Left column - About and Format */}
+          <div>
+            <TournamentAboutSection
+              place={tournament.place}
+              city={tournament.city}
+              country={tournament.country}
+              description={tournament.description}
+            />
+          </div>
+
+          {/* Right sidebar - Different content for managers vs regular users */}
+          <div>
+            {isManager ? (
+              <ManagerSidebar
+                tournament={tournament}
+                invites={invites}
+                totalPlayerCount={totalPlayerCount}
+                onEdit={onEdit}
+                onOpenRegistrations={onOpenRegistrations}
+                onOpenInviteTeams={onOpenInviteTeams}
+                onOpenAddManager={onOpenAddManager}
+                onDelete={onDelete}
+              />
+            ) : (
+              <UserSidebar
+                isRegistrationClosed={isRegistrationClosed}
+                pendingInvitesForUser={pendingInvitesForUser}
+                approvedTeamsForUser={approvedTeamsForUser}
+                respondingTo={respondingTo}
+                onRespondToInvite={onRespondToInvite}
+                onScrollToRosters={onScrollToRosters}
+                onOpenRegister={onOpenRegister}
+                onOpenContactOrganizer={onOpenContactOrganizer}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Roster Management Section - Show for team managers with approved teams */}
+        {approvedTeamsForUser.length > 0 && (
+          <div ref={rosterSectionRef} className="roster-section">
+            <h2 className="card-title card-title-lg">Manage Your Team Rosters</h2>
+            <RosterManager
+              tournamentId={tournamentId}
+              teams={approvedTeamsForUser}
+              onRosterSaved={onRosterSaved}
+            />
+          </div>
+        )}
+      </div>
+    </section>
+  </>
+);
+
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
   const registerModalRef = useRef<RegisterTournamentModalRef>(null);
@@ -474,91 +608,39 @@ const TournamentDetails = () => {
 
   return (
     <>
-      {alertState.isVisible && (
-        <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
-      )}
-
-      <TournamentHeader
-        bannerImageUrl={tournament.bannerImageUrl}
-        name={tournament.name}
+      <TournamentDetailsContent
+        alertState={alertState}
+        hideAlert={hideAlert}
+        tournament={tournament}
         isManager={isManager}
+        formattedDateRange={formattedDateRange}
+        invites={invites}
+        totalPlayerCount={totalPlayerCount}
+        isRegistrationClosed={isRegistrationClosed}
+        pendingInvitesForUser={pendingInvitesForUser}
+        approvedTeamsForUser={approvedTeamsForUser}
+        respondingTo={respondingTo}
+        rosterSectionRef={rosterSectionRef}
+        tournamentId={tournamentId || ""}
+        onEdit={handleEdit}
+        onOpenRegistrations={() =>
+          registrationsModalRef.current?.open(
+            tournament.id || "",
+            tournament.name || "Unknown Tournament"
+          )
+        }
+        onOpenInviteTeams={() => inviteTeamsModalRef.current?.open(tournament)}
+        onOpenAddManager={() => setIsAddManagerModalOpen(true)}
+        onDelete={handleDelete}
+        onRespondToInvite={handleRespondToInvite}
+        onScrollToRosters={() => rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
+        onOpenRegister={handleOpenRegister}
+        onOpenContactOrganizer={handleOpenContactOrganizer}
+        onRosterSaved={() => {
+          refetchInvites();
+          refetchParticipants();
+        }}
       />
-
-      {/* Info cards section */}
-      <section className="tournament-details-section">
-        <div className="tournament-details-wrapper">
-          <TournamentInfoCards
-            formattedDateRange={formattedDateRange}
-            organizer={tournament.organizer}
-            startDate={tournament.startDate}
-            registrationEndsDate={tournament.registrationEndsDate}
-            isRegistrationOpen={tournament.isRegistrationOpen}
-            tournamentType={tournament.type}
-          />
-
-          {/* Main content grid */}
-          <div className="tournament-details-grid">
-            {/* Left column - About and Format */}
-            <div>
-              <TournamentAboutSection
-                place={tournament.place}
-                city={tournament.city}
-                country={tournament.country}
-                description={tournament.description}
-              />
-            </div>
-
-            {/* Right sidebar - Different content for managers vs regular users */}
-            <div>
-              {isManager ? (
-                <ManagerSidebar
-                  tournament={tournament}
-                  invites={invites}
-                  totalPlayerCount={totalPlayerCount}
-                  onEdit={handleEdit}
-                  onOpenRegistrations={() =>
-                    registrationsModalRef.current?.open(
-                      tournament.id || "",
-                      tournament.name || "Unknown Tournament"
-                    )
-                  }
-                  onOpenInviteTeams={() => inviteTeamsModalRef.current?.open(tournament)}
-                  onOpenAddManager={() => setIsAddManagerModalOpen(true)}
-                  onDelete={handleDelete}
-                />
-              ) : (
-                <UserSidebar
-                  isRegistrationClosed={isRegistrationClosed}
-                  pendingInvitesForUser={pendingInvitesForUser}
-                  approvedTeamsForUser={approvedTeamsForUser}
-                  respondingTo={respondingTo}
-                  onRespondToInvite={handleRespondToInvite}
-                  onScrollToRosters={() =>
-                    rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })
-                  }
-                  onOpenRegister={handleOpenRegister}
-                  onOpenContactOrganizer={handleOpenContactOrganizer}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Roster Management Section - Show for team managers with approved teams */}
-          {approvedTeamsForUser.length > 0 && (
-            <div ref={rosterSectionRef} className="roster-section">
-              <h2 className="card-title card-title-lg">Manage Your Team Rosters</h2>
-              <RosterManager
-                tournamentId={tournamentId || ""}
-                teams={approvedTeamsForUser}
-                onRosterSaved={() => {
-                  refetchInvites();
-                  refetchParticipants();
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Regular user modals */}
       <RegisterTournamentModal ref={registerModalRef} />

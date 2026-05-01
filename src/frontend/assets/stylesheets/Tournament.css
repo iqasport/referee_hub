@@ -1081,15 +1081,3 @@
 }
 
 .tournament-empty-state-actions button:hover { opacity: 0.85; }
-
-.btn-empty-primary {
-  background-color: #16a34a;
-  color: #ffffff;
-  border: none;
-}
-
-.btn-empty-secondary {
-  background-color: transparent;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
