@@ -3,6 +3,7 @@ import React, { useEffect, useState, lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Avatar from "./components/Avatar";
+import NotificationCenter from "./components/NotificationCenter/NotificationCenter";
 import Loader from "./components/Loader";
 import { useGetCurrentUserQuery } from "./store/serviceApi";
 
@@ -16,11 +17,11 @@ const StartTest = lazy(() => import("./pages/StartTest"));
 const NgbProfile = lazy(() => import("./pages/NgbProfile"));
 const ImportWizard = lazy(() => import("./pages/ImportWizard"));
 const RefereeTests = lazy(() => import("./pages/RefereeTests"));
-const Settings = lazy(() => import("./pages/Settings"));
 const Tournament = lazy(() => import("./pages/Tournaments"));
 const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"));
 const TeamView = lazy(() => import("./pages/TeamView"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
+const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
 
 const App = () => {
   const [redirectTo, setRedirectTo] = useState<string>();
@@ -55,16 +56,21 @@ const App = () => {
     }
   }, [currentUser, roles]);
 
-  if (currentUser) Bugsnag.setUser(currentUser.userId);
+  useEffect(() => {
+    if (bugsnagEnabled && currentUser) {
+      Bugsnag.setUser(currentUser.userId);
+    }
+  }, [currentUser]);
 
   if (isLoading === true) return <Loader />;
 
   return (
   <Suspense fallback={<Loader />}>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div>
         <div className="bg-navy-blue text-right text-white py-3 px-10 flex items-center justify-end">
           <p className="flex-shrink mx-8">Management Hub</p>
+          {currentUser && <NotificationCenter currentUserId={currentUser.userId} />}
           { currentUser && <Avatar
             firstName={currentUser.firstName}
             lastName={currentUser.lastName}

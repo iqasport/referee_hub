@@ -21,6 +21,7 @@ describe("Avatar", () => {
     lastName: "Rocks",
     ownedNgbId: 1234,
     roles: ["referee"],
+    unreadNotifications: 0,
     userId: "123",
   };
 

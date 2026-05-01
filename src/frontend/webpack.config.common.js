@@ -14,7 +14,7 @@ module.exports = {
             cacheDirectory: true,
           },
         },
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /\.test\.tsx?$/],
       },
     ],
   },

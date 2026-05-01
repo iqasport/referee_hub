@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ManagementHub.Models.Data;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -32,6 +32,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	public virtual DbSet<NationalGoverningBody> NationalGoverningBodies { get; set; } = null!;
 	public virtual DbSet<NationalGoverningBodyAdmin> NationalGoverningBodyAdmins { get; set; } = null!;
 	public virtual DbSet<NationalGoverningBodyStat> NationalGoverningBodyStats { get; set; } = null!;
+	public virtual DbSet<Notification> Notifications { get; set; } = null!;
 	public virtual DbSet<PolicyManagerPortabilityRequest> PolicyManagerPortabilityRequests { get; set; } = null!;
 	public virtual DbSet<PolicyManagerTerm> PolicyManagerTerms { get; set; } = null!;
 	public virtual DbSet<PolicyManagerUserTerm> PolicyManagerUserTerms { get; set; } = null!;
@@ -561,6 +562,69 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.WithMany(p => p.NationalGoverningBodyStats)
 				.HasForeignKey(d => d.NationalGoverningBodyId)
 				.HasConstraintName("national_governing_body_stats__national_governing_body_fkey");
+		});
+
+		modelBuilder.Entity<Notification>(entity =>
+		{
+			entity.ToTable("notifications");
+
+			entity.HasIndex(e => new { e.UserId, e.CreatedAt }, "index_notifications_on_user_active_created")
+				.HasFilter("\"archived_at\" IS NULL");
+
+			entity.HasIndex(e => new { e.UserId, e.ReadAt }, "index_notifications_on_user_read_at");
+
+			entity.Property(e => e.Id).HasColumnName("id");
+
+			entity.Property(e => e.UniqueId)
+				.HasColumnType("character varying")
+				.HasColumnName("unique_id");
+
+			entity.Property(e => e.UserId).HasColumnName("user_id");
+
+			entity.Property(e => e.Type)
+				.HasConversion<int>()
+				.HasColumnName("type");
+			entity.Property(e => e.Title)
+				.HasColumnType("character varying")
+				.HasColumnName("title");
+
+			entity.Property(e => e.Message)
+				.HasColumnType("text")
+				.HasColumnName("message");
+
+			entity.Property(e => e.RelatedEntityId)
+				.HasColumnType("character varying")
+				.HasColumnName("related_entity_id");
+
+			entity.Property(e => e.RelatedEntityType)
+				.HasColumnType("character varying")
+				.HasColumnName("related_entity_type");
+
+			entity.Property(e => e.SecondaryEntityId)
+				.HasColumnType("character varying")
+				.HasColumnName("secondary_entity_id");
+
+			entity.Property(e => e.SecondaryEntityType)
+				.HasColumnType("character varying")
+				.HasColumnName("secondary_entity_type");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.Property(e => e.ReadAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("read_at");
+
+			entity.Property(e => e.ArchivedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("archived_at");
+
+			entity.HasOne(d => d.User)
+				.WithMany(p => p.Notifications)
+				.HasForeignKey(d => d.UserId)
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("notifications__user_fkey");
 		});
 
 		modelBuilder.Entity<PolicyManagerPortabilityRequest>(entity =>
@@ -1749,3 +1813,4 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 	partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+

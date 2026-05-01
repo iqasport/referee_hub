@@ -667,6 +667,36 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
         providesTags: ["UserInfo"],
       }),
+      getNotifications: build.query<GetNotificationsApiResponse, GetNotificationsApiArg>({
+        query: () => ({ url: `/api/v2/notifications` }),
+      }),
+      getUnreadCount: build.query<GetUnreadCountApiResponse, GetUnreadCountApiArg>({
+        query: () => ({ url: `/api/v2/notifications/unread-count` }),
+      }),
+      markNotificationRead: build.mutation<
+        MarkNotificationReadApiResponse,
+        MarkNotificationReadApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/notifications/${queryArg.id}/read`,
+          method: "PATCH",
+        }),
+      }),
+      markAllNotificationsRead: build.mutation<
+        MarkAllNotificationsReadApiResponse,
+        MarkAllNotificationsReadApiArg
+      >({
+        query: () => ({
+          url: `/api/v2/notifications/read-all`,
+          method: "PATCH",
+        }),
+      }),
+      deleteNotification: build.mutation<DeleteNotificationApiResponse, DeleteNotificationApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/notifications/${queryArg.id}`,
+          method: "DELETE",
+        }),
+      }),
     }),
     overrideExisting: false,
   });
@@ -1742,6 +1772,55 @@ export type UserDataViewModel = {
   language?: string | null;
   createdAt?: string;
 };
+export type NotificationIdentifier = string;
+export type NotificationType =
+  | "ExamResult"
+  | "TournamentInvite"
+  | "TeamTournamentJoinRequest"
+  | "ManagerAssignment"
+  | "InviteAccepted"
+  | "InviteRejected"
+  | "RequestAccepted"
+  | "RequestRejected"
+  | "TeamApprovalNeeded"
+  | "NgbApprovalNeeded"
+  | "RosterRegistration";
+export type NotificationItem = {
+  id: NotificationIdentifier;
+  type: NotificationType;
+  title: string;
+  message: string;
+  relatedEntityId?: string | null;
+  relatedEntityType?: string | null;
+  secondaryEntityId?: string | null;
+  secondaryEntityType?: string | null;
+  isRead: boolean;
+  createdAt: string;
+  readAt?: string | null;
+};
+export type NotificationsResponse = {
+  notifications: NotificationItem[];
+  unreadCount: number;
+};
+export type UnreadCountResponse = {
+  unreadCount: number;
+};
+export type GetNotificationsApiResponse = /** status 200 Success */ NotificationsResponse;
+export type GetNotificationsApiArg = void;
+export type GetUnreadCountApiResponse = /** status 200 Success */ UnreadCountResponse;
+export type GetUnreadCountApiArg = void;
+export type MarkNotificationReadApiResponse = /** status 200 Success */ NotificationItem;
+export type MarkNotificationReadApiArg = {
+  id: NotificationIdentifier;
+};
+export type MarkAllNotificationsReadApiResponse = /** status 200 Success */ {
+  markedAsReadCount: number;
+};
+export type MarkAllNotificationsReadApiArg = void;
+export type DeleteNotificationApiResponse = unknown;
+export type DeleteNotificationApiArg = {
+  id: NotificationIdentifier;
+};
 export const {
   useCreatePaymentSessionMutation,
   useSubmitPaymentSessionMutation,
@@ -1828,4 +1907,9 @@ export const {
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
+  useGetNotificationsQuery,
+  useGetUnreadCountQuery,
+  useMarkNotificationReadMutation,
+  useMarkAllNotificationsReadMutation,
+  useDeleteNotificationMutation,
 } = injectedRtkApi;

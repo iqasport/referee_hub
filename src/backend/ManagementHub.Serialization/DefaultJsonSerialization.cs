@@ -6,6 +6,7 @@ using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Notification;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tournament;
@@ -24,6 +25,7 @@ public static class DefaultJsonSerialization
 	{
 		options.Converters.Add(new SocialAccountJsonConverter());
 		options.Converters.Add(new UserIdentifierJsonConverter());
+		options.Converters.Add(new NotificationIdentifierJsonConverter());
 		options.Converters.Add(new TestIdentifierJsonConverter());
 		options.Converters.Add(new TestAttemptIdentifierJsonConverter());
 		options.Converters.Add(new TeamIdentifierJsonConverter());
@@ -52,6 +54,7 @@ public static class DefaultJsonSerialization
 	public static SwaggerGenOptions MapSwaggerTypes(SwaggerGenOptions options)
 	{
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(UserIdentifier), () => new OpenApiSchema { Type = "string" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(NotificationIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TestIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TestAttemptIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(LanguageIdentifier), () => new OpenApiSchema { Type = "string" });
