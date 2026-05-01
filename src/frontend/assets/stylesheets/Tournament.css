@@ -159,26 +159,14 @@
    ======================== */
 .tournament-carousel {
   display: flex;
+  flex-wrap: wrap;
   gap: 1.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
   padding: 1rem 0;
-  -webkit-overflow-scrolling: touch;
-
-  /* Hide scrollbar */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.tournament-carousel::-webkit-scrollbar {
-  display: none;
 }
 
 .tournament-carousel-item {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
-  width: 85vw; /* nearly full width on mobile */
+  flex: 0 1 auto;
+  width: 85vw;
   max-width: 320px;
 }
 
@@ -318,7 +306,7 @@
 
 .tournament-page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -623,6 +611,7 @@
 }
 
 /* ========================
+<<<<<<< HEAD
    View Toggle (Grid / Calendar)
    ======================== */
 .view-toggle {
@@ -1043,7 +1032,6 @@
 }
 
 /* ── Empty state ─────────────────────────────────────────────────────────────── */
-
 .tournament-empty-state {
   display: flex;
   flex-direction: column;
