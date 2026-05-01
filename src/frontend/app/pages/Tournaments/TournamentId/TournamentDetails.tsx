@@ -6,7 +6,7 @@ import RegistrationsModal, { RegistrationsModalRef } from "./RegistrationsModal"
 import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
 import AddTournamentManagerModal from "./AddTournamentManagerModal";
 import ActionButtonPair from "../../../components/ActionButtonPair";
-import CustomAlert from "../../../components/CustomAlert";
+import CustomAlert, { AlertType } from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
 import {
   TournamentHeader,
@@ -214,7 +214,7 @@ type TournamentDetailsContentProps = {
   alertState: {
     isVisible: boolean;
     message: string;
-    type: "success" | "error";
+    type: AlertType;
   };
   hideAlert: () => void;
   tournament: any;
