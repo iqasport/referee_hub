@@ -196,7 +196,7 @@ public class NotificationService : INotificationService
 		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
 		if (!userDbId.HasValue)
 		{
-			throw new InvalidOperationException($"Could not resolve database user for {nameof(UserIdentifier)} {userId}");
+			throw new InvalidOperationException("Could not resolve database user for notification operation.");
 		}
 
 		var notification = new NotificationEntity
@@ -221,9 +221,8 @@ public class NotificationService : INotificationService
 		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
-			"Created notification {NotificationId} for user {UserId} with type {Type}",
+			"Created notification {NotificationId} with type {Type}",
 			notification.UniqueId,
-			userId,
 			type);
 
 		return notification;
@@ -285,9 +284,8 @@ public class NotificationService : INotificationService
 		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
-			"Marked notification {NotificationId} as read for user {UserId}",
-			notification.UniqueId,
-			userId);
+			"Marked notification {NotificationId} as read",
+			notification.UniqueId);
 
 		return notification;
 	}
@@ -316,9 +314,8 @@ public class NotificationService : INotificationService
 		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
-			"Marked {Count} notifications as read for user {UserId}",
-			unreadNotifications.Count,
-			userId);
+			"Marked {Count} notifications as read",
+			unreadNotifications.Count);
 
 		return unreadNotifications.Count;
 	}
@@ -349,9 +346,8 @@ public class NotificationService : INotificationService
 		await this.PublishUnreadCountAsync(userId, cancellationToken);
 
 		this.logger.LogInformation(
-			"Archived notification {NotificationId} for user {UserId}",
-			notification.UniqueId,
-			userId);
+			"Archived notification {NotificationId}",
+			notification.UniqueId);
 
 		return true;
 	}
