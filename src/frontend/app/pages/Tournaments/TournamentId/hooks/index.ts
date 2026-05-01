@@ -4,3 +4,4 @@ export { usePendingInvites } from "./usePendingInvites";
 export { useIsRegistrationClosed } from "./useIsRegistrationClosed";
 export { useManagedTeamIds } from "./useManagedTeamIds";
 export { useRosterStats } from "./useRosterStats";
+export { useTournamentDetailsData } from "./useTournamentDetailsData";

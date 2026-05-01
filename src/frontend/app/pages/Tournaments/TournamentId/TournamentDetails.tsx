@@ -34,6 +34,7 @@ import {
   useIsRegistrationClosed,
   useManagedTeamIds,
   useRosterStats,
+  useTournamentDetailsData,
 } from "./hooks";
 
 const TournamentDetails = () => {
@@ -47,88 +48,25 @@ const TournamentDetails = () => {
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
   const { alertState, showAlert, hideAlert } = useAlert();
-
-  // Query for current user
-  const {
-    data: currentUser,
-    isLoading: isCurrentUserLoading,
-    isError: isCurrentUserError,
-  } = useGetCurrentUserQuery();
-
-  // Query for authenticated tournament view
-  const shouldUseAuthenticatedTournamentQuery = !isCurrentUserLoading && !(isCurrentUserError || !currentUser);
-  const {
-    data: authenticatedTournament,
-    isLoading: isLoadingAuthenticatedTournament,
-    isError: isAuthenticatedTournamentError,
-  } = useGetTournamentQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || !shouldUseAuthenticatedTournamentQuery }
-  );
-
-  // Query for public tournament view (anonymous users)
-  const {
-    data: publicTournament,
-    isLoading: isLoadingPublicTournament,
-    isError: isPublicTournamentError,
-  } = useGetPublicTournamentQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || shouldUseAuthenticatedTournamentQuery }
-  );
-
-  // Determine which tournament data to use
-  const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
-  const tournament = isAnonymous
-    ? (publicTournament ? { ...publicTournament, isCurrentUserInvolved: false } : undefined)
-    : authenticatedTournament;
-  const isLoading = isCurrentUserLoading || isLoadingAuthenticatedTournament || isLoadingPublicTournament;
-  const isError = isAnonymous ? isPublicTournamentError : isAuthenticatedTournamentError;
-
-  // Query managed teams
-  const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, {
-    skip: isAnonymous,
-  });
-
-  // Check if user is a tournament manager for this specific tournament
-  const isTournamentManagerOfThis = currentUser?.roles?.some((role: any) => {
-    if (role.roleType !== "TournamentManager") return false;
-    if (role.tournament === "ANY") return true;
-    if (Array.isArray(role.tournament)) {
-      return role.tournament.includes(tournamentId);
-    }
-    return role.tournament === tournamentId;
-  });
-
-  // Query tournament managers (only if user is a manager of this tournament)
-  const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
-  const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !shouldFetchManagers }
-  );
-
-  // Query tournament invites
-  const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || isAnonymous }
-  );
-
-  // Query participants for roster information
-  const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || isAnonymous }
-  );
-
-  // Mutations
-  const [respondToInvite] = useRespondToInviteMutation();
-  const [deleteTournament] = useDeleteTournamentMutation();
   const navigate = useNavigate();
 
-  // Extract permissions state using custom hook
-  const { isTournamentManager } = useTournamentPermissions(
+  // Load all tournament data and queries with a single hook
+  const {
     currentUser,
+    tournament,
     managers,
-    managersError
-  );
+    invites,
+    participants,
+    managedTeamsData,
+    isAnonymous,
+    isTournamentManager,
+    isLoading,
+    isError,
+    respondToInvite,
+    deleteTournament,
+    refetchInvites,
+    refetchParticipants,
+  } = useTournamentDetailsData(tournamentId);
 
   // Extract managed team IDs
   const managedTeamIds = useManagedTeamIds(managedTeamsData);

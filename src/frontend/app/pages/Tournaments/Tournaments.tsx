@@ -7,10 +7,10 @@ import {
   useGetTournamentsQuery,
   useGetPublicTournamentsQuery,
   useGetCurrentUserQuery,
-  TournamentViewModel,
 } from "../../store/serviceApi";
 import { useFilteredTournaments } from "./hooks/useFilteredTournaments";
 import { useTournamentSections } from "./utils/tournamentUtils";
+import { useTournamentsData } from "./hooks/useTournamentsData";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -21,64 +21,9 @@ const Tournament = () => {
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const modalRef = useRef<AddTournamentModalRef>(null);
 
-  // Query current user
-  const { currentData: currentUser, isLoading: isCurrentUserLoading, isError: isCurrentUserError } =
-    useGetCurrentUserQuery();
-  const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
-
-  // Query tournaments
-  const shouldUseAuthenticatedQueries = !isCurrentUserLoading && !isAnonymous;
-
-  // Query for user's private tournaments (no pagination)
-  const {
-    data: allTournamentsData,
-    isLoading: isLoadingAll,
-    isError: isErrorAll,
-  } = useGetTournamentsQuery(
-    {
-      filter: searchTerm || undefined,
-      skipPaging: true,
-    },
-    {
-      skip: !shouldUseAuthenticatedQueries,
-    }
-  );
-
-  // Query for public tournaments with pagination
-  const {
-    data: paginatedData,
-    isLoading: isLoadingPaginated,
-    isError: isErrorPaginated,
-  } = useGetTournamentsQuery(
-    {
-      filter: searchTerm || undefined,
-      page: currentPage,
-      pageSize: DEFAULT_PAGE_SIZE,
-    },
-    {
-      skip: !shouldUseAuthenticatedQueries,
-    }
-  );
-
-  // Query for public tournaments (anonymous users)
-  const {
-    data: publicTournamentData,
-    isLoading: isLoadingPublic,
-    isError: isErrorPublic,
-  } = useGetPublicTournamentsQuery(undefined, {
-    skip: !isAnonymous,
-  });
-
-  // Calculate loading and error states
-  const isLoading = isCurrentUserLoading || isLoadingAll || isLoadingPaginated || isLoadingPublic;
-  const isError = shouldUseAuthenticatedQueries
-    ? (isErrorAll || isErrorPaginated)
-    : isErrorPublic;
-
-  // Extract data from responses
-  const allTournaments = allTournamentsData?.items || [];
-  const paginatedTournaments = paginatedData?.items || [];
-  const publicTournamentsFromApi = publicTournamentData || [];
+  // Load all tournament data with a single hook
+  const { isAnonymous, isLoading, isError, allTournaments, paginatedTournaments, publicTournamentsFromApi } =
+    useTournamentsData(searchTerm, currentPage, DEFAULT_PAGE_SIZE);
 
   // Use custom hook for filtering tournaments
   const { filteredAllTournaments, filteredPaginatedTournaments } = useFilteredTournaments(
