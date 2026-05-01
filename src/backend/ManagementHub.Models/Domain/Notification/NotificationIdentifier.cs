@@ -40,4 +40,6 @@ public record struct NotificationIdentifier(Ulid UniqueId)
 		result = new NotificationIdentifier(uniqueId);
 		return true;
 	}
+
+	public static NotificationIdentifier Parse(string value) => TryParse(value, out NotificationIdentifier result) ? result : throw new FormatException($"The string is not a valid {nameof(NotificationIdentifier)}");
 }
