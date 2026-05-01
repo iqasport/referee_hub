@@ -1,15 +1,12 @@
-import { useState } from "react";
 import {
-  useGetTournamentQuery,
-  useGetPublicTournamentQuery,
-  useGetTournamentManagersQuery,
   useGetCurrentUserQuery,
-  useGetTournamentInvitesQuery,
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
-  useRespondToInviteMutation,
   useDeleteTournamentMutation,
 } from "../../../../store/serviceApi";
+import { useTournamentManagerCheck } from "./useTournamentManagerCheck";
+import { useTournamentData } from "./useTournamentData";
+import { useInviteResponse } from "./useInviteResponse";
 
 interface UseTournamentDetailsDataReturn {
   currentUser: any;
@@ -30,8 +27,6 @@ interface UseTournamentDetailsDataReturn {
 }
 
 export const useTournamentDetailsData = (tournamentId: string | undefined): UseTournamentDetailsDataReturn => {
-  const [respondingTo, setRespondingTo] = useState<string | null>(null);
-
   // Query for current user
   const {
     data: currentUser,
@@ -40,67 +35,23 @@ export const useTournamentDetailsData = (tournamentId: string | undefined): UseT
   } = useGetCurrentUserQuery();
 
   const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
-  const shouldUseAuthenticatedTournamentQuery = !isCurrentUserLoading && !isAnonymous;
 
-  // Query for authenticated tournament view
-  const {
-    data: authenticatedTournament,
-    isLoading: isLoadingAuthenticatedTournament,
-    isError: isAuthenticatedTournamentError,
-  } = useGetTournamentQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || !shouldUseAuthenticatedTournamentQuery }
-  );
+  // Get tournament data (handles both authenticated and public queries)
+  const { tournament, isLoading: isTournamentLoading, isError: isTournamentError } = 
+    useTournamentData(tournamentId, isAnonymous, isCurrentUserLoading);
 
-  // Query for public tournament view (anonymous users)
-  const {
-    data: publicTournament,
-    isLoading: isLoadingPublicTournament,
-    isError: isPublicTournamentError,
-  } = useGetPublicTournamentQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || shouldUseAuthenticatedTournamentQuery }
-  );
+  // Get manager status and managers list
+  const { isTournamentManager, managers, managersError } = 
+    useTournamentManagerCheck(tournamentId);
 
-  // Determine which tournament data to use
-  const tournament = isAnonymous
-    ? (publicTournament ? { ...publicTournament, isCurrentUserInvolved: false } : undefined)
-    : authenticatedTournament;
-  const isLoading = isCurrentUserLoading || isLoadingAuthenticatedTournament || isLoadingPublicTournament;
-  const isError = isAnonymous ? isPublicTournamentError : isAuthenticatedTournamentError;
+  // Get invite response functionality
+  const { invites, respondToInvite, refetchInvites } = 
+    useInviteResponse({ tournamentId, isAnonymous });
 
   // Query managed teams
   const { data: managedTeamsData = [] } = useGetManagedTeamsQuery(undefined, {
     skip: isAnonymous,
   });
-
-  // Check if user is a tournament manager for this specific tournament
-  const isTournamentManagerOfThis = currentUser?.roles?.some((role: any) => {
-    if (role.roleType !== "TournamentManager") return false;
-    if (role.tournament === "ANY") return true;
-    if (Array.isArray(role.tournament)) {
-      return role.tournament.includes(tournamentId);
-    }
-    return role.tournament === tournamentId;
-  });
-
-  // Query tournament managers
-  const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
-  const { data: managers = [], isError: managersError } = useGetTournamentManagersQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !shouldFetchManagers }
-  );
-
-  // Check if current user is a manager
-  const isTournamentManager = !managersError && currentUser?.userId && managers
-    ? managers.some((manager) => manager.id === currentUser.userId)
-    : false;
-
-  // Query tournament invites
-  const { data: invites = [], refetch: refetchInvites } = useGetTournamentInvitesQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || isAnonymous }
-  );
 
   // Query participants
   const { data: participants = [], refetch: refetchParticipants } = useGetParticipantsQuery(
@@ -109,8 +60,10 @@ export const useTournamentDetailsData = (tournamentId: string | undefined): UseT
   );
 
   // Mutations
-  const [respondToInvite] = useRespondToInviteMutation();
   const [deleteTournament] = useDeleteTournamentMutation();
+
+  const isLoading = isCurrentUserLoading || isTournamentLoading;
+  const isError = isTournamentError;
 
   return {
     currentUser,

@@ -14,19 +14,7 @@ import {
   RosterManager,
 } from "./components";
 import { TournamentDetailsSidebar } from "./components/TournamentDetailsSidebar";
-import {
-  useGetTournamentQuery,
-  useGetPublicTournamentQuery,
-  useGetTournamentManagersQuery,
-  useGetCurrentUserQuery,
-  useGetTournamentInvitesQuery,
-  useRespondToInviteMutation,
-  useGetManagedTeamsQuery,
-  useGetParticipantsQuery,
-  useDeleteTournamentMutation,
-  TournamentInviteViewModel,
-} from "../../../store/serviceApi";
-import { useNavigationParams, useNavigate } from "../../../utils/navigationUtils";
+import { useNavigationParams } from "../../../utils/navigationUtils";
 import {
   useTournamentPermissions,
   useApprovedTeams,
@@ -35,22 +23,24 @@ import {
   useManagedTeamIds,
   useRosterStats,
   useTournamentDetailsData,
+  useTournamentDateRange,
+  useTournamentEditHandler,
+  useDeleteTournamentHandler,
+  useRespondToInviteHandler,
 } from "./hooks";
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
   const registerModalRef = useRef<RegisterTournamentModalRef>(null);
   const contactOrganizerModalRef = useRef<ContactOrganizerModalRef>(null);
-  const editModalRef = useRef<AddTournamentModalRef>(null);
   const registrationsModalRef = useRef<RegistrationsModalRef>(null);
   const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
   const rosterSectionRef = useRef<HTMLDivElement>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
   const { alertState, showAlert, hideAlert } = useAlert();
-  const navigate = useNavigate();
 
-  // Load all tournament data and queries with a single hook
+  // Load all tournament data with a single hook
   const {
     currentUser,
     tournament,
@@ -63,7 +53,6 @@ const TournamentDetails = () => {
     isLoading,
     isError,
     respondToInvite,
-    deleteTournament,
     refetchInvites,
     refetchParticipants,
   } = useTournamentDetailsData(tournamentId);
@@ -81,39 +70,28 @@ const TournamentDetails = () => {
   // Check if registration is closed
   const isRegistrationClosed = useIsRegistrationClosed(tournament);
 
-  // Handle accept/decline invite
-  async function handleRespondToInvite(participantId: string, approved: boolean) {
-    if (!tournamentId) return;
+  // Handle date range formatting
+  const formattedDateRange = useTournamentDateRange(tournament?.startDate, tournament?.endDate);
 
-    setRespondingTo(participantId);
-    try {
-      await respondToInvite({
-        tournamentId,
-        participantId,
-        inviteResponseModel: { approved },
-      }).unwrap();
+  // Handle edit tournament (for managers)
+  const { editModalRef, handleEdit } = useTournamentEditHandler(tournament);
 
-      showAlert(approved ? "Successfully accepted the invite!" : "Invite declined.", "success");
-      refetchInvites();
-    } catch (error) {
-      console.error("Failed to respond to invite:", error);
-      showAlert("Failed to respond. Please try again.", "error");
-    } finally {
-      setRespondingTo(null);
-    }
-  }
+  // Handle delete tournament
+  const { handleDelete } = useDeleteTournamentHandler({
+    tournamentId,
+    tournamentName: tournament?.name,
+    showAlert,
+  });
 
-  async function handleDelete() {
-    if (!tournamentId) return;
-    if (!window.confirm(`Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? It will be removed from view.`)) return;
-    try {
-      await deleteTournament({ tournamentId }).unwrap();
-      navigate("/tournaments");
-    } catch (error) {
-      console.error("Failed to delete tournament:", error);
-      showAlert("Failed to delete the tournament. Please try again.", "error");
-    }
-  }
+  // Handle invite response
+  const { handleRespondToInvite } = useRespondToInviteHandler({
+    tournamentId,
+    respondingTo,
+    setRespondingTo,
+    refetchInvites,
+    showAlert,
+    respondToInviteMutation: respondToInvite,
+  });
 
   if (isLoading) {
     return (
@@ -130,47 +108,6 @@ const TournamentDetails = () => {
       </div>
     );
   }
-
-  const startDate = new Date(tournament.startDate || "");
-  const endDate = new Date(tournament.endDate || "");
-
-  // Check if start and end dates are the same
-  const isSameDay = startDate.toDateString() === endDate.toDateString();
-
-  const formattedDateRange = isSameDay
-    ? startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : `${startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} - ${endDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`;
-
-  // Handle edit tournament (for managers)
-  const handleEdit = () => {
-    editModalRef.current?.openEdit({
-      id: tournament.id || "",
-      name: tournament.name || "",
-      description: tournament.description || "",
-      startDate: tournament.startDate || "",
-      endDate: tournament.endDate || "",
-      registrationEndsDate: tournament.registrationEndsDate || "",
-      type: tournament.type || ("" as const),
-      country: tournament.country || "",
-      city: tournament.city || "",
-      place: tournament.place || "",
-      organizer: tournament.organizer || "",
-      isPrivate: tournament.isPrivate || false,
-      isRegistrationOpen: tournament.isRegistrationOpen ?? true,
-      bannerImageUrl: tournament.bannerImageUrl || "",
-    });
-  };
 
   return (
     <>
