@@ -11,7 +11,9 @@ import {
   useGetCurrentUserQuery,
   TournamentViewModel,
 } from "../../store/serviceApi";
-import TournamentSection, { TournamentData } from "./components/TournamentsSection";
+import TournamentSection from "./components/TournamentsSection";
+import { useFilteredTournaments } from "./hooks/useFilteredTournaments";
+import { useTournamentSections } from "./utils/tournamentUtils";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -21,36 +23,47 @@ const Tournament = () => {
   const typeFilter = searchParams.get("type") || "";
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const modalRef = useRef<AddTournamentModalRef>(null);
+
+  // Query current user
   const { currentData: currentUser, isLoading: isCurrentUserLoading, isError: isCurrentUserError } =
     useGetCurrentUserQuery();
   const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
+
+  // Query tournaments
   const shouldUseAuthenticatedQueries = !isCurrentUserLoading && !isAnonymous;
 
-  // Query for user's private tournaments (no pagination - uses lazy loading in carousel)
+  // Query for user's private tournaments (no pagination)
   const {
     data: allTournamentsData,
     isLoading: isLoadingAll,
     isError: isErrorAll,
-  } = useGetTournamentsQuery({
-    filter: searchTerm || undefined,
-    skipPaging: true,
-  }, {
-    skip: !shouldUseAuthenticatedQueries,
-  });
+  } = useGetTournamentsQuery(
+    {
+      filter: searchTerm || undefined,
+      skipPaging: true,
+    },
+    {
+      skip: !shouldUseAuthenticatedQueries,
+    }
+  );
 
   // Query for public tournaments with pagination
   const {
     data: paginatedData,
     isLoading: isLoadingPaginated,
     isError: isErrorPaginated,
-  } = useGetTournamentsQuery({
-    filter: searchTerm || undefined,
-    page: currentPage,
-    pageSize: DEFAULT_PAGE_SIZE,
-  }, {
-    skip: !shouldUseAuthenticatedQueries,
-  });
+  } = useGetTournamentsQuery(
+    {
+      filter: searchTerm || undefined,
+      page: currentPage,
+      pageSize: DEFAULT_PAGE_SIZE,
+    },
+    {
+      skip: !shouldUseAuthenticatedQueries,
+    }
+  );
 
+  // Query for public tournaments (anonymous users)
   const {
     data: publicTournamentData,
     isLoading: isLoadingPublic,
@@ -59,15 +72,35 @@ const Tournament = () => {
     skip: !isAnonymous,
   });
 
+  // Calculate loading and error states
   const isLoading = isCurrentUserLoading || isLoadingAll || isLoadingPaginated || isLoadingPublic;
   const isError = shouldUseAuthenticatedQueries
     ? (isErrorAll || isErrorPaginated)
     : isErrorPublic;
 
+  // Extract data from responses
   const allTournaments = allTournamentsData?.items || [];
   const paginatedTournaments = paginatedData?.items || [];
   const publicTournamentsFromApi = publicTournamentData || [];
 
+  // Use custom hook for filtering tournaments
+  const { filteredAllTournaments, filteredPaginatedTournaments } = useFilteredTournaments(
+    isAnonymous,
+    currentPage,
+    typeFilter,
+    publicTournamentsFromApi,
+    allTournaments,
+    paginatedTournaments
+  );
+
+  // Use custom hook to organize tournaments into sections
+  const { publicTournaments, privateTournaments, totalCount } = useTournamentSections(
+    isAnonymous,
+    filteredAllTournaments,
+    filteredPaginatedTournaments
+  );
+
+  // Handle search
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
     if (term.trim()) {
@@ -75,10 +108,11 @@ const Tournament = () => {
     } else {
       params.delete("q");
     }
-    params.delete("page"); // Reset to first page on search
+    params.delete("page");
     setSearchParams(params);
   };
 
+  // Handle type filter
   const handleTypeFilter = (type: string) => {
     const params = new URLSearchParams(searchParams);
     if (type) {
@@ -86,10 +120,11 @@ const Tournament = () => {
     } else {
       params.delete("type");
     }
-    params.delete("page"); // Reset to first page on filter change
+    params.delete("page");
     setSearchParams(params);
   };
 
+  // Handle page change
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     if (page > 1) {
@@ -99,86 +134,6 @@ const Tournament = () => {
     }
     setSearchParams(params);
   };
-
-  // Type filtering is applied client-side since the API doesn't support it yet
-  // Note: For better performance, type filtering should be added to the API
-  const filteredAllTournaments = useMemo(() => {
-    if (isAnonymous) {
-      return publicTournamentsFromApi;
-    }
-    if (!typeFilter) {
-      return allTournaments;
-    }
-    return allTournaments.filter((t) => t.type === typeFilter);
-  }, [isAnonymous, publicTournamentsFromApi, allTournaments, typeFilter]);
-
-  const filteredPaginatedTournaments = useMemo(() => {
-    if (isAnonymous) {
-      const startIndex = (currentPage - 1) * DEFAULT_PAGE_SIZE;
-      const endIndex = startIndex + DEFAULT_PAGE_SIZE;
-
-      if (!typeFilter) {
-        return publicTournamentsFromApi.slice(startIndex, endIndex);
-      }
-
-      return publicTournamentsFromApi
-        .filter((t) => t.type === typeFilter)
-        .slice(startIndex, endIndex);
-    }
-
-    if (!typeFilter) {
-      return paginatedTournaments;
-    }
-    return paginatedTournaments.filter((t) => t.type === typeFilter);
-  }, [isAnonymous, currentPage, typeFilter, publicTournamentsFromApi, paginatedTournaments]);
-
-  const { publicTournaments, privateTournaments, totalCount } = useMemo(() => {
-    const convertToDisplayFormat = (t: TournamentViewModel): TournamentData => ({
-      id: t.id,
-      title: t.name || "",
-      description: t.description || "",
-      startDate: t.startDate || "",
-      endDate: t.endDate || "",
-      type: t.type,
-      country: t.country || "",
-      location: [t.place, t.city].filter(Boolean).join(", "),
-      bannerImageUrl: t.bannerImageUrl || undefined,
-      organizer: t.organizer || undefined,
-      isPrivate: Boolean(t.isCurrentUserInvolved),
-    });
-
-    if (isAnonymous) {
-      return {
-        publicTournaments: filteredPaginatedTournaments.map((t) => convertToDisplayFormat({
-          ...t,
-          isCurrentUserInvolved: false,
-        })),
-        privateTournaments: [],
-        totalCount: filteredAllTournaments.length,
-      };
-    }
-
-    // Private tournaments come from the unpaginated query (all tournaments)
-    const userInvolvedTournaments = filteredAllTournaments
-      .filter((t) => t.isCurrentUserInvolved)
-      .map(convertToDisplayFormat);
-
-    // Public tournaments come from the paginated query
-    const otherTournaments = filteredPaginatedTournaments
-      .filter((t) => !t.isCurrentUserInvolved)
-      .map(convertToDisplayFormat);
-
-    // Calculate public tournament count from all tournaments (for correct pagination)
-    const publicTournamentCount = filteredAllTournaments.filter(
-      (t) => !t.isCurrentUserInvolved
-    ).length;
-
-    return {
-      publicTournaments: otherTournaments,
-      privateTournaments: userInvolvedTournaments,
-      totalCount: publicTournamentCount,
-    };
-  }, [isAnonymous, filteredAllTournaments, filteredPaginatedTournaments]);
 
   return (
     <>

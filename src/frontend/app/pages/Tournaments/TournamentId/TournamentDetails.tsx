@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState } from "react";
+import React, { useRef, useState } from "react";
 import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterTournamentModal";
 import ContactOrganizerModal, { ContactOrganizerModalRef } from "./ContactOrganizerModal";
 import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
@@ -27,6 +27,14 @@ import {
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
 import { useNavigationParams, useNavigate } from "../../../utils/navigationUtils";
+import {
+  useTournamentPermissions,
+  useApprovedTeams,
+  usePendingInvites,
+  useIsRegistrationClosed,
+  useManagedTeamIds,
+  useRosterStats,
+} from "./hooks";
 
 const TournamentDetails = () => {
   const { tournamentId } = useNavigationParams<"tournamentId">();
@@ -40,14 +48,15 @@ const TournamentDetails = () => {
   const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
   const { alertState, showAlert, hideAlert } = useAlert();
 
+  // Query for current user
   const {
     data: currentUser,
     isLoading: isCurrentUserLoading,
     isError: isCurrentUserError,
   } = useGetCurrentUserQuery();
-  const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
-  const shouldUseAuthenticatedTournamentQuery = !isCurrentUserLoading && !isAnonymous;
 
+  // Query for authenticated tournament view
+  const shouldUseAuthenticatedTournamentQuery = !isCurrentUserLoading && !(isCurrentUserError || !currentUser);
   const {
     data: authenticatedTournament,
     isLoading: isLoadingAuthenticatedTournament,
@@ -57,28 +66,30 @@ const TournamentDetails = () => {
     { skip: !tournamentId || !shouldUseAuthenticatedTournamentQuery }
   );
 
+  // Query for public tournament view (anonymous users)
   const {
     data: publicTournament,
     isLoading: isLoadingPublicTournament,
     isError: isPublicTournamentError,
   } = useGetPublicTournamentQuery(
     { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || !isAnonymous }
+    { skip: !tournamentId || shouldUseAuthenticatedTournamentQuery }
   );
 
+  // Determine which tournament data to use
+  const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
   const tournament = isAnonymous
     ? (publicTournament ? { ...publicTournament, isCurrentUserInvolved: false } : undefined)
     : authenticatedTournament;
   const isLoading = isCurrentUserLoading || isLoadingAuthenticatedTournament || isLoadingPublicTournament;
   const isError = isAnonymous ? isPublicTournamentError : isAuthenticatedTournamentError;
 
-  // Use the new managed teams endpoint to get teams the user manages
+  // Query managed teams
   const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, {
     skip: isAnonymous,
   });
 
   // Check if user is a tournament manager for this specific tournament
-  // Note: role.tournament can be "ANY", a single tournament ID string, or an array of tournament IDs
   const isTournamentManagerOfThis = currentUser?.roles?.some((role: any) => {
     if (role.roleType !== "TournamentManager") return false;
     if (role.tournament === "ANY") return true;
@@ -88,133 +99,49 @@ const TournamentDetails = () => {
     return role.tournament === tournamentId;
   });
 
-  // Only fetch managers if user is a tournament manager of this tournament
+  // Query tournament managers (only if user is a manager of this tournament)
   const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
   const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
     { tournamentId: tournamentId || "" },
     { skip: !shouldFetchManagers }
   );
 
-  // Fetch tournament invites to check for pending invites for user's teams
+  // Query tournament invites
   const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
     { tournamentId: tournamentId || "" },
     { skip: !tournamentId || isAnonymous }
   );
 
-  // Fetch participants to get roster counts
+  // Query participants for roster information
   const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
     { tournamentId: tournamentId || "" },
     { skip: !tournamentId || isAnonymous }
   );
 
+  // Mutations
   const [respondToInvite] = useRespondToInviteMutation();
   const [deleteTournament] = useDeleteTournamentMutation();
   const navigate = useNavigate();
 
-  // Get team IDs from the managed teams endpoint
-  const managedTeamIds: Set<string> = useMemo(() => {
-    const teamIds = new Set<string>();
-    if (managedTeamsData) {
-      managedTeamsData.forEach((team) => {
-        if (team.teamId) {
-          teamIds.add(team.teamId);
-        }
-      });
-    }
-    return teamIds;
-  }, [managedTeamsData]);
+  // Extract permissions state using custom hook
+  const { isTournamentManager } = useTournamentPermissions(
+    currentUser,
+    managers,
+    managersError
+  );
 
-  // These are invites initiated by tournament managers that the team manager needs to accept/decline
-  const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
-    if (!invites || managedTeamIds.size === 0) return [];
+  // Extract managed team IDs
+  const managedTeamIds = useManagedTeamIds(managedTeamsData);
 
-    return invites.filter((invite) => {
-      // Check if this invite is for one of user's teams
-      if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
+  // Extract pending and approved invites
+  const pendingInvitesForUser = usePendingInvites(invites, managedTeamIds);
+  const approvedTeamsForUser = useApprovedTeams(invites, managedTeamIds, managedTeamsData);
 
-      // Check if participant approval is pending (user needs to respond)
-      return invite.participantApproval?.status === "pending";
-    });
-  }, [invites, managedTeamIds]);
+  // Extract roster stats
+  const { totalPlayerCount } = useRosterStats(participants);
 
-  // Find teams that are fully approved and participating
-  const approvedTeamsForUser = useMemo(() => {
-    if (!invites || managedTeamIds.size === 0 || !managedTeamsData) return [];
-
-    return invites
-      .filter((invite) => {
-        // Check if this invite is for one of user's teams
-        if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
-        // Check if the invite is fully approved
-        return invite.status === "approved";
-      })
-      .map((invite) => {
-        const teamData = managedTeamsData.find((t) => t.teamId === invite.participantId);
-        return {
-          teamId: invite.participantId,
-          teamName: invite.participantName || teamData?.teamName || "Unknown Team",
-          ngb: teamData?.ngb || "",
-        };
-      });
-  }, [invites, managedTeamIds, managedTeamsData]);
-
-  // Calculate team count (number of teams registered)
-  const teamCount = useMemo(() => {
-    if (!participants) return 0;
-    return participants.length;
-  }, [participants]);
-
-  // Calculate total participant count from all team rosters (players + coaches + staff)
-  const totalParticipantCount = useMemo(() => {
-    if (!participants) return 0;
-    return participants.reduce((total, team) => {
-      const playerCount = team.players?.length || 0;
-      const coachCount = team.coaches?.length || 0;
-      const staffCount = team.staff?.length || 0;
-      return total + playerCount + coachCount + staffCount;
-    }, 0);
-  }, [participants]);
-  
-  // Calculate total player count (excluding coaches and staff)
-  const totalPlayerCount = useMemo(() => {
-    if (!participants) return 0;
-    return participants.reduce((total, team) => {
-      const playerCount = team.players?.length || 0;
-      return total + playerCount;
-    }, 0);
-  }, [participants]);
-
-  // Determine if registration is closed (manual toggle or date-based)
-  const isRegistrationClosed = useMemo(() => {
-    // Check manual closure first (field may not exist if migration not applied)
-    if (tournament?.isRegistrationOpen === false) {
-      return true;
-    }
-
-    // Check if registration end date has passed
-    if (tournament?.registrationEndsDate) {
-      const regEndsDate = new Date(tournament.registrationEndsDate);
-      const today = new Date();
-      // Reset hours to compare at day level
-      regEndsDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      if (today > regEndsDate) {
-        return true;
-      }
-    } else if (tournament?.startDate) {
-      // Fall back to start date if no registration end date
-      const startDate = new Date(tournament.startDate);
-      const today = new Date();
-      // Reset hours to compare at day level
-      startDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      if (today > startDate) {
-        return true;
-      }
-    }
-
-    return false;
-  }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
+  // Check if registration is closed
+  const isRegistrationClosed = useIsRegistrationClosed(tournament);
 
   // Handle accept/decline invite
   async function handleRespondToInvite(participantId: string, approved: boolean) {
@@ -266,13 +193,6 @@ const TournamentDetails = () => {
     );
   }
 
-  // Check if current user is a manager of this tournament
-  // Only consider them a manager if they're in the managers list and we successfully fetched the list
-  const isManager =
-    !managersError && currentUser?.userId && managers
-      ? managers.some((manager) => manager.id === currentUser.userId)
-      : false;
-
   const startDate = new Date(tournament.startDate || "");
   const endDate = new Date(tournament.endDate || "");
 
@@ -323,7 +243,7 @@ const TournamentDetails = () => {
       <TournamentHeader
         bannerImageUrl={tournament.bannerImageUrl}
         name={tournament.name}
-        isManager={isManager}
+        isManager={isTournamentManager}
       />
 
       {/* Info cards section */}
@@ -352,7 +272,7 @@ const TournamentDetails = () => {
 
             {/* Right sidebar - Different content for managers vs regular users */}
             <div>
-              {isManager ? (
+              {isTournamentManager ? (
                 <>
                   {/* Manager Tools Card */}
                   <div className="card card-highlighted card-mb card-sticky">
