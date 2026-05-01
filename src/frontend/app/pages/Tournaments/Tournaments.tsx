@@ -1,17 +1,14 @@
-import React, { useRef, useMemo } from "react";
+import React, { useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { faArrowLeft, faArrowRight, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Pagination from "rc-pagination";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
+import { TournamentList } from "./components/TournamentList";
 import {
   useGetTournamentsQuery,
   useGetPublicTournamentsQuery,
   useGetCurrentUserQuery,
   TournamentViewModel,
 } from "../../store/serviceApi";
-import TournamentSection from "./components/TournamentsSection";
 import { useFilteredTournaments } from "./hooks/useFilteredTournaments";
 import { useTournamentSections } from "./utils/tournamentUtils";
 
@@ -161,46 +158,15 @@ const Tournament = () => {
       ) : isError ? (
         <div className="tournament-error">Error loading tournaments. Please try again.</div>
       ) : (
-        <div className="tournament-page-container">
-          {privateTournaments.length > 0 && (
-            <TournamentSection
-              tournaments={privateTournaments}
-              visibility="private"
-              layout="carousel"
-            />
-          )}
-
-          {publicTournaments.length > 0 && (
-            <>
-              <TournamentSection
-                tournaments={publicTournaments}
-                visibility="public"
-                layout="grid"
-              />
-              {totalCount > DEFAULT_PAGE_SIZE && (
-                <div className="flex justify-center py-4">
-                  <Pagination
-                    current={currentPage}
-                    total={totalCount}
-                    onChange={handlePageChange}
-                    pageSize={DEFAULT_PAGE_SIZE}
-                    prevIcon={<FontAwesomeIcon icon={faArrowLeft} />}
-                    nextIcon={<FontAwesomeIcon icon={faArrowRight} />}
-                    className="pagination"
-                    hideOnSinglePage={true}
-                    jumpPrevIcon={<FontAwesomeIcon icon={faEllipsisH} />}
-                    jumpNextIcon={<FontAwesomeIcon icon={faEllipsisH} />}
-                    showTitle={false}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {privateTournaments.length === 0 && publicTournaments.length === 0 && (
-            <div className="tournament-empty">No tournaments available.</div>
-          )}
-        </div>
+        <TournamentList
+          isLoading={isLoading}
+          isError={isError}
+          privateTournaments={privateTournaments}
+          publicTournaments={publicTournaments}
+          currentPage={currentPage}
+          totalCount={totalCount}
+          onPageChange={handlePageChange}
+        />
       )}
     </>
   );
