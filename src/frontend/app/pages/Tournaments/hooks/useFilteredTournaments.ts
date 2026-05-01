@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { TournamentViewModel } from "../../../store/serviceApi";
-import { applyTypeFilter } from "./tournamentUtils";
+import { applyTypeFilter } from "../utils/tournamentUtils";
 
 const DEFAULT_PAGE_SIZE = 20;
 
