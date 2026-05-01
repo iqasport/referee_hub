@@ -78,7 +78,7 @@ public class TournamentsController : ControllerBase
 	/// </summary>
 	[HttpGet]
 	[Tags("Tournament")]
-	public async Task<Filtered<TournamentViewModel>> GetTournaments([FromQuery] FilteringParameters filtering)
+	public async Task<Filtered<TournamentViewModel>> GetTournaments([FromQuery] TournamentFilteringParameters filtering)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
