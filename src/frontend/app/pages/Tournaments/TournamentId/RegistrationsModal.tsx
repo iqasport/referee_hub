@@ -24,6 +24,11 @@ type VolunteerObservation = {
   associatedTeamIds?: string[];
 };
 
+type TournamentInviteWithVolunteer = TournamentInviteViewModel & {
+  observations?: string | null;
+  participantType?: "team" | "referee";
+};
+
 function parseVolunteerObservation(raw?: string | null): VolunteerObservation | null {
   if (!raw) return null;
   try {
@@ -109,6 +114,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   }
 
   const selectedInviteData = invites?.find((i) => i.participantId === selectedInvite);
+  const selectedInviteWithVolunteer = selectedInviteData as TournamentInviteWithVolunteer | undefined;
 
   function getPendingLabel(invite: TournamentInviteViewModel): string {
     if (invite.tournamentManagerApproval?.status === "pending") return "Awaiting your review";
@@ -131,7 +137,8 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     ];
 
     const rows = invites.map((invite) => {
-      const observation = parseVolunteerObservation(invite.observations);
+      const inviteWithVolunteer = invite as TournamentInviteWithVolunteer;
+      const observation = parseVolunteerObservation(inviteWithVolunteer.observations);
       return [
         invite.participantName || "",
         invite.participantType || "",
@@ -216,8 +223,8 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                   <p className="text-sm text-gray-600 mt-1">Type: {selectedInviteData.participantType}</p>
                 </div>
 
-                {selectedInviteData.participantType === "referee" && (() => {
-                  const observation = parseVolunteerObservation(selectedInviteData.observations);
+                {selectedInviteWithVolunteer?.participantType === "referee" && (() => {
+                  const observation = parseVolunteerObservation(selectedInviteWithVolunteer.observations);
                   return (
                     <div className="bg-gray-50 rounded-lg p-4 mb-4">
                       <p className="text-sm text-gray-600 mb-1">Volunteer Details</p>

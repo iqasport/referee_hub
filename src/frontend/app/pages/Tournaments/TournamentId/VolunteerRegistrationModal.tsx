@@ -113,7 +113,7 @@ const VolunteerRegistrationModal = forwardRef<VolunteerRegistrationModalRef, Vol
             participantType: "referee",
             participantId: userId,
             observations: JSON.stringify(form),
-          },
+          } as any,
         }).unwrap();
 
         showAlert("Volunteer registration saved.", "success");
