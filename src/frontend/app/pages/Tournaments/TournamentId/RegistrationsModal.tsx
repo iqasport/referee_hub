@@ -24,7 +24,7 @@ type VolunteerObservation = {
   associatedTeamIds?: string[];
 };
 
-type TournamentInviteWithVolunteer = TournamentInviteViewModel & {
+type TournamentInviteWithVolunteer = Omit<TournamentInviteViewModel, "participantType"> & {
   observations?: string | null;
   participantType?: "team" | "referee";
 };
