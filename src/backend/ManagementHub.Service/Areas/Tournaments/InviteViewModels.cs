@@ -10,6 +10,7 @@ public class TournamentInviteViewModel
 	public required ParticipantType ParticipantType { get; set; }
 	public required string ParticipantId { get; set; }
 	public required string ParticipantName { get; set; }
+	public string? Observations { get; set; }
 	public required InviteStatus Status { get; set; }
 	public required UserIdentifier InitiatorUserId { get; set; }
 	public required DateTime CreatedAt { get; set; }
@@ -27,6 +28,7 @@ public class CreateInviteModel
 {
 	public required ParticipantType ParticipantType { get; set; }
 	public required string ParticipantId { get; set; }
+	public string? Observations { get; set; }
 }
 
 public class InviteResponseModel

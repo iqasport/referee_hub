@@ -10,6 +10,7 @@ public class InviteInfo
 	public required ParticipantType ParticipantType { get; set; }
 	public required string ParticipantId { get; set; }
 	public required string ParticipantName { get; set; }
+	public string? Observations { get; set; }
 	public required UserIdentifier InitiatorUserId { get; set; }
 	public required DateTime CreatedAt { get; set; }
 	public required ApprovalStatus TournamentManagerApproval { get; set; }

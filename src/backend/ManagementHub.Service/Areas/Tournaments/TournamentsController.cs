@@ -499,6 +499,7 @@ public class TournamentsController : ControllerBase
 			tournamentId,
 			teamId,
 			userContext.UserId,
+			model.Observations,
 			this.HttpContext.RequestAborted);
 
 		await this.HandleAutoApproval(invite, tournamentId, teamId);
@@ -1174,3 +1175,5 @@ public class TournamentsController : ControllerBase
 		};
 	}
 }
+
+

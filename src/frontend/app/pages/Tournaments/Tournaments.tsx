@@ -104,6 +104,7 @@ const Tournament = () => {
       location: [t.place, t.city].filter(Boolean).join(", "),
       bannerImageUrl: t.bannerImageUrl || undefined,
       organizer: t.organizer || undefined,
+      showVolunteerRegistrationBadge: Boolean(t.isRegistrationOpen),
       isPrivate: Boolean(t.isCurrentUserInvolved),
     });
 

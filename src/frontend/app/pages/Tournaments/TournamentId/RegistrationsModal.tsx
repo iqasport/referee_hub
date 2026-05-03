@@ -16,6 +16,30 @@ export interface RegistrationsModalRef {
   open: (tournamentId: string, tournamentName: string) => void;
 }
 
+type VolunteerObservation = {
+  positions?: string[];
+  excitement?: number;
+  experience?: number;
+  affiliatedTeamId?: string;
+  associatedTeamIds?: string[];
+};
+
+function parseVolunteerObservation(raw?: string | null): VolunteerObservation | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as VolunteerObservation;
+  } catch {
+    return null;
+  }
+}
+
+function csvEscape(value: string): string {
+  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
 const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const { alertState, showAlert, hideAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
@@ -92,6 +116,45 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     return "Pending";
   }
 
+  function exportCsv() {
+    if (!invites || invites.length === 0) return;
+
+    const header = [
+      "Participant",
+      "Participant Type",
+      "Status",
+      "Excitement",
+      "Experience",
+      "Affiliated Team",
+      "Associated Teams",
+      "Positions",
+    ];
+
+    const rows = invites.map((invite) => {
+      const observation = parseVolunteerObservation(invite.observations);
+      return [
+        invite.participantName || "",
+        invite.participantType || "",
+        invite.status || "",
+        observation?.excitement?.toString() || "",
+        observation?.experience?.toString() || "",
+        observation?.affiliatedTeamId || "",
+        (observation?.associatedTeamIds || []).join(" | "),
+        (observation?.positions || []).join(" | "),
+      ].map((value) => csvEscape(value));
+    });
+
+    const content = [header.map(csvEscape).join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeName = (tournamentName || "tournament").replace(/[^a-zA-Z0-9-_]/g, "_").toLowerCase();
+    link.href = url;
+    link.download = `${safeName}_registrations.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       {alertState.isVisible && (
@@ -114,7 +177,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <DialogTitle as="h3" className="text-xl font-semibold text-gray-900">
-                {selectedInvite ? "Registration Details" : "Team Registrations"}
+                {selectedInvite ? "Registration Details" : "Registrations"}
               </DialogTitle>
               <button
                 onClick={close}
@@ -132,6 +195,11 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                 ← Back to list
               </button>
             )}
+            {!selectedInvite && invites && invites.length > 0 && (
+              <button onClick={exportCsv} className="text-blue-600 text-sm mt-2 hover:underline">
+                Export CSV
+              </button>
+            )}
           </div>
 
           {/* Content */}
@@ -141,11 +209,24 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
               <div>
                 {/* Team Name */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-gray-600 mb-1">Team Name</p>
+                  <p className="text-sm text-gray-600 mb-1">Participant</p>
                   <p className="text-lg font-semibold text-gray-900">
                     {selectedInviteData.participantName}
                   </p>
+                  <p className="text-sm text-gray-600 mt-1">Type: {selectedInviteData.participantType}</p>
                 </div>
+
+                {selectedInviteData.participantType === "referee" && (() => {
+                  const observation = parseVolunteerObservation(selectedInviteData.observations);
+                  return (
+                    <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-gray-600 mb-1">Volunteer Details</p>
+                      <p className="text-sm text-gray-900">Positions: {(observation?.positions || []).join(", ") || "Not provided"}</p>
+                      <p className="text-sm text-gray-900">Excitement: {observation?.excitement ?? "Not provided"}</p>
+                      <p className="text-sm text-gray-900">Experience: {observation?.experience ?? "Not provided"}</p>
+                    </div>
+                  );
+                })()}
 
                 {/* Request Date */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -247,7 +328,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                           </div>
                           <StatusBadge status={invite.status || "unknown"} />
                         </div>
-                        {invite.status === "approved" && (
+                        {invite.status === "approved" && invite.participantType === "team" && (
                           <div className="mt-3 pt-3 border-t border-gray-200">
                             <button
                               onClick={(e) => {
@@ -269,7 +350,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-600 text-center py-8">No team registrations yet.</p>
+                  <p className="text-gray-600 text-center py-8">No registrations yet.</p>
                 )}
               </>
             )}

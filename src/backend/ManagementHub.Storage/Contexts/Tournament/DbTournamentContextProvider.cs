@@ -570,16 +570,13 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				.Select(tm => tm.TeamId)
 				.ToListAsync(cancellationToken);
 
-			// If user is not a team manager of any team, return empty list
-			if (!userTeamLongIds.Any())
-			{
-				return new List<InviteInfo>();
-			}
-
 			// Convert long IDs to TeamIdentifier strings
 			var userTeamIds = userTeamLongIds.Select(id => new TeamIdentifier(id).ToString()).ToList();
 
-			query = query.Where(i => userTeamIds.Contains(i.ParticipantId));
+			var userParticipantId = filterByParticipant.Value.ToString();
+			query = query.Where(i =>
+				(i.ParticipantType == "team" && userTeamIds.Contains(i.ParticipantId)) ||
+				(i.ParticipantType == "referee" && i.ParticipantId == userParticipantId));
 		}
 
 		// Fetch invites from database
@@ -594,6 +591,12 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		// Get unique participant IDs for teams
 		var teamParticipantIds = dbInvites
 			.Where(i => i.ParticipantType == "team")
+			.Select(i => i.ParticipantId)
+			.Distinct()
+			.ToList();
+
+		var refereeParticipantIds = dbInvites
+			.Where(i => i.ParticipantType == "referee")
 			.Select(i => i.ParticipantId)
 			.Distinct()
 			.ToList();
@@ -619,15 +622,35 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				t => t.Name);
 		}
 
+		Dictionary<string, string> refereeNames = new Dictionary<string, string>();
+		if (refereeParticipantIds.Any())
+		{
+			var referees = await this.dbContext.Users
+				.Where(u => u.UniqueId != null && refereeParticipantIds.Contains(u.UniqueId))
+				.Select(u => new { u.UniqueId, u.FirstName, u.LastName })
+				.ToListAsync(cancellationToken);
+
+			refereeNames = referees
+				.Where(r => !string.IsNullOrWhiteSpace(r.UniqueId))
+				.ToDictionary(
+					r => r.UniqueId!,
+					r => string.Join(" ", new[] { r.FirstName, r.LastName }.Where(part => !string.IsNullOrWhiteSpace(part)))
+						.Trim() is var fullName && fullName.Length > 0 ? fullName : "Unknown referee");
+		}
+
 		// Map to InviteInfo
 		return dbInvites.Select(i => new InviteInfo
 		{
 			TournamentId = TournamentIdentifier.Parse(i.Tournament.UniqueId),
-			ParticipantType = i.ParticipantType == "team" ? ParticipantType.Team : ParticipantType.Team,
+			ParticipantType = i.ParticipantType == "referee" ? ParticipantType.Referee : ParticipantType.Team,
 			ParticipantId = i.ParticipantId,
-			ParticipantName = i.ParticipantType == "team" && teamNames.TryGetValue(i.ParticipantId, out var name)
-				? name
-				: "Unknown",
+			ParticipantName = i.ParticipantType switch
+			{
+				"team" => teamNames.TryGetValue(i.ParticipantId, out var name) ? name : "Unknown team",
+				"referee" => refereeNames.TryGetValue(i.ParticipantId, out var refereeName) ? refereeName : "Unknown referee",
+				_ => "Unknown"
+			},
+			Observations = i.Observations,
 			InitiatorUserId = i.Initiator.UniqueId != null
 				? UserIdentifier.Parse(i.Initiator.UniqueId)
 				: UserIdentifier.FromLegacyUserId(i.Initiator.Id),
@@ -664,6 +687,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				ParticipantType = ParticipantType.Team,
 				ParticipantId = i.ParticipantId,
 				ParticipantName = teamName,
+				Observations = i.Observations,
 				InitiatorUserId = i.Initiator.UniqueId != null
 					? UserIdentifier.Parse(i.Initiator.UniqueId)
 					: UserIdentifier.FromLegacyUserId(i.Initiator.Id),
@@ -682,6 +706,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		TournamentIdentifier tournamentId,
 		TeamIdentifier teamId,
 		UserIdentifier initiatorUserId,
+		string? observations = null,
 		CancellationToken cancellationToken = default)
 	{
 		var tournamentIdString = tournamentId.ToString();
@@ -723,6 +748,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			TournamentId = tournament.Id,
 			ParticipantType = "team",
 			ParticipantId = participantId,
+			Observations = observations,
 			InitiatorUserId = initiator.Id,
 			CreatedAt = now,
 			// Auto-approve if user has both roles
@@ -769,6 +795,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			ParticipantType = ParticipantType.Team,
 			ParticipantId = invite.ParticipantId,
 			ParticipantName = await this.GetTeamNameAsync(invite.ParticipantId, cancellationToken),
+			Observations = invite.Observations,
 			InitiatorUserId = invite.Initiator.UniqueId != null
 				? UserIdentifier.Parse(invite.Initiator.UniqueId)
 				: UserIdentifier.FromLegacyUserId(invite.Initiator.Id),
@@ -778,6 +805,100 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			ParticipantApproval = invite.ParticipantApproval,
 			ParticipantApprovalDate = invite.ParticipantApprovalDate
 		};
+	}
+
+	public async Task<InviteInfo?> GetInviteByParticipantIdAsync(
+		TournamentIdentifier tournamentId,
+		string participantId,
+		CancellationToken cancellationToken = default)
+	{
+		if (TeamIdentifier.TryParse(participantId, out var teamId))
+		{
+			return await this.GetTeamInviteAsync(tournamentId, teamId, cancellationToken);
+		}
+
+		var tournamentIdString = tournamentId.ToString();
+		var invite = await this.dbContext.TournamentInvites
+			.Include(i => i.Tournament)
+			.Include(i => i.Initiator)
+			.Where(i => i.Tournament.UniqueId == tournamentIdString && i.ParticipantId == participantId)
+			.OrderByDescending(i => i.CreatedAt)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invite == null)
+		{
+			return null;
+		}
+
+		var participantType = invite.ParticipantType == "referee" ? ParticipantType.Referee : ParticipantType.Team;
+		var participantName = participantType == ParticipantType.Team
+			? await this.GetTeamNameAsync(invite.ParticipantId, cancellationToken)
+			: await this.GetRefereeNameAsync(invite.ParticipantId, cancellationToken);
+
+		return new InviteInfo
+		{
+			TournamentId = TournamentIdentifier.Parse(invite.Tournament.UniqueId),
+			ParticipantType = participantType,
+			ParticipantId = invite.ParticipantId,
+			ParticipantName = participantName,
+			Observations = invite.Observations,
+			InitiatorUserId = invite.Initiator.UniqueId != null
+				? UserIdentifier.Parse(invite.Initiator.UniqueId)
+				: UserIdentifier.FromLegacyUserId(invite.Initiator.Id),
+			CreatedAt = invite.CreatedAt,
+			TournamentManagerApproval = invite.TournamentManagerApproval,
+			TournamentManagerApprovalDate = invite.TournamentManagerApprovalDate,
+			ParticipantApproval = invite.ParticipantApproval,
+			ParticipantApprovalDate = invite.ParticipantApprovalDate
+		};
+	}
+
+	public async Task UpdateInviteObservationsAsync(
+		TournamentIdentifier tournamentId,
+		ParticipantType participantType,
+		string participantId,
+		string? observations,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var participantTypeString = participantType == ParticipantType.Referee ? "referee" : "team";
+
+		var invite = await this.dbContext.TournamentInvites
+			.Where(i =>
+				i.Tournament.UniqueId == tournamentIdString &&
+				i.ParticipantType == participantTypeString &&
+				i.ParticipantId == participantId)
+			.OrderByDescending(i => i.CreatedAt)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invite == null)
+		{
+			throw new NotFoundException($"Invite for tournament {tournamentId} and participant {participantId}");
+		}
+
+		invite.Observations = observations;
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+	}
+
+	private async Task<string> GetRefereeNameAsync(string participantId, CancellationToken cancellationToken)
+	{
+		if (!UserIdentifier.TryParse(participantId, out var userId))
+		{
+			return "Unknown referee";
+		}
+
+		var name = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => new { u.FirstName, u.LastName })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (name == null)
+		{
+			return "Unknown referee";
+		}
+
+		var fullName = string.Join(" ", new[] { name.FirstName, name.LastName }.Where(part => !string.IsNullOrWhiteSpace(part))).Trim();
+		return fullName.Length > 0 ? fullName : "Unknown referee";
 	}
 
 	private async Task<string> GetTeamNameAsync(string participantId, CancellationToken cancellationToken)

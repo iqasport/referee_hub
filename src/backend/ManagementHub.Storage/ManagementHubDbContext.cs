@@ -1551,6 +1551,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnType("character varying")
 				.HasColumnName("participant_id");
 
+			entity.Property(e => e.Observations)
+				.HasColumnType("text")
+				.HasColumnName("observations");
+
 			entity.Property(e => e.InitiatorUserId).HasColumnName("initiator_user_id");
 
 			entity.Property(e => e.CreatedAt)

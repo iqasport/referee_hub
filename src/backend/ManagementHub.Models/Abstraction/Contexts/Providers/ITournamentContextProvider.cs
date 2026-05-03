@@ -42,9 +42,13 @@ public interface ITournamentContextProvider
 
 	Task<IEnumerable<InviteInfo>> GetTeamInvitesAsync(TeamIdentifier teamId, CancellationToken cancellationToken = default);
 
-	Task<InviteInfo> CreateTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, UserIdentifier initiatorUserId, CancellationToken cancellationToken = default);
+	Task<InviteInfo> CreateTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, UserIdentifier initiatorUserId, string? observations = null, CancellationToken cancellationToken = default);
 
 	Task<InviteInfo?> GetTeamInviteAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
+
+	Task<InviteInfo?> GetInviteByParticipantIdAsync(TournamentIdentifier tournamentId, string participantId, CancellationToken cancellationToken = default);
+
+	Task UpdateInviteObservationsAsync(TournamentIdentifier tournamentId, ParticipantType participantType, string participantId, string? observations, CancellationToken cancellationToken = default);
 
 	Task UpdateInviteApprovalAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, bool isTournamentManager, bool approved, CancellationToken cancellationToken = default);
 

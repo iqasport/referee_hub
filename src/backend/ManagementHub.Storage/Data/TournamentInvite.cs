@@ -10,6 +10,7 @@ public partial class TournamentInvite : IIdentifiable
 	public long TournamentId { get; set; }
 	public string ParticipantType { get; set; } = null!;
 	public string ParticipantId { get; set; } = null!;
+	public string? Observations { get; set; }
 	public long InitiatorUserId { get; set; }
 	public DateTime CreatedAt { get; set; }
 	public ApprovalStatus TournamentManagerApproval { get; set; }
