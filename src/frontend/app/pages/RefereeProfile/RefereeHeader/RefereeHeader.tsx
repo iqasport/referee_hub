@@ -73,7 +73,7 @@ const RefereeHeader = (props: HeaderProps) => {
   const { data: userAvatar } = useGetUserAvatarQuery({ userId: refereeId });
   const { data: user } = useGetUserDataQuery({ userId: refereeId });
 
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [showHiddenCerts, setShowHiddenCerts] = useState(false);
 
   const headerCerts = pickHeaderCerts(certifications ?? []);
 
@@ -110,52 +110,46 @@ const RefereeHeader = (props: HeaderProps) => {
 
         {/* Overflow badge — shows remaining cert count with a hover tooltip */}
         {hiddenCerts.length > 0 && (
-          <span
-            style={{ position: "relative", display: "inline-flex" }}
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-          >
-            <span
-              style={{
-                background: "#e5e7eb",
-                color: "#374151",
-                border: "1px solid #d1d5db",
-                padding: "0.2rem 0.6rem",
-                borderRadius: "9999px",
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                cursor: "default",
-              }}
-              aria-label={`${hiddenCerts.length} more certifications`}
-            >
-              +{hiddenCerts.length}
-            </span>
-
-            {showTooltip && (
-              <div
-                role="tooltip"
+          <>
+            {!showHiddenCerts && (
+              <button
+                type="button"
                 style={{
-                  position: "absolute",
-                  bottom: "calc(100% + 6px)",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  background: "#1f2937",
-                  color: "#f9fafb",
-                  borderRadius: "0.375rem",
-                  padding: "0.4rem 0.6rem",
+                  background: "#e5e7eb",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  padding: "0.2rem 0.6rem",
+                  borderRadius: "9999px",
                   fontSize: "0.75rem",
-                  whiteSpace: "nowrap",
-                  zIndex: 10,
-                  pointerEvents: "none",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                  fontWeight: 600,
+                  cursor: "pointer",
                 }}
+                aria-label={`Show ${hiddenCerts.length} more certifications`}
+                aria-expanded={showHiddenCerts}
+                onClick={() => setShowHiddenCerts(true)}
               >
-                {hiddenCerts.map((cert) => (
-                  <div key={`${cert.level}-${cert.version}`}>{renderCertLabel(cert)}</div>
-                ))}
-              </div>
+                +{hiddenCerts.length}
+              </button>
             )}
-          </span>
+
+            {showHiddenCerts &&
+              hiddenCerts.map((cert) => (
+                <span
+                  key={`${cert.level}-${cert.version}`}
+                  style={{
+                    background: "#dcfce7",
+                    color: "#166534",
+                    border: "1px solid #86efac",
+                    padding: "0.2rem 0.6rem",
+                    borderRadius: "9999px",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  {renderCertLabel(cert)}
+                </span>
+              ))}
+          </>
         )}
 
         {onTakeTests && (

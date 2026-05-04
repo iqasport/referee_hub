@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { createHref } from "../../utils/navigationUtils";
 
 export type ItemConfig = {
   content: string;
   onClick: () => void;
+  href?: string;
 };
 
 interface DropdownMenuProps {
@@ -22,6 +24,31 @@ const DropdownMenu = (props: DropdownMenuProps) => {
       handleClose();
       item.onClick();
     };
+
+    if (item.href) {
+      const href = createHref(item.href);
+
+      return (
+        <li
+          key={item.content}
+          className="block px-4 py-2 text-black hover:bg-gray-300 text-left"
+        >
+          <a
+            href={href}
+            className="appearance-none"
+            onClick={(e) => {
+              if (!e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                handleClick();
+              }
+              // Ctrl/Cmd+click or middle-click: let the browser open in a new tab
+            }}
+          >
+            {item.content}
+          </a>
+        </li>
+      );
+    }
 
     return (
       <li
