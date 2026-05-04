@@ -74,8 +74,11 @@ type NavigationParameters = {
 
 export const useNavigationParams = <Keys extends keyof NavigationParameters>() : Readonly<Partial<Pick<NavigationParameters, Keys>>> => {
     const params = useParams<NavigationParameters>();
-    
-    const { currentData: currentUser } = useGetCurrentUserQuery()
+
+    const shouldFetchCurrentUser = Boolean(params.refereeId);
+    const { currentData: currentUser } = useGetCurrentUserQuery(undefined, {
+        skip: !shouldFetchCurrentUser,
+    });
     const currentUserId = currentUser?.userId;
 
     const updatedParams: Partial<NavigationParameters> = {

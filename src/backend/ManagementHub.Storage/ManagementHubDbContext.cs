@@ -35,6 +35,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	public virtual DbSet<PolicyManagerPortabilityRequest> PolicyManagerPortabilityRequests { get; set; } = null!;
 	public virtual DbSet<PolicyManagerTerm> PolicyManagerTerms { get; set; } = null!;
 	public virtual DbSet<PolicyManagerUserTerm> PolicyManagerUserTerms { get; set; } = null!;
+	public virtual DbSet<PublicTournamentSnapshot> PublicTournamentSnapshots { get; set; } = null!;
 	public virtual DbSet<Question> Questions { get; set; } = null!;
 	public virtual DbSet<RefereeAnswer> RefereeAnswers { get; set; } = null!;
 	public virtual DbSet<RefereeCertification> RefereeCertifications { get; set; } = null!;
@@ -665,6 +666,32 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.WithMany(p => p.PolicyManagerUserTerms)
 				.HasForeignKey(d => d.UserId)
 				.HasConstraintName("policy_manager_user_terms__user_fkey");
+		});
+
+		modelBuilder.Entity<PublicTournamentSnapshot>(entity =>
+		{
+			entity.ToTable("public_tournament_snapshots");
+
+			entity.HasIndex(e => e.Key, "index_public_tournament_snapshots_on_key")
+				.IsUnique();
+
+			entity.Property(e => e.Id).HasColumnName("id");
+
+			entity.Property(e => e.Key)
+				.HasColumnType("character varying")
+				.HasColumnName("key");
+
+			entity.Property(e => e.SnapshotJson)
+				.HasColumnType("jsonb")
+				.HasColumnName("snapshot_json");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.Property(e => e.UpdatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("updated_at");
 		});
 
 		modelBuilder.Entity<Question>(entity =>

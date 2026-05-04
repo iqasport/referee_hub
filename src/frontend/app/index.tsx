@@ -30,7 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!domElement) return;
   const root = createRoot(domElement);
   
-  Bugsnag.leaveBreadcrumb("Starting application...");
+  if (bugsnugApiKey) {
+    Bugsnag.leaveBreadcrumb("Starting application...");
+  }
 
   const renderApp = () => {
     root.render(

@@ -30,3 +30,19 @@ public class TournamentViewModelDto
 	public string? BannerImageUrl { get; set; }
 	public bool IsCurrentUserInvolved { get; set; }
 }
+
+public class PublicTournamentViewModelDto
+{
+	public required string Id { get; set; }
+	public required string Name { get; set; }
+	public required string Description { get; set; }
+	public required DateOnly StartDate { get; set; }
+	public required DateOnly EndDate { get; set; }
+	public DateOnly? RegistrationEndsDate { get; set; }
+	public required TournamentType Type { get; set; }
+	public required string Country { get; set; }
+	public required string City { get; set; }
+	public string? Place { get; set; }
+	public required string Organizer { get; set; }
+	public bool IsRegistrationOpen { get; set; }
+}

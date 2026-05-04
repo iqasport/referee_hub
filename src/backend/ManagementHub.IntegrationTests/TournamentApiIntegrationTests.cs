@@ -13,6 +13,10 @@ using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Storage;
+using ManagementHub.Storage.Commands.Tournament;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ManagementHub.IntegrationTests;
@@ -44,7 +48,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		tournamentId.Should().StartWith("TR_", "tournament ID should have TR_ prefix");
 
 		// Step 3: Get tournaments and check the tournament is there
-		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
+		var listResponse = await this._client.GetAsync("/api/v2/tournaments?SkipPaging=true");
 
 		if (listResponse.StatusCode != HttpStatusCode.OK)
 		{
@@ -118,7 +122,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var tournamentId = await this.CreateTestTournamentAsync("Private Tournament", TournamentType.Club, "Private Country", "Private City", isPrivate: true, place: "Private Place");
 
 		// Verify it appears in the list (since creator is a manager)
-		var listResponse = await this._client.GetAsync("/api/v2/tournaments");
+		var listResponse = await this._client.GetAsync("/api/v2/tournaments?SkipPaging=true");
 		var tournamentsResponse = await listResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		var tournaments = tournamentsResponse!.Items.ToList();
 		tournaments.Should().Contain(t => t.Id == tournamentId,
@@ -133,7 +137,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
 		// Verify private tournament is NOT in the list for other user
-		var otherListResponse = await this._client.GetAsync("/api/v2/tournaments");
+		var otherListResponse = await this._client.GetAsync("/api/v2/tournaments?SkipPaging=true");
 		var otherTournamentsResponse = await otherListResponse.Content.ReadFromJsonAsync<Filtered<TournamentViewModelDto>>();
 		var otherTournaments = otherTournamentsResponse!.Items.ToList();
 		otherTournaments.Should().NotContain(t => t.Id == tournamentId,
@@ -216,6 +220,106 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
 		listManagersResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden,
 		"removed manager should not be able to access manager endpoints");
+	}
+
+	[Fact]
+	public async Task PublicTournaments_AnonymousAccess_ShouldReturnOnlyPublicTournaments()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var publicTournamentId = await this.CreateTestTournamentAsync(
+			"Public Calendar Tournament",
+			TournamentType.Club,
+			"France",
+			"Paris",
+			isPrivate: false);
+
+		var privateTournamentId = await this.CreateTestTournamentAsync(
+			"Private Hidden Tournament",
+			TournamentType.Club,
+			"France",
+			"Lyon",
+			isPrivate: true);
+
+		this._client.DefaultRequestHeaders.Authorization = null;
+
+		var listResponse = await this._client.GetAsync("/api/v2/public/tournaments");
+		listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		listResponse.Headers.CacheControl.Should().NotBeNull();
+		listResponse.Headers.CacheControl!.Public.Should().BeTrue();
+
+		var tournaments = await listResponse.Content.ReadFromJsonAsync<List<PublicTournamentViewModelDto>>();
+		tournaments.Should().NotBeNull();
+		tournaments!.Select(t => t.Id).Should().Contain(publicTournamentId);
+		tournaments!.Select(t => t.Id).Should().NotContain(privateTournamentId);
+	}
+
+	[Fact]
+	public async Task PublicTournamentDetails_AnonymousAccess_ShouldReturnPublicAndHidePrivate()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var publicTournamentId = await this.CreateTestTournamentAsync(
+			"Public Details Tournament",
+			TournamentType.Club,
+			"USA",
+			"Austin",
+			isPrivate: false);
+
+		var privateTournamentId = await this.CreateTestTournamentAsync(
+			"Private Details Tournament",
+			TournamentType.Club,
+			"USA",
+			"Dallas",
+			isPrivate: true);
+
+		this._client.DefaultRequestHeaders.Authorization = null;
+
+		var publicResponse = await this._client.GetAsync($"/api/v2/public/tournaments/{publicTournamentId}");
+		publicResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var publicTournament = await publicResponse.Content.ReadFromJsonAsync<PublicTournamentViewModelDto>();
+		publicTournament.Should().NotBeNull();
+		publicTournament!.Id.Should().Be(publicTournamentId);
+
+		var privateResponse = await this._client.GetAsync($"/api/v2/public/tournaments/{privateTournamentId}");
+		privateResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+	}
+
+	[Fact]
+	public async Task PublicTournaments_WhenSnapshotMissing_ShouldGenerateFallbackSnapshot()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var publicTournamentId = await this.CreateTestTournamentAsync(
+			"Public Tournament For Snapshot Fallback",
+			TournamentType.Club,
+			"Canada",
+			"Toronto",
+			isPrivate: false);
+
+		using (var scope = this._factory.Services.CreateScope())
+		{
+			var dbContext = scope.ServiceProvider.GetRequiredService<ManagementHubDbContext>();
+			var existingSnapshot = await dbContext.PublicTournamentSnapshots
+				.SingleOrDefaultAsync(s => s.Key == RefreshPublicTournamentSnapshotCommand.SnapshotKey);
+
+			if (existingSnapshot != null)
+			{
+				dbContext.PublicTournamentSnapshots.Remove(existingSnapshot);
+				await dbContext.SaveChangesAsync();
+			}
+		}
+
+		this._client.DefaultRequestHeaders.Authorization = null;
+
+		var listResponse = await this._client.GetAsync("/api/v2/public/tournaments");
+		listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var tournaments = await listResponse.Content.ReadFromJsonAsync<List<PublicTournamentViewModelDto>>();
+		tournaments.Should().NotBeNull();
+		tournaments!.Select(t => t.Id).Should().Contain(publicTournamentId);
 	}
 
 	[Fact]

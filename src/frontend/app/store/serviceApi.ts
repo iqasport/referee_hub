@@ -442,6 +442,13 @@ const injectedRtkApi = api
         }),
         providesTags: ["Tournament"],
       }),
+      getPublicTournaments: build.query<
+        GetPublicTournamentsApiResponse,
+        GetPublicTournamentsApiArg
+      >({
+        query: () => ({ url: `/api/v2/public/tournaments` }),
+        providesTags: ["Tournament"],
+      }),
       createTournament: build.mutation<CreateTournamentApiResponse, CreateTournamentApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Tournaments`,
@@ -452,6 +459,10 @@ const injectedRtkApi = api
       }),
       getTournament: build.query<GetTournamentApiResponse, GetTournamentApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}` }),
+        providesTags: ["Tournament"],
+      }),
+      getPublicTournament: build.query<GetPublicTournamentApiResponse, GetPublicTournamentApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/public/tournaments/${queryArg.tournamentId}` }),
         providesTags: ["Tournament"],
       }),
       updateTournament: build.mutation<UpdateTournamentApiResponse, UpdateTournamentApiArg>({
@@ -949,12 +960,18 @@ export type GetTournamentsApiArg = {
   skipPaging?: boolean;
   tournamentType?: string;
 };
+export type GetPublicTournamentsApiResponse = /** status 200 Success */ TournamentViewModel[];
+export type GetPublicTournamentsApiArg = void;
 export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
 export type CreateTournamentApiArg = {
   tournamentModel: TournamentModel;
 };
 export type GetTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
 export type GetTournamentApiArg = {
+  tournamentId: string;
+};
+export type GetPublicTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
+export type GetPublicTournamentApiArg = {
   tournamentId: string;
 };
 export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
@@ -1797,8 +1814,10 @@ export const {
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
   useGetTournamentsQuery,
+  useGetPublicTournamentsQuery,
   useCreateTournamentMutation,
   useGetTournamentQuery,
+  useGetPublicTournamentQuery,
   useUpdateTournamentMutation,
   useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
