@@ -8,6 +8,15 @@ import { useGetCurrentUserQuery } from "./store/serviceApi";
 
 const PUBLIC_ROUTE_PATTERNS = [/^\/privacy$/, /^\/tournaments$/, /^\/tournaments\/[^/]+$/];
 
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") {
+    return undefined;
+  }
+
+  const candidate = error as { status?: unknown };
+  return typeof candidate.status === "number" ? candidate.status : undefined;
+}
+
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const RefereeProfile = lazy(() => import("./pages/RefereeProfile"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -25,7 +34,7 @@ const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 const App = () => {
   const isPublicRoute = PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(window.location.pathname));
   const [redirectTo, setRedirectTo] = useState<string>();
-  const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery(undefined, {
+  const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery(undefined, {
     skip: isPublicRoute,
   });
   const roles = currentUser?.roles?.map((r) => r.roleType) ?? [];
@@ -51,10 +60,13 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (isError && !isPublicRoute) {
+    const status = getErrorStatus(error);
+    const shouldRedirectToSignIn = status === 401 || status === 403;
+
+    if (!isLoading && isError && shouldRedirectToSignIn && !isPublicRoute) {
       window.location.href = `${window.location.origin}/sign_in`;
     }
-  }, [isError, isPublicRoute]);
+  }, [isError, isLoading, isPublicRoute, error]);
 
   useEffect(() => {
     if (currentUser) {
