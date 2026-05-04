@@ -189,11 +189,30 @@ const RosterManager: React.FC<RosterManagerProps> = ({
   // Handle saving the roster
   const handleSaveRoster = async () => {
     try {
+      const playersWithMissingNumbers = roster.players.filter((p) => !p.number?.trim());
+      if (playersWithMissingNumbers.length > 0) {
+        showAlert("Each player must have a jersey number before saving.", "error");
+        return;
+      }
+
+      const normalizedNumbers = roster.players.map((p) => p.number!.trim());
+      const duplicateNumbers = normalizedNumbers.filter(
+        (number, index, allNumbers) => allNumbers.indexOf(number) !== index
+      );
+      if (duplicateNumbers.length > 0) {
+        const uniqueDuplicates = Array.from(new Set(duplicateNumbers));
+        showAlert(
+          `Duplicate jersey numbers: ${uniqueDuplicates.join(", ")}. Please make each player number unique.`,
+          "error"
+        );
+        return;
+      }
+
       // Convert roster to API format
       const players: RosterPlayerModel[] = roster.players.map((p) => ({
         userId: p.userId,
-        number: p.number || null,
-        gender: p.gender || null,
+        number: p.number!.trim(),
+        gender: p.gender?.trim() || null,
       }));
 
       const coaches: RosterStaffModel[] = roster.coaches.map((c) => ({
