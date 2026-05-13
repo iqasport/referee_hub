@@ -291,11 +291,11 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 
 		var certifications = dbContext.Certifications.ToList();
 		var existingCertifications = certifications
-			.Select(c => new { c.Level, c.Version })
+			.Select(c => (c.Level, c.Version))
 			.ToHashSet();
 		foreach (var version in Enum.GetValues<CertificationVersion>())
 			foreach (var level in Enum.GetValues<CertificationLevel>())
-				if (!existingCertifications.Contains(new { Level = level, Version = (CertificationVersion?)version }))
+				if (!existingCertifications.Contains((level, (CertificationVersion?)version)))
 				{
 					var certification = new Certification
 					{
