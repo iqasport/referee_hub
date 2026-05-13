@@ -289,16 +289,23 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		};
 		dbContext.Tournaments.AddRange(tournaments);
 
-		var certifications = new List<Certification>(32);
+		var certifications = dbContext.Certifications.ToList();
+		var existingCertifications = certifications
+			.Select(c => new { c.Level, c.Version })
+			.ToHashSet();
 		foreach (var version in Enum.GetValues<CertificationVersion>())
 			foreach (var level in Enum.GetValues<CertificationLevel>())
-				certifications.Add(new Certification
+				if (!existingCertifications.Contains(new { Level = level, Version = (CertificationVersion?)version }))
 				{
-					CreatedAt = DateTime.UtcNow,
-					Level = level,
-					Version = version,
-				});
-		dbContext.Certifications.AddRange(certifications);
+					var certification = new Certification
+					{
+						CreatedAt = DateTime.UtcNow,
+						Level = level,
+						Version = version,
+					};
+					certifications.Add(certification);
+					dbContext.Certifications.Add(certification);
+				}
 
 		var languages = new List<Language>(8)
 		{
