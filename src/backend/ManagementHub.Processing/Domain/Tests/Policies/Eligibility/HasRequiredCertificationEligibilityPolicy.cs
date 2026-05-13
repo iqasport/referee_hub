@@ -35,8 +35,8 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 				? (CertificationLevel?)previousCertification.Max()
 				: null;
 
-			// Currently we don't consider scorekeeper test as part of the recertification process
-			if (referee.AcquiredCertifications.Where(c => c.Version == awardedVersion && c.Level != CertificationLevel.Scorekeeper).Any())
+			// Currently we don't consider scorekeeper/flagrunner tests as part of the recertification process
+			if (referee.AcquiredCertifications.Where(c => c.Version == awardedVersion && c.Level != CertificationLevel.Scorekeeper && c.Level != CertificationLevel.FlagRunner).Any())
 			{
 				// referee has another certification for the version of rulebook this provides
 				return RefereeEligibilityResult.RecertificationNotAllowedDueToInitialCertificationStarted;
@@ -78,6 +78,7 @@ public class HasRequiredCertificationEligibilityPolicy : IRefereeEligibilityPoli
 		switch (lowestAwardedCert.Level)
 		{
 			case CertificationLevel.Scorekeeper: return null;
+			case CertificationLevel.FlagRunner: return null;
 			case CertificationLevel.Assistant: return null;
 			case CertificationLevel.Flag: return new Certification(CertificationLevel.Assistant, lowestAwardedCert.Version);
 			case CertificationLevel.Head: return new Certification(CertificationLevel.Flag, lowestAwardedCert.Version);

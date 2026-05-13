@@ -12,10 +12,16 @@ const HEADER_CELLS = ["name", "highest certification", "associated teams", "seco
 const NGB_HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB", "actions"];
 const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs", "actions"];
 
-// sorts the levels by string length resulting in: ['head', 'snitch', 'assistant']
-// this also happens to be the hierarchy order of the levels.
-const sortByLength = (a: string, b: string): number => {
-  return a.length - b.length;
+const levelRank: Record<string, number> = {
+  scorekeeper: 0,
+  flagrunner: 1,
+  assistant: 2,
+  snitch: 3,
+  head: 4,
+  field: 5,
+};
+const sortByLevel = (a: string, b: string): number => {
+  return (levelRank[a] ?? Number.MAX_SAFE_INTEGER) - (levelRank[b] ?? Number.MAX_SAFE_INTEGER);
 };
 
 const findHighestCert = (referee: RefereeViewModel): string => {
@@ -30,10 +36,10 @@ const findHighestCert = (referee: RefereeViewModel): string => {
   if (!Object.keys(certHashMap).length) return "Uncertified";
 
   const snitchAsFlag = (level?: string) => level === "snitch" ? "flag" : level;
-  const highestTwenty = snitchAsFlag(certHashMap.twenty?.sort(sortByLength)[0]);
-  const highestTwentyTwo = snitchAsFlag(certHashMap.twentytwo?.sort(sortByLength)[0]);
-  const highestTwentyFour = snitchAsFlag(certHashMap.twentyfour?.sort(sortByLength)[0]);
-  const highestEighteen = snitchAsFlag(certHashMap.eighteen?.sort(sortByLength)[0]);
+  const highestTwenty = snitchAsFlag(certHashMap.twenty?.sort(sortByLevel)[0]);
+  const highestTwentyTwo = snitchAsFlag(certHashMap.twentytwo?.sort(sortByLevel)[0]);
+  const highestTwentyFour = snitchAsFlag(certHashMap.twentyfour?.sort(sortByLevel)[0]);
+  const highestEighteen = snitchAsFlag(certHashMap.eighteen?.sort(sortByLevel)[0]);
 
   // We will promote current certification first and foremost
   // We don't care if someone was a HR in 2020 if they only have AR in 2022

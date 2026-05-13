@@ -824,4 +824,23 @@ public class RefereeEligibilityUnitTests
 
 		result.Includes(TestData.RecertAssistant22);
 	}
+
+	[Fact]
+	public async Task ReturnsRecertTest_WhenTheresFlagRunnerCertification()
+	{
+		this.SetupReferee(new[]
+			{
+				new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+				new Certification(CertificationLevel.FlagRunner, CertificationVersion.TwentyTwo),
+			},
+			Array.Empty<CertificationVersion>(),
+			Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+		});
+
+		result.Includes(TestData.RecertAssistant22);
+	}
 }
