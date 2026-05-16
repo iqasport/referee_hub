@@ -307,8 +307,7 @@ public class UsersController : ControllerBase
 
 	/// <summary>
 	/// Get teams managed by the current user.
-	/// Returns team IDs, team names, and NGB country codes for all teams the user is a manager of or a member of.
-	/// Includes teams where the user is an explicit team manager, as well as teams where they are a player or coach.
+	/// Returns team IDs, team names, and NGB country codes for all teams the user is an explicit manager of.
 	/// </summary>
 	[HttpGet("me/managedTeams")]
 	[Tags("User")]
@@ -341,41 +340,7 @@ public class UsersController : ControllerBase
 				})
 			.ToListAsync(this.HttpContext.RequestAborted);
 
-		// Get teams where user is a player or coach (RefereeTeam associations)
-		var memberTeams = await this.dbContext.RefereeTeams
-			.Join(
-				this.dbContext.Users.WithIdentifier(currentUser.UserId),
-				rt => rt.RefereeId,
-				u => u.Id,
-				(rt, u) => rt)
-			.Where(rt => rt.Team != null &&
-					(rt.AssociationType == RefereeTeamAssociationType.Player ||
-					 rt.AssociationType == RefereeTeamAssociationType.Coach))
-			.Join(
-				this.dbContext.Teams,
-				rt => rt.TeamId,
-				t => t.Id,
-				(rt, t) => new { rt, t })
-			.Join(
-				this.dbContext.NationalGoverningBodies,
-				combined => combined.t.NationalGoverningBodyId,
-				ngb => ngb.Id,
-				(combined, ngb) => new ManagedTeamViewModel
-				{
-					TeamId = new TeamIdentifier(combined.t.Id),
-					TeamName = combined.t.Name,
-					Ngb = new NgbIdentifier(ngb.CountryCode),
-					GroupAffiliation = combined.t.GroupAffiliation
-				})
-			.ToListAsync(this.HttpContext.RequestAborted);
-
-		// Combine and deduplicate teams (in case user is both manager and member)
-		var allTeams = explicitManagedTeams
-			.Concat(memberTeams)
-			.DistinctBy(t => t.TeamId.Id)
-			.ToList();
-
-		return allTeams;
+		return explicitManagedTeams;
 	}
 
 	/// <summary>
