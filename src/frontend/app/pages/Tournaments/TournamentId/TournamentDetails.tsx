@@ -16,7 +16,6 @@ import {
 import { TournamentDetailsSidebar } from "./components/TournamentDetailsSidebar";
 import { useNavigationParams } from "../../../utils/navigationUtils";
 import {
-  useTournamentPermissions,
   useApprovedTeams,
   usePendingInvites,
   useIsRegistrationClosed,
@@ -42,9 +41,7 @@ const TournamentDetails = () => {
 
   // Load all tournament data with a single hook
   const {
-    currentUser,
     tournament,
-    managers,
     invites,
     participants,
     managedTeamsData,

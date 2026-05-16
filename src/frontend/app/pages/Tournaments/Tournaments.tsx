@@ -3,11 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
 import { TournamentList } from "./components/TournamentList";
-import {
-  useGetTournamentsQuery,
-  useGetPublicTournamentsQuery,
-  useGetCurrentUserQuery,
-} from "../../store/serviceApi";
 import { useFilteredTournaments } from "./hooks/useFilteredTournaments";
 import { useTournamentSections } from "./utils/tournamentUtils";
 import { useTournamentsData } from "./hooks/useTournamentsData";
