@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -86,8 +86,6 @@ public class RefereeEligibilityUnitTests
 
 		this.clock.Setup(c => c.UtcNow).Returns(TestCurrentDateTime);
 	}
-
-
 
 	[Fact]
 	public async Task ReturnsAllAssistantTests_WhenRefHasNoCerts()
