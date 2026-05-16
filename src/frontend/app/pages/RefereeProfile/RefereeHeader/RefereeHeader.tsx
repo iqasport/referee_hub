@@ -15,10 +15,11 @@ import { useNavigationParams } from "../../../utils/navigationUtils";
 /** Rank used to pick the "highest level" certification for the header. */
 const LEVEL_RANK: Record<CertificationLevel, number> = {
   scorekeeper: 0,
-  assistant: 1,
-  snitch: 2,
-  head: 3,
-  field: 4,
+  flagrunner: 1,
+  assistant: 2,
+  snitch: 3,
+  head: 4,
+  field: 5,
 };
 
 /** Rank used to pick the "most recent version" certification for the header. */
@@ -245,4 +246,3 @@ const RefereeHeader = (props: HeaderProps) => {
 };
 
 export default RefereeHeader;
-

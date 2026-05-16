@@ -65,10 +65,11 @@ public static class CertificationExtensions
 		private static int LevelSortMapper(CertificationLevel level) => level switch
 		{
 			CertificationLevel.Scorekeeper => 0,
-			CertificationLevel.Assistant => 1,
-			CertificationLevel.Flag => 2,
-			CertificationLevel.Head => 3,
-			CertificationLevel.Field => 4,
+			CertificationLevel.FlagRunner => 1,
+			CertificationLevel.Assistant => 2,
+			CertificationLevel.Flag => 3,
+			CertificationLevel.Head => 4,
+			CertificationLevel.Field => 5,
 			_ => throw new NotSupportedException(level.ToString())
 		};
 	}

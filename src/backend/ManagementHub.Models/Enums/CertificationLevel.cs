@@ -20,4 +20,7 @@ public enum CertificationLevel
 
 	[EnumMember(Value = "scorekeeper")]
 	Scorekeeper = 4,
+
+	[EnumMember(Value = "flagrunner")]
+	FlagRunner = 5,
 }
