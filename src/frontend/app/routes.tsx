@@ -33,6 +33,7 @@ const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
 const App = () => {
   const isPublicRoute = PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(window.location.pathname));
+  const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
   const [redirectTo, setRedirectTo] = useState<string>();
   const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery(undefined, {
     skip: isPublicRoute,
@@ -74,9 +75,11 @@ const App = () => {
     }
   }, [currentUser, roles]);
 
-  if (currentUser) {
-    Bugsnag.setUser(currentUser.userId);
-  }
+  useEffect(() => {
+    if (bugsnagEnabled && currentUser?.userId) {
+      Bugsnag.setUser(currentUser.userId);
+    }
+  }, [bugsnagEnabled, currentUser?.userId]);
 
   if (isLoading === true) return <Loader />;
 

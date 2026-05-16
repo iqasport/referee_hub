@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const domElement = document.getElementById("main-app");
   if (!domElement) return;
   const root = createRoot(domElement);
-  
+
   if (bugsnugApiKey) {
     Bugsnag.leaveBreadcrumb("Starting application...");
   }
