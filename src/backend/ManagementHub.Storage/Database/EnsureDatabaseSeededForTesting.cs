@@ -289,16 +289,23 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		};
 		dbContext.Tournaments.AddRange(tournaments);
 
-		var certifications = new List<Certification>(32);
+		var certifications = dbContext.Certifications.ToList();
+		var existingCertifications = certifications
+			.Select(c => (c.Level, c.Version))
+			.ToHashSet();
 		foreach (var version in Enum.GetValues<CertificationVersion>())
 			foreach (var level in Enum.GetValues<CertificationLevel>())
-				certifications.Add(new Certification
+				if (!existingCertifications.Contains((level, (CertificationVersion?)version)))
 				{
-					CreatedAt = DateTime.UtcNow,
-					Level = level,
-					Version = version,
-				});
-		dbContext.Certifications.AddRange(certifications);
+					var certification = new Certification
+					{
+						CreatedAt = DateTime.UtcNow,
+						Level = level,
+						Version = version,
+					};
+					certifications.Add(certification);
+					dbContext.Certifications.Add(certification);
+				}
 
 		var languages = new List<Language>(8)
 		{
@@ -617,6 +624,23 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			new Test
 			{
 				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.FlagRunner),
+				Description = "Latest FRN test",
+				NewLanguage = languages.First(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.FlagRunner,
+				MinimumPassPercentage = 80,
+				Name = "FlagRunner 2022",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = false,
+				TimeLimit = 5,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 5,
+			},
+			new Test
+			{
+				Active = true,
 				Certification = certifications.Last(c => c.Level == CertificationLevel.Assistant),
 				Description = "Latest AR test",
 				NewLanguage = languages.First(),
@@ -675,6 +699,23 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Level = TestLevel.Scorekeeper,
 				MinimumPassPercentage = 80,
 				Name = "SK 2022 - 50",
+				NegativeFeedback = "You failed",
+				PositiveFeedback = "You passed",
+				Recertification = false,
+				TimeLimit = 60,
+				UniqueId = Models.Domain.Tests.TestIdentifier.NewTestId().ToString(),
+				TestableQuestionCount = 2,
+			},
+			new Test
+			{
+				Active = true,
+				Certification = certifications.Last(c => c.Level == CertificationLevel.FlagRunner),
+				Description = "60min log FRN",
+				NewLanguage = languages.Last(),
+				CreatedAt = DateTime.UtcNow,
+				Level = TestLevel.FlagRunner,
+				MinimumPassPercentage = 80,
+				Name = "FRN 2022 - 50",
 				NegativeFeedback = "You failed",
 				PositiveFeedback = "You passed",
 				Recertification = false,

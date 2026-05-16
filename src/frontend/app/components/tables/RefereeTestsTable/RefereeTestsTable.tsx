@@ -26,10 +26,11 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   const compareByLevel = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
     const levelValue: Record<CertificationLevel, number> = {
       scorekeeper: 0,
-      assistant: 1,
-      snitch: 2,
-      head: 3,
-      field: 4,
+      flagrunner: 1,
+      assistant: 2,
+      snitch: 3,
+      head: 4,
+      field: 5,
     };
     return levelValue[a.level] - levelValue[b.level];
   }
