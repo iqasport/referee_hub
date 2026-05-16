@@ -23,6 +23,7 @@ const TeamView = lazy(() => import("./pages/TeamView"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
 const App = () => {
+  const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
   const [redirectTo, setRedirectTo] = useState<string>();
   const { currentData: currentUser, isError, isLoading } = useGetCurrentUserQuery();
   const roles = currentUser?.roles?.map(r => r.roleType);
@@ -55,7 +56,11 @@ const App = () => {
     }
   }, [currentUser, roles]);
 
-  if (currentUser) Bugsnag.setUser(currentUser.userId);
+  useEffect(() => {
+    if (bugsnagEnabled && currentUser?.userId) {
+      Bugsnag.setUser(currentUser.userId);
+    }
+  }, [bugsnagEnabled, currentUser?.userId]);
 
   if (isLoading === true) return <Loader />;
 
