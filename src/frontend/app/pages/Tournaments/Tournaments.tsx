@@ -153,13 +153,13 @@ function useTournamentData(searchTerm: string, typeFilter: string, currentPage: 
     data: allTournamentsData,
     isLoading: isLoadingAll,
     isError: isErrorAll,
-  } = useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, skipPaging: true });
+  } = useGetTournamentsQuery({ filter: searchTerm || undefined, skipPaging: true });
 
   const {
     data: paginatedData,
     isLoading: isLoadingPaginated,
     isError: isErrorPaginated,
-  } = useGetTournamentsQuery({ filter: searchTerm || undefined, tournamentType: typeFilter || undefined, page: currentPage, pageSize: DEFAULT_PAGE_SIZE });
+  } = useGetTournamentsQuery({ filter: searchTerm || undefined, page: currentPage, pageSize: DEFAULT_PAGE_SIZE });
 
   const allTournaments = allTournamentsData?.items || [];
   const paginatedTournaments = paginatedData?.items || [];

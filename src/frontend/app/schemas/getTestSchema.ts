@@ -23,6 +23,7 @@ export enum TestLevel {
   Assistant = "assistant",
   Head = "head",
   Scorekeeper = "scorekeeper",
+  Flagrunner = "flagrunner",
 }
 
 export interface Attributes {

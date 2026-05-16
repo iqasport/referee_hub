@@ -20,7 +20,7 @@ const REQUIRED_TEST_FIELDS = [
   "language",
 ];
 const REQUIRED_CERT_FIELDS = ["version", "level"];
-const LEVEL_OPTIONS = ["snitch", "assistant", "head", "field", "scorekeeper"];
+const LEVEL_OPTIONS = ["snitch", "assistant", "head", "field", "scorekeeper", "flagrunner"];
 const VERSION_OPTIONS = ["eighteen", "twenty", "twentytwo", "twentyfour"];
 
 const initialNewTest: TestViewModel = {

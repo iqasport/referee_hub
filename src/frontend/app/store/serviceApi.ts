@@ -437,7 +437,6 @@ const injectedRtkApi = api
             Page: queryArg.page,
             PageSize: queryArg.pageSize,
             SkipPaging: queryArg.skipPaging,
-            TournamentTypeFilter: queryArg.tournamentType,
           },
         }),
         providesTags: ["Tournament"],
@@ -940,7 +939,6 @@ export type GetTournamentsApiArg = {
   page?: number;
   pageSize?: number;
   skipPaging?: boolean;
-  tournamentType?: string;
 };
 export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
 export type CreateTournamentApiArg = {
@@ -1077,7 +1075,13 @@ export type GetUserDataApiArg = {
 export type CheckoutSession = {
   sessionId?: string | null;
 };
-export type CertificationLevel = "snitch" | "assistant" | "head" | "field" | "scorekeeper";
+export type CertificationLevel =
+  | "snitch"
+  | "assistant"
+  | "head"
+  | "field"
+  | "scorekeeper"
+  | "flagrunner";
 export type CertificationVersion = "eighteen" | "twenty" | "twentytwo" | "twentyfour";
 export type NgbConstraint = {};
 export type NgbConstraintRead = {

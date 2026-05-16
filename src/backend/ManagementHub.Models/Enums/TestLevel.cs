@@ -17,4 +17,7 @@ public enum TestLevel
 
 	[EnumMember(Value = "scorekeeper")]
 	Scorekeeper = 3,
+
+	[EnumMember(Value = "flagrunner")]
+	FlagRunner = 4,
 }

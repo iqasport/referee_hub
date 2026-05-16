@@ -11,6 +11,7 @@ public static class EnumExtensions
 		CertificationLevel.Assistant => TestLevel.Assistant,
 		CertificationLevel.Head => TestLevel.Head,
 		CertificationLevel.Scorekeeper => TestLevel.Scorekeeper,
+		CertificationLevel.FlagRunner => TestLevel.FlagRunner,
 		_ => throw new NotSupportedException($"Cannot convert '{certificationLevel}' to test level.")
 	};
 }
