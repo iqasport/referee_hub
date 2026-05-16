@@ -130,6 +130,23 @@ public class RefereeEligibilityUnitTests
 	}
 
 	[Fact]
+	public async Task ReturnsFlagRunnerTests_WhenRefHasNoCerts()
+	{
+		this.SetupReferee(Array.Empty<Certification>(), Array.Empty<CertificationVersion>(), Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.FlagRunner18,
+			TestData.FlagRunner20,
+			TestData.FlagRunner22,
+		});
+
+		result.Includes(TestData.FlagRunner18);
+		result.Includes(TestData.FlagRunner20);
+		result.Includes(TestData.FlagRunner22);
+	}
+
+	[Fact]
 	public async Task ReturnsFlagTests_WhenRefHasAssistantCertifications()
 	{
 		this.SetupReferee(new[]
@@ -813,6 +830,25 @@ public class RefereeEligibilityUnitTests
 			{
 				new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
 				new Certification(CertificationLevel.Scorekeeper, CertificationVersion.TwentyTwo),
+			},
+			Array.Empty<CertificationVersion>(),
+			Array.Empty<TestAttempt>());
+
+		var result = await this.ExecuteChecksAsync(new[]
+		{
+			TestData.RecertAssistant22,
+		});
+
+		result.Includes(TestData.RecertAssistant22);
+	}
+
+	[Fact]
+	public async Task ReturnsRecertTest_WhenTheresFlagRunnerCertification()
+	{
+		this.SetupReferee(new[]
+			{
+				new Certification(CertificationLevel.Assistant, CertificationVersion.Twenty),
+				new Certification(CertificationLevel.FlagRunner, CertificationVersion.TwentyTwo),
 			},
 			Array.Empty<CertificationVersion>(),
 			Array.Empty<TestAttempt>());
