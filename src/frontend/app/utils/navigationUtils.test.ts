@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { useNavigate } from './navigationUtils';
+import { applyNavigationParams, createHref, useNavigate } from './navigationUtils';
 import { useNavigate as routerUseNavigate } from 'react-router-dom';
 
 // Mock react-router-dom
@@ -9,6 +9,28 @@ jest.mock('react-router-dom', () => ({
 }));
 
 const mockedRouterUseNavigate = routerUseNavigate as jest.MockedFunction<typeof routerUseNavigate>;
+
+describe('applyNavigationParams', () => {
+  it('should append impersonate and features params to string URL', () => {
+    const result = applyNavigationParams('/test?foo=bar', '?impersonate=123&features=isTestFlag');
+
+    expect(result).toBe('/test?foo=bar&impersonate=123&features=isTestFlag');
+  });
+
+  it('should append impersonate and features params to object URL', () => {
+    const result = applyNavigationParams({ pathname: '/test', search: '?foo=bar' }, '?impersonate=123&features=isTestFlag');
+
+    expect(result).toEqual({ pathname: '/test', search: '?foo=bar&impersonate=123&features=isTestFlag' });
+  });
+});
+
+describe('createHref', () => {
+  it('should return href with preserved navigation params', () => {
+    const result = createHref('/test', '?impersonate=123');
+
+    expect(result).toBe('/test?impersonate=123');
+  });
+});
 
 describe('useNavigate', () => {
   const originalLocation = window.location;

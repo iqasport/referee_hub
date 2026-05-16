@@ -176,7 +176,7 @@ describe("RefereeHeader", () => {
     expect(screen.getByText("+2")).toBeInTheDocument();
   });
 
-  test("it reveals hidden certifications on hover of the +N badge", () => {
+  test("it reveals hidden certifications when clicking the +N badge", () => {
     const manyCerts: Certification[] = [
       { level: "head", version: "twentyfour" },
       { level: "snitch", version: "twentytwo" },
@@ -187,15 +187,12 @@ describe("RefereeHeader", () => {
 
     const overflowBadge = screen.getByText("+2");
 
-    // Tooltip should not be visible before hover
-    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    expect(screen.queryByText("Flag (2022-2023)")).not.toBeInTheDocument();
+    expect(screen.queryByText("Assistant (2024)")).not.toBeInTheDocument();
 
-    // Hover over the outer wrapper span (parentElement has the onMouseEnter handler)
-    fireEvent.mouseEnter(overflowBadge.parentElement!);
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    fireEvent.click(overflowBadge);
 
-    // Mouse leave hides the tooltip
-    fireEvent.mouseLeave(overflowBadge.parentElement!);
-    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    expect(screen.getByText("Flag (2022-2023)")).toBeInTheDocument();
+    expect(screen.getByText("Assistant (2024)")).toBeInTheDocument();
   });
 });

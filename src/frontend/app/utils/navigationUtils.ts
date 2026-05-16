@@ -2,43 +2,62 @@ import React from "react";
 import { NavigateFunction, NavigateOptions, To, useNavigate as routerUseNavigate, useParams } from "react-router-dom";
 import { useGetCurrentUserQuery } from "../store/serviceApi";
 
+const IMPERSONATE_KEY = "impersonate";
+const FEATURES_KEY = "features";
+
+const getNavigationParamsToAppend = (currentSearch: string): string[] => {
+    const urlParams = new URLSearchParams(currentSearch);
+    const impersonate = urlParams.get(IMPERSONATE_KEY);
+    const features = urlParams.get(FEATURES_KEY);
+
+    const paramsToAppend: string[] = [];
+    if (impersonate) {
+        paramsToAppend.push(`${IMPERSONATE_KEY}=${impersonate}`);
+    }
+    if (features) {
+        paramsToAppend.push(`${FEATURES_KEY}=${features}`);
+    }
+
+    return paramsToAppend;
+};
+
+export const applyNavigationParams = (to: To, currentSearch: string = location.search): To => {
+    const paramsToAppend = getNavigationParamsToAppend(currentSearch);
+    if (paramsToAppend.length === 0) {
+        return to;
+    }
+
+    const queryString = paramsToAppend.join("&");
+
+    if (typeof to === "string") {
+        const startingChar = to.includes("?") ? "&" : "?";
+        return `${to}${startingChar}${queryString}`;
+    }
+
+    const search = to.search || "?";
+    const separator = search.endsWith("?") ? "" : "&";
+
+    return {
+        ...to,
+        search: search + separator + queryString,
+    };
+};
+
+export const createHref = (href: string, currentSearch: string = location.search): string => {
+    return applyNavigationParams(href, currentSearch) as string;
+};
+
 export const useNavigate: typeof routerUseNavigate = () => {
     const navigate = routerUseNavigate();
     
     const customNavigate: NavigateFunction = React.useCallback(
         (to: To | number, options: NavigateOptions = {}) => {
             if (typeof to !== "number") {
-                const urlParams = new URLSearchParams(location.search);
-                const impersonateKey = "impersonate";
-                const featuresKey = "features";
-                const impersonate = urlParams.get(impersonateKey);
-                const features = urlParams.get(featuresKey);
-                
-                // Build query params to append
-                const paramsToAppend: string[] = [];
-                if (impersonate) {
-                    paramsToAppend.push(`${impersonateKey}=${impersonate}`);
-                }
-                if (features) {
-                    paramsToAppend.push(`${featuresKey}=${features}`);
-                }
-                
-                if (paramsToAppend.length > 0) {
-                    const queryString = paramsToAppend.join('&');
-                    
-                    if (typeof to === "string") {
-                        const startingChar = to.includes('?') ? '&' : '?';
-                        to = `${to}${startingChar}${queryString}`;
-                    } else {
-                        to.search = to.search || "?";
-                        const separator = to.search.endsWith('?') ? '' : '&';
-                        to.search += separator + queryString;
-                    }
-                }
+                to = applyNavigationParams(to);
             }
 
             navigate(to as To, options);
-    }, []);
+    }, [navigate]);
 
     return customNavigate;
 }

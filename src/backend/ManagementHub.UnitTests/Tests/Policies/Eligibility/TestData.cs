@@ -178,6 +178,45 @@ public static class TestData
 		TimeLimit = TimeSpan.FromMinutes(20),
 	};
 
+	public static Test FlagRunner18 = new()
+	{
+		AwardedCertifications = new HashSet<Certification> { new Certification(CertificationLevel.FlagRunner, CertificationVersion.Eighteen) },
+		Description = "Mock FlagRunner 18",
+		IsActive = true,
+		Language = LanguageIdentifier.Default,
+		Title = "FlR18",
+		PassPercentage = 80,
+		QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = 25 },
+		TestId = TestIdentifier.NewTestId(),
+		TimeLimit = TimeSpan.FromMinutes(20),
+	};
+
+	public static Test FlagRunner20 = new()
+	{
+		AwardedCertifications = new HashSet<Certification> { new Certification(CertificationLevel.FlagRunner, CertificationVersion.Twenty) },
+		Description = "Mock FlagRunner 20",
+		IsActive = true,
+		Language = LanguageIdentifier.Default,
+		Title = "FlR20",
+		PassPercentage = 80,
+		QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = 25 },
+		TestId = TestIdentifier.NewTestId(),
+		TimeLimit = TimeSpan.FromMinutes(20),
+	};
+
+	public static Test FlagRunner22 = new()
+	{
+		AwardedCertifications = new HashSet<Certification> { new Certification(CertificationLevel.FlagRunner, CertificationVersion.TwentyTwo) },
+		Description = "Mock FlagRunner 22",
+		IsActive = true,
+		Language = LanguageIdentifier.Default,
+		Title = "FlR22",
+		PassPercentage = 80,
+		QuestionChoicePolicy = new SubsetCountQuestionChoicePolicy { QuestionsCount = 25 },
+		TestId = TestIdentifier.NewTestId(),
+		TimeLimit = TimeSpan.FromMinutes(20),
+	};
+
 	public static Test RecertAssistant22 = new()
 	{
 		AwardedCertifications = new HashSet<Certification> { new Certification(CertificationLevel.Assistant, CertificationVersion.TwentyTwo) },
