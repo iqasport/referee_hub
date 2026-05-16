@@ -16,6 +16,7 @@ public static class TestCollectionExtensions
 		TestLevel.Assistant => CertificationLevel.Assistant,
 		TestLevel.Head => CertificationLevel.Head,
 		TestLevel.Scorekeeper => CertificationLevel.Scorekeeper,
+		TestLevel.FlagRunner => CertificationLevel.FlagRunner,
 		_ => throw new ArgumentOutOfRangeException(nameof(testLevel), testLevel, null)
 	};
 }
