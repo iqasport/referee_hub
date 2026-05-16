@@ -12,19 +12,19 @@ const HEADER_CELLS = ["name", "highest certification", "associated teams", "seco
 const NGB_HEADER_CELLS = ["name", "highest certification", "associated teams", "secondary NGB", "actions"];
 const ADMIN_HEADER_CELLS = ["name", "highest certification", "associated teams", "associated NGBs", "actions"];
 
-const levelRank: Record<string, number> = {
-  scorekeeper: 0,
-  flagrunner: 1,
-  assistant: 2,
-  snitch: 3,
-  head: 4,
-  field: 5,
+export const levelRank: Record<string, number> = {
+  head: 0,
+  field: 1,
+  snitch: 2,
+  assistant: 3,
+  flagrunner: 4,
+  scorekeeper: 5,
 };
-const sortByLevel = (a: string, b: string): number => {
+export const sortByLevel = (a: string, b: string): number => {
   return (levelRank[a] ?? Number.MAX_SAFE_INTEGER) - (levelRank[b] ?? Number.MAX_SAFE_INTEGER);
 };
 
-const findHighestCert = (referee: RefereeViewModel): string => {
+export const findHighestCert = (referee: RefereeViewModel): string => {
   const certHashMap: { [version: string]: string[] } = {};
   referee?.acquiredCertifications.forEach((cert) => {
     if (certHashMap[cert.version]) {
