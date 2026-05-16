@@ -307,7 +307,7 @@ public class UsersController : ControllerBase
 
 	/// <summary>
 	/// Get teams managed by the current user.
-	/// Returns team IDs, team names, and NGB country codes for all teams the user is a manager of.
+	/// Returns team IDs, team names, and NGB country codes for all teams the user is an explicit manager of.
 	/// </summary>
 	[HttpGet("me/managedTeams")]
 	[Tags("User")]
@@ -315,7 +315,8 @@ public class UsersController : ControllerBase
 	{
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 
-		var managedTeams = await this.dbContext.TeamManagers
+		// Get teams where user is an explicit team manager
+		var explicitManagedTeams = await this.dbContext.TeamManagers
 			.Join(
 				this.dbContext.Users.WithIdentifier(currentUser.UserId),
 				tm => tm.UserId,
@@ -339,7 +340,7 @@ public class UsersController : ControllerBase
 				})
 			.ToListAsync(this.HttpContext.RequestAborted);
 
-		return managedTeams;
+		return explicitManagedTeams;
 	}
 
 	/// <summary>
