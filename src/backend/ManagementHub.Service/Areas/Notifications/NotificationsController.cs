@@ -126,11 +126,11 @@ public class NotificationsController : ControllerBase
 		return this.Ok();
 	}
 
-	private NotificationViewModel MapToViewModel(ManagementHub.Models.Data.Notification notification)
+	private NotificationViewModel MapToViewModel(Notification notification)
 	{
 		return new NotificationViewModel
 		{
-			Id = NotificationIdentifier.Parse(notification.UniqueId!),
+			Id = notification.Id,
 			Type = notification.Type,
 			Title = notification.Title,
 			Message = notification.Message,
@@ -138,7 +138,7 @@ public class NotificationsController : ControllerBase
 			RelatedEntityType = notification.RelatedEntityType,
 			SecondaryEntityId = notification.SecondaryEntityId,
 			SecondaryEntityType = notification.SecondaryEntityType,
-			IsRead = notification.ReadAt.HasValue,
+			IsRead = notification.IsRead,
 			CreatedAt = notification.CreatedAt,
 			ReadAt = notification.ReadAt,
 		};

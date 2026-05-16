@@ -15,6 +15,7 @@ using ManagementHub.Storage;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
+using DomainNotification = ManagementHub.Models.Domain.Notification.Notification;
 using NotificationEntity = ManagementHub.Models.Data.Notification;
 
 namespace ManagementHub.Service.Services;
@@ -228,13 +229,13 @@ public class NotificationService : INotificationService
 		return notification;
 	}
 
-	public async Task<IEnumerable<NotificationEntity>> GetActiveNotificationsAsync(
+	public async Task<IEnumerable<DomainNotification>> GetActiveNotificationsAsync(
 		UserIdentifier userId,
 		CancellationToken cancellationToken = default)
 	{
 		var userDbId = await this.ResolveUserDbIdAsync(userId, cancellationToken);
 		if (!userDbId.HasValue)
-			return Enumerable.Empty<NotificationEntity>();
+			return Enumerable.Empty<DomainNotification>();
 
 		var notifications = await this.dbContext.Notifications
 			.AsNoTracking()
@@ -242,7 +243,9 @@ public class NotificationService : INotificationService
 			.OrderByDescending(n => n.CreatedAt)
 			.ToListAsync(cancellationToken);
 
-		return notifications;
+		return notifications
+			.Select(n => ToDomainNotification(n, userId))
+			.ToList();
 	}
 
 	public async Task<int> GetUnreadCountAsync(
@@ -258,7 +261,7 @@ public class NotificationService : INotificationService
 			.CountAsync(cancellationToken);
 	}
 
-	public async Task<NotificationEntity?> MarkAsReadAsync(
+	public async Task<DomainNotification?> MarkAsReadAsync(
 		UserIdentifier userId,
 		NotificationIdentifier notificationId,
 		CancellationToken cancellationToken = default)
@@ -287,7 +290,7 @@ public class NotificationService : INotificationService
 			"Marked notification {NotificationId} as read",
 			notification.UniqueId);
 
-		return notification;
+		return ToDomainNotification(notification, userId);
 	}
 
 	public async Task<int> MarkAllAsReadAsync(
@@ -397,6 +400,26 @@ public class NotificationService : INotificationService
 		}
 
 		throw new InvalidOperationException($"Notification {notification.Id} is missing a valid unique identifier.");
+	}
+
+	private static DomainNotification ToDomainNotification(NotificationEntity notification, UserIdentifier userId)
+	{
+		var notificationId = GetNotificationIdentifier(notification);
+
+		return new StoredNotification(notification.Type)
+		{
+			Id = notificationId,
+			UserId = userId,
+			Title = notification.Title,
+			Message = notification.Message,
+			RelatedEntityId = notification.RelatedEntityId,
+			RelatedEntityType = notification.RelatedEntityType,
+			SecondaryEntityId = notification.SecondaryEntityId,
+			SecondaryEntityType = notification.SecondaryEntityType,
+			CreatedAt = notification.CreatedAt,
+			ReadAt = notification.ReadAt,
+			ArchivedAt = notification.ArchivedAt,
+		};
 	}
 
 	private static string GetRosterRoleDisplayName(RosterRole role) => role switch

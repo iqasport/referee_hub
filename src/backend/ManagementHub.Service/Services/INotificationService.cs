@@ -9,6 +9,7 @@ using ManagementHub.Models.Domain.Tests;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
+using DomainNotification = ManagementHub.Models.Domain.Notification.Notification;
 using NotificationEntity = ManagementHub.Models.Data.Notification;
 
 namespace ManagementHub.Service.Services;
@@ -77,7 +78,7 @@ public interface INotificationService
 		bool passed,
 		CancellationToken cancellationToken = default);
 
-	Task<IEnumerable<NotificationEntity>> GetActiveNotificationsAsync(
+	Task<IEnumerable<DomainNotification>> GetActiveNotificationsAsync(
 		UserIdentifier userId,
 		CancellationToken cancellationToken = default);
 
@@ -85,7 +86,7 @@ public interface INotificationService
 		UserIdentifier userId,
 		CancellationToken cancellationToken = default);
 
-	Task<NotificationEntity?> MarkAsReadAsync(
+	Task<DomainNotification?> MarkAsReadAsync(
 		UserIdentifier userId,
 		NotificationIdentifier notificationId,
 		CancellationToken cancellationToken = default);

@@ -38,6 +38,26 @@ public abstract class Notification
 	public required string Message { get; set; }
 
 	/// <summary>
+	/// ID of the primary related entity for navigation/action.
+	/// </summary>
+	public string? RelatedEntityId { get; set; }
+
+	/// <summary>
+	/// Type of the primary related entity (Tournament, Team, etc.).
+	/// </summary>
+	public string? RelatedEntityType { get; set; }
+
+	/// <summary>
+	/// ID of the secondary related entity when the notification references two entities.
+	/// </summary>
+	public string? SecondaryEntityId { get; set; }
+
+	/// <summary>
+	/// Type of the secondary related entity.
+	/// </summary>
+	public string? SecondaryEntityType { get; set; }
+
+	/// <summary>
 	/// Whether the user has read this notification.
 	/// </summary>
 	public bool IsRead => this.ReadAt.HasValue;
@@ -61,6 +81,21 @@ public abstract class Notification
 	/// When the notification was archived (if applicable).
 	/// </summary>
 	public DateTime? ArchivedAt { get; set; }
+}
+
+/// <summary>
+/// Generic domain notification used for persisted/read notifications.
+/// </summary>
+public sealed class StoredNotification : Notification
+{
+	private readonly NotificationType type;
+
+	public StoredNotification(NotificationType type)
+	{
+		this.type = type;
+	}
+
+	public override NotificationType Type => this.type;
 }
 
 public sealed class ExamResultNotification : Notification
