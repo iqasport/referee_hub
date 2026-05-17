@@ -24,6 +24,7 @@ public partial class User : IIdentifiable
 		this.TeamManagers = new HashSet<TeamManager>();
 		this.TournamentTeamRosterEntries = new HashSet<TournamentTeamRosterEntry>();
 		this.TeamManagersAdded = new HashSet<TeamManager>();
+		this.Notifications = new HashSet<Notification>();
 	}
 
 	public long Id { get; set; }
@@ -82,4 +83,5 @@ public partial class User : IIdentifiable
 	public virtual ICollection<TeamManager> TeamManagers { get; set; }
 	public virtual ICollection<TournamentTeamRosterEntry> TournamentTeamRosterEntries { get; set; }
 	public virtual ICollection<TeamManager> TeamManagersAdded { get; set; }
+	public virtual ICollection<Notification> Notifications { get; set; }
 }
