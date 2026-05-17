@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Commands.Tournament;
@@ -21,11 +21,6 @@ namespace ManagementHub.Service.Areas.Tournaments;
 [Produces("application/json")]
 public class PublicTournamentsController : ControllerBase
 {
-	private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-	{
-		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-	};
-
 	private readonly ManagementHubDbContext dbContext;
 	private readonly IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand;
 	private readonly ILogger<PublicTournamentsController> logger;
@@ -62,10 +57,14 @@ public class PublicTournamentsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public async Task<ActionResult<object>> GetPublicTournamentById([FromRoute] string tournamentId)
 	{
+		if (!TournamentIdentifier.TryParse(tournamentId, out var parsedTournamentId))
+		{
+			throw new NotFoundException(tournamentId);
+		}
+
 		var snapshot = await this.GetSnapshotOrDefaultAsync();
 
-		var tournament = snapshot.Payload.Tournaments.FirstOrDefault(t =>
-			string.Equals(t.Id, tournamentId, StringComparison.OrdinalIgnoreCase));
+		var tournament = snapshot.Payload.Tournaments.FirstOrDefault(t => t.Id == parsedTournamentId);
 
 		if (tournament == null)
 		{
@@ -84,6 +83,17 @@ public class PublicTournamentsController : ControllerBase
 
 	private async Task<(Models.Domain.Tournament.PublicTournamentSnapshotPayload Payload, DateTime UpdatedAt)> GetSnapshotOrDefaultAsync()
 	{
+		if (this.dbContext.Database.IsSqlite())
+		{
+			var tournaments = await this.QueryPublicTournamentsAsync();
+			var generatedAt = DateTime.UtcNow;
+			return (new PublicTournamentSnapshotPayload
+			{
+				GeneratedAtUtc = generatedAt,
+				Tournaments = tournaments,
+			}, generatedAt);
+		}
+
 		var row = await this.TryGetSnapshotRowAsync();
 
 		if (row == null)
@@ -102,15 +112,57 @@ public class PublicTournamentsController : ControllerBase
 			}, DateTime.UtcNow);
 		}
 
-		var payload = JsonSerializer.Deserialize<Models.Domain.Tournament.PublicTournamentSnapshotPayload>(
-			row.SnapshotJson,
-			JsonSerializerOptions);
+		var payload = PublicTournamentSnapshotJson.Deserialize(row.SnapshotJson);
 
 		return (payload ?? new Models.Domain.Tournament.PublicTournamentSnapshotPayload
 		{
 			GeneratedAtUtc = row.UpdatedAt,
 			Tournaments = Array.Empty<Models.Domain.Tournament.PublicTournamentSnapshotTournament>(),
 		}, row.UpdatedAt);
+	}
+
+	private async Task<IReadOnlyList<PublicTournamentSnapshotTournament>> QueryPublicTournamentsAsync()
+	{
+		var rawTournaments = await this.dbContext.Tournaments
+			.AsNoTracking()
+			.Where(t => t.DeletedAt == null && !t.IsPrivate)
+			.OrderBy(t => t.StartDate)
+			.ThenBy(t => t.EndDate)
+			.ThenBy(t => t.Name)
+			.Select(t => new
+			{
+				t.UniqueId,
+				Name = t.Name,
+				Description = t.Description,
+				StartDate = t.StartDate,
+				EndDate = t.EndDate,
+				RegistrationEndsDate = t.RegistrationEndsDate,
+				Type = t.Type,
+				Country = t.Country,
+				City = t.City,
+				Place = t.Place,
+				Organizer = t.Organizer,
+				IsRegistrationOpen = t.IsRegistrationOpen,
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		return rawTournaments
+			.Select(t => new PublicTournamentSnapshotTournament
+			{
+				Id = TournamentIdentifier.Parse(t.UniqueId),
+				Name = t.Name,
+				Description = t.Description,
+				StartDate = t.StartDate,
+				EndDate = t.EndDate,
+				RegistrationEndsDate = t.RegistrationEndsDate,
+				Type = t.Type,
+				Country = t.Country,
+				City = t.City,
+				Place = t.Place,
+				Organizer = t.Organizer,
+				IsRegistrationOpen = t.IsRegistrationOpen,
+			})
+			.ToList();
 	}
 
 	private Task<PublicTournamentSnapshot?> TryGetSnapshotRowAsync()

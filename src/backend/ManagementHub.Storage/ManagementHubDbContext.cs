@@ -736,10 +736,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 		{
 			entity.ToTable("public_tournament_snapshots");
 
-			entity.HasIndex(e => e.Key, "index_public_tournament_snapshots_on_key")
-				.IsUnique();
-
-			entity.Property(e => e.Id).HasColumnName("id");
+			entity.HasKey(e => e.Key);
 
 			entity.Property(e => e.Key)
 				.HasColumnType("character varying")

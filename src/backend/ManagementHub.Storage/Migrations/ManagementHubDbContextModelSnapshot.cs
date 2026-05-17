@@ -801,11 +801,6 @@ namespace ManagementHub.Storage.Migrations
 
             modelBuilder.Entity("ManagementHub.Models.Data.PublicTournamentSnapshot", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -824,10 +819,7 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex(new[] { "Key" }, "index_public_tournament_snapshots_on_key")
-                        .IsUnique();
+                    b.HasKey("Key");
 
                     b.ToTable("public_tournament_snapshots", (string)null);
                 });

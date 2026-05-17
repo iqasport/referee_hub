@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
@@ -13,11 +12,6 @@ namespace ManagementHub.Storage.Commands.Tournament;
 public class RefreshPublicTournamentSnapshotCommand : IRefreshPublicTournamentSnapshotCommand
 {
 	public const string SnapshotKey = "public_tournaments";
-
-	private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-	{
-		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-	};
 
 	private readonly ManagementHubDbContext dbContext;
 	private readonly ILogger<RefreshPublicTournamentSnapshotCommand> logger;
@@ -32,17 +26,23 @@ public class RefreshPublicTournamentSnapshotCommand : IRefreshPublicTournamentSn
 
 	public async Task RefreshPublicTournamentSnapshot(CancellationToken cancellationToken)
 	{
+		if (this.dbContext.Database.IsSqlite())
+		{
+			this.logger.LogDebug("Skipping public tournament snapshot refresh while running on SQLite.");
+			return;
+		}
+
 		var utcNow = DateTime.UtcNow;
 
-		var tournaments = await this.dbContext.Tournaments
+		var rawTournaments = await this.dbContext.Tournaments
 			.AsNoTracking()
 			.Where(t => t.DeletedAt == null && !t.IsPrivate)
 			.OrderBy(t => t.StartDate)
 			.ThenBy(t => t.EndDate)
 			.ThenBy(t => t.Name)
-			.Select(t => new PublicTournamentSnapshotTournament
+			.Select(t => new
 			{
-				Id = t.UniqueId,
+				t.UniqueId,
 				Name = t.Name,
 				Description = t.Description,
 				StartDate = t.StartDate,
@@ -57,13 +57,31 @@ public class RefreshPublicTournamentSnapshotCommand : IRefreshPublicTournamentSn
 			})
 			.ToListAsync(cancellationToken);
 
+		var tournaments = rawTournaments
+			.Select(t => new PublicTournamentSnapshotTournament
+			{
+				Id = TournamentIdentifier.Parse(t.UniqueId),
+				Name = t.Name,
+				Description = t.Description,
+				StartDate = t.StartDate,
+				EndDate = t.EndDate,
+				RegistrationEndsDate = t.RegistrationEndsDate,
+				Type = t.Type,
+				Country = t.Country,
+				City = t.City,
+				Place = t.Place,
+				Organizer = t.Organizer,
+				IsRegistrationOpen = t.IsRegistrationOpen,
+			})
+			.ToList();
+
 		var payload = new PublicTournamentSnapshotPayload
 		{
 			GeneratedAtUtc = utcNow,
 			Tournaments = tournaments,
 		};
 
-		var snapshotJson = JsonSerializer.Serialize(payload, JsonSerializerOptions);
+		var snapshotJson = PublicTournamentSnapshotJson.Serialize(payload);
 
 		var existingSnapshot = await this.dbContext.PublicTournamentSnapshots
 			.SingleOrDefaultAsync(s => s.Key == SnapshotKey, cancellationToken);

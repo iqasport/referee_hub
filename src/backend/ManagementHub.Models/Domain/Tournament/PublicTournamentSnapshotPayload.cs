@@ -12,7 +12,7 @@ public class PublicTournamentSnapshotPayload
 
 public class PublicTournamentSnapshotTournament
 {
-	public required string Id { get; init; }
+	public required TournamentIdentifier Id { get; init; }
 	public required string Name { get; init; }
 	public required string Description { get; init; }
 	public required DateOnly StartDate { get; init; }
