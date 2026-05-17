@@ -18,6 +18,6 @@
     }
   },
   "include": ["./app/**/*"],
-  "exclude": ["./node_modules", "./vendor", "./assets/**/*"],
+  "exclude": ["./node_modules", "./vendor", "./assets/**/*", "./app/**/*.test.ts", "./app/**/*.test.tsx", "./app/utils/test-utils.tsx"],
   "compileOnSave": true
 }

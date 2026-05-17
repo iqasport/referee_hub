@@ -3,6 +3,7 @@ import React, { useEffect, useState, lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Avatar from "./components/Avatar";
+import NotificationCenter from "./components/NotificationCenter/NotificationCenter";
 import Loader from "./components/Loader";
 import { useGetCurrentUserQuery } from "./store/serviceApi";
 
@@ -25,7 +26,6 @@ const StartTest = lazy(() => import("./pages/StartTest"));
 const NgbProfile = lazy(() => import("./pages/NgbProfile"));
 const ImportWizard = lazy(() => import("./pages/ImportWizard"));
 const RefereeTests = lazy(() => import("./pages/RefereeTests"));
-const Settings = lazy(() => import("./pages/Settings"));
 const Tournament = lazy(() => import("./pages/Tournaments"));
 const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"));
 const TeamView = lazy(() => import("./pages/TeamView"));
@@ -38,7 +38,7 @@ const App = () => {
   const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery(undefined, {
     skip: isPublicRoute,
   });
-  const roles = currentUser?.roles?.map((r) => r.roleType) ?? [];
+  const roles = currentUser?.roles?.map((r) => r.roleType).filter((r): r is string => typeof r === "string") ?? [];
 
   const ownedNgbIds = currentUser
     ? (() => {
@@ -46,18 +46,19 @@ const App = () => {
         if (typeof ngb === "string") {
           return [ngb];
         }
-
         return ngb;
       })()
     : undefined;
+
   const shouldShowSignInButton = isPublicRoute && !currentUser;
 
   const getRedirect = () => {
+    if (!currentUser) return undefined;
     if (roles.includes("IqaAdmin")) return "/admin";
-    if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${ownedNgbIds[0]}`;
+    if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${ownedNgbIds?.[0]}`;
     if (roles.includes("Referee")) return `/referees/${currentUser.userId}`;
 
-    return null;
+    return undefined;
   };
 
   useEffect(() => {
@@ -97,17 +98,15 @@ const App = () => {
                 Sign In
               </a>
             )}
+            {currentUser && <NotificationCenter currentUserId={currentUser.userId ?? ""} />}
             {currentUser && (
               <Avatar
-                firstName={currentUser.firstName}
-                lastName={currentUser.lastName}
+                firstName={currentUser.firstName ?? ""}
+                lastName={currentUser.lastName ?? ""}
                 roles={roles}
-                userId={currentUser.userId}
+                userId={currentUser.userId ?? ""}
                 ownedNgbId={ownedNgbIds ? ownedNgbIds[0] : undefined}
-                enabledFeatures={
-                  /* FUTURE: currentUser?.enabledFeatures when feature flags are implemented */
-                  undefined
-                }
+                enabledFeatures={[]}
               />
             )}
           </div>
@@ -125,13 +124,6 @@ const App = () => {
             <Route path="/tournaments/:tournamentId" element={<TournamentDetails />} />
             <Route path="/teams/:teamId" element={<TeamView />} />
             <Route path="/teams/:teamId/manage" element={<TeamManagement />} />
-            {/* FUTURE: Settings route when i18n feature is implemented
-            {currentUser?.enabledFeatures.includes("i18n") ? (
-              <Route
-                path="/settings"
-                element={<Settings />}
-              />
-            ) : null} */}
           </Routes>
         </div>
       </BrowserRouter>

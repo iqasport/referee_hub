@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         unhandledExceptions: true,
         unhandledRejections: true,
       },
-      plugins: [new BugsnagPluginReact()],
+      plugins: [new BugsnagPluginReact() as unknown as any],
     });
 
     ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);

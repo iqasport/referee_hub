@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -24,22 +25,22 @@ public class UpdateNgbAdminRoleCommand : IUpdateNgbAdminRoleCommand
 		this.databaseTransactionProvider = databaseTransactionProvider;
 	}
 
-	public async Task<IUpdateNgbAdminRoleCommand.AddRoleResult> AddNgbAdminRoleAsync(NgbIdentifier ngb, Email email, bool createUserIfNotExists)
+	public async Task<IUpdateNgbAdminRoleCommand.AddRoleResponse> AddNgbAdminRoleAsync(NgbIdentifier ngb, Email email, bool createUserIfNotExists)
 	{
 		using var transaction = await this.databaseTransactionProvider.BeginAsync();
 		bool userCreated = false;
 		var user = await this.dbContext.Users.AsNoTracking().WithEmail(email)
-			.Select(u => new Models.Data.User { Id = u.Id }).SingleOrDefaultAsync();
+			.Select(u => new { u.Id, u.UniqueId }).SingleOrDefaultAsync();
 		if (user == null)
 		{
 			if (!createUserIfNotExists)
 			{
 				this.logger.LogInformation("User (by email) doesn't exist.");
-				return IUpdateNgbAdminRoleCommand.AddRoleResult.UserDoesNotExist;
+				return new IUpdateNgbAdminRoleCommand.AddRoleResponse(IUpdateNgbAdminRoleCommand.AddRoleResult.UserDoesNotExist, null);
 			}
 
 			this.logger.LogInformation("User (by email) doesn't exist, but we're creating a new account for them.");
-			user = new Models.Data.User
+			var dbUser = new Models.Data.User
 			{
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
@@ -49,8 +50,9 @@ public class UpdateNgbAdminRoleCommand : IUpdateNgbAdminRoleCommand
 				Email = email.Value,
 				//InvitedById = TODO: get current user id
 			};
-			this.dbContext.Users.Add(user);
+			this.dbContext.Users.Add(dbUser);
 			await this.dbContext.SaveChangesAsync();
+			user = new { dbUser.Id, dbUser.UniqueId };
 			userCreated = true;
 		}
 
@@ -79,10 +81,12 @@ public class UpdateNgbAdminRoleCommand : IUpdateNgbAdminRoleCommand
 		var ngbAssignment = await this.dbContext.NationalGoverningBodyAdmins.AsNoTracking()
 			.Where(ngba => ngba.UserId == user.Id && ngba.NationalGoverningBodyId == ngbDbId)
 			.FirstOrDefaultAsync();
+
+		var userId = user.UniqueId != null ? UserIdentifier.Parse(user.UniqueId) : UserIdentifier.FromLegacyUserId(user.Id);
 		if (ngbAssignment != null)
 		{
 			this.logger.LogInformation("User already is assigned as this NGBs admin.");
-			return IUpdateNgbAdminRoleCommand.AddRoleResult.RoleAdded;
+			return new IUpdateNgbAdminRoleCommand.AddRoleResponse(IUpdateNgbAdminRoleCommand.AddRoleResult.RoleAdded, userId);
 		}
 
 		this.logger.LogInformation("Adding NGB admin assignment.");
@@ -98,9 +102,11 @@ public class UpdateNgbAdminRoleCommand : IUpdateNgbAdminRoleCommand
 
 		await transaction.CommitAsync();
 
-		return userCreated
-			? IUpdateNgbAdminRoleCommand.AddRoleResult.UserCreatedWithRole
-			: IUpdateNgbAdminRoleCommand.AddRoleResult.RoleAdded;
+		return new IUpdateNgbAdminRoleCommand.AddRoleResponse(
+			userCreated
+				? IUpdateNgbAdminRoleCommand.AddRoleResult.UserCreatedWithRole
+				: IUpdateNgbAdminRoleCommand.AddRoleResult.RoleAdded,
+			userId);
 	}
 
 	public async Task<bool> DeleteNgbAdminRoleAsync(NgbIdentifier ngb, Email email)
