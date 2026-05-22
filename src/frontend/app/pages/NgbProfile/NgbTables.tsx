@@ -7,6 +7,7 @@ import TeamTable from "../../components/tables/TeamTable";
 enum SelectedTable {
   Referees = "referees",
   Teams = "teams",
+  Transfers = "transfers",
 }
 
 interface NgbTablesProps {
@@ -18,6 +19,7 @@ const NgbTables = (props: NgbTablesProps) => {
   const [selectedTable, setSelectedTable] = useState(SelectedTable.Referees);
   const isRefereesActive = selectedTable === SelectedTable.Referees;
   const isTeamsActive = selectedTable === SelectedTable.Teams;
+  const isTransfersActive = selectedTable === SelectedTable.Transfers;
 
   const handleTableToggle = (table: SelectedTable) => (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -38,7 +40,7 @@ const NgbTables = (props: NgbTablesProps) => {
           className={classnames("button-tab", { ["active-button-tab"]: isRefereesActive })}
           onClick={handleTableToggle(SelectedTable.Referees)}
         >
-          Referees
+          Members
         </button>
         <button
           className={classnames("button-tab", { ["active-button-tab"]: isTeamsActive })}
@@ -46,9 +48,20 @@ const NgbTables = (props: NgbTablesProps) => {
         >
           Teams
         </button>
+        <button
+          className={classnames("button-tab", { ["active-button-tab"]: isTransfersActive })}
+          onClick={handleTableToggle(SelectedTable.Transfers)}
+        >
+          Transfers
+        </button>
       </div>
       {isRefereesActive && <NewRefereeTable ngbId={ngbId} isHeightRestricted={true} />}
       {isTeamsActive && <TeamTable ngbId={ngbId} />}
+      {isTransfersActive && (
+        <div className="w-full rounded-md border border-gray-300 bg-gray-100 p-4 text-gray-700">
+          No transfers to show yet.
+        </div>
+      )}
     </section>
   );
 };
