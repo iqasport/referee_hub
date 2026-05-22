@@ -10,6 +10,7 @@ public class TeamPlayerActivityViewModel
 	public required TeamPlayerActivityType ActivityType { get; set; }
 	public required string Email { get; set; }
 	public string? TeamName { get; set; }
+	public string? TeamLogoUri { get; set; }
 	public UserIdentifier? UserId { get; set; }
 	public string? UserName { get; set; }
 	public string? InitiatorName { get; set; }
@@ -21,6 +22,7 @@ public class CurrentUserTeamInviteViewModel
 	public required string InvitationId { get; set; }
 	public required TeamIdentifier TeamId { get; set; }
 	public required string TeamName { get; set; }
+	public string? TeamLogoUri { get; set; }
 	public required string Email { get; set; }
 	public required DateTime CreatedAt { get; set; }
 	public string? InvitedByName { get; set; }

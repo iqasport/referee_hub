@@ -1663,6 +1663,7 @@ export type TeamPlayerActivityViewModel = {
   activityType?: TeamPlayerActivityType;
   email?: string | null;
   teamName?: string | null;
+  teamLogoUri?: string | null;
   userId?: string | null;
   userName?: string | null;
   initiatorName?: string | null;
@@ -1672,6 +1673,7 @@ export type CurrentUserTeamInviteViewModel = {
   invitationId?: string | null;
   teamId?: string;
   teamName?: string | null;
+  teamLogoUri?: string | null;
   email?: string | null;
   createdAt?: string;
   invitedByName?: string | null;

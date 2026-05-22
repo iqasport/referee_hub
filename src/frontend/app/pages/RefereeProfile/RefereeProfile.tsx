@@ -395,7 +395,7 @@ const TeamInvites = () => {
             return (
               <div key={invite.invitationId} className="invite-item" style={{ alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <InviteTeamLogo teamId={invite.teamId} teamName={invite.teamName} />
+                  <InviteTeamLogo teamId={invite.teamId} teamName={invite.teamName} teamLogoUri={invite.teamLogoUri} />
                   <div>
                     <div className="invite-team-name">{invite.teamName || invite.teamId || "Team"}</div>
                     <div className="text-sm text-gray-600">
@@ -434,13 +434,23 @@ const TeamInvites = () => {
   );
 };
 
-const InviteTeamLogo = ({ teamId, teamName }: { teamId?: string; teamName?: string | null }) => {
+const InviteTeamLogo = ({
+  teamId,
+  teamName,
+  teamLogoUri,
+}: {
+  teamId?: string;
+  teamName?: string | null;
+  teamLogoUri?: string | null;
+}) => {
   const { data: teamDetails } = useGetTeamDetailsQuery(
     { teamId: teamId ?? "" },
-    { skip: !teamId },
+    { skip: !teamId || Boolean(teamLogoUri) },
   );
 
-  if (!teamDetails?.logoUri) {
+  const resolvedLogoUri = teamLogoUri || teamDetails?.logoUri;
+
+  if (!resolvedLogoUri) {
     return (
       <div
         className="rounded border border-gray-200 bg-gray-100"
@@ -452,7 +462,7 @@ const InviteTeamLogo = ({ teamId, teamName }: { teamId?: string; teamName?: stri
 
   return (
     <img
-      src={teamDetails.logoUri}
+      src={resolvedLogoUri}
       alt={`${teamName || "Team"} logo`}
       className="rounded border border-gray-200 object-cover"
       style={{ width: "2rem", height: "2rem" }}
@@ -465,6 +475,7 @@ type TeamTransferHistoryItem = {
   createdAt?: string;
   teamId?: string;
   teamName?: string | null;
+  teamLogoUri?: string | null;
 };
 
 type TeamHistoryQueryResult = {
@@ -530,7 +541,14 @@ const TeamTransferHistory = ({ userId, isOwnProfile }: { userId?: string; isOwnP
               className="invite-item"
               style={{ justifyContent: "space-between", cursor: "default" }}
             >
-              <div style={{ fontWeight: 500 }}>{formatSummary(activity)}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <InviteTeamLogo
+                  teamId={activity.teamId}
+                  teamName={activity.teamName}
+                  teamLogoUri={activity.teamLogoUri}
+                />
+                <div style={{ fontWeight: 500 }}>{formatSummary(activity)}</div>
+              </div>
               <div style={{ fontSize: "0.875rem", color: "#4b5563" }}>
                 {activity.createdAt ? new Date(activity.createdAt).toLocaleString() : "Unknown time"}
               </div>
@@ -703,8 +721,8 @@ const RefereeProfile = () => {
           {/* Column 1: Player Details + Upcoming Events */}
           <div>
             <PlayerDetails />
-            <TeamTransferHistory userId={refereeQueryUserId} isOwnProfile={isOwnProfile} />
             {isOwnProfile && <UpcomingEvents />}
+            <TeamTransferHistory userId={refereeQueryUserId} isOwnProfile={isOwnProfile} />
           </div>
 
           {/* Column 2: Basic Details + Team Requests + Certification History */}

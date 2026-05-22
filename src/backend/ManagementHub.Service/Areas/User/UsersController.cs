@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Commands.Mailers;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
@@ -41,6 +42,7 @@ public class UsersController : ControllerBase
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly ISetUserAttributeCommand setUserAttributeCommand;
 	private readonly IUserDelicateInfoService userDelicateInfoService;
+	private readonly ITeamContextProvider teamContextProvider;
 	private readonly ISendTeamInviteEmail sendTeamInviteEmail;
 	private readonly INotificationService notificationService;
 	private readonly ManagementHubDbContext dbContext;
@@ -53,6 +55,7 @@ public class UsersController : ControllerBase
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
 		ISetUserAttributeCommand setUserAttributeCommand,
 		IUserDelicateInfoService userDelicateInfoService,
+		ITeamContextProvider teamContextProvider,
 		ISendTeamInviteEmail sendTeamInviteEmail,
 		INotificationService notificationService,
 		ManagementHubDbContext dbContext,
@@ -64,6 +67,7 @@ public class UsersController : ControllerBase
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.setUserAttributeCommand = setUserAttributeCommand;
 		this.userDelicateInfoService = userDelicateInfoService;
+		this.teamContextProvider = teamContextProvider;
 		this.sendTeamInviteEmail = sendTeamInviteEmail;
 		this.notificationService = notificationService;
 		this.dbContext = dbContext;
@@ -368,6 +372,7 @@ public class UsersController : ControllerBase
 		var normalizedEmail = TeamInviteHelpers.NormalizeEmail(currentUser.UserData.Email.Value);
 
 		var pendingInvites = await this.GetPendingTeamInvitationsForEmailAsync(normalizedEmail);
+		var teamLogoUris = await this.GetTeamLogoUrisAsync(pendingInvites.Select(invite => invite.TeamId));
 
 		return pendingInvites
 			.Select(invite => new CurrentUserTeamInviteViewModel
@@ -375,6 +380,7 @@ public class UsersController : ControllerBase
 				InvitationId = invite.Id.ToString(),
 				TeamId = new TeamIdentifier(invite.TeamId),
 				TeamName = invite.Team.Name,
+				TeamLogoUri = teamLogoUris.GetValueOrDefault(invite.TeamId),
 				Email = invite.Email,
 				CreatedAt = invite.CreatedAt,
 				InvitedByName = TeamInviteHelpers.BuildDisplayName(invite.Initiator.FirstName, invite.Initiator.LastName),
@@ -633,11 +639,14 @@ public class UsersController : ControllerBase
 			})
 			.ToListAsync(this.HttpContext.RequestAborted);
 
+		var teamLogoUris = await this.GetTeamLogoUrisAsync(historyRows.Select(activity => activity.TeamId));
+
 		return historyRows
 			.Select(activity => new TeamPlayerActivityViewModel
 			{
 				TeamId = new TeamIdentifier(activity.TeamId),
 				TeamName = activity.TeamName,
+				TeamLogoUri = teamLogoUris.GetValueOrDefault(activity.TeamId),
 				ActivityType = activity.ActivityType,
 				Email = activity.Email,
 				UserId = activity.UserId == null
@@ -693,11 +702,14 @@ public class UsersController : ControllerBase
 			})
 			.ToListAsync(this.HttpContext.RequestAborted);
 
+		var teamLogoUris = await this.GetTeamLogoUrisAsync(historyRows.Select(activity => activity.TeamId));
+
 		return historyRows
 			.Select(activity => new TeamPlayerActivityViewModel
 			{
 				TeamId = new TeamIdentifier(activity.TeamId),
 				TeamName = activity.TeamName,
+				TeamLogoUri = teamLogoUris.GetValueOrDefault(activity.TeamId),
 				ActivityType = activity.ActivityType,
 				Email = activity.Email,
 				UserId = activity.UserId == null
@@ -710,6 +722,18 @@ public class UsersController : ControllerBase
 				CreatedAt = activity.CreatedAt,
 			})
 			.ToList();
+	}
+
+	private async Task<Dictionary<long, string?>> GetTeamLogoUrisAsync(IEnumerable<long> teamIds)
+	{
+		var logoUris = new Dictionary<long, string?>();
+		foreach (var teamId in teamIds.Distinct())
+		{
+			var logoUri = await this.teamContextProvider.GetTeamLogoUriAsync(new TeamIdentifier(teamId), this.HttpContext.RequestAborted);
+			logoUris[teamId] = logoUri?.ToString();
+		}
+
+		return logoUris;
 	}
 
 	/// <summary>
