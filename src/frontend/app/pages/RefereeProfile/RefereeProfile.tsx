@@ -203,7 +203,7 @@ const PlayerDetails = () => {
 
   const handleChange = (newState: RefereeLocationOptions | RefereeTeamOptions) => {
     setReferee((prev) => {
-      const updated = { ...(prev ?? {}), ...newState };
+      const updated = { ...prev, ...newState };
       editableRefereeRef.current = updated;
       return updated;
     });

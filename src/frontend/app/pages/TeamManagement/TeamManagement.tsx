@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigationParams } from "../../utils/navigationUtils";
 import { 
+  TeamPlayerActivityViewModel,
   useCreateTeamInviteMutation,
   useGetTeamManagementQuery,
   useRemovePlayerMutation,
@@ -13,6 +14,52 @@ import TeamEditModal from "../../components/modals/TeamEditModal/TeamEditModal";
 import AddManagerModal from "./AddManagerModal";
 import ActionButtonPair from "../../components/ActionButtonPair";
 import Toggle from "../../components/Toggle";
+
+const getActivityDescription = (activity: TeamPlayerActivityViewModel): string => {
+  switch (activity.activityType) {
+    case "inviteCreated":
+      return activity.userId
+        ? `${activity.userName || activity.email || "A player"} requested to join`
+        : `Invite sent to ${activity.email || "unknown"}`;
+    case "inviteRevoked":
+      return `Invite revoked for ${activity.email || "unknown"}`;
+    case "inviteAccepted":
+      return `${activity.userName || activity.email || "A user"} joined team`;
+    case "inviteDeclined":
+      return activity.userId && activity.initiatorName && activity.userName && activity.initiatorName !== activity.userName
+        ? `Join request declined for ${activity.userName || activity.email || "a user"}`
+        : `${activity.userName || activity.email || "A user"} declined invitation`;
+    case "playerRemoved":
+      return `${activity.userName || activity.email || "A user"} removed from team`;
+    default:
+      return "Unknown activity";
+  }
+};
+
+interface PlayerActivitySectionProps {
+  playerHistory?: TeamPlayerActivityViewModel[] | null;
+}
+
+const PlayerActivitySection: React.FC<PlayerActivitySectionProps> = ({ playerHistory }) => (
+  <div className="bg-gray-100 rounded-lg p-6 mt-8">
+    <h2 className="text-2xl font-semibold mb-4 border-b-2 border-green pb-2">Player Activity</h2>
+    {playerHistory && playerHistory.length > 0 ? (
+      <div className="space-y-2">
+        {playerHistory.map((activity, index) => (
+          <div key={`${activity.createdAt || "unknown"}-${index}`} className="bg-white p-3 rounded">
+            <p className="font-medium">{getActivityDescription(activity)}</p>
+            <p className="text-sm text-gray-600">
+              {activity.createdAt ? new Date(activity.createdAt).toLocaleString() : "Unknown time"}
+              {activity.initiatorName ? ` by ${activity.initiatorName}` : ""}
+            </p>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="text-gray-500">No player activity yet</p>
+    )}
+  </div>
+);
 
 const TeamManagement = () => {
   const { teamId } = useNavigationParams<"teamId">();
@@ -355,38 +402,7 @@ const TeamManagement = () => {
         )}
       </div>
 
-      <div className="bg-gray-100 rounded-lg p-6 mt-8">
-        <h2 className="text-2xl font-semibold mb-4 border-b-2 border-green pb-2">Player Activity</h2>
-        {team.playerHistory && team.playerHistory.length > 0 ? (
-          <div className="space-y-2">
-            {team.playerHistory.map((activity, index) => (
-              <div key={`${activity.createdAt || "unknown"}-${index}`} className="bg-white p-3 rounded">
-                <p className="font-medium">
-                  {activity.activityType === "inviteCreated" && (
-                    activity.userId
-                      ? `${activity.userName || activity.email || "A player"} requested to join`
-                      : `Invite sent to ${activity.email || "unknown"}`
-                  )}
-                  {activity.activityType === "inviteRevoked" && `Invite revoked for ${activity.email || "unknown"}`}
-                  {activity.activityType === "inviteAccepted" && `${activity.userName || activity.email || "A user"} joined team`}
-                  {activity.activityType === "inviteDeclined" && (
-                    activity.userId && activity.initiatorName && activity.userName && activity.initiatorName !== activity.userName
-                      ? `Join request declined for ${activity.userName || activity.email || "a user"}`
-                      : `${activity.userName || activity.email || "A user"} declined invitation`
-                  )}
-                  {activity.activityType === "playerRemoved" && `${activity.userName || activity.email || "A user"} removed from team`}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {activity.createdAt ? new Date(activity.createdAt).toLocaleString() : "Unknown time"}
-                  {activity.initiatorName ? ` by ${activity.initiatorName}` : ""}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">No player activity yet</p>
-        )}
-      </div>
+      <PlayerActivitySection playerHistory={team.playerHistory} />
     </div>
   );
 };
