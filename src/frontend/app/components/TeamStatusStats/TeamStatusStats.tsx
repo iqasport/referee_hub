@@ -56,10 +56,10 @@ const TeamStatusStats = (props: TeamStatusProps) => {
   const timeText = showFull ? "12 months" : "month";
 
   return (
-    <div className={classnames({ ["w-full"]: showFull, ["w-full lg:w-1/3"]: !showFull })}>
-      <h3 className="text-yellow-darker text-md lg:text-lg font-bold mb-4">{`Team Status (last ${timeText})`}</h3>
+    <div className={classnames("flex flex-col", { ["w-full"]: showFull, ["w-full lg:w-1/3"]: !showFull })}>
+      <h3 className="text-yellow-darker text-md lg:text-lg font-bold mb-3 min-h-[3.5rem]">{`Team Status (last ${timeText})`}</h3>
       <div
-        className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer"
+        className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer mb-4"
         onClick={onClick}
       >
         {!showFull && (

@@ -97,7 +97,7 @@ const NgbProfile = () => {
   if (!ngb) return null;
   return (
     <section className="tournament-details-section">
-      <div className="tournament-details-wrapper">
+      <div className="tournament-details-wrapper" style={{ maxWidth: "90rem" }}>
         {isLoading ? <Loader /> : renderProfile()}
         {renderModals()}
       </div>

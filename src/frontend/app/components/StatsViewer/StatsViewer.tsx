@@ -75,7 +75,7 @@ const StatsViewer = (props: StatsViewerProps) => {
   };
 
   return (
-    <div className="w-full rounded-lg bg-gray-300 flex flex-col lg:flex-row justify-between py-8 px-4">
+    <div className="w-full rounded-lg bg-gray-300 flex flex-col lg:flex-row lg:items-stretch lg:gap-4 py-6 px-4">
       {renderCurrentStats()}
     </div>
   );

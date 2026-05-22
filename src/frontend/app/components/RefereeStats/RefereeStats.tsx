@@ -60,12 +60,12 @@ const RefereeStats = (props: RefereeStatsProps) => {
   const timeText = showFull ? "12 months" : "month";
 
   return (
-    <div className={classnames({ ["w-full"]: showFull, ["w-full lg:w-1/3"]: !showFull })}>
-      <h3 className="text-green-darker text-md lg:text-lg font-bold mb-4">
+    <div className={classnames("flex flex-col", { ["w-full"]: showFull, ["w-full lg:w-1/3"]: !showFull })}>
+      <h3 className="text-green-darker text-md lg:text-lg font-bold mb-3 min-h-[3.5rem]">
         {`Referee Certifications (last ${timeText})`}
       </h3>
       <div
-        className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer mb-4 mr-4"
+        className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer mb-4"
         onClick={onClick}
       >
         {!showFull && (
