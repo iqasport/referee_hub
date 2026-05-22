@@ -29,8 +29,11 @@ const NgbTables = (props: NgbTablesProps) => {
   };
 
   return (
-    <div className="w-full">
-      <div className="flex justify-start w-full mt-8">
+    <section className="card">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="card-title" style={{ marginBottom: 0 }}>NGB Management</h2>
+      </div>
+      <div className="flex justify-start w-full mb-4">
         <button
           className={classnames("button-tab", { ["active-button-tab"]: isRefereesActive })}
           onClick={handleTableToggle(SelectedTable.Referees)}
@@ -46,7 +49,7 @@ const NgbTables = (props: NgbTablesProps) => {
       </div>
       {isRefereesActive && <NewRefereeTable ngbId={ngbId} isHeightRestricted={true} />}
       {isTeamsActive && <TeamTable ngbId={ngbId} />}
-    </div>
+    </section>
   );
 };
 

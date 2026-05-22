@@ -71,8 +71,8 @@ const NgbProfile = () => {
   const renderProfile = () => {
     return (
       <>
-        <div className="flex justify-between w-full mb-8">
-          <h1 className="w-full text-4xl text-navy-blue font-extrabold">{ngb.name}</h1>
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">{ngb.name}</h1>
           <ActionsButton
             onEditClick={handleOpenModal(ModalType.Edit)}
             onImportClick={handleImportClick}
@@ -81,13 +81,14 @@ const NgbProfile = () => {
             onManageAdminsClick={handleOpenModal(ModalType.Admins)}
           />
         </div>
-        <div className="flex w-full flex-col md:flex-row">
-          <Sidebar
-            ngb={ngb}
-          />
-          <div className="flex flex-col w-full md:w-4/5 md:pl-8">
+
+        <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
+          <div>
             <StatsViewer stats={[ngb.currentStats, ...ngb.historicalStats]} />
             <NgbTables ngbId={ngbId} />
+          </div>
+          <div>
+            <Sidebar ngb={ngb} />
           </div>
         </div>
       </>
@@ -95,10 +96,12 @@ const NgbProfile = () => {
   };
   if (!ngb) return null;
   return (
-    <div className="w-5/6 mx-auto my-8">
-      {isLoading ? <Loader /> : renderProfile()}
-      {renderModals()}
-    </div>
+    <section className="tournament-details-section">
+      <div className="tournament-details-wrapper">
+        {isLoading ? <Loader /> : renderProfile()}
+        {renderModals()}
+      </div>
+    </section>
   );
 };
 
