@@ -25,8 +25,14 @@ module.exports = merge(common, {
   devServer: {
     // Keep a fixed dev port to avoid split runtimes across 8080/8081.
     port: 8080,
-    // Serve index.html for client-side routes such as /sign_in.
-    historyApiFallback: true,
+    // Force index.html for all non-asset routes such as /sign_in.
+    historyApiFallback: {
+      disableDotRule: true,
+      index: '/index.html',
+      rewrites: [
+        { from: /./, to: '/index.html' },
+      ],
+    },
     // Keep webpack bundles in memory to avoid duplicate static middleware responses.
     devMiddleware: {
       writeToDisk: false,
@@ -64,6 +70,15 @@ module.exports = merge(common, {
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
+    // Forward backend routes to ASP.NET service running on localhost:5000.
+    proxy: [
+      {
+        context: ['/api', '/hubs', '/sign_in'],
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+    ],
     // Static files configuration
     static: {
       directory: path.join(__dirname, 'dist'),
