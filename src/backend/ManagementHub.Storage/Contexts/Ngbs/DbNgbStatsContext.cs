@@ -97,7 +97,9 @@ public class DbNgbStatsContextFactory
 
 			TotalRefereesCount = refereeCount,
 			HeadRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Head),
-			FlagRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Flag),
+			FlagRefereesCount =
+				refsCertsLevels.GetValueOrDefault(CertificationLevel.Flag)
+				+ refsCertsLevels.GetValueOrDefault(CertificationLevel.FlagRunner),
 			AssistantRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Assistant),
 			ScorekeeperRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Scorekeeper),
 			UncertifiedRefereesCount = refereeCount - refsCertsLevels.Values.Sum(),

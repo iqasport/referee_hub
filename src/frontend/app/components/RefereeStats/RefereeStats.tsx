@@ -8,7 +8,7 @@ import { INgbStatsContextRead } from "../../store/serviceApi";
 
 interface RefereeStatsProps {
   assistantCount: number;
-  snitchCount: number;
+  flagRunnerCount: number;
   headCount: number;
   scorekeeperCount: number;
   total: number;
@@ -19,7 +19,7 @@ interface RefereeStatsProps {
 }
 
 const RefereeStats = (props: RefereeStatsProps) => {
-  const { total, headCount, assistantCount, snitchCount, scorekeeperCount, showFull, onClick, stats } = props;
+  const { total, headCount, assistantCount, flagRunnerCount, scorekeeperCount, showFull, onClick, stats } = props;
   const historicChartData = getMonths().map((month) => {
     const foundStat = stats.find((stat) => toDateTime(stat.collectedAt).monthShort === month);
     if (!foundStat) {
@@ -39,7 +39,7 @@ const RefereeStats = (props: RefereeStatsProps) => {
   const chartData = [
     { type: "head", head: headCount },
     { type: "assistant", assistant: assistantCount },
-    { type: "flag", flag: snitchCount },
+    { type: "flag runner", flag: flagRunnerCount },
     { type: "scorekeeper", scorekeeper: scorekeeperCount},
   ];
 
@@ -52,7 +52,7 @@ const RefereeStats = (props: RefereeStatsProps) => {
 
   const lineConfig = [
     { name: "Assistant", dataKey: "assistantRefereesCount", stroke: "#6eb465" },
-    { name: "Flag", dataKey: "flagRefereesCount", stroke: "#82b27c" },
+    { name: "Flag Runner", dataKey: "flagRefereesCount", stroke: "#82b27c" },
     { name: "Head", dataKey: "headRefereesCount", stroke: "#56a74b" },
     { name: "Scorekeeper", dataKey: "scorekeeperRefereesCount", stroke: "#C1EDBC" },
   ];
@@ -70,7 +70,7 @@ const RefereeStats = (props: RefereeStatsProps) => {
       >
         {!showFull && (
           <div className="w-full h-64 flex-1">
-            <StatBarChart maxData={Math.max(assistantCount, scorekeeperCount, headCount, snitchCount)} barConfig={barConfig} chartData={chartData} />
+            <StatBarChart maxData={Math.max(assistantCount, scorekeeperCount, headCount, flagRunnerCount)} barConfig={barConfig} chartData={chartData} />
           </div>
         )}
         {showFull && (

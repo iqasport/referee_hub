@@ -39,7 +39,7 @@ const StatsViewer = (props: StatsViewerProps) => {
           <RefereeStats
             headCount={currentStat?.headRefereesCount}
             assistantCount={currentStat?.assistantRefereesCount}
-            snitchCount={currentStat?.flagRefereesCount}
+            flagRunnerCount={currentStat?.flagRefereesCount}
             scorekeeperCount={currentStat?.scorekeeperRefereesCount}
             uncertifiedCount={currentStat?.uncertifiedRefereesCount}
             total={currentStat?.totalRefereesCount}
