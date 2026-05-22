@@ -9,7 +9,6 @@ import {
   useGetRefereeQuery,
   useGetCurrentRefereeQuery,
   useUpdateCurrentRefereeMutation,
-  useGetTeamDetailsQuery,
   useGetUserDataQuery,
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
@@ -395,7 +394,7 @@ const TeamInvites = () => {
             return (
               <div key={invite.invitationId} className="invite-item" style={{ alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <InviteTeamLogo teamId={invite.teamId} teamName={invite.teamName} teamLogoUri={invite.teamLogoUri} />
+                  <InviteTeamLogo teamName={invite.teamName} teamLogoUri={invite.teamLogoUri} />
                   <div>
                     <div className="invite-team-name">{invite.teamName || invite.teamId || "Team"}</div>
                     <div className="text-sm text-gray-600">
@@ -435,22 +434,13 @@ const TeamInvites = () => {
 };
 
 const InviteTeamLogo = ({
-  teamId,
   teamName,
   teamLogoUri,
 }: {
-  teamId?: string;
   teamName?: string | null;
   teamLogoUri?: string | null;
 }) => {
-  const { data: teamDetails } = useGetTeamDetailsQuery(
-    { teamId: teamId ?? "" },
-    { skip: !teamId || Boolean(teamLogoUri) },
-  );
-
-  const resolvedLogoUri = teamLogoUri || teamDetails?.logoUri;
-
-  if (!resolvedLogoUri) {
+  if (!teamLogoUri) {
     return (
       <div
         className="rounded border border-gray-200 bg-gray-100"
@@ -462,7 +452,7 @@ const InviteTeamLogo = ({
 
   return (
     <img
-      src={resolvedLogoUri}
+      src={teamLogoUri}
       alt={`${teamName || "Team"} logo`}
       className="rounded border border-gray-200 object-cover"
       style={{ width: "2rem", height: "2rem" }}
@@ -543,7 +533,6 @@ const TeamTransferHistory = ({ userId, isOwnProfile }: { userId?: string; isOwnP
             >
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <InviteTeamLogo
-                  teamId={activity.teamId}
                   teamName={activity.teamName}
                   teamLogoUri={activity.teamLogoUri}
                 />
