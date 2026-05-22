@@ -100,4 +100,16 @@ describe("RefereeProfile", () => {
       }),
     });
   });
+
+  it("renders Upcoming Events above Team Transfer History on own profile", () => {
+    render(<RefereeProfile />);
+
+    const upcomingEventsHeading = screen.getByRole("heading", { name: "Upcoming Events" });
+    const teamTransferHistoryHeading = screen.getByRole("heading", { name: "Team Transfer History" });
+
+    expect(
+      upcomingEventsHeading.compareDocumentPosition(teamTransferHistoryHeading)
+      & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });
