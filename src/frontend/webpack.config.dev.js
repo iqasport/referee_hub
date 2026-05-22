@@ -23,6 +23,10 @@ module.exports = merge(common, {
     new Dotenv(),
   ],
   devServer: {
+    // Keep a fixed dev port to avoid split runtimes across 8080/8081.
+    port: 8080,
+    // Serve index.html for client-side routes such as /sign_in.
+    historyApiFallback: true,
     // Keep webpack bundles in memory to avoid duplicate static middleware responses.
     devMiddleware: {
       writeToDisk: false,

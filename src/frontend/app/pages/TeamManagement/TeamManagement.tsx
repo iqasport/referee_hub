@@ -322,10 +322,13 @@ const TeamManagement = () => {
             {team.pendingInvites.map((invite) => (
               <div key={invite.invitationId} className="bg-white p-3 rounded flex items-center justify-between gap-4">
                 <div>
-                  <p className="font-medium">{invite.email}</p>
+                  <p className="font-medium">
+                    {invite.requiresManagerDecision
+                      ? (invite.invitedByName || "Unknown player")
+                      : "Pending invite"}
+                  </p>
                   <p className="text-sm text-gray-600">
                     {invite.requiresManagerDecision ? "Requested" : "Invited"} {invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : "recently"}
-                    {invite.invitedByName ? ` by ${invite.invitedByName}` : ""}
                   </p>
                 </div>
                 {invite.requiresManagerDecision ? (
