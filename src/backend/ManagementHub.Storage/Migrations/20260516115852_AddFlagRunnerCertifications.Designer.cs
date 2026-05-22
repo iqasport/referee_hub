@@ -544,6 +544,12 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_time");
 
+                    b.Property<int?>("FlagRunnerRefereesCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("flag_runner_referees_count")
+                        .HasDefaultValueSql("0");
+
                     b.Property<int?>("HeadRefereesCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
