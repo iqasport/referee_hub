@@ -48,6 +48,7 @@ public class CreateNgbStatsSnapshotCommand : ICreateNgbStatsSnapshotCommand
 				InactiveTeamsCount = stats.InactiveTeamsCount,
 				ScorekeeperRefereesCount = stats.ScorekeeperRefereesCount,
 				SnitchRefereesCount = stats.FlagRefereesCount,
+				FlagRunnerRefereesCount = stats.FlagRunnerRefereesCount,
 				TotalRefereesCount = stats.TotalRefereesCount,
 				TotalTeamsCount = stats.TotalTeamsCount,
 				UncertifiedCount = stats.UncertifiedRefereesCount,
