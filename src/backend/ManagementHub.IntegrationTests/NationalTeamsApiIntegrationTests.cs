@@ -139,7 +139,7 @@ public class NationalTeamsApiIntegrationTests : IClassFixture<TestWebApplication
 		};
 
 		var updateResponse = await this._client.PutAsJsonAsync("/api/v2/Referees/me", updateRequest);
-		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent,
 			"player from USA should be able to join Australia National Team");
 
 		// Step 4: Verify the update by getting the profile again

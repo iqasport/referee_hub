@@ -1,15 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import RefereeHeader from "./RefereeHeader";
 import RefereeLocation from "./RefereeLocation";
 import RefereeTeam from "./RefereeTeam";
 import { capitalize } from "lodash";
+import * as serviceApiModule from "../../store/serviceApi";
 import {
   useGetRefereeQuery,
+  useGetCurrentRefereeQuery,
   useUpdateCurrentRefereeMutation,
+  useGetTeamDetailsQuery,
   useGetUserDataQuery,
+  useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
+  useGetMyTeamInvitesQuery,
+  useRespondToTeamInviteMutation,
+  useCancelMyTeamInviteMutation,
   useGetMyUpcomingTournamentsQuery,
+  useGetManagedTeamsQuery,
   useGetTestAttemptsQuery,
   UserDataViewModel,
   TestAttemptViewModelRead,
@@ -19,6 +27,9 @@ import { RefereeTeamOptions } from "./RefereeTeam/RefereeTeam";
 import { getErrorString } from "../../utils/errorUtils";
 import { useNavigate, useNavigationParams } from "../../utils/navigationUtils";
 import Toggle from "../../components/Toggle";
+import ActionButtonPair from "../../components/ActionButtonPair";
+import CustomAlert from "../../components/CustomAlert";
+import { useAlert } from "../../hooks/useAlert";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Basic Details section (pronouns, bio)
@@ -60,7 +71,15 @@ const PronounsRow = ({ isEditing, pronouns, showPronouns, onPronounsChange, onSh
     editContent={
       <div className="flex items-center gap-3 w-full">
         <Toggle name="showPronouns" label="Show?" onChange={onShowPronounsChange} checked={showPronouns ?? false} />
-        <input className="form-input flex-1" type="text" value={pronouns ?? ""} onChange={onPronounsChange} placeholder="Pronouns" />
+        <input
+          id="referee-pronouns"
+          name="pronouns"
+          className="form-input flex-1"
+          type="text"
+          value={pronouns ?? ""}
+          onChange={onPronounsChange}
+          placeholder="Pronouns"
+        />
       </div>
     }
   />
@@ -117,8 +136,15 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
         isEditing={isEditing}
         value={userData.bio}
         editContent={
-          <textarea className="bg-gray-100 rounded p-2 text-sm w-full" style={{ resize: "vertical", minHeight: "4rem" }}
-            onChange={handleStringChange("bio")} value={userData.bio ?? ""} placeholder="Tell us about yourself…" />
+          <textarea
+            id="referee-bio"
+            name="bio"
+            className="bg-gray-100 rounded p-2 text-sm w-full"
+            style={{ resize: "vertical", minHeight: "4rem" }}
+            onChange={handleStringChange("bio")}
+            value={userData.bio ?? ""}
+            placeholder="Tell us about yourself…"
+          />
         }
       />
 
@@ -132,21 +158,85 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
 
 const PlayerDetails = () => {
   const { refereeId } = useNavigationParams<"refereeId">();
+  const isOwnProfile = refereeId === "me";
+  const refereeQueryUserId = refereeId ?? "";
   const [isEditing, setIsEditing] = useState(false);
+  const { data: managedTeams } = useGetManagedTeamsQuery(undefined, {
+    skip: !isOwnProfile,
+  });
+  const { data: myInvites } = useGetMyTeamInvitesQuery(undefined, {
+    skip: !isOwnProfile,
+  });
 
-  const { currentData: referee } = useGetRefereeQuery({ userId: refereeId });
+  // A pending join request is one the player initiated themselves (canRespond === false)
+  const pendingPlayingTeamId = myInvites?.find((i) => i.canRespond === false)?.teamId ?? null;
+
+  const { currentData: currentReferee } = useGetCurrentRefereeQuery(undefined, {
+    skip: !isOwnProfile,
+  });
+  const { currentData: viewedReferee } = useGetRefereeQuery(
+    { userId: refereeQueryUserId },
+    { skip: isOwnProfile || !refereeId },
+  );
+  const referee = isOwnProfile ? currentReferee : viewedReferee;
   const [editableReferee, setReferee] = useState<RefereeLocationOptions & RefereeTeamOptions>(referee);
+  const editableRefereeRef = useRef<RefereeLocationOptions & RefereeTeamOptions>(editableReferee);
   const [updateReferee, { error: updateRefereeError }] = useUpdateCurrentRefereeMutation();
 
+  const fallbackPrimaryNgb = editableReferee?.primaryNgb ?? referee?.primaryNgb ?? managedTeams?.[0]?.ngb ?? null;
+  const fallbackPlayingTeam =
+    editableReferee?.playingTeam ??
+    referee?.playingTeam ??
+    (managedTeams?.length === 1 && managedTeams[0]?.teamId
+      ? { id: managedTeams[0].teamId, name: managedTeams[0].teamName ?? undefined }
+      : null);
+
+  useEffect(() => {
+    if (!isEditing && referee) {
+      setReferee(referee);
+      editableRefereeRef.current = referee;
+    }
+  }, [referee, isEditing]);
+
+  useEffect(() => {
+    editableRefereeRef.current = editableReferee;
+  }, [editableReferee]);
+
   const handleChange = (newState: RefereeLocationOptions | RefereeTeamOptions) => {
-    setReferee({ ...editableReferee, ...newState });
+    setReferee((prev) => {
+      const updated = { ...(prev ?? {}), ...newState };
+      editableRefereeRef.current = updated;
+      return updated;
+    });
   };
 
-  const buttonClick = () => {
+  const buttonClick = async () => {
     if (isEditing) {
-      setIsEditing(false);
-      updateReferee({ refereeUpdateViewModel: editableReferee });
+      const payload = editableRefereeRef.current ?? editableReferee ?? referee;
+      if (!payload) {
+        return;
+      }
+
+      try {
+        await updateReferee({ refereeUpdateViewModel: payload }).unwrap();
+        setIsEditing(false);
+      } catch {
+        // Keep editing mode active so the user can fix and resubmit.
+      }
     } else {
+      if (referee) {
+        const prefilledReferee = {
+          ...referee,
+          primaryNgb: referee.primaryNgb ?? managedTeams?.[0]?.ngb ?? null,
+          playingTeam: referee.playingTeam ?? (
+            managedTeams?.length === 1 && managedTeams[0]?.teamId
+              ? { id: managedTeams[0].teamId, name: managedTeams[0].teamName ?? undefined }
+              : null
+          ),
+        };
+        setReferee(prefilledReferee);
+        editableRefereeRef.current = prefilledReferee;
+      }
       setIsEditing(true);
     }
   };
@@ -157,7 +247,7 @@ const PlayerDetails = () => {
         <h3 className="card-title" style={{ marginBottom: 0 }}>
           Player Details
         </h3>
-        {refereeId === "me" && (
+        {isOwnProfile && (
           <button
             type="button"
             className="btn btn-primary"
@@ -177,7 +267,7 @@ const PlayerDetails = () => {
       <div className="flex flex-col lg:flex-row">
         <RefereeLocation
           locations={{
-            primaryNgb: editableReferee?.primaryNgb,
+            primaryNgb: fallbackPrimaryNgb,
             secondaryNgb: editableReferee?.secondaryNgb,
           }}
           isEditing={isEditing}
@@ -186,15 +276,16 @@ const PlayerDetails = () => {
         <RefereeTeam
           teams={{
             coachingTeam: editableReferee?.coachingTeam,
-            playingTeam: editableReferee?.playingTeam,
+            playingTeam: fallbackPlayingTeam,
             nationalTeam: editableReferee?.nationalTeam,
           }}
           locations={{
-            primaryNgb: editableReferee?.primaryNgb,
+            primaryNgb: fallbackPrimaryNgb,
             secondaryNgb: editableReferee?.secondaryNgb,
           }}
           isEditing={isEditing}
           onChange={handleChange}
+          pendingPlayingTeamId={pendingPlayingTeamId}
         />
       </div>
     </div>
@@ -240,6 +331,208 @@ const UpcomingEvents = () => {
                 {tournament.endDate && tournament.endDate !== tournament.startDate && (
                   <span>→ {formatDate(tournament.endDate)}</span>
                 )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const TeamInvites = () => {
+  const { data: invites, isLoading } = useGetMyTeamInvitesQuery();
+  const [respondToTeamInvite] = useRespondToTeamInviteMutation();
+  const [cancelMyTeamInvite] = useCancelMyTeamInviteMutation();
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const { alertState, showAlert, hideAlert } = useAlert();
+
+  const handleRespond = async (invitationId: string, approved: boolean) => {
+    setRespondingTo(invitationId);
+    try {
+      await respondToTeamInvite({
+        invitationId,
+        inviteResponseModel: { approved },
+      }).unwrap();
+      showAlert(approved ? "Successfully accepted request." : "Request declined.", "success");
+    } catch (error) {
+      console.error("Failed to respond to team invite", error);
+      showAlert("Failed to respond. Please try again.", "error");
+    } finally {
+      setRespondingTo(null);
+    }
+  };
+
+  const handleCancel = async (invitationId: string) => {
+    setCancellingId(invitationId);
+    try {
+      await cancelMyTeamInvite({ invitationId }).unwrap();
+      showAlert("Join request cancelled.", "success");
+    } catch (error) {
+      console.error("Failed to cancel join request", error);
+      showAlert("Failed to cancel request. Please try again.", "error");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  return (
+    <div className="card card-mb">
+      {alertState.isVisible && (
+        <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
+      )}
+      <h3 className="card-title">Team Requests</h3>
+      {isLoading && <p className="card-description">Loading…</p>}
+      {!isLoading && (!invites || invites.length === 0) && (
+        <p className="card-description">No pending team requests.</p>
+      )}
+      {!isLoading && invites && invites.length > 0 && (
+        <div className="invite-list">
+          {invites.map((invite) => {
+            if (!invite.invitationId) return null;
+
+            return (
+              <div key={invite.invitationId} className="invite-item" style={{ alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <InviteTeamLogo teamId={invite.teamId} teamName={invite.teamName} />
+                  <div>
+                    <div className="invite-team-name">{invite.teamName || invite.teamId || "Team"}</div>
+                    <div className="text-sm text-gray-600">
+                      {invite.canRespond
+                        ? (invite.invitedByName ? `Invited by ${invite.invitedByName}` : "Invited")
+                        : (invite.invitedByName ? `Requested by ${invite.invitedByName}` : "Request pending")}
+                      {invite.createdAt ? ` on ${new Date(invite.createdAt).toLocaleDateString()}` : ""}
+                      {!invite.canRespond ? " - Waiting for team manager approval" : ""}
+                    </div>
+                  </div>
+                </div>
+                {invite.canRespond ? (
+                  <ActionButtonPair
+                    onAccept={() => handleRespond(invite.invitationId!, true)}
+                    onDecline={() => handleRespond(invite.invitationId!, false)}
+                    isLoading={respondingTo === invite.invitationId}
+                    size="sm"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: "0.75rem", padding: "0.25rem 0.75rem" }}
+                    disabled={cancellingId === invite.invitationId}
+                    onClick={() => handleCancel(invite.invitationId!)}
+                  >
+                    {cancellingId === invite.invitationId ? "Cancelling…" : "Cancel request"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const InviteTeamLogo = ({ teamId, teamName }: { teamId?: string; teamName?: string | null }) => {
+  const { data: teamDetails } = useGetTeamDetailsQuery(
+    { teamId: teamId ?? "" },
+    { skip: !teamId },
+  );
+
+  if (!teamDetails?.logoUri) {
+    return (
+      <div
+        className="rounded border border-gray-200 bg-gray-100"
+        style={{ width: "2rem", height: "2rem" }}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  return (
+    <img
+      src={teamDetails.logoUri}
+      alt={`${teamName || "Team"} logo`}
+      className="rounded border border-gray-200 object-cover"
+      style={{ width: "2rem", height: "2rem" }}
+    />
+  );
+};
+
+type TeamTransferHistoryItem = {
+  activityType?: string;
+  createdAt?: string;
+  teamId?: string;
+  teamName?: string | null;
+};
+
+type TeamHistoryQueryResult = {
+  data?: TeamTransferHistoryItem[];
+  isLoading?: boolean;
+};
+
+const TeamTransferHistory = ({ userId, isOwnProfile }: { userId?: string; isOwnProfile: boolean }) => {
+  const myHistoryQueryHook = (serviceApiModule as {
+    useGetMyTeamHistoryQuery?: (
+      arg?: void,
+      options?: { skip?: boolean }
+    ) => TeamHistoryQueryResult;
+  }).useGetMyTeamHistoryQuery;
+
+  const otherHistoryQueryHook = (serviceApiModule as {
+    useGetUserTeamHistoryQuery?: (
+      arg: { userId: string },
+      options?: { skip?: boolean }
+    ) => TeamHistoryQueryResult;
+  }).useGetUserTeamHistoryQuery;
+
+  const myHistoryQuery = myHistoryQueryHook
+    ? myHistoryQueryHook(undefined, { skip: !isOwnProfile })
+    : { data: [], isLoading: false };
+
+  const otherHistoryQuery = otherHistoryQueryHook
+    ? otherHistoryQueryHook(
+        { userId: userId || "" },
+        { skip: isOwnProfile || !userId }
+      )
+    : { data: [], isLoading: false };
+
+  const isLoading = isOwnProfile ? myHistoryQuery.isLoading : otherHistoryQuery.isLoading;
+  const history = isOwnProfile ? (myHistoryQuery.data || []) : (otherHistoryQuery.data || []);
+
+  const formatSummary = (activity: TeamTransferHistoryItem) => {
+    const teamLabel = activity.teamName || activity.teamId || "Unknown team";
+
+    if (activity.activityType === "inviteAccepted") {
+      return `Joined ${teamLabel}`;
+    }
+
+    if (activity.activityType === "playerRemoved") {
+      return `Left ${teamLabel}`;
+    }
+
+    return teamLabel;
+  };
+
+  return (
+    <div className="card card-mb">
+      <h3 className="card-title">Team Transfer History</h3>
+      {isLoading && <p className="card-description">Loading…</p>}
+      {!isLoading && (!history || history.length === 0) && (
+        <p className="card-description">No transfer activity yet.</p>
+      )}
+      {!isLoading && history && history.length > 0 && (
+        <div className="invite-list">
+          {history.map((activity, index) => (
+            <div
+              key={`${activity.createdAt || "unknown"}-${activity.teamId || "team"}-${index}`}
+              className="invite-item"
+              style={{ justifyContent: "space-between", cursor: "default" }}
+            >
+              <div style={{ fontWeight: 500 }}>{formatSummary(activity)}</div>
+              <div style={{ fontSize: "0.875rem", color: "#4b5563" }}>
+                {activity.createdAt ? new Date(activity.createdAt).toLocaleString() : "Unknown time"}
               </div>
             </div>
           ))}
@@ -339,9 +632,28 @@ const CertificationHistory = () => {
 const RefereeProfile = () => {
   const navigate = useNavigate();
   const { refereeId } = useNavigationParams<"refereeId">();
+  const isOwnProfile = refereeId === "me";
+  const refereeQueryUserId = refereeId ?? "";
 
-  const { currentData: referee, error: refereeGetError } = useGetRefereeQuery({ userId: refereeId });
-  const { data: userData } = useGetUserDataQuery({ userId: refereeId });
+  const { currentData: currentReferee, error: currentRefereeError } = useGetCurrentRefereeQuery(undefined, {
+    skip: !isOwnProfile,
+  });
+  const { currentData: viewedReferee, error: viewedRefereeError } = useGetRefereeQuery(
+    { userId: refereeQueryUserId },
+    { skip: isOwnProfile || !refereeId },
+  );
+
+  const { data: currentUserData } = useGetCurrentUserDataQuery(undefined, {
+    skip: !isOwnProfile,
+  });
+  const { data: viewedUserData } = useGetUserDataQuery(
+    { userId: refereeQueryUserId },
+    { skip: isOwnProfile || !refereeId },
+  );
+
+  const referee = isOwnProfile ? currentReferee : viewedReferee;
+  const refereeGetError = isOwnProfile ? currentRefereeError : viewedRefereeError;
+  const userData = isOwnProfile ? currentUserData : viewedUserData;
   const [updateUser, { error: updateUserError }] = useUpdateCurrentUserDataMutation();
 
   const [editableUser, setEditableUser] = useState<UserDataViewModel>(userData ?? {});
@@ -354,7 +666,7 @@ const RefereeProfile = () => {
   if (refereeGetError) return <p style={{ color: "red" }}>{getErrorString(refereeGetError)}</p>;
   if (!referee) return null;
 
-  const isEditable = refereeId === "me";
+  const isEditable = isOwnProfile;
 
   const handleDetailsChange = (partial: Partial<UserDataViewModel>) =>
     setEditableUser((prev) => ({ ...prev, ...partial }));
@@ -391,10 +703,11 @@ const RefereeProfile = () => {
           {/* Column 1: Player Details + Upcoming Events */}
           <div>
             <PlayerDetails />
-            {isEditable && <UpcomingEvents />}
+            <TeamTransferHistory userId={refereeQueryUserId} isOwnProfile={isOwnProfile} />
+            {isOwnProfile && <UpcomingEvents />}
           </div>
 
-          {/* Column 2: Basic Details + Certification History */}
+          {/* Column 2: Basic Details + Team Requests + Certification History */}
           <div>
             {editableUser && (
               <BasicDetails
@@ -407,6 +720,7 @@ const RefereeProfile = () => {
                 onCancel={handleDetailsCancel}
               />
             )}
+            {isEditable && <TeamInvites />}
             {isEditable && <CertificationHistory />}
           </div>
         </div>

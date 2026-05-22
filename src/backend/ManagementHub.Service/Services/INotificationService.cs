@@ -26,6 +26,32 @@ public interface INotificationService
 		TeamIdentifier teamId,
 		CancellationToken cancellationToken = default);
 
+	Task<NotificationEntity> CreateTeamInviteNotificationForPlayerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateTeamInviteRequestNotificationForManagerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateTeamInviteResponseNotificationForPlayerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		bool approved,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreateTeamInviteResponseNotificationForManagerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		bool approved,
+		CancellationToken cancellationToken = default);
+
 	Task<NotificationEntity> CreateTournamentManagerAssignmentNotificationAsync(
 		UserIdentifier userId,
 		TournamentIdentifier tournamentId,

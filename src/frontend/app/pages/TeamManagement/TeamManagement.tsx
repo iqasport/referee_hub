@@ -1,25 +1,48 @@
 import React, { useState, useMemo } from "react";
-import { useNavigationParams, useNavigate } from "../../utils/navigationUtils";
+import { useNavigationParams } from "../../utils/navigationUtils";
 import { 
-  useGetTeamDetailsQuery,
+  useCreateTeamInviteMutation,
+  useGetTeamManagementQuery,
   useRemovePlayerMutation,
+  useRespondToPendingTeamInviteMutation,
+  useRevokeTeamInviteMutation,
+  useSetTeamAutoApprovePlayerRequestsMutation,
 } from "../../store/serviceApi";
 import { getErrorString } from "../../utils/errorUtils";
 import TeamEditModal from "../../components/modals/TeamEditModal/TeamEditModal";
 import AddManagerModal from "./AddManagerModal";
+import ActionButtonPair from "../../components/ActionButtonPair";
+import Toggle from "../../components/Toggle";
 
 const TeamManagement = () => {
   const { teamId } = useNavigationParams<"teamId">();
-  const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteError, setInviteError] = useState<string | null>(null);
   
-  const { data: team, error: teamError, isLoading } = useGetTeamDetailsQuery(
+  const { data: team, error: teamError, isLoading } = useGetTeamManagementQuery(
     { teamId: teamId! },
-    { skip: !teamId }
+    { skip: !teamId, refetchOnMountOrArgChange: true }
   );
 
+  const [createTeamInvite, { isLoading: isCreatingInvite }] = useCreateTeamInviteMutation();
   const [removePlayer, { isLoading: isRemovingPlayer }] = useRemovePlayerMutation();
+  const [revokeTeamInvite, { isLoading: isRevokingInvite }] = useRevokeTeamInviteMutation();
+  const [respondToPendingTeamInvite, { isLoading: isRespondingInvite }] = useRespondToPendingTeamInviteMutation();
+  const [setTeamAutoApprovePlayerRequests, { isLoading: isUpdatingAutoApprove }] = useSetTeamAutoApprovePlayerRequestsMutation();
+
+  const handleAutoApproveToggle = async (isEnabled: boolean) => {
+    if (!teamId) return;
+    try {
+      await setTeamAutoApprovePlayerRequests({
+        teamId,
+        setTeamAutoApprovePlayerRequestsRequest: { isEnabled },
+      }).unwrap();
+    } catch (error: any) {
+      alert(error?.data || "Failed to update auto-approve setting. Please try again.");
+    }
+  };
 
   const handleRemovePlayer = async (playerId: string, playerName: string) => {
     if (!teamId) return;
@@ -32,6 +55,52 @@ const TeamManagement = () => {
       await removePlayer({ teamId, playerId }).unwrap();
     } catch (error: any) {
       alert(error?.data || "Failed to remove player. Please try again.");
+    }
+  };
+
+  const handleCreateInvite = async () => {
+    if (!teamId || !inviteEmail.trim()) {
+      return;
+    }
+
+    setInviteError(null);
+
+    try {
+      await createTeamInvite({
+        teamId,
+        invitePlayerRequest: { email: inviteEmail.trim() },
+      }).unwrap();
+      setInviteEmail("");
+    } catch (error: any) {
+      setInviteError(error?.data || "Failed to create invite. Please try again.");
+    }
+  };
+
+  const handleRevokeInvite = async (invitationId: string, email: string) => {
+    if (!teamId) return;
+
+    if (!confirm(`Revoke request for ${email}?`)) {
+      return;
+    }
+
+    try {
+      await revokeTeamInvite({ teamId, invitationId }).unwrap();
+    } catch (error: any) {
+      alert(error?.data || "Failed to revoke request. Please try again.");
+    }
+  };
+
+  const handleRespondToPendingInvite = async (invitationId: string, approved: boolean) => {
+    if (!teamId) return;
+
+    try {
+      await respondToPendingTeamInvite({
+        teamId,
+        invitationId,
+        inviteResponseModel: { approved },
+      }).unwrap();
+    } catch (error: any) {
+      alert(error?.data || "Failed to update player request. Please try again.");
     }
   };
 
@@ -76,11 +145,6 @@ const TeamManagement = () => {
         <p>Team not found</p>
       </div>
     );
-  }
-
-  if (!team.isCurrentUserManager) {
-    navigate(`/teams/${teamId}`, { replace: true });
-    return null;
   }
 
   return (
@@ -208,13 +272,117 @@ const TeamManagement = () => {
         )}
       </div>
 
-      {/* Pending Invites Section */}
+      {/* Pending Requests Section */}
       <div className="bg-gray-100 rounded-lg p-6">
-        <h2 className="text-2xl font-semibold mb-4 border-b-2 border-green pb-2">
-          Pending Invitations
-        </h2>
-        {/* FUTURE Phase 3: Show pending invites when invite-player endpoint is implemented */}
-        <p className="text-gray-500">No pending invitations</p>
+        {/* Auto-approve toggle */}
+        <div className="mb-4 rounded border border-gray-300 bg-white p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-gray-900">Auto-approve incoming player requests</p>
+              <span
+                className="cursor-help text-gray-400 border border-gray-400 rounded-full w-4 h-4 inline-flex items-center justify-center text-xs font-bold"
+                title="If this is on, incoming requests are approved automatically and all pending requests are approved."
+                aria-label="Auto-approve help"
+              >
+                ?
+              </span>
+            </div>
+            <div className="flex items-center">
+              <Toggle
+                name="autoApprovePlayerRequests"
+                checked={Boolean(team.autoApprovePlayerRequests)}
+                onChange={(e) => handleAutoApproveToggle(e.target.checked)}
+              />
+              {isUpdatingAutoApprove && <span className="ml-2 text-sm font-medium text-gray-700">Saving...</span>}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between mb-4 border-b-2 border-green pb-2 gap-4">
+          <h2 className="text-2xl font-semibold">Pending Requests</h2>
+          <div className="flex gap-2 w-full max-w-lg">
+            <input
+              type="email"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded"
+              placeholder="player@example.com"
+              value={inviteEmail}
+              onChange={(event) => setInviteEmail(event.target.value)}
+            />
+            <button
+              className="bg-green text-white px-4 py-2 rounded font-semibold hover:bg-green-700 disabled:opacity-50"
+              onClick={handleCreateInvite}
+              disabled={isCreatingInvite || !inviteEmail.trim()}
+            >
+              {isCreatingInvite ? "Inviting..." : "Invite Player"}
+            </button>
+          </div>
+        </div>
+        {inviteError && <p className="mb-4 text-sm text-red-600">{inviteError}</p>}
+        {team.pendingInvites && team.pendingInvites.length > 0 ? (
+          <div className="space-y-2">
+            {team.pendingInvites.map((invite) => (
+              <div key={invite.invitationId} className="bg-white p-3 rounded flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-medium">{invite.email}</p>
+                  <p className="text-sm text-gray-600">
+                    {invite.requiresManagerDecision ? "Requested" : "Invited"} {invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : "recently"}
+                    {invite.invitedByName ? ` by ${invite.invitedByName}` : ""}
+                  </p>
+                </div>
+                {invite.requiresManagerDecision ? (
+                  <ActionButtonPair
+                    onAccept={() => handleRespondToPendingInvite(invite.invitationId, true)}
+                    onDecline={() => handleRespondToPendingInvite(invite.invitationId, false)}
+                    isLoading={isRespondingInvite}
+                    size="sm"
+                  />
+                ) : (
+                  <button
+                    className="text-red-600 hover:underline disabled:opacity-50"
+                    onClick={() => handleRevokeInvite(invite.invitationId, invite.email)}
+                    disabled={isRevokingInvite}
+                  >
+                    Revoke
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">No pending requests</p>
+        )}
+      </div>
+
+      <div className="bg-gray-100 rounded-lg p-6 mt-8">
+        <h2 className="text-2xl font-semibold mb-4 border-b-2 border-green pb-2">Player Activity</h2>
+        {team.playerHistory && team.playerHistory.length > 0 ? (
+          <div className="space-y-2">
+            {team.playerHistory.map((activity, index) => (
+              <div key={`${activity.createdAt || "unknown"}-${index}`} className="bg-white p-3 rounded">
+                <p className="font-medium">
+                  {activity.activityType === "inviteCreated" && (
+                    activity.userId
+                      ? `${activity.userName || activity.email || "A player"} requested to join`
+                      : `Invite sent to ${activity.email || "unknown"}`
+                  )}
+                  {activity.activityType === "inviteRevoked" && `Invite revoked for ${activity.email || "unknown"}`}
+                  {activity.activityType === "inviteAccepted" && `${activity.userName || activity.email || "A user"} joined team`}
+                  {activity.activityType === "inviteDeclined" && (
+                    activity.userId && activity.initiatorName && activity.userName && activity.initiatorName !== activity.userName
+                      ? `Join request declined for ${activity.userName || activity.email || "a user"}`
+                      : `${activity.userName || activity.email || "A user"} declined invitation`
+                  )}
+                  {activity.activityType === "playerRemoved" && `${activity.userName || activity.email || "A user"} removed from team`}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {activity.createdAt ? new Date(activity.createdAt).toLocaleString() : "Unknown time"}
+                  {activity.initiatorName ? ` by ${activity.initiatorName}` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">No player activity yet</p>
+        )}
       </div>
     </div>
   );
