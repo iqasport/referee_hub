@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Serialization.Tournaments;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -26,12 +27,6 @@ public class RefreshPublicTournamentSnapshotCommand : IRefreshPublicTournamentSn
 
 	public async Task RefreshPublicTournamentSnapshot(CancellationToken cancellationToken)
 	{
-		if (this.dbContext.Database.IsSqlite())
-		{
-			this.logger.LogDebug("Skipping public tournament snapshot refresh while running on SQLite.");
-			return;
-		}
-
 		var utcNow = DateTime.UtcNow;
 
 		var rawTournaments = await this.dbContext.Tournaments
