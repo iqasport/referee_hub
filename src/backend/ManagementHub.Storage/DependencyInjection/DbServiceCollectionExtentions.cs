@@ -66,6 +66,8 @@ public static class DbServiceCollectionExtentions
 	{
 		if (inMemoryStorage)
 		{
+			services.AddDataProtection();
+
 			// NOTE: this storage is deleted when application shuts down.
 			services.AddDbContext<ManagementHubDbContext>((options) =>
 			{
@@ -95,6 +97,7 @@ public static class DbServiceCollectionExtentions
 
 			// for hosted database we run migration script
 			services.AddHostedService<EnsureDatabaseMigratedService>();
+			services.AddHostedService<EnsureUserSensitiveInfoEncryptedService>();
 
 			// save encryption keys to the database so that they persist across app startups
 			services.AddDataProtection()
@@ -113,6 +116,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<DbRefereeContextProvider>();
 		services.AddScoped<IRefereeContextProvider>(
 			sp => new CachedRefereeContextProvider(sp.GetRequiredService<DbRefereeContextProvider>()));
+		services.AddScoped<IUserSensitiveInfoProtector, UserSensitiveInfoProtector>();
 		services.AddScoped<ITestContextProvider, DbTestContextProvider>();
 		services.AddScoped<ITeamContextProvider, DbTeamContextProvider>();
 		services.AddScoped<INgbContextProvider, DbNgbContextProvider>();
