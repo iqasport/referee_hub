@@ -42,7 +42,7 @@ export const useTournamentDetailsData = (tournamentId: string | undefined): UseT
 
   // Get manager status and managers list
   const { isTournamentManager, managers, managersError } = 
-    useTournamentManagerCheck(tournamentId);
+    useTournamentManagerCheck(tournamentId, currentUser);
 
   // Get invite response functionality
   const { invites, respondToInvite, refetchInvites } = 

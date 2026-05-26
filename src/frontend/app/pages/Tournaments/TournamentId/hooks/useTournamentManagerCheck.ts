@@ -1,7 +1,6 @@
-import { useGetTournamentManagersQuery, useGetCurrentUserQuery } from "../../../../store/serviceApi";
+import { useGetTournamentManagersQuery } from "../../../../store/serviceApi";
 
-export const useTournamentManagerCheck = (tournamentId: string | undefined) => {
-  const { data: currentUser } = useGetCurrentUserQuery();
+export const useTournamentManagerCheck = (tournamentId: string | undefined, currentUser: any) => {
 
   // Check if user has TournamentManager role for this tournament
   const isTournamentManagerOfThis = currentUser?.roles?.some((role: any) => {
