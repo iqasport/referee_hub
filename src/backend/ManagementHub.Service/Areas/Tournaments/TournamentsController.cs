@@ -136,7 +136,6 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			Organizer = t.Organizer,
 			IsPrivate = t.IsPrivate,
 			IsRegistrationOpen = t.IsRegistrationOpen,
-			IsVolunteerRegistrationOpen = t.IsVolunteerRegistrationOpen,
 			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
 			IsCurrentUserInvolved = t.IsCurrentUserInvolved
 		}).ToList();
@@ -182,7 +181,6 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			Organizer = tournament.Organizer,
 			IsPrivate = tournament.IsPrivate,
 			IsRegistrationOpen = tournament.IsRegistrationOpen,
-			IsVolunteerRegistrationOpen = tournament.IsVolunteerRegistrationOpen,
 			BannerImageUrl = bannerUri?.ToString(),
 			IsCurrentUserInvolved = tournament.IsCurrentUserInvolved
 		};
@@ -211,8 +209,7 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			Place = model.Place,
 			Organizer = model.Organizer,
 			IsPrivate = model.IsPrivate,
-			IsRegistrationOpen = model.IsRegistrationOpen,
-			IsVolunteerRegistrationOpen = model.IsVolunteerRegistrationOpen
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		var tournamentId = await this.tournamentContextProvider
@@ -247,8 +244,7 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			Place = model.Place,
 			Organizer = model.Organizer,
 			IsPrivate = model.IsPrivate,
-			IsRegistrationOpen = model.IsRegistrationOpen,
-			IsVolunteerRegistrationOpen = model.IsVolunteerRegistrationOpen
+			IsRegistrationOpen = model.IsRegistrationOpen
 		};
 
 		await this.tournamentContextProvider
@@ -457,7 +453,6 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			ParticipantType = i.ParticipantType,
 			ParticipantId = i.ParticipantId,
 			ParticipantName = i.ParticipantName,
-			Observations = i.Observations,
 			Status = i.GetStatus(),
 			InitiatorUserId = i.InitiatorUserId,
 			CreatedAt = i.CreatedAt,
@@ -505,7 +500,15 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			return await this.HandleRefereeInviteCreationAsync(tournamentId, model, userContext, tournament);
 		}
 
-		// Validate and parse participant
+		return await this.HandleTeamInviteCreationAsync(tournamentId, model, userContext, tournament);
+	}
+
+	private async Task<ActionResult<TournamentInviteViewModel>> HandleTeamInviteCreationAsync(
+		TournamentIdentifier tournamentId,
+		CreateInviteModel model,
+		IUserContext userContext,
+		ITournamentContext tournament)
+	{
 		var validationError = this.ValidateInviteParticipant(model, out var teamId);
 		if (validationError != null)
 		{
@@ -519,21 +522,18 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			return authorizationError;
 		}
 
-		// Check for existing participant or invite
 		var existingCheck = await this.CheckExistingParticipantOrInvite(tournamentId, teamId);
 		if (existingCheck != null)
 		{
 			return existingCheck;
 		}
 
-		// Validate team existence and compatibility
 		var teamValidation = await this.ValidateTeamCompatibility(teamId, tournament);
 		if (teamValidation != null)
 		{
 			return teamValidation;
 		}
 
-		// Create invite and handle auto-approval
 		var invite = await this.tournamentContextProvider.CreateTeamInviteAsync(
 			tournamentId,
 			teamId,
@@ -630,12 +630,10 @@ namespace ManagementHub.Service.Areas.Tournaments;
 		}
 		catch (Exception ex)
 		{
-			// Log but don't fail the invite creation if email fails.
-			this.logger.LogError(
-				ex,
-				"Failed to send tournament invite email.");
+			this.logger.LogError(ex, "Failed to send tournament invite email.");
 		}
 	}
+
 	private async Task<ActionResult<TournamentInviteViewModel>> HandleRefereeInviteCreationAsync(
 		TournamentIdentifier tournamentId,
 		CreateInviteModel model,
@@ -648,24 +646,18 @@ namespace ManagementHub.Service.Areas.Tournaments;
 		}
 
 		var refereeId = model.ParticipantId.UserId.Value;
-		// Ensure user can only invite themselves
 		if (!userContext.UserId.Equals(refereeId))
 		{
 			return this.Forbid();
 		}
 
-		// Tournament already validated in CreateInvite before branching
-		var participantId = model.ParticipantId;
-
-		// Check for existing invite
 		var existingInvite = await this.tournamentContextProvider
-			.GetInviteByParticipantIdAsync(tournamentId, participantId, this.HttpContext.RequestAborted);
+			.GetInviteByParticipantIdAsync(tournamentId, model.ParticipantId, this.HttpContext.RequestAborted);
 		if (existingInvite != null && existingInvite.GetStatus() == InviteStatus.Pending)
 		{
 			return this.BadRequest(new { error = "Pending invite already exists" });
 		}
 
-		// Create referee invite
 		var refereeInvite = await this.tournamentContextProvider.CreateRefereeInviteAsync(
 			tournamentId,
 			refereeId,
@@ -702,6 +694,7 @@ namespace ManagementHub.Service.Areas.Tournaments;
 				this.HttpContext.RequestAborted);
 		}
 	}
+
 	private async Task<(ITournamentContext Tournament, ActionResult? Error)> GetValidatedTournamentForInviteAsync(
 		TournamentIdentifier tournamentId,
 		UserIdentifier userId)
@@ -928,11 +921,7 @@ namespace ManagementHub.Service.Areas.Tournaments;
 		[FromBody] InviteResponseModel response)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-<<<<<<< HEAD
 		if (!TryParseParticipantId(participantId, out var parsedParticipantId))
-=======
-		if (!TryParseParticipantId(participantId, out var parsedTeamId, out var parsedUserId))
->>>>>>> f0a42620 (Encrypt referee profile sensitive fields)
 		{
 			return this.BadRequest(new { error = "Invalid participant ID" });
 		}
@@ -940,20 +929,14 @@ namespace ManagementHub.Service.Areas.Tournaments;
 		var parsedTeamId = parsedParticipantId.TeamId;
 		var parsedUserId = parsedParticipantId.UserId;
 
-		// Get pending invite
 		var invite = await this.tournamentContextProvider
-<<<<<<< HEAD
 			.GetInviteByParticipantIdAsync(tournamentId, parsedParticipantId, this.HttpContext.RequestAborted);
-=======
-			.GetInviteByParticipantIdAsync(tournamentId, participantId, this.HttpContext.RequestAborted);
->>>>>>> f0a42620 (Encrypt referee profile sensitive fields)
 
 		if (invite == null || invite.GetStatus() != InviteStatus.Pending)
 		{
 			return this.NotFound(new { error = "No pending invite found" });
 		}
 
-		// Check tournament not archived
 		var tournament = await this.tournamentContextProvider
 			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
 		var tournamentValidation = this.ValidateTournamentForInvite(tournament);
@@ -962,7 +945,6 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			return tournamentValidation;
 		}
 
-		// Check authorization and determine which approval to update
 		var isTournamentManager = IsTournamentManager(userContext, tournamentId);
 		var isTeamParticipant = IsTeamParticipantManager(userContext, parsedTeamId);
 		var isRefereeParticipant = IsRefereeParticipant(userContext, parsedUserId);
@@ -972,22 +954,28 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			return this.Forbid();
 		}
 
-		// Update approval
 		await this.tournamentContextProvider.UpdateInviteApprovalAsync(
 			tournamentId,
-<<<<<<< HEAD
 			parsedParticipantId,
-=======
-			participantId,
->>>>>>> f0a42620 (Encrypt referee profile sensitive fields)
 			isTournamentManager,
 			response.Approved,
 			this.HttpContext.RequestAborted);
 
-		// Reload to check if fully approved
 		var updatedInvite = await this.tournamentContextProvider
-<<<<<<< HEAD
 			.GetInviteByParticipantIdAsync(tournamentId, parsedParticipantId, this.HttpContext.RequestAborted);
+
+		if (isTournamentManager &&
+			invite.ParticipantType == ParticipantType.Referee &&
+			parsedUserId != null)
+		{
+			await this.notificationService.CreateVolunteerRequestResponseNotificationAsync(
+				parsedUserId.Value,
+				tournamentId,
+				tournament.Name,
+				response.Approved,
+				this.HttpContext.RequestAborted);
+		}
+
 		await this.AddTeamParticipantIfInviteApproved(updatedInvite, tournamentId, parsedTeamId);
 
 		return this.Ok();
@@ -1023,23 +1011,6 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			tournamentId,
 			teamId,
 			this.HttpContext.RequestAborted);
-=======
-			.GetInviteByParticipantIdAsync(tournamentId, participantId, this.HttpContext.RequestAborted);
-
-		if (isTournamentManager &&
-			invite.ParticipantType == ParticipantType.Referee &&
-			parsedUserId != null)
-		{
-			await this.notificationService.CreateVolunteerRequestResponseNotificationAsync(
-				parsedUserId.Value,
-				tournamentId,
-				tournament.Name,
-				response.Approved,
-				this.HttpContext.RequestAborted);
-		}
-
-		await this.AddTeamParticipantIfInviteApproved(updatedInvite, tournamentId, parsedTeamId);
->>>>>>> f0a42620 (Encrypt referee profile sensitive fields)
 
 		return this.Ok();
 	}
