@@ -137,6 +137,7 @@ public partial class Program
 		services.AddSingleton<ILocalFileSystemBlobUriBaseProvider, LocalFileSystemBlobUriBaseProvider>();
 
 		services.AddHostedService<EnsureMonthlyStatsSnapshot>();
+		services.AddHostedService<EnsureDailyPublicTournamentSnapshot>();
 		services.AddHostedService<CleanupStaleGenderDataJob>();
 		services.AddHostedService<NotificationArchivalJob>();
 
