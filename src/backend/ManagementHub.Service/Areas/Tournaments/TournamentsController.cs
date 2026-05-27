@@ -1260,6 +1260,23 @@ namespace ManagementHub.Service.Areas.Tournaments;
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 
+		var existingRosterEntries = await this.dbContext.TournamentTeamRosterEntries
+			.Where(entry =>
+				entry.Participant.Tournament.UniqueId == tournamentId.ToString()
+				&& entry.Participant.TeamId == teamId.Id)
+			.Select(entry => new
+			{
+				UserId = entry.User.UniqueId != null
+					? UserIdentifier.Parse(entry.User.UniqueId)
+					: UserIdentifier.FromLegacyUserId(entry.UserId),
+				entry.Role
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var existingRosterEntrySet = existingRosterEntries
+			.Select(entry => (entry.UserId, entry.Role))
+			.ToHashSet();
+
 		// Verify team manager for this specific team
 		var isTeamManager = userContext.Roles.OfType<TeamManagerRole>()
 			.Any(r => r.Team.AppliesTo(teamId));
@@ -1334,39 +1351,28 @@ namespace ManagementHub.Service.Areas.Tournaments;
 			return this.BadRequest(new { error = ex.Message });
 		}
 
-		// Create roster registration notifications for newly added players, coaches, and staff
-		foreach (var player in rosterData.Players)
+		var requestedRosterEntries = model.Players
+			.Select(player => (player.UserId, RosterRole.Player))
+			.Concat(model.Coaches.Select(coach => (coach.UserId, RosterRole.Coach)))
+			.Concat(model.Staff.Select(staffMember => (staffMember.UserId, RosterRole.Staff)))
+			.Distinct()
+			.ToList();
+
+		var newRosterEntries = requestedRosterEntries
+			.Where(entry => !existingRosterEntrySet.Contains(entry))
+			.ToList();
+
+		foreach (var (rosterUserId, role) in newRosterEntries)
 		{
 			await this.notificationService.CreateRosterRegistrationNotificationAsync(
-				player.UserId,
+				rosterUserId,
 				tournamentId,
 				teamId,
 				tournament.Name,
-				RosterRole.Player,
+				role,
 				this.HttpContext.RequestAborted);
 		}
 
-		foreach (var coach in rosterData.Coaches)
-		{
-			await this.notificationService.CreateRosterRegistrationNotificationAsync(
-				coach.UserId,
-				tournamentId,
-				teamId,
-				tournament.Name,
-				RosterRole.Coach,
-				this.HttpContext.RequestAborted);
-		}
-
-		foreach (var staffMember in rosterData.Staff)
-		{
-			await this.notificationService.CreateRosterRegistrationNotificationAsync(
-				staffMember.UserId,
-				tournamentId,
-				teamId,
-				tournament.Name,
-				RosterRole.Staff,
-				this.HttpContext.RequestAborted);
-		}
 		return this.Ok();
 	}
 
