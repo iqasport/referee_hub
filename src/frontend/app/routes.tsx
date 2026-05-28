@@ -35,7 +35,9 @@ const App = () => {
   const isPublicRoute = PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(window.location.pathname));
   const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
   const [redirectTo, setRedirectTo] = useState<string>();
-  const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery();
+  const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery(undefined, {
+    skip: isPublicRoute,
+  });
   const roles = currentUser?.roles?.map((r) => r.roleType).filter((r): r is string => typeof r === "string") ?? [];
 
   const ownedNgbIds = currentUser
