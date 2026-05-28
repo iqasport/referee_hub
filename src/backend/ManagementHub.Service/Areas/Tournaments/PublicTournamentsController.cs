@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Exceptions;
@@ -24,15 +26,18 @@ public class PublicTournamentsController : ControllerBase
 {
 	private readonly ManagementHubDbContext dbContext;
 	private readonly IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand;
+	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly ILogger<PublicTournamentsController> logger;
 
 	public PublicTournamentsController(
 		ManagementHubDbContext dbContext,
 		IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand,
+		ITournamentContextProvider tournamentContextProvider,
 		ILogger<PublicTournamentsController> logger)
 	{
 		this.dbContext = dbContext;
 		this.refreshPublicTournamentSnapshotCommand = refreshPublicTournamentSnapshotCommand;
+		this.tournamentContextProvider = tournamentContextProvider;
 		this.logger = logger;
 	}
 
@@ -49,7 +54,7 @@ public class PublicTournamentsController : ControllerBase
 			return this.StatusCode(StatusCodes.Status304NotModified);
 		}
 
-		return this.Ok(snapshot.Payload.Tournaments);
+		return this.Ok(await this.MapPublicTournamentsAsync(snapshot.Payload.Tournaments));
 	}
 
 	[HttpGet("{tournamentId}")]
@@ -75,7 +80,63 @@ public class PublicTournamentsController : ControllerBase
 			return this.StatusCode(StatusCodes.Status304NotModified);
 		}
 
-		return this.Ok(tournament);
+		return this.Ok(await this.MapPublicTournamentAsync(tournament));
+	}
+
+	private async Task<IReadOnlyList<TournamentViewModel>> MapPublicTournamentsAsync(
+		IReadOnlyList<PublicTournamentSnapshotTournament> tournaments)
+	{
+		var bannerUrls = new Dictionary<TournamentIdentifier, Uri?>();
+
+		foreach (var tournament in tournaments)
+		{
+			bannerUrls[tournament.Id] = await this.tournamentContextProvider
+				.GetTournamentBannerUriAsync(tournament.Id, this.HttpContext.RequestAborted);
+		}
+
+		return tournaments.Select(tournament => new TournamentViewModel
+		{
+			Id = tournament.Id,
+			Name = tournament.Name,
+			Description = tournament.Description,
+			StartDate = tournament.StartDate,
+			EndDate = tournament.EndDate,
+			RegistrationEndsDate = tournament.RegistrationEndsDate,
+			Type = tournament.Type,
+			Country = tournament.Country,
+			City = tournament.City,
+			Place = tournament.Place,
+			Organizer = tournament.Organizer,
+			IsPrivate = false,
+			IsRegistrationOpen = tournament.IsRegistrationOpen,
+			BannerImageUrl = bannerUrls.TryGetValue(tournament.Id, out var uri) ? uri?.ToString() : null,
+			IsCurrentUserInvolved = false,
+		}).ToList();
+	}
+
+	private async Task<TournamentViewModel> MapPublicTournamentAsync(PublicTournamentSnapshotTournament tournament)
+	{
+		var bannerUri = await this.tournamentContextProvider
+			.GetTournamentBannerUriAsync(tournament.Id, this.HttpContext.RequestAborted);
+
+		return new TournamentViewModel
+		{
+			Id = tournament.Id,
+			Name = tournament.Name,
+			Description = tournament.Description,
+			StartDate = tournament.StartDate,
+			EndDate = tournament.EndDate,
+			RegistrationEndsDate = tournament.RegistrationEndsDate,
+			Type = tournament.Type,
+			Country = tournament.Country,
+			City = tournament.City,
+			Place = tournament.Place,
+			Organizer = tournament.Organizer,
+			IsPrivate = false,
+			IsRegistrationOpen = tournament.IsRegistrationOpen,
+			BannerImageUrl = bannerUri?.ToString(),
+			IsCurrentUserInvolved = false,
+		};
 	}
 
 	private async Task<(Models.Domain.Tournament.PublicTournamentSnapshotPayload Payload, DateTime UpdatedAt)> GetSnapshotOrDefaultAsync()

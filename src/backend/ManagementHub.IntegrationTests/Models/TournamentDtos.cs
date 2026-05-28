@@ -45,4 +45,7 @@ public class PublicTournamentViewModelDto
 	public string? Place { get; set; }
 	public required string Organizer { get; set; }
 	public bool IsRegistrationOpen { get; set; }
+	public string? BannerImageUrl { get; set; }
+	public bool IsPrivate { get; set; }
+	public bool IsCurrentUserInvolved { get; set; }
 }
