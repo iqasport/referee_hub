@@ -1,10 +1,14 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import { faCalendarAlt, faList } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSearchParams } from "react-router-dom";
 import AddTournamentModal, { AddTournamentModalRef } from "./components/AddTournamentModal";
 import Search from "./components/Search";
+import TournamentCalendar from "./components/TournamentCalendar";
 import { TournamentList } from "./components/TournamentList";
+import { CalendarSkeleton } from "./components/TournamentSkeletons";
 import { useFilteredTournaments } from "./hooks/useFilteredTournaments";
-import { useTournamentSections } from "./utils/tournamentUtils";
+import { convertToDisplayFormat, useTournamentSections } from "./utils/tournamentUtils";
 import { useTournamentsData } from "./hooks/useTournamentsData";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -14,6 +18,7 @@ const Tournament = () => {
   const searchTerm = searchParams.get("q") || "";
   const typeFilter = searchParams.get("type") || "";
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const [viewMode, setViewMode] = useState<"grid" | "calendar">("grid");
   const modalRef = useRef<AddTournamentModalRef>(null);
 
   // Load all tournament data with a single hook
@@ -35,6 +40,11 @@ const Tournament = () => {
     isAnonymous,
     filteredAllTournaments,
     filteredPaginatedTournaments
+  );
+
+  const calendarTournaments = useMemo(
+    () => filteredAllTournaments.map(convertToDisplayFormat),
+    [filteredAllTournaments]
   );
 
   // Handle search
@@ -83,6 +93,26 @@ const Tournament = () => {
               selectedType={typeFilter}
             />
           </div>
+          <div className="view-toggle" aria-label="Tournament view toggle">
+            <button
+              type="button"
+              className={`view-toggle-btn${viewMode === "grid" ? " active" : ""}`}
+              onClick={() => setViewMode("grid")}
+              aria-label="List view"
+              title="List view"
+            >
+              <FontAwesomeIcon icon={faList} />
+            </button>
+            <button
+              type="button"
+              className={`view-toggle-btn${viewMode === "calendar" ? " active" : ""}`}
+              onClick={() => setViewMode("calendar")}
+              aria-label="Calendar view"
+              title="Calendar view"
+            >
+              <FontAwesomeIcon icon={faCalendarAlt} />
+            </button>
+          </div>
           {!isAnonymous && (
             <button onClick={() => modalRef.current?.openAdd()} className="btn btn-primary">
               Add Tournament
@@ -93,10 +123,14 @@ const Tournament = () => {
         {!isAnonymous && <AddTournamentModal ref={modalRef} />}
       </div>
 
-      {isLoading ? (
+      {isLoading && viewMode === "calendar" ? (
+        <CalendarSkeleton />
+      ) : isLoading ? (
         <div className="tournament-loading">Loading tournaments...</div>
       ) : isError ? (
         <div className="tournament-error">Error loading tournaments. Please try again.</div>
+      ) : viewMode === "calendar" ? (
+        <TournamentCalendar tournaments={calendarTournaments} />
       ) : (
         <TournamentList
           isLoading={isLoading}
