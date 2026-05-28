@@ -18,6 +18,7 @@ public interface ITeamContextProvider
 	Task<bool> CheckTeamExistsInNgbAsync(NgbIdentifier ngb, TeamIdentifier teamId);
 	Task DeleteTeamAsync(NgbIdentifier ngb, TeamIdentifier teamId);
 	IQueryable<ITeamContext> GetTeams(NgbConstraint ngbs, TeamGroupAffiliation? groupAffiliation = null);
+	IEnumerable<string> GetNgbCodesWithTeams(IEnumerable<TeamGroupAffiliation> affiliations);
 	IQueryable<TeamMemberInfo> QueryTeamMembers(TeamIdentifier teamId, NgbConstraint ngbs);
 	Task<IEnumerable<ManagerInfo>> GetTeamManagersAsync(TeamIdentifier teamId, NgbConstraint ngbs);
 	Task<Uri?> GetTeamLogoUriAsync(TeamIdentifier teamId, CancellationToken cancellationToken = default);

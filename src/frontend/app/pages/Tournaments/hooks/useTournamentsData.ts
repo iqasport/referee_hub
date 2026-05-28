@@ -1,6 +1,5 @@
 import {
   useGetTournamentsQuery,
-  useGetPublicTournamentsQuery,
   useGetCurrentUserQuery,
   TournamentViewModel,
 } from "../../../store/serviceApi";
@@ -24,10 +23,12 @@ export const useTournamentsData = (
     useGetCurrentUserQuery();
   const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
 
-  // Query tournaments
-  const shouldUseAuthenticatedQueries = !isCurrentUserLoading && !isAnonymous;
+  // Wait until current-user state is resolved before querying tournaments.
+  const shouldFetchTournaments = !isCurrentUserLoading;
 
-  // Query for user's private tournaments (no pagination)
+  // Query all tournaments without paging.
+  // For anonymous users this returns the public list; for authenticated users this includes
+  // all visible tournaments with involvement flags used by downstream filtering.
   const {
     data: allTournamentsData,
     isLoading: isLoadingAll,
@@ -38,11 +39,11 @@ export const useTournamentsData = (
       skipPaging: true,
     },
     {
-      skip: !shouldUseAuthenticatedQueries,
+      skip: !shouldFetchTournaments,
     }
   );
 
-  // Query for public tournaments with pagination
+  // Query tournaments with pagination for list view.
   const {
     data: paginatedData,
     isLoading: isLoadingPaginated,
@@ -54,29 +55,18 @@ export const useTournamentsData = (
       pageSize: DEFAULT_PAGE_SIZE,
     },
     {
-      skip: !shouldUseAuthenticatedQueries,
+      skip: !shouldFetchTournaments,
     }
   );
 
-  // Query for public tournaments (anonymous users)
-  const {
-    data: publicTournamentData,
-    isLoading: isLoadingPublic,
-    isError: isErrorPublic,
-  } = useGetPublicTournamentsQuery(undefined, {
-    skip: !isAnonymous,
-  });
-
   // Calculate loading and error states
-  const isLoading = isCurrentUserLoading || isLoadingAll || isLoadingPaginated || isLoadingPublic;
-  const isError = shouldUseAuthenticatedQueries
-    ? (isErrorAll || isErrorPaginated)
-    : isErrorPublic;
+  const isLoading = isCurrentUserLoading || isLoadingAll || isLoadingPaginated;
+  const isError = isErrorAll || isErrorPaginated;
 
   // Extract data from responses
   const allTournaments = allTournamentsData?.items || [];
   const paginatedTournaments = paginatedData?.items || [];
-  const publicTournamentsFromApi = publicTournamentData || [];
+  const publicTournamentsFromApi = isAnonymous ? allTournaments : [];
 
   return {
     isAnonymous,
