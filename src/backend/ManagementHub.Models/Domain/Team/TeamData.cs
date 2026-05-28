@@ -14,4 +14,5 @@ public class TeamData
 	public required DateTime JoinedAt { get; set; }
 	public string? Description { get; set; }
 	public string? ContactEmail { get; set; }
+	public bool AutoApprovePlayerRequests { get; set; }
 }

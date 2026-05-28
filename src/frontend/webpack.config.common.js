@@ -37,7 +37,6 @@ module.exports = {
     chunkFilename: "[name]-[contenthash:12].js",
     filename: '[name]-[contenthash:6].js',
     path: path.resolve(__dirname, 'dist'),
-    clean: true,
   },
   optimization: {
     splitChunks: {
