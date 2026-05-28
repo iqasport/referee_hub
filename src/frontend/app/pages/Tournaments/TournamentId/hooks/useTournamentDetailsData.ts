@@ -1,9 +1,9 @@
 import {
+  useGetCurrentUserQuery,
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
   useDeleteTournamentMutation,
 } from "../../../../store/serviceApi";
-import { useCurrentUser } from "../../../../CurrentUserContext";
 import { useTournamentManagerCheck } from "./useTournamentManagerCheck";
 import { useTournamentData } from "./useTournamentData";
 import { useInviteResponse } from "./useInviteResponse";
@@ -27,18 +27,25 @@ interface UseTournamentDetailsDataReturn {
 }
 
 export const useTournamentDetailsData = (tournamentId: string | undefined): UseTournamentDetailsDataReturn => {
-  const { currentUser, isAnonymous, isLoading: isCurrentUserLoading } = useCurrentUser();
+  // Query for current user
+  const {
+    data: currentUser,
+    isLoading: isCurrentUserLoading,
+    isError: isCurrentUserError,
+  } = useGetCurrentUserQuery();
+
+  const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
 
   // Get tournament data (handles both authenticated and public queries)
-  const { tournament, isLoading: isTournamentLoading, isError: isTournamentError } =
+  const { tournament, isLoading: isTournamentLoading, isError: isTournamentError } = 
     useTournamentData(tournamentId, isAnonymous, isCurrentUserLoading);
 
   // Get manager status and managers list
-  const { isTournamentManager, managers, managersError } =
-    useTournamentManagerCheck(tournamentId, currentUser);
+  const { isTournamentManager, managers, managersError } = 
+    useTournamentManagerCheck(tournamentId);
 
   // Get invite response functionality
-  const { invites, respondToInvite, refetchInvites } =
+  const { invites, respondToInvite, refetchInvites } = 
     useInviteResponse({ tournamentId, isAnonymous });
 
   // Query managed teams

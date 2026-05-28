@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
 using ManagementHub.IntegrationTests.Models;
-using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
@@ -319,32 +316,6 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 	}
 
 	[Fact]
-	public async Task PublicTournamentDetails_AnonymousAccess_ShouldIncludeBannerImageUrl()
-	{
-		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
-
-		var publicTournamentId = await this.CreateTestTournamentAsync(
-			"Public Tournament With Banner",
-			TournamentType.Club,
-			"USA",
-			"Austin",
-			isPrivate: false);
-
-		await this.UploadTournamentBannerAsync(publicTournamentId);
-
-		this._client.DefaultRequestHeaders.Authorization = null;
-
-		var response = await this._client.GetAsync($"/api/v2/public/tournaments/{publicTournamentId}");
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-		var tournament = await response.Content.ReadFromJsonAsync<PublicTournamentViewModelDto>();
-		tournament.Should().NotBeNull();
-		tournament!.BannerImageUrl.Should().NotBeNullOrWhiteSpace();
-		tournament.IsPrivate.Should().BeFalse();
-		tournament.IsCurrentUserInvolved.Should().BeFalse();
-	}
-
-	[Fact]
 	public async Task PublicTournaments_WhenSnapshotMissing_ShouldGenerateFallbackSnapshot()
 	{
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
@@ -359,13 +330,12 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		using (var scope = this._factory.Services.CreateScope())
 		{
 			var dbContext = scope.ServiceProvider.GetRequiredService<ManagementHubDbContext>();
-			var publicTournamentSnapshots = dbContext.Set<PublicTournamentSnapshot>();
-			var existingSnapshot = await publicTournamentSnapshots
+			var existingSnapshot = await dbContext.PublicTournamentSnapshots
 				.SingleOrDefaultAsync(s => s.Key == RefreshPublicTournamentSnapshotCommand.SnapshotKey);
 
 			if (existingSnapshot != null)
 			{
-				publicTournamentSnapshots.Remove(existingSnapshot);
+				dbContext.PublicTournamentSnapshots.Remove(existingSnapshot);
 				await dbContext.SaveChangesAsync();
 			}
 		}
@@ -584,18 +554,6 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 
 		var tournamentIdResponse = await createResponse.Content.ReadFromJsonAsync<TournamentIdResponseDto>();
 		return tournamentIdResponse!.Id;
-	}
-
-	private async Task UploadTournamentBannerAsync(string tournamentId)
-	{
-		using var payload = new MultipartFormDataContent();
-		using var imageStream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
-		using var imageContent = new StreamContent(imageStream);
-		imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-		payload.Add(imageContent, "bannerBlob", "banner.png");
-
-		var response = await this._client.PutAsync($"/api/v2/tournaments/{tournamentId}/banner", payload);
-		response.StatusCode.Should().Be(HttpStatusCode.OK);
 	}
 
 	// Helper method to get Yankees team ID

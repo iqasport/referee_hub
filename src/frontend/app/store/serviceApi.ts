@@ -110,6 +110,13 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Ngbs/${queryArg.ngb}` }),
         providesTags: ["Ngb"],
       }),
+      getEligibleNgbs: build.query<GetEligibleNgbsApiResponse, GetEligibleNgbsApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Ngbs/with-eligible-teams`,
+          params: { groupAffiliations: queryArg.groupAffiliations },
+        }),
+        providesTags: ["Ngb"],
+      }),
       updateNgb: build.mutation<UpdateNgbApiResponse, UpdateNgbApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Ngbs/${queryArg.ngb}`,
@@ -434,18 +441,12 @@ const injectedRtkApi = api
           url: `/api/v2/Tournaments`,
           params: {
             Filter: queryArg.filter,
+            TournamentType: queryArg.tournamentType,
             Page: queryArg.page,
             PageSize: queryArg.pageSize,
             SkipPaging: queryArg.skipPaging,
           },
         }),
-        providesTags: ["Tournament"],
-      }),
-      getPublicTournaments: build.query<
-        GetPublicTournamentsApiResponse,
-        GetPublicTournamentsApiArg
-      >({
-        query: () => ({ url: `/api/v2/public/tournaments` }),
         providesTags: ["Tournament"],
       }),
       createTournament: build.mutation<CreateTournamentApiResponse, CreateTournamentApiArg>({
@@ -458,10 +459,6 @@ const injectedRtkApi = api
       }),
       getTournament: build.query<GetTournamentApiResponse, GetTournamentApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}` }),
-        providesTags: ["Tournament"],
-      }),
-      getPublicTournament: build.query<GetPublicTournamentApiResponse, GetPublicTournamentApiArg>({
-        query: (queryArg) => ({ url: `/api/v2/public/tournaments/${queryArg.tournamentId}` }),
         providesTags: ["Tournament"],
       }),
       updateTournament: build.mutation<UpdateTournamentApiResponse, UpdateTournamentApiArg>({
@@ -549,6 +546,13 @@ const injectedRtkApi = api
           url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
           method: "POST",
           body: queryArg.inviteResponseModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      deleteInvite: build.mutation<DeleteInviteApiResponse, DeleteInviteApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
+          method: "DELETE",
         }),
         invalidatesTags: ["Tournament"],
       }),
@@ -751,6 +755,10 @@ export type GetNgbsApiArg = {
 export type GetNgbInfoApiResponse = /** status 200 Success */ NgbInfoViewModelRead;
 export type GetNgbInfoApiArg = {
   ngb: string;
+};
+export type GetEligibleNgbsApiResponse = /** status 200 Success */ string[];
+export type GetEligibleNgbsApiArg = {
+  groupAffiliations: TeamGroupAffiliation[];
 };
 export type UpdateNgbApiResponse = unknown;
 export type UpdateNgbApiArg = {
@@ -977,22 +985,17 @@ export type GetTestQuestionsApiArg = {
 export type GetTournamentsApiResponse = /** status 200 Success */ TournamentViewModelFiltered;
 export type GetTournamentsApiArg = {
   filter?: string;
+  tournamentType?: string;
   page?: number;
   pageSize?: number;
   skipPaging?: boolean;
 };
-export type GetPublicTournamentsApiResponse = /** status 200 Success */ TournamentViewModel[];
-export type GetPublicTournamentsApiArg = void;
 export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
 export type CreateTournamentApiArg = {
   tournamentModel: TournamentModel;
 };
 export type GetTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
 export type GetTournamentApiArg = {
-  tournamentId: string;
-};
-export type GetPublicTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
-export type GetPublicTournamentApiArg = {
   tournamentId: string;
 };
 export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
@@ -1045,6 +1048,11 @@ export type RespondToInviteApiArg = {
   tournamentId: string;
   participantId: string;
   inviteResponseModel: InviteResponseModel;
+};
+export type DeleteInviteApiResponse = /** status 200 Success */ void;
+export type DeleteInviteApiArg = {
+  tournamentId: string;
+  participantId: string;
 };
 export type GetParticipantsApiResponse = /** status 200 Success */ TournamentParticipantViewModel[];
 export type GetParticipantsApiArg = {
@@ -1186,6 +1194,7 @@ export type INgbStatsContextRead = {
   headRefereesCount?: number;
   assistantRefereesCount?: number;
   flagRefereesCount?: number;
+  flagRunnerRefereesCount?: number;
   scorekeeperRefereesCount?: number;
   uncertifiedRefereesCount?: number;
   competitiveTeamsCount?: number;
@@ -1543,6 +1552,7 @@ export type TournamentInviteViewModel = {
   participantType?: ParticipantType;
   participantId?: string | null;
   participantName?: string | null;
+  logoUri?: string | null;
   status?: InviteStatus;
   initiatorUserId?: string;
   createdAt?: string;
@@ -1709,6 +1719,7 @@ export type StaffViewModel = {
 export type TournamentParticipantViewModel = {
   teamId?: string;
   teamName?: string | null;
+  logoUri?: string | null;
   players?: PlayerViewModel[] | null;
   coaches?: StaffViewModel[] | null;
   staff?: StaffViewModel[] | null;
@@ -1770,6 +1781,7 @@ export type ManagedTeamViewModel = {
   teamName?: string | null;
   ngb?: string;
   groupAffiliation?: TeamGroupAffiliation;
+  status?: TeamStatus;
 };
 export type UserDataViewModel = {
   firstName?: string | null;
@@ -1842,6 +1854,7 @@ export const {
   useLoginMutation,
   useGetLanguagesQuery,
   useGetNgbsQuery,
+  useGetEligibleNgbsQuery,
   useGetNgbInfoQuery,
   useUpdateNgbMutation,
   useUpdateNgbAvatarMutation,
@@ -1885,10 +1898,8 @@ export const {
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
   useGetTournamentsQuery,
-  useGetPublicTournamentsQuery,
   useCreateTournamentMutation,
   useGetTournamentQuery,
-  useGetPublicTournamentQuery,
   useUpdateTournamentMutation,
   useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
@@ -1899,6 +1910,7 @@ export const {
   useGetTournamentInvitesQuery,
   useCreateInviteMutation,
   useRespondToInviteMutation,
+  useDeleteInviteMutation,
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
   useUpdateParticipantRosterMutation,

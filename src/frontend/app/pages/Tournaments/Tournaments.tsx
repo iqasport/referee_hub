@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import { faCalendarAlt, faList } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSearchParams } from "react-router-dom";
@@ -18,14 +18,13 @@ const Tournament = () => {
   const searchTerm = searchParams.get("q") || "";
   const typeFilter = searchParams.get("type") || "";
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const [viewMode, setViewMode] = useState<"grid" | "calendar">("grid");
+  const viewParam = searchParams.get("view");
+  const viewMode: "list" | "calendar" = viewParam === "calendar" ? "calendar" : "list";
   const modalRef = useRef<AddTournamentModalRef>(null);
 
-  // Load all tournament data with a single hook
   const { isAnonymous, isLoading, isError, allTournaments, paginatedTournaments, publicTournamentsFromApi } =
     useTournamentsData(searchTerm, currentPage, DEFAULT_PAGE_SIZE);
 
-  // Use custom hook for filtering tournaments
   const { filteredAllTournaments, filteredPaginatedTournaments } = useFilteredTournaments(
     isAnonymous,
     currentPage,
@@ -35,7 +34,6 @@ const Tournament = () => {
     paginatedTournaments
   );
 
-  // Use custom hook to organize tournaments into sections
   const { publicTournaments, privateTournaments, totalCount } = useTournamentSections(
     isAnonymous,
     filteredAllTournaments,
@@ -47,7 +45,6 @@ const Tournament = () => {
     [filteredAllTournaments]
   );
 
-  // Handle search
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
     if (term.trim()) {
@@ -59,7 +56,6 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
-  // Handle type filter
   const handleTypeFilter = (type: string) => {
     const params = new URLSearchParams(searchParams);
     if (type) {
@@ -71,7 +67,6 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
-  // Handle page change
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     if (page > 1) {
@@ -82,22 +77,24 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
+  const handleViewModeChange = (mode: "list" | "calendar") => {
+    const params = new URLSearchParams(searchParams);
+    params.set("view", mode);
+    setSearchParams(params);
+  };
+
   return (
     <>
       <div className="tournament-page-container">
         <div className="tournament-page-header">
           <div className="tournament-search-wrapper">
-            <Search
-              onSearch={handleSearch}
-              onTypeFilter={handleTypeFilter}
-              selectedType={typeFilter}
-            />
+            <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
           </div>
           <div className="view-toggle" aria-label="Tournament view toggle">
             <button
               type="button"
-              className={`view-toggle-btn${viewMode === "grid" ? " active" : ""}`}
-              onClick={() => setViewMode("grid")}
+              className={`view-toggle-btn${viewMode === "list" ? " active" : ""}`}
+              onClick={() => handleViewModeChange("list")}
               aria-label="List view"
               title="List view"
             >
@@ -106,7 +103,7 @@ const Tournament = () => {
             <button
               type="button"
               className={`view-toggle-btn${viewMode === "calendar" ? " active" : ""}`}
-              onClick={() => setViewMode("calendar")}
+              onClick={() => handleViewModeChange("calendar")}
               aria-label="Calendar view"
               title="Calendar view"
             >
