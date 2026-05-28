@@ -863,10 +863,13 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			.Where(i => i.TournamentId == tournament.Id && i.ParticipantType == "team" && i.ParticipantId == participantId)
 			.ToListAsync(cancellationToken);
 
+		var sanitizedTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+		var sanitizedTeamId = teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+
 		if (invites.Count == 0)
 		{
 			this.logger.LogInformation("No invite found for tournament {TournamentId} team {TeamId}",
-				tournamentId, teamId);
+				sanitizedTournamentId, sanitizedTeamId);
 			return;
 		}
 
@@ -874,7 +877,7 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
 		this.logger.LogInformation("Removed {InviteCount} invite(s) for tournament {TournamentId} team {TeamId}",
-			invites.Count, tournamentId, teamId);
+			invites.Count, sanitizedTournamentId, sanitizedTeamId);
 	}
 
 	// Phase 3: Participant management methods
