@@ -441,13 +441,6 @@ const injectedRtkApi = api
         }),
         providesTags: ["Tournament"],
       }),
-      getPublicTournaments: build.query<
-        GetPublicTournamentsApiResponse,
-        GetPublicTournamentsApiArg
-      >({
-        query: () => ({ url: `/api/v2/public/tournaments` }),
-        providesTags: ["Tournament"],
-      }),
       createTournament: build.mutation<CreateTournamentApiResponse, CreateTournamentApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Tournaments`,
@@ -458,10 +451,6 @@ const injectedRtkApi = api
       }),
       getTournament: build.query<GetTournamentApiResponse, GetTournamentApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}` }),
-        providesTags: ["Tournament"],
-      }),
-      getPublicTournament: build.query<GetPublicTournamentApiResponse, GetPublicTournamentApiArg>({
-        query: (queryArg) => ({ url: `/api/v2/public/tournaments/${queryArg.tournamentId}` }),
         providesTags: ["Tournament"],
       }),
       updateTournament: build.mutation<UpdateTournamentApiResponse, UpdateTournamentApiArg>({
@@ -549,6 +538,13 @@ const injectedRtkApi = api
           url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
           method: "POST",
           body: queryArg.inviteResponseModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      deleteInvite: build.mutation<DeleteInviteApiResponse, DeleteInviteApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
+          method: "DELETE",
         }),
         invalidatesTags: ["Tournament"],
       }),
@@ -981,18 +977,12 @@ export type GetTournamentsApiArg = {
   pageSize?: number;
   skipPaging?: boolean;
 };
-export type GetPublicTournamentsApiResponse = /** status 200 Success */ TournamentViewModel[];
-export type GetPublicTournamentsApiArg = void;
 export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
 export type CreateTournamentApiArg = {
   tournamentModel: TournamentModel;
 };
 export type GetTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
 export type GetTournamentApiArg = {
-  tournamentId: string;
-};
-export type GetPublicTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
-export type GetPublicTournamentApiArg = {
   tournamentId: string;
 };
 export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
@@ -1045,6 +1035,11 @@ export type RespondToInviteApiArg = {
   tournamentId: string;
   participantId: string;
   inviteResponseModel: InviteResponseModel;
+};
+export type DeleteInviteApiResponse = /** status 200 Success */ void;
+export type DeleteInviteApiArg = {
+  tournamentId: string;
+  participantId: string;
 };
 export type GetParticipantsApiResponse = /** status 200 Success */ TournamentParticipantViewModel[];
 export type GetParticipantsApiArg = {
@@ -1186,6 +1181,7 @@ export type INgbStatsContextRead = {
   headRefereesCount?: number;
   assistantRefereesCount?: number;
   flagRefereesCount?: number;
+  flagRunnerRefereesCount?: number;
   scorekeeperRefereesCount?: number;
   uncertifiedRefereesCount?: number;
   competitiveTeamsCount?: number;
@@ -1885,10 +1881,8 @@ export const {
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
   useGetTournamentsQuery,
-  useGetPublicTournamentsQuery,
   useCreateTournamentMutation,
   useGetTournamentQuery,
-  useGetPublicTournamentQuery,
   useUpdateTournamentMutation,
   useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
@@ -1899,6 +1893,7 @@ export const {
   useGetTournamentInvitesQuery,
   useCreateInviteMutation,
   useRespondToInviteMutation,
+  useDeleteInviteMutation,
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
   useUpdateParticipantRosterMutation,

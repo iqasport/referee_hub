@@ -2,7 +2,10 @@ import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import React from "react";
 import {
+  InviteStatus,
+  useDeleteInviteMutation,
   useGetTournamentInvitesQuery,
+  useRemoveParticipantMutation,
   useRespondToInviteMutation,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
@@ -31,6 +34,8 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   );
 
   const [respondToInvite] = useRespondToInviteMutation();
+  const [removeParticipant] = useRemoveParticipantMutation();
+  const [deleteInvite] = useDeleteInviteMutation();
 
   useImperativeHandle(ref, () => ({
     open: (tournId: string, tournName: string) => {
@@ -46,39 +51,62 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     setSelectedInvite(null);
   }
 
-  async function handleApprove(participantId: string, teamName: string) {
+  async function handleInviteResponse(
+    participantId: string,
+    teamName: string,
+    approved: boolean
+  ) {
     setIsSubmitting(true);
     try {
       await respondToInvite({
         tournamentId,
         participantId,
-        inviteResponseModel: { approved: true },
+        inviteResponseModel: { approved },
       }).unwrap();
-      showAlert(`Successfully approved ${teamName}'s registration!`, "success");
+      showAlert(
+        approved
+          ? `Successfully approved ${teamName}'s registration!`
+          : `Successfully denied ${teamName}'s registration.`,
+        "success"
+      );
       refetch();
       setSelectedInvite(null);
     } catch (error) {
-      console.error("Failed to approve:", error);
-      showAlert("Failed to approve. Please try again.", "error");
+      console.error("Failed to submit invite response:", error);
+      showAlert(
+        approved ? "Failed to approve. Please try again." : "Failed to deny. Please try again.",
+        "error"
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  async function handleDeny(participantId: string, teamName: string) {
+  async function handleRemoveEntry(
+    participantId: string,
+    participantName: string,
+    status: InviteStatus | undefined
+  ) {
     setIsSubmitting(true);
     try {
-      await respondToInvite({
-        tournamentId,
-        participantId,
-        inviteResponseModel: { approved: false },
-      }).unwrap();
-      showAlert(`Successfully denied ${teamName}'s registration.`, "success");
+      if (status === "approved") {
+        await removeParticipant({
+          tournamentId,
+          teamId: participantId,
+        }).unwrap();
+        showAlert(`Successfully removed ${participantName} from the tournament.`, "success");
+      } else {
+        await deleteInvite({
+          tournamentId,
+          participantId,
+        }).unwrap();
+        showAlert(`Successfully removed invite for ${participantName}.`, "success");
+      }
       refetch();
       setSelectedInvite(null);
     } catch (error) {
-      console.error("Failed to deny:", error);
-      showAlert("Failed to deny. Please try again.", "error");
+      console.error("Failed to remove entry:", error);
+      showAlert("Failed to remove. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -90,6 +118,18 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     if (invite.tournamentManagerApproval?.status === "pending") return "Awaiting your review";
     if (invite.participantApproval?.status === "pending") return "Awaiting team response";
     return "Pending";
+  }
+
+  function isApprovedInvite(status: InviteStatus | undefined): boolean {
+    return status === "approved";
+  }
+
+  function getRemoveLabel(status: InviteStatus | undefined, detailView: boolean): string {
+    if (isApprovedInvite(status)) {
+      return detailView ? "Remove From Tournament" : "Remove Team";
+    }
+
+    return "Delete Invite";
   }
 
   return (
@@ -186,15 +226,17 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                   selectedInviteData.tournamentManagerApproval?.status === "pending" && (
                     <ActionButtonPair
                       onAccept={() =>
-                        handleApprove(
+                        handleInviteResponse(
                           selectedInviteData.participantId,
-                          selectedInviteData.participantName || ""
+                          selectedInviteData.participantName || "",
+                          true
                         )
                       }
                       onDecline={() =>
-                        handleDeny(
+                        handleInviteResponse(
                           selectedInviteData.participantId,
-                          selectedInviteData.participantName || ""
+                          selectedInviteData.participantName || "",
+                          false
                         )
                       }
                       isLoading={isSubmitting}
@@ -214,6 +256,22 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                       </p>
                     </div>
                   )}
+
+                <div className="mt-4">
+                  <button
+                    onClick={() =>
+                      handleRemoveEntry(
+                        selectedInviteData.participantId,
+                        selectedInviteData.participantName || "this team",
+                        selectedInviteData.status
+                      )
+                    }
+                    className="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Removing..." : getRemoveLabel(selectedInviteData.status, true)}
+                  </button>
+                </div>
               </div>
             ) : (
               // List view
@@ -247,24 +305,40 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                           </div>
                           <StatusBadge status={invite.status || "unknown"} />
                         </div>
-                        {invite.status === "approved" && (
-                          <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center gap-4">
+                            {isApprovedInvite(invite.status) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  rosterViewModalRef.current?.open(
+                                    tournamentId,
+                                    invite.participantId,
+                                    invite.participantName || "Unknown Team",
+                                    tournamentName
+                                  );
+                                }}
+                                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                              >
+                                View Roster →
+                              </button>
+                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                rosterViewModalRef.current?.open(
-                                  tournamentId,
+                                handleRemoveEntry(
                                   invite.participantId,
-                                  invite.participantName || "Unknown Team",
-                                  tournamentName
+                                  invite.participantName || "this team",
+                                  invite.status
                                 );
                               }}
-                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                              className="text-sm text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                              disabled={isSubmitting}
                             >
-                              View Roster →
+                              {isSubmitting ? "Removing..." : getRemoveLabel(invite.status, false)}
                             </button>
                           </div>
-                        )}
+                        </div>
                       </div>
                     ))}
                   </div>

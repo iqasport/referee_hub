@@ -842,6 +842,44 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			tournamentId, teamId, isTournamentManager ? "TournamentManager" : "Participant", newStatus);
 	}
 
+	public async Task RemoveTeamInviteAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		CancellationToken cancellationToken = default)
+	{
+		var tournamentIdString = tournamentId.ToString();
+		var participantId = teamId.ToString();
+
+		var tournament = await this.QueryActiveTournament(tournamentIdString)
+			.Select(t => new { t.Id })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		var invites = await this.dbContext.TournamentInvites
+			.Where(i => i.TournamentId == tournament.Id && i.ParticipantType == "team" && i.ParticipantId == participantId)
+			.ToListAsync(cancellationToken);
+
+		var sanitizedTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+		var sanitizedTeamId = teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+
+		if (invites.Count == 0)
+		{
+			this.logger.LogInformation("No invite found for tournament {TournamentId} team {TeamId}",
+				sanitizedTournamentId, sanitizedTeamId);
+			return;
+		}
+
+		this.dbContext.TournamentInvites.RemoveRange(invites);
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		this.logger.LogInformation("Removed {InviteCount} invite(s) for tournament {TournamentId} team {TeamId}",
+			invites.Count, sanitizedTournamentId, sanitizedTeamId);
+	}
+
 	// Phase 3: Participant management methods
 
 	public async Task<IEnumerable<TeamParticipantInfo>> GetTournamentTeamParticipantsAsync(
