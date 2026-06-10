@@ -38,6 +38,23 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     return latestAwardedCertification?.version;
   };
 
+  const formatLanguageCode = (languageCode: string): string => {
+    if (!languageCode) return "";
+
+    const normalizedLanguageCode = languageCode.replace("_", "-");
+    const [language, region] = normalizedLanguageCode.split("-");
+
+    try {
+      const languageName = new Intl.DisplayNames(["en"], { type: "language" }).of(language) ?? language;
+      if (!region) return capitalize(languageName);
+
+      const regionName = new Intl.DisplayNames(["en"], { type: "region" }).of(region.toUpperCase()) ?? region.toUpperCase();
+      return `${capitalize(languageName)} (${regionName})`;
+    } catch {
+      return normalizedLanguageCode;
+    }
+  };
+
   const compareByLevel = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
     const levelValue: Record<CertificationLevel, number> = {
       scorekeeper: 0,
@@ -190,7 +207,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     },
     {
       cellRenderer: (item) => {
-        return item.language;
+        return formatLanguageCode(item.language);
       },
       dataKey: "language",
     },
@@ -202,17 +219,8 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   return (
     <>
       <h2 className="text-navy-blue text-2xl font-semibold my-4">{`Available Tests(${(filteredTests ?? []).filter(t => t.isRefereeEligible).length})`}</h2>
-      <div className="bg-gray-100 rounded-lg p-6 mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3 mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Filter Certifications</h3>
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={clearFilters}
-          >
-            Reset filters
-          </button>
-        </div>
+      <div className="bg-gray-100 rounded-lg p-4 mb-5">
+        <h3 className="text-base font-semibold text-gray-900 mb-3">Filter Certifications</h3>
         <div className="flex flex-wrap gap-4 items-end">
           <label className="flex flex-col min-w-44">
             <span className="text-sm font-medium text-gray-700 mb-1">Test Type</span>
@@ -236,7 +244,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
             >
               <option value={ALL_FILTER_VALUE}>Any language</option>
               {languageOptions.map(language => (
-                <option key={language} value={language}>{language}</option>
+                <option key={language} value={language}>{formatLanguageCode(language)}</option>
               ))}
             </select>
           </label>
@@ -252,6 +260,13 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
               ))}
             </select>
           </label>
+          <button
+            type="button"
+            className="btn btn-outline whitespace-nowrap"
+            onClick={clearFilters}
+          >
+            Reset filters
+          </button>
         </div>
       </div>
       <Table
