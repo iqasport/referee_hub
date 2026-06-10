@@ -140,6 +140,12 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     });
   }, [languageFilter, rulebookFilter, sortedTests, testTypeFilter]);
 
+  const clearFilters = () => {
+    setTestTypeFilter(ALL_FILTER_VALUE);
+    setLanguageFilter(ALL_FILTER_VALUE);
+    setRulebookFilter(rulebookOptions[0] ?? "");
+  };
+
   const handleRowClick = (id: string) => {
     navigate(`/referees/${refId}/tests/${id}`);
   };
@@ -196,33 +202,54 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   return (
     <>
       <h2 className="text-navy-blue text-2xl font-semibold my-4">{`Available Tests(${(filteredTests ?? []).filter(t => t.isRefereeEligible).length})`}</h2>
-      <div className="w-full flex flex-wrap gap-4 mb-4">
-        <label className="flex flex-col min-w-44">
-          <span className="text-sm text-gray-700 mb-1">Test Type</span>
-          <select className="form-select" onChange={(event) => setTestTypeFilter(event.target.value)} value={testTypeFilter}>
-            <option value={ALL_FILTER_VALUE}>Any test type</option>
-            {testTypeOptions.map(level => (
-              <option key={level} value={level}>{capitalize(level === "snitch" ? "flag" : level)}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col min-w-44">
-          <span className="text-sm text-gray-700 mb-1">Language</span>
-          <select className="form-select" onChange={(event) => setLanguageFilter(event.target.value)} value={languageFilter}>
-            <option value={ALL_FILTER_VALUE}>Any language</option>
-            {languageOptions.map(language => (
-              <option key={language} value={language}>{language}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col min-w-44">
-          <span className="text-sm text-gray-700 mb-1">Rulebook</span>
-          <select className="form-select" onChange={(event) => setRulebookFilter(event.target.value)} value={rulebookFilter}>
-            {rulebookOptions.map(version => (
-              <option key={version} value={version}>{getVersion(version)}</option>
-            ))}
-          </select>
-        </label>
+      <div className="bg-gray-100 rounded-lg p-6 mb-6">
+        <div className="flex flex-wrap gap-4 items-end">
+          <label className="flex flex-col min-w-44">
+            <span className="text-sm font-medium text-gray-700 mb-1">Test Type</span>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              onChange={(event) => setTestTypeFilter(event.target.value)}
+              value={testTypeFilter}
+            >
+              <option value={ALL_FILTER_VALUE}>Any test type</option>
+              {testTypeOptions.map(level => (
+                <option key={level} value={level}>{capitalize(level === "snitch" ? "flag" : level)}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col min-w-44">
+            <span className="text-sm font-medium text-gray-700 mb-1">Language</span>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              onChange={(event) => setLanguageFilter(event.target.value)}
+              value={languageFilter}
+            >
+              <option value={ALL_FILTER_VALUE}>Any language</option>
+              {languageOptions.map(language => (
+                <option key={language} value={language}>{language}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col min-w-44">
+            <span className="text-sm font-medium text-gray-700 mb-1">Rulebook</span>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              onChange={(event) => setRulebookFilter(event.target.value)}
+              value={rulebookFilter}
+            >
+              {rulebookOptions.map(version => (
+                <option key={version} value={version}>{getVersion(version)}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-blue-700 border border-blue-200 bg-white hover:bg-blue-50"
+            onClick={clearFilters}
+          >
+            Reset filters
+          </button>
+        </div>
       </div>
       <Table
         items={filteredTests}
