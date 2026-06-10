@@ -1,5 +1,5 @@
 import { capitalize, startCase } from "lodash";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { getVersion } from "../../../utils/certUtils";
 import Table, { CellConfig } from "../Table/Table";
@@ -11,6 +11,13 @@ import Loader from "../../Loader/Loader";
 import { useNavigate } from "../../../utils/navigationUtils";
 
 const HEADER_CELLS = ["title", "level", "rulebook", "language"];
+const ALL_FILTER_VALUE = "*";
+const RULEBOOK_ORDER: Record<string, number> = {
+  eighteen: 0,
+  twenty: 1,
+  twentytwo: 2,
+  twentyfour: 3,
+};
 
 interface RefereeTestsTableProps {
   refId: string;
@@ -19,9 +26,17 @@ interface RefereeTestsTableProps {
 const RefereeTestsTable = (props: RefereeTestsTableProps) => {
   const { refId } = props;
   const navigate = useNavigate();
+  const [testTypeFilter, setTestTypeFilter] = useState<string>(ALL_FILTER_VALUE);
+  const [languageFilter, setLanguageFilter] = useState<string>(ALL_FILTER_VALUE);
+  const [rulebookFilter, setRulebookFilter] = useState<string>("");
 
   const { currentData: referee } = useGetCurrentRefereeQuery();
   const { currentData: tests, isLoading, error: getTestsError } = useGetAvailableTestsQuery();
+
+  const getRulebookVersion = (test: RefereeTestAvailableViewModel): string => {
+    const latestAwardedCertification = test.awardedCertifications[test.awardedCertifications.length - 1];
+    return latestAwardedCertification?.version;
+  };
 
   const compareByLevel = (a: RefereeTestAvailableViewModel, b: RefereeTestAvailableViewModel): number => {
     const levelValue: Record<CertificationLevel, number> = {
@@ -73,6 +88,58 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     ? undefined
     : [...tests].sort(compareByLevel).sort(compareByLanguage).sort(compareByEligibility);
 
+  const testTypeOptions = useMemo(() => {
+    if (!tests) return [];
+
+    const levels = Array.from(new Set(tests.map(t => t.level)));
+    return levels.sort((a, b) => {
+      const levelValue: Record<CertificationLevel, number> = {
+        scorekeeper: 0,
+        flagrunner: 1,
+        assistant: 2,
+        snitch: 3,
+        head: 4,
+        field: 5,
+      };
+      return levelValue[a] - levelValue[b];
+    });
+  }, [tests]);
+
+  const languageOptions = useMemo(() => {
+    if (!tests) return [];
+
+    return Array.from(new Set(tests.map(t => t.language))).sort((a, b) => a.localeCompare(b));
+  }, [tests]);
+
+  const rulebookOptions = useMemo(() => {
+    if (!tests) return [];
+
+    const versions = Array.from(new Set(tests.map(getRulebookVersion).filter((version): version is string => !!version)));
+    return versions.sort((a, b) => (RULEBOOK_ORDER[b] ?? -1) - (RULEBOOK_ORDER[a] ?? -1));
+  }, [tests]);
+
+  useEffect(() => {
+    if (!rulebookOptions.length) {
+      setRulebookFilter("");
+      return;
+    }
+
+    if (!rulebookFilter || !rulebookOptions.includes(rulebookFilter)) {
+      setRulebookFilter(rulebookOptions[0]);
+    }
+  }, [rulebookFilter, rulebookOptions]);
+
+  const filteredTests = useMemo(() => {
+    if (!sortedTests) return undefined;
+
+    return sortedTests.filter(test => {
+      if (testTypeFilter !== ALL_FILTER_VALUE && test.level !== testTypeFilter) return false;
+      if (languageFilter !== ALL_FILTER_VALUE && test.language !== languageFilter) return false;
+      if (rulebookFilter && getRulebookVersion(test) !== rulebookFilter) return false;
+      return true;
+    });
+  }, [languageFilter, rulebookFilter, sortedTests, testTypeFilter]);
+
   const handleRowClick = (id: string) => {
     navigate(`/referees/${refId}/tests/${id}`);
   };
@@ -111,7 +178,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     },
     {
       cellRenderer: (item) => {
-        return getVersion(item.awardedCertifications[item.awardedCertifications.length-1].version);
+        return getVersion(getRulebookVersion(item));
       },
       dataKey: "certificationVersion",
     },
@@ -128,9 +195,37 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
 
   return (
     <>
-      <h2 className="text-navy-blue text-2xl font-semibold my-4">{`Available Tests(${tests.filter(t => t.isRefereeEligible).length})`}</h2>
+      <h2 className="text-navy-blue text-2xl font-semibold my-4">{`Available Tests(${(filteredTests ?? []).filter(t => t.isRefereeEligible).length})`}</h2>
+      <div className="w-full flex flex-wrap gap-4 mb-4">
+        <label className="flex flex-col min-w-44">
+          <span className="text-sm text-gray-700 mb-1">Test Type</span>
+          <select className="form-select" onChange={(event) => setTestTypeFilter(event.target.value)} value={testTypeFilter}>
+            <option value={ALL_FILTER_VALUE}>Any test type</option>
+            {testTypeOptions.map(level => (
+              <option key={level} value={level}>{capitalize(level === "snitch" ? "flag" : level)}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col min-w-44">
+          <span className="text-sm text-gray-700 mb-1">Language</span>
+          <select className="form-select" onChange={(event) => setLanguageFilter(event.target.value)} value={languageFilter}>
+            <option value={ALL_FILTER_VALUE}>Any language</option>
+            {languageOptions.map(language => (
+              <option key={language} value={language}>{language}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col min-w-44">
+          <span className="text-sm text-gray-700 mb-1">Rulebook</span>
+          <select className="form-select" onChange={(event) => setRulebookFilter(event.target.value)} value={rulebookFilter}>
+            {rulebookOptions.map(version => (
+              <option key={version} value={version}>{getVersion(version)}</option>
+            ))}
+          </select>
+        </label>
+      </div>
       <Table
-        items={sortedTests}
+        items={filteredTests}
         isLoading={isLoading}
         headerCells={HEADER_CELLS}
         onRowClick={handleRowClick}
