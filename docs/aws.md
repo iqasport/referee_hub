@@ -32,6 +32,3 @@ We're using Beanstalk to deploy the containerized application to a VM.
 https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker.html
 
 We're using the Docker platform branch (not the ECS one).
-
-## CloudFront (CDN)
-We have a CloudFront on top of our service for hosting static files.
