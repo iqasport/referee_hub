@@ -203,11 +203,21 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
     <>
       <h2 className="text-navy-blue text-2xl font-semibold my-4">{`Available Tests(${(filteredTests ?? []).filter(t => t.isRefereeEligible).length})`}</h2>
       <div className="bg-gray-100 rounded-lg p-6 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-3 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Filter Certifications</h3>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={clearFilters}
+          >
+            Reset filters
+          </button>
+        </div>
         <div className="flex flex-wrap gap-4 items-end">
           <label className="flex flex-col min-w-44">
             <span className="text-sm font-medium text-gray-700 mb-1">Test Type</span>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="tournament-search-select w-full"
               onChange={(event) => setTestTypeFilter(event.target.value)}
               value={testTypeFilter}
             >
@@ -220,7 +230,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
           <label className="flex flex-col min-w-44">
             <span className="text-sm font-medium text-gray-700 mb-1">Language</span>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="tournament-search-select w-full"
               onChange={(event) => setLanguageFilter(event.target.value)}
               value={languageFilter}
             >
@@ -233,7 +243,7 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
           <label className="flex flex-col min-w-44">
             <span className="text-sm font-medium text-gray-700 mb-1">Rulebook</span>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="tournament-search-select w-full"
               onChange={(event) => setRulebookFilter(event.target.value)}
               value={rulebookFilter}
             >
@@ -242,13 +252,6 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
               ))}
             </select>
           </label>
-          <button
-            type="button"
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-blue-700 border border-blue-200 bg-white hover:bg-blue-50"
-            onClick={clearFilters}
-          >
-            Reset filters
-          </button>
         </div>
       </div>
       <Table
