@@ -223,13 +223,13 @@ const RefereeTestsTable = (props: RefereeTestsTableProps) => {
         <h3 className="text-base font-semibold text-gray-900 mb-3">Filter Certifications</h3>
         <div className="flex flex-wrap gap-4 items-end">
           <label className="flex flex-col min-w-44">
-            <span className="text-sm font-medium text-gray-700 mb-1">Test Type</span>
+            <span className="text-sm font-medium text-gray-700 mb-1">Level</span>
             <select
               className="tournament-search-select w-full"
               onChange={(event) => setTestTypeFilter(event.target.value)}
               value={testTypeFilter}
             >
-              <option value={ALL_FILTER_VALUE}>Any test type</option>
+              <option value={ALL_FILTER_VALUE}>Any level</option>
               {testTypeOptions.map(level => (
                 <option key={level} value={level}>{capitalize(level === "snitch" ? "flag" : level)}</option>
               ))}
