@@ -45,6 +45,22 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 
 	private void SeedDatabase(ManagementHubDbContext dbContext)
 	{
+		var ngbs = this.SeedNgbs(dbContext);
+		var teams = this.SeedTeams(dbContext, ngbs);
+		this.SeedTournaments(dbContext);
+		var certifications = this.EnsureCertifications(dbContext);
+		var languages = this.SeedLanguages(dbContext);
+		var users = this.SeedUsersAndRoles(dbContext);
+		this.SeedUserAssociations(dbContext, ngbs, teams, users);
+		var tests = this.SeedTests(dbContext, certifications, languages);
+		this.SeedTestHistoryAndCertifications(dbContext, tests, certifications, users.Referee, users.RecertTestReferee);
+		this.SeedQuestions(dbContext, tests);
+
+		dbContext.SaveChanges();
+	}
+
+	private NationalGoverningBody[] SeedNgbs(ManagementHubDbContext dbContext)
+	{
 		var ngbs = new[]
 		{
 			new NationalGoverningBody
@@ -114,8 +130,13 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				CreatedAt = DateTime.UtcNow,
 			},
 		};
-		dbContext.NationalGoverningBodies.AddRange(ngbs);
 
+		dbContext.NationalGoverningBodies.AddRange(ngbs);
+		return ngbs;
+	}
+
+	private List<Team> SeedTeams(ManagementHubDbContext dbContext, NationalGoverningBody[] ngbs)
+	{
 		var teams = new List<Team>
 		{
 			new Team
@@ -219,7 +240,11 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		};
 
 		dbContext.Teams.AddRange(teams);
+		return teams;
+	}
 
+	private void SeedTournaments(ManagementHubDbContext dbContext)
+	{
 		var tournaments = new[]
 		{
 			new Tournament
@@ -287,39 +312,56 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				UpdatedAt = DateTime.UtcNow,
 			},
 		};
+
 		dbContext.Tournaments.AddRange(tournaments);
+	}
 
+	private List<Certification> EnsureCertifications(ManagementHubDbContext dbContext)
+	{
 		var certifications = dbContext.Certifications.ToList();
-		var existingCertifications = certifications
-			.Select(c => (c.Level, c.Version))
-			.ToHashSet();
-		foreach (var version in Enum.GetValues<CertificationVersion>())
-			foreach (var level in Enum.GetValues<CertificationLevel>())
-				if (!existingCertifications.Contains((level, (CertificationVersion?)version)))
-				{
-					var certification = new Certification
-					{
-						CreatedAt = DateTime.UtcNow,
-						Level = level,
-						Version = version,
-					};
-					certifications.Add(certification);
-					dbContext.Certifications.Add(certification);
-				}
+		var existingCertifications = certifications.Select(c => (c.Level, c.Version)).ToHashSet();
 
+		foreach (var version in Enum.GetValues<CertificationVersion>())
+		{
+			foreach (var level in Enum.GetValues<CertificationLevel>())
+			{
+				if (existingCertifications.Contains((level, (CertificationVersion?)version))) continue;
+
+				var certification = new Certification
+				{
+					CreatedAt = DateTime.UtcNow,
+					Level = level,
+					Version = version,
+				};
+
+				certifications.Add(certification);
+				dbContext.Certifications.Add(certification);
+			}
+		}
+
+		return certifications;
+	}
+
+	private List<Language> SeedLanguages(ManagementHubDbContext dbContext)
+	{
 		var languages = new List<Language>(8)
 		{
-			new Language{ ShortName = "en", ShortRegion = "US"},
-			new Language{ ShortName = "en", ShortRegion = "GB"},
-			new Language{ ShortName = "pt", ShortRegion = "BR"},
-			new Language{ ShortName = "es", ShortRegion = "ES"},
-			new Language{ ShortName = "es", ShortRegion = "419"},
-			new Language{ ShortName = "fr" },
-			new Language{ ShortName = "it" },
-			new Language{ ShortName = "de" },
+			new Language { ShortName = "en", ShortRegion = "US" },
+			new Language { ShortName = "en", ShortRegion = "GB" },
+			new Language { ShortName = "pt", ShortRegion = "BR" },
+			new Language { ShortName = "es", ShortRegion = "ES" },
+			new Language { ShortName = "es", ShortRegion = "419" },
+			new Language { ShortName = "fr" },
+			new Language { ShortName = "it" },
+			new Language { ShortName = "de" },
 		};
-		dbContext.Languages.AddRange(languages);
 
+		dbContext.Languages.AddRange(languages);
+		return languages;
+	}
+
+	private SeedUsers SeedUsersAndRoles(ManagementHubDbContext dbContext)
+	{
 		var referee = new User
 		{
 			CreatedAt = DateTime.UtcNow,
@@ -396,131 +438,85 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike, recertTestReferee);
 
 		dbContext.Roles.AddRange(
-			new Role
-			{
-				AccessType = UserAccessType.Referee,
-				User = referee,
-				CreatedAt = DateTime.UtcNow,
-			},
-			new Role
-			{
-				AccessType = UserAccessType.NgbAdmin,
-				User = ngbAdmin,
-				CreatedAt = DateTime.UtcNow,
-			},
-			new Role
-			{
-				AccessType = UserAccessType.IqaAdmin,
-				User = iqaAdmin,
-				CreatedAt = DateTime.UtcNow,
-			},
-			new Role
-			{
-				AccessType = UserAccessType.Referee,
-				User = refereeWithEmptyName,
-				CreatedAt = DateTime.UtcNow,
-			},
-			new Role
-			{
-				AccessType = UserAccessType.Referee,
-				User = teamManager,
-				CreatedAt = DateTime.UtcNow,
-			},
-			new Role
-			{
-				AccessType = UserAccessType.Referee,
-				User = playerSarah,
-				CreatedAt = DateTime.UtcNow,
-			},
-			new Role
-			{
-				AccessType = UserAccessType.Referee,
-				User = coachMike,
-				CreatedAt = DateTime.UtcNow,
-			},
-			new Role
-			{
-				AccessType = UserAccessType.Referee,
-				User = recertTestReferee,
-				CreatedAt = DateTime.UtcNow,
-			});
+			new Role { AccessType = UserAccessType.Referee, User = referee, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.NgbAdmin, User = ngbAdmin, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.IqaAdmin, User = iqaAdmin, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.Referee, User = refereeWithEmptyName, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.Referee, User = teamManager, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.Referee, User = playerSarah, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.Referee, User = coachMike, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.Referee, User = recertTestReferee, CreatedAt = DateTime.UtcNow }
+		);
 
+		return new SeedUsers(referee, ngbAdmin, iqaAdmin, teamManager, playerSarah, coachMike, recertTestReferee);
+	}
+
+	private void SeedUserAssociations(ManagementHubDbContext dbContext, NationalGoverningBody[] ngbs, List<Team> teams, SeedUsers users)
+	{
 		dbContext.UserAttributes.AddRange(
-			new UserAttribute
-			{
-				User = referee,
-				Prefix = string.Empty,
-				Key = "accessibility",
-				Attribute = """{ "timeExtension": 20 }""",
-			},
-			new UserAttribute
-			{
-				User = referee,
-				Prefix = "USA",
-				Key = "usqid",
-				Attribute = """ "deadbeef" """,
-			},
-			new UserAttribute
-			{
-				User = referee,
-				Prefix = "POL",
-				Key = "international",
-				Attribute = """true""",
-			});
+			new UserAttribute { User = users.Referee, Prefix = string.Empty, Key = "accessibility", Attribute = """{ "timeExtension": 20 }""" },
+			new UserAttribute { User = users.Referee, Prefix = "USA", Key = "usqid", Attribute = """ "deadbeef" """ },
+			new UserAttribute { User = users.Referee, Prefix = "POL", Key = "international", Attribute = """true""" }
+		);
 
 		dbContext.NationalGoverningBodyAdmins.Add(new NationalGoverningBodyAdmin
 		{
 			CreatedAt = DateTime.UtcNow,
 			NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 			UpdatedAt = DateTime.UtcNow,
-			User = ngbAdmin,
+			User = users.NgbAdmin,
 		});
 
 		dbContext.RefereeLocations.Add(new RefereeLocation
 		{
-			Referee = referee,
+			Referee = users.Referee,
 			AssociationType = RefereeNgbAssociationType.Primary,
 			NationalGoverningBody = ngbs.Single(n => n.CountryCode == "USA"),
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		});
 
+		var yankees = teams.First();
+
 		dbContext.RefereeTeams.AddRange(
 			new RefereeTeam
 			{
-				Referee = referee,
+				Referee = users.Referee,
 				AssociationType = RefereeTeamAssociationType.Player,
-				Team = teams.First(),
+				Team = yankees,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
 			},
 			new RefereeTeam
 			{
-				Referee = playerSarah,
+				Referee = users.PlayerSarah,
 				AssociationType = RefereeTeamAssociationType.Player,
-				Team = teams.First(), // Yankees team
+				Team = yankees,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
 			},
 			new RefereeTeam
 			{
-				Referee = coachMike,
+				Referee = users.CoachMike,
 				AssociationType = RefereeTeamAssociationType.Coach,
-				Team = teams.First(), // Yankees team
+				Team = yankees,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
-			});
+			}
+		);
 
-		// Add team manager assignment for integration tests
 		dbContext.TeamManagers.Add(new TeamManager
 		{
-			User = teamManager,
-			Team = teams.First(), // Yankees team
-			AddedBy = teamManager, // Self-assigned for bootstrap
+			User = users.TeamManager,
+			Team = yankees,
+			AddedBy = users.TeamManager,
 			CreatedAt = DateTime.UtcNow,
 			UpdatedAt = DateTime.UtcNow,
 		});
+	}
 
+	private Test[] SeedTests(ManagementHubDbContext dbContext, List<Certification> certifications, List<Language> languages)
+	{
 		var tests = new[]
 		{
 			new Test
@@ -535,7 +531,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				Name = "INACTIVE Assitant Ref 2018",
 				NegativeFeedback = "You failed",
 				PositiveFeedback = "You passed",
-				Recertification =false,
+				Recertification = false,
 				TimeLimit = 10,
 			},
 			new Test
@@ -826,8 +822,18 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				TestableQuestionCount = 12,
 			},
 		};
-		dbContext.Tests.AddRange(tests);
 
+		dbContext.Tests.AddRange(tests);
+		return tests;
+	}
+
+	private void SeedTestHistoryAndCertifications(
+		ManagementHubDbContext dbContext,
+		Test[] tests,
+		List<Certification> certifications,
+		User referee,
+		User recertTestReferee)
+	{
 		dbContext.TestResults.Add(new TestResult
 		{
 			CreatedAt = DateTime.UtcNow.AddDays(-50),
@@ -841,6 +847,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			Test = tests[1],
 			TestLevel = TestLevel.Assistant,
 		});
+
 		dbContext.TestResults.Add(new TestResult
 		{
 			CreatedAt = DateTime.UtcNow.AddDays(-5),
@@ -854,6 +861,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			Test = tests[2],
 			TestLevel = TestLevel.Assistant,
 		});
+
 		dbContext.RefereeCertifications.Add(new RefereeCertification
 		{
 			Certification = tests[1].Certification!,
@@ -862,11 +870,9 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			Referee = referee,
 		});
 
-		// Add Flag certification (previous version) to recert test referee so they're eligible for Flag recert test
-		// The Flag recert test requires Flag certification from the previous version
-		// Since the Flag recert test is for the latest version (2022), we need the previous version (2020)
 		var flagRecertTest = tests.First(t => t.Recertification == true && t.Certification!.Level == CertificationLevel.Flag);
 		var previousVersionForFlagRecert = flagRecertTest.Certification!.Version!.Value - 1;
+
 		dbContext.RefereeCertifications.Add(new RefereeCertification
 		{
 			Certification = certifications.First(c => c.Level == CertificationLevel.Flag && c.Version == previousVersionForFlagRecert),
@@ -874,7 +880,10 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			ReceivedAt = DateTime.UtcNow.AddDays(-30),
 			Referee = recertTestReferee,
 		});
+	}
 
+	private void SeedQuestions(ManagementHubDbContext dbContext, IEnumerable<Test> tests)
+	{
 		foreach (var test in tests)
 		{
 			var questions = Enumerable.Range(1, test.TestableQuestionCount).Select(i => new Question
@@ -893,9 +902,17 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 					UpdatedAt = DateTime.UtcNow,
 				}).ToArray(),
 			});
+
 			dbContext.Questions.AddRange(questions);
 		}
-
-		dbContext.SaveChanges();
 	}
+
+	private sealed record SeedUsers(
+		User Referee,
+		User NgbAdmin,
+		User IqaAdmin,
+		User TeamManager,
+		User PlayerSarah,
+		User CoachMike,
+		User RecertTestReferee);
 }
