@@ -124,7 +124,7 @@ The IQA Management Hub is a modern web application built with a clear separation
 ### Prerequisites
 
 - **.NET SDK 8.0** or later ([download](https://dotnet.microsoft.com/download))
-- **Node.js 18.x** or later ([download](https://nodejs.org/))
+- **Node.js 20.19.0** or later ([download](https://nodejs.org/))
 - **Yarn** package manager ([install](https://yarnpkg.com/getting-started/install))
 - **PostgreSQL** database (optional - only needed if not using in-memory database)
 - **Redis** (optional - only needed if not using in-memory cache and job queue)
