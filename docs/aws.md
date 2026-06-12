@@ -33,5 +33,6 @@ https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker.html
 
 We're using the Docker platform branch (not the ECS one).
 
-## CloudFront (CDN)
-We have a CloudFront on top of our service for hosting static files.
+After setting up the environment I had to go into EC2 (VM) mapped to EB and edit the security group to allow inbound traffic to HTTPS port 443.
+
+We're also using RDS (managed postgres) linked to EB. It auto injects DB credentials into the env (see Dockerfile).
