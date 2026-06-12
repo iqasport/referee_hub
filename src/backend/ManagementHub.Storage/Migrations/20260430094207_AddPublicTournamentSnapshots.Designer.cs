@@ -3,6 +3,7 @@ using System;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260430094207_AddPublicTournamentSnapshots")]
+    partial class AddPublicTournamentSnapshots
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -541,12 +544,6 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_time");
 
-                    b.Property<int?>("FlagRunnerRefereesCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("flag_runner_referees_count")
-                        .HasDefaultValueSql("0");
-
                     b.Property<int?>("HeadRefereesCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
@@ -624,73 +621,6 @@ namespace ManagementHub.Storage.Migrations
                     b.HasIndex(new[] { "NationalGoverningBodyId" }, "ngb_stats_on_ngb_id");
 
                     b.ToTable("national_governing_body_stats", (string)null);
-                });
-
-            modelBuilder.Entity("ManagementHub.Models.Data.Notification", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime?>("ArchivedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("archived_at");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("read_at");
-
-                    b.Property<string>("RelatedEntityId")
-                        .HasColumnType("character varying")
-                        .HasColumnName("related_entity_id");
-
-                    b.Property<string>("RelatedEntityType")
-                        .HasColumnType("character varying")
-                        .HasColumnName("related_entity_type");
-
-                    b.Property<string>("SecondaryEntityId")
-                        .HasColumnType("character varying")
-                        .HasColumnName("secondary_entity_id");
-
-                    b.Property<string>("SecondaryEntityType")
-                        .HasColumnType("character varying")
-                        .HasColumnName("secondary_entity_type");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("title");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("type");
-
-                    b.Property<string>("UniqueId")
-                        .HasColumnType("character varying")
-                        .HasColumnName("unique_id");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex(new[] { "UserId", "CreatedAt" }, "index_notifications_on_user_active_created")
-                        .HasFilter("\"archived_at\" IS NULL");
-
-                    b.HasIndex(new[] { "UserId", "ReadAt" }, "index_notifications_on_user_read_at");
-
-                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("ManagementHub.Models.Data.PolicyManagerPortabilityRequest", b =>
@@ -2107,18 +2037,6 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("NationalGoverningBody");
                 });
 
-            modelBuilder.Entity("ManagementHub.Models.Data.Notification", b =>
-                {
-                    b.HasOne("ManagementHub.Models.Data.User", "User")
-                        .WithMany("Notifications")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("notifications__user_fkey");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ManagementHub.Models.Data.PolicyManagerPortabilityRequest", b =>
                 {
                     b.HasOne("ManagementHub.Models.Data.User", "User")
@@ -2591,8 +2509,6 @@ namespace ManagementHub.Storage.Migrations
 
                     b.Navigation("NationalGoverningBodyAdmin")
                         .IsRequired();
-
-                    b.Navigation("Notifications");
 
                     b.Navigation("PolicyManagerPortabilityRequests");
 

@@ -48,6 +48,7 @@ public class TournamentsController : ControllerBase
 	private readonly IUserDelicateInfoService userDelicateInfoService;
 	private readonly ISendTournamentContactEmail sendTournamentContactEmail;
 	private readonly ISendTournamentInviteEmail sendTournamentInviteEmail;
+	private readonly IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand;
 	private readonly INotificationService notificationService;
 	private readonly ManagementHubDbContext dbContext;
 	private readonly Microsoft.Extensions.Logging.ILogger<TournamentsController> logger;
@@ -61,6 +62,7 @@ public class TournamentsController : ControllerBase
 		IUserDelicateInfoService userDelicateInfoService,
 		ISendTournamentContactEmail sendTournamentContactEmail,
 		ISendTournamentInviteEmail sendTournamentInviteEmail,
+		IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand,
 		INotificationService notificationService,
 		ManagementHubDbContext dbContext,
 		Microsoft.Extensions.Logging.ILogger<TournamentsController> logger)
@@ -73,6 +75,7 @@ public class TournamentsController : ControllerBase
 		this.userDelicateInfoService = userDelicateInfoService;
 		this.sendTournamentContactEmail = sendTournamentContactEmail;
 		this.sendTournamentInviteEmail = sendTournamentInviteEmail;
+		this.refreshPublicTournamentSnapshotCommand = refreshPublicTournamentSnapshotCommand;
 		this.notificationService = notificationService;
 		this.dbContext = dbContext;
 		this.logger = logger;
@@ -200,6 +203,8 @@ public class TournamentsController : ControllerBase
 		var tournamentId = await this.tournamentContextProvider
 			.CreateTournamentAsync(tournamentData, userContext.UserId, this.HttpContext.RequestAborted);
 
+		await this.refreshPublicTournamentSnapshotCommand.RefreshPublicTournamentSnapshot(this.HttpContext.RequestAborted);
+
 		return this.Ok(new TournamentIdResponse { Id = tournamentId.ToString() });
 	}
 
@@ -233,6 +238,8 @@ public class TournamentsController : ControllerBase
 		await this.tournamentContextProvider
 			.UpdateTournamentAsync(tournamentId, tournamentData, this.HttpContext.RequestAborted);
 
+		await this.refreshPublicTournamentSnapshotCommand.RefreshPublicTournamentSnapshot(this.HttpContext.RequestAborted);
+
 		return this.Ok(new TournamentIdResponse { Id = tournamentId.ToString() });
 	}
 
@@ -249,6 +256,8 @@ public class TournamentsController : ControllerBase
 	{
 		await this.tournamentContextProvider
 			.DeleteTournamentAsync(tournamentId, this.HttpContext.RequestAborted);
+
+		await this.refreshPublicTournamentSnapshotCommand.RefreshPublicTournamentSnapshot(this.HttpContext.RequestAborted);
 
 		return this.NoContent();
 	}
