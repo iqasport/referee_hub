@@ -36,9 +36,10 @@
     "react-router-dom": "^6.30.3",
     "react-select": "^5.7.3",
     "recharts": "^2.10.2",
-    "redux": "^4.2.1",
+    "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
     "remark-gfm": "^4.0.1",
+    "tslib": "^2.6.2",
     "victory": "^36.6.10"
   },
   "devDependencies": {
