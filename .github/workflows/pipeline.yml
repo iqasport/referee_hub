@@ -20,12 +20,12 @@ on:
   workflow_dispatch: # Allow manual trigger on any branch
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION: eu-central-1
   ECR_REPOSITORY: public.ecr.aws/g7w7d4k3
   IMAGE_NAME: iqasport/management-hub
-  EB_PACKAGE_S3_BUCKET_NAME: elasticbeanstalk-us-east-1-558550744343
-  EB_APPLICATION_NAME: iqasport-managementhub
-  EB_ENVIRONMENT_NAME: iqasport-managementhub-prod
+  EB_PACKAGE_S3_BUCKET_NAME: elasticbeanstalk-eu-central-1-558550744343
+  EB_APPLICATION_NAME: iqasport-management-hub
+  EB_ENVIRONMENT_NAME: iqasport-management-hub-prod
 
 jobs:
   build:
