@@ -3,7 +3,7 @@
   "private": true,
   "engines": {
     "node": ">=20.19.0",
-    "yarn": "1.22.22"
+    "yarn": ">=1.22.19 <2"
   },
   "dependencies": {
     "@bugsnag/js": "^7.20.2",
