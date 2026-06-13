@@ -86,17 +86,13 @@ public class PublicTournamentsController : ControllerBase
 	private async Task<IReadOnlyList<TournamentViewModel>> MapPublicTournamentsAsync(
 		IReadOnlyList<PublicTournamentSnapshotTournament> tournaments)
 	{
-		var tournamentIds = tournaments
-			.Select(tournament => tournament.Id)
-			.Distinct()
-			.ToArray();
+		var bannerUrls = new Dictionary<TournamentIdentifier, Uri?>();
 
-		var bannerUrls = (await Task.WhenAll(tournamentIds.Select(async tournamentId =>
+		foreach (var tournament in tournaments)
 		{
-			var uri = await this.tournamentContextProvider
-				.GetTournamentBannerUriAsync(tournamentId, this.HttpContext.RequestAborted);
-			return new KeyValuePair<TournamentIdentifier, Uri?>(tournamentId, uri);
-		}))).ToDictionary(entry => entry.Key, entry => entry.Value);
+			bannerUrls[tournament.Id] = await this.tournamentContextProvider
+				.GetTournamentBannerUriAsync(tournament.Id, this.HttpContext.RequestAborted);
+		}
 
 		return tournaments.Select(tournament => new TournamentViewModel
 		{
