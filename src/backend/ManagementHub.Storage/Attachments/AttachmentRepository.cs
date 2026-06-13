@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Data;
@@ -22,8 +21,6 @@ namespace ManagementHub.Storage.Attachments;
 /// </summary>
 public class AttachmentRepository : IAttachmentRepository
 {
-	private static readonly Regex safeLogValueRegex = new("[^a-zA-Z0-9_-]", RegexOptions.Compiled);
-
 	private static readonly Dictionary<Type, string> identifierToRecordTypeMapping = new()
 	{
 		[typeof(UserIdentifier)] = "User",
@@ -49,7 +46,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for {recordType} '{identifier}'.", SanitizeLogValue(attachmentName), recordType, SanitizeLogValue(identifier!.ToString()));
+		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for {recordType} '{identifier}'.", attachmentName, recordType, identifier);
 
 		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
@@ -62,7 +59,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for {recordType} '{identifier}'.", SanitizeLogValue(attachmentName), recordType, SanitizeLogValue(identifier!.ToString()));
+		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for {recordType} '{identifier}'.", attachmentName, recordType, identifier);
 
 		this.dbContext.ActiveStorageBlobs.Add(blob);
 
@@ -111,12 +108,5 @@ public class AttachmentRepository : IAttachmentRepository
 		}
 
 		return recordType;
-	}
-
-	private static string SanitizeLogValue(string? value)
-	{
-		// Replace any character that is not alphanumeric, underscore, or hyphen with underscore
-		// This prevents log injection while preserving useful debug information
-		return value is null ? string.Empty : safeLogValueRegex.Replace(value, "_");
 	}
 }
