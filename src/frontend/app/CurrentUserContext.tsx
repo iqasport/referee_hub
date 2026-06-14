@@ -12,9 +12,14 @@ interface CurrentUserContextValue {
 
 const CurrentUserContext = createContext<CurrentUserContextValue | undefined>(undefined);
 
+const PUBLIC_ROUTE_PATTERNS = [/^\/privacy$/, /^\/tournaments$/, /^\/tournaments\/[^/]+$/];
+
 export const CurrentUserProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery();
-  const isAnonymous = !isLoading && (isError || !currentUser);
+  const isPublicRoute = PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(window.location.pathname));
+  const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery(undefined, {
+    skip: isPublicRoute,
+  });
+  const isAnonymous = isPublicRoute || (!isLoading && (isError || !currentUser));
 
   return (
     <CurrentUserContext.Provider
