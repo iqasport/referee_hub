@@ -945,6 +945,40 @@ public class TournamentsController : ControllerBase
 		return this.Ok();
 	}
 
+	/// <summary>
+	/// Delete invite(s) for a tournament team participant, regardless of invite status.
+	/// </summary>
+	[HttpDelete("{tournamentId}/invites/{participantId}")]
+	[Tags("Tournament")]
+	[Authorize(AuthorizationPolicies.TournamentManagerPolicy)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	public async Task<IActionResult> DeleteInvite(
+		[FromRoute] TournamentIdentifier tournamentId,
+		[FromRoute] string participantId)
+	{
+		if (!TeamIdentifier.TryParse(participantId, out var teamId))
+		{
+			return this.BadRequest(new { error = "Invalid participant ID" });
+		}
+
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var tournament = await this.tournamentContextProvider
+			.GetTournamentContextAsync(tournamentId, userContext.UserId, this.HttpContext.RequestAborted);
+
+		if (tournament.EndDate < DateOnly.FromDateTime(DateTime.UtcNow))
+		{
+			return this.BadRequest(new { error = "Cannot modify archived tournament" });
+		}
+
+		await this.tournamentContextProvider.RemoveTeamInviteAsync(
+			tournamentId,
+			teamId,
+			this.HttpContext.RequestAborted);
+
+		return this.Ok();
+	}
+
 	// Phase 3: Participant endpoints
 
 	/// <summary>

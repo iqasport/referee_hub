@@ -91,7 +91,6 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 				.WithIdentifier(addedByUserId)
 				.Select(u => u.Id)
 				.FirstOrDefaultAsync();
-
 			if (currentUserDbId == 0)
 			{
 				throw new InvalidOperationException("Current user not found");
@@ -109,7 +108,6 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 				UserId = user.Id,
 				AddedByUserId = currentUserDbId,
 			});
-
 			await this.dbContext.SaveChangesAsync();
 			await transaction.CommitAsync();
 
