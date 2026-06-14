@@ -74,6 +74,16 @@ public static class AuthorizationPolicies
 				new UserRoleAuthorizationRequirement<NgbAdminRole>()));
 		});
 
+	public const string TeamManagerOrAnyNgbAdminPolicy = nameof(TeamManagerOrAnyNgbAdminPolicy);
+
+	public static void AddTeamManagerOrAnyNgbAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(TeamManagerOrAnyNgbAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new CompoundOrAuthorizationRequirement(
+				new TeamUserRoleAuthorizationRequirement<TeamManagerRole>(),
+				new UserRoleAuthorizationRequirement<NgbAdminRole>()));
+		});
+
 	public const string TournamentManagerOrTeamManagerPolicy = nameof(TournamentManagerOrTeamManagerPolicy);
 
 	public static void AddTournamentManagerOrTeamManagerPolicy(this AuthorizationOptions options) =>

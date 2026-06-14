@@ -47,7 +47,7 @@ public partial class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for {recordType} '{identifier}'.", SanitizeLogValue(attachmentName), recordType, SanitizeLogValue(identifier!.ToString()));
+		this.logger.LogInformation(0xff45500, "Retrieving attachment for {recordType} record.", recordType);
 
 		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
@@ -60,7 +60,7 @@ public partial class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for {recordType} '{identifier}'.", SanitizeLogValue(attachmentName), recordType, SanitizeLogValue(identifier!.ToString()));
+		this.logger.LogInformation(0xff45501, "Upserting attachment for {recordType} record.", recordType);
 
 		this.dbContext.ActiveStorageBlobs.Add(blob);
 

@@ -2,10 +2,10 @@ import Bugsnag from "@bugsnag/js";
 import React, { useEffect, useState, lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
+import { CurrentUserProvider, useCurrentUser } from "./CurrentUserContext";
 import Avatar from "./components/Avatar";
 import NotificationCenter from "./components/NotificationCenter/NotificationCenter";
 import Loader from "./components/Loader";
-import { useGetCurrentUserQuery } from "./store/serviceApi";
 
 const PUBLIC_ROUTE_PATTERNS = [/^\/privacy$/, /^\/tournaments$/, /^\/tournaments\/[^/]+$/];
 
@@ -31,11 +31,11 @@ const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"))
 const TeamView = lazy(() => import("./pages/TeamView"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
-const App = () => {
+const AppContent = () => {
   const isPublicRoute = PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(window.location.pathname));
   const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
   const [redirectTo, setRedirectTo] = useState<string>();
-  const { currentData: currentUser, error, isError, isLoading } = useGetCurrentUserQuery();
+  const { currentUser, error, isError, isLoading } = useCurrentUser();
   const roles = currentUser?.roles?.map((r) => r.roleType).filter((r): r is string => typeof r === "string") ?? [];
 
   const ownedNgbIds = currentUser
@@ -48,7 +48,7 @@ const App = () => {
       })()
     : undefined;
 
-  const shouldShowSignInButton = isPublicRoute && !currentUser;
+  const shouldShowSignInButton = isPublicRoute && !isLoading && !currentUser;
 
   const getRedirect = () => {
     if (!currentUser) return undefined;
@@ -80,7 +80,7 @@ const App = () => {
     }
   }, [bugsnagEnabled, currentUser?.userId]);
 
-  if (isLoading === true) return <Loader />;
+  if (!isPublicRoute && isLoading === true) return <Loader />;
 
   return (
     <Suspense fallback={<Loader />}>
@@ -126,6 +126,14 @@ const App = () => {
         </div>
       </BrowserRouter>
     </Suspense>
+  );
+};
+
+const App = () => {
+  return (
+    <CurrentUserProvider>
+      <AppContent />
+    </CurrentUserProvider>
   );
 };
 

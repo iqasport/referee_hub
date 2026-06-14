@@ -3,6 +3,7 @@ import { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import React from "react";
 import {
   InviteStatus,
+  useGetParticipantsQuery,
   useDeleteInviteMutation,
   useGetTournamentInvitesQuery,
   useRemoveParticipantMutation,
@@ -29,6 +30,10 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   const rosterViewModalRef = useRef<RosterViewModalRef>(null);
 
   const { data: invites, refetch } = useGetTournamentInvitesQuery(
+    { tournamentId },
+    { skip: !tournamentId }
+  );
+  const { data: participants } = useGetParticipantsQuery(
     { tournamentId },
     { skip: !tournamentId }
   );
@@ -124,6 +129,20 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
     return status === "approved";
   }
 
+  function isCurrentParticipant(participantId: string | null | undefined): boolean {
+    if (!participantId || !participants) {
+      return false;
+    }
+
+    return participants.some((participant) => participant.teamId === participantId);
+  }
+
+  function shouldRemoveParticipant(
+    participantId: string | null | undefined,
+    status: InviteStatus | undefined
+  ): boolean {
+    return isApprovedInvite(status) && isCurrentParticipant(participantId);
+  }
   function getRemoveLabel(status: InviteStatus | undefined, detailView: boolean): string {
     if (isApprovedInvite(status)) {
       return detailView ? "Remove From Tournament" : "Remove Team";
@@ -263,13 +282,28 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                       handleRemoveEntry(
                         selectedInviteData.participantId,
                         selectedInviteData.participantName || "this team",
-                        selectedInviteData.status
+                        shouldRemoveParticipant(
+                          selectedInviteData.participantId,
+                          selectedInviteData.status
+                        )
+                          ? "approved"
+                          : "pending"
                       )
                     }
                     className="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Removing..." : getRemoveLabel(selectedInviteData.status, true)}
+                    {isSubmitting
+                      ? "Removing..."
+                      : getRemoveLabel(
+                          shouldRemoveParticipant(
+                            selectedInviteData.participantId,
+                            selectedInviteData.status
+                          )
+                            ? "approved"
+                            : "pending",
+                          true
+                        )}
                   </button>
                 </div>
               </div>
@@ -307,7 +341,7 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                         </div>
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <div className="flex items-center gap-4">
-                            {isApprovedInvite(invite.status) && (
+                            {shouldRemoveParticipant(invite.participantId, invite.status) && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -329,13 +363,22 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                                 handleRemoveEntry(
                                   invite.participantId,
                                   invite.participantName || "this team",
-                                  invite.status
+                                  shouldRemoveParticipant(invite.participantId, invite.status)
+                                    ? "approved"
+                                    : "pending"
                                 );
                               }}
                               className="text-sm text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
                               disabled={isSubmitting}
                             >
-                              {isSubmitting ? "Removing..." : getRemoveLabel(invite.status, false)}
+                              {isSubmitting
+                                ? "Removing..."
+                                : getRemoveLabel(
+                                    shouldRemoveParticipant(invite.participantId, invite.status)
+                                      ? "approved"
+                                      : "pending",
+                                    false
+                                  )}
                             </button>
                           </div>
                         </div>

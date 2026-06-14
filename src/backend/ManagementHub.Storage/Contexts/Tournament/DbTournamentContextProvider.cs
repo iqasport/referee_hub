@@ -239,6 +239,72 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		return await this.accessFileCommand.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromSeconds(20), cancellationToken);
 	}
 
+	public async Task<IReadOnlyDictionary<TournamentIdentifier, Uri?>> GetTournamentBannerUrisAsync(
+		IEnumerable<TournamentIdentifier> tournamentIds,
+		CancellationToken cancellationToken = default)
+	{
+		var distinctTournamentIds = tournamentIds
+			.Distinct()
+			.ToList();
+
+		var result = distinctTournamentIds.ToDictionary(id => id, _ => (Uri?)null);
+		if (distinctTournamentIds.Count == 0)
+		{
+			return result;
+		}
+
+		var tournamentIdStrings = distinctTournamentIds
+			.Select(id => id.ToString())
+			.ToList();
+
+		var tournaments = await this.dbContext.Tournaments
+			.AsNoTracking()
+			.Where(t => tournamentIdStrings.Contains(t.UniqueId))
+			.Select(t => new { t.Id, t.UniqueId })
+			.ToListAsync(cancellationToken);
+
+		if (tournaments.Count == 0)
+		{
+			return result;
+		}
+
+		var tournamentIdsByRecordId = tournaments.ToDictionary(
+			t => t.Id,
+			t => TournamentIdentifier.Parse(t.UniqueId));
+
+		var tournamentRecordIds = tournaments
+			.Select(t => t.Id)
+			.ToList();
+
+		var bannerAttachments = await this.dbContext.ActiveStorageAttachments
+			.AsNoTracking()
+			.Include(a => a.Blob)
+			.Where(a => a.RecordType == "Tournament"
+				&& a.Name == "banner"
+				&& tournamentRecordIds.Contains(a.RecordId))
+			.GroupBy(a => a.RecordId)
+			.Select(g => g.OrderByDescending(a => a.CreatedAt).First())
+			.ToListAsync(cancellationToken);
+
+		var uriResults = await Task.WhenAll(bannerAttachments
+			.Where(a => tournamentIdsByRecordId.ContainsKey(a.RecordId) && a.Blob != null)
+			.Select(async attachment => new
+			{
+				TournamentId = tournamentIdsByRecordId[attachment.RecordId],
+				Uri = await this.accessFileCommand.GetFileAccessUriAsync(
+					attachment.Blob.Key,
+					TimeSpan.FromSeconds(20),
+					cancellationToken)
+			}));
+
+		foreach (var uriResult in uriResults)
+		{
+			result[uriResult.TournamentId] = uriResult.Uri;
+		}
+
+		return result;
+	}
+
 	public async Task<HashSet<TournamentIdentifier>> GetUserInvolvedTournamentIdsAsync(IEnumerable<TournamentIdentifier> tournamentIds, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
 		var tournamentIdsList = tournamentIds.Select(t => t.ToString()).ToList();
@@ -859,22 +925,30 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			throw new NotFoundException(tournamentId.ToString());
 		}
 
-		var invites = await this.dbContext.TournamentInvites
-			.Where(i => i.TournamentId == tournament.Id && i.ParticipantType == "team" && i.ParticipantId == participantId)
-			.ToListAsync(cancellationToken);
+			var invites = await this.dbContext.TournamentInvites
+			.Where(i => i.TournamentId == tournament.Id
+				&& i.ParticipantType == "team"
+				&& i.ParticipantId == participantId
+				&& (i.TournamentManagerApproval == ApprovalStatus.Pending
+					|| i.ParticipantApproval == ApprovalStatus.Pending))
+			.OrderByDescending(i => i.CreatedAt)
+					.ToListAsync(cancellationToken);
 
-		if (invites.Count == 0)
+		var sanitizedTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+		var sanitizedTeamId = teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
+
+			if (invites.Count == 0)
 		{
-			this.logger.LogInformation("No invite found for tournament {TournamentId} team {TeamId}",
-				tournamentId, teamId);
+			this.logger.LogInformation("No active invite found for tournament {TournamentId} team {TeamId}",
+				sanitizedTournamentId, sanitizedTeamId);
 			return;
 		}
 
-		this.dbContext.TournamentInvites.RemoveRange(invites);
+			this.dbContext.TournamentInvites.RemoveRange(invites);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
-		this.logger.LogInformation("Removed {InviteCount} invite(s) for tournament {TournamentId} team {TeamId}",
-			invites.Count, tournamentId, teamId);
+			this.logger.LogInformation("Removed {InviteCount} active invite(s) for tournament {TournamentId} team {TeamId}",
+					invites.Count, sanitizedTournamentId, sanitizedTeamId);
 	}
 
 	// Phase 3: Participant management methods

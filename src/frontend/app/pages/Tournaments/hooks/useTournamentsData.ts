@@ -1,8 +1,8 @@
 import {
   useGetTournamentsQuery,
-  useGetCurrentUserQuery,
   TournamentViewModel,
 } from "../../../store/serviceApi";
+import { useCurrentUser } from "../../../CurrentUserContext";
 
 interface UseTournamentsDataReturn {
   isAnonymous: boolean;
@@ -18,10 +18,7 @@ export const useTournamentsData = (
   currentPage: number,
   DEFAULT_PAGE_SIZE: number
 ): UseTournamentsDataReturn => {
-  // Query current user
-  const { currentData: currentUser, isLoading: isCurrentUserLoading, isError: isCurrentUserError } =
-    useGetCurrentUserQuery();
-  const isAnonymous = !isCurrentUserLoading && (isCurrentUserError || !currentUser);
+  const { isAnonymous, isLoading: isCurrentUserLoading } = useCurrentUser();
 
   // Wait until current-user state is resolved before querying tournaments.
   const shouldFetchTournaments = !isCurrentUserLoading;

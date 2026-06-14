@@ -1,8 +1,9 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import React, { useState, forwardRef, useImperativeHandle, useMemo } from "react";
+import { useState, forwardRef, useImperativeHandle, useMemo } from "react";
+import React from "react";
+import { useCurrentUser } from "../../../CurrentUserContext";
 import StatusBadge from "../../../components/StatusBadge";
 import {
-  useGetCurrentUserQuery,
   useGetManagedTeamsQuery,
   useGetNgbTeamsQuery,
   useCreateInviteMutation,
@@ -186,7 +187,7 @@ function useRegisterInviteState(
 
 // ── Custom hook: collects teams the current user can register ─────────────────
 function useManagedTeamsForRegistration() {
-  const { data: currentUser } = useGetCurrentUserQuery();
+  const { currentUser } = useCurrentUser();
 
   const userNgbs: string[] = useMemo(() => {
     if (!currentUser?.roles) return [];
