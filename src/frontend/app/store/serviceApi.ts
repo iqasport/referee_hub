@@ -6,6 +6,7 @@ export const addTagTypes = [
   "Identity",
   "Languages",
   "Ngb",
+  "Notifications",
   "Referee",
   "User",
   "UserInfo",
@@ -157,6 +158,29 @@ const injectedRtkApi = api
           body: queryArg.adminNgbUpdateModel,
         }),
         invalidatesTags: ["Ngb"],
+      }),
+      getNotifications: build.query<GetNotificationsApiResponse, GetNotificationsApiArg>({
+        query: () => ({ url: `/api/v2/Notifications` }),
+        providesTags: ["Notifications"],
+      }),
+      getUnreadCount: build.query<GetUnreadCountApiResponse, GetUnreadCountApiArg>({
+        query: () => ({ url: `/api/v2/Notifications/unread-count` }),
+        providesTags: ["Notifications"],
+      }),
+      markAsRead: build.mutation<MarkAsReadApiResponse, MarkAsReadApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Notifications/${queryArg.id}/read`,
+          method: "PATCH",
+        }),
+        invalidatesTags: ["Notifications"],
+      }),
+      markAllAsRead: build.mutation<MarkAllAsReadApiResponse, MarkAllAsReadApiArg>({
+        query: () => ({ url: `/api/v2/Notifications/read-all`, method: "PATCH" }),
+        invalidatesTags: ["Notifications"],
+      }),
+      deleteNotification: build.mutation<DeleteNotificationApiResponse, DeleteNotificationApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Notifications/${queryArg.id}`, method: "DELETE" }),
+        invalidatesTags: ["Notifications"],
       }),
       getAvailableTests: build.query<GetAvailableTestsApiResponse, GetAvailableTestsApiArg>({
         query: () => ({ url: `/api/v2/referees/me/tests/available` }),
@@ -474,23 +498,31 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/admin/Tests/${queryArg.testId}/questions` }),
         providesTags: ["Tests"],
       }),
+      getPublicTournaments: build.query<
+        GetPublicTournamentsApiResponse,
+        GetPublicTournamentsApiArg
+      >({
+        query: () => ({ url: `/api/v2/public/tournaments` }),
+        providesTags: ["Tournament"],
+      }),
+      getPublicTournamentById: build.query<
+        GetPublicTournamentByIdApiResponse,
+        GetPublicTournamentByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/api/v2/public/tournaments/${queryArg.tournamentId}` }),
+        providesTags: ["Tournament"],
+      }),
       getTournaments: build.query<GetTournamentsApiResponse, GetTournamentsApiArg>({
         query: (queryArg) => ({
           url: `/api/v2/Tournaments`,
           params: {
+            TournamentTypeFilter: queryArg.tournamentTypeFilter,
             Filter: queryArg.filter,
             Page: queryArg.page,
             PageSize: queryArg.pageSize,
             SkipPaging: queryArg.skipPaging,
           },
         }),
-        providesTags: ["Tournament"],
-      }),
-      getPublicTournaments: build.query<
-        GetPublicTournamentsApiResponse,
-        GetPublicTournamentsApiArg
-      >({
-        query: () => ({ url: `/api/v2/public/tournaments` }),
         providesTags: ["Tournament"],
       }),
       createTournament: build.mutation<CreateTournamentApiResponse, CreateTournamentApiArg>({
@@ -503,10 +535,6 @@ const injectedRtkApi = api
       }),
       getTournament: build.query<GetTournamentApiResponse, GetTournamentApiArg>({
         query: (queryArg) => ({ url: `/api/v2/Tournaments/${queryArg.tournamentId}` }),
-        providesTags: ["Tournament"],
-      }),
-      getPublicTournament: build.query<GetPublicTournamentApiResponse, GetPublicTournamentApiArg>({
-        query: (queryArg) => ({ url: `/api/v2/public/tournaments/${queryArg.tournamentId}` }),
         providesTags: ["Tournament"],
       }),
       updateTournament: build.mutation<UpdateTournamentApiResponse, UpdateTournamentApiArg>({
@@ -594,6 +622,13 @@ const injectedRtkApi = api
           url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
           method: "POST",
           body: queryArg.inviteResponseModel,
+        }),
+        invalidatesTags: ["Tournament"],
+      }),
+      deleteInvite: build.mutation<DeleteInviteApiResponse, DeleteInviteApiArg>({
+        query: (queryArg) => ({
+          url: `/api/v2/Tournaments/${queryArg.tournamentId}/invites/${queryArg.participantId}`,
+          method: "DELETE",
         }),
         invalidatesTags: ["Tournament"],
       }),
@@ -742,36 +777,6 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
         providesTags: ["UserInfo"],
       }),
-      getNotifications: build.query<GetNotificationsApiResponse, GetNotificationsApiArg>({
-        query: () => ({ url: `/api/v2/notifications` }),
-      }),
-      getUnreadCount: build.query<GetUnreadCountApiResponse, GetUnreadCountApiArg>({
-        query: () => ({ url: `/api/v2/notifications/unread-count` }),
-      }),
-      markNotificationRead: build.mutation<
-        MarkNotificationReadApiResponse,
-        MarkNotificationReadApiArg
-      >({
-        query: (queryArg) => ({
-          url: `/api/v2/notifications/${queryArg.id}/read`,
-          method: "PATCH",
-        }),
-      }),
-      markAllNotificationsRead: build.mutation<
-        MarkAllNotificationsReadApiResponse,
-        MarkAllNotificationsReadApiArg
-      >({
-        query: () => ({
-          url: `/api/v2/notifications/read-all`,
-          method: "PATCH",
-        }),
-      }),
-      deleteNotification: build.mutation<DeleteNotificationApiResponse, DeleteNotificationApiArg>({
-        query: (queryArg) => ({
-          url: `/api/v2/notifications/${queryArg.id}`,
-          method: "DELETE",
-        }),
-      }),
     }),
     overrideExisting: false,
   });
@@ -855,6 +860,20 @@ export type AdminCreateNgbApiResponse = unknown;
 export type AdminCreateNgbApiArg = {
   ngb: string;
   adminNgbUpdateModel: AdminNgbUpdateModel;
+};
+export type GetNotificationsApiResponse = /** status 200 Success */ NotificationListResponse;
+export type GetNotificationsApiArg = void;
+export type GetUnreadCountApiResponse = unknown;
+export type GetUnreadCountApiArg = void;
+export type MarkAsReadApiResponse = /** status 200 Success */ NotificationViewModel;
+export type MarkAsReadApiArg = {
+  id: string;
+};
+export type MarkAllAsReadApiResponse = unknown;
+export type MarkAllAsReadApiArg = void;
+export type DeleteNotificationApiResponse = unknown;
+export type DeleteNotificationApiArg = {
+  id: string;
 };
 export type GetAvailableTestsApiResponse =
   /** status 200 Success */ RefereeTestAvailableViewModel[];
@@ -1065,25 +1084,26 @@ export type GetTestQuestionsApiResponse = /** status 200 Success */ TestQuestion
 export type GetTestQuestionsApiArg = {
   testId: string;
 };
+export type GetPublicTournamentsApiResponse = unknown;
+export type GetPublicTournamentsApiArg = void;
+export type GetPublicTournamentByIdApiResponse = /** status 200 Success */ void;
+export type GetPublicTournamentByIdApiArg = {
+  tournamentId: string;
+};
 export type GetTournamentsApiResponse = /** status 200 Success */ TournamentViewModelFiltered;
 export type GetTournamentsApiArg = {
+  tournamentTypeFilter?: TournamentType;
   filter?: string;
   page?: number;
   pageSize?: number;
   skipPaging?: boolean;
 };
-export type GetPublicTournamentsApiResponse = /** status 200 Success */ TournamentViewModel[];
-export type GetPublicTournamentsApiArg = void;
 export type CreateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
 export type CreateTournamentApiArg = {
   tournamentModel: TournamentModel;
 };
 export type GetTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
 export type GetTournamentApiArg = {
-  tournamentId: string;
-};
-export type GetPublicTournamentApiResponse = /** status 200 Success */ TournamentViewModel;
-export type GetPublicTournamentApiArg = {
   tournamentId: string;
 };
 export type UpdateTournamentApiResponse = /** status 200 Success */ TournamentIdResponse;
@@ -1136,6 +1156,11 @@ export type RespondToInviteApiArg = {
   tournamentId: string;
   participantId: string;
   inviteResponseModel: InviteResponseModel;
+};
+export type DeleteInviteApiResponse = /** status 200 Success */ void;
+export type DeleteInviteApiArg = {
+  tournamentId: string;
+  participantId: string;
 };
 export type GetParticipantsApiResponse = /** status 200 Success */ TournamentParticipantViewModel[];
 export type GetParticipantsApiArg = {
@@ -1390,6 +1415,47 @@ export type AdminNgbUpdateModel = {
   socialAccounts?: SocialAccount[] | null;
   membershipStatus?: NgbMembershipStatus;
   region?: NgbRegion;
+};
+export type NotificationType =
+  | "ExamResult"
+  | "TournamentInvite"
+  | "TeamTournamentJoinRequest"
+  | "ManagerAssignment"
+  | "InviteAccepted"
+  | "InviteRejected"
+  | "RequestAccepted"
+  | "RequestRejected"
+  | "TeamApprovalNeeded"
+  | "NgbApprovalNeeded"
+  | "RosterRegistration";
+export type NotificationViewModel = {
+  /** Strongly-typed notification identifier. */
+  id?: string;
+  type?: NotificationType;
+  /** Display title. */
+  title?: string | null;
+  /** Detailed message. */
+  message?: string | null;
+  /** ID of related entity for navigation/action. */
+  relatedEntityId?: string | null;
+  /** Type of related entity (Tournament, Team, etc.). */
+  relatedEntityType?: string | null;
+  /** Secondary entity ID if applicable. */
+  secondaryEntityId?: string | null;
+  /** Type of secondary entity. */
+  secondaryEntityType?: string | null;
+  /** Whether the notification has been read. */
+  isRead?: boolean;
+  /** When the notification was created. */
+  createdAt?: string;
+  /** When the notification was read (if applicable). */
+  readAt?: string | null;
+};
+export type NotificationListResponse = {
+  /** List of notifications. */
+  notifications?: NotificationViewModel[] | null;
+  /** Total count of unread notifications. */
+  unreadCount?: number;
 };
 export type Certification = {
   level?: CertificationLevel;
@@ -1651,6 +1717,7 @@ export type TournamentInviteViewModel = {
   participantType?: ParticipantType;
   participantId?: string | null;
   participantName?: string | null;
+  logoUri?: string | null;
   status?: InviteStatus;
   initiatorUserId?: string;
   createdAt?: string;
@@ -1864,6 +1931,7 @@ export type StaffViewModel = {
 export type TournamentParticipantViewModel = {
   teamId?: string;
   teamName?: string | null;
+  logoUri?: string | null;
   players?: PlayerViewModel[] | null;
   coaches?: StaffViewModel[] | null;
   staff?: StaffViewModel[] | null;
@@ -1925,6 +1993,7 @@ export type ManagedTeamViewModel = {
   teamName?: string | null;
   ngb?: string;
   groupAffiliation?: TeamGroupAffiliation;
+  status?: TeamStatus;
 };
 export type UserDataViewModel = {
   firstName?: string | null;
@@ -1935,55 +2004,6 @@ export type UserDataViewModel = {
   exportName?: boolean | null;
   language?: string | null;
   createdAt?: string;
-};
-export type NotificationIdentifier = string;
-export type NotificationType =
-  | "ExamResult"
-  | "TournamentInvite"
-  | "TeamTournamentJoinRequest"
-  | "ManagerAssignment"
-  | "InviteAccepted"
-  | "InviteRejected"
-  | "RequestAccepted"
-  | "RequestRejected"
-  | "TeamApprovalNeeded"
-  | "NgbApprovalNeeded"
-  | "RosterRegistration";
-export type NotificationItem = {
-  id: NotificationIdentifier;
-  type: NotificationType;
-  title: string;
-  message: string;
-  relatedEntityId?: string | null;
-  relatedEntityType?: string | null;
-  secondaryEntityId?: string | null;
-  secondaryEntityType?: string | null;
-  isRead: boolean;
-  createdAt: string;
-  readAt?: string | null;
-};
-export type NotificationsResponse = {
-  notifications: NotificationItem[];
-  unreadCount: number;
-};
-export type UnreadCountResponse = {
-  unreadCount: number;
-};
-export type GetNotificationsApiResponse = /** status 200 Success */ NotificationsResponse;
-export type GetNotificationsApiArg = void;
-export type GetUnreadCountApiResponse = /** status 200 Success */ UnreadCountResponse;
-export type GetUnreadCountApiArg = void;
-export type MarkNotificationReadApiResponse = /** status 200 Success */ NotificationItem;
-export type MarkNotificationReadApiArg = {
-  id: NotificationIdentifier;
-};
-export type MarkAllNotificationsReadApiResponse = /** status 200 Success */ {
-  markedAsReadCount: number;
-};
-export type MarkAllNotificationsReadApiArg = void;
-export type DeleteNotificationApiResponse = unknown;
-export type DeleteNotificationApiArg = {
-  id: NotificationIdentifier;
 };
 export const {
   useCreatePaymentSessionMutation,
@@ -2004,6 +2024,11 @@ export const {
   useDeleteNgbAdminMutation,
   useAdminUpdateNgbMutation,
   useAdminCreateNgbMutation,
+  useGetNotificationsQuery,
+  useGetUnreadCountQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+  useDeleteNotificationMutation,
   useGetAvailableTestsQuery,
   useGetTestAttemptsQuery,
   useStartTestMutation,
@@ -2042,11 +2067,11 @@ export const {
   useGetAllTestsQuery,
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
-  useGetTournamentsQuery,
   useGetPublicTournamentsQuery,
+  useGetPublicTournamentByIdQuery,
+  useGetTournamentsQuery,
   useCreateTournamentMutation,
   useGetTournamentQuery,
-  useGetPublicTournamentQuery,
   useUpdateTournamentMutation,
   useDeleteTournamentMutation,
   useUpdateTournamentBannerMutation,
@@ -2057,6 +2082,7 @@ export const {
   useGetTournamentInvitesQuery,
   useCreateInviteMutation,
   useRespondToInviteMutation,
+  useDeleteInviteMutation,
   useGetParticipantsQuery,
   useRemoveParticipantMutation,
   useUpdateParticipantRosterMutation,

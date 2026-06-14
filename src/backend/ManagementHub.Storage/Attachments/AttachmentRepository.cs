@@ -8,6 +8,7 @@ using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.DbAccessors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
@@ -45,7 +46,7 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45500, "Retrieving attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
+		this.logger.LogInformation(0xff45500, "Retrieving attachment for {recordType} record.", recordType);
 
 		var recordQueryable = this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).AsNoTracking();
 		var attachments = this.dbContext.ActiveStorageAttachments.AsNoTracking().Where(a => a.RecordType == recordType && a.Name == attachmentName);
@@ -58,12 +59,17 @@ public class AttachmentRepository : IAttachmentRepository
 	{
 		string recordType = GetRecordType<TId>();
 
-		this.logger.LogInformation(0xff45501, "Upserting attachment '{attachmentName}' for '{recordType}' ({identifier}).", attachmentName, recordType, identifier);
+		this.logger.LogInformation(0xff45501, "Upserting attachment for {recordType} record.", recordType);
 
 		this.dbContext.ActiveStorageBlobs.Add(blob);
 
-		var recordQueryable = await this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).SingleAsync(cancellationToken);
-		var attachment = await this.dbContext.ActiveStorageAttachments.Where(a => a.RecordType == recordType && a.Name == attachmentName && a.RecordId == recordQueryable.Id)
+		var record = await this.dbAccessorProvider.GetDbAccessor<TId>().SelectWithId(identifier).SingleOrDefaultAsync(cancellationToken);
+		if (record == null)
+		{
+			throw new NotFoundException(identifier?.ToString() ?? $"object of type {typeof(TId).Name}");
+		}
+
+		var attachment = await this.dbContext.ActiveStorageAttachments.Where(a => a.RecordType == recordType && a.Name == attachmentName && a.RecordId == record.Id)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (attachment != null)
@@ -78,7 +84,7 @@ public class AttachmentRepository : IAttachmentRepository
 				Name = attachmentName,
 				Blob = blob,
 				CreatedAt = this.clock.UtcNow.UtcDateTime,
-				RecordId = recordQueryable.Id,
+				RecordId = record.Id,
 				RecordType = recordType,
 			};
 			this.dbContext.ActiveStorageAttachments.Add(attachment);

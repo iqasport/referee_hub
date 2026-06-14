@@ -115,8 +115,8 @@ public class TeamsController : ControllerBase
 	/// <returns>URL to access the uploaded logo</returns>
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
-	[Authorize]
-	[IgnoreAntiforgeryToken] // API uses bearer token authentication, not cookies, so CSRF is not a concern
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
+	[IgnoreAntiforgeryToken]
 	public async Task<ActionResult<Uri>> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
 		// Authorization: user must be a team manager OR an NGB admin of the team's NGB
@@ -556,12 +556,12 @@ public class TeamsController : ControllerBase
 	/// <returns>Success message</returns>
 	[HttpPost("{teamId}/managers")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	public async Task<ActionResult<string>> AddTeamManagerToTeam(
 		[FromRoute] TeamIdentifier teamId,
 		[FromBody] AddTeamManagerRequest request)
 	{
-		// Verify user is a manager of this team
+		// Verify user is a manager of this team OR an NGB admin of this team's NGB
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var isTeamManager = userContext.Roles
 			.OfType<TeamManagerRole>()
@@ -569,7 +569,20 @@ public class TeamsController : ControllerBase
 
 		if (!isTeamManager)
 		{
-			return this.Forbid();
+			var team = await this.teamContextProvider.GetTeamAsync(teamId, NgbConstraint.Any);
+			if (team == null)
+			{
+				return this.NotFound($"Team {teamId} not found");
+			}
+
+			var isNgbAdmin = userContext.Roles
+				.OfType<NgbAdminRole>()
+				.Any(role => role.Ngb.AppliesTo(team.NgbId));
+
+			if (!isNgbAdmin)
+			{
+				return this.Forbid();
+			}
 		}
 
 		// Parse and validate email
@@ -812,7 +825,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Success status</returns>
 	[HttpDelete("{teamId}/players/{playerId}")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerPolicy)]
 	public async Task<IActionResult> RemovePlayer(
 		[FromRoute] TeamIdentifier teamId,
 		[FromRoute] UserIdentifier playerId)
