@@ -239,6 +239,72 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 		return await this.accessFileCommand.GetFileAccessUriAsync(attachment.Blob.Key, TimeSpan.FromSeconds(20), cancellationToken);
 	}
 
+	public async Task<IReadOnlyDictionary<TournamentIdentifier, Uri?>> GetTournamentBannerUrisAsync(
+		IEnumerable<TournamentIdentifier> tournamentIds,
+		CancellationToken cancellationToken = default)
+	{
+		var distinctTournamentIds = tournamentIds
+			.Distinct()
+			.ToList();
+
+		var result = distinctTournamentIds.ToDictionary(id => id, _ => (Uri?)null);
+		if (distinctTournamentIds.Count == 0)
+		{
+			return result;
+		}
+
+		var tournamentIdStrings = distinctTournamentIds
+			.Select(id => id.ToString())
+			.ToList();
+
+		var tournaments = await this.dbContext.Tournaments
+			.AsNoTracking()
+			.Where(t => tournamentIdStrings.Contains(t.UniqueId))
+			.Select(t => new { t.Id, t.UniqueId })
+			.ToListAsync(cancellationToken);
+
+		if (tournaments.Count == 0)
+		{
+			return result;
+		}
+
+		var tournamentIdsByRecordId = tournaments.ToDictionary(
+			t => t.Id,
+			t => TournamentIdentifier.Parse(t.UniqueId));
+
+		var tournamentRecordIds = tournaments
+			.Select(t => t.Id)
+			.ToList();
+
+		var bannerAttachments = await this.dbContext.ActiveStorageAttachments
+			.AsNoTracking()
+			.Include(a => a.Blob)
+			.Where(a => a.RecordType == "Tournament"
+				&& a.Name == "banner"
+				&& tournamentRecordIds.Contains(a.RecordId))
+			.GroupBy(a => a.RecordId)
+			.Select(g => g.OrderByDescending(a => a.CreatedAt).First())
+			.ToListAsync(cancellationToken);
+
+		var uriResults = await Task.WhenAll(bannerAttachments
+			.Where(a => tournamentIdsByRecordId.ContainsKey(a.RecordId) && a.Blob != null)
+			.Select(async attachment => new
+			{
+				TournamentId = tournamentIdsByRecordId[attachment.RecordId],
+				Uri = await this.accessFileCommand.GetFileAccessUriAsync(
+					attachment.Blob.Key,
+					TimeSpan.FromSeconds(20),
+					cancellationToken)
+			}));
+
+		foreach (var uriResult in uriResults)
+		{
+			result[uriResult.TournamentId] = uriResult.Uri;
+		}
+
+		return result;
+	}
+
 	public async Task<HashSet<TournamentIdentifier>> GetUserInvolvedTournamentIdsAsync(IEnumerable<TournamentIdentifier> tournamentIds, UserIdentifier userId, CancellationToken cancellationToken = default)
 	{
 		var tournamentIdsList = tournamentIds.Select(t => t.ToString()).ToList();
