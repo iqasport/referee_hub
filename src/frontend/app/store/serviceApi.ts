@@ -2024,11 +2024,6 @@ export const {
   useDeleteNgbAdminMutation,
   useAdminUpdateNgbMutation,
   useAdminCreateNgbMutation,
-  useGetNotificationsQuery,
-  useGetUnreadCountQuery,
-  useMarkAsReadMutation,
-  useMarkAllAsReadMutation,
-  useDeleteNotificationMutation,
   useGetAvailableTestsQuery,
   useGetTestAttemptsQuery,
   useStartTestMutation,
@@ -2113,3 +2108,5 @@ export const {
   useDeleteNotificationMutation,
   useSetTeamAutoApprovePlayerRequestsMutation,
 } = injectedRtkApi;
+
+
