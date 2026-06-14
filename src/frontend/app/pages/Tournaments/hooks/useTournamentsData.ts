@@ -14,6 +14,66 @@ interface UseTournamentsDataReturn {
   publicTournamentsFromApi: TournamentViewModel[];
 }
 
+interface QueryState {
+  isCurrentUserLoading: boolean;
+  isLoadingAll: boolean;
+  isLoadingPaginated: boolean;
+  isLoadingPublic: boolean;
+  isErrorAll: boolean;
+  isErrorPaginated: boolean;
+  isErrorPublic: boolean;
+}
+
+const getSearchText = (tournament: TournamentViewModel): string => {
+  return [
+    tournament.name,
+    tournament.description,
+    tournament.organizer,
+    tournament.country,
+    tournament.city,
+    tournament.place,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+};
+
+const getFilteredPublicTournaments = (
+  publicTournamentsData: unknown,
+  searchTerm: string
+): TournamentViewModel[] => {
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const publicTournaments = (Array.isArray(publicTournamentsData)
+    ? publicTournamentsData
+    : []) as TournamentViewModel[];
+
+  if (!normalizedSearch) {
+    return publicTournaments;
+  }
+
+  return publicTournaments.filter((tournament) => getSearchText(tournament).includes(normalizedSearch));
+};
+
+const getAnonymousPage = (
+  tournaments: TournamentViewModel[],
+  currentPage: number,
+  pageSize: number
+): TournamentViewModel[] => {
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageEnd = currentPage * pageSize;
+  return tournaments.slice(pageStart, pageEnd);
+};
+
+const getLoadingState = (isAnonymous: boolean, state: QueryState): boolean => {
+  return isAnonymous
+    ? state.isCurrentUserLoading || state.isLoadingPublic
+    : state.isCurrentUserLoading || state.isLoadingAll || state.isLoadingPaginated;
+};
+
+const getErrorState = (isAnonymous: boolean, state: QueryState): boolean => {
+  return isAnonymous ? state.isErrorPublic : state.isErrorAll || state.isErrorPaginated;
+};
+
 export const useTournamentsData = (
   searchTerm: string,
   currentPage: number,
@@ -65,38 +125,26 @@ export const useTournamentsData = (
     skip: !shouldFetchTournaments || !isAnonymous,
   });
 
-  const normalizedSearch = searchTerm.trim().toLowerCase();
-  const publicTournaments = (Array.isArray(publicTournamentsData)
-    ? publicTournamentsData
-    : []) as TournamentViewModel[];
-  const filteredPublicTournaments = normalizedSearch
-    ? publicTournaments.filter((tournament) => {
-        const haystack = [
-          tournament.name,
-          tournament.description,
-          tournament.organizer,
-          tournament.country,
-          tournament.city,
-          tournament.place,
-        ]
-          .filter((value): value is string => typeof value === "string")
-          .join(" ")
-          .toLowerCase();
+  const filteredPublicTournaments = getFilteredPublicTournaments(publicTournamentsData, searchTerm);
 
-        return haystack.includes(normalizedSearch);
-      })
-    : publicTournaments;
+  const queryState: QueryState = {
+    isCurrentUserLoading,
+    isLoadingAll,
+    isLoadingPaginated,
+    isLoadingPublic,
+    isErrorAll,
+    isErrorPaginated,
+    isErrorPublic,
+  };
 
   // Calculate loading and error states
-  const isLoading = isAnonymous
-    ? isCurrentUserLoading || isLoadingPublic
-    : isCurrentUserLoading || isLoadingAll || isLoadingPaginated;
-  const isError = isAnonymous ? isErrorPublic : isErrorAll || isErrorPaginated;
+  const isLoading = getLoadingState(isAnonymous, queryState);
+  const isError = getErrorState(isAnonymous, queryState);
 
   // Extract data from responses
   const allTournaments = isAnonymous ? filteredPublicTournaments : allTournamentsData?.items || [];
   const paginatedTournaments = isAnonymous
-    ? filteredPublicTournaments.slice((currentPage - 1) * DEFAULT_PAGE_SIZE, currentPage * DEFAULT_PAGE_SIZE)
+    ? getAnonymousPage(filteredPublicTournaments, currentPage, DEFAULT_PAGE_SIZE)
     : paginatedData?.items || [];
   const publicTournamentsFromApi = isAnonymous ? filteredPublicTournaments : [];
 
