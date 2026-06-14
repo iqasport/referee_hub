@@ -2103,10 +2103,11 @@ export const {
   useGetUserDataQuery,
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
-  useMarkNotificationReadMutation,
-  useMarkAllNotificationsReadMutation,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
   useDeleteNotificationMutation,
   useSetTeamAutoApprovePlayerRequestsMutation,
 } = injectedRtkApi;
+
 
 
