@@ -64,7 +64,8 @@ const privateFieldConfigs: PrivateFieldConfig[] = [
   { key: "medicalConditions", label: "Medical Conditions", multiline: true, placeholder: "Medical conditions" },
   { key: "emergencyContacts", label: "Emergency Contacts", multiline: true, placeholder: "Emergency contacts" },
 ];
-// Special pronouns row — includes a visibility toggle alongside the text input.
+
+// Special pronouns row â€” includes a visibility toggle alongside the text input.
 interface PronounsRowProps {
   isEditing: boolean;
   pronouns: string | null | undefined;
@@ -105,7 +106,7 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
 
   const handleToggleChange =
     (key: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChange({ [key]: e.currentTarget.checked } as Partial<UserDataViewModel>);
+    onChange({ [key]: e.currentTarget.checked } as Partial<UserDataViewModel>);
 
   const renderPrivateField = ({ key, label, multiline, placeholder, type = "text" }: PrivateFieldConfig) => (
     <DetailsRow
@@ -134,6 +135,7 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
       }
     />
   );
+
   return (
     <div className="card card-mb">
       <div className="flex items-center justify-between mb-4">
@@ -181,11 +183,18 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
 
 const PlayerDetails = () => {
   const { refereeId } = useNavigationParams<"refereeId">();
+  const refereeQueryId = refereeId ?? "";
   const [isEditing, setIsEditing] = useState(false);
 
-  const { currentData: referee } = useGetRefereeQuery({ userId: refereeId });
-  const [editableReferee, setReferee] = useState<RefereeLocationOptions & RefereeTeamOptions>(referee);
+  const { currentData: referee } = useGetRefereeQuery({ userId: refereeQueryId });
+  const [editableReferee, setReferee] = useState<RefereeLocationOptions & RefereeTeamOptions>({} as RefereeLocationOptions & RefereeTeamOptions);
   const [updateReferee, { error: updateRefereeError }] = useUpdateCurrentRefereeMutation();
+
+  useEffect(() => {
+    if (referee) {
+      setReferee(referee);
+    }
+  }, [referee]);
 
   const handleChange = (newState: RefereeLocationOptions | RefereeTeamOptions) => {
     setReferee({ ...editableReferee, ...newState });
