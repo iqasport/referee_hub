@@ -107,7 +107,7 @@ public class TeamsController : ControllerBase
 	/// <returns>URL to access the uploaded logo</returns>
 	[HttpPut("{teamId}/logo")]
 	[Tags("Team")]
-	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	[IgnoreAntiforgeryToken]
 	public async Task<ActionResult<Uri>> UploadTeamLogo([FromRoute] TeamIdentifier teamId, [FromForm] IFormFile logoBlob)
 	{
@@ -393,7 +393,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Success message</returns>
 	[HttpPost("{teamId}/managers")]
 	[Tags("TeamManagement")]
-	[Authorize(AuthorizationPolicies.TeamManagerOrNgbAdminPolicy)]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	public async Task<ActionResult<string>> AddTeamManagerToTeam(
 		[FromRoute] TeamIdentifier teamId,
 		[FromBody] AddTeamManagerRequest request)

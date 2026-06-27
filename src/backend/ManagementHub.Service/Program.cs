@@ -122,6 +122,7 @@ public partial class Program
 			options.AddTournamentManagerPolicy();
 			options.AddTeamManagerPolicy();
 			options.AddTeamManagerOrNgbAdminPolicy();
+			options.AddTeamManagerOrAnyNgbAdminPolicy();
 			options.AddTournamentManagerOrTeamManagerPolicy();
 		});
 
