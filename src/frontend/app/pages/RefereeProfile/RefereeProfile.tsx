@@ -160,6 +160,7 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
         onShowPronounsChange={handleToggleChange("showPronouns")}
       />
 
+      {isEditable && privateFieldConfigs.map(renderPrivateField)}
       <DetailsRow
         label="Bio"
         isEditing={isEditing}
