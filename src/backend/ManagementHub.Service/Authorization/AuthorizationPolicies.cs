@@ -71,6 +71,16 @@ public static class AuthorizationPolicies
 		{
 			policy.AddRequirements(new CompoundOrAuthorizationRequirement(
 				new TeamUserRoleAuthorizationRequirement<TeamManagerRole>(),
+				new NgbUserRoleAuthorizationRequirement<NgbAdminRole>()));
+		});
+
+	public const string TeamManagerOrAnyNgbAdminPolicy = nameof(TeamManagerOrAnyNgbAdminPolicy);
+
+	public static void AddTeamManagerOrAnyNgbAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(TeamManagerOrAnyNgbAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new CompoundOrAuthorizationRequirement(
+				new TeamUserRoleAuthorizationRequirement<TeamManagerRole>(),
 				new UserRoleAuthorizationRequirement<NgbAdminRole>()));
 		});
 

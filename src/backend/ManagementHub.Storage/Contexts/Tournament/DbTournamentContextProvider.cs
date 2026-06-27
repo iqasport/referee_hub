@@ -925,30 +925,30 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			throw new NotFoundException(tournamentId.ToString());
 		}
 
-			var invites = await this.dbContext.TournamentInvites
+		var invite = await this.dbContext.TournamentInvites
 			.Where(i => i.TournamentId == tournament.Id
 				&& i.ParticipantType == "team"
 				&& i.ParticipantId == participantId
 				&& (i.TournamentManagerApproval == ApprovalStatus.Pending
 					|| i.ParticipantApproval == ApprovalStatus.Pending))
 			.OrderByDescending(i => i.CreatedAt)
-					.ToListAsync(cancellationToken);
+			.FirstOrDefaultAsync(cancellationToken);
 
 		var sanitizedTournamentId = tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
 		var sanitizedTeamId = teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
 
-			if (invites.Count == 0)
+		if (invite == null)
 		{
 			this.logger.LogInformation("No active invite found for tournament {TournamentId} team {TeamId}",
 				sanitizedTournamentId, sanitizedTeamId);
 			return;
 		}
 
-			this.dbContext.TournamentInvites.RemoveRange(invites);
+		this.dbContext.TournamentInvites.Remove(invite);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 
-			this.logger.LogInformation("Removed {InviteCount} active invite(s) for tournament {TournamentId} team {TeamId}",
-					invites.Count, sanitizedTournamentId, sanitizedTeamId);
+		this.logger.LogInformation("Removed active invite for tournament {TournamentId} team {TeamId}",
+			sanitizedTournamentId, sanitizedTeamId);
 	}
 
 	// Phase 3: Participant management methods

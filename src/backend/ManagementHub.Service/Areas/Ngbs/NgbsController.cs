@@ -96,11 +96,11 @@ public class NgbsController : ControllerBase
 	/// </summary>
 	[HttpGet("with-eligible-teams")]
 	[Tags("Ngb")]
-	public ActionResult<IEnumerable<string>> GetNgbsWithEligibleTeams([FromQuery] TeamGroupAffiliation[] groupAffiliations)
+	public ActionResult<IEnumerable<NgbIdentifier>> GetNgbsWithEligibleTeams([FromQuery] TeamGroupAffiliation[] groupAffiliations)
 	{
 		if (groupAffiliations == null || groupAffiliations.Length == 0)
 		{
-			return this.Ok(Array.Empty<string>());
+			return this.Ok(Array.Empty<NgbIdentifier>());
 		}
 
 		var codes = this.teamContextProvider.GetNgbCodesWithTeams(groupAffiliations);
