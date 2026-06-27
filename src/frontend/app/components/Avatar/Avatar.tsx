@@ -94,7 +94,7 @@ const Avatar = (props: AvatarProps) => {
 
   const items: ItemConfig[] = [];
 
-  if (roles.includes("Referee")) items.push(refereeProfile);
+  items.push(refereeProfile);
   if (roles.includes("NgbAdmin") && ownedNgbId) items.push(ngbProfile);
   //if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite); // TODO: unblock once implemented
 
