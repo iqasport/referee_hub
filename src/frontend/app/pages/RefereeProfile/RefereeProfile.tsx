@@ -106,7 +106,7 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
 
   const handleToggleChange =
     (key: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ [key]: e.currentTarget.checked } as Partial<UserDataViewModel>);
+      onChange({ [key]: e.currentTarget.checked } as Partial<UserDataViewModel>);
 
   const renderPrivateField = ({ key, label, multiline, placeholder, type = "text" }: PrivateFieldConfig) => (
     <DetailsRow
