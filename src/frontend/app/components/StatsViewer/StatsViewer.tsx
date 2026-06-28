@@ -39,7 +39,8 @@ const StatsViewer = (props: StatsViewerProps) => {
           <RefereeStats
             headCount={currentStat?.headRefereesCount}
             assistantCount={currentStat?.assistantRefereesCount}
-            snitchCount={currentStat?.flagRefereesCount}
+            flagCount={currentStat?.flagRefereesCount}
+            flagRunnerCount={currentStat?.flagRunnerRefereesCount}
             scorekeeperCount={currentStat?.scorekeeperRefereesCount}
             uncertifiedCount={currentStat?.uncertifiedRefereesCount}
             total={currentStat?.totalRefereesCount}
@@ -75,7 +76,7 @@ const StatsViewer = (props: StatsViewerProps) => {
   };
 
   return (
-    <div className="w-full rounded-lg bg-gray-300 flex flex-col lg:flex-row justify-between py-8 px-4">
+    <div className="w-full rounded-lg bg-gray-300 flex flex-col lg:flex-row lg:items-stretch lg:gap-4 py-6 px-4">
       {renderCurrentStats()}
     </div>
   );

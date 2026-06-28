@@ -87,7 +87,7 @@ const Sidebar = (props: SidebarProps) => {
       <a
         key={`email-${index}`}
         href={`mailto:${email}`}
-        className={classnames("mr-4", "hover:underline")}
+        className={classnames("mr-4 text-sm text-gray-700 hover:underline")}
         style={{overflow: "hidden"}}
       >
         <FontAwesomeIcon icon={faUser} className="text-xl" />
@@ -97,8 +97,8 @@ const Sidebar = (props: SidebarProps) => {
   }
 
   return (
-    <div className="flex flex-row flex-wrap mb-4 md:m-0 md:flex-col w-full md:w-1/4 md:border-r-2 md:border-gray-700 md:pr-8">
-      <div className="flex justify-center">
+    <aside className="card card-mb card-sticky">
+      <div className="flex justify-center mb-4">
         <UploadedImage
           imageAlt="national governing body logo"
           imageUrl={ngb.avatarUri}
@@ -106,52 +106,61 @@ const Sidebar = (props: SidebarProps) => {
           isEditable={true}
         />
       </div>
-      <div className="w-full flex flex-row justify-between mt-8">
-        <DataLabel label="teams" customClass="flex-shrink">
-          <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">{ngb.currentStats.totalTeamsCount}</h3>
-        </DataLabel>
-        <DataLabel label="referees" customClass="flex-shrink">
-          <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">{ngb.currentStats.totalRefereesCount}</h3>
-        </DataLabel>
-        <DataLabel label="players" customClass="flex-shrink">
-          <h3 className="uppercase text-navy-blue font-extrabold pt-2 text-2xl">
-            {ngb.playerCount}
-          </h3>
-        </DataLabel>
+
+      <div className="stats-list card-mb">
+        <div className="stats-item">
+          <span className="stats-label">Teams</span>
+          <span className="stats-value">{ngb.currentStats.totalTeamsCount}</span>
+        </div>
+        <div className="stats-item">
+          <span className="stats-label">Referees</span>
+          <span className="stats-value">{ngb.currentStats.totalRefereesCount}</span>
+        </div>
+        <div className="stats-item">
+          <span className="stats-label">Players</span>
+          <span className="stats-value">{ngb.playerCount}</span>
+        </div>
       </div>
-      <div className="w-full flex flex-row justify-between">
-        <DataLabel label="acronym" customClass="flex-shrink">
-          <h3 className="uppercase text-navy-blue font-bold pt-2">{ngb.acronym}</h3>
-        </DataLabel>
-        <DataLabel label="membership status" customClass="flex-shrink">
-          <h3 className="text-navy-blue font-bold pt-2">
+
+      <div className="stats-list card-mb">
+        <div className="stats-item">
+          <span className="stats-label">Acronym</span>
+          <span className="stats-value uppercase">{ngb.acronym}</span>
+        </div>
+        <div className="stats-item">
+          <span className="stats-label">Membership</span>
+          <span className="stats-value">
             {words(ngb.membershipStatus)
               .map((word) => capitalize(word))
               .join(" ")}
-          </h3>
-        </DataLabel>
-        <DataLabel label="region" customClass="flex-shrink">
-          <h3 className="text-navy-blue font-bold pt-2">
+          </span>
+        </div>
+        <div className="stats-item">
+          <span className="stats-label">Region</span>
+          <span className="stats-value">
             {words(ngb.region)
               .map((word) => capitalize(word))
               .join(" ")}
-          </h3>
-        </DataLabel>
+          </span>
+        </div>
       </div>
-      <DataLabel label="website" customClass="w-full">
-        <h3 className="text-navy-blue font-bold pt-2 truncate hover:underline">
+
+      <DataLabel label="website" customClass="w-full mt-0 mb-4">
+        <h3 className="text-sm text-gray-800 font-semibold pt-2 truncate hover:underline">
           <a href={ngb.website} rel="noopener noreferrer" target="_blank">
             {ngb.website}
           </a>
         </h3>
       </DataLabel>
-      <DataLabel label="social media" customClass="w-full">
+
+      <DataLabel label="social media" customClass="w-full mt-0 mb-4">
         <div className="flex w-full mt-2 flex-wrap">{ngb.socialAccounts.map(renderSocialMedia)}</div>
       </DataLabel>
-      <DataLabel label="admin emails" customClass="w-full">
+
+      <DataLabel label="admin emails" customClass="w-full mt-0">
         <div className="flex w-full mt-2 flex-wrap">{ngb.adminEmails.map(renderAdminEmail)}</div>
       </DataLabel>
-    </div>
+    </aside>
   );
 };
 

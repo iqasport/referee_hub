@@ -8,6 +8,7 @@ public interface INgbStatsContext
 	public int HeadRefereesCount { get; }
 	public int AssistantRefereesCount { get; }
 	public int FlagRefereesCount { get; }
+	public int FlagRunnerRefereesCount { get; }
 	public int ScorekeeperRefereesCount { get; }
 	public int UncertifiedRefereesCount { get; }
 

@@ -10,6 +10,13 @@ namespace ManagementHub.Storage.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<int>(
+                name: "flag_runner_referees_count",
+                table: "national_governing_body_stats",
+                type: "INTEGER",
+                nullable: true,
+                defaultValueSql: "0");
+
             migrationBuilder.Sql(
                 """
                 INSERT INTO certifications (created_at, updated_at, level, version)
@@ -27,6 +34,10 @@ namespace ManagementHub.Storage.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql("DELETE FROM certifications WHERE level = 5;");
+
+            migrationBuilder.DropColumn(
+                name: "flag_runner_referees_count",
+                table: "national_governing_body_stats");
         }
     }
 }

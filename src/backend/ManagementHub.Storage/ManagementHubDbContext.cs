@@ -527,6 +527,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("snitch_referees_count")
 				.HasDefaultValueSql("0");
 
+			entity.Property(e => e.FlagRunnerRefereesCount)
+				.HasColumnName("flag_runner_referees_count")
+				.HasDefaultValueSql("0");
+
 			entity.Property(e => e.Start)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("start");
