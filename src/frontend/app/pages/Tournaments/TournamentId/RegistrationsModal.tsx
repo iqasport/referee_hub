@@ -143,7 +143,6 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
   ): boolean {
     return isApprovedInvite(status) && isCurrentParticipant(participantId);
   }
-
   function getRemoveLabel(status: InviteStatus | undefined, detailView: boolean): string {
     if (isApprovedInvite(status)) {
       return detailView ? "Remove From Tournament" : "Remove Team";
@@ -318,14 +317,16 @@ const RegistrationsModal = forwardRef<RegistrationsModalRef>((_props, ref) => {
                         key={invite.participantId}
                         className="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md"
                       >
-                        <div 
-                          className="flex items-center justify-between cursor-pointer"
-                          onClick={() => setSelectedInvite(invite.participantId)}
-                        >
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              {invite.participantName}
-                            </h4>
+                        <div className="flex items-center gap-3 mb-3">
+                          {invite.logoUri && (
+                            <img
+                              src={invite.logoUri}
+                              alt={`${invite.participantName} logo`}
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                            />
+                          )}
+                          <div className="flex-1 cursor-pointer" onClick={() => setSelectedInvite(invite.participantId)}>
+                            <h4 className="font-semibold text-gray-900">{invite.participantName}</h4>
                             <p className="text-sm text-gray-600">
                               Requested{" "}
                               {new Date(invite.createdAt).toLocaleDateString("en-US", {
