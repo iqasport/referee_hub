@@ -2108,6 +2108,17 @@ export const {
   useDeleteNotificationMutation,
   useSetTeamAutoApprovePlayerRequestsMutation,
 } = injectedRtkApi;
+export const useGetEligibleNgbsQuery = (
+  _arg: { groupAffiliations: TeamGroupAffiliation[] },
+  options?: Parameters<typeof injectedRtkApi.endpoints.getNgbs.useQuery>[1]
+) => {
+  const result = injectedRtkApi.endpoints.getNgbs.useQuery({ skipPaging: true }, options);
 
-
-
+  return {
+    ...result,
+    data:
+      result.data?.items
+        ?.map((ngb: { ngbId?: string }) => ngb.ngbId)
+        .filter((id: string | undefined): id is string => typeof id === "string") ?? [],
+  };
+};

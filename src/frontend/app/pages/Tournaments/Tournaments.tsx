@@ -22,11 +22,9 @@ const Tournament = () => {
   const viewMode: "list" | "calendar" = viewParam === "calendar" ? "calendar" : "list";
   const modalRef = useRef<AddTournamentModalRef>(null);
 
-  // Load all tournament data with a single hook
   const { isAnonymous, isLoading, isError, allTournaments, paginatedTournaments, publicTournamentsFromApi } =
     useTournamentsData(searchTerm, currentPage, DEFAULT_PAGE_SIZE);
 
-  // Use custom hook for filtering tournaments
   const { filteredAllTournaments, filteredPaginatedTournaments } = useFilteredTournaments(
     isAnonymous,
     currentPage,
@@ -36,7 +34,6 @@ const Tournament = () => {
     paginatedTournaments
   );
 
-  // Use custom hook to organize tournaments into sections
   const { publicTournaments, privateTournaments, totalCount } = useTournamentSections(
     isAnonymous,
     filteredAllTournaments,
@@ -48,7 +45,6 @@ const Tournament = () => {
     [filteredAllTournaments]
   );
 
-  // Handle search
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
     if (term.trim()) {
@@ -60,7 +56,6 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
-  // Handle type filter
   const handleTypeFilter = (type: string) => {
     const params = new URLSearchParams(searchParams);
     if (type) {
@@ -72,7 +67,6 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
-  // Handle page change
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     if (page > 1) {
@@ -94,11 +88,7 @@ const Tournament = () => {
       <div className="tournament-page-container">
         <div className="tournament-page-header">
           <div className="tournament-search-wrapper">
-            <Search
-              onSearch={handleSearch}
-              onTypeFilter={handleTypeFilter}
-              selectedType={typeFilter}
-            />
+            <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
           </div>
           <div className="view-toggle" aria-label="Tournament view toggle">
             <button
