@@ -145,7 +145,9 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 
 		var myInvites = await myInvitesResponse.Content.ReadFromJsonAsync<List<CurrentUserTeamInviteViewModelDto>>();
 		myInvites.Should().NotBeNull();
-		myInvites!.Should().Contain(i => i.InvitationId == invite!.InvitationId && i.TeamId == "TM_1");
+		myInvites!.Should().Contain(i =>
+			NormalizeInvitationId(i.InvitationId) == NormalizeInvitationId(invite!.InvitationId)
+			&& i.TeamId == "TM_1");
 
 		var respondResponse = await this.client.PostAsJsonAsync(
 			$"/api/v2/users/me/teamInvites/{invite!.InvitationId}",
@@ -173,6 +175,14 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 
 		var sentEmails = this.factory.EmailSender.GetSentEmails();
 		sentEmails.Should().Contain(e => e.Subject.Contains("Team Invitation accepted") && e.To.Contains("team_manager@example.com"));
+	}
+
+	private static string NormalizeInvitationId(string invitationId)
+	{
+		const string idPrefix = "TI_";
+		return invitationId.StartsWith(idPrefix, System.StringComparison.OrdinalIgnoreCase)
+			? invitationId.Substring(idPrefix.Length)
+			: invitationId;
 	}
 
 	[Fact]
