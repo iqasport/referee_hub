@@ -63,26 +63,26 @@ public class RefereesController : ControllerBase
 	public async Task<IActionResult> UpdateCurrentReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
-		var currentUserDbId = await this.dbContext.Users
-			.WithIdentifier(userContext.UserId)
-			.Select(user => user.Id)
-			.SingleAsync(this.HttpContext.RequestAborted);
-
-		var currentPlayingTeamId = await this.GetCurrentRefereeTeamIdAsync(currentUserDbId, RefereeTeamAssociationType.Player);
-		var currentCoachingTeamId = await this.GetCurrentRefereeTeamIdAsync(currentUserDbId, RefereeTeamAssociationType.Coach);
+		var (currentPlayingTeamId, currentCoachingTeamId) = await this.GetCurrentRefereeTeamIdsAsync(userContext.UserId);
 
 		var requestedPlayingTeamId = refereeUpdate.PlayingTeam?.Id.Id;
 		var requestedCoachingTeamId = refereeUpdate.CoachingTeam?.Id.Id;
 		var normalizedEmail = userContext.UserData.Email.Value.Trim().ToLowerInvariant();
+		var requestedTeamIds = new[] { requestedPlayingTeamId, requestedCoachingTeamId }
+			.Where(teamId => teamId != null)
+			.Select(teamId => teamId!.Value)
+			.Distinct()
+			.ToArray();
+		var teamIdsWithInviteRecords = await this.GetTeamIdsWithInviteRecordAsync(requestedTeamIds, normalizedEmail);
 		
 		var hasAnyPlayingTeamInviteRecord = requestedPlayingTeamId != null
-			&& await this.HasAnyTeamInviteRecordAsync(requestedPlayingTeamId.Value, normalizedEmail);
+			&& teamIdsWithInviteRecords.Contains(requestedPlayingTeamId.Value);
 		var shouldCreatePlayingTeamRequest =
 			requestedPlayingTeamId != null &&
 			(currentPlayingTeamId == null || requestedPlayingTeamId != currentPlayingTeamId.Value || !hasAnyPlayingTeamInviteRecord);
 
 		var hasAnyCoachingTeamInviteRecord = requestedCoachingTeamId != null
-			&& await this.HasAnyTeamInviteRecordAsync(requestedCoachingTeamId.Value, normalizedEmail);
+			&& teamIdsWithInviteRecords.Contains(requestedCoachingTeamId.Value);
 		var shouldCreateCoachingTeamRequest =
 			requestedCoachingTeamId != null &&
 			(currentCoachingTeamId == null || requestedCoachingTeamId != currentCoachingTeamId.Value || !hasAnyCoachingTeamInviteRecord);
@@ -99,59 +99,128 @@ public class RefereesController : ControllerBase
 			SecondaryNgb = refereeUpdate.SecondaryNgb,
 		}, this.HttpContext.RequestAborted);
 
+		var statusResponse = new RefereeTeamUpdateStatusViewModel
+		{
+			PlayingTeam = requestedPlayingTeamId == null
+				? null
+				: new RefereeTeamRequestStatusViewModel
+				{
+					TeamId = new TeamIdentifier(requestedPlayingTeamId.Value).ToString(),
+					Status = RefereeTeamRequestStatus.Applied,
+					RequestCreated = false,
+				},
+			CoachingTeam = requestedCoachingTeamId == null
+				? null
+				: new RefereeTeamRequestStatusViewModel
+				{
+					TeamId = new TeamIdentifier(requestedCoachingTeamId.Value).ToString(),
+					Status = RefereeTeamRequestStatus.Applied,
+					RequestCreated = false,
+				},
+		};
+
+		long? currentUserDbId = null;
+
 		if (shouldCreatePlayingTeamRequest)
 		{
+			currentUserDbId ??= await this.ResolveCurrentUserDbIdAsync(userContext.UserId);
 			var result = await this.CreateOrUpdateTeamInviteAsync(
 				requestedPlayingTeamId!.Value,
 				normalizedEmail,
-				currentUserDbId,
+				currentUserDbId.Value,
 				userContext.UserId);
-			if (result != null)
+			if (result.ErrorResult != null)
 			{
-				return result;
+				return result.ErrorResult;
 			}
+
+			statusResponse.PlayingTeam = result.Status;
 		}
 
 		if (shouldCreateCoachingTeamRequest)
 		{
+			currentUserDbId ??= await this.ResolveCurrentUserDbIdAsync(userContext.UserId);
 			var result = await this.CreateOrUpdateTeamInviteAsync(
 				requestedCoachingTeamId!.Value,
 				normalizedEmail,
-				currentUserDbId,
+				currentUserDbId.Value,
 				userContext.UserId);
-			if (result != null)
+			if (result.ErrorResult != null)
 			{
-				return result;
+				return result.ErrorResult;
 			}
+
+			statusResponse.CoachingTeam = result.Status;
 		}
 
-		return this.NoContent();
+		if (!shouldCreatePlayingTeamRequest && !shouldCreateCoachingTeamRequest)
+		{
+			return this.NoContent();
+		}
+
+		return this.Ok(statusResponse);
 	}
 
-	private async Task<long?> GetCurrentRefereeTeamIdAsync(long refereeDbId, RefereeTeamAssociationType associationType)
+	private async Task<(long? PlayingTeamId, long? CoachingTeamId)> GetCurrentRefereeTeamIdsAsync(UserIdentifier userId)
 	{
-		var teamId = await this.dbContext.RefereeTeams
-			.Where(team => team.RefereeId == refereeDbId && team.AssociationType == associationType)
+		var teamRows = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.SelectMany(user => this.dbContext.RefereeTeams
+				.Where(team => team.RefereeId == user.Id &&
+					(team.AssociationType == RefereeTeamAssociationType.Player || team.AssociationType == RefereeTeamAssociationType.Coach))
+				.Select(team => new
+				{
+					team.AssociationType,
+					team.TeamId,
+				}))
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var playingTeamId = teamRows
+			.Where(team => team.AssociationType == RefereeTeamAssociationType.Player)
 			.Select(team => team.TeamId)
-			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+			.FirstOrDefault();
+		var coachingTeamId = teamRows
+			.Where(team => team.AssociationType == RefereeTeamAssociationType.Coach)
+			.Select(team => team.TeamId)
+			.FirstOrDefault();
 
-		return teamId == 0 ? null : teamId;
+		return (
+			playingTeamId == 0 ? null : playingTeamId,
+			coachingTeamId == 0 ? null : coachingTeamId);
 	}
 
-	private Task<bool> HasAnyTeamInviteRecordAsync(long teamId, string normalizedEmail)
+	private async Task<HashSet<long>> GetTeamIdsWithInviteRecordAsync(IEnumerable<long> teamIds, string normalizedEmail)
 	{
-		return this.dbContext.TeamInvitations
-			.AnyAsync(invite =>
-				invite.TeamId == teamId &&
-				invite.Email.ToLower() == normalizedEmail,
-				this.HttpContext.RequestAborted);
+		var requestedTeamIds = teamIds.ToArray();
+		if (requestedTeamIds.Length == 0)
+		{
+			return [];
+		}
+
+		var teamIdsWithInvites = await this.dbContext.TeamInvitations
+			.Where(invite =>
+				requestedTeamIds.Contains(invite.TeamId) &&
+				invite.Email.ToLower() == normalizedEmail)
+			.Select(invite => invite.TeamId)
+			.Distinct()
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		return teamIdsWithInvites.ToHashSet();
+	}
+
+	private Task<long> ResolveCurrentUserDbIdAsync(UserIdentifier userId)
+	{
+		return this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(user => user.Id)
+			.SingleAsync(this.HttpContext.RequestAborted);
 	}
 
 	/// <summary>
-	/// Creates a team invitation for a referee or revokes existing pending invites to other teams.
+	/// Creates a team invitation for a referee.
 	/// Handles duplicate request prevention and auditing.
 	/// </summary>
-	private async Task<IActionResult?> CreateOrUpdateTeamInviteAsync(
+	private async Task<TeamInviteRequestResult> CreateOrUpdateTeamInviteAsync(
 		long requestedTeamId,
 		string normalizedEmail,
 		long currentUserDbId,
@@ -164,21 +233,10 @@ public class RefereesController : ControllerBase
 
 		if (teamSettings == null)
 		{
-			return this.BadRequest("Selected team was not found.");
-		}
-
-		var otherPendingInvites = await this.dbContext.TeamInvitations
-			.Where(invite =>
-				invite.TeamId != requestedTeamId &&
-				invite.Email.ToLower() == normalizedEmail &&
-				invite.RevokedAt == null &&
-				invite.AcceptedAt == null &&
-				invite.DeclinedAt == null)
-			.ToListAsync(this.HttpContext.RequestAborted);
-
-		foreach (var oldInvite in otherPendingInvites)
-		{
-			oldInvite.RevokedAt = DateTime.UtcNow;
+			return new TeamInviteRequestResult
+			{
+				ErrorResult = this.BadRequest("Selected team was not found."),
+			};
 		}
 
 		var hasPendingRequest = await this.dbContext.TeamInvitations
@@ -190,17 +248,78 @@ public class RefereesController : ControllerBase
 				invite.DeclinedAt == null,
 				this.HttpContext.RequestAborted);
 
-		if (!hasPendingRequest)
+		if (hasPendingRequest)
 		{
-			var requestedAt = DateTime.UtcNow;
-			var invitation = new ManagementHub.Models.Data.TeamInvitation
+			return new TeamInviteRequestResult
 			{
-				TeamId = requestedTeamId,
-				Email = normalizedEmail,
-				InitiatorUserId = currentUserDbId,
-				CreatedAt = requestedAt,
+				Status = new RefereeTeamRequestStatusViewModel
+				{
+					TeamId = new TeamIdentifier(requestedTeamId).ToString(),
+					Status = RefereeTeamRequestStatus.Pending,
+					RequestCreated = false,
+				},
 			};
-			this.dbContext.TeamInvitations.Add(invitation);
+		}
+
+		var requestedAt = DateTime.UtcNow;
+		var invitation = new ManagementHub.Models.Data.TeamInvitation
+		{
+			TeamId = requestedTeamId,
+			Email = normalizedEmail,
+			InitiatorUserId = currentUserDbId,
+			CreatedAt = requestedAt,
+		};
+		this.dbContext.TeamInvitations.Add(invitation);
+
+		this.dbContext.TeamPlayerActivities.Add(new ManagementHub.Models.Data.TeamPlayerActivity
+		{
+			TeamId = requestedTeamId,
+			UserId = currentUserDbId,
+			Email = normalizedEmail,
+			InitiatorUserId = currentUserDbId,
+			ActivityType = TeamPlayerActivityType.InviteCreated,
+			CreatedAt = requestedAt,
+		});
+
+		if (teamSettings.AutoApprovePlayerRequests)
+		{
+			var approvedAt = DateTime.UtcNow;
+			invitation.AcceptedAt = approvedAt;
+			invitation.RespondedByUserId = currentUserDbId;
+
+			var existingPlayerMembership = await this.dbContext.RefereeTeams
+				.FirstOrDefaultAsync(
+					membership =>
+						membership.RefereeId == currentUserDbId &&
+						membership.AssociationType == RefereeTeamAssociationType.Player,
+					this.HttpContext.RequestAborted);
+
+			if (existingPlayerMembership == null)
+			{
+				this.dbContext.RefereeTeams.Add(new ManagementHub.Models.Data.RefereeTeam
+				{
+					AssociationType = RefereeTeamAssociationType.Player,
+					RefereeId = currentUserDbId,
+					TeamId = requestedTeamId,
+					CreatedAt = approvedAt,
+					UpdatedAt = approvedAt,
+				});
+			}
+			else if (existingPlayerMembership.TeamId != requestedTeamId && existingPlayerMembership.TeamId.HasValue)
+			{
+				this.dbContext.TeamPlayerActivities.Add(new ManagementHub.Models.Data.TeamPlayerActivity
+				{
+					TeamId = existingPlayerMembership.TeamId.Value,
+					UserId = currentUserDbId,
+					Email = normalizedEmail,
+					InitiatorUserId = currentUserDbId,
+					ActivityType = TeamPlayerActivityType.PlayerRemoved,
+					CreatedAt = approvedAt,
+				});
+
+				existingPlayerMembership.TeamId = requestedTeamId;
+				existingPlayerMembership.UpdatedAt = approvedAt;
+			}
 
 			this.dbContext.TeamPlayerActivities.Add(new ManagementHub.Models.Data.TeamPlayerActivity
 			{
@@ -208,85 +327,53 @@ public class RefereesController : ControllerBase
 				UserId = currentUserDbId,
 				Email = normalizedEmail,
 				InitiatorUserId = currentUserDbId,
-				ActivityType = TeamPlayerActivityType.InviteCreated,
-				CreatedAt = requestedAt,
+				ActivityType = TeamPlayerActivityType.InviteAccepted,
+				CreatedAt = approvedAt,
 			});
 
-			if (teamSettings.AutoApprovePlayerRequests)
-			{
-				var approvedAt = DateTime.UtcNow;
-				invitation.AcceptedAt = approvedAt;
-				invitation.RespondedByUserId = currentUserDbId;
-
-				var existingPlayerMembership = await this.dbContext.RefereeTeams
-					.FirstOrDefaultAsync(
-						membership =>
-							membership.RefereeId == currentUserDbId &&
-							membership.AssociationType == RefereeTeamAssociationType.Player,
-						this.HttpContext.RequestAborted);
-
-				if (existingPlayerMembership == null)
-				{
-					this.dbContext.RefereeTeams.Add(new ManagementHub.Models.Data.RefereeTeam
-					{
-						AssociationType = RefereeTeamAssociationType.Player,
-						RefereeId = currentUserDbId,
-						TeamId = requestedTeamId,
-						CreatedAt = approvedAt,
-						UpdatedAt = approvedAt,
-					});
-				}
-				else if (existingPlayerMembership.TeamId != requestedTeamId && existingPlayerMembership.TeamId.HasValue)
-				{
-					this.dbContext.TeamPlayerActivities.Add(new ManagementHub.Models.Data.TeamPlayerActivity
-					{
-						TeamId = existingPlayerMembership.TeamId.Value,
-						UserId = currentUserDbId,
-						Email = normalizedEmail,
-						InitiatorUserId = currentUserDbId,
-						ActivityType = TeamPlayerActivityType.PlayerRemoved,
-						CreatedAt = approvedAt,
-					});
-
-					existingPlayerMembership.TeamId = requestedTeamId;
-					existingPlayerMembership.UpdatedAt = approvedAt;
-				}
-
-				this.dbContext.TeamPlayerActivities.Add(new ManagementHub.Models.Data.TeamPlayerActivity
-				{
-					TeamId = requestedTeamId,
-					UserId = currentUserDbId,
-					Email = normalizedEmail,
-					InitiatorUserId = currentUserDbId,
-					ActivityType = TeamPlayerActivityType.InviteAccepted,
-					CreatedAt = approvedAt,
-				});
-
-				await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
-				return null;
-			}
-
 			await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
-
-			var teamId = new TeamIdentifier(requestedTeamId);
-			var teamName = teamSettings.Name ?? teamId.ToString();
-
-			var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
-			foreach (var manager in managers.Where(manager => manager.UserId != currentUserId))
+			return new TeamInviteRequestResult
 			{
-				await this.notificationService.CreateTeamInviteRequestNotificationForManagerAsync(
-					manager.UserId,
-					teamId,
-					teamName,
-					this.HttpContext.RequestAborted);
-			}
+				Status = new RefereeTeamRequestStatusViewModel
+				{
+					TeamId = new TeamIdentifier(requestedTeamId).ToString(),
+					Status = RefereeTeamRequestStatus.Applied,
+					RequestCreated = true,
+				},
+			};
 		}
-		else if (otherPendingInvites.Count > 0)
+
+		await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
+
+		var teamId = new TeamIdentifier(requestedTeamId);
+		var teamName = teamSettings.Name ?? teamId.ToString();
+
+		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
+		foreach (var manager in managers.Where(manager => manager.UserId != currentUserId))
 		{
-			await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
+			await this.notificationService.CreateTeamInviteRequestNotificationForManagerAsync(
+				manager.UserId,
+				teamId,
+				teamName,
+				this.HttpContext.RequestAborted);
 		}
 
-		return null;
+		return new TeamInviteRequestResult
+		{
+			Status = new RefereeTeamRequestStatusViewModel
+			{
+				TeamId = teamId.ToString(),
+				Status = RefereeTeamRequestStatus.Pending,
+				RequestCreated = true,
+			},
+		};
+	}
+
+	private sealed class TeamInviteRequestResult
+	{
+		public IActionResult? ErrorResult { get; init; }
+
+		public RefereeTeamRequestStatusViewModel? Status { get; init; }
 	}
 
 	/// <summary>

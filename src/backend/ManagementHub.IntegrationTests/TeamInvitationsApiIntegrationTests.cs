@@ -242,7 +242,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
 		myInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -276,7 +276,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
 		var myInvites = await myInvitesResponse.Content.ReadFromJsonAsync<List<CurrentUserTeamInviteViewModelDto>>();
@@ -326,7 +326,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
 		var myInvites = await myInvitesResponse.Content.ReadFromJsonAsync<List<CurrentUserTeamInviteViewModelDto>>();
@@ -361,6 +361,44 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 	}
 
 	[Fact]
+	public async Task UpdateReferee_WithPlayingAndCoachingRequests_ShouldKeepBothPendingInvites()
+	{
+		await this.SetTeamAutoApprovePlayerRequestsAsync("TM_1", false);
+		await this.SetTeamAutoApprovePlayerRequestsAsync("TM_2", false);
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "referee@example.com", "password");
+
+		var clearExistingTeamResponse = await this.client.PutAsJsonAsync("/api/v2/Referees/me", new
+		{
+			primaryNgb = "USA",
+			secondaryNgb = (string?)null,
+			playingTeam = (object?)null,
+			coachingTeam = (object?)null,
+			nationalTeam = (object?)null,
+		});
+
+		clearExistingTeamResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+		var updateResponse = await this.client.PutAsJsonAsync("/api/v2/Referees/me", new
+		{
+			primaryNgb = "USA",
+			secondaryNgb = (string?)null,
+			playingTeam = new { id = "TM_1" },
+			coachingTeam = new { id = "TM_2" },
+			nationalTeam = (object?)null,
+		});
+
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
+		myInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		var myInvites = await myInvitesResponse.Content.ReadFromJsonAsync<List<CurrentUserTeamInviteViewModelDto>>();
+		myInvites.Should().NotBeNull();
+		myInvites!.Should().Contain(i => i.TeamId == "TM_1" && i.Email == "referee@example.com");
+		myInvites.Should().Contain(i => i.TeamId == "TM_2" && i.Email == "referee@example.com");
+	}
+
+	[Fact]
 	public async Task GetMyTeamHistory_AfterApprovedTransfer_ShouldIncludeJoinAndLeaveActivities()
 	{
 		await this.SetTeamAutoApprovePlayerRequestsAsync("TM_1", false);
@@ -391,7 +429,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		requestResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		requestResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
 		myInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -431,7 +469,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		requestResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		requestResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
 		myInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -465,7 +503,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		requestResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		requestResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
 		myInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -497,7 +535,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		requestResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		requestResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		await AuthenticationHelper.AuthenticateAsAsync(this.client, "ngb_admin@example.com", "password");
 
@@ -538,7 +576,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 			nationalTeam = (object?)null,
 		});
 
-		updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
 		var myInvitesResponse = await this.client.GetAsync("/api/v2/users/me/teamInvites");
 		myInvitesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
