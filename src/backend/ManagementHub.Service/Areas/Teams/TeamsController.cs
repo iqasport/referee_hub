@@ -1112,7 +1112,7 @@ public class TeamsController : ControllerBase
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(ex, "Failed to send team invite email for team {TeamId}", teamId);
+			this.logger.LogError(ex, "Failed to send team invite email");
 		}
 	}
 
