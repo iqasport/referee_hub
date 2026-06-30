@@ -411,24 +411,40 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 	[Fact]
 	public async Task GetMyTeamHistory_AfterApprovedTransfer_ShouldIncludeJoinAndLeaveActivities()
 	{
-		await this.SetTeamAutoApprovePlayerRequestsAsync("TM_1", false);
+		// Establish a known prior membership on TM_1 so the transfer to TM_2 always generates a playerRemoved entry.
+		// Enabling auto-approve for TM_1 also bulk-approves any leftover pending TM_1 requests from prior tests.
+		await this.SetTeamAutoApprovePlayerRequestsAsync("TM_1", true);
 		await this.SetTeamAutoApprovePlayerRequestsAsync("TM_2", false);
 		await AuthenticationHelper.AuthenticateAsAsync(this.client, "referee@example.com", "password");
 
-		var currentProfileResponse = await this.client.GetAsync("/api/v2/Referees/me");
-		currentProfileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-		var currentProfile = await currentProfileResponse.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
-
-		string? currentPlayingTeamId = null;
-		if (currentProfile.TryGetProperty("playingTeam", out var currentPlayingTeam)
-			&& currentPlayingTeam.ValueKind == System.Text.Json.JsonValueKind.Object
-			&& currentPlayingTeam.TryGetProperty("id", out var currentPlayingTeamValue)
-			&& currentPlayingTeamValue.ValueKind == System.Text.Json.JsonValueKind.String)
+		// Clear any existing playing-team membership so that RefereeTeams record is fully deleted.
+		var clearResponse = await this.client.PutAsJsonAsync("/api/v2/Referees/me", new
 		{
-			currentPlayingTeamId = currentPlayingTeamValue.GetString();
-		}
+			primaryNgb = "USA",
+			secondaryNgb = (string?)null,
+			playingTeam = (object?)null,
+			coachingTeam = (object?)null,
+			nationalTeam = (object?)null,
+		});
+		clearResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-		var targetTeamId = currentPlayingTeamId == "TM_2" ? "TM_1" : "TM_2";
+		// Join TM_1 via auto-approve — creates a fresh RefereeTeams player record for TM_1.
+		var joinTm1Response = await this.client.PutAsJsonAsync("/api/v2/Referees/me", new
+		{
+			primaryNgb = "USA",
+			secondaryNgb = (string?)null,
+			playingTeam = new { id = "TM_1" },
+			coachingTeam = (object?)null,
+			nationalTeam = (object?)null,
+		});
+		joinTm1Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		// Disable auto-approve on TM_1 so the TM_2 request below goes through the pending-approval flow.
+		await this.SetTeamAutoApprovePlayerRequestsAsync("TM_1", false);
+
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "referee@example.com", "password");
+
+		const string targetTeamId = "TM_2";
 
 		var requestResponse = await this.client.PutAsJsonAsync("/api/v2/Referees/me", new
 		{
