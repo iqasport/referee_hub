@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -378,7 +378,7 @@ public class UsersController : ControllerBase
 		return pendingInvites
 			.Select(invite => new CurrentUserTeamInviteViewModel
 			{
-				InvitationId = invite.Id.ToString(),
+				InvitationId = new TeamInvitationIdentifier(invite.Id).ToString(),
 				TeamId = new TeamIdentifier(invite.TeamId),
 				TeamName = invite.Team.Name,
 				TeamLogoUri = teamLogoUris.GetValueOrDefault(invite.TeamId),
@@ -393,16 +393,16 @@ public class UsersController : ControllerBase
 	/// <summary>
 	/// Cancel a pending team join request that the current user initiated.
 	/// </summary>
-	[HttpDelete("me/teamInvites/{invitationId:long}")]
+	[HttpDelete("me/teamInvites/{invitationId}")]
 	[Tags("User")]
-	public async Task<IActionResult> CancelMyTeamInvite([FromRoute] long invitationId)
+	public async Task<IActionResult> CancelMyTeamInvite([FromRoute] TeamInvitationIdentifier invitationId)
 	{
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 		var currentUserDbId = await this.GetCurrentUserDbIdAsync(currentUser.UserId);
 		var normalizedEmail = TeamInviteHelpers.NormalizeEmail(currentUser.UserData.Email.Value);
 
 		// Only allow cancelling requests the player themselves initiated (CanRespond == false case)
-		var invitation = await this.GetPendingTeamInvitationAsync(invitationId, normalizedEmail);
+		var invitation = await this.GetPendingTeamInvitationAsync(invitationId.Id, normalizedEmail);
 
 		if (invitation == null || invitation.InitiatorUserId != currentUserDbId)
 		{
@@ -417,15 +417,15 @@ public class UsersController : ControllerBase
 	/// <summary>
 	/// Accept or decline a pending team invitation for the current user.
 	/// </summary>
-	[HttpPost("me/teamInvites/{invitationId:long}")]
+	[HttpPost("me/teamInvites/{invitationId}")]
 	[Tags("User")]
-	public async Task<IActionResult> RespondToTeamInvite([FromRoute] long invitationId, [FromBody] InviteResponseModel response)
+	public async Task<IActionResult> RespondToTeamInvite([FromRoute] TeamInvitationIdentifier invitationId, [FromBody] InviteResponseModel response)
 	{
 		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
 		var currentUserDbId = await this.GetCurrentUserDbIdAsync(currentUser.UserId);
 		var normalizedEmail = TeamInviteHelpers.NormalizeEmail(currentUser.UserData.Email.Value);
 
-		var invitation = await this.GetPendingTeamInvitationAsync(invitationId, normalizedEmail);
+		var invitation = await this.GetPendingTeamInvitationAsync(invitationId.Id, normalizedEmail);
 
 		if (invitation == null)
 		{
@@ -457,7 +457,7 @@ public class UsersController : ControllerBase
 		var responderName = string.Join(" ", new[] { currentUser.UserData.FirstName, currentUser.UserData.LastName }
 			.Where(part => !string.IsNullOrWhiteSpace(part)));
 
-		await this.SendTeamInviteResponseEmailAsync(invitation, invitationId, response.Approved, responderName);
+		await this.SendTeamInviteResponseEmailAsync(invitation, invitationId.Id, response.Approved, responderName);
 
 		if (invitation.InitiatorUserId != currentUserDbId)
 		{
