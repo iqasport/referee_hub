@@ -252,7 +252,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Updated team data</returns>
 	[HttpPut("{teamId}")]
 	[Tags("Team")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	public async Task<ActionResult<NgbTeamViewModel>> UpdateTeam([FromRoute] TeamIdentifier teamId, [FromBody] NgbTeamViewModel viewModel)
 	{
 		try
@@ -332,7 +332,7 @@ public class TeamsController : ControllerBase
 	/// <returns>Team management data</returns>
 	[HttpGet("{teamId}/management")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	public async Task<ActionResult<TeamManagementViewModel>> GetTeamManagement([FromRoute] TeamIdentifier teamId)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
@@ -630,7 +630,7 @@ public class TeamsController : ControllerBase
 	/// </summary>
 	[HttpPost("{teamId}/invites")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	public async Task<ActionResult<TeamInvitationViewModel>> InvitePlayer(
 		[FromRoute] TeamIdentifier teamId,
 		[FromBody] InvitePlayerRequest request)
@@ -707,7 +707,7 @@ public class TeamsController : ControllerBase
 	/// </summary>
 	[HttpDelete("{teamId}/invites/{invitationId}")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	public async Task<IActionResult> RevokeInvite(
 		[FromRoute] TeamIdentifier teamId,
 		[FromRoute] TeamInvitationIdentifier invitationId)
@@ -1112,15 +1112,8 @@ public class TeamsController : ControllerBase
 		}
 		catch (Exception ex)
 		{
-			this.logger.LogError(ex, "Failed to send team invite email for team {TeamId}", SanitizeForLog(teamId.ToString()));
+			this.logger.LogError(ex, "Failed to send team invite email for team {TeamId}", teamId);
 		}
-	}
-
-	private static string SanitizeForLog(string value)
-	{
-		return value
-			.Replace("\r", string.Empty)
-			.Replace("\n", string.Empty);
 	}
 
 	private Uri GetHostBaseUri() => new($"{this.Request.Scheme}://{this.Request.Host}");
