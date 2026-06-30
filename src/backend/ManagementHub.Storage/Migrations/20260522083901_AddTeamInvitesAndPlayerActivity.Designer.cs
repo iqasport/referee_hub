@@ -3,6 +3,7 @@ using System;
 using ManagementHub.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManagementHub.Storage.Migrations
 {
     [DbContext(typeof(ManagementHubDbContext))]
-    partial class ManagementHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260522083901_AddTeamInvitesAndPlayerActivity")]
+    partial class AddTeamInvitesAndPlayerActivity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -797,31 +800,6 @@ namespace ManagementHub.Storage.Migrations
                     b.HasIndex(new[] { "UserId" }, "index_policy_manager_user_terms_on_user_id");
 
                     b.ToTable("policy_manager_user_terms", (string)null);
-                });
-
-            modelBuilder.Entity("ManagementHub.Models.Data.PublicTournamentSnapshot", b =>
-                {
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("key");
-
-                    b.Property<string>("SnapshotJson")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("snapshot_json");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Key");
-
-                    b.ToTable("public_tournament_snapshots", (string)null);
                 });
 
             modelBuilder.Entity("ManagementHub.Models.Data.Question", b =>

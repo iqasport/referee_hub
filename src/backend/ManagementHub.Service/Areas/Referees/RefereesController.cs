@@ -1,12 +1,16 @@
 ﻿using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Domain.User.Roles;
+using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Ngbs;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
+using ManagementHub.Service.Services;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
 using ManagementHub.Storage.Extensions;
@@ -28,6 +32,9 @@ public class RefereesController : ControllerBase
 	private readonly IUpdateRefereeRoleCommand updateRefereeRoleCommand;
 	private readonly IRefereeContextAccessor refereeContextAccessor;
 	private readonly IUpdateUserDataCommand updateUserDataCommand;
+	private readonly ITeamContextProvider teamContextProvider;
+	private readonly INotificationService notificationService;
+	private readonly ICreateTeamInviteRequestCommand createTeamInviteRequestCommand;
 	private readonly ManagementHubDbContext dbContext;
 
 	public RefereesController(
@@ -35,12 +42,18 @@ public class RefereesController : ControllerBase
 		IUpdateRefereeRoleCommand updateRefereeRoleCommand,
 		IRefereeContextAccessor refereeContextAccessor,
 		IUpdateUserDataCommand updateUserDataCommand,
+		ITeamContextProvider teamContextProvider,
+		INotificationService notificationService,
+		ICreateTeamInviteRequestCommand createTeamInviteRequestCommand,
 		ManagementHubDbContext dbContext)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateRefereeRoleCommand = updateRefereeRoleCommand;
 		this.refereeContextAccessor = refereeContextAccessor;
 		this.updateUserDataCommand = updateUserDataCommand;
+		this.teamContextProvider = teamContextProvider;
+		this.notificationService = notificationService;
+		this.createTeamInviteRequestCommand = createTeamInviteRequestCommand;
 		this.dbContext = dbContext;
 	}
 
@@ -50,18 +63,242 @@ public class RefereesController : ControllerBase
 	[HttpPut("me")]
 	[Tags("Referee", "User")]
 	[Authorize(AuthorizationPolicies.RefereePolicy)]
-	public async Task UpdateCurrentReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
+	public async Task<IActionResult> UpdateCurrentReferee([FromBody] RefereeUpdateViewModel refereeUpdate)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var (currentPlayingTeamId, currentCoachingTeamId) = await this.GetCurrentRefereeTeamIdsAsync(userContext.UserId);
+
+		var requestedPlayingTeamId = refereeUpdate.PlayingTeam?.Id.Id;
+		var requestedCoachingTeamId = refereeUpdate.CoachingTeam?.Id.Id;
+		var normalizedEmail = userContext.UserData.Email.Value.Trim().ToLowerInvariant();
+		var requestedTeamIds = new[] { requestedPlayingTeamId, requestedCoachingTeamId }
+			.Where(teamId => teamId != null)
+			.Select(teamId => teamId!.Value)
+			.Distinct()
+			.ToArray();
+		var teamIdsWithInviteRecords = await this.GetTeamIdsWithInviteRecordAsync(requestedTeamIds, normalizedEmail);
+		
+		var shouldCreatePlayingTeamRequest = ShouldCreateTeamRequest(
+			requestedPlayingTeamId, currentPlayingTeamId, teamIdsWithInviteRecords);
+		var shouldCreateCoachingTeamRequest = ShouldCreateTeamRequest(
+			requestedCoachingTeamId, currentCoachingTeamId, teamIdsWithInviteRecords);
+
 		await this.updateRefereeRoleCommand.UpdateRefereeRoleAsync(userContext.UserId, refereeRole => new RefereeRole
 		{
 			IsActive = refereeRole.IsActive,
 			CoachingTeam = refereeUpdate.CoachingTeam?.Id,
-			PlayingTeam = refereeUpdate.PlayingTeam?.Id,
+			PlayingTeam = currentPlayingTeamId != null && refereeUpdate.PlayingTeam == null
+				? null
+				: refereeRole.PlayingTeam,
 			NationalTeam = refereeUpdate.NationalTeam?.Id,
 			PrimaryNgb = refereeUpdate.PrimaryNgb,
 			SecondaryNgb = refereeUpdate.SecondaryNgb,
 		}, this.HttpContext.RequestAborted);
+
+		if (!shouldCreatePlayingTeamRequest && !shouldCreateCoachingTeamRequest)
+		{
+			return this.NoContent();
+		}
+
+		var currentUserDbId = await this.ResolveCurrentUserDbIdAsync(userContext.UserId);
+
+		var (playingError, playingStatus) = await this.TryProcessTeamRequestAsync(
+			requestedPlayingTeamId, shouldCreatePlayingTeamRequest, normalizedEmail, currentUserDbId, userContext.UserId);
+		if (playingError != null)
+		{
+			return playingError;
+		}
+
+		var (coachingError, coachingStatus) = await this.TryProcessTeamRequestAsync(
+			requestedCoachingTeamId, shouldCreateCoachingTeamRequest, normalizedEmail, currentUserDbId, userContext.UserId);
+		if (coachingError != null)
+		{
+			return coachingError;
+		}
+
+		return this.Ok(new RefereeTeamUpdateStatusViewModel
+		{
+			PlayingTeam = playingStatus,
+			CoachingTeam = coachingStatus,
+		});
+	}
+
+	private static bool ShouldCreateTeamRequest(long? requestedId, long? currentId, HashSet<long> idsWithInvites)
+	{
+		if (requestedId == null)
+		{
+			return false;
+		}
+
+		return currentId == null
+			|| requestedId.Value != currentId.Value
+			|| !idsWithInvites.Contains(requestedId.Value);
+	}
+
+	private async Task<(IActionResult? Error, RefereeTeamRequestStatusViewModel? Status)> TryProcessTeamRequestAsync(
+		long? requestedTeamId,
+		bool shouldCreate,
+		string normalizedEmail,
+		long currentUserDbId,
+		UserIdentifier currentUserId)
+	{
+		if (requestedTeamId == null)
+		{
+			return (null, null);
+		}
+
+		if (!shouldCreate)
+		{
+			return (null, new RefereeTeamRequestStatusViewModel
+			{
+				TeamId = new TeamIdentifier(requestedTeamId.Value).ToString(),
+				Status = RefereeTeamRequestStatus.Applied,
+				RequestCreated = false,
+			});
+		}
+
+		var result = await this.CreateOrUpdateTeamInviteAsync(
+			requestedTeamId.Value, normalizedEmail, currentUserDbId, currentUserId);
+		return (result.ErrorResult, result.Status);
+	}
+
+	private async Task<(long? PlayingTeamId, long? CoachingTeamId)> GetCurrentRefereeTeamIdsAsync(UserIdentifier userId)
+	{
+		var teamRows = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.SelectMany(user => this.dbContext.RefereeTeams
+				.Where(team => team.RefereeId == user.Id &&
+					(team.AssociationType == RefereeTeamAssociationType.Player || team.AssociationType == RefereeTeamAssociationType.Coach))
+				.Select(team => new
+				{
+					team.AssociationType,
+					team.TeamId,
+				}))
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var playingTeamId = teamRows
+			.Where(team => team.AssociationType == RefereeTeamAssociationType.Player)
+			.Select(team => team.TeamId)
+			.FirstOrDefault();
+		var coachingTeamId = teamRows
+			.Where(team => team.AssociationType == RefereeTeamAssociationType.Coach)
+			.Select(team => team.TeamId)
+			.FirstOrDefault();
+
+		return (
+			playingTeamId == 0 ? null : playingTeamId,
+			coachingTeamId == 0 ? null : coachingTeamId);
+	}
+
+	private async Task<HashSet<long>> GetTeamIdsWithInviteRecordAsync(IEnumerable<long> teamIds, string normalizedEmail)
+	{
+		var requestedTeamIds = teamIds.ToArray();
+		if (requestedTeamIds.Length == 0)
+		{
+			return [];
+		}
+
+		var teamIdsWithInvites = await this.dbContext.TeamInvitations
+			.Where(invite =>
+				requestedTeamIds.Contains(invite.TeamId) &&
+				invite.Email.ToLower() == normalizedEmail)
+			.Select(invite => invite.TeamId)
+			.Distinct()
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		return teamIdsWithInvites.ToHashSet();
+	}
+
+	private Task<long> ResolveCurrentUserDbIdAsync(UserIdentifier userId)
+	{
+		return this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(user => user.Id)
+			.SingleAsync(this.HttpContext.RequestAborted);
+	}
+
+	/// <summary>
+	/// Delegates invite-request creation to the command layer and handles notification dispatch.
+	/// </summary>
+	private async Task<TeamInviteRequestResult> CreateOrUpdateTeamInviteAsync(
+		long requestedTeamId,
+		string normalizedEmail,
+		long currentUserDbId,
+		UserIdentifier currentUserId)
+	{
+		var teamId = new TeamIdentifier(requestedTeamId);
+		var commandResult = await this.createTeamInviteRequestCommand.CreateTeamInviteRequestAsync(
+			teamId,
+			normalizedEmail,
+			currentUserDbId,
+			this.HttpContext.RequestAborted);
+
+		return commandResult.Code switch
+		{
+			ICreateTeamInviteRequestCommand.CreateResultCode.TeamNotFound =>
+				new TeamInviteRequestResult { ErrorResult = this.BadRequest("Selected team was not found.") },
+
+			ICreateTeamInviteRequestCommand.CreateResultCode.AlreadyPending =>
+				new TeamInviteRequestResult
+				{
+					Status = new RefereeTeamRequestStatusViewModel
+					{
+						TeamId = teamId.ToString(),
+						Status = RefereeTeamRequestStatus.Pending,
+						RequestCreated = false,
+					},
+				},
+
+			ICreateTeamInviteRequestCommand.CreateResultCode.AutoApproved =>
+				new TeamInviteRequestResult
+				{
+					Status = new RefereeTeamRequestStatusViewModel
+					{
+						TeamId = teamId.ToString(),
+						Status = RefereeTeamRequestStatus.Applied,
+						RequestCreated = true,
+					},
+				},
+
+			ICreateTeamInviteRequestCommand.CreateResultCode.RequestCreated =>
+				await this.NotifyManagersAndBuildResultAsync(teamId, commandResult.TeamName, currentUserId),
+
+			_ => new TeamInviteRequestResult { ErrorResult = this.StatusCode(500) },
+		};
+	}
+
+	private async Task<TeamInviteRequestResult> NotifyManagersAndBuildResultAsync(
+		TeamIdentifier teamId,
+		string? teamName,
+		UserIdentifier currentUserId)
+	{
+		var resolvedTeamName = teamName ?? teamId.ToString();
+		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
+		foreach (var manager in managers.Where(m => m.UserId != currentUserId))
+		{
+			await this.notificationService.CreateTeamInviteRequestNotificationForManagerAsync(
+				manager.UserId,
+				teamId,
+				resolvedTeamName,
+				this.HttpContext.RequestAborted);
+		}
+
+		return new TeamInviteRequestResult
+		{
+			Status = new RefereeTeamRequestStatusViewModel
+			{
+				TeamId = teamId.ToString(),
+				Status = RefereeTeamRequestStatus.Pending,
+				RequestCreated = true,
+			},
+		};
+	}
+
+	private sealed class TeamInviteRequestResult
+	{
+		public IActionResult? ErrorResult { get; init; }
+
+		public RefereeTeamRequestStatusViewModel? Status { get; init; }
 	}
 
 	/// <summary>

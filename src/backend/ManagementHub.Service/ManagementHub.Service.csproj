@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\**\*" />
+    <None Include="wwwroot\.keep" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CoreAdmin" Version="2.7.0" />
     <PackageReference Include="Excos.Options" Version="1.0.0-alpha1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0" />

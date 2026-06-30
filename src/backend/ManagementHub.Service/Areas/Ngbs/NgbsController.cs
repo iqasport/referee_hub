@@ -642,7 +642,10 @@ public class NgbsController : ControllerBase
 			.Select(m => new TeamMemberViewModel
 			{
 				UserId = m.UserId,
-				Name = m.Name
+				Name = m.Name,
+				Email = m.Email,
+				PrimaryTeamName = m.PrimaryTeamName,
+				PrimaryTeamId = m.PrimaryTeamId != null ? m.PrimaryTeamId.ToString() : null,
 			})
 			.AsFiltered();
 	}
