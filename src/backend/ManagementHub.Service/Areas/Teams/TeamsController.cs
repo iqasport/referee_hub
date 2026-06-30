@@ -383,7 +383,7 @@ public class TeamsController : ControllerBase
 		var pendingInvites = pendingInviteRows
 			.Select(i => new TeamInvitationViewModel
 			{
-				InvitationId = i.Id.ToString(),
+				InvitationId = new TeamInvitationIdentifier(i.Id).ToString(),
 				Email = i.Email,
 				CreatedAt = i.CreatedAt,
 				InvitedByName = TeamInviteHelpers.BuildDisplayName(i.InitiatorFirstName, i.InitiatorLastName),
@@ -463,7 +463,7 @@ public class TeamsController : ControllerBase
 
 	[HttpPut("{teamId}/autoApprovePlayerRequests")]
 	[Tags("TeamManagement")]
-	[Authorize]
+	[Authorize(AuthorizationPolicies.TeamManagerOrAnyNgbAdminPolicy)]
 	public async Task<IActionResult> SetAutoApprovePlayerRequests(
 		[FromRoute] TeamIdentifier teamId,
 		[FromBody] SetTeamAutoApprovePlayerRequestsRequest request)
@@ -493,13 +493,11 @@ public class TeamsController : ControllerBase
 
 		var currentUserDbId = await this.GetCurrentUserDbIdAsync(userContext.UserId);
 		var pendingRequests = await this.dbContext.TeamInvitations
-			.Include(invitation => invitation.Initiator)
 			.Where(invitation =>
 				invitation.TeamId == teamId.Id &&
 				invitation.RevokedAt == null &&
 				invitation.AcceptedAt == null &&
-				invitation.DeclinedAt == null &&
-				invitation.Initiator.Email.ToLower() == invitation.Email.ToLower())
+				invitation.DeclinedAt == null)
 			.ToListAsync(this.HttpContext.RequestAborted);
 
 		var usersToNotify = new List<InvitedUserLookup>();
@@ -697,7 +695,7 @@ public class TeamsController : ControllerBase
 			new { teamId },
 			new TeamInvitationViewModel
 			{
-				InvitationId = invitation.Id.ToString(),
+				InvitationId = new TeamInvitationIdentifier(invitation.Id).ToString(),
 				Email = invitation.Email,
 				CreatedAt = invitation.CreatedAt,
 				InvitedByName = invitedByName
@@ -707,12 +705,12 @@ public class TeamsController : ControllerBase
 	/// <summary>
 	/// Revoke a pending player invitation for the team.
 	/// </summary>
-	[HttpDelete("{teamId}/invites/{invitationId:long}")]
+	[HttpDelete("{teamId}/invites/{invitationId}")]
 	[Tags("TeamManagement")]
 	[Authorize]
 	public async Task<IActionResult> RevokeInvite(
 		[FromRoute] TeamIdentifier teamId,
-		[FromRoute] long invitationId)
+		[FromRoute] TeamInvitationIdentifier invitationId)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var authError = await this.ValidateTeamManagementAccessAsync(teamId, allowNgbAdmin: true);
@@ -747,12 +745,12 @@ public class TeamsController : ControllerBase
 	/// <summary>
 	/// Accept or reject a pending player join request for the team.
 	/// </summary>
-	[HttpPost("{teamId}/invites/{invitationId:long}/response")]
+	[HttpPost("{teamId}/invites/{invitationId}/response")]
 	[Tags("TeamManagement")]
 	[Authorize]
 	public async Task<IActionResult> RespondToPendingInvite(
 		[FromRoute] TeamIdentifier teamId,
-		[FromRoute] long invitationId,
+		[FromRoute] TeamInvitationIdentifier invitationId,
 		[FromBody] InviteResponseModel response)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
@@ -966,12 +964,12 @@ public class TeamsController : ControllerBase
 				this.HttpContext.RequestAborted);
 	}
 
-	private async Task<ManagementHub.Models.Data.TeamInvitation?> GetPendingTeamInvitationAsync(TeamIdentifier teamId, long invitationId)
+	private async Task<ManagementHub.Models.Data.TeamInvitation?> GetPendingTeamInvitationAsync(TeamIdentifier teamId, TeamInvitationIdentifier invitationId)
 	{
 		return await this.dbContext.TeamInvitations
 			.FirstOrDefaultAsync(
 				i =>
-					i.Id == invitationId &&
+					i.Id == invitationId.Id &&
 					i.TeamId == teamId.Id &&
 					i.RevokedAt == null &&
 					i.AcceptedAt == null &&
