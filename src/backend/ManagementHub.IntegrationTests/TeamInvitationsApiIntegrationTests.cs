@@ -577,6 +577,17 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 
 		await AuthenticationHelper.AuthenticateAsAsync(this.client, "referee@example.com", "password");
 
+		// Clear any existing team assignment from prior tests to ensure a clean state
+		var clearResponse = await this.client.PutAsJsonAsync("/api/v2/Referees/me", new
+		{
+			primaryNgb = "USA",
+			secondaryNgb = (string?)null,
+			playingTeam = (object?)null,
+			coachingTeam = (object?)null,
+			nationalTeam = (object?)null,
+		});
+		clearResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
 		var updateResponse = await this.client.PutAsJsonAsync("/api/v2/Referees/me", new
 		{
 			primaryNgb = "USA",
