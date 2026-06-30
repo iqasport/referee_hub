@@ -78,17 +78,10 @@ public class RefereesController : ControllerBase
 			.ToArray();
 		var teamIdsWithInviteRecords = await this.GetTeamIdsWithInviteRecordAsync(requestedTeamIds, normalizedEmail);
 		
-		var hasAnyPlayingTeamInviteRecord = requestedPlayingTeamId != null
-			&& teamIdsWithInviteRecords.Contains(requestedPlayingTeamId.Value);
-		var shouldCreatePlayingTeamRequest =
-			requestedPlayingTeamId != null &&
-			(currentPlayingTeamId == null || requestedPlayingTeamId != currentPlayingTeamId.Value || !hasAnyPlayingTeamInviteRecord);
-
-		var hasAnyCoachingTeamInviteRecord = requestedCoachingTeamId != null
-			&& teamIdsWithInviteRecords.Contains(requestedCoachingTeamId.Value);
-		var shouldCreateCoachingTeamRequest =
-			requestedCoachingTeamId != null &&
-			(currentCoachingTeamId == null || requestedCoachingTeamId != currentCoachingTeamId.Value || !hasAnyCoachingTeamInviteRecord);
+		var shouldCreatePlayingTeamRequest = ShouldCreateTeamRequest(
+			requestedPlayingTeamId, currentPlayingTeamId, teamIdsWithInviteRecords);
+		var shouldCreateCoachingTeamRequest = ShouldCreateTeamRequest(
+			requestedCoachingTeamId, currentCoachingTeamId, teamIdsWithInviteRecords);
 
 		await this.updateRefereeRoleCommand.UpdateRefereeRoleAsync(userContext.UserId, refereeRole => new RefereeRole
 		{
@@ -102,66 +95,71 @@ public class RefereesController : ControllerBase
 			SecondaryNgb = refereeUpdate.SecondaryNgb,
 		}, this.HttpContext.RequestAborted);
 
-		var statusResponse = new RefereeTeamUpdateStatusViewModel
-		{
-			PlayingTeam = requestedPlayingTeamId == null
-				? null
-				: new RefereeTeamRequestStatusViewModel
-				{
-					TeamId = new TeamIdentifier(requestedPlayingTeamId.Value).ToString(),
-					Status = RefereeTeamRequestStatus.Applied,
-					RequestCreated = false,
-				},
-			CoachingTeam = requestedCoachingTeamId == null
-				? null
-				: new RefereeTeamRequestStatusViewModel
-				{
-					TeamId = new TeamIdentifier(requestedCoachingTeamId.Value).ToString(),
-					Status = RefereeTeamRequestStatus.Applied,
-					RequestCreated = false,
-				},
-		};
-
-		long? currentUserDbId = null;
-
-		if (shouldCreatePlayingTeamRequest)
-		{
-			currentUserDbId ??= await this.ResolveCurrentUserDbIdAsync(userContext.UserId);
-			var result = await this.CreateOrUpdateTeamInviteAsync(
-				requestedPlayingTeamId!.Value,
-				normalizedEmail,
-				currentUserDbId.Value,
-				userContext.UserId);
-			if (result.ErrorResult != null)
-			{
-				return result.ErrorResult;
-			}
-
-			statusResponse.PlayingTeam = result.Status;
-		}
-
-		if (shouldCreateCoachingTeamRequest)
-		{
-			currentUserDbId ??= await this.ResolveCurrentUserDbIdAsync(userContext.UserId);
-			var result = await this.CreateOrUpdateTeamInviteAsync(
-				requestedCoachingTeamId!.Value,
-				normalizedEmail,
-				currentUserDbId.Value,
-				userContext.UserId);
-			if (result.ErrorResult != null)
-			{
-				return result.ErrorResult;
-			}
-
-			statusResponse.CoachingTeam = result.Status;
-		}
-
 		if (!shouldCreatePlayingTeamRequest && !shouldCreateCoachingTeamRequest)
 		{
 			return this.NoContent();
 		}
 
-		return this.Ok(statusResponse);
+		var currentUserDbId = await this.ResolveCurrentUserDbIdAsync(userContext.UserId);
+
+		var (playingError, playingStatus) = await this.TryProcessTeamRequestAsync(
+			requestedPlayingTeamId, shouldCreatePlayingTeamRequest, normalizedEmail, currentUserDbId, userContext.UserId);
+		if (playingError != null)
+		{
+			return playingError;
+		}
+
+		var (coachingError, coachingStatus) = await this.TryProcessTeamRequestAsync(
+			requestedCoachingTeamId, shouldCreateCoachingTeamRequest, normalizedEmail, currentUserDbId, userContext.UserId);
+		if (coachingError != null)
+		{
+			return coachingError;
+		}
+
+		return this.Ok(new RefereeTeamUpdateStatusViewModel
+		{
+			PlayingTeam = playingStatus,
+			CoachingTeam = coachingStatus,
+		});
+	}
+
+	private static bool ShouldCreateTeamRequest(long? requestedId, long? currentId, HashSet<long> idsWithInvites)
+	{
+		if (requestedId == null)
+		{
+			return false;
+		}
+
+		return currentId == null
+			|| requestedId.Value != currentId.Value
+			|| !idsWithInvites.Contains(requestedId.Value);
+	}
+
+	private async Task<(IActionResult? Error, RefereeTeamRequestStatusViewModel? Status)> TryProcessTeamRequestAsync(
+		long? requestedTeamId,
+		bool shouldCreate,
+		string normalizedEmail,
+		long currentUserDbId,
+		UserIdentifier currentUserId)
+	{
+		if (requestedTeamId == null)
+		{
+			return (null, null);
+		}
+
+		if (!shouldCreate)
+		{
+			return (null, new RefereeTeamRequestStatusViewModel
+			{
+				TeamId = new TeamIdentifier(requestedTeamId.Value).ToString(),
+				Status = RefereeTeamRequestStatus.Applied,
+				RequestCreated = false,
+			});
+		}
+
+		var result = await this.CreateOrUpdateTeamInviteAsync(
+			requestedTeamId.Value, normalizedEmail, currentUserDbId, currentUserId);
+		return (result.ErrorResult, result.Status);
 	}
 
 	private async Task<(long? PlayingTeamId, long? CoachingTeamId)> GetCurrentRefereeTeamIdsAsync(UserIdentifier userId)
