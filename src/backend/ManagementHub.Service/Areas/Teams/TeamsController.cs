@@ -457,7 +457,8 @@ public class TeamsController : ControllerBase
 				PrimaryTeamId = m.PrimaryTeamId?.ToString()
 			}),
 			PendingInvites = pendingInvites,
-			PlayerHistory = playerHistory
+			PlayerHistory = playerHistory,
+			IsCurrentUserManager = isTeamManager
 		});
 	}
 

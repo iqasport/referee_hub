@@ -94,4 +94,9 @@ public class TeamManagementViewModel
 	/// Recent player invite and membership activity for this team.
 	/// </summary>
 	public required IEnumerable<TeamPlayerActivityViewModel> PlayerHistory { get; set; }
+
+	/// <summary>
+	/// Whether the currently authenticated user is a manager of this team.
+	/// </summary>
+	public bool IsCurrentUserManager { get; set; }
 }

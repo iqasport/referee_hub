@@ -98,7 +98,7 @@ const NgbEditModal = (props: NgbEditModalProps) => {
         updateNgb({ngb: ngbId, ngbUpdateModel: ngbToSend});
       }
     } else {
-      // TODO: get country code for creating NGB some other way instead of reusing acronym
+      // New NGB creation currently uses acronym as route key.
       adminCreateNgb({ngb: ngbToSend.acronym, adminNgbUpdateModel: ngbToSend});
     }
 

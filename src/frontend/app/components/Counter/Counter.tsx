@@ -15,7 +15,7 @@ export const getDisplayColor = (timeLimit: number, interval: { minutes: number; 
   // last 10 seconds are red
   if (interval.minutes < 0 || (interval.minutes === 0 && interval.seconds < 11)) return "red-500";
   // last quarter of time is yellow
-  if (interval.minutes <= goodLimit) return "yellow"; // TODO: figure out why yellow isn't scaled
+  if (interval.minutes <= goodLimit) return "yellow";
 
   return "gray-500";
 };
