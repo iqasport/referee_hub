@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
 const { merge } = require('webpack-merge');
 const common = require('./webpack.config.common.js');
@@ -18,9 +19,12 @@ module.exports = merge(common, {
     clean: false,
     filename: '[name].js',
     chunkFilename: '[name].js',
+    // Keep pre-generated CSS and copied images in dist while webpack-dev-server runs.
+    clean: false,
   },
   plugins: [
     new Dotenv(),
+    new webpack.HotModuleReplacementPlugin(),
   ],
   devServer: {
     // Keep a fixed dev port to avoid split runtimes across 8080/8081.

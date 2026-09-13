@@ -17,6 +17,7 @@ const Tournament = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("q") || "";
   const typeFilter = searchParams.get("type") || "";
+  const showOlderTournaments = searchParams.get("showOlder") === "1";
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const viewParam = searchParams.get("view");
   const viewMode: "list" | "calendar" = viewParam === "calendar" ? "calendar" : "list";
@@ -29,6 +30,7 @@ const Tournament = () => {
     isAnonymous,
     currentPage,
     typeFilter,
+    showOlderTournaments,
     publicTournamentsFromApi,
     allTournaments,
     paginatedTournaments
@@ -77,6 +79,17 @@ const Tournament = () => {
     setSearchParams(params);
   };
 
+  const handleShowOlderTournamentsChange = (showOlder: boolean) => {
+    const params = new URLSearchParams(searchParams);
+    if (showOlder) {
+      params.set("showOlder", "1");
+    } else {
+      params.delete("showOlder");
+    }
+    params.delete("page");
+    setSearchParams(params);
+  };
+
   const handleViewModeChange = (mode: "list" | "calendar") => {
     const params = new URLSearchParams(searchParams);
     params.set("view", mode);
@@ -88,7 +101,13 @@ const Tournament = () => {
       <div className="tournament-page-container">
         <div className="tournament-page-header">
           <div className="tournament-search-wrapper">
-            <Search onSearch={handleSearch} onTypeFilter={handleTypeFilter} selectedType={typeFilter} />
+            <Search
+              onSearch={handleSearch}
+              onTypeFilter={handleTypeFilter}
+              selectedType={typeFilter}
+              showOlderTournaments={showOlderTournaments}
+              onShowOlderTournamentsChange={handleShowOlderTournamentsChange}
+            />
           </div>
           <div className="view-toggle" aria-label="Tournament view toggle">
             <button

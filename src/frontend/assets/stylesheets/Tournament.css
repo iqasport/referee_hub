@@ -353,6 +353,25 @@
   align-items: center;
 }
 
+.tournament-search-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.tournament-show-older-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.tournament-show-older-toggle input {
+  cursor: pointer;
+}
+
 .tournament-search-input-wrapper {
   position: relative;
   flex: 1;

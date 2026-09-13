@@ -1,6 +1,6 @@
 import { faBell, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { useNavigate } from "../../utils/navigationUtils";
 import {
@@ -35,11 +35,11 @@ const NotificationCenter = ({ currentUserId }: Props) => {
   const [markAllRead] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
-  useNotificationsRealtime({
-    onRefresh: () => {
-      refetch();
-    },
-  });
+  const handleRealtimeRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  useNotificationsRealtime({ onRefresh: handleRealtimeRefresh });
 
   const notifications = data?.notifications ?? [];
 

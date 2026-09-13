@@ -1,6 +1,6 @@
+import { useEffect, useState } from "react";
 import {
   useGetTournamentsQuery,
-  useGetPublicTournamentsQuery,
   TournamentViewModel,
 } from "../../../store/serviceApi";
 import { useCurrentUser } from "../../../CurrentUserContext";
@@ -80,6 +80,9 @@ export const useTournamentsData = (
   DEFAULT_PAGE_SIZE: number
 ): UseTournamentsDataReturn => {
   const { isAnonymous, isLoading: isCurrentUserLoading } = useCurrentUser();
+  const [publicTournamentsData, setPublicTournamentsData] = useState<TournamentViewModel[]>([]);
+  const [isLoadingPublic, setIsLoadingPublic] = useState(false);
+  const [isErrorPublic, setIsErrorPublic] = useState(false);
 
   // Wait until current-user state is resolved before querying tournaments.
   const shouldFetchTournaments = !isCurrentUserLoading;
@@ -117,13 +120,46 @@ export const useTournamentsData = (
     }
   );
 
-  const {
-    data: publicTournamentsData,
-    isLoading: isLoadingPublic,
-    isError: isErrorPublic,
-  } = useGetPublicTournamentsQuery(undefined, {
-    skip: !shouldFetchTournaments || !isAnonymous,
-  });
+  useEffect(() => {
+    const controller = new AbortController();
+
+    if (!shouldFetchTournaments || !isAnonymous) {
+      return undefined;
+    }
+
+    const loadPublicTournaments = async () => {
+      setIsLoadingPublic(true);
+      setIsErrorPublic(false);
+
+      try {
+        const response = await fetch("/api/v2/public/tournaments", {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch public tournaments: ${response.status}`);
+        }
+
+        const data: unknown = await response.json();
+        setPublicTournamentsData(Array.isArray(data) ? (data as TournamentViewModel[]) : []);
+      } catch (error) {
+        if ((error as { name?: string }).name !== "AbortError") {
+          setIsErrorPublic(true);
+          setPublicTournamentsData([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingPublic(false);
+        }
+      }
+    };
+
+    loadPublicTournaments();
+
+    return () => {
+      controller.abort();
+    };
+  }, [isAnonymous, shouldFetchTournaments]);
 
   const filteredPublicTournaments = getFilteredPublicTournaments(publicTournamentsData, searchTerm);
 

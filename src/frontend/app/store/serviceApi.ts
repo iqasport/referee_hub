@@ -1797,6 +1797,8 @@ export type TeamManagementViewModel = {
   playerHistory?: TeamPlayerActivityViewModel[] | null;
   /** Whether player join requests are auto-approved. */
   autoApprovePlayerRequests?: boolean;
+  /** Whether the currently authenticated user is a manager of this team. */
+  isCurrentUserManager?: boolean;
 };
 export type SetTeamAutoApprovePlayerRequestsApiResponse = unknown;
 export type SetTeamAutoApprovePlayerRequestsApiArg = {
