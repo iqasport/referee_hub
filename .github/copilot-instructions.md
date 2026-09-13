@@ -128,13 +128,17 @@ public async Task<IActionResult> UpdateTournament(
     [FromBody] UpdateTournamentRequest request) { }
 ```
 
-**Logging** - NO sensitive data (emails, passwords):
+**Logging** - NO sensitive data (emails, passwords). Pass typed identifiers directly — they have safe `ToString()` implementations and do NOT need manual newline-stripping helpers:
 ```csharp
-// ✅ GOOD
+// ✅ GOOD — typed identifier is safe to log directly
 _logger.LogInformation("User login for user ID {UserId}", userId);
+_logger.LogError(ex, "Failed for team {TeamId}", teamId);  // TeamIdentifier, not teamId.ToString()
 
 // ❌ BAD - logs email
 _logger.LogInformation("User login for {Email}", email);
+
+// ❌ BAD - unnecessary sanitization; do not create SanitizeForLog helpers
+_logger.LogError(ex, "Failed for team {TeamId}", SanitizeForLog(teamId.ToString()));
 ```
 
 **Entity Configuration** - Always specify `.WithMany()` to avoid EF shadow properties:

@@ -43,7 +43,19 @@ src/frontend/.yarn/install-state.gz
 yarn-debug.log*
 .yarn-integrity
 
-.env
+# Note: .env is now committed with default/test values
+# For sensitive production values, use GitHub Actions secrets instead
+
+# Yarn PnP and generated files
+.pnp
+
+# Refactoring guides and internal documentation
+docs/refactoring-*.md
+.pnp.cjs
+.pnp.loader.mjs
+.yarn/
+.yarnrc.yml
+
 /public/packs
 /public/packs-test
 node_modules

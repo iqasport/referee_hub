@@ -24,4 +24,9 @@ public class TeamInvitationViewModel
 	/// Name of the person who sent the invitation (if available).
 	/// </summary>
 	public string? InvitedByName { get; set; }
+
+	/// <summary>
+	/// True when this pending item is a player join request awaiting manager approval.
+	/// </summary>
+	public bool RequiresManagerDecision { get; set; }
 }

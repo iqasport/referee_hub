@@ -24,6 +24,8 @@ public class DbNgbStatsContext : INgbStatsContext
 
 	public int FlagRefereesCount { get; set; }
 
+	public int FlagRunnerRefereesCount { get; set; }
+
 	public int ScorekeeperRefereesCount { get; set; }
 
 	public int UncertifiedRefereesCount { get; set; }
@@ -98,6 +100,7 @@ public class DbNgbStatsContextFactory
 			TotalRefereesCount = refereeCount,
 			HeadRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Head),
 			FlagRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Flag),
+			FlagRunnerRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.FlagRunner),
 			AssistantRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Assistant),
 			ScorekeeperRefereesCount = refsCertsLevels.GetValueOrDefault(CertificationLevel.Scorekeeper),
 			UncertifiedRefereesCount = refereeCount - refsCertsLevels.Values.Sum(),
@@ -129,6 +132,7 @@ public class DbNgbStatsContextFactory
 			TotalRefereesCount = s.TotalRefereesCount ?? 0,
 			HeadRefereesCount = s.HeadRefereesCount ?? 0,
 			FlagRefereesCount = s.SnitchRefereesCount ?? 0,
+			FlagRunnerRefereesCount = s.FlagRunnerRefereesCount ?? 0,
 			AssistantRefereesCount = s.AssistantRefereesCount ?? 0,
 			ScorekeeperRefereesCount = s.ScorekeeperRefereesCount ?? 0,
 			UncertifiedRefereesCount = s.UncertifiedCount ?? 0,

@@ -253,6 +253,7 @@ public class DbTeamContextFactory
 					? UserIdentifier.Parse(x.User.UniqueId)
 					: UserIdentifier.FromLegacyUserId(x.User.Id),
 				Name = $"{x.User.FirstName} {x.User.LastName}",
+				Email = x.User.Email,
 				PrimaryTeamName = x.PrimaryTeam != null ? x.PrimaryTeam.TeamName : null,
 				PrimaryTeamId = x.PrimaryTeam != null ? new TeamIdentifier(x.PrimaryTeam.TeamId) : null
 			});
@@ -269,6 +270,7 @@ public class DbTeamContextFactory
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
 		Description = tt.Description,
 		ContactEmail = tt.ContactEmail,
+		AutoApprovePlayerRequests = tt.AutoApprovePlayerRequests,
 	});
 
 	public static Expression<Func<Models.Data.Team, DbTeamContext>> Selector = tt => new DbTeamContext(new TeamIdentifier(tt.Id), new NgbIdentifier(tt.NationalGoverningBody!.CountryCode), new TeamData
@@ -282,6 +284,7 @@ public class DbTeamContextFactory
 		JoinedAt = tt.JoinedAt ?? new DateTime(),
 		Description = tt.Description,
 		ContactEmail = tt.ContactEmail,
+		AutoApprovePlayerRequests = tt.AutoApprovePlayerRequests,
 	});
 
 	public async Task<ITeamContext?> GetTeamAsync(TeamIdentifier teamId, NgbConstraint ngbs)

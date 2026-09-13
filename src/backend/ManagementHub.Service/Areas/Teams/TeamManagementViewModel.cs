@@ -46,6 +46,11 @@ public class TeamManagementViewModel
 	public required TeamGroupAffiliation GroupAffiliation { get; set; }
 
 	/// <summary>
+	/// Date when the team joined.
+	/// </summary>
+	public required DateOnly JoinedAt { get; set; }
+
+	/// <summary>
 	/// URL to the team's logo image (fetched from attachment storage).
 	/// </summary>
 	public Uri? LogoUri { get; set; }
@@ -59,6 +64,11 @@ public class TeamManagementViewModel
 	/// Team contact email.
 	/// </summary>
 	public string? ContactEmail { get; set; }
+
+	/// <summary>
+	/// Whether incoming player requests should be automatically approved.
+	/// </summary>
+	public bool AutoApprovePlayerRequests { get; set; }
 
 	/// <summary>
 	/// Team social media accounts.
@@ -79,4 +89,9 @@ public class TeamManagementViewModel
 	/// Pending invitations for this team.
 	/// </summary>
 	public required IEnumerable<TeamInvitationViewModel> PendingInvites { get; set; }
+
+	/// <summary>
+	/// Recent player invite and membership activity for this team.
+	/// </summary>
+	public required IEnumerable<TeamPlayerActivityViewModel> PlayerHistory { get; set; }
 }

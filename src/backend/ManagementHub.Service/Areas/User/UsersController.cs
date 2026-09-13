@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Commands.Mailers;
+using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.Ngb;
@@ -13,6 +15,9 @@ using ManagementHub.Models.Enums;
 using ManagementHub.Models.Exceptions;
 using ManagementHub.Service.Authorization;
 using ManagementHub.Service.Contexts;
+using ManagementHub.Service.Areas.Teams;
+using ManagementHub.Service.Areas.Tournaments;
+using ManagementHub.Service.Services;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -37,8 +42,12 @@ public class UsersController : ControllerBase
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
 	private readonly ISetUserAttributeCommand setUserAttributeCommand;
 	private readonly IUserDelicateInfoService userDelicateInfoService;
+	private readonly ITeamContextProvider teamContextProvider;
+	private readonly ISendTeamInviteEmail sendTeamInviteEmail;
+	private readonly INotificationService notificationService;
 	private readonly ManagementHubDbContext dbContext;
 	private readonly IContextualOptions<FeatureGates> featureGatesOptions;
+	private readonly ILogger<UsersController> logger;
 
 	public UsersController(
 		IUserContextAccessor contextAccessor,
@@ -46,16 +55,24 @@ public class UsersController : ControllerBase
 		IUpdateUserAvatarCommand updateUserAvatarCommand,
 		ISetUserAttributeCommand setUserAttributeCommand,
 		IUserDelicateInfoService userDelicateInfoService,
+		ITeamContextProvider teamContextProvider,
+		ISendTeamInviteEmail sendTeamInviteEmail,
+		INotificationService notificationService,
 		ManagementHubDbContext dbContext,
-		IContextualOptions<FeatureGates> featureGatesOptions)
+		IContextualOptions<FeatureGates> featureGatesOptions,
+		ILogger<UsersController> logger)
 	{
 		this.contextAccessor = contextAccessor;
 		this.updateUserDataCommand = updateUserDataCommand;
 		this.updateUserAvatarCommand = updateUserAvatarCommand;
 		this.setUserAttributeCommand = setUserAttributeCommand;
 		this.userDelicateInfoService = userDelicateInfoService;
+		this.teamContextProvider = teamContextProvider;
+		this.sendTeamInviteEmail = sendTeamInviteEmail;
+		this.notificationService = notificationService;
 		this.dbContext = dbContext;
 		this.featureGatesOptions = featureGatesOptions;
+		this.logger = logger;
 	}
 
 	/// <summary>
@@ -342,6 +359,382 @@ public class UsersController : ControllerBase
 			.ToListAsync(this.HttpContext.RequestAborted);
 
 		return explicitManagedTeams;
+	}
+
+	/// <summary>
+	/// Get pending team invitations for the currently signed-in user.
+	/// </summary>
+	[HttpGet("me/teamInvites")]
+	[Tags("User")]
+	public async Task<List<CurrentUserTeamInviteViewModel>> GetMyTeamInvites()
+	{
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
+		var currentUserDbId = await this.GetCurrentUserDbIdAsync(currentUser.UserId);
+		var normalizedEmail = TeamInviteHelpers.NormalizeEmail(currentUser.UserData.Email.Value);
+
+		var pendingInvites = await this.GetPendingTeamInvitationsForEmailAsync(normalizedEmail);
+		var teamLogoUris = await this.GetTeamLogoUrisAsync(pendingInvites.Select(invite => invite.TeamId));
+
+		return pendingInvites
+			.Select(invite => new CurrentUserTeamInviteViewModel
+			{
+				InvitationId = new TeamInvitationIdentifier(invite.Id).ToString(),
+				TeamId = new TeamIdentifier(invite.TeamId),
+				TeamName = invite.Team.Name,
+				TeamLogoUri = teamLogoUris.GetValueOrDefault(invite.TeamId),
+				Email = invite.Email,
+				CreatedAt = invite.CreatedAt,
+				InvitedByName = TeamInviteHelpers.BuildDisplayName(invite.Initiator.FirstName, invite.Initiator.LastName),
+				CanRespond = invite.InitiatorUserId != currentUserDbId
+			})
+			.ToList();
+	}
+
+	/// <summary>
+	/// Cancel a pending team join request that the current user initiated.
+	/// </summary>
+	[HttpDelete("me/teamInvites/{invitationId}")]
+	[Tags("User")]
+	public async Task<IActionResult> CancelMyTeamInvite([FromRoute] TeamInvitationIdentifier invitationId)
+	{
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
+		var currentUserDbId = await this.GetCurrentUserDbIdAsync(currentUser.UserId);
+		var normalizedEmail = TeamInviteHelpers.NormalizeEmail(currentUser.UserData.Email.Value);
+
+		// Only allow cancelling requests the player themselves initiated (CanRespond == false case)
+		var invitation = await this.GetPendingTeamInvitationAsync(invitationId.Id, normalizedEmail);
+
+		if (invitation == null || invitation.InitiatorUserId != currentUserDbId)
+		{
+			return this.NotFound();
+		}
+
+		invitation.RevokedAt = DateTime.UtcNow;
+		await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
+		return this.NoContent();
+	}
+
+	/// <summary>
+	/// Accept or decline a pending team invitation for the current user.
+	/// </summary>
+	[HttpPost("me/teamInvites/{invitationId}")]
+	[Tags("User")]
+	public async Task<IActionResult> RespondToTeamInvite([FromRoute] TeamInvitationIdentifier invitationId, [FromBody] InviteResponseModel response)
+	{
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
+		var currentUserDbId = await this.GetCurrentUserDbIdAsync(currentUser.UserId);
+		var normalizedEmail = TeamInviteHelpers.NormalizeEmail(currentUser.UserData.Email.Value);
+
+		var invitation = await this.GetPendingTeamInvitationAsync(invitationId.Id, normalizedEmail);
+
+		if (invitation == null)
+		{
+			return this.NotFound(new { error = "No pending invite found" });
+		}
+
+		var canSelfApproveInvite = currentUser.Roles
+			.OfType<TeamManagerRole>()
+			.Any(role => role.Team.AppliesTo(new TeamIdentifier(invitation.TeamId)));
+
+		if (RequiresManagerApproval(invitation, currentUserDbId, canSelfApproveInvite))
+		{
+			return this.BadRequest(new { error = "This request is waiting for team manager approval." });
+		}
+
+		var existingPlayerMembership = await this.GetExistingPlayerMembershipAsync(currentUserDbId);
+
+		if (response.Approved && existingPlayerMembership?.TeamId == invitation.TeamId)
+		{
+			return this.BadRequest(new { error = "User is already a team member" });
+		}
+
+		var respondedAt = DateTime.UtcNow;
+		this.ApplyTeamInviteResponse(invitation, response.Approved, currentUserDbId, existingPlayerMembership, respondedAt);
+		this.AddTeamInviteActivity(invitation, response.Approved, currentUserDbId, respondedAt);
+
+		await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
+
+		var responderName = string.Join(" ", new[] { currentUser.UserData.FirstName, currentUser.UserData.LastName }
+			.Where(part => !string.IsNullOrWhiteSpace(part)));
+
+		await this.SendTeamInviteResponseEmailAsync(invitation, invitationId.Id, response.Approved, responderName);
+
+		if (invitation.InitiatorUserId != currentUserDbId)
+		{
+			var initiatorUser = await this.dbContext.Users
+				.Where(user => user.Id == invitation.InitiatorUserId)
+				.Select(user => new { user.Id, user.UniqueId })
+				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+			if (initiatorUser != null)
+			{
+				var initiatorUserId = !string.IsNullOrWhiteSpace(initiatorUser.UniqueId)
+					? UserIdentifier.Parse(initiatorUser.UniqueId)
+					: UserIdentifier.FromLegacyUserId(initiatorUser.Id);
+
+				await this.notificationService.CreateTeamInviteResponseNotificationForManagerAsync(
+					initiatorUserId,
+					new TeamIdentifier(invitation.TeamId),
+					invitation.Team.Name,
+					response.Approved,
+					this.HttpContext.RequestAborted);
+			}
+		}
+
+		return this.Ok();
+	}
+
+	private async Task<TeamInvitation?> GetPendingTeamInvitationAsync(long invitationId, string normalizedEmail)
+	{
+		return await this.dbContext.TeamInvitations
+			.Include(invite => invite.Team)
+			.FirstOrDefaultAsync(invite =>
+				invite.Id == invitationId &&
+				invite.Email.ToLower() == normalizedEmail &&
+				invite.RevokedAt == null &&
+				invite.AcceptedAt == null &&
+				invite.DeclinedAt == null,
+				this.HttpContext.RequestAborted);
+	}
+	private async Task<List<TeamInvitation>> GetPendingTeamInvitationsForEmailAsync(string normalizedEmail)
+	{
+		return await this.dbContext.TeamInvitations
+			.Include(invite => invite.Team)
+			.Include(invite => invite.Initiator)
+			.Where(invite => invite.Email.ToLower() == normalizedEmail && invite.RevokedAt == null && invite.AcceptedAt == null && invite.DeclinedAt == null)
+			.OrderByDescending(invite => invite.CreatedAt)
+			.ToListAsync(this.HttpContext.RequestAborted);
+	}
+	private static bool RequiresManagerApproval(TeamInvitation invitation, long currentUserDbId, bool canSelfApproveInvite)
+	{
+		if (invitation.InitiatorUserId != currentUserDbId)
+		{
+			return false;
+		}
+
+		return !canSelfApproveInvite;
+	}
+
+	private async Task<RefereeTeam?> GetExistingPlayerMembershipAsync(long currentUserDbId)
+	{
+		return await this.dbContext.RefereeTeams
+			.FirstOrDefaultAsync(
+				membership =>
+					membership.RefereeId == currentUserDbId &&
+					membership.AssociationType == RefereeTeamAssociationType.Player,
+				this.HttpContext.RequestAborted);
+	}
+
+	private void ApplyTeamInviteResponse(TeamInvitation invitation, bool approved, long currentUserDbId, RefereeTeam? existingPlayerMembership, DateTime respondedAt)
+	{
+		invitation.RespondedByUserId = currentUserDbId;
+
+		if (!approved)
+		{
+			invitation.DeclinedAt = respondedAt;
+			return;
+		}
+
+		invitation.AcceptedAt = respondedAt;
+		if (existingPlayerMembership == null)
+		{
+			this.dbContext.RefereeTeams.Add(new RefereeTeam
+			{
+				AssociationType = RefereeTeamAssociationType.Player,
+				RefereeId = currentUserDbId,
+				TeamId = invitation.TeamId,
+				CreatedAt = respondedAt,
+				UpdatedAt = respondedAt,
+			});
+			return;
+		}
+
+		if (existingPlayerMembership.TeamId != invitation.TeamId && existingPlayerMembership.TeamId.HasValue)
+		{
+			this.dbContext.TeamPlayerActivities.Add(new TeamPlayerActivity
+			{
+				TeamId = existingPlayerMembership.TeamId.Value,
+				UserId = currentUserDbId,
+				Email = invitation.Email,
+				InitiatorUserId = currentUserDbId,
+				ActivityType = TeamPlayerActivityType.PlayerRemoved,
+				CreatedAt = respondedAt,
+			});
+		}
+
+		existingPlayerMembership.TeamId = invitation.TeamId;
+		existingPlayerMembership.UpdatedAt = respondedAt;
+	}
+
+	private void AddTeamInviteActivity(TeamInvitation invitation, bool approved, long currentUserDbId, DateTime respondedAt)
+	{
+		this.dbContext.TeamPlayerActivities.Add(new TeamPlayerActivity
+		{
+			TeamId = invitation.TeamId,
+			UserId = currentUserDbId,
+			Email = invitation.Email,
+			InitiatorUserId = currentUserDbId,
+			ActivityType = approved ? TeamPlayerActivityType.InviteAccepted : TeamPlayerActivityType.InviteDeclined,
+			CreatedAt = respondedAt,
+		});
+	}
+
+	private async Task SendTeamInviteResponseEmailAsync(TeamInvitation invitation, long invitationId, bool approved, string responderName)
+	{
+		try
+		{
+			await this.sendTeamInviteEmail.SendTeamInviteResponseEmailAsync(
+				new TeamIdentifier(invitation.TeamId),
+				invitation.Email,
+				string.IsNullOrWhiteSpace(responderName) ? null : responderName,
+				approved,
+				this.GetHostBaseUri(),
+				this.HttpContext.RequestAborted);
+		}
+		catch (Exception ex)
+		{
+			this.logger.LogError(ex, "Failed to send team invite response email for invitation {InvitationId}", invitationId);
+		}
+	}
+
+	private async Task<long> GetCurrentUserDbIdAsync(UserIdentifier userId)
+	{
+		return await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(user => user.Id)
+			.SingleAsync(this.HttpContext.RequestAborted);
+	}
+
+	private Uri GetHostBaseUri() => new($"{this.Request.Scheme}://{this.Request.Host}");
+
+	/// <summary>
+	/// Get team transfer history for the currently signed-in user.
+	/// Includes team joins and leaves ordered from newest to oldest.
+	/// </summary>
+	[HttpGet("me/teamHistory")]
+	[Tags("User")]
+	public async Task<List<TeamPlayerActivityViewModel>> GetMyTeamHistory()
+	{
+		var currentUser = await this.contextAccessor.GetCurrentUserContextAsync();
+		var currentUserDbId = await this.GetCurrentUserDbIdAsync(currentUser.UserId);
+
+		var historyRows = await this.dbContext.TeamPlayerActivities
+			.Where(activity =>
+				activity.UserId == currentUserDbId &&
+				(activity.ActivityType == TeamPlayerActivityType.InviteAccepted || activity.ActivityType == TeamPlayerActivityType.PlayerRemoved))
+			.OrderByDescending(activity => activity.CreatedAt)
+			.Take(50)
+			.Select(activity => new
+			{
+				activity.TeamId,
+				TeamName = activity.Team.Name,
+				activity.ActivityType,
+				activity.Email,
+				activity.UserId,
+				UserUniqueId = activity.User != null ? activity.User.UniqueId : null,
+				UserFirstName = activity.User != null ? activity.User.FirstName : null,
+				UserLastName = activity.User != null ? activity.User.LastName : null,
+				InitiatorFirstName = activity.Initiator.FirstName,
+				InitiatorLastName = activity.Initiator.LastName,
+				activity.CreatedAt,
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var teamLogoUris = await this.GetTeamLogoUrisAsync(historyRows.Select(activity => activity.TeamId));
+
+		return historyRows
+			.Select(activity => new TeamPlayerActivityViewModel
+			{
+				TeamId = new TeamIdentifier(activity.TeamId),
+				TeamName = activity.TeamName,
+				TeamLogoUri = teamLogoUris.GetValueOrDefault(activity.TeamId),
+				ActivityType = activity.ActivityType,
+				Email = activity.Email,
+				UserId = activity.UserId == null
+					? null
+					: !string.IsNullOrWhiteSpace(activity.UserUniqueId)
+						? UserIdentifier.Parse(activity.UserUniqueId)
+						: UserIdentifier.FromLegacyUserId(activity.UserId.Value),
+				UserName = TeamInviteHelpers.BuildDisplayName(activity.UserFirstName, activity.UserLastName),
+				InitiatorName = TeamInviteHelpers.BuildDisplayName(activity.InitiatorFirstName, activity.InitiatorLastName),
+				CreatedAt = activity.CreatedAt,
+			})
+			.ToList();
+	}
+
+	/// <summary>
+	/// Get team transfer history for a specific user (authorized for managers viewing team members).
+	/// Includes team joins and leaves ordered from newest to oldest.
+	/// </summary>
+	[HttpGet("{userId}/teamHistory")]
+	[Tags("User")]
+	[Authorize(AuthorizationPolicies.NgbAdminPolicy)]
+	public async Task<List<TeamPlayerActivityViewModel>> GetUserTeamHistory([FromRoute] UserIdentifier userId)
+	{
+		var targetUserDbId = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (targetUserDbId == null)
+		{
+			return new List<TeamPlayerActivityViewModel>();
+		}
+
+		var historyRows = await this.dbContext.TeamPlayerActivities
+			.Where(activity =>
+				activity.UserId == targetUserDbId &&
+				(activity.ActivityType == TeamPlayerActivityType.InviteAccepted || activity.ActivityType == TeamPlayerActivityType.PlayerRemoved))
+			.OrderByDescending(activity => activity.CreatedAt)
+			.Take(50)
+			.Select(activity => new
+			{
+				activity.TeamId,
+				TeamName = activity.Team.Name,
+				activity.ActivityType,
+				activity.Email,
+				activity.UserId,
+				UserUniqueId = activity.User != null ? activity.User.UniqueId : null,
+				UserFirstName = activity.User != null ? activity.User.FirstName : null,
+				UserLastName = activity.User != null ? activity.User.LastName : null,
+				InitiatorFirstName = activity.Initiator.FirstName,
+				InitiatorLastName = activity.Initiator.LastName,
+				activity.CreatedAt,
+			})
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		var teamLogoUris = await this.GetTeamLogoUrisAsync(historyRows.Select(activity => activity.TeamId));
+
+		return historyRows
+			.Select(activity => new TeamPlayerActivityViewModel
+			{
+				TeamId = new TeamIdentifier(activity.TeamId),
+				TeamName = activity.TeamName,
+				TeamLogoUri = teamLogoUris.GetValueOrDefault(activity.TeamId),
+				ActivityType = activity.ActivityType,
+				Email = activity.Email,
+				UserId = activity.UserId == null
+					? null
+					: !string.IsNullOrWhiteSpace(activity.UserUniqueId)
+						? UserIdentifier.Parse(activity.UserUniqueId)
+						: UserIdentifier.FromLegacyUserId(activity.UserId.Value),
+				UserName = TeamInviteHelpers.BuildDisplayName(activity.UserFirstName, activity.UserLastName),
+				InitiatorName = TeamInviteHelpers.BuildDisplayName(activity.InitiatorFirstName, activity.InitiatorLastName),
+				CreatedAt = activity.CreatedAt,
+			})
+			.ToList();
+	}
+
+	private async Task<Dictionary<long, string?>> GetTeamLogoUrisAsync(IEnumerable<long> teamIds)
+	{
+		var logoUris = new Dictionary<long, string?>();
+		foreach (var teamId in teamIds.Distinct())
+		{
+			var logoUri = await this.teamContextProvider.GetTeamLogoUriAsync(new TeamIdentifier(teamId), this.HttpContext.RequestAborted);
+			logoUris[teamId] = logoUri?.ToString();
+		}
+
+		return logoUris;
 	}
 
 	/// <summary>

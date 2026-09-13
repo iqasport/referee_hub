@@ -8,7 +8,8 @@ import { INgbStatsContextRead } from "../../store/serviceApi";
 
 interface RefereeStatsProps {
   assistantCount: number;
-  snitchCount: number;
+  flagCount: number;
+  flagRunnerCount: number;
   headCount: number;
   scorekeeperCount: number;
   total: number;
@@ -19,7 +20,7 @@ interface RefereeStatsProps {
 }
 
 const RefereeStats = (props: RefereeStatsProps) => {
-  const { total, headCount, assistantCount, snitchCount, scorekeeperCount, showFull, onClick, stats } = props;
+  const { total, headCount, assistantCount, flagCount, flagRunnerCount, scorekeeperCount, showFull, onClick, stats } = props;
   const historicChartData = getMonths().map((month) => {
     const foundStat = stats.find((stat) => toDateTime(stat.collectedAt).monthShort === month);
     if (!foundStat) {
@@ -27,9 +28,10 @@ const RefereeStats = (props: RefereeStatsProps) => {
         month,
         assistantRefereesCount: 0,
         flagRefereesCount: 0,
+        flagRunnerRefereesCount: 0,
         headRefereesCount: 0,
-        scorekeeperCount: 0,
-        uncertifiedCount: 0,
+        scorekeeperRefereesCount: 0,
+        uncertifiedRefereesCount: 0,
       };
     }
 
@@ -39,7 +41,8 @@ const RefereeStats = (props: RefereeStatsProps) => {
   const chartData = [
     { type: "head", head: headCount },
     { type: "assistant", assistant: assistantCount },
-    { type: "flag", flag: snitchCount },
+    { type: "flag", flag: flagCount },
+    { type: "flag runner", flagRunner: flagRunnerCount },
     { type: "scorekeeper", scorekeeper: scorekeeperCount},
   ];
 
@@ -47,12 +50,14 @@ const RefereeStats = (props: RefereeStatsProps) => {
     { dataKey: "head", fill: "#56a74b" },
     { dataKey: "assistant", fill: "#6eb465" },
     { dataKey: "flag", fill: "#82b27c" },
+    { dataKey: "flagRunner", fill: "#9cc690" },
     { dataKey: "scorekeeper", fill: "#C1EDBC" },
   ];
 
   const lineConfig = [
     { name: "Assistant", dataKey: "assistantRefereesCount", stroke: "#6eb465" },
     { name: "Flag", dataKey: "flagRefereesCount", stroke: "#82b27c" },
+    { name: "Flag Runner", dataKey: "flagRunnerRefereesCount", stroke: "#9cc690" },
     { name: "Head", dataKey: "headRefereesCount", stroke: "#56a74b" },
     { name: "Scorekeeper", dataKey: "scorekeeperRefereesCount", stroke: "#C1EDBC" },
   ];
@@ -60,17 +65,17 @@ const RefereeStats = (props: RefereeStatsProps) => {
   const timeText = showFull ? "12 months" : "month";
 
   return (
-    <div className={classnames({ ["w-full"]: showFull, ["w-full lg:w-1/3"]: !showFull })}>
-      <h3 className="text-green-darker text-md lg:text-lg font-bold mb-4">
+    <div className={classnames("flex flex-col", { ["w-full"]: showFull, ["w-full lg:w-1/3"]: !showFull })}>
+      <h3 className="text-green-darker text-md lg:text-lg font-bold mb-3 min-h-[3.5rem]">
         {`Referee Certifications (last ${timeText})`}
       </h3>
       <div
-        className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer mb-4 mr-4"
+        className="bg-white flex flex-row rounded-lg hover:shadow-md cursor-pointer mb-4"
         onClick={onClick}
       >
         {!showFull && (
           <div className="w-full h-64 flex-1">
-            <StatBarChart maxData={Math.max(assistantCount, scorekeeperCount, headCount, snitchCount)} barConfig={barConfig} chartData={chartData} />
+            <StatBarChart maxData={Math.max(assistantCount, scorekeeperCount, headCount, flagCount, flagRunnerCount)} barConfig={barConfig} chartData={chartData} />
           </div>
         )}
         {showFull && (

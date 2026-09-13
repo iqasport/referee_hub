@@ -151,7 +151,7 @@ body {
 }
 
 .table-container {
-    @apply overflow-scroll;
+    @apply overflow-y-auto;
     height: 30rem;
     overflow-x: hidden;
     scrollbar-color: #72BA6C grey;
