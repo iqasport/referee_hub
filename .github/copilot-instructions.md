@@ -67,6 +67,27 @@ yarn build:dev
 
 ---
 
+## Skills
+
+The following skills provide focused checklists for common review patterns. Read the relevant skill when triggered.
+
+| Skill | Trigger |
+|-------|---------|
+| `.github/skills/database-migration-checker/` | Modifying entities, adding tables/relationships |
+| `.github/skills/test-coverage-checker/` | New features, API endpoints, business logic |
+| `.github/skills/codefactor-compliance/` | Before committing any code change |
+| `.github/skills/sensitive-data-checker/` | Adding logging, error handling |
+| `.github/skills/typed-identifier/` | Creating new entity types, API contracts |
+| `.github/skills/context-provider/` | Adding query methods, context factories |
+| `.github/skills/command-pattern/` | Adding commands, CQRS handlers |
+| `.github/skills/authorization-policy/` | Adding endpoints, role checks |
+| `.github/skills/collection-filtering/` | Adding collection/list endpoints |
+| `.github/skills/swagger-to-rtk/` | API changes, frontend API client updates |
+| `.github/skills/multipart-upload/` | File upload endpoints |
+| `.github/skills/query-extension/` | Adding EF queries, NGB-scoped filtering |
+
+---
+
 ## Technology Stack
 
 **Backend**: .NET 8.0, C# 12, ASP.NET Core, Entity Framework Core 8, PostgreSQL, Redis, Hangfire, xUnit
@@ -128,18 +149,7 @@ public async Task<IActionResult> UpdateTournament(
     [FromBody] UpdateTournamentRequest request) { }
 ```
 
-**Logging** - NO sensitive data (emails, passwords). Pass typed identifiers directly — they have safe `ToString()` implementations and do NOT need manual newline-stripping helpers:
-```csharp
-// ✅ GOOD — typed identifier is safe to log directly
-_logger.LogInformation("User login for user ID {UserId}", userId);
-_logger.LogError(ex, "Failed for team {TeamId}", teamId);  // TeamIdentifier, not teamId.ToString()
-
-// ❌ BAD - logs email
-_logger.LogInformation("User login for {Email}", email);
-
-// ❌ BAD - unnecessary sanitization; do not create SanitizeForLog helpers
-_logger.LogError(ex, "Failed for team {TeamId}", SanitizeForLog(teamId.ToString()));
-```
+**Logging** - NO sensitive data (emails, passwords, PII). Pass typed identifiers directly — they have safe `ToString()`. Full rules → `.github/skills/sensitive-data-checker/SKILL.md`
 
 **Entity Configuration** - Always specify `.WithMany()` to avoid EF shadow properties:
 ```csharp
@@ -237,18 +247,6 @@ Test non-trivial logic, minimize mocking. Skip legacy Redux tests.
 
 ---
 
-## Database Migrations
-
-Create migrations from `ManagementHub.Service` directory:
-```bash
-cd src/backend/ManagementHub.Service
-dotnet ef migrations add AddTournamentTables --project ../ManagementHub.Storage
-```
-
-Configure entities in `ManagementHub.Storage/ManagementHubDbContext.cs` - index foreign keys and review generated SQL.
-
----
-
 ## Before You Commit
 
 1. **Format & Lint:**
@@ -257,108 +255,23 @@ Configure entities in `ManagementHub.Storage/ManagementHubDbContext.cs` - index 
    cd src/frontend && yarn lint
    ```
 
-2. **Run relevant tests**
+2. **Check for BOM characters** (CodeFactor auto-fixer flagging these):
+   ```bash
+   file src/backend/**/*.cs | grep -i "with BOM" || echo "No BOM found"
+   ```
 
-3. **Check for sensitive data** in logs (no emails, passwords, PII)
+3. **Run relevant tests**
 
-4. **Update documentation** if needed
+4. **Check for sensitive data** in logs → `.github/skills/sensitive-data-checker/SKILL.md`
+5. **Verify database migrations** if entities changed → `.github/skills/database-migration-checker/SKILL.md`
+6. **Verify test coverage** for new features/APIs → `.github/skills/test-coverage-checker/SKILL.md`
 
-5. **Regenerate API client** after backend API changes:
+7. **Update documentation** if needed
+
+8. **Regenerate API client** after backend API changes:
    ```bash
    bash scripts/refresh_swagger.sh
    ```
-
----
-
-## Coding Patterns
-
-**Controller:**
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-public class TournamentsController : ControllerBase
-{
-    private readonly ITournamentContextProvider tournamentContext;
-    private readonly ILogger<TournamentsController> logger;
-    
-    public TournamentsController(
-        ITournamentContextProvider tournamentContext,
-        ILogger<TournamentsController> logger)
-    {
-        this.tournamentContext = tournamentContext;
-        this.logger = logger;
-    }
-    
-    [HttpGet]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<TournamentViewModel>>> GetTournaments()
-    {
-        var tournaments = await tournamentContext.QueryTournaments()
-            .Select(t => new TournamentViewModel { Id = t.UniqueId.ToString(), Name = t.Name })
-            .ToListAsync();
-        return Ok(tournaments);
-    }
-}
-```
-
-**Authorization Requirement:**
-```csharp
-public class TournamentManagerRequirement : IAuthorizationRequirement
-{
-    public TournamentIdentifier? TournamentId { get; init; }
-}
-
-public class TournamentManagerHandler : AuthorizationHandler<TournamentManagerRequirement>
-{
-    protected override async Task HandleRequirementAsync(
-        AuthorizationHandlerContext context,
-        TournamentManagerRequirement requirement)
-    {
-        var userId = context.User.GetUserId();
-        if (userId == null) { context.Fail(); return; }
-        
-        var isTournamentManager = await CheckTournamentManagerAsync(userId.Value, requirement.TournamentId);
-        if (isTournamentManager) context.Succeed(requirement);
-    }
-}
-```
-
-**View Models:**
-```csharp
-// Returned to client
-public class TournamentViewModel
-{
-    public required string Id { get; init; }
-    public required string Name { get; init; }
-}
-
-// Received from client
-public class CreateTournamentRequest
-{
-    public required string Name { get; init; }
-    public required TournamentType Type { get; init; }
-}
-```
-
----
-
-## Common Pitfalls
-
-1. **EF Shadow Properties** - Forgetting `.WithMany()` creates shadow properties (see Entity Configuration above)
-
-2. **Projection Before Filtering** - Filter/order in SQL first, then project to ViewModels
-
-3. **Direct User.UniqueId Comparison** - Use `WithIdentifier` pattern instead
-
-4. **Missing Swagger Regeneration** - Run `bash scripts/refresh_swagger.sh` after backend API changes
-
-5. **Legacy Redux** - Use RTK Query for new code
-
-6. **Query Parameters** - Use custom `useNavigate` from `../utils/navigationUtils`
-
-7. **Build Flags** - Use `/p:DisableGitVersion=true /p:BuildFrontend=false` for local dev
-
-8. **Sensitive Data in Logs** - Never log emails, passwords, or PII
 
 ---
 

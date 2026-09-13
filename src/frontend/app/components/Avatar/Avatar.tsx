@@ -11,7 +11,7 @@ interface AvatarProps {
   lastName: string;
   roles: string[];
   userId: string;
-  ownedNgbId: number;
+  ownedNgbId?: string;
   unreadNotifications?: number;
   enabledFeatures: string[];
 }
@@ -32,6 +32,9 @@ const Avatar = (props: AvatarProps) => {
   };
 
   const handleNgbProfileClick = () => {
+    if (!ownedNgbId) {
+      return;
+    }
     navigate(`/national_governing_bodies/${ownedNgbId}`);
   };
 
@@ -71,7 +74,7 @@ const Avatar = (props: AvatarProps) => {
   };
   const ngbProfile: ItemConfig = {
     content: "NGB Profile",
-    href: `/national_governing_bodies/${ownedNgbId}`,
+    href: ownedNgbId ? `/national_governing_bodies/${ownedNgbId}` : "/",
     onClick: handleNgbProfileClick,
   };
   const logout: ItemConfig = {
@@ -92,7 +95,7 @@ const Avatar = (props: AvatarProps) => {
   const items: ItemConfig[] = [];
 
   if (roles.includes("Referee")) items.push(refereeProfile);
-  if (roles.includes("NgbAdmin")) items.push(ngbProfile);
+  if (roles.includes("NgbAdmin") && ownedNgbId) items.push(ngbProfile);
   //if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite); // TODO: unblock once implemented
 
   // Add managed teams section

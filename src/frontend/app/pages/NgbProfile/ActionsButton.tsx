@@ -14,7 +14,7 @@ interface ActionsButtonProps {
 }
 
 const ActionsButton = (props: ActionsButtonProps) => {
-  const { onEditClick, onImportClick, onExportClick, onCreateTeamClick, onManageAdminsClick } = props;
+  const { onEditClick, onExportClick, onCreateTeamClick, onManageAdminsClick } = props;
 
   const renderTrigger = (onClick: () => void) => {
     return (
@@ -38,10 +38,6 @@ const ActionsButton = (props: ActionsButtonProps) => {
       content: "Create Team",
       onClick: onCreateTeamClick,
     },
-    /*{
-      content: "Import",
-      onClick: onImportClick,
-    },*/ // TODO: unblock functionality once implemented
     {
       content: "Export",
       onClick: onExportClick,

@@ -7,7 +7,7 @@ import Avatar from "./components/Avatar";
 import NotificationCenter from "./components/NotificationCenter/NotificationCenter";
 import Loader from "./components/Loader";
 
-const PUBLIC_ROUTE_PATTERNS = [/^\/privacy$/, /^\/tournaments$/, /^\/tournaments\/[^/]+$/];
+const PUBLIC_ROUTE_PATTERNS = [/^\/privacy\/?$/, /^\/tournaments\/?$/, /^\/tournaments\/[^/]+\/?$/];
 
 function getErrorStatus(error: unknown): number | undefined {
   if (!error || typeof error !== "object") {
@@ -31,6 +31,11 @@ const TournamentDetails = lazy(() => import("./pages/Tournaments/TournamentId"))
 const TeamView = lazy(() => import("./pages/TeamView"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
+const isConcreteNgbId = (ngb: unknown): ngb is string => typeof ngb === "string" && ngb.length > 0 && ngb !== "ANY";
+type UserRole = { roleType?: string };
+type NgbAdminRole = UserRole & { ngb?: string };
+const isNgbAdminRole = (role: UserRole): role is NgbAdminRole => role.roleType === "NgbAdmin";
+
 const AppContent = () => {
   const isPublicRoute = PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(window.location.pathname));
   const bugsnagEnabled = Boolean(process.env.BUGSNAG_API_KEY);
@@ -38,22 +43,17 @@ const AppContent = () => {
   const { currentUser, error, isError, isLoading } = useCurrentUser();
   const roles = currentUser?.roles?.map((r) => r.roleType).filter((r): r is string => typeof r === "string") ?? [];
 
-  const ownedNgbIds = currentUser
-    ? (() => {
-        const ngb = (currentUser.roles?.find((r) => r.roleType === "NgbAdmin") as any)?.ngb;
-        if (typeof ngb === "string") {
-          return [ngb];
-        }
-        return ngb;
-      })()
-    : undefined;
+  const ownedNgbIds = currentUser?.roles
+    ?.filter(isNgbAdminRole)
+    .map((r) => r.ngb)
+    .filter(isConcreteNgbId) ?? [];
 
   const shouldShowSignInButton = isPublicRoute && !isLoading && !currentUser;
 
   const getRedirect = () => {
     if (!currentUser) return undefined;
     if (roles.includes("IqaAdmin")) return "/admin";
-    if (roles.includes("NgbAdmin")) return `/national_governing_bodies/${ownedNgbIds?.[0]}`;
+    if (roles.includes("NgbAdmin") && ownedNgbIds?.[0]) return `/national_governing_bodies/${ownedNgbIds[0]}`;
     if (roles.includes("Referee")) return `/referees/${currentUser.userId}`;
 
     return undefined;
