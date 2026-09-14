@@ -12,7 +12,9 @@ using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
 using ManagementHub.IntegrationTests.Models;
 using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Filtering;
@@ -614,6 +616,15 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		return yankeesTeamId!;
 	}
 
+	private async Task<string> GetCurrentUserIdAsync()
+	{
+		var response = await this._client.GetAsync("/api/v2/users/me");
+		response.StatusCode.Should().Be(HttpStatusCode.OK, "current user endpoint should be available");
+
+		var currentUser = await response.Content.ReadFromJsonAsync<JsonElement>();
+		return currentUser.GetProperty("userId").GetString()!;
+	}
+
 	[Fact]
 	public async Task Tournament_TournamentManagerInvitesTeam_TeamManagerAccepts_ShouldCreateParticipant()
 	{
@@ -631,10 +642,10 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 
 		// Step 3: As tournament manager, create invite for Yankees team
 		// (Yankees is a Community team seeded in the database, managed by team_manager@example.com)
-		var createInviteModel = new CreateInviteModel
+		var createInviteModel = new
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId!  // Team ID obtained from NGB teams endpoint
+			ParticipantId = yankeesTeamId,  // Team ID obtained from NGB teams endpoint
 		};
 
 		var createInviteResponse = await this._client.PostAsJsonAsync(
@@ -729,10 +740,10 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		yankeesNgb.Should().Be("USA", "Yankees team should be part of USA NGB");
 
 		// Step 3: Team manager requests to join (create invite from team side)
-		var joinRequestModel = new CreateInviteModel
+		var joinRequestModel = new
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId!  // Team ID obtained from managed teams endpoint
+			ParticipantId = yankeesTeamId,  // Team ID obtained from managed teams endpoint
 		};
 
 		var joinRequestResponse = await this._client.PostAsJsonAsync(
@@ -790,6 +801,64 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		updatedInvitesList[0].GetProperty("status").GetString().Should().Be("approved", "both approvals are complete");
 		updatedInvitesList[0].GetProperty("tournamentManagerApproval").GetProperty("status").GetString().Should().Be("approved");
 		updatedInvitesList[0].GetProperty("participantApproval").GetProperty("status").GetString().Should().Be("approved");
+	}
+
+	[Fact]
+	public async Task Tournament_RefereeCanCreateVolunteerInvite_ShouldSucceed()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "iqa_admin@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Volunteer Invite Test", TournamentType.Club, "USA", "Denver");
+
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var refereeUserId = await this.GetCurrentUserIdAsync();
+
+		var createInviteModel = new
+		{
+			ParticipantType = ParticipantType.Referee,
+			ParticipantId = refereeUserId,
+			Observations = "{\"positions\":[\"Head Referee\"]}"
+		};
+
+		var createInviteResponse = await this._client.PostAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/invites",
+			createInviteModel);
+
+		createInviteResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+			"referee should be able to create volunteer invite");
+
+		var createdInvite = await createInviteResponse.Content.ReadFromJsonAsync<JsonElement>();
+		createdInvite.GetProperty("participantId").GetString().Should().Be(refereeUserId);
+		createdInvite.GetProperty("status").GetString().Should().Be("pending");
+		createdInvite.GetProperty("participantApproval").GetProperty("status").GetString().Should().Be("approved");
+		createdInvite.GetProperty("tournamentManagerApproval").GetProperty("status").GetString().Should().Be("pending");
+	}
+
+	[Fact]
+	public async Task Tournament_NonTeamUserCanCreateVolunteerInvite_ShouldSucceed()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "iqa_admin@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Volunteer Invite Non-Team Test", TournamentType.Club, "USA", "Dallas");
+
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
+		var userId = await this.GetCurrentUserIdAsync();
+
+		var createInviteModel = new
+		{
+			ParticipantType = ParticipantType.Referee,
+			ParticipantId = userId,
+			Observations = "{\"positions\":[\"Assistant Referee\"]}"
+		};
+
+		var createInviteResponse = await this._client.PostAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/invites",
+			createInviteModel);
+
+		createInviteResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+			"non-team user should be able to volunteer as referee");
+
+		var createdInvite = await createInviteResponse.Content.ReadFromJsonAsync<JsonElement>();
+		createdInvite.GetProperty("participantId").GetString().Should().Be(userId);
+		createdInvite.GetProperty("status").GetString().Should().Be("pending");
 	}
 
 	[Fact]
@@ -866,10 +935,10 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		// Step 2: Get Yankees team ID and create an invite
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 
-		var createInviteModel = new CreateInviteModel
+		var createInviteModel = new
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId
+			ParticipantId = yankeesTeamId,
 		};
 
 		var createInviteResponse = await this._client.PostAsJsonAsync(
@@ -905,10 +974,10 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		var yankeesTeamId = await this.GetYankeesTeamIdAsync();
 
 		// Step 3: Create invite as tournament manager
-		var createInviteModel = new CreateInviteModel
+		var createInviteModel = new
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = yankeesTeamId
+			ParticipantId = yankeesTeamId,
 		};
 
 		var createInviteResponse = await this._client.PostAsJsonAsync(

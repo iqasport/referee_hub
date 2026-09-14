@@ -167,6 +167,20 @@ public class NotificationService : INotificationService
 			"Team",
 			cancellationToken);
 
+	public Task<NotificationEntity> CreateVolunteerRegistrationRequestNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.TeamTournamentJoinRequest,
+			"New volunteer registration",
+			$"A referee submitted a volunteer registration for {tournamentName}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: cancellationToken);
+
 	public Task<NotificationEntity> CreateRequestResponseNotificationAsync(
 		UserIdentifier userId,
 		TournamentIdentifier tournamentId,
@@ -184,6 +198,21 @@ public class NotificationService : INotificationService
 			teamId.ToString(),
 			"Team",
 			cancellationToken);
+
+	public Task<NotificationEntity> CreateVolunteerRequestResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			approved ? NotificationType.RequestAccepted : NotificationType.RequestRejected,
+			approved ? "Volunteer registration approved" : "Volunteer registration rejected",
+			$"Your volunteer registration for {tournamentName} was {(approved ? "approved" : "rejected")}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: cancellationToken);
 
 	public Task<NotificationEntity> CreateInviteResponseNotificationAsync(
 		UserIdentifier userId,

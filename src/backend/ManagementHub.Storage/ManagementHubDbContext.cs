@@ -1574,6 +1574,9 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.IsRegistrationOpen)
 				.HasColumnName("is_registration_open");
 
+			entity.Property(e => e.IsVolunteerRegistrationOpen)
+				.HasColumnName("is_volunteer_registration_open");
+
 			entity.Property(e => e.CreatedAt)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");

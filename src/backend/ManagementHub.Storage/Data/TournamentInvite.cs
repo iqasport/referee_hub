@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using ManagementHub.Models.Abstraction;
 using ManagementHub.Models.Enums;
 
@@ -10,6 +11,8 @@ public partial class TournamentInvite : IIdentifiable
 	public long TournamentId { get; set; }
 	public string ParticipantType { get; set; } = null!;
 	public string ParticipantId { get; set; } = null!;
+	[Column("observations")]
+	public string? Observations { get; set; }
 	public long InitiatorUserId { get; set; }
 	public DateTime CreatedAt { get; set; }
 	public ApprovalStatus TournamentManagerApproval { get; set; }

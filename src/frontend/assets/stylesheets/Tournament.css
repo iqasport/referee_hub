@@ -69,6 +69,34 @@
   margin-left: 0.5rem;
 }
 
+.tournament-card .card-registration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  margin-bottom: 0.65rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 9999px;
+  border: 1px solid #b7e0c0;
+  background: linear-gradient(180deg, #f4fbf6 0%, #e9f7ed 100%);
+  color: #1f6a38;
+  font-size: 0.73rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.tournament-card .card-registration-badge::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background-color: #2f9f59;
+  box-shadow: 0 0 0 2px rgba(47, 159, 89, 0.2);
+  flex-shrink: 0;
+}
+
 .tournament-card .card-title {
   font-size: 1.5rem;
   font-weight: 700;

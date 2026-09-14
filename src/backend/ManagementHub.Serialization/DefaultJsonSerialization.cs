@@ -35,6 +35,7 @@ public static class DefaultJsonSerialization
 		options.Converters.Add(new TeamConstraintJsonConverter());
 		options.Converters.Add(new TournamentConstraintJsonConverter());
 		options.Converters.Add(new TournamentIdentifierJsonConverter());
+		options.Converters.Add(new TournamentParticipantIdentifierJsonConverter());
 		options.Converters.Add(new UserRoleJsonConverter());
 		options.Converters.Add(new PercentageJsonConverter());
 		options.Converters.Add(JsonMetadataServices.TimeSpanConverter);
@@ -61,6 +62,7 @@ public static class DefaultJsonSerialization
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(NgbIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TeamIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TournamentIdentifier), () => new OpenApiSchema { Type = "string" });
+		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(TournamentParticipantIdentifier), () => new OpenApiSchema { Type = "string" });
 		options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(IUserRole), () =>
 		{
 			return new OpenApiSchema

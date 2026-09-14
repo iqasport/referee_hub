@@ -25,6 +25,7 @@ interface Tournament {
   organizer?: string;
   isPrivate: boolean;
   isRegistrationOpen?: boolean;
+  isVolunteerRegistrationOpen?: boolean;
   bannerImageUrl?: string;
 }
 
@@ -53,6 +54,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     organizer: "",
     isPrivate: false,
     isRegistrationOpen: true,
+    isVolunteerRegistrationOpen: true,
     bannerImageUrl: "",
   };
   const [formData, setFormData] = useState<Tournament>(initialFormData);
@@ -99,6 +101,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
             isRegistrationOpen: formData.isRegistrationOpen ?? true,
+            isVolunteerRegistrationOpen: formData.isVolunteerRegistrationOpen ?? true,
           },
         }).unwrap();
       } else {
@@ -116,6 +119,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
             isRegistrationOpen: formData.isRegistrationOpen ?? true,
+            isVolunteerRegistrationOpen: formData.isVolunteerRegistrationOpen ?? true,
           },
         }).unwrap();
 
