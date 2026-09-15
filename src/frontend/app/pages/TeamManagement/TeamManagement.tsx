@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { useNavigationParams } from "../../utils/navigationUtils";
+import React, { useState, useMemo, useEffect } from "react";
+import { useNavigationParams, useNavigate } from "../../utils/navigationUtils";
 import { 
   TeamGroupAffiliation,
   TeamInvitationViewModel,
@@ -316,6 +316,7 @@ const PendingRequestsSection: React.FC<PendingRequestsSectionProps> = ({
 
 const TeamManagement = () => {
   const { teamId } = useNavigationParams<"teamId">();
+  const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const { data: team, error: teamError, isLoading } = useGetTeamManagementQuery(
@@ -391,6 +392,12 @@ const TeamManagement = () => {
     };
   }, [team]);
 
+  useEffect(() => {
+    if (team && !team.isCurrentUserManager && teamId) {
+      navigate(`/teams/${teamId}`, { replace: true });
+    }
+  }, [team, teamId, navigate]);
+
   if (isLoading) {
     return (
       <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">
@@ -415,6 +422,9 @@ const TeamManagement = () => {
     );
   }
 
+  if (!team.isCurrentUserManager) {
+    return null;
+  }
   return (
     <div className="m-auto w-full my-10 px-4 xl:w-3/4 xl:px-0">
       <div className="flex items-center justify-between mb-8">
