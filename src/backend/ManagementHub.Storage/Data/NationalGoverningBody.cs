@@ -28,8 +28,15 @@ public partial class NationalGoverningBody : IIdentifiable
 	public NgbRegion? Region { get; set; }
 	public NgbMembershipStatus MembershipStatus { get; set; }
 
+	/// <summary>
+	/// When true, transfers between two teams within this NGB are automatically approved without manual NGB review.
+	/// International transfers (different NGBs) always require manual approval regardless of this setting.
+	/// </summary>
+	public bool AutoApproveInternalTransfers { get; set; }
+
 	public virtual ICollection<NationalGoverningBodyAdmin> NationalGoverningBodyAdmins { get; set; }
 	public virtual ICollection<NationalGoverningBodyStat> NationalGoverningBodyStats { get; set; }
 	public virtual ICollection<RefereeLocation> RefereeLocations { get; set; }
 	public virtual ICollection<Team> Teams { get; set; }
+	public virtual ICollection<NgbTransferApproval> NgbTransferApprovals { get; set; } = new HashSet<NgbTransferApproval>();
 }

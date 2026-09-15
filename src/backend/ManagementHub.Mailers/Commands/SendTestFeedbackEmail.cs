@@ -38,30 +38,22 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 
 	public async Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, Uri hostUri, bool ccRefhub, CancellationToken cancellation)
 	{
-		try
-		{
-			this.logger.LogInformation(-0x32943200, "Sending test feedback for test attempt ({attemptId}).", testAttemptId);
+		this.logger.LogInformation(-0x32943200, "Sending test feedback for test attempt ({attemptId}).", testAttemptId);
 
-			var emailFeedbackContext = await this.refereeContextProvider.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellation);
-			var userContext = await this.userContextProvider.GetUserContextAsync(emailFeedbackContext.TestAttempt.UserId, cancellation);
+		var emailFeedbackContext = await this.refereeContextProvider.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellation);
+		var userContext = await this.userContextProvider.GetUserContextAsync(emailFeedbackContext.TestAttempt.UserId, cancellation);
 
-			this.logger.LogInformation(-0x329431ff, "Sending test feedback to user ({userId}).", userContext.UserId);
+		this.logger.LogInformation(-0x329431ff, "Sending test feedback to user ({userId}).", userContext.UserId);
 
-			await this.emailFactory.Create()
-				.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
-				.To(userContext.UserData.Email.Value)
-				.CC(ccRefhub ? [new Address("refhub@iqasport.org")] : Array.Empty<Address>())
-				.ReplyTo(this.emailSenderSettings.ReplyToEmail)
-				.Subject($"{emailFeedbackContext.Test.Title} Results")
-				.UsingEmbeddedTemplate("TestFeedbackEmail", new FeedbackContextWithHostUrl(emailFeedbackContext, hostUri))
-				.SendAsync();
+		await this.emailFactory.Create()
+			.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
+			.To(userContext.UserData.Email.Value)
+			.CC(ccRefhub ? [new Address("refhub@iqasport.org")] : Array.Empty<Address>())
+			.ReplyTo(this.emailSenderSettings.ReplyToEmail)
+			.Subject($"{emailFeedbackContext.Test.Title} Results")
+			.UsingEmbeddedTemplate("TestFeedbackEmail", new FeedbackContextWithHostUrl(emailFeedbackContext, hostUri))
+			.SendAsync();
 
-			this.logger.LogInformation(-0x329431fe, "Email has been sent.");
-		}
-		catch (Exception ex)
-		{
-			this.logger.LogError(-0x329431fd, ex, "Failed to send test feedback.");
-			throw;
-		}
+		this.logger.LogInformation(-0x329431fe, "Email has been sent.");
 	}
 }

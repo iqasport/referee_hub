@@ -91,6 +91,58 @@ public class NotificationService : INotificationService
 			"Team",
 			cancellationToken: cancellationToken);
 
+	public async Task CreateNgbTransferApprovalNotificationsAsync(
+		TeamInvitationIdentifier invitationId,
+		IReadOnlyCollection<NgbIdentifier> ngbs,
+		CancellationToken cancellationToken = default)
+	{
+		if (ngbs.Count == 0)
+		{
+			return;
+		}
+
+		var ngbCodes = ngbs.Select(ngb => ngb.NgbCode).ToHashSet();
+		var transfer = await this.dbContext.TeamInvitations
+			.Where(invitation => invitation.Id == invitationId.Id)
+			.Select(invitation => new
+			{
+				OriginTeamName = invitation.OriginTeam != null ? invitation.OriginTeam.Name : null,
+				DestinationTeamName = invitation.Team.Name,
+			})
+			.SingleAsync(cancellationToken);
+		var admins = await this.dbContext.NationalGoverningBodyAdmins
+			.Where(admin => ngbCodes.Contains(admin.NationalGoverningBody.CountryCode))
+			.Select(admin => new
+			{
+				NgbCode = admin.NationalGoverningBody.CountryCode,
+				admin.User.Id,
+				admin.User.UniqueId,
+			})
+			.ToListAsync(cancellationToken);
+
+		var transferDescription = transfer.OriginTeamName != null
+			? $"A player transfer from {transfer.OriginTeamName} to {transfer.DestinationTeamName} requires your approval."
+			: $"A player transfer to {transfer.DestinationTeamName} requires your approval.";
+
+		foreach (var admin in admins)
+		{
+			var userId = admin.UniqueId != null
+				? UserIdentifier.Parse(admin.UniqueId)
+				: UserIdentifier.FromLegacyUserId(admin.Id);
+
+			await this.CreateNotificationCoreAsync(
+				userId,
+				NotificationType.NgbApprovalNeeded,
+				"Transfer approval needed",
+				transferDescription,
+				new NgbIdentifier(admin.NgbCode).ToString(),
+				"Ngb",
+				invitationId.ToString(),
+				"TeamInvitation",
+				cancellationToken);
+		}
+	}
+
 	public Task<NotificationEntity> CreateTeamInviteResponseNotificationForPlayerAsync(
 		UserIdentifier userId,
 		TeamIdentifier teamId,

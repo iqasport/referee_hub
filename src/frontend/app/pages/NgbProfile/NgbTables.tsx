@@ -3,6 +3,7 @@ import React, { useState } from "react";
 
 import NewRefereeTable from "../../components/tables/RefereeTable";
 import TeamTable from "../../components/tables/TeamTable";
+import NgbTransfersTab from "./NgbTransfersTab";
 
 enum SelectedTable {
   Referees = "referees",
@@ -58,9 +59,7 @@ const NgbTables = (props: NgbTablesProps) => {
       {isRefereesActive && <NewRefereeTable ngbId={ngbId} isHeightRestricted={true} />}
       {isTeamsActive && <TeamTable ngbId={ngbId} />}
       {isTransfersActive && (
-        <div className="w-full rounded-md border border-gray-300 bg-gray-100 p-4 text-gray-700">
-          No transfers to show yet.
-        </div>
+        <NgbTransfersTab ngbId={ngbId} />
       )}
     </section>
   );

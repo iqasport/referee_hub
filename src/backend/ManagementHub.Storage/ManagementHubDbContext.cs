@@ -48,6 +48,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	public virtual DbSet<Team> Teams { get; set; } = null!;
 	public virtual DbSet<TeamInvitation> TeamInvitations { get; set; } = null!;
 	public virtual DbSet<TeamPlayerActivity> TeamPlayerActivities { get; set; } = null!;
+	public virtual DbSet<NgbTransferApproval> NgbTransferApprovals { get; set; } = null!;
 	public virtual DbSet<TeamManager> TeamManagers { get; set; } = null!;
 	public virtual DbSet<TeamStatusChangeset> TeamStatusChangesets { get; set; } = null!;
 	public virtual DbSet<Test> Tests { get; set; } = null!;
@@ -441,6 +442,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.Website)
 				.HasColumnType("character varying")
 				.HasColumnName("website");
+
+			entity.Property(e => e.AutoApproveInternalTransfers)
+				.HasColumnName("auto_approve_internal_transfers")
+				.HasDefaultValue(false);
 		});
 
 		modelBuilder.Entity<NationalGoverningBodyAdmin>(entity =>
@@ -1665,11 +1670,21 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 			entity.Property(e => e.RespondedByUserId).HasColumnName("responded_by_user_id");
 
+			entity.Property(e => e.OriginTeamId).HasColumnName("origin_team_id");
+
+			entity.Property(e => e.IsInternalTransfer).HasColumnName("is_internal_transfer");
+
 			entity.HasOne(d => d.Team)
 				.WithMany(p => p.TeamInvitations)
 				.HasForeignKey(d => d.TeamId)
 				.OnDelete(DeleteBehavior.Cascade)
 				.HasConstraintName("fk_team_invitations_team");
+
+			entity.HasOne(d => d.OriginTeam)
+				.WithMany()
+				.HasForeignKey(d => d.OriginTeamId)
+				.OnDelete(DeleteBehavior.SetNull)
+				.HasConstraintName("fk_team_invitations_origin_team");
 
 			entity.HasOne(d => d.Initiator)
 				.WithMany()
@@ -1933,6 +1948,48 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasForeignKey(d => d.AddedByUserId)
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("fk_team_managers_added_by_user");
+		});
+
+		modelBuilder.Entity<NgbTransferApproval>(entity =>
+		{
+			entity.ToTable("ngb_transfer_approvals");
+
+			entity.HasIndex(e => new { e.TeamInvitationId, e.NgbId }, "index_ngb_transfer_approvals_on_invitation_and_ngb")
+				.IsUnique();
+			entity.HasIndex(e => e.NgbId, "index_ngb_transfer_approvals_on_ngb_id");
+
+			entity.Property(e => e.Id).HasColumnName("id");
+			entity.Property(e => e.TeamInvitationId).HasColumnName("team_invitation_id");
+			entity.Property(e => e.NgbId).HasColumnName("ngb_id");
+			entity.Property(e => e.IsOriginNgb).HasColumnName("is_origin_ngb");
+			entity.Property(e => e.ApprovedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("approved_at");
+			entity.Property(e => e.RejectedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("rejected_at");
+			entity.Property(e => e.ReviewedByUserId).HasColumnName("reviewed_by_user_id");
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.HasOne(d => d.TeamInvitation)
+				.WithMany(p => p.NgbTransferApprovals)
+				.HasForeignKey(d => d.TeamInvitationId)
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("fk_ngb_transfer_approvals_invitation");
+
+			entity.HasOne(d => d.Ngb)
+				.WithMany(p => p.NgbTransferApprovals)
+				.HasForeignKey(d => d.NgbId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("fk_ngb_transfer_approvals_ngb");
+
+			entity.HasOne(d => d.ReviewedByUser)
+				.WithMany()
+				.HasForeignKey(d => d.ReviewedByUserId)
+				.OnDelete(DeleteBehavior.SetNull)
+				.HasConstraintName("fk_ngb_transfer_approvals_reviewer");
 		});
 
 		this.OnModelCreatingPartial(modelBuilder);

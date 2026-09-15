@@ -57,7 +57,6 @@ public static class DbServiceCollectionExtentions
 	/// Name of the configuration section for Postgres connection.
 	/// </summary>
 	public const string DatabaseConnectionSection = "DatabaseConnection";
-	private const string SharedInMemorySqliteConnectionString = "DataSource=ManagementHub;mode=memory;cache=shared";
 
 	/// <summary>
 	/// Adds dependencies for services of the storage based implementations of abstract interfaces.
@@ -69,7 +68,7 @@ public static class DbServiceCollectionExtentions
 			// NOTE: this storage is deleted when application shuts down.
 			services.AddDbContext<ManagementHubDbContext>((options) =>
 			{
-				options.UseSqlite(SharedInMemorySqliteConnectionString);
+				options.UseSqlite("DataSource=:memory:");
 				options.EnableSensitiveDataLogging();
 				options.EnableDetailedErrors();
 			});
@@ -135,6 +134,7 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<IUpdateNgbAdminRoleCommand, UpdateNgbAdminRoleCommand>();
 		services.AddScoped<IUpdateTeamManagerRoleCommand, UpdateTeamManagerRoleCommand>();
 		services.AddScoped<ICreateTeamInviteRequestCommand, CreateTeamInviteRequestCommand>();
+		services.AddScoped<IReviewNgbTransferCommand, ReviewNgbTransferCommand>();
 
 		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
 
