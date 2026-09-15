@@ -61,16 +61,14 @@ public static class DbServiceCollectionExtentions
 	/// <summary>
 	/// Adds dependencies for services of the storage based implementations of abstract interfaces.
 	/// </summary>
-	public static IServiceCollection AddManagementHubStorage(this IServiceCollection services, bool inMemoryStorage, bool seedDatabase, string? inMemoryDatabaseName = null)
+	public static IServiceCollection AddManagementHubStorage(this IServiceCollection services, bool inMemoryStorage, bool seedDatabase)
 	{
 		if (inMemoryStorage)
 		{
-			var sharedInMemorySqliteConnectionString = $"DataSource={inMemoryDatabaseName ?? "ManagementHub"};mode=memory;cache=shared";
-
 			// NOTE: this storage is deleted when application shuts down.
 			services.AddDbContext<ManagementHubDbContext>((options) =>
 			{
-				options.UseSqlite(sharedInMemorySqliteConnectionString);
+				options.UseSqlite("DataSource=:memory:");
 				options.EnableSensitiveDataLogging();
 				options.EnableDetailedErrors();
 			});

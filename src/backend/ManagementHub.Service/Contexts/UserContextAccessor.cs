@@ -1,7 +1,6 @@
 ﻿using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.User;
-using ManagementHub.Models.Exceptions;
 
 namespace ManagementHub.Service.Contexts;
 
@@ -27,14 +26,7 @@ public class UserContextAccessor : IUserContextAccessor
 
 		var userId = this.userGetter.CurrentUser;
 
-		try
-		{
-			return await this.contextProvider.GetUserContextAsync(userId, httpContext.RequestAborted);
-		}
-		catch (NotFoundException)
-		{
-			throw new AuthenticationRequiredException("The signed-in user no longer exists. Sign in again.");
-		}
+		return await this.contextProvider.GetUserContextAsync(userId, httpContext.RequestAborted);
 	}
 
 	public Task<IUserDataContext> GetUserDataContextAsync(UserIdentifier userId)
