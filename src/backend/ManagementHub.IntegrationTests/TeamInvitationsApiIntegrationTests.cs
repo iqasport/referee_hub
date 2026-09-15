@@ -11,6 +11,7 @@ using ManagementHub.IntegrationTests.Helpers;
 using ManagementHub.IntegrationTests.Models;
 using ManagementHub.Models.Data;
 using ManagementHub.Service.Areas.Ngbs;
+using ManagementHub.Service.Areas.Teams;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -202,9 +203,11 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 
 		firstPage!.Metadata!.TotalCount.Should().Be(2);
 		firstPage.Items.Should().ContainSingle();
+		firstPage.Items.Single().Status.Should().Be(TransferApprovalStatus.PendingNgbApproval);
 		firstPage.Items.Single().OriginNgbCode.Should().Be("ARG");
 		firstPage.Items.Single().DestinationNgbCode.Should().Be("USA");
 		secondPage!.Items.Should().ContainSingle();
+		secondPage.Items.Single().Status.Should().Be(TransferApprovalStatus.PendingNgbApproval);
 		secondPage.Items.Single().InvitationId.Should().NotBe(firstPage.Items.Single().InvitationId);
 	}
 

@@ -392,13 +392,13 @@ public class TeamsController : ControllerBase
 			.Select(i =>
 			{
 				var isTransfer = i.OriginTeamId.HasValue;
-				var fakeApprovals = i.NgbApprovals.Select(a => new ManagementHub.Models.Data.NgbTransferApproval
+				var approvalStates = i.NgbApprovals.Select(a => new ManagementHub.Models.Data.NgbTransferApproval
 				{
 					ApprovedAt = a.ApprovedAt,
 					RejectedAt = a.RejectedAt,
 				});
 				var status = TeamInviteHelpers.ComputeTransferStatus(
-					isTransfer, fakeApprovals, isAccepted: false, isDeclinedOrRevoked: false);
+					isTransfer, approvalStates, isAccepted: false, isDeclinedOrRevoked: false);
 				return new TeamInvitationViewModel
 				{
 					InvitationId = new TeamInvitationIdentifier(i.Id).ToString(),

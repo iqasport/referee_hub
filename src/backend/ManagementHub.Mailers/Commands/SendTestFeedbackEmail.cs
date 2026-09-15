@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentEmail.Core;
@@ -39,66 +38,22 @@ internal class SendTestFeedbackEmail : ISendTestFeedbackEmail
 
 	public async Task SendTestFeedbackEmailAsync(TestAttemptIdentifier testAttemptId, Uri hostUri, bool ccRefhub, CancellationToken cancellation)
 	{
-		var safeAttemptIdForLog = testAttemptId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
-		const int maxAttempts = 3;
-		for (var attempt = 1; attempt <= maxAttempts; attempt++)
-		{
-			try
-			{
-				this.logger.LogInformation(-0x32943200, "Sending test feedback for test attempt ({attemptId}).", safeAttemptIdForLog);
+		this.logger.LogInformation(-0x32943200, "Sending test feedback for test attempt ({attemptId}).", testAttemptId);
 
-				var emailFeedbackContext = await this.refereeContextProvider.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellation);
-				var userContext = await this.userContextProvider.GetUserContextAsync(emailFeedbackContext.TestAttempt.UserId, cancellation);
+		var emailFeedbackContext = await this.refereeContextProvider.GetRefereeEmailFeedbackContextAsync(testAttemptId, cancellation);
+		var userContext = await this.userContextProvider.GetUserContextAsync(emailFeedbackContext.TestAttempt.UserId, cancellation);
 
-				this.logger.LogInformation(-0x329431ff, "Sending test feedback to user ({userId}).", userContext.UserId);
+		this.logger.LogInformation(-0x329431ff, "Sending test feedback to user ({userId}).", userContext.UserId);
 
-				await this.emailFactory.Create()
-					.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
-					.To(userContext.UserData.Email.Value)
-					.CC(ccRefhub ? [new Address("refhub@iqasport.org")] : Array.Empty<Address>())
-					.ReplyTo(this.emailSenderSettings.ReplyToEmail)
-					.Subject($"{emailFeedbackContext.Test.Title} Results")
-					.UsingEmbeddedTemplate("TestFeedbackEmail", new FeedbackContextWithHostUrl(emailFeedbackContext, hostUri))
-					.SendAsync();
+		await this.emailFactory.Create()
+			.SetFrom(this.emailSenderSettings.SenderEmail, this.emailSenderSettings.SenderDisplayName)
+			.To(userContext.UserData.Email.Value)
+			.CC(ccRefhub ? [new Address("refhub@iqasport.org")] : Array.Empty<Address>())
+			.ReplyTo(this.emailSenderSettings.ReplyToEmail)
+			.Subject($"{emailFeedbackContext.Test.Title} Results")
+			.UsingEmbeddedTemplate("TestFeedbackEmail", new FeedbackContextWithHostUrl(emailFeedbackContext, hostUri))
+			.SendAsync();
 
-				this.logger.LogInformation(-0x329431fe, "Email has been sent.");
-				return;
-			}
-			catch (Exception ex) when (attempt < maxAttempts && !cancellation.IsCancellationRequested && IsTransientInfrastructureFailure(ex))
-			{
-				var delay = TimeSpan.FromMilliseconds(200 * attempt);
-				this.logger.LogWarning(
-					-0x329431fc,
-					ex,
-					"Transient failure while sending test feedback for attempt ({attemptId}). Retrying ({attempt}/{maxAttempts}) in {delayMs}ms.",
-					safeAttemptIdForLog,
-					attempt,
-					maxAttempts,
-					delay.TotalMilliseconds);
-
-				await Task.Delay(delay, cancellation);
-			}
-			catch (Exception ex)
-			{
-				this.logger.LogError(-0x329431fd, ex, "Failed to send test feedback.");
-				throw;
-			}
-		}
-	}
-
-	private static bool IsTransientInfrastructureFailure(Exception exception)
-	{
-		if (exception is InvalidOperationException invalidOperation
-			&& invalidOperation.Message.Contains("transient failure", StringComparison.OrdinalIgnoreCase))
-		{
-			return true;
-		}
-
-		if (exception is EndOfStreamException || exception is IOException || exception is TimeoutException)
-		{
-			return true;
-		}
-
-		return exception.InnerException != null && IsTransientInfrastructureFailure(exception.InnerException);
+		this.logger.LogInformation(-0x329431fe, "Email has been sent.");
 	}
 }

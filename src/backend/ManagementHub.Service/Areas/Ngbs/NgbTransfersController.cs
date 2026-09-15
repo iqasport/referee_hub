@@ -11,6 +11,7 @@ using ManagementHub.Service.Contexts;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Collections;
+using ManagementHub.Storage.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -49,8 +50,8 @@ public class NgbTransfersController : ControllerBase
 		[FromRoute] NgbIdentifier ngb,
 		[FromQuery] FilteringParameters filtering)
 	{
-		var ngbDbId = await this.GetAuthorizedNgbDbIdAsync(ngb);
-		var rows = await this.GetTransferRowsAsync(ngbDbId, filtering);
+		await this.GetAuthorizedNgbAsync(ngb);
+		var rows = await this.GetTransferRowsAsync(ngb, filtering);
 		var playerNames = await this.GetPlayerNamesAsync(rows);
 		var logoUris = await this.GetTeamLogoUrisAsync(rows);
 
@@ -78,9 +79,7 @@ public class NgbTransfersController : ControllerBase
 		[FromRoute] NgbIdentifier ngb,
 		[FromBody] NgbTransferSettingsRequest request)
 	{
-		var ngbDbId = await this.GetAuthorizedNgbDbIdAsync(ngb);
-		var ngbEntity = await this.dbContext.NationalGoverningBodies
-			.SingleAsync(item => item.Id == ngbDbId, this.HttpContext.RequestAborted);
+		var ngbEntity = await this.GetAuthorizedNgbAsync(ngb);
 
 		ngbEntity.AutoApproveInternalTransfers = request.AutoApproveInternalTransfers;
 		await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
@@ -92,7 +91,7 @@ public class NgbTransfersController : ControllerBase
 		TeamInvitationIdentifier invitationId,
 		IReviewNgbTransferCommand.ReviewDecision decision)
 	{
-		await this.GetAuthorizedNgbDbIdAsync(ngb);
+		await this.GetAuthorizedNgbAsync(ngb);
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		var result = await this.reviewNgbTransferCommand.ReviewAsync(
 			ngb,
@@ -110,7 +109,7 @@ public class NgbTransfersController : ControllerBase
 		};
 	}
 
-	private async Task<long> GetAuthorizedNgbDbIdAsync(NgbIdentifier ngb)
+	private async Task<NationalGoverningBody> GetAuthorizedNgbAsync(NgbIdentifier ngb)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
 		if (!userContext.Roles.OfType<NgbAdminRole>().Any(role => role.Ngb.AppliesTo(ngb)))
@@ -118,19 +117,20 @@ public class NgbTransfersController : ControllerBase
 			throw new AccessDeniedException($"No permission for NGB {ngb}.");
 		}
 
-		var ngbDbId = await this.dbContext.NationalGoverningBodies
-			.Where(item => item.CountryCode == ngb.NgbCode)
-			.Select(item => (long?)item.Id)
-			.SingleOrDefaultAsync(this.HttpContext.RequestAborted);
-
-		return ngbDbId ?? throw new NotFoundException(ngb.ToString());
+		return await this.dbContext.NationalGoverningBodies
+			.WithIdentifier(ngb)
+			.SingleOrDefaultAsync(this.HttpContext.RequestAborted)
+			?? throw new NotFoundException(ngb.ToString());
 	}
 
-	private async Task<List<NgbTransferRow>> GetTransferRowsAsync(long ngbDbId, FilteringParameters filtering)
+	private async Task<List<NgbTransferRow>> GetTransferRowsAsync(NgbIdentifier ngb, FilteringParameters filtering)
 	{
-		var query = this.ApplyFilter(
-			this.dbContext.NgbTransferApprovals.Where(approval => approval.NgbId == ngbDbId),
-			filtering.Filter);
+		var transferApprovals =
+			from approval in this.dbContext.NgbTransferApprovals
+			join nationalGoverningBody in this.dbContext.NationalGoverningBodies.WithIdentifier(ngb)
+				on approval.NgbId equals nationalGoverningBody.Id
+			select approval;
+		var query = this.ApplyFilter(transferApprovals, filtering.Filter);
 
 		if (this.filteringContext.FilteringMetadata != null)
 		{
