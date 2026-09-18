@@ -118,7 +118,8 @@ public class DbTestContextProvider : ITestContextProvider
 	{
 		dataset = dataset.Include(t => t.Certification).Include(t => t.NewLanguage);
 		if (withQuestions)
-			dataset = dataset.Include(t => t.Questions).ThenInclude(q => q.Answers).AsSplitQuery();
+			// disabled questions are excluded so they are never selected for new test attempts, but are kept in the database for historical analysis
+			dataset = dataset.Include(t => t.Questions.Where(q => !q.Disabled)).ThenInclude(q => q.Answers).AsSplitQuery();
 		return withQuestions
 			? dataset.Select(t => new TestWithQuestions
 			{

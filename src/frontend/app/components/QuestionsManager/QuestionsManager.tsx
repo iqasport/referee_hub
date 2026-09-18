@@ -22,6 +22,7 @@ const QuestionsManager = (props: QuestionsManagerProps) => {
         return (
           <Question
             key={question.sequenceNum}
+            testId={testId}
             question={question}
           />
         );

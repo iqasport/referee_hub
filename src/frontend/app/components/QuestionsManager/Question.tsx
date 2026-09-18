@@ -1,9 +1,10 @@
 import classnames from "classnames";
 import React, { useState } from "react";
 import Answer from "./Answer";
-import { TestQuestionRecord } from "../../store/serviceApi";
+import { TestQuestionRecord, useSetQuestionDisabledMutation } from "../../store/serviceApi";
 
 interface QuestionProps {
+  testId: string;
   question: TestQuestionRecord;
 }
 
@@ -13,17 +14,26 @@ enum ActiveTab {
 }
 
 const Question = (props: QuestionProps) => {
-  const { question } = props;
+  const { testId, question } = props;
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Answers);
+  const [setQuestionDisabled, { isLoading: isTogglingDisabled }] = useSetQuestionDisabledMutation();
   // const [confirmOpen, setConfirmOpen] = useState(false);
 
   const isAnswersActive = activeTab === ActiveTab.Answers;
   const isDetailsActive = activeTab === ActiveTab.Details;
 
   const handleTabClick = (newTab: ActiveTab) => () => setActiveTab(newTab);
+  const handleToggleDisabled = () => {
+    setQuestionDisabled({
+      testId,
+      sequenceId: question.sequenceNum,
+      body: !question.disabled,
+    });
+  };
   // const handleDeleteClick = () => setConfirmOpen(true);
   // const handleConfirmClose = () => setConfirmOpen(false);
+
 
 
   const renderAnswers = () => {
@@ -66,7 +76,7 @@ const Question = (props: QuestionProps) => {
         <div className="question-index">
           <div>{question.sequenceNum}</div>
         </div>
-        <div className="w-11/12 border border-gray-300">
+        <div className={classnames("w-11/12 border border-gray-300", { ["opacity-50"]: question.disabled })}>
           <h4 className="w-full py-2 px-4 border border-gray-400">{renderDescription()}</h4>
           <div className="flex w-full justify-between mt-4 px-4 min-h-40">
             <div className="w-2/3 px-4">{isAnswersActive ? renderAnswers() : renderDetails()}</div>
@@ -90,6 +100,19 @@ const Question = (props: QuestionProps) => {
             </div>
           </div>
         </div>
+        <div className="ml-4">
+          <button
+            type="button"
+            disabled={isTogglingDisabled}
+            className={classnames("rounded h-8 px-3 text-white text-sm", {
+              ["bg-gray-500"]: question.disabled,
+              ["bg-red-600"]: !question.disabled,
+            })}
+            onClick={handleToggleDisabled}
+          >
+            {question.disabled ? "enable" : "disable"}
+          </button>
+        </div>
         {/* <div className="ml-4">
           <button
             type="button"
@@ -112,3 +135,4 @@ const Question = (props: QuestionProps) => {
 };
 
 export default Question;
+
