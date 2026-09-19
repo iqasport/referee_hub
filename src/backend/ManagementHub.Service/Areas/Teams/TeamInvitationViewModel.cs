@@ -26,7 +26,22 @@ public class TeamInvitationViewModel
 	public string? InvitedByName { get; set; }
 
 	/// <summary>
-	/// True when this pending item is a player join request awaiting manager approval.
+	/// True when this pending item is a player join request awaiting manager decision.
 	/// </summary>
 	public bool RequiresManagerDecision { get; set; }
+
+	/// <summary>
+	/// Current transfer approval status. Null when this is not a transfer (first-time join).
+	/// </summary>
+	public TransferApprovalStatus? TransferStatus { get; set; }
+
+	/// <summary>
+	/// Name of the team the player is transferring from. Null for first-time joins.
+	/// </summary>
+	public string? OriginTeamName { get; set; }
+
+	/// <summary>
+	/// Whether this is an internal transfer (same NGB) or international.
+	/// </summary>
+	public bool? IsInternalTransfer { get; set; }
 }

@@ -99,17 +99,23 @@ public class RefereesController : ControllerBase
 			return this.NoContent();
 		}
 
-		var currentUserDbId = await this.ResolveCurrentUserDbIdAsync(userContext.UserId);
-
 		var (playingError, playingStatus) = await this.TryProcessTeamRequestAsync(
-			requestedPlayingTeamId, shouldCreatePlayingTeamRequest, normalizedEmail, currentUserDbId, userContext.UserId);
+			requestedPlayingTeamId,
+			shouldCreatePlayingTeamRequest,
+			normalizedEmail,
+			userContext.UserId,
+			RefereeTeamAssociationType.Player);
 		if (playingError != null)
 		{
 			return playingError;
 		}
 
 		var (coachingError, coachingStatus) = await this.TryProcessTeamRequestAsync(
-			requestedCoachingTeamId, shouldCreateCoachingTeamRequest, normalizedEmail, currentUserDbId, userContext.UserId);
+			requestedCoachingTeamId,
+			shouldCreateCoachingTeamRequest,
+			normalizedEmail,
+			userContext.UserId,
+			RefereeTeamAssociationType.Coach);
 		if (coachingError != null)
 		{
 			return coachingError;
@@ -138,8 +144,8 @@ public class RefereesController : ControllerBase
 		long? requestedTeamId,
 		bool shouldCreate,
 		string normalizedEmail,
-		long currentUserDbId,
-		UserIdentifier currentUserId)
+		UserIdentifier currentUserId,
+		RefereeTeamAssociationType requestedAssociationType)
 	{
 		if (requestedTeamId == null)
 		{
@@ -157,7 +163,10 @@ public class RefereesController : ControllerBase
 		}
 
 		var result = await this.CreateOrUpdateTeamInviteAsync(
-			requestedTeamId.Value, normalizedEmail, currentUserDbId, currentUserId);
+			requestedTeamId.Value,
+			normalizedEmail,
+			currentUserId,
+			requestedAssociationType);
 		return (result.ErrorResult, result.Status);
 	}
 
@@ -208,28 +217,21 @@ public class RefereesController : ControllerBase
 		return teamIdsWithInvites.ToHashSet();
 	}
 
-	private Task<long> ResolveCurrentUserDbIdAsync(UserIdentifier userId)
-	{
-		return this.dbContext.Users
-			.WithIdentifier(userId)
-			.Select(user => user.Id)
-			.SingleAsync(this.HttpContext.RequestAborted);
-	}
-
 	/// <summary>
 	/// Delegates invite-request creation to the command layer and handles notification dispatch.
 	/// </summary>
 	private async Task<TeamInviteRequestResult> CreateOrUpdateTeamInviteAsync(
 		long requestedTeamId,
 		string normalizedEmail,
-		long currentUserDbId,
-		UserIdentifier currentUserId)
+		UserIdentifier currentUserId,
+		RefereeTeamAssociationType requestedAssociationType)
 	{
 		var teamId = new TeamIdentifier(requestedTeamId);
 		var commandResult = await this.createTeamInviteRequestCommand.CreateTeamInviteRequestAsync(
 			teamId,
 			normalizedEmail,
-			currentUserDbId,
+			currentUserId,
+			requestedAssociationType,
 			this.HttpContext.RequestAborted);
 
 		return commandResult.Code switch
@@ -260,18 +262,18 @@ public class RefereesController : ControllerBase
 				},
 
 			ICreateTeamInviteRequestCommand.CreateResultCode.RequestCreated =>
-				await this.NotifyManagersAndBuildResultAsync(teamId, commandResult.TeamName, currentUserId),
+				await this.NotifyApproversAndBuildResultAsync(teamId, commandResult, currentUserId),
 
 			_ => new TeamInviteRequestResult { ErrorResult = this.StatusCode(500) },
 		};
 	}
 
-	private async Task<TeamInviteRequestResult> NotifyManagersAndBuildResultAsync(
+	private async Task<TeamInviteRequestResult> NotifyApproversAndBuildResultAsync(
 		TeamIdentifier teamId,
-		string? teamName,
+		ICreateTeamInviteRequestCommand.CreateResult commandResult,
 		UserIdentifier currentUserId)
 	{
-		var resolvedTeamName = teamName ?? teamId.ToString();
+		var resolvedTeamName = commandResult.TeamName ?? teamId.ToString();
 		var managers = await this.teamContextProvider.GetTeamManagersAsync(teamId, NgbConstraint.Any);
 		foreach (var manager in managers.Where(m => m.UserId != currentUserId))
 		{
@@ -279,6 +281,14 @@ public class RefereesController : ControllerBase
 				manager.UserId,
 				teamId,
 				resolvedTeamName,
+				this.HttpContext.RequestAborted);
+		}
+
+		if (commandResult.InvitationId.HasValue && commandResult.PendingNgbApprovals is { Count: > 0 })
+		{
+			await this.notificationService.CreateNgbTransferApprovalNotificationsAsync(
+				commandResult.InvitationId.Value,
+				commandResult.PendingNgbApprovals,
 				this.HttpContext.RequestAborted);
 		}
 

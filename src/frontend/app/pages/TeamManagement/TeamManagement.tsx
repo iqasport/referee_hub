@@ -13,6 +13,27 @@ import {
   useRevokeTeamInviteMutation,
   useSetTeamAutoApprovePlayerRequestsMutation,
 } from "../../store/serviceApi";
+import { TransferApprovalStatus } from "../../store/serviceApi";
+
+// Transfer status badge shown inside pending request cards.
+const TRANSFER_STATUS_LABELS: Partial<Record<TransferApprovalStatus, string>> = {
+  pendingNgbApproval: "Awaiting NGB approval",
+  pendingTeamApproval: "NGB approved — awaiting your decision",
+  rejectedByNgb: "Rejected by NGB",
+};
+const TRANSFER_STATUS_COLORS: Partial<Record<TransferApprovalStatus, string>> = {
+  pendingNgbApproval: "bg-yellow-100 text-yellow-800",
+  pendingTeamApproval: "bg-blue-100 text-blue-800",
+  rejectedByNgb: "bg-red-100 text-red-700",
+};
+const TransferStatusBadge: React.FC<{ status?: TransferApprovalStatus | null }> = ({ status }) => {
+  if (!status || status === "notATransfer" || status === "approved" || status === "declined") return null;
+  return (
+    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${TRANSFER_STATUS_COLORS[status] ?? "bg-gray-100 text-gray-600"}`}>
+      {TRANSFER_STATUS_LABELS[status] ?? status}
+    </span>
+  );
+};
 import { getErrorString } from "../../utils/errorUtils";
 import TeamEditModal from "../../components/modals/TeamEditModal/TeamEditModal";
 import AddManagerModal from "./AddManagerModal";
@@ -257,11 +278,17 @@ const PendingRequestsSection: React.FC<PendingRequestsSectionProps> = ({
                     ? (invite.invitedByName || "Unknown player")
                     : "Pending invite"}
                 </p>
+                {invite.originTeamName && (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {invite.isInternalTransfer ? "Internal transfer" : "International transfer"} from {invite.originTeamName}
+                  </p>
+                )}
+                <TransferStatusBadge status={invite.transferStatus} />
                 <p className="text-sm text-gray-600">
                   {invite.requiresManagerDecision ? "Requested" : "Invited"} {invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : "recently"}
                 </p>
               </div>
-              {invite.requiresManagerDecision ? (
+              {invite.requiresManagerDecision && invite.transferStatus !== "pendingNgbApproval" && invite.transferStatus !== "rejectedByNgb" ? (
                 <ActionButtonPair
                   onAccept={() => onRespondToPendingInvite(invite.invitationId!, true)}
                   onDecline={() => onRespondToPendingInvite(invite.invitationId!, false)}

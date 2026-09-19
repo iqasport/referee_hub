@@ -38,6 +38,11 @@ public interface INotificationService
 		string teamName,
 		CancellationToken cancellationToken = default);
 
+	Task CreateNgbTransferApprovalNotificationsAsync(
+		TeamInvitationIdentifier invitationId,
+		IReadOnlyCollection<NgbIdentifier> ngbs,
+		CancellationToken cancellationToken = default);
+
 	Task<NotificationEntity> CreateTeamInviteResponseNotificationForPlayerAsync(
 		UserIdentifier userId,
 		TeamIdentifier teamId,

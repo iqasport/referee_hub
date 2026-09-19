@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Enums;
 
 namespace ManagementHub.Models.Abstraction.Commands;
 
@@ -21,7 +25,11 @@ public interface ICreateTeamInviteRequestCommand
 		AutoApproved,
 	}
 
-	public record CreateResult(CreateResultCode Code, string? TeamName = null);
+	public record CreateResult(
+		CreateResultCode Code,
+		string? TeamName = null,
+		TeamInvitationIdentifier? InvitationId = null,
+		IReadOnlyCollection<NgbIdentifier>? PendingNgbApprovals = null);
 
 	/// <summary>
 	/// Creates a team invite request on behalf of a referee (self-initiated join request).
@@ -31,6 +39,7 @@ public interface ICreateTeamInviteRequestCommand
 	Task<CreateResult> CreateTeamInviteRequestAsync(
 		TeamIdentifier teamId,
 		string normalizedEmail,
-		long currentUserDbId,
+		UserIdentifier userId,
+		RefereeTeamAssociationType requestedAssociationType,
 		CancellationToken cancellationToken);
 }
