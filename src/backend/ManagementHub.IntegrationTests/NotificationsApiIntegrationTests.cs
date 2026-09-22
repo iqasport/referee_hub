@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
+using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
 using Xunit;
@@ -36,7 +38,7 @@ public class NotificationsApiIntegrationTests : IClassFixture<TestWebApplication
 
 		await AuthenticationHelper.AuthenticateAsAsync(this.client, "team_manager@example.com", "password");
 
-		var createInviteModel = new CreateInviteModel
+		var createInviteModel = new
 		{
 			ParticipantType = ParticipantType.Team,
 			ParticipantId = teamId,
@@ -82,7 +84,7 @@ public class NotificationsApiIntegrationTests : IClassFixture<TestWebApplication
 		var teamId = await this.GetYankeesTeamIdAsync();
 
 		await AuthenticationHelper.AuthenticateAsAsync(this.client, "team_manager@example.com", "password");
-		var createInviteModel = new CreateInviteModel
+		var createInviteModel = new
 		{
 			ParticipantType = ParticipantType.Team,
 			ParticipantId = teamId,

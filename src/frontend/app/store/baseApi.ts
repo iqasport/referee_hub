@@ -1,7 +1,7 @@
 import { FetchArgs, createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
 
 /** if the query URL contains impersonate query we forward it with the API calls */
-const fetchWithImpersonationQuery = (fetchFn: ReturnType<typeof fetchBaseQuery>) => (args: string | FetchArgs, api, extraOptions) => {
+const fetchWithImpersonationQuery = (fetchFn: ReturnType<typeof fetchBaseQuery>) => async (args: string | FetchArgs, api, extraOptions) => {
   const impersonateKey = "impersonate";
   const impersonate = new URLSearchParams(location.search).get(impersonateKey);
   if (impersonate) {
@@ -13,7 +13,6 @@ const fetchWithImpersonationQuery = (fetchFn: ReturnType<typeof fetchBaseQuery>)
       args.params[impersonateKey] = impersonate;
     }
   }
-
   return fetchFn(args, api, extraOptions);
 }
 

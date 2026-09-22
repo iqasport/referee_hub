@@ -1,5 +1,6 @@
 using System;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 
@@ -8,8 +9,9 @@ namespace ManagementHub.Service.Areas.Tournaments;
 public class TournamentInviteViewModel
 {
 	public required ParticipantType ParticipantType { get; set; }
-	public required string ParticipantId { get; set; }
+	public required TournamentParticipantIdentifier ParticipantId { get; set; }
 	public required string ParticipantName { get; set; }
+	public string? Observations { get; set; }
 	public Uri? LogoUri { get; set; }
 	public required InviteStatus Status { get; set; }
 	public required UserIdentifier InitiatorUserId { get; set; }
@@ -27,7 +29,8 @@ public class ApprovalStatusViewModel
 public class CreateInviteModel
 {
 	public required ParticipantType ParticipantType { get; set; }
-	public required string ParticipantId { get; set; }
+	public required TournamentParticipantIdentifier ParticipantId { get; set; }
+	public string? Observations { get; set; }
 }
 
 public class InviteResponseModel
