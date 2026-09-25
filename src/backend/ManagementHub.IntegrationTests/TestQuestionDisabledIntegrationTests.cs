@@ -2,6 +2,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
@@ -25,15 +26,29 @@ public class TestQuestionDisabledIntegrationTests : IClassFixture<TestWebApplica
 		this.client = this.factory.CreateClient();
 	}
 
-	private async Task<(TestViewModel test, TestQuestionRecord question)> GetFirstTestWithQuestionsAsync()
+	private async Task<(string testId, TestQuestionRecord question)> GetFirstTestWithQuestionsAsync()
 	{
-		var tests = await this.client.GetFromJsonAsync<TestViewModel[]>("/api/admin/Tests");
-		foreach (var test in tests!)
+		var tests = await this.client.GetFromJsonAsync<JsonElement[]>("/api/admin/Tests");
+
+		foreach (var test in tests ?? [])
 		{
-			var questions = await this.client.GetFromJsonAsync<TestQuestionRecord[]>($"/api/admin/Tests/{test.TestId}/questions");
+			if (!test.TryGetProperty("testId", out var testIdProperty))
+			{
+				continue;
+			}
+
+			var testId = testIdProperty.GetString();
+			if (string.IsNullOrWhiteSpace(testId))
+			{
+				continue;
+			}
+
+			var questions = await this.client.GetFromJsonAsync<TestQuestionRecord[]>(
+				$"/api/admin/Tests/{testId}/questions");
+
 			if (questions is { Length: > 0 })
 			{
-				return (test, questions.First());
+				return (testId, questions.First());
 			}
 		}
 
@@ -41,43 +56,68 @@ public class TestQuestionDisabledIntegrationTests : IClassFixture<TestWebApplica
 	}
 
 	[Fact]
-	public async Task SetQuestionDisabled_WithIqaAdmin_ShouldPersistAndExcludeFromQuestionsForNewAttempts()
+	public async Task SetQuestionDisabled_WithIqaAdmin_ShouldPersistAndExposeDisabledState()
 	{
-		// Arrange
-		await AuthenticationHelper.AuthenticateAsAsync(this.client, "iqa_admin@example.com", "password");
-		var (test, question) = await this.GetFirstTestWithQuestionsAsync();
+		await AuthenticationHelper.AuthenticateAsAsync(
+			this.client,
+			"iqa_admin@example.com",
+			"password");
 
-		// Act: disable the question
+		var (testId, question) = await this.GetFirstTestWithQuestionsAsync();
+
+		question.SequenceNum.Should().NotBeNull();
+
 		var disableResponse = await this.client.PostAsJsonAsync(
-			$"/api/admin/Tests/{test.TestId}/questions/{question.SequenceNum}/disabled", true);
+			$"/api/admin/Tests/{testId}/questions/{question.SequenceNum}/disabled",
+			true);
 
-		// Assert
 		disableResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var questionsAfterDisable = await this.client.GetFromJsonAsync<TestQuestionRecord[]>($"/api/admin/Tests/{test.TestId}/questions");
-		questionsAfterDisable!.Single(q => q.SequenceNum == question.SequenceNum).Disabled.Should().BeTrue();
+		var questionsAfterDisable =
+			await this.client.GetFromJsonAsync<TestQuestionRecord[]>(
+				$"/api/admin/Tests/{testId}/questions");
 
-		// Act: re-enable the question so other tests / seeded data are not affected
+		questionsAfterDisable.Should().NotBeNull();
+
+		questionsAfterDisable!
+			.Single(q => q.SequenceNum == question.SequenceNum)
+			.Disabled
+			.Should()
+			.BeTrue();
+
 		var enableResponse = await this.client.PostAsJsonAsync(
-			$"/api/admin/Tests/{test.TestId}/questions/{question.SequenceNum}/disabled", false);
+			$"/api/admin/Tests/{testId}/questions/{question.SequenceNum}/disabled",
+			false);
 
-		// Assert
 		enableResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-		var questionsAfterEnable = await this.client.GetFromJsonAsync<TestQuestionRecord[]>($"/api/admin/Tests/{test.TestId}/questions");
-		questionsAfterEnable!.Single(q => q.SequenceNum == question.SequenceNum).Disabled.Should().BeFalse();
+		var questionsAfterEnable =
+			await this.client.GetFromJsonAsync<TestQuestionRecord[]>(
+				$"/api/admin/Tests/{testId}/questions");
+
+		questionsAfterEnable.Should().NotBeNull();
+
+		questionsAfterEnable!
+			.Single(q => q.SequenceNum == question.SequenceNum)
+			.Disabled
+			.Should()
+			.BeFalse();
 	}
 
 	[Fact]
 	public async Task SetQuestionDisabled_WithNonAdmin_ShouldReturnForbidden()
 	{
-		// Arrange
-		await AuthenticationHelper.AuthenticateAsAsync(this.client, "referee@example.com", "password");
+		await AuthenticationHelper.AuthenticateAsAsync(
+			this.client,
+			"referee@example.com",
+			"password");
 
-		// Act
-		var response = await this.client.PostAsJsonAsync("/api/admin/Tests/T_00000000000000000000000000/questions/1/disabled", true);
+		var response = await this.client.PostAsJsonAsync(
+			"/api/admin/Tests/T_00000000000000000000000000/questions/1/disabled",
+			true);
 
-		// Assert
-		response.StatusCode.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.Unauthorized);
+		response.StatusCode.Should().BeOneOf(
+			HttpStatusCode.Forbidden,
+			HttpStatusCode.Unauthorized);
 	}
 }
