@@ -65,7 +65,7 @@ public class TestQuestionDisabledIntegrationTests : IClassFixture<TestWebApplica
 
 		var (testId, question) = await this.GetFirstTestWithQuestionsAsync();
 
-		question.SequenceNum.Should().NotBeNull();
+		var sequenceNum = question.SequenceNum;
 
 		var disableResponse = await this.client.PostAsJsonAsync(
 			$"/api/admin/Tests/{testId}/questions/{question.SequenceNum}/disabled",
