@@ -1,10 +1,11 @@
 import classnames from "classnames";
 import React, { useState } from "react";
+import { TestQuestionRecord, useSetQuestionDisabledMutation } from "../../store/serviceApi";
 import Answer from "./Answer";
-import { TestQuestionRecord } from "../../store/serviceApi";
 
 interface QuestionProps {
   question: TestQuestionRecord;
+  testId: string;
 }
 
 enum ActiveTab {
@@ -13,18 +14,26 @@ enum ActiveTab {
 }
 
 const Question = (props: QuestionProps) => {
-  const { question } = props;
+  const { question, testId } = props;
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Answers);
-  // const [confirmOpen, setConfirmOpen] = useState(false);
+  const [setQuestionDisabled, { isLoading: isTogglingDisabled }] =
+    useSetQuestionDisabledMutation();
 
   const isAnswersActive = activeTab === ActiveTab.Answers;
   const isDetailsActive = activeTab === ActiveTab.Details;
 
   const handleTabClick = (newTab: ActiveTab) => () => setActiveTab(newTab);
-  // const handleDeleteClick = () => setConfirmOpen(true);
-  // const handleConfirmClose = () => setConfirmOpen(false);
 
+  const handleToggleDisabled = async () => {
+    if (question.sequenceNum == null) return;
+
+    await setQuestionDisabled({
+      testId,
+      sequenceId: question.sequenceNum,
+      body: !question.disabled,
+    });
+  };
 
   const renderAnswers = () => {
     return (
@@ -57,7 +66,7 @@ const Question = (props: QuestionProps) => {
   };
 
   const renderDescription = () => {
-    return <div dangerouslySetInnerHTML={{ __html: question.question }} />;
+    return <div dangerouslySetInnerHTML={{ __html: question.question ?? "" }} />;
   };
 
   return (
@@ -66,7 +75,11 @@ const Question = (props: QuestionProps) => {
         <div className="question-index">
           <div>{question.sequenceNum}</div>
         </div>
-        <div className="w-11/12 border border-gray-300">
+        <div
+          className={classnames("w-11/12 border border-gray-300", {
+            ["opacity-50"]: question.disabled,
+          })}
+        >
           <h4 className="w-full py-2 px-4 border border-gray-400">{renderDescription()}</h4>
           <div className="flex w-full justify-between mt-4 px-4 min-h-40">
             <div className="w-2/3 px-4">{isAnswersActive ? renderAnswers() : renderDetails()}</div>
@@ -90,23 +103,20 @@ const Question = (props: QuestionProps) => {
             </div>
           </div>
         </div>
-        {/* <div className="ml-4">
+        <div className="ml-4">
           <button
             type="button"
-            className="bg-red-600 text-white rounded h-8 w-8"
-            onClick={handleDeleteClick}
+            disabled={isTogglingDisabled}
+            className={classnames("rounded h-8 px-3 text-white text-sm", {
+              ["bg-gray-500"]: question.disabled,
+              ["bg-red-600"]: !question.disabled,
+            })}
+            onClick={handleToggleDisabled}
           >
-            <FontAwesomeIcon icon={faTrash} />
+            {question.disabled ? "enable" : "disable"}
           </button>
-        </div> */}
+        </div>
       </div>
-      {/* <WarningModal
-        action="delete"
-        dataType="question"
-        open={confirmOpen}
-        onCancel={handleConfirmClose}
-        onConfirm={handleDelete}
-      /> */}
     </>
   );
 };
