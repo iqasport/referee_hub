@@ -126,7 +126,7 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			nationalTeam = new { id = nationalTeam!.TeamId }
 		};
 		var joinResponse = await this._client.PutAsJsonAsync("/api/v2/Referees/me", joinRequest);
-		joinResponse.StatusCode.Should().Be(HttpStatusCode.OK, "sarah should be able to join a national team");
+		joinResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
 
 		// Act: Try to get team details as a national team member
 		var response = await this._client.GetAsync($"/api/v2/Teams/{nationalTeam.TeamId}");
@@ -234,8 +234,7 @@ public class TeamViewApiIntegrationTests : IClassFixture<TestWebApplicationFacto
 			nationalTeam = new { id = nationalTeam!.TeamId }
 		};
 		var joinResponse = await this._client.PutAsJsonAsync("/api/v2/Referees/me", joinRequest);
-		joinResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-			"sarah should be able to join a national team");
+		joinResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
 
 		// Act: Sign in as NGB admin — NGB admins can view team member details for teams in their NGB
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");

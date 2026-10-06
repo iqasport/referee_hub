@@ -66,7 +66,7 @@ const StartTest = () => {
   const navigate = useNavigate();
   const featureGates = useFeatureGates();
   
-  // TODO: create a single call endpoint?
+  // This page currently reads details first, then starts the attempt.
   const { currentData: test, isLoading: testDetailsLoading, error: getTestError } = useGetTestDetailsQuery({ testId });
 
   const [startTest, { data: startedTest, error: startTestError }] = useStartTestMutation();

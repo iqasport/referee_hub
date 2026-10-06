@@ -82,7 +82,16 @@ public class DbTestContextProvider : ITestContextProvider
 
 	private async Task ApplyOverrides(UserIdentifier userId, Test test, CancellationToken cancellationToken)
 	{
-		var overrides = await this.overrides.GetAsync(new TestPolicyContext { UserId = userId.ToString(), TestId = test.TestId.ToString() }, cancellationToken);
+		TestPolicyOverride overrides;
+		try
+		{
+			overrides = await this.overrides.GetAsync(new TestPolicyContext { UserId = userId.ToString(), TestId = test.TestId.ToString() }, cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			this.logger.LogError(ex, "Failed to load test policy overrides for user {UserId} and test {TestId}; continuing without overrides.", userId, test.TestId);
+			return;
+		}
 
 		if (overrides.MaxAttempts.HasValue)
 		{

@@ -25,6 +25,7 @@ interface Tournament {
   organizer?: string;
   isPrivate: boolean;
   isRegistrationOpen?: boolean;
+  isVolunteerRegistrationOpen?: boolean;
   bannerImageUrl?: string;
 }
 
@@ -53,6 +54,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
     organizer: "",
     isPrivate: false,
     isRegistrationOpen: true,
+    isVolunteerRegistrationOpen: true,
     bannerImageUrl: "",
   };
   const [formData, setFormData] = useState<Tournament>(initialFormData);
@@ -99,6 +101,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
             isRegistrationOpen: formData.isRegistrationOpen ?? true,
+            isVolunteerRegistrationOpen: formData.isVolunteerRegistrationOpen ?? true,
           },
         }).unwrap();
       } else {
@@ -116,6 +119,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
             organizer: formData.organizer,
             isPrivate: formData.isPrivate,
             isRegistrationOpen: formData.isRegistrationOpen ?? true,
+            isVolunteerRegistrationOpen: formData.isVolunteerRegistrationOpen ?? true,
           },
         }).unwrap();
 
@@ -235,7 +239,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
               </div>
 
               {/* Banner Image and Registration Status side by side */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Banner Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
@@ -267,6 +271,34 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                   </div>
                   <p className="mt-2 text-xs text-gray-500 text-right">
                     Control whether teams can register for this tournament
+                  </p>
+                </div>
+
+                {/* Volunteer Registration Status Toggle */}
+                <div className="flex flex-col justify-start">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Volunteer Registration
+                  </label>
+
+                  <div className="flex items-center justify-end">
+                    <span className="mr-3 text-sm text-gray-600">
+                      {formData.isVolunteerRegistrationOpen ? "Open" : "Closed"}
+                    </span>
+
+                    <Toggle
+                      name="isVolunteerRegistrationOpen"
+                      checked={formData.isVolunteerRegistrationOpen ?? true}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isVolunteerRegistrationOpen: e.target.checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <p className="mt-2 text-xs text-gray-500 text-right">
+                    Allow referees and volunteers to register for this tournament
                   </p>
                 </div>
               </div>

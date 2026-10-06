@@ -18,6 +18,7 @@ public partial class NationalGoverningBodyStat : IIdentifiable
 	public int? UniversityTeamsCount { get; set; }
 	public int? CommunityTeamsCount { get; set; }
 	public int? TeamStatusChangeCount { get; set; }
+	public int? FlagRunnerRefereesCount { get; set; }
 	public DateTime CreatedAt { get; set; }
 	public DateTime UpdatedAt { get; set; }
 	public int? TotalTeamsCount { get; set; }

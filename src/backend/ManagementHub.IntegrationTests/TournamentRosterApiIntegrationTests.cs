@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
 using ManagementHub.IntegrationTests.Models;
+using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
@@ -568,10 +570,10 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 
 	private async Task<string> AddTeamToTournamentAsync(string tournamentId, string teamId)
 	{
-		var createInviteModel = new CreateInviteModel
+		var createInviteModel = new
 		{
 			ParticipantType = ParticipantType.Team,
-			ParticipantId = teamId
+			ParticipantId = teamId,
 		};
 
 		var inviteResponse = await this._client.PostAsJsonAsync(

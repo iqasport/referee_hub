@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigateFunction, NavigateOptions, To, useNavigate as routerUseNavigate, useParams } from "react-router-dom";
+import { NavigateFunction, NavigateOptions, To, useNavigate as routerUseNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useGetCurrentUserQuery } from "../store/serviceApi";
 
 const IMPERSONATE_KEY = "impersonate";
@@ -74,8 +74,11 @@ type NavigationParameters = {
 
 export const useNavigationParams = <Keys extends keyof NavigationParameters>() : Readonly<Partial<Pick<NavigationParameters, Keys>>> => {
     const params = useParams<NavigationParameters>();
-    
-    const { currentData: currentUser } = useGetCurrentUserQuery()
+
+    const shouldFetchCurrentUser = Boolean(params.refereeId);
+    const { currentData: currentUser } = useGetCurrentUserQuery(undefined, {
+        skip: !shouldFetchCurrentUser,
+    });
     const currentUserId = currentUser?.userId;
 
     const updatedParams: Partial<NavigationParameters> = {
@@ -88,4 +91,22 @@ export const useNavigationParams = <Keys extends keyof NavigationParameters>() :
         teamId: params.teamId, // added for usage in team view page
     };
     return updatedParams;
+}
+
+export const useSearchParam = <T extends string = string> (key: string, options?: { defaultValue?: T, deleteIfDefault?: boolean, replaceHistory?: boolean }): [T, (value: T) => void] => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const value = searchParams.get(key) ?? options?.defaultValue;
+
+    const setValue = (newValue: T) => {
+        if (newValue === undefined || (options?.deleteIfDefault && newValue === options?.defaultValue)) {
+            searchParams.delete(key);
+        } else {
+            searchParams.set(key, newValue);
+        }
+        // We intend to use this hook as a more persistent state, which matters for navigating away and back,
+        // but less so for each state change to be recorded in the history.
+        setSearchParams(searchParams, { replace: options?.replaceHistory });
+    };
+
+    return [value as T, setValue];
 }

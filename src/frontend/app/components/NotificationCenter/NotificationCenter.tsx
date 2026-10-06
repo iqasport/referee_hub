@@ -1,14 +1,14 @@
 import { faBell, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { useNavigate } from "../../utils/navigationUtils";
 import {
-  NotificationItem,
+  NotificationViewModel,
   useDeleteNotificationMutation,
   useGetNotificationsQuery,
-  useMarkAllNotificationsReadMutation,
-  useMarkNotificationReadMutation,
+  useMarkAllAsReadMutation,
+  useMarkAsReadMutation,
 } from "../../store/serviceApi";
 import { useNotificationsRealtime } from "../../hooks/useNotificationsRealtime";
 
@@ -31,15 +31,15 @@ const NotificationCenter = ({ currentUserId }: Props) => {
     refetch,
   } = useGetNotificationsQuery(undefined, { pollingInterval: 30000 });
 
-  const [markRead] = useMarkNotificationReadMutation();
-  const [markAllRead] = useMarkAllNotificationsReadMutation();
+  const [markRead] = useMarkAsReadMutation();
+  const [markAllRead] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
-  useNotificationsRealtime({
-    onRefresh: () => {
-      refetch();
-    },
-  });
+  const handleRealtimeRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  useNotificationsRealtime({ onRefresh: handleRealtimeRefresh });
 
   const notifications = data?.notifications ?? [];
 
@@ -48,7 +48,11 @@ const NotificationCenter = ({ currentUserId }: Props) => {
     [notifications],
   );
 
-  const navigateFromNotification = async (item: NotificationItem) => {
+  const navigateFromNotification = async (item: NotificationViewModel) => {
+    if (!item.id) {
+      return;
+    }
+
     if (!item.isRead) {
       await markRead({ id: item.id });
     }
@@ -81,7 +85,11 @@ const NotificationCenter = ({ currentUserId }: Props) => {
     refetch();
   };
 
-  const handleDelete = async (event: React.MouseEvent, id: string) => {
+  const handleDelete = async (event: React.MouseEvent, id?: string) => {
+    if (!id) {
+      return;
+    }
+
     event.stopPropagation();
     await deleteNotification({ id });
     refetch();

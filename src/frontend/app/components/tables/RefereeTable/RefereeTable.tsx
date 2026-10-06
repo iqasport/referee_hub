@@ -100,7 +100,7 @@ const NewRefereeTable = (props: NewRefereeTableProps) => {
   };
 
   const renderEmpty = () => {
-    return <h2>No referees found.</h2>;
+    return <h2>No members found.</h2>;
   };
 
   const rowConfig: CellConfig<RefereeViewModel>[] = [

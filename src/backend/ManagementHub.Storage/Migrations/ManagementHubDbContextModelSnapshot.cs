@@ -541,6 +541,12 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_time");
 
+                    b.Property<int?>("FlagRunnerRefereesCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("flag_runner_referees_count")
+                        .HasDefaultValueSql("0");
+
                     b.Property<int?>("HeadRefereesCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
@@ -797,6 +803,30 @@ namespace ManagementHub.Storage.Migrations
                     b.HasIndex(new[] { "UserId" }, "index_policy_manager_user_terms_on_user_id");
 
                     b.ToTable("policy_manager_user_terms", (string)null);
+                });
+
+            modelBuilder.Entity("ManagementHub.Models.Data.PublicTournamentSnapshot", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("character varying")
+                        .HasColumnName("key");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("snapshot_json");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("public_tournament_snapshots", (string)null);
                 });
 
             modelBuilder.Entity("ManagementHub.Models.Data.Question", b =>
@@ -1115,6 +1145,12 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("id");
 
+                    b.Property<bool>("AutoApprovePlayerRequests")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false)
+                        .HasColumnName("auto_approve_player_requests");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("character varying")
@@ -1179,6 +1215,59 @@ namespace ManagementHub.Storage.Migrations
                     b.ToTable("teams", (string)null);
                 });
 
+            modelBuilder.Entity("ManagementHub.Models.Data.TeamInvitation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("DeclinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("declined_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("email");
+
+                    b.Property<long>("InitiatorUserId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("initiator_user_id");
+
+                    b.Property<long?>("RespondedByUserId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("responded_by_user_id");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<long>("TeamId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("team_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiatorUserId");
+
+                    b.HasIndex("RespondedByUserId");
+
+                    b.HasIndex(new[] { "TeamId", "Email" }, "index_team_invitations_on_team_id_and_email")
+                        .IsUnique()
+                        .HasFilter("revoked_at IS NULL AND accepted_at IS NULL AND declined_at IS NULL");
+
+                    b.ToTable("team_invitations", (string)null);
+                });
+
             modelBuilder.Entity("ManagementHub.Models.Data.TeamManager", b =>
                 {
                     b.Property<long>("Id")
@@ -1216,6 +1305,49 @@ namespace ManagementHub.Storage.Migrations
                         .IsUnique();
 
                     b.ToTable("team_managers", (string)null);
+                });
+
+            modelBuilder.Entity("ManagementHub.Models.Data.TeamPlayerActivity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ActivityType")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("activity_type");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("email");
+
+                    b.Property<long>("InitiatorUserId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("initiator_user_id");
+
+                    b.Property<long>("TeamId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("team_id");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiatorUserId");
+
+                    b.HasIndex(new[] { "TeamId", "CreatedAt" }, "index_team_player_activities_on_team_id_and_created_at");
+
+                    b.HasIndex(new[] { "UserId", "CreatedAt" }, "index_team_player_activities_on_user_id_and_created_at");
+
+                    b.ToTable("team_player_activities", (string)null);
                 });
 
             modelBuilder.Entity("ManagementHub.Models.Data.TeamStatusChangeset", b =>
@@ -1505,6 +1637,10 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_registration_open");
 
+                    b.Property<bool>("IsVolunteerRegistrationOpen")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_volunteer_registration_open");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("character varying")
@@ -1562,6 +1698,10 @@ namespace ManagementHub.Storage.Migrations
                     b.Property<long>("InitiatorUserId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("initiator_user_id");
+
+                    b.Property<string>("Observations")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("observations");
 
                     b.Property<int>("ParticipantApproval")
                         .HasColumnType("INTEGER")
@@ -2244,6 +2384,35 @@ namespace ManagementHub.Storage.Migrations
                     b.Navigation("NationalGoverningBody");
                 });
 
+            modelBuilder.Entity("ManagementHub.Models.Data.TeamInvitation", b =>
+                {
+                    b.HasOne("ManagementHub.Models.Data.User", "Initiator")
+                        .WithMany()
+                        .HasForeignKey("InitiatorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_team_invitations_initiator");
+
+                    b.HasOne("ManagementHub.Models.Data.User", "RespondedByUser")
+                        .WithMany()
+                        .HasForeignKey("RespondedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_team_invitations_responded_by_user");
+
+                    b.HasOne("ManagementHub.Models.Data.Team", "Team")
+                        .WithMany("TeamInvitations")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_team_invitations_team");
+
+                    b.Navigation("Initiator");
+
+                    b.Navigation("RespondedByUser");
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("ManagementHub.Models.Data.TeamManager", b =>
                 {
                     b.HasOne("ManagementHub.Models.Data.User", "AddedBy")
@@ -2268,6 +2437,35 @@ namespace ManagementHub.Storage.Migrations
                         .HasConstraintName("fk_team_managers_user");
 
                     b.Navigation("AddedBy");
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ManagementHub.Models.Data.TeamPlayerActivity", b =>
+                {
+                    b.HasOne("ManagementHub.Models.Data.User", "Initiator")
+                        .WithMany()
+                        .HasForeignKey("InitiatorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_team_player_activities_initiator");
+
+                    b.HasOne("ManagementHub.Models.Data.Team", "Team")
+                        .WithMany("TeamPlayerActivities")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_team_player_activities_team");
+
+                    b.HasOne("ManagementHub.Models.Data.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_team_player_activities_user");
+
+                    b.Navigation("Initiator");
 
                     b.Navigation("Team");
 
@@ -2515,7 +2713,11 @@ namespace ManagementHub.Storage.Migrations
                 {
                     b.Navigation("RefereeTeams");
 
+                    b.Navigation("TeamInvitations");
+
                     b.Navigation("TeamManagers");
+
+                    b.Navigation("TeamPlayerActivities");
 
                     b.Navigation("TeamStatusChangesets");
 

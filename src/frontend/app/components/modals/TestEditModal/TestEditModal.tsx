@@ -1,7 +1,6 @@
 import classnames from "classnames";
 import { capitalize } from "lodash";
 import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import LanguageDropdown from "../../../components/LanguageDropdown";
 import Toggle from "../../../components/Toggle";
@@ -24,7 +23,7 @@ const LEVEL_OPTIONS = ["snitch", "assistant", "head", "field", "scorekeeper", "f
 const VERSION_OPTIONS = ["eighteen", "twenty", "twentytwo", "twentyfour"];
 
 const initialNewTest: TestViewModel = {
-  awardedCertification: null,
+  awardedCertification: undefined,
   description: "",
   passPercentage: 0,
   title: "",
@@ -36,19 +35,19 @@ const initialNewTest: TestViewModel = {
   language: "en-US",
 };
 const initialCertification: Certification = {
-  level: null,
+  level: undefined,
   version: "twentyfour",
 };
 
 const validateInput = (test: TestViewModel, cert: Certification): string[] => {
   const testErrors = Object.keys(test).filter((dataKey: string) => {
-    if (REQUIRED_TEST_FIELDS.includes(dataKey) && !test[dataKey]) {
+    if (REQUIRED_TEST_FIELDS.includes(dataKey) && !test[dataKey as keyof typeof test]) {
       return true;
     }
     return false;
   });
   const certErrors = Object.keys(cert).filter((dataKey: string) => {
-    if (REQUIRED_CERT_FIELDS.includes(dataKey) && !cert[dataKey]) {
+    if (REQUIRED_CERT_FIELDS.includes(dataKey) && !cert[dataKey as keyof typeof cert]) {
       return true;
     }
     return false;
@@ -75,9 +74,9 @@ const TestEditModal = (props: TestEditModalProps) => {
   const [createTest] = useCreateNewTestMutation();
   const [updateTest] = useEditTestMutation();
 
-  const test = tests.filter(t => t.testId === testId)?.[0];
+  const test = tests?.filter(t => t.testId === testId)?.[0];
   const formType = testId ? "Edit" : "New";
-  const hasError = (dataKey: string): boolean => errors?.includes(dataKey);
+  const hasError = (dataKey: string): boolean => errors?.includes(dataKey) || false;
 
   useEffect(() => {
     if (test && testId) {
@@ -106,7 +105,7 @@ const TestEditModal = (props: TestEditModalProps) => {
     }
 
     setHasChangedTest(false);
-    onClose();
+    onClose?.();
   };
 
   const handleChange = (
@@ -131,9 +130,9 @@ const TestEditModal = (props: TestEditModalProps) => {
   };
 
   const handleClose = () => {
-    setErrors(null);
+    setErrors(undefined);
     setNewTest(initialNewTest);
-    onClose();
+    onClose?.();
   };
 
   const renderError = (attr: string) => {
@@ -167,7 +166,7 @@ const TestEditModal = (props: TestEditModalProps) => {
             placeholder="Snitch Referee Test"
             name="title"
             onChange={handleChange}
-            value={newTest.title}
+            value={newTest.title || ""}
           />
           {renderError("title")}
         </label>
@@ -305,7 +304,7 @@ const TestEditModal = (props: TestEditModalProps) => {
             onChange={handleToggleChange}
             name="recertification"
             label="Recertification Test?"
-            checked={newTest.recertification}
+            checked={newTest.recertification || false}
           />
         </div>
         <div className="w-full text-center">

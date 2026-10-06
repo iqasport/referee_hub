@@ -134,9 +134,11 @@ public static class DbServiceCollectionExtentions
 		services.AddScoped<ISaveSubmittedTestCommand, SaveSubmittedTestCommand>();
 		services.AddScoped<IProcessCertificationPaymentCommand, ProcessCertificationPaymentCommand>();
 		services.AddScoped<ICreateNgbStatsSnapshotCommand, CreateNgbStatsSnapshotCommand>();
+		services.AddScoped<IRefreshPublicTournamentSnapshotCommand, RefreshPublicTournamentSnapshotCommand>();
 		services.AddScoped<IImportTestQuestions, ImportTestQuestions>();
 		services.AddScoped<IUpdateNgbAdminRoleCommand, UpdateNgbAdminRoleCommand>();
 		services.AddScoped<IUpdateTeamManagerRoleCommand, UpdateTeamManagerRoleCommand>();
+		services.AddScoped<ICreateTeamInviteRequestCommand, CreateTeamInviteRequestCommand>();
 
 		services.AddScoped<IUserIdMigrationCommand, UserIdMigrationCommand>();
 

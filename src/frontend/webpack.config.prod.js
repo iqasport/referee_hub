@@ -5,6 +5,9 @@ const common = require('./webpack.config.common.js');
 module.exports = merge(common, {
   entry: './app/index.tsx',
   mode: 'production',
+  output: {
+    clean: true,
+  },
   plugins: [
     new Dotenv({
       systemvars: true,

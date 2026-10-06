@@ -20,6 +20,7 @@ public static class DependencyInjectionExtensions
 		services.AddScoped<ISendAccountEmail, SendAccountEmail>();
 		services.AddScoped<ISendTestFeedbackEmail, SendTestFeedbackEmail>();
 		services.AddScoped<ISendNgbExportEmail, SendNgbExportEmail>();
+		services.AddScoped<ISendTeamInviteEmail, SendTeamInviteEmail>();
 		services.AddScoped<ISendTournamentContactEmail, SendTournamentContactEmail>();
 		services.AddScoped<ISendTournamentInviteEmail, SendTournamentInviteEmail>();
 

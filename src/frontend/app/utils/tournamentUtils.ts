@@ -1,4 +1,8 @@
-import { TeamGroupAffiliation, TournamentType } from "../store/serviceApi";
+import {
+  NgbTeamViewModel,
+  TeamGroupAffiliation,
+  TournamentType,
+} from "../store/serviceApi";
 
 /**
  * Returns the set of TeamGroupAffiliation values that are eligible to
@@ -106,4 +110,91 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   }
 
   return fallback;
+}
+
+/** Shape of a team in the UI. */
+type Team = NgbTeamViewModel;
+
+/** Shape of an invite in the UI. */
+interface Invite {
+  participantId?: string;
+}
+
+/** Shape of a participant in the UI. */
+interface Participant {
+  teamId?: string;
+}
+
+/**
+ * Collects the set of team IDs that are unavailable for inviting
+ * (already have invites or are participants).
+ */
+export function getUnavailableTeamIds(
+  invites?: Invite[] | null,
+  participants?: Participant[] | null
+): Set<string> {
+  const ids = new Set<string>();
+
+  if (invites) {
+    invites.forEach((invite) => {
+      if (invite.participantId) {
+        ids.add(invite.participantId);
+      }
+    });
+  }
+
+  if (participants) {
+    participants.forEach((participant) => {
+      if (participant.teamId) {
+        ids.add(participant.teamId);
+      }
+    });
+  }
+
+  return ids;
+}
+
+/**
+ * Filters and searches a list of teams, applying all eligibility rules.
+ * Returns teams that:
+ * - Have a valid teamId
+ * - Are not unavailable (already invited/participating)
+ * - Are not inactive
+ * - Are eligible for the tournament type
+ * - Match the search filter (if provided)
+ */
+export function filterAndSearchTeams(
+  teams: Team[] | undefined,
+  unavailableTeamIds: Set<string>,
+  searchFilter: string,
+  tournamentType: TournamentType | undefined | null
+): Team[] {
+  if (!teams) return [];
+
+  return teams.filter((team: Team) => {
+    if (!team.teamId) return false;
+    if (unavailableTeamIds.has(team.teamId)) return false;
+    if (team.status === "inactive") return false;
+    if (!isTeamEligible(team.groupAffiliation, tournamentType)) return false;
+
+    if (searchFilter) {
+      const name = (team.name || "").toLowerCase();
+      return name.includes(searchFilter.toLowerCase());
+    }
+
+    return true;
+  });
+}
+
+/**
+ * Returns CSS styles for an invite status badge.
+ */
+export function getTeamStatusStyle(status?: string): { bg: string; color: string } {
+  if (status === "pending") {
+    return { bg: "#fef3c7", color: "#92400e" };
+  } else if (status === "approved") {
+    return { bg: "#d1fae5", color: "#065f46" };
+  } else {
+    return { bg: "#fee2e2", color: "#991b1b" };
+  }
 }

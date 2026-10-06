@@ -12,7 +12,7 @@ import WarningModal from "../../modals/WarningModal";
 import Table, { CellConfig } from "../Table/Table";
 
 import ActionDropdown from "./ActionDropdown";
-import { useNavigate } from "../../../utils/navigationUtils";
+import { useNavigate, useSearchParam } from "../../../utils/navigationUtils";
 import { TestViewModel, useGetAllTestsQuery, useGetLanguagesQuery, useSetTestActiveMutation } from "../../../store/serviceApi";
 
 const HEADER_CELLS = ["title", "level", "version", "language", "active", /*"last updated",*/ "actions"];
@@ -26,19 +26,19 @@ const TestsTable = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [activeTest, setActiveTest] = useState<string>(null);
 
-  const [versionFilter, setVersionFilter] = useState<string>("*");
-  const [langFilter, setLangFilter] = useState<string>("*");
- 
+  const [versionFilter, setVersionFilter] = useSearchParam<string>("version", { defaultValue: "*", deleteIfDefault: true, replaceHistory: true });
+  const [langFilter, setLangFilter] = useSearchParam<string>("language", { defaultValue: "*", deleteIfDefault: true, replaceHistory: true });
+
   const navigate = useNavigate();
 
   const { data: tests, isLoading } = useGetAllTestsQuery();
   const [updateTestActive] = useSetTestActiveMutation();
 
   const filteredTests = useMemo(() => tests?.filter(t => {
-    if (versionFilter !== "*" && t.awardedCertification.version !== versionFilter) {
+    if (versionFilter !== "*" && t.awardedCertification?.version !== versionFilter) {
       return false;
     }
-    if (langFilter !== "*" && !t.language.startsWith(langFilter)) {
+    if (langFilter !== "*" && !t.language?.startsWith(langFilter)) {
       return false;
     }
     return true;
@@ -149,19 +149,24 @@ const TestsTable = () => {
     }
   };
 
+  if (!filteredTests) {
+    return null;
+  }
+
   return (
     <>
-      <select onChange={(evt) => setVersionFilter(evt.target.value)}>
+      <select onChange={(evt) => setVersionFilter(evt.target.value)} value={versionFilter}>
         <option value="*">Any version</option>
         <option value="eighteen">{getVersion("eighteen")}</option>
         <option value="twenty">{getVersion("twenty")}</option>
         <option value="twentytwo">{getVersion("twentytwo")}</option>
         <option value="twentyfour">{getVersion("twentyfour")}</option>
       </select>
-      <select onChange={(evt) => setLangFilter(evt.target.value)}>
+      <select onChange={(evt) => setLangFilter(evt.target.value)} value={langFilter}>
         <option value="*">Any language</option>
         <option value="ca">Catalan</option>
         <option value="en">English</option>
+        <option value="nl">Dutch</option>
         <option value="de">German</option>
         <option value="it">Italian</option>
         <option value="fr">French</option>

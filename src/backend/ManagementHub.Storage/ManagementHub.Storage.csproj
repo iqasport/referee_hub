@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ManagementHub.Models\ManagementHub.Models.csproj" />
     <ProjectReference Include="..\ManagementHub.Processing\ManagementHub.Processing.csproj" />
+    <ProjectReference Include="..\ManagementHub.Serialization\ManagementHub.Serialization.csproj" />
   </ItemGroup>
 
 </Project>

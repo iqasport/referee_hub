@@ -1,9 +1,9 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState, forwardRef, useImperativeHandle, useMemo } from "react";
 import React from "react";
+import { useCurrentUser } from "../../../CurrentUserContext";
 import StatusBadge from "../../../components/StatusBadge";
 import {
-  useGetCurrentUserQuery,
   useGetManagedTeamsQuery,
   useGetNgbTeamsQuery,
   useCreateInviteMutation,
@@ -94,7 +94,7 @@ const TeamRegistrationFormSection: React.FC<TeamRegistrationFormSectionProps> = 
   <>
     {tournamentType !== "Fantasy" && (
       <p className="text-xs text-amber-700 font-medium">
-        Eligibility: {eligibilityLabel(tournamentType as TournamentType | undefined)}
+        Eligibility: {eligibilityLabel(tournamentType as Parameters<typeof eligibilityLabel>[0])}
       </p>
     )}
     <div>
@@ -158,7 +158,7 @@ function useRegisterInviteState(
     if (teamsWithExistingInvites.has(team.teamId)) return false;
     if (team.status === "inactive") return false;
     return isTeamEligible(
-      team.groupAffiliation as TeamGroupAffiliation | undefined,
+      team.groupAffiliation as Parameters<typeof isTeamEligible>[0],
       tournament?.type as TournamentType | undefined
     );
   }), [managedTeams, teamsWithExistingInvites, tournament?.type]);
@@ -187,7 +187,7 @@ function useRegisterInviteState(
 
 // ── Custom hook: collects teams the current user can register ─────────────────
 function useManagedTeamsForRegistration() {
-  const { data: currentUser } = useGetCurrentUserQuery();
+  const { currentUser } = useCurrentUser();
 
   const userNgbs: string[] = useMemo(() => {
     if (!currentUser?.roles) return [];
@@ -197,7 +197,7 @@ function useManagedTeamsForRegistration() {
       if (typeof r.ngb === "string" && r.ngb) ngbs.push(r.ngb);
       else if (Array.isArray(r.ngb)) ngbs.push(...r.ngb);
     });
-    return [...new Set(ngbs)];
+    return [...new Set(ngbs.filter((ngb) => ngb && ngb !== "ANY"))];
   }, [currentUser]);
 
   const isNgbAdmin = userNgbs.length > 0;
@@ -215,7 +215,7 @@ function useManagedTeamsForRegistration() {
     managedTeamsData?.forEach((team: ManagedTeamViewModel) => {
       if (team.teamId && !addedIds.has(team.teamId)) {
         addedIds.add(team.teamId);
-        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "", groupAffiliation: team.groupAffiliation });
+        teams.push({ teamId: team.teamId, teamName: team.teamName ?? `Team ${team.teamId}`, ngb: team.ngb ?? "", groupAffiliation: team.groupAffiliation, status: team.status });
       }
     });
     if (isNgbAdmin) {

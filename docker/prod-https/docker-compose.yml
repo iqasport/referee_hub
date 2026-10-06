@@ -73,7 +73,7 @@ services:
             - "tech@iqasport.org"
             - -v #verbose logging
             - "-d"
-            - "iqasport-hub.us-east-1.elasticbeanstalk.com"
+            - "iqasport-hub.eu-central-1.elasticbeanstalk.com"
 
 volumes:
     certs:

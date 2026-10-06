@@ -65,6 +65,60 @@ public class NotificationService : INotificationService
 			"Team",
 			cancellationToken: cancellationToken);
 
+	public Task<NotificationEntity> CreateTeamInviteNotificationForPlayerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.TeamApprovalNeeded,
+			"Team invite received",
+			$"You have been invited to join {teamName}.",
+			cancellationToken: cancellationToken);
+
+	public Task<NotificationEntity> CreateTeamInviteRequestNotificationForManagerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.TeamApprovalNeeded,
+			"Team join request pending",
+			$"A player requested to join {teamName}.",
+			teamId.ToString(),
+			"Team",
+			cancellationToken: cancellationToken);
+
+	public Task<NotificationEntity> CreateTeamInviteResponseNotificationForPlayerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		bool approved,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			approved ? NotificationType.InviteAccepted : NotificationType.InviteRejected,
+			approved ? "Join request approved" : "Join request declined",
+			$"Your request to join {teamName} was {(approved ? "approved" : "declined")}.",
+			cancellationToken: cancellationToken);
+
+	public Task<NotificationEntity> CreateTeamInviteResponseNotificationForManagerAsync(
+		UserIdentifier userId,
+		TeamIdentifier teamId,
+		string teamName,
+		bool approved,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			approved ? NotificationType.InviteAccepted : NotificationType.InviteRejected,
+			approved ? "Team invite accepted" : "Team invite declined",
+			$"Your invite for {teamName} was {(approved ? "accepted" : "declined")}.",
+			teamId.ToString(),
+			"Team",
+			cancellationToken: cancellationToken);
+
 	public Task<NotificationEntity> CreateTournamentManagerAssignmentNotificationAsync(
 		UserIdentifier userId,
 		TournamentIdentifier tournamentId,
@@ -113,6 +167,20 @@ public class NotificationService : INotificationService
 			"Team",
 			cancellationToken);
 
+	public Task<NotificationEntity> CreateVolunteerRegistrationRequestNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.TeamTournamentJoinRequest,
+			"New volunteer registration",
+			$"A referee submitted a volunteer registration for {tournamentName}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: cancellationToken);
+
 	public Task<NotificationEntity> CreateRequestResponseNotificationAsync(
 		UserIdentifier userId,
 		TournamentIdentifier tournamentId,
@@ -130,6 +198,21 @@ public class NotificationService : INotificationService
 			teamId.ToString(),
 			"Team",
 			cancellationToken);
+
+	public Task<NotificationEntity> CreateVolunteerRequestResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			approved ? NotificationType.RequestAccepted : NotificationType.RequestRejected,
+			approved ? "Volunteer registration approved" : "Volunteer registration rejected",
+			$"Your volunteer registration for {tournamentName} was {(approved ? "approved" : "rejected")}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: cancellationToken);
 
 	public Task<NotificationEntity> CreateInviteResponseNotificationAsync(
 		UserIdentifier userId,

@@ -37,8 +37,9 @@ const StatBarChart = (props: StatBarChartProps) => {
         // https://github.com/recharts/recharts/issues/1265#issuecomment-822297208
         // hiding undefined entries
         chartData.map((entry, index) => {
+          const value = entry[bar.dataKey as keyof ChartData];
           return <Cell key={`cell-${index}`}
-            style={{display: (entry[bar.dataKey] === 0 || entry[bar.dataKey] > 0) ? '' : 'none'}}/>
+            style={{display: typeof value === "number" ? "" : "none"}}/>
         })
       }
       <LabelList dataKey="type" position="centerTop" angle={270} />

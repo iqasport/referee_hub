@@ -6,8 +6,9 @@
     <link rel="icon" type="image/png" href="/images/favicon.ico">
     <link rel="stylesheet" href="/management_hub.css">
     <link rel="stylesheet" href="/management_hub_app.css">
+    <% const baseUrl = (process.env.BASE_URL || '').replace(/\/+$/, ''); %>
     <% htmlWebpackPlugin.files.js.forEach(function(file) { %>
-      <script defer src="<%= process.env.BASE_URL %>/<%= file %>"></script>
+      <script defer src="<%= baseUrl %>/<%= file %>"></script>
     <% }) %>
   </head>
   <body>

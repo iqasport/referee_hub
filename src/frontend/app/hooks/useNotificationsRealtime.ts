@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 type RealtimeHandlers = {
@@ -6,6 +6,12 @@ type RealtimeHandlers = {
 };
 
 export const useNotificationsRealtime = ({ onRefresh }: RealtimeHandlers) => {
+  const onRefreshRef = useRef(onRefresh);
+
+  useEffect(() => {
+    onRefreshRef.current = onRefresh;
+  }, [onRefresh]);
+
   useEffect(() => {
     let active = true;
     let connection: HubConnection | null = null;
@@ -19,7 +25,7 @@ export const useNotificationsRealtime = ({ onRefresh }: RealtimeHandlers) => {
 
       const refresh = () => {
         if (active) {
-          onRefresh();
+          onRefreshRef.current();
         }
       };
 
@@ -44,5 +50,5 @@ export const useNotificationsRealtime = ({ onRefresh }: RealtimeHandlers) => {
         connection.stop();
       }
     };
-  }, [onRefresh]);
+  }, []);
 };

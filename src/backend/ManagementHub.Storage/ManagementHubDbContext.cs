@@ -36,6 +36,7 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	public virtual DbSet<PolicyManagerPortabilityRequest> PolicyManagerPortabilityRequests { get; set; } = null!;
 	public virtual DbSet<PolicyManagerTerm> PolicyManagerTerms { get; set; } = null!;
 	public virtual DbSet<PolicyManagerUserTerm> PolicyManagerUserTerms { get; set; } = null!;
+	public virtual DbSet<PublicTournamentSnapshot> PublicTournamentSnapshots { get; set; } = null!;
 	public virtual DbSet<Question> Questions { get; set; } = null!;
 	public virtual DbSet<RefereeAnswer> RefereeAnswers { get; set; } = null!;
 	public virtual DbSet<RefereeCertification> RefereeCertifications { get; set; } = null!;
@@ -45,6 +46,8 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 	public virtual DbSet<SchemaMigration> SchemaMigrations { get; set; } = null!;
 	public virtual DbSet<SocialAccount> SocialAccounts { get; set; } = null!;
 	public virtual DbSet<Team> Teams { get; set; } = null!;
+	public virtual DbSet<TeamInvitation> TeamInvitations { get; set; } = null!;
+	public virtual DbSet<TeamPlayerActivity> TeamPlayerActivities { get; set; } = null!;
 	public virtual DbSet<TeamManager> TeamManagers { get; set; } = null!;
 	public virtual DbSet<TeamStatusChangeset> TeamStatusChangesets { get; set; } = null!;
 	public virtual DbSet<Test> Tests { get; set; } = null!;
@@ -526,6 +529,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasColumnName("snitch_referees_count")
 				.HasDefaultValueSql("0");
 
+			entity.Property(e => e.FlagRunnerRefereesCount)
+				.HasColumnName("flag_runner_referees_count")
+				.HasDefaultValueSql("0");
+
 			entity.Property(e => e.Start)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("start");
@@ -729,6 +736,29 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.WithMany(p => p.PolicyManagerUserTerms)
 				.HasForeignKey(d => d.UserId)
 				.HasConstraintName("policy_manager_user_terms__user_fkey");
+		});
+
+		modelBuilder.Entity<PublicTournamentSnapshot>(entity =>
+		{
+			entity.ToTable("public_tournament_snapshots");
+
+			entity.HasKey(e => e.Key);
+
+			entity.Property(e => e.Key)
+				.HasColumnType("character varying")
+				.HasColumnName("key");
+
+			entity.Property(e => e.SnapshotJson)
+				.HasColumnType("jsonb")
+				.HasColumnName("snapshot_json");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.Property(e => e.UpdatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("updated_at");
 		});
 
 		modelBuilder.Entity<Question>(entity =>
@@ -1082,6 +1112,10 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.ContactEmail)
 				.HasColumnType("character varying")
 				.HasColumnName("contact_email");
+
+			entity.Property(e => e.AutoApprovePlayerRequests)
+				.HasColumnName("auto_approve_player_requests")
+				.HasDefaultValue(false);
 
 			entity.HasOne(d => d.NationalGoverningBody)
 				.WithMany(p => p.Teams)
@@ -1540,6 +1574,9 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.Property(e => e.IsRegistrationOpen)
 				.HasColumnName("is_registration_open");
 
+			entity.Property(e => e.IsVolunteerRegistrationOpen)
+				.HasColumnName("is_volunteer_registration_open");
+
 			entity.Property(e => e.CreatedAt)
 				.HasColumnType("timestamp with time zone")
 				.HasColumnName("created_at");
@@ -1593,6 +1630,99 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 				.HasForeignKey(d => d.AddedByUserId)
 				.OnDelete(DeleteBehavior.Restrict)
 				.HasConstraintName("fk_tournament_managers_added_by_user");
+		});
+
+		modelBuilder.Entity<TeamInvitation>(entity =>
+		{
+			entity.ToTable("team_invitations");
+
+			entity.HasIndex(e => new { e.TeamId, e.Email }, "index_team_invitations_on_team_id_and_email")
+				.IsUnique()
+				.HasFilter("revoked_at IS NULL AND accepted_at IS NULL AND declined_at IS NULL");
+
+			entity.Property(e => e.Id).HasColumnName("id");
+
+			entity.Property(e => e.TeamId).HasColumnName("team_id");
+
+			entity.Property(e => e.Email)
+				.HasColumnType("character varying")
+				.HasColumnName("email");
+
+			entity.Property(e => e.InitiatorUserId).HasColumnName("initiator_user_id");
+
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.Property(e => e.RevokedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("revoked_at");
+
+			entity.Property(e => e.AcceptedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("accepted_at");
+
+			entity.Property(e => e.DeclinedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("declined_at");
+
+			entity.Property(e => e.RespondedByUserId).HasColumnName("responded_by_user_id");
+
+			entity.HasOne(d => d.Team)
+				.WithMany(p => p.TeamInvitations)
+				.HasForeignKey(d => d.TeamId)
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("fk_team_invitations_team");
+
+			entity.HasOne(d => d.Initiator)
+				.WithMany()
+				.HasForeignKey(d => d.InitiatorUserId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("fk_team_invitations_initiator");
+
+			entity.HasOne(d => d.RespondedByUser)
+				.WithMany()
+				.HasForeignKey(d => d.RespondedByUserId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("fk_team_invitations_responded_by_user");
+		});
+
+		modelBuilder.Entity<TeamPlayerActivity>(entity =>
+		{
+			entity.ToTable("team_player_activities");
+
+			entity.HasIndex(e => new { e.TeamId, e.CreatedAt }, "index_team_player_activities_on_team_id_and_created_at");
+			entity.HasIndex(e => new { e.UserId, e.CreatedAt }, "index_team_player_activities_on_user_id_and_created_at");
+
+			entity.Property(e => e.Id).HasColumnName("id");
+			entity.Property(e => e.TeamId).HasColumnName("team_id");
+			entity.Property(e => e.UserId).HasColumnName("user_id");
+			entity.Property(e => e.InitiatorUserId).HasColumnName("initiator_user_id");
+			entity.Property(e => e.ActivityType).HasColumnName("activity_type");
+			entity.Property(e => e.Email)
+				.HasColumnType("character varying")
+				.HasColumnName("email");
+			entity.Property(e => e.CreatedAt)
+				.HasColumnType("timestamp with time zone")
+				.HasColumnName("created_at");
+
+			entity.HasOne(d => d.Team)
+				.WithMany(p => p.TeamPlayerActivities)
+				.HasForeignKey(d => d.TeamId)
+				.OnDelete(DeleteBehavior.Cascade)
+				.HasConstraintName("fk_team_player_activities_team");
+
+			entity.HasOne(d => d.User)
+				.WithMany()
+				.HasForeignKey(d => d.UserId)
+				.OnDelete(DeleteBehavior.SetNull)
+				.HasConstraintName("fk_team_player_activities_user");
+
+			entity.HasOne(d => d.Initiator)
+				.WithMany()
+				.HasForeignKey(d => d.InitiatorUserId)
+				.OnDelete(DeleteBehavior.Restrict)
+				.HasConstraintName("fk_team_player_activities_initiator");
 		});
 
 		modelBuilder.Entity<TournamentInvite>(entity =>
