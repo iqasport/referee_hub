@@ -126,16 +126,6 @@ public class TournamentsController : ControllerBase
 
 		return viewModels.AsFiltered();
 	}
-			IsPrivate = t.IsPrivate,
-			IsRegistrationOpen = t.IsRegistrationOpen,
-			BannerImageUrl = bannerUrls.TryGetValue(t.Id, out var uri) ? uri?.ToString() : null,
-			IsCurrentUserInvolved = t.IsCurrentUserInvolved
-		}).ToList();
-
-		// AsFiltered wraps the list in a Filtered<T> container once, allowing the MVC filtering
-		// system to apply pagination metadata. This ensures correct pagination behavior.
-		return viewModels.AsFiltered();
-	}
 
 	/// <summary>
 	/// Get tournament details.
@@ -507,7 +497,6 @@ public class TournamentsController : ControllerBase
 			return validationError;
 		}
 
-<<<<<<< HEAD
 		var (authorizationError, isTournamentManager, isTeamManager) =
 			await this.GetInviteCreationAuthorizationAsync(tournamentId, teamId, userContext.UserId);
 		if (authorizationError != null)
@@ -642,15 +631,6 @@ public class TournamentsController : ControllerBase
 		if (!userContext.UserId.Equals(refereeId))
 		{
 			return this.Forbid();
-=======
-		var (isTournamentManager, isTeamManager, authorizationError) = await this.GetInviteAuthorizationAsync(
-			tournamentId,
-			teamId,
-			userContext.UserId);
-		if (authorizationError != null)
-		{
-			return authorizationError;
->>>>>>> 2a04b215 (refactor tournament invite flow to reduce complexity)
 		}
 
 		var existingInvite = await this.tournamentContextProvider
@@ -669,97 +649,16 @@ public class TournamentsController : ControllerBase
 
 		if (refereeInvite.TournamentManagerApproval == ApprovalStatus.Pending)
 		{
-<<<<<<< HEAD
 			await this.NotifyTournamentManagersForVolunteerRegistrationAsync(
 				tournamentId,
 				tournament.Name,
 				userContext.UserId);
-=======
-			await this.HandlePendingTeamInviteAsync(
-				tournamentId,
-				teamId,
-				tournament.Name,
-				userContext.UserId,
-				isTournamentManager,
-				isTeamManager);
->>>>>>> 2a04b215 (refactor tournament invite flow to reduce complexity)
 		}
 
 		return this.CreateInviteCreatedResponse(tournamentId, refereeInvite);
 	}
 
-<<<<<<< HEAD
 	private async Task NotifyTournamentManagersForVolunteerRegistrationAsync(
-=======
-	private async Task<(bool IsTournamentManager, bool IsTeamManager, ActionResult? Error)> GetInviteAuthorizationAsync(
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		UserIdentifier userId)
-	{
-		var actingUserDbId = await this.dbContext.Users
-			.WithIdentifier(userId)
-			.Select(u => (long?)u.Id)
-			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
-
-		if (!actingUserDbId.HasValue)
-		{
-			return (false, false, this.Forbid());
-		}
-
-		var isTournamentManager = await this.dbContext.TournamentManagers
-			.AnyAsync(
-				tm => tm.Tournament.UniqueId == tournamentId.ToString() && tm.UserId == actingUserDbId.Value,
-				this.HttpContext.RequestAborted);
-
-		var isTeamManager = await this.dbContext.TeamManagers
-			.AnyAsync(
-				tm => tm.TeamId == teamId.Id && tm.UserId == actingUserDbId.Value,
-				this.HttpContext.RequestAborted);
-
-		if (!isTournamentManager && !isTeamManager)
-		{
-			return (false, false, this.Forbid());
-		}
-
-		return (isTournamentManager, isTeamManager, null);
-	}
-
-	private async Task HandlePendingTeamInviteAsync(
-		TournamentIdentifier tournamentId,
-		TeamIdentifier teamId,
-		string tournamentName,
-		UserIdentifier actingUserId,
-		bool isTournamentManager,
-		bool isTeamManager)
-	{
-		if (isTeamManager && !isTournamentManager)
-		{
-			await this.NotifyTournamentManagersForTeamJoinRequestAsync(
-				tournamentId,
-				teamId,
-				tournamentName,
-				actingUserId);
-		}
-
-		try
-		{
-			var hostUri = this.GetHostBaseUri();
-			await this.sendTournamentInviteEmail.SendTournamentInviteEmailAsync(
-				tournamentId,
-				teamId,
-				hostUri,
-				this.HttpContext.RequestAborted);
-		}
-		catch (Exception ex)
-		{
-			// Log but don't fail the invite creation if email fails
-			// The invite is already created successfully
-			this.logger.LogError(ex, "Failed to send tournament invite email for tournament {TournamentId} to team {TeamId}", tournamentId, teamId);
-		}
-	}
-
-	private async Task NotifyTournamentManagersForTeamJoinRequestAsync(
->>>>>>> 2a04b215 (refactor tournament invite flow to reduce complexity)
 		TournamentIdentifier tournamentId,
 		string tournamentName,
 		UserIdentifier actingUserId)
@@ -1583,9 +1482,3 @@ public class TournamentsController : ControllerBase
 		};
 	}
 }
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> f0a42620 (Encrypt referee profile sensitive fields)
