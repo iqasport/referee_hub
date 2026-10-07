@@ -47,9 +47,8 @@ jest.mock("../../store/serviceApi", () => ({
     reducer: () => ({}),
     middleware: () => (next: (value: unknown) => unknown) => (value: unknown) => next(value),
   },
-  useGetRefereeQuery: () => ({ currentData: undefined, error: undefined }),
-  useGetCurrentRefereeQuery: () => ({
-    currentData: {
+  useGetRefereeQuery: (() => {
+    const referee = {
       userId: "U_jg7fm2z5ykxevmyrntpdo56g74",
       name: "Jimmy Referee",
       primaryNgb: "USA",
@@ -59,8 +58,11 @@ jest.mock("../../store/serviceApi", () => ({
       nationalTeam: null,
       acquiredCertifications: [],
       attributes: {},
-    },
-    error: undefined,
+    };
+    return () => ({ currentData: referee, error: undefined });
+  })(),
+  useGetCurrentUserQuery: () => ({
+    data: { roles: [{ roleType: "Referee" }] },
   }),
   useGetUserDataQuery: () => ({ data: undefined }),
   useGetCurrentUserDataQuery: () => ({ data: {} }),
@@ -101,14 +103,14 @@ describe("RefereeProfile", () => {
     });
   });
 
-  it("renders Upcoming Events above Team Transfer History on own profile", () => {
+  it("renders Upcoming Events before Certification History on own profile", () => {
     render(<RefereeProfile />);
 
     const upcomingEventsHeading = screen.getByRole("heading", { name: "Upcoming Events" });
-    const teamTransferHistoryHeading = screen.getByRole("heading", { name: "Team Transfer History" });
+    const certificationHistoryHeading = screen.getByRole("heading", { name: "Certification History" });
 
     expect(
-      upcomingEventsHeading.compareDocumentPosition(teamTransferHistoryHeading)
+      upcomingEventsHeading.compareDocumentPosition(certificationHistoryHeading)
       & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
