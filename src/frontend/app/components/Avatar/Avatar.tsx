@@ -91,11 +91,17 @@ const Avatar = (props: AvatarProps) => {
     href: "/tournaments",
     onClick: handleTournamentsClick,
   };
+  const admin: ItemConfig = {
+    content: "Admin",
+    href: "/admin",
+    onClick: () => navigate("/admin"),
+  };
 
   const items: ItemConfig[] = [];
 
   if (roles.includes("Referee")) items.push(refereeProfile);
   if (roles.includes("NgbAdmin") && ownedNgbId) items.push(ngbProfile);
+  if (roles.includes("IqaAdmin") || roles.includes("TestAdmin")) items.push(admin);
   //if (roles.includes("NgbAdmin") || roles.includes("IqaAdmin")) items.push(invite); // TODO: unblock once implemented
 
   // Add managed teams section

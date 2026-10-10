@@ -14,4 +14,7 @@ public enum UserAccessType
 
 	[EnumMember(Value = "iqa_admin")]
 	IqaAdmin = 2,
+
+	[EnumMember(Value = "test_admin")]
+	TestAdmin = 3,
 }
