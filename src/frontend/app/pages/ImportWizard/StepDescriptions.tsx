@@ -20,6 +20,7 @@ interface StepDescriptionProps {
 const StepDescriptions = (props: StepDescriptionProps) => {
   const { scope, currentStep } = props;
   const isStepActive = (stepNum: number): boolean => currentStep === stepNum;
+  const isTestImport = scope === "test";
 
   return (
     <div className="relative my-12 mx-auto">
@@ -48,30 +49,47 @@ const StepDescriptions = (props: StepDescriptionProps) => {
             </a>
           </p>
         </div>
-        <div className={classnames("step-container", { ["step-active"]: isStepActive(2) })}>
-          <h3 className={classnames("step-number", { ["step-active"]: isStepActive(2) })}>
-            Step 2
-          </h3>
-          <div className={classnames("step-circle", { ["circle-active"]: isStepActive(2) })}>
-            <FontAwesomeIcon icon={faRoute} />
+        {isTestImport ? (
+          <div className={classnames("step-container", { ["step-active"]: isStepActive(2) })}>
+            <h3 className={classnames("step-number", { ["step-active"]: isStepActive(2) })}>
+              Step 2
+            </h3>
+            <div className={classnames("step-circle", { ["circle-active"]: isStepActive(2) })}>
+              <FontAwesomeIcon icon={faEnvelopeOpenText} />
+            </div>
+            <p>
+              <span className="font-bold">Review</span>
+              {` the results of your import`}
+            </p>
           </div>
-          <p>
-            <span className="font-bold">Map</span>
-            {` your custom headers to the required headers`}
-          </p>
-        </div>
-        <div className={classnames("step-container", { ["step-active"]: isStepActive(3) })}>
-          <h3 className={classnames("step-number", { ["step-active"]: isStepActive(3) })}>
-            Step 3
-          </h3>
-          <div className={classnames("step-circle", { ["circle-active"]: isStepActive(3) })}>
-            <FontAwesomeIcon icon={faEnvelopeOpenText} />
-          </div>
-          <p>
-            <span className="font-bold">Review</span>
-            {` the results of your import`}
-          </p>
-        </div>
+        ) : (
+          <>
+            <div className={classnames("step-container", { ["step-active"]: isStepActive(2) })}>
+              <h3 className={classnames("step-number", { ["step-active"]: isStepActive(2) })}>
+                Step 2
+              </h3>
+              <div className={classnames("step-circle", { ["circle-active"]: isStepActive(2) })}>
+                <FontAwesomeIcon icon={faRoute} />
+              </div>
+              <p>
+                <span className="font-bold">Map</span>
+                {` your custom headers to the required headers`}
+              </p>
+            </div>
+            <div className={classnames("step-container", { ["step-active"]: isStepActive(3) })}>
+              <h3 className={classnames("step-number", { ["step-active"]: isStepActive(3) })}>
+                Step 3
+              </h3>
+              <div className={classnames("step-circle", { ["circle-active"]: isStepActive(3) })}>
+                <FontAwesomeIcon icon={faEnvelopeOpenText} />
+              </div>
+              <p>
+                <span className="font-bold">Review</span>
+                {` the results of your import`}
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

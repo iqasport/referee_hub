@@ -48,6 +48,16 @@ public static class AuthorizationPolicies
 			policy.AddRequirements(new UserRoleAuthorizationRequirement<IqaAdminRole>());
 		});
 
+	public const string TestAdminPolicy = nameof(TestAdminPolicy);
+
+	public static void AddTestAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(TestAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new CompoundOrAuthorizationRequirement(
+				new UserRoleAuthorizationRequirement<IqaAdminRole>(),
+				new UserRoleAuthorizationRequirement<TestAdminRole>()));
+		});
+
 	public const string TournamentManagerPolicy = nameof(TournamentManagerPolicy);
 
 	public static void AddTournamentManagerPolicy(this AuthorizationOptions options) =>

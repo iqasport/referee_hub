@@ -187,6 +187,11 @@ public class DbUserContextFactory
 						new TestAdminRole(),
 					};
 				}
+			case UserAccessType.TestAdmin:
+				return new IUserRole[]
+				{
+					new TestAdminRole(),
+				};
 		}
 
 		return Array.Empty<IUserRole>();

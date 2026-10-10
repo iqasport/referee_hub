@@ -119,6 +119,7 @@ public partial class Program
 			options.AddTechAdminPolicy();
 			options.AddNgbAdminPolicy();
 			options.AddIqaAdminPolicy();
+			options.AddTestAdminPolicy();
 			options.AddTournamentManagerPolicy();
 			options.AddTeamManagerPolicy();
 			options.AddTeamManagerOrNgbAdminPolicy();

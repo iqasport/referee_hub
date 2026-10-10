@@ -264,6 +264,7 @@ When running in development mode, these test users are available (all passwords 
 - **Referee**: `referee@example.com`
 - **NGB Admin**: `ngb_admin@example.com`
 - **IQA Admin**: `iqa_admin@example.com`
+- **Translator (Test Admin)**: `translator@example.com`
 - **Empty Name Referee**: `empty@example.com`
 
 ### Configuration Options
@@ -354,6 +355,13 @@ cd src/backend
 # Run all unit tests
 dotnet test
 ```
+
+Manual smoke-check for the test-admin flow:
+
+1. Start the app with seeded development data.
+2. Sign in as `translator@example.com` with password `password`.
+3. Confirm the avatar menu shows `Admin`, the `/admin` page opens, and only the `Tests` tab is visible.
+4. Verify the translator can view tests and open the test-management flows without seeing the broader IQA admin tabs.
 
 ### Linting
 

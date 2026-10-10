@@ -53,6 +53,7 @@ const AppContent = () => {
   const getRedirect = () => {
     if (!currentUser) return undefined;
     if (roles.includes("IqaAdmin")) return "/admin";
+    if (roles.includes("TestAdmin")) return "/admin";
     if (roles.includes("NgbAdmin") && ownedNgbIds?.[0]) return `/national_governing_bodies/${ownedNgbIds[0]}`;
     if (roles.includes("Referee")) return `/referees/${currentUser.userId}`;
 

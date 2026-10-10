@@ -393,6 +393,15 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			LastName = "IqaAdmin",
 		};
 
+		var testAdmin = new User
+		{
+			CreatedAt = DateTime.UtcNow,
+			Email = "translator@example.com",
+			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
+			FirstName = "Taylor",
+			LastName = "Translator",
+		};
+
 		var refereeWithEmptyName = new User
 		{
 			CreatedAt = DateTime.UtcNow,
@@ -439,12 +448,13 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			LastName = "TestReferee",
 		};
 
-		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike, recertTestReferee);
+		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, testAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike, recertTestReferee);
 
 		dbContext.Roles.AddRange(
 			new Role { AccessType = UserAccessType.Referee, User = referee, CreatedAt = DateTime.UtcNow },
 			new Role { AccessType = UserAccessType.NgbAdmin, User = ngbAdmin, CreatedAt = DateTime.UtcNow },
 			new Role { AccessType = UserAccessType.IqaAdmin, User = iqaAdmin, CreatedAt = DateTime.UtcNow },
+			new Role { AccessType = UserAccessType.TestAdmin, User = testAdmin, CreatedAt = DateTime.UtcNow },
 			new Role { AccessType = UserAccessType.Referee, User = refereeWithEmptyName, CreatedAt = DateTime.UtcNow },
 			new Role { AccessType = UserAccessType.Referee, User = teamManager, CreatedAt = DateTime.UtcNow },
 			new Role { AccessType = UserAccessType.Referee, User = playerSarah, CreatedAt = DateTime.UtcNow },
@@ -452,7 +462,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			new Role { AccessType = UserAccessType.Referee, User = recertTestReferee, CreatedAt = DateTime.UtcNow }
 		);
 
-		return new SeedUsers(referee, ngbAdmin, iqaAdmin, teamManager, playerSarah, coachMike, recertTestReferee);
+		return new SeedUsers(referee, ngbAdmin, iqaAdmin, testAdmin, teamManager, playerSarah, coachMike, recertTestReferee);
 	}
 
 	private void SeedUserAssociations(ManagementHubDbContext dbContext, NationalGoverningBody[] ngbs, List<Team> teams, SeedUsers users)
@@ -915,6 +925,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 		User Referee,
 		User NgbAdmin,
 		User IqaAdmin,
+		User TestAdmin,
 		User TeamManager,
 		User PlayerSarah,
 		User CoachMike,
