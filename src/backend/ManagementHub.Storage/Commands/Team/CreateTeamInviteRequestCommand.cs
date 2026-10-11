@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Data;
+using ManagementHub.Models.Domain.Ngb;
 using ManagementHub.Models.Domain.Team;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
+using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManagementHub.Storage.Commands.Team;
@@ -21,12 +26,25 @@ public class CreateTeamInviteRequestCommand : ICreateTeamInviteRequestCommand
 	public async Task<ICreateTeamInviteRequestCommand.CreateResult> CreateTeamInviteRequestAsync(
 		TeamIdentifier teamId,
 		string normalizedEmail,
-		long currentUserDbId,
+		UserIdentifier userId,
+		RefereeTeamAssociationType requestedAssociationType,
 		CancellationToken cancellationToken)
 	{
+		var currentUserDbId = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(user => user.Id)
+			.SingleAsync(cancellationToken);
+
 		var teamSettings = await this.dbContext.Teams
 			.Where(team => team.Id == teamId.Id)
-			.Select(team => new { team.Id, team.Name, team.AutoApprovePlayerRequests })
+			.Select(team => new
+			{
+				team.Id,
+				team.Name,
+				team.AutoApprovePlayerRequests,
+				team.NationalGoverningBodyId,
+				team.GroupAffiliation,
+			})
 			.FirstOrDefaultAsync(cancellationToken);
 
 		if (teamSettings == null)
@@ -51,6 +69,24 @@ public class CreateTeamInviteRequestCommand : ICreateTeamInviteRequestCommand
 				ICreateTeamInviteRequestCommand.CreateResultCode.AlreadyPending);
 		}
 
+		// Determine origin team: current membership OR most recent PlayerRemoved activity.
+		var originTeamId = await this.ResolveOriginTeamIdAsync(currentUserDbId, cancellationToken);
+
+		// Determine if internal transfer (both teams share the same NGB).
+		bool? isInternalTransfer = null;
+		long? originNgbId = null;
+		if (originTeamId.HasValue)
+		{
+			originNgbId = await this.dbContext.Teams
+				.Where(t => t.Id == originTeamId.Value)
+				.Select(t => (long?)t.NationalGoverningBodyId)
+				.FirstOrDefaultAsync(cancellationToken);
+
+			isInternalTransfer = originNgbId.HasValue
+				&& teamSettings.NationalGoverningBodyId.HasValue
+				&& originNgbId.Value == teamSettings.NationalGoverningBodyId.Value;
+		}
+
 		var requestedAt = DateTime.UtcNow;
 		var invitation = new ManagementHub.Models.Data.TeamInvitation
 		{
@@ -58,6 +94,8 @@ public class CreateTeamInviteRequestCommand : ICreateTeamInviteRequestCommand
 			Email = normalizedEmail,
 			InitiatorUserId = currentUserDbId,
 			CreatedAt = requestedAt,
+			OriginTeamId = originTeamId,
+			IsInternalTransfer = isInternalTransfer,
 		};
 		this.dbContext.TeamInvitations.Add(invitation);
 
@@ -70,6 +108,24 @@ public class CreateTeamInviteRequestCommand : ICreateTeamInviteRequestCommand
 			ActivityType = TeamPlayerActivityType.InviteCreated,
 			CreatedAt = requestedAt,
 		});
+
+		// NGB transfer approvals apply only to playing-team transfer requests and
+		// not to destination national teams.
+		var requiresNgbTransferApproval =
+			requestedAssociationType == RefereeTeamAssociationType.Player
+			&& teamSettings.GroupAffiliation != TeamGroupAffiliation.National;
+		IReadOnlyCollection<NgbIdentifier> pendingNgbApprovals = [];
+
+		if (requiresNgbTransferApproval && originTeamId.HasValue)
+		{
+			pendingNgbApprovals = await this.CreateNgbTransferApprovalsAsync(
+				invitation,
+				originNgbId,
+				teamSettings.NationalGoverningBodyId,
+				isInternalTransfer == true,
+				requestedAt,
+				cancellationToken);
+		}
 
 		if (teamSettings.AutoApprovePlayerRequests)
 		{
@@ -131,6 +187,98 @@ public class CreateTeamInviteRequestCommand : ICreateTeamInviteRequestCommand
 
 		return new ICreateTeamInviteRequestCommand.CreateResult(
 			ICreateTeamInviteRequestCommand.CreateResultCode.RequestCreated,
-			teamSettings.Name);
+			teamSettings.Name,
+			new TeamInvitationIdentifier(invitation.Id),
+			pendingNgbApprovals);
+	}
+
+	/// <summary>
+	/// Returns the origin team ID for a player:
+	/// 1. Their current player membership (if any).
+	/// 2. Their most recent PlayerRemoved activity (if they were removed but have no current team).
+	/// Returns null for players who have never been on a team.
+	/// </summary>
+	private async Task<long?> ResolveOriginTeamIdAsync(long userId, CancellationToken cancellationToken)
+	{
+		var currentTeamId = await this.dbContext.RefereeTeams
+			.Where(rt => rt.RefereeId == userId && rt.AssociationType == RefereeTeamAssociationType.Player)
+			.Select(rt => rt.TeamId)
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (currentTeamId.HasValue)
+		{
+			return currentTeamId;
+		}
+
+		// Player has no current team — look up their last known team from activity history.
+		return await this.dbContext.TeamPlayerActivities
+			.Where(a => a.UserId == userId && a.ActivityType == TeamPlayerActivityType.PlayerRemoved)
+			.OrderByDescending(a => a.CreatedAt)
+			.Select(a => (long?)a.TeamId)
+			.FirstOrDefaultAsync(cancellationToken);
+	}
+
+	/// <summary>
+	/// Creates NgbTransferApproval records for the NGBs involved in the transfer.
+	/// Auto-approves internal transfers when the NGB has that setting enabled.
+	/// </summary>
+	private async Task<IReadOnlyCollection<NgbIdentifier>> CreateNgbTransferApprovalsAsync(
+		ManagementHub.Models.Data.TeamInvitation invitation,
+		long? originNgbId,
+		long? destinationNgbId,
+		bool isInternalTransfer,
+		DateTime createdAt,
+		CancellationToken cancellationToken)
+	{
+		// Load NGB auto-approve settings in a single query.
+		var ngbIds = new[] { originNgbId, destinationNgbId }
+			.Where(id => id.HasValue)
+			.Select(id => id!.Value)
+			.Distinct()
+			.ToArray();
+
+		var ngbSettings = await this.dbContext.NationalGoverningBodies
+			.Where(ngb => ngbIds.Contains(ngb.Id))
+			.Select(ngb => new { ngb.Id, ngb.CountryCode, ngb.AutoApproveInternalTransfers })
+			.ToDictionaryAsync(ngb => ngb.Id, cancellationToken);
+		var pendingNgbApprovals = new List<NgbIdentifier>();
+
+		// Create an approval record for each NGB involved.
+		foreach (var (ngbId, isOrigin) in new[] { (originNgbId, true), (destinationNgbId, false) })
+		{
+			if (!ngbId.HasValue)
+			{
+				continue;
+			}
+
+			// For international transfers the destination and origin NGBs differ — both need records.
+			// For internal transfers there is only one NGB but we still create two records so the
+			// query stays uniform; duplicate is prevented by the unique index on (invitation, ngb).
+			// Skip the duplicate for internal transfers.
+			if (isInternalTransfer && !isOrigin)
+			{
+				continue;
+			}
+
+			var autoApprove = isInternalTransfer
+				&& ngbSettings.TryGetValue(ngbId.Value, out var settings)
+				&& settings.AutoApproveInternalTransfers;
+
+			this.dbContext.NgbTransferApprovals.Add(new NgbTransferApproval
+			{
+				TeamInvitation = invitation,
+				NgbId = ngbId.Value,
+				IsOriginNgb = isOrigin,
+				CreatedAt = createdAt,
+				ApprovedAt = autoApprove ? createdAt : null,
+			});
+
+			if (!autoApprove && ngbSettings.TryGetValue(ngbId.Value, out settings))
+			{
+				pendingNgbApprovals.Add(new NgbIdentifier(settings.CountryCode));
+			}
+		}
+
+		return pendingNgbApprovals;
 	}
 }
