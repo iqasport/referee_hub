@@ -6,6 +6,7 @@ import { CurrentUserProvider, useCurrentUser } from "./CurrentUserContext";
 import Avatar from "./components/Avatar";
 import NotificationCenter from "./components/NotificationCenter/NotificationCenter";
 import Loader from "./components/Loader";
+import { getDefaultRedirect } from "./routeUtils";
 
 const PUBLIC_ROUTE_PATTERNS = [/^\/privacy\/?$/, /^\/tournaments\/?$/, /^\/tournaments\/[^/]+\/?$/];
 
@@ -50,15 +51,6 @@ const AppContent = () => {
 
   const shouldShowSignInButton = isPublicRoute && !isLoading && !currentUser;
 
-  const getRedirect = () => {
-    if (!currentUser) return undefined;
-    if (roles.includes("IqaAdmin")) return "/admin";
-    if (roles.includes("NgbAdmin") && ownedNgbIds?.[0]) return `/national_governing_bodies/${ownedNgbIds[0]}`;
-    if (roles.includes("Referee")) return `/referees/${currentUser.userId}`;
-
-    return undefined;
-  };
-
   useEffect(() => {
     const status = getErrorStatus(error);
     const shouldRedirectToSignIn = status === 401 || status === 403;
@@ -70,7 +62,7 @@ const AppContent = () => {
 
   useEffect(() => {
     if (currentUser) {
-      setRedirectTo(getRedirect());
+      setRedirectTo(getDefaultRedirect(currentUser.userId, roles, ownedNgbIds[0]));
     }
   }, [currentUser, roles]);
 

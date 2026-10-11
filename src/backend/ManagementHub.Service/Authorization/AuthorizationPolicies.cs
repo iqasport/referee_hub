@@ -1,4 +1,4 @@
-﻿using ManagementHub.Models.Domain.User.Roles;
+using ManagementHub.Models.Domain.User.Roles;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ManagementHub.Service.Authorization;
@@ -46,6 +46,14 @@ public static class AuthorizationPolicies
 		options.AddPolicy(IqaAdminPolicy, policy =>
 		{
 			policy.AddRequirements(new UserRoleAuthorizationRequirement<IqaAdminRole>());
+		});
+
+	public const string TestAdminPolicy = nameof(TestAdminPolicy);
+
+	public static void AddTestAdminPolicy(this AuthorizationOptions options) =>
+		options.AddPolicy(TestAdminPolicy, policy =>
+		{
+			policy.AddRequirements(new UserRoleAuthorizationRequirement<TestAdminRole>());
 		});
 
 	public const string TournamentManagerPolicy = nameof(TournamentManagerPolicy);
