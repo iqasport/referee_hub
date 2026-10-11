@@ -6,8 +6,8 @@ import DropdownMenu from "../../components/DropdownMenu";
 
 interface ActionsButtonProps {
   onTestClick: () => void;
-  onImportClick: () => void;
-  onNgbClick: () => void;
+  onImportClick?: () => void;
+  onNgbClick?: () => void;
 }
 
 const ActionsButton = (props: ActionsButtonProps) => {
@@ -23,19 +23,23 @@ const ActionsButton = (props: ActionsButtonProps) => {
   };
 
   const items = [
-    {
-      content: "Create NGB",
-      onClick: onNgbClick,
-    },
+    onNgbClick
+      ? {
+          content: "Create NGB",
+          onClick: onNgbClick,
+        }
+      : null,
     {
       content: "Create Test",
       onClick: onTestClick,
     },
-    {
-      content: "Import NGBs",
-      onClick: onImportClick,
-    },
-  ];
+    onImportClick
+      ? {
+          content: "Import NGBs",
+          onClick: onImportClick,
+        }
+      : null,
+  ].filter((item): item is { content: string; onClick: () => void } => item !== null);
 
   return <DropdownMenu renderTrigger={renderTrigger} items={items} />;
 };

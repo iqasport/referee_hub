@@ -30,7 +30,7 @@ public class TestsController : ControllerBase
 	}
 
 	[HttpPost("create")]
-	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	[Authorize(AuthorizationPolicies.TestAdminPolicy)]
 	public async Task<TestIdentifier> CreateNewTest([FromBody] TestViewModel test)
 	{
 		var testId = TestIdentifier.NewTestId();
@@ -72,7 +72,7 @@ public class TestsController : ControllerBase
 	}
 
 	[HttpPatch("{testId}")]
-	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	[Authorize(AuthorizationPolicies.TestAdminPolicy)]
 	public async Task<TestIdentifier> EditTest([FromRoute] TestIdentifier testId, [FromBody] TestViewModel test)
 	{
 		var language = await this.dbContext.Languages.Where(l => l.ShortName == test.Language.Lang && l.ShortRegion == test.Language.Region).FirstOrDefaultAsync();
@@ -107,7 +107,7 @@ public class TestsController : ControllerBase
 	}
 
 	[HttpPost("{testId}/active")]
-	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	[Authorize(AuthorizationPolicies.TestAdminPolicy)]
 	public async Task SetTestActive([FromRoute] TestIdentifier testId, [FromBody] bool active)
 	{
 		var test = await this.dbContext.Tests.WithIdentifier(testId).FirstOrDefaultAsync();
@@ -121,7 +121,7 @@ public class TestsController : ControllerBase
 	}
 
 	[HttpGet]
-	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	[Authorize(AuthorizationPolicies.TestAdminPolicy)]
 	public async Task<IEnumerable<TestViewModel>> GetAllTests(CancellationToken cancellation)
 	{
 		var tests = this.dbContext.Tests.AsNoTracking().Include(t => t.Certification).Include(t => t.NewLanguage);
@@ -143,7 +143,7 @@ public class TestsController : ControllerBase
 	}
 
 	[HttpPost("{testId}/import")]
-	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	[Authorize(AuthorizationPolicies.TestAdminPolicy)]
 	[ExternalParameterInBody("testQuestions", MediaType = "text/csv")]
 	public async Task ImportTestQuestions([FromRoute] TestIdentifier testId)
 	{
@@ -215,7 +215,7 @@ public class TestsController : ControllerBase
 	}
 
 	[HttpGet("{testId}/questions")]
-	[Authorize(AuthorizationPolicies.IqaAdminPolicy)] // todo: make it a test admin policy
+	[Authorize(AuthorizationPolicies.TestAdminPolicy)]
 	public async Task<IEnumerable<TestQuestionRecord>> GetTestQuestions([FromRoute] TestIdentifier testId)
 	{
 		var test = await this.dbContext.Tests.AsNoTracking().WithIdentifier(testId)

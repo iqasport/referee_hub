@@ -33,13 +33,18 @@ const stepTextMap: { [stepCount: number]: StepConfig } = {
     title: "Upload",
   },
   2: {
-    icon: faRoute,
-    title: "Map",
-  },
-  3: {
     icon: faEnvelopeOpenText,
     title: "Finish",
   },
+};
+
+const extendedStepTextMap: { [stepCount: number]: StepConfig } = {
+  1: stepTextMap[1],
+  2: {
+    icon: faRoute,
+    title: "Map",
+  },
+  3: stepTextMap[2],
 };
 
 const defaultHeadersMap = (scope: string): HeadersMap =>
@@ -69,11 +74,13 @@ const ImportWizard = () => {
 
   const [importTestQuestions, {error: questionError2, isLoading: areQuestionsLoading}] = useImportTestQuestionsMutation();
   const questionMeta2 = areQuestionsLoading ? null : {total: "All"};
+  const isTestImport = importScope === "test";
+  const totalSteps = isTestImport ? 2 : 3;
 
-  const isFinalStep = stepCount === 3;
+  const isFinalStep = stepCount === totalSteps;
   const buttonText = isFinalStep ? "Done" : "Next";
   const isDisabled = stepCount === 1 && !uploadedFile;
-  const currentStepConfig = stepTextMap[stepCount];
+  const currentStepConfig = (isTestImport ? stepTextMap : extendedStepTextMap)[stepCount];
   const dataType = importScope === "test" ? "questions" : `${importScope}s`;
   const goForward = () => setStepCount(stepCount + 1);
 
@@ -81,11 +88,12 @@ const ImportWizard = () => {
   const handleButtonClick = () => {
     if (isFinalStep) {
       handleHomeClick();
+    } else if (isTestImport && stepCount === 1) {
+      importTestQuestions({ testId: scopeId, testQuestions: uploadedFile });
+      goForward();
     } else if (stepCount === 2) {
       if (importScope === "team") {
         dispatch(importTeams(uploadedFile, mappedData, scopeId));
-      } else if (importScope === "test") {
-        importTestQuestions({ testId: scopeId, testQuestions: uploadedFile });
       } else if (importScope === "ngb") {
         dispatch(importNgbs(uploadedFile, mappedData));
       }
@@ -103,6 +111,10 @@ const ImportWizard = () => {
       case 1:
         return <UploadStep onFileUpload={handleFileUpload} uploadedFile={uploadedFile} />;
       case 2:
+        if (isTestImport) {
+          return <FinishStep meta={finishedMeta} error={finishedError} dataType={dataType} />;
+        }
+
         return (
           <MapStep
             uploadedFile={uploadedFile}
@@ -135,7 +147,7 @@ const ImportWizard = () => {
           {currentStepConfig.title}
           <FontAwesomeIcon icon={currentStepConfig.icon} className="ml-4" />
         </h3>
-        <p className="uppercase">{`Step ${stepCount}/3`}</p>
+        <p className="uppercase">{`Step ${stepCount}/${totalSteps}`}</p>
       </div>
       <div className="rounded border border-gray-400 w-3/4">
         {renderStepContent()}

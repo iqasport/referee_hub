@@ -104,6 +104,74 @@ public class UsersController : ControllerBase
 	}
 
 	/// <summary>
+	/// Grants a user the test admin role.
+	/// </summary>
+	[HttpPut("{userId}/roles/testAdmin")]
+	[Tags("User")]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)]
+	public async Task GrantTestAdminRole([FromRoute] UserIdentifier userId)
+	{
+		var dbUserId = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (dbUserId == null)
+		{
+			throw new NotFoundException(userId.ToString());
+		}
+
+		var hasRole = await this.dbContext.Roles.AnyAsync(
+			r => r.UserId == dbUserId && r.AccessType == UserAccessType.TestAdmin,
+			this.HttpContext.RequestAborted);
+
+		if (hasRole)
+		{
+			return;
+		}
+
+		this.dbContext.Roles.Add(new Role
+		{
+			UserId = dbUserId.Value,
+			AccessType = UserAccessType.TestAdmin,
+			CreatedAt = DateTime.UtcNow,
+		});
+
+		await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
+	}
+
+	/// <summary>
+	/// Revokes the test admin role from a user.
+	/// </summary>
+	[HttpDelete("{userId}/roles/testAdmin")]
+	[Tags("User")]
+	[Authorize(AuthorizationPolicies.IqaAdminPolicy)]
+	public async Task RevokeTestAdminRole([FromRoute] UserIdentifier userId)
+	{
+		var dbUserId = await this.dbContext.Users
+			.WithIdentifier(userId)
+			.Select(u => (long?)u.Id)
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (dbUserId == null)
+		{
+			throw new NotFoundException(userId.ToString());
+		}
+
+		var rolesToRemove = await this.dbContext.Roles
+			.Where(r => r.UserId == dbUserId && r.AccessType == UserAccessType.TestAdmin)
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		if (rolesToRemove.Count == 0)
+		{
+			return;
+		}
+
+		this.dbContext.Roles.RemoveRange(rolesToRemove);
+		await this.dbContext.SaveChangesAsync(this.HttpContext.RequestAborted);
+	}
+
+	/// <summary>
 	/// Retrieves personal information about the currently signed-in user.
 	/// </summary>
 	[HttpGet("me/info")]
