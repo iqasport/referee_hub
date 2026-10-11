@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Redis.StackExchange;
@@ -61,7 +62,11 @@ public static class DbServiceCollectionExtentions
 	/// <summary>
 	/// Adds dependencies for services of the storage based implementations of abstract interfaces.
 	/// </summary>
-	public static IServiceCollection AddManagementHubStorage(this IServiceCollection services, bool inMemoryStorage, bool seedDatabase)
+	public static IServiceCollection AddManagementHubStorage(
+		this IServiceCollection services,
+		bool inMemoryStorage,
+		bool seedDatabase,
+		X509Certificate2? dataProtectionCertificate = null)
 	{
 		if (inMemoryStorage)
 		{
@@ -98,9 +103,13 @@ public static class DbServiceCollectionExtentions
 			services.AddHostedService<EnsureDatabaseMigratedService>();
 			services.AddHostedService<EnsureUserSensitiveInfoEncryptedService>();
 
-			// save encryption keys to the database so that they persist across app startups
-			services.AddDataProtection()
+			// Keep the shared key ring in the database, but encrypt each key with a separately managed certificate.
+			var dataProtection = services.AddDataProtection()
 				.PersistKeysToDbContext<ManagementHubDbContext>();
+			if (dataProtectionCertificate != null)
+			{
+				dataProtection.ProtectKeysWithCertificate(dataProtectionCertificate);
+			}
 		}
 
 		if (seedDatabase)
