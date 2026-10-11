@@ -49,7 +49,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 				["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
 
 				// Service configuration
-				["Services:UseInMemoryDatabase"] = "false",
 				["Services:SeedDatabaseWithTestData"] = "true",
 				["Services:UseInMemoryJobSystem"] = "true",
 				["Services:UseLocalFilesystemBlobStorage"] = "true",

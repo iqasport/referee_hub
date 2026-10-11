@@ -296,6 +296,7 @@ public partial class Program
 			AllowStatusCode404Response = true,
 			ExceptionHandler = exceptionHandlerPipeline.Build(),
 		});
+		app.UseMiddleware<AuthenticationRequiredExceptionMiddleware>();
 
 		app.UseMiddleware<TraceCookieMiddleware>();
 		app.UseForwardedHeaders();
