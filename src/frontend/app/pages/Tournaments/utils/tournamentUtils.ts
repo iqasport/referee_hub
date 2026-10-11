@@ -14,6 +14,7 @@ export const convertToDisplayFormat = (t: TournamentViewModel): TournamentData =
   bannerImageUrl: t.bannerImageUrl || undefined,
   organizer: t.organizer || undefined,
   isPrivate: Boolean(t.isCurrentUserInvolved),
+  showVolunteerRegistrationBadge: Boolean(t.isVolunteerRegistrationOpen),
 });
 
 export const applyTypeFilter = (tournaments: TournamentViewModel[], typeFilter: string): TournamentViewModel[] => {
