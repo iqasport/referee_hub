@@ -374,20 +374,42 @@ public class TeamsController : ControllerBase
 				i.Id,
 				i.Email,
 				i.CreatedAt,
+				i.OriginTeamId,
+				i.IsInternalTransfer,
+				OriginTeamName = i.OriginTeam != null ? i.OriginTeam.Name : (string?)null,
 				InitiatorFirstName = i.Initiator.FirstName,
 				InitiatorLastName = i.Initiator.LastName,
-				InitiatorEmail = i.Initiator.Email
+				InitiatorEmail = i.Initiator.Email,
+				NgbApprovals = i.NgbTransferApprovals.Select(a => new
+				{
+					a.ApprovedAt,
+					a.RejectedAt,
+				}).ToList()
 			})
 			.ToListAsync();
 
 		var pendingInvites = pendingInviteRows
-			.Select(i => new TeamInvitationViewModel
+			.Select(i =>
 			{
-				InvitationId = new TeamInvitationIdentifier(i.Id).ToString(),
-				Email = i.Email,
-				CreatedAt = i.CreatedAt,
-				InvitedByName = TeamInviteHelpers.BuildDisplayName(i.InitiatorFirstName, i.InitiatorLastName),
-				RequiresManagerDecision = string.Equals(i.InitiatorEmail, i.Email, StringComparison.OrdinalIgnoreCase)
+				var isTransfer = i.OriginTeamId.HasValue;
+				var approvalStates = i.NgbApprovals.Select(a => new ManagementHub.Models.Data.NgbTransferApproval
+				{
+					ApprovedAt = a.ApprovedAt,
+					RejectedAt = a.RejectedAt,
+				});
+				var status = TeamInviteHelpers.ComputeTransferStatus(
+					isTransfer, approvalStates, isAccepted: false, isDeclinedOrRevoked: false);
+				return new TeamInvitationViewModel
+				{
+					InvitationId = new TeamInvitationIdentifier(i.Id).ToString(),
+					Email = i.Email,
+					CreatedAt = i.CreatedAt,
+					InvitedByName = TeamInviteHelpers.BuildDisplayName(i.InitiatorFirstName, i.InitiatorLastName),
+					RequiresManagerDecision = string.Equals(i.InitiatorEmail, i.Email, StringComparison.OrdinalIgnoreCase),
+					TransferStatus = isTransfer ? status : null,
+					OriginTeamName = i.OriginTeamName,
+					IsInternalTransfer = i.IsInternalTransfer,
+				};
 			})
 			.ToList();
 
@@ -785,6 +807,18 @@ public class TeamsController : ControllerBase
 
 		if (response.Approved)
 		{
+			// Block team-level approval when NGB approval is still required.
+			var pendingNgbApproval = await this.dbContext.NgbTransferApprovals
+				.Where(a => a.TeamInvitationId == invitationId.Id
+					&& a.ApprovedAt == null
+					&& a.RejectedAt == null)
+				.AnyAsync(this.HttpContext.RequestAborted);
+
+			if (pendingNgbApproval)
+			{
+				return this.Conflict("This transfer is still awaiting NGB approval and cannot be accepted by the team yet.");
+			}
+
 			var approvalError = await this.TryApplyApprovedInviteResponseAsync(
 				teamId,
 				invitation,
