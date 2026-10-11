@@ -4,16 +4,25 @@ import RefereeHeader from "./RefereeHeader";
 import RefereeLocation from "./RefereeLocation";
 import RefereeTeam from "./RefereeTeam";
 import { capitalize } from "lodash";
+import ActionButtonPair from "../../components/ActionButtonPair";
+import CustomAlert from "../../components/CustomAlert";
+import { useAlert } from "../../hooks/useAlert";
 import {
   useGetCurrentUserQuery,
   useGetRefereeQuery,
   useUpdateCurrentRefereeMutation,
   useGetUserDataQuery,
   useUpdateCurrentUserDataMutation,
+  useGetMyTeamInvitesQuery,
+  useRespondToTeamInviteMutation,
+  useCancelMyTeamInviteMutation,
+  useGetMyTeamHistoryQuery,
+  useGetUserTeamHistoryQuery,
   useGetMyUpcomingTournamentsQuery,
   useGetTestAttemptsQuery,
   UserDataViewModel,
   TestAttemptViewModelRead,
+  TeamPlayerActivityViewModel,
 } from "../../store/serviceApi";
 import { RefereeLocationOptions } from "./RefereeLocation/RefereeLocation";
 import { RefereeTeamOptions } from "./RefereeTeam/RefereeTeam";
@@ -307,6 +316,163 @@ const UpcomingEvents = () => {
   );
 };
 
+const TeamInvites = () => {
+  const { data: invites, isLoading } = useGetMyTeamInvitesQuery();
+  const [respondToTeamInvite] = useRespondToTeamInviteMutation();
+  const [cancelMyTeamInvite] = useCancelMyTeamInviteMutation();
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const { alertState, showAlert, hideAlert } = useAlert();
+
+  const handleRespond = async (invitationId: string, approved: boolean) => {
+    setRespondingTo(invitationId);
+    try {
+      await respondToTeamInvite({ invitationId, inviteResponseModel: { approved } }).unwrap();
+      showAlert(approved ? "Successfully accepted request." : "Request declined.", "success");
+    } catch {
+      showAlert("Failed to respond. Please try again.", "error");
+    } finally {
+      setRespondingTo(null);
+    }
+  };
+
+  const handleCancel = async (invitationId: string) => {
+    setCancellingId(invitationId);
+    try {
+      await cancelMyTeamInvite({ invitationId }).unwrap();
+      showAlert("Join request cancelled.", "success");
+    } catch {
+      showAlert("Failed to cancel request. Please try again.", "error");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  return (
+    <div className="card card-mb">
+      {alertState.isVisible && (
+        <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
+      )}
+      <h3 className="card-title">Team Requests</h3>
+      {isLoading && <p className="card-description">Loading…</p>}
+      {!isLoading && (!invites || invites.length === 0) && (
+        <p className="card-description">No pending team requests.</p>
+      )}
+      {!isLoading && invites && invites.length > 0 && (
+        <div className="invite-list">
+          {invites.map((invite) => {
+            const invitationId = invite.invitationId;
+            if (!invitationId) return null;
+
+            return (
+              <div key={invite.invitationId} className="invite-item" style={{ alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <InviteTeamLogo teamName={invite.teamName} teamLogoUri={invite.teamLogoUri} />
+                  <div>
+                    <div className="invite-team-name">{invite.teamName || invite.teamId || "Team"}</div>
+                    <div className="text-sm text-gray-600">
+                      {invite.canRespond
+                        ? (invite.invitedByName ? `Invited by ${invite.invitedByName}` : "Invited")
+                        : (invite.invitedByName ? `Requested by ${invite.invitedByName}` : "Request pending")}
+                      {invite.createdAt ? ` on ${new Date(invite.createdAt).toLocaleDateString()}` : ""}
+                      {!invite.canRespond ? " - Waiting for team manager approval" : ""}
+                    </div>
+                  </div>
+                </div>
+                {invite.canRespond ? (
+                  <ActionButtonPair
+                    onAccept={() => handleRespond(invitationId, true)}
+                    onDecline={() => handleRespond(invitationId, false)}
+                    isLoading={respondingTo === invitationId}
+                    size="sm"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: "0.75rem", padding: "0.25rem 0.75rem" }}
+                    disabled={cancellingId === invitationId}
+                    onClick={() => handleCancel(invitationId)}
+                  >
+                    {cancellingId === invitationId ? "Cancelling…" : "Cancel request"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const InviteTeamLogo = ({
+  teamName,
+  teamLogoUri,
+}: {
+  teamName?: string | null;
+  teamLogoUri?: string | null;
+}) => {
+  if (!teamLogoUri) {
+    return <div className="rounded border border-gray-200 bg-gray-100" style={{ width: "2rem", height: "2rem" }} aria-hidden="true" />;
+  }
+
+  return (
+    <img
+      src={teamLogoUri}
+      alt={`${teamName || "Team"} logo`}
+      className="rounded border border-gray-200 object-cover"
+      style={{ width: "2rem", height: "2rem" }}
+    />
+  );
+};
+
+const TeamTransferHistory = ({ userId, isOwnProfile }: { userId?: string; isOwnProfile: boolean }) => {
+  const ownHistory = useGetMyTeamHistoryQuery(undefined, { skip: !isOwnProfile });
+  const viewedHistory = useGetUserTeamHistoryQuery(
+    { userId: userId ?? "" },
+    { skip: isOwnProfile || !userId },
+  );
+  const history = isOwnProfile ? ownHistory.data : viewedHistory.data;
+  const isLoading = isOwnProfile ? ownHistory.isLoading : viewedHistory.isLoading;
+
+  const formatSummary = (activity: TeamPlayerActivityViewModel) => {
+    const teamLabel = activity.teamName || activity.teamId || "Unknown team";
+    if (activity.activityType === "inviteAccepted") return `Joined ${teamLabel}`;
+    if (activity.activityType === "playerRemoved") return `Left ${teamLabel}`;
+    return teamLabel;
+  };
+
+  return (
+    <div className="card card-mb">
+      <h3 className="card-title">Team Transfer History</h3>
+      {isLoading && <p className="card-description">Loading…</p>}
+      {!isLoading && (!history || history.length === 0) && (
+        <p className="card-description">No transfer activity yet.</p>
+      )}
+      {!isLoading && history && history.length > 0 && (
+        <div className="invite-list">
+          {history.map((activity, index) => (
+            <div
+              key={`${activity.createdAt || "unknown"}-${activity.teamId || "team"}-${index}`}
+              className="invite-item"
+              style={{ justifyContent: "space-between", cursor: "default" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <InviteTeamLogo teamName={activity.teamName} teamLogoUri={activity.teamLogoUri} />
+                <div style={{ fontWeight: 500 }}>{formatSummary(activity)}</div>
+              </div>
+              <div style={{ fontSize: "0.875rem", color: "#4b5563" }}>
+                {activity.createdAt ? new Date(activity.createdAt).toLocaleString() : "Unknown time"}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Certification Attempt History section (only shown on own profile)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -460,6 +626,7 @@ const RefereeProfile = () => {
           <div>
             {referee && <PlayerDetails />}
             {isEditable && <UpcomingEvents />}
+            <TeamTransferHistory userId={refereeQueryId} isOwnProfile={isEditable} />
           </div>
 
           {/* Column 2: Basic Details + Certification History */}
@@ -475,6 +642,7 @@ const RefereeProfile = () => {
                 onCancel={handleDetailsCancel}
               />
             )}
+            {isEditable && <TeamInvites />}
             {isEditable && <CertificationHistory />}
           </div>
         </div>

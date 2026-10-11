@@ -72,6 +72,7 @@ jest.mock("../../store/serviceApi", () => ({
   useRespondToTeamInviteMutation: () => [mockRespondToTeamInvite],
   useCancelMyTeamInviteMutation: () => [jest.fn()],
   useGetMyTeamHistoryQuery: () => ({ data: [], isLoading: false }),
+  useGetUserTeamHistoryQuery: () => ({ data: [], isLoading: false }),
   useGetManagedTeamsQuery: () => ({ data: [], isLoading: false }),
   useGetMyUpcomingTournamentsQuery: () => ({ data: [], isLoading: false }),
   useGetTestAttemptsQuery: () => ({ data: [], isLoading: false }),
@@ -113,5 +114,12 @@ describe("RefereeProfile", () => {
       upcomingEventsHeading.compareDocumentPosition(certificationHistoryHeading)
       & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+  });
+
+  it("renders team requests and transfer history on the profile", () => {
+    render(<RefereeProfile />);
+
+    expect(screen.getByRole("heading", { name: "Team Requests" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Team Transfer History" })).toBeInTheDocument();
   });
 });
