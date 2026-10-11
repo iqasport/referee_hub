@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Services;
+using ManagementHub.Storage.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +11,6 @@ namespace ManagementHub.Storage.Database;
 
 public class EnsureUserSensitiveInfoEncryptedService : DatabaseStartupService
 {
-	private const string ProtectedPrefix = "dp:";
 	private readonly IUserSensitiveInfoProtector sensitiveInfoProtector;
 
 	public EnsureUserSensitiveInfoEncryptedService(IServiceProvider serviceProvider, IUserSensitiveInfoProtector sensitiveInfoProtector, ILogger<EnsureUserSensitiveInfoEncryptedService> logger)
@@ -25,20 +25,20 @@ public class EnsureUserSensitiveInfoEncryptedService : DatabaseStartupService
 		{
 			this.logger.LogInformation(0x57c2a100, "Ensuring user sensitive info is encrypted...");
 
-			var users = await dbContext.Users
+			var users = dbContext.Users
 				.Where(user => user.Bio != null || user.Pronouns != null)
-				.ToListAsync(stoppingToken);
+				.AsAsyncEnumerable();
 
 			var updatedCount = 0;
-			foreach (var user in users)
+			await foreach (var user in users.WithCancellation(stoppingToken))
 			{
-				if (user.Bio != null && !user.Bio.StartsWith(ProtectedPrefix, StringComparison.Ordinal))
+				if (user.Bio != null && !user.Bio.StartsWith(UserSensitiveInfoProtection.ProtectedPrefix, StringComparison.Ordinal))
 				{
 					user.Bio = this.sensitiveInfoProtector.Protect(user.Bio);
 					updatedCount++;
 				}
 
-				if (user.Pronouns != null && !user.Pronouns.StartsWith(ProtectedPrefix, StringComparison.Ordinal))
+				if (user.Pronouns != null && !user.Pronouns.StartsWith(UserSensitiveInfoProtection.ProtectedPrefix, StringComparison.Ordinal))
 				{
 					user.Pronouns = this.sensitiveInfoProtector.Protect(user.Pronouns);
 					updatedCount++;

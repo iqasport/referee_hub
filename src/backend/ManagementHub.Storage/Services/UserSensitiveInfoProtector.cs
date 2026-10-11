@@ -1,12 +1,17 @@
 using System;
+using System.Security.Cryptography;
 using ManagementHub.Models.Abstraction.Services;
 using Microsoft.AspNetCore.DataProtection;
 
 namespace ManagementHub.Storage.Services;
 
+internal static class UserSensitiveInfoProtection
+{
+	public const string ProtectedPrefix = "dp:";
+}
+
 public class UserSensitiveInfoProtector : IUserSensitiveInfoProtector
 {
-	private const string ProtectedPrefix = "dp:";
 	private readonly IDataProtector dataProtector;
 
 	public UserSensitiveInfoProtector(IDataProtectionProvider dataProtectionProvider)
@@ -21,7 +26,7 @@ public class UserSensitiveInfoProtector : IUserSensitiveInfoProtector
 			return null;
 		}
 
-		return ProtectedPrefix + this.dataProtector.Protect(value);
+		return UserSensitiveInfoProtection.ProtectedPrefix + this.dataProtector.Protect(value);
 	}
 
 	public string? Unprotect(string? value)
@@ -31,11 +36,22 @@ public class UserSensitiveInfoProtector : IUserSensitiveInfoProtector
 			return null;
 		}
 
-		if (!value.StartsWith(ProtectedPrefix, StringComparison.Ordinal))
+		if (!value.StartsWith(UserSensitiveInfoProtection.ProtectedPrefix, StringComparison.Ordinal))
 		{
 			return value;
 		}
 
-		return this.dataProtector.Unprotect(value[ProtectedPrefix.Length..]);
+		try
+		{
+			return this.dataProtector.Unprotect(value[UserSensitiveInfoProtection.ProtectedPrefix.Length..]);
+		}
+		catch (CryptographicException)
+		{
+			return value;
+		}
+		catch (FormatException)
+		{
+			return value;
+		}
 	}
 }
