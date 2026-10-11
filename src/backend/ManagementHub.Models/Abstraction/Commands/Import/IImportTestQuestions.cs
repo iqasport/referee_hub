@@ -21,6 +21,11 @@ public class TestQuestionRecord
 	// Which answer is correct
 	public required int Correct { get; set; }
 
+	/// <summary>
+	/// Whether this question is excluded from new test attempts (kept for historical analysis of past attempts).
+	/// </summary>
+	public bool Disabled { get; set; }
+
 	public string CorrectAnswer
 	{
 		get => $"Answer {this.Correct}";

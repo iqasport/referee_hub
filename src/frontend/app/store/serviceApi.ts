@@ -498,6 +498,17 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/admin/Tests/${queryArg.testId}/questions` }),
         providesTags: ["Tests"],
       }),
+      setQuestionDisabled: build.mutation<
+        SetQuestionDisabledApiResponse,
+        SetQuestionDisabledApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/admin/Tests/${queryArg.testId}/questions/${queryArg.sequenceId}/disabled`,
+          method: "POST",
+          body: queryArg.body,
+        }),
+        invalidatesTags: ["Tests"],
+      }),
       getPublicTournaments: build.query<
         GetPublicTournamentsApiResponse,
         GetPublicTournamentsApiArg
@@ -1083,6 +1094,12 @@ export type ImportTestQuestionsApiArg = {
 export type GetTestQuestionsApiResponse = /** status 200 Success */ TestQuestionRecord[];
 export type GetTestQuestionsApiArg = {
   testId: string;
+};
+export type SetQuestionDisabledApiResponse = void;
+export type SetQuestionDisabledApiArg = {
+  testId: string;
+  sequenceId: number;
+  body: boolean;
 };
 export type GetPublicTournamentsApiResponse = unknown;
 export type GetPublicTournamentsApiArg = void;
@@ -1870,6 +1887,7 @@ export type TestQuestionRecord = {
   answer4?: string | null;
   correct?: number;
   correctAnswer?: string | null;
+  disabled?: boolean;
 };
 export type TournamentType = "Club" | "National" | "Youth" | "Fantasy";
 export type TournamentViewModel = {
@@ -2075,6 +2093,7 @@ export const {
   useGetAllTestsQuery,
   useImportTestQuestionsMutation,
   useGetTestQuestionsQuery,
+  useSetQuestionDisabledMutation,
   useGetPublicTournamentsQuery,
   useGetPublicTournamentByIdQuery,
   useGetTournamentsQuery,

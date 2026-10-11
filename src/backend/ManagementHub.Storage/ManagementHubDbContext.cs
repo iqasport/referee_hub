@@ -792,6 +792,8 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 
 			entity.Property(e => e.SequenceId).HasColumnName("seq_id");
 
+			entity.Property(e => e.Disabled).HasColumnName("disabled");
+
 			entity.HasOne(d => d.Test)
 				.WithMany(p => p.Questions)
 				.HasForeignKey(d => d.TestId)

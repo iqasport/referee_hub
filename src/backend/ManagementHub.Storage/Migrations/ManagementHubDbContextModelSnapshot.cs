@@ -900,6 +900,10 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("description");
 
+                    b.Property<bool>("Disabled")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("disabled");
+
                     b.Property<string>("Feedback")
                         .HasColumnType("TEXT")
                         .HasColumnName("feedback");
