@@ -20,6 +20,8 @@ public partial class Question : IIdentifiable
 	public string? Feedback { get; set; }
 	public DateTime CreatedAt { get; set; }
 	public required DateTime UpdatedAt { get; set; }
+	// Disabled questions are excluded from new test attempts but kept for historical analysis of past attempts.
+	public bool Disabled { get; set; }
 
 	public virtual Test Test { get; set; } = null!;
 	public virtual ICollection<Answer> Answers { get; set; }
