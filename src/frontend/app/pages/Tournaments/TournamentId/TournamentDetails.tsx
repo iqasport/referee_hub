@@ -1,9 +1,25 @@
-import React, { useRef, useMemo, useState } from "react";
-import RegisterTournamentModal, { RegisterTournamentModalRef } from "./RegisterTournamentModal";
-import ContactOrganizerModal, { ContactOrganizerModalRef } from "./ContactOrganizerModal";
-import AddTournamentModal, { AddTournamentModalRef } from "../components/AddTournamentModal";
-import VolunteerRegistrationsModal, { VolunteerRegistrationsModalRef } from "./VolunteerRegistrationsModal";
-import InviteTeamsModal, { InviteTeamsModalRef } from "./InviteTeamsModal";
+import React, { useMemo, useRef, useState } from "react";
+import RegisterTournamentModal, {
+  RegisterTournamentModalRef,
+} from "./RegisterTournamentModal";
+import ContactOrganizerModal, {
+  ContactOrganizerModalRef,
+} from "./ContactOrganizerModal";
+import AddTournamentModal, {
+  AddTournamentModalRef,
+} from "../components/AddTournamentModal";
+import TeamRegistrationsModal, {
+  TeamRegistrationsModalRef,
+} from "./TeamRegistrationsModal";
+import VolunteerRegistrationsModal, {
+  VolunteerRegistrationsModalRef,
+} from "./VolunteerRegistrationsModal";
+import VolunteerRegistrationModal, {
+  VolunteerRegistrationModalRef,
+} from "./VolunteerRegistrationModal";
+import InviteTeamsModal, {
+  InviteTeamsModalRef,
+} from "./InviteTeamsModal";
 import AddTournamentManagerModal from "./AddTournamentManagerModal";
 import ActionButtonPair from "../../../components/ActionButtonPair";
 import CustomAlert, { AlertType } from "../../../components/CustomAlert";
@@ -25,7 +41,10 @@ import {
   useDeleteTournamentMutation,
   TournamentInviteViewModel,
 } from "../../../store/serviceApi";
-import { useNavigationParams, useNavigate } from "../../../utils/navigationUtils";
+import {
+  useNavigationParams,
+  useNavigate,
+} from "../../../utils/navigationUtils";
 
 type TeamSummary = {
   teamId: string;
@@ -42,6 +61,7 @@ type ManagerSidebarProps = {
   onOpenInviteTeams: () => void;
   onOpenAddManager: () => void;
   onDelete: () => void;
+  onOpenVolunteerReview: () => void;
 };
 
 const ManagerSidebar = ({
@@ -53,15 +73,27 @@ const ManagerSidebar = ({
   onOpenInviteTeams,
   onOpenAddManager,
   onDelete,
+  onOpenVolunteerReview,
 }: ManagerSidebarProps) => (
   <>
     <div className="card card-highlighted card-mb card-sticky">
       <h3 className="card-title">Manager Tools</h3>
+
       <p className="card-description">
-        You are the manager of this tournament. Use the tools below to manage the tournament.
+        You are the manager of this tournament. Use the tools below to manage
+        the tournament.
       </p>
-      <button onClick={onEdit} className="btn btn-primary btn-full-width btn-with-icon card-mb">
-        <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+      <button
+        onClick={onEdit}
+        className="btn btn-primary btn-full-width btn-with-icon card-mb"
+      >
+        <svg
+          className="btn-icon"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -71,34 +103,72 @@ const ManagerSidebar = ({
         </svg>
         Edit Tournament Details
       </button>
-      <button onClick={onOpenRegistrations} className="btn btn-secondary btn-full-width card-mb">
-        View Team Registrations ({invites?.length || 0})
+
+      <button
+        onClick={onOpenRegistrations}
+        className="btn btn-secondary btn-full-width card-mb"
+      >
+        View Team Registrations (
+        {invites?.filter((invite) => invite.participantType === "team")
+          .length || 0}
+        )
       </button>
-      <button onClick={onOpenInviteTeams} className="btn btn-secondary btn-full-width card-mb">
+
+      <button
+        onClick={onOpenVolunteerReview}
+        className="btn btn-secondary btn-full-width card-mb"
+      >
+        Review Volunteer Applications (
+        {invites?.filter((invite) => invite.participantType === "referee")
+          .length || 0}
+        )
+      </button>
+
+      <button
+        onClick={onOpenInviteTeams}
+        className="btn btn-secondary btn-full-width card-mb"
+      >
         Invite Teams
       </button>
-      <button onClick={onOpenAddManager} className="btn btn-secondary btn-full-width">
+
+      <button
+        onClick={onOpenAddManager}
+        className="btn btn-secondary btn-full-width"
+      >
         Add Tournament Manager
       </button>
-      <button onClick={onDelete} className="btn btn-danger btn-full-width" style={{ marginTop: "0.75rem" }}>
+
+      <button
+        onClick={onDelete}
+        className="btn btn-danger btn-full-width"
+        style={{ marginTop: "0.75rem" }}
+      >
         Delete Tournament
       </button>
     </div>
 
     <div className="card">
       <h3 className="card-title">Tournament Stats</h3>
+
       <div className="stats-list">
         <div className="stats-item">
           <span className="stats-label">Teams Registered</span>
-          <span className="stats-value">{invites?.filter((i) => i.status === "approved").length || 0}</span>
+          <span className="stats-value">
+            {invites?.filter((invite) => invite.status === "approved")
+              .length || 0}
+          </span>
         </div>
+
         <div className="stats-item">
           <span className="stats-label">Players Registered</span>
           <span className="stats-value">{totalPlayerCount}</span>
         </div>
+
         <div className="stats-item">
           <span className="stats-label">Private Tournament</span>
-          <span className="stats-value">{tournament.isPrivate ? "Yes" : "No"}</span>
+          <span className="stats-value">
+            {tournament.isPrivate ? "Yes" : "No"}
+          </span>
         </div>
       </div>
     </div>
@@ -107,17 +177,23 @@ const ManagerSidebar = ({
 
 type UserSidebarProps = {
   isRegistrationClosed: boolean;
+  isVolunteerRegistrationOpen: boolean;
   pendingInvitesForUser: TournamentInviteViewModel[];
   approvedTeamsForUser: TeamSummary[];
   respondingTo: string | null;
-  onRespondToInvite: (participantId: string, approved: boolean) => void;
+  onRespondToInvite: (
+    participantId: string,
+    approved: boolean
+  ) => void;
   onScrollToRosters: () => void;
   onOpenRegister: () => void;
   onOpenContactOrganizer: () => void;
+  onOpenVolunteerForm: () => void;
 };
 
 const UserSidebar = ({
   isRegistrationClosed,
+  isVolunteerRegistrationOpen,
   pendingInvitesForUser,
   approvedTeamsForUser,
   respondingTo,
@@ -125,21 +201,29 @@ const UserSidebar = ({
   onScrollToRosters,
   onOpenRegister,
   onOpenContactOrganizer,
+  onOpenVolunteerForm,
 }: UserSidebarProps) => (
   <>
     {pendingInvitesForUser.length > 0 && (
       <div className="card card-highlighted card-mb">
         <h3 className="card-title">You&apos;re Invited!</h3>
+
         <p className="card-description">
           The tournament organizer has invited your team(s) to participate.
         </p>
+
         <div className="invite-list">
           {pendingInvitesForUser.map((invite) => (
             <div key={invite.participantId} className="invite-item">
               <p className="invite-team-name">{invite.participantName}</p>
+
               <ActionButtonPair
-                onAccept={() => onRespondToInvite(invite.participantId || "", true)}
-                onDecline={() => onRespondToInvite(invite.participantId || "", false)}
+                onAccept={() =>
+                  onRespondToInvite(invite.participantId || "", true)
+                }
+                onDecline={() =>
+                  onRespondToInvite(invite.participantId || "", false)
+                }
                 isLoading={respondingTo === invite.participantId}
                 size="sm"
               />
@@ -153,10 +237,12 @@ const UserSidebar = ({
       {isRegistrationClosed ? (
         <>
           <h3 className="card-title">Registration Closed</h3>
+
           <p className="card-description">
-            Registration for this tournament is now closed. Contact the organizers if you have
-            questions.
+            Registration for this tournament is now closed. Contact the
+            organizers if you have questions.
           </p>
+
           <div className="mt-4 p-3 bg-gray-100 rounded-md border border-gray-300 text-center">
             <svg
               className="mx-auto h-12 w-12 text-gray-400 mb-2"
@@ -171,39 +257,82 @@ const UserSidebar = ({
                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-700">Registration is now closed</p>
+
+            <p className="text-sm font-medium text-gray-700">
+              Registration is now closed
+            </p>
           </div>
         </>
       ) : approvedTeamsForUser.length > 0 ? (
         <>
           <h3 className="card-title">You&apos;re Registered!</h3>
+
           <p className="card-description">
-            Your team is registered for this tournament. Manage your roster below.
+            Your team is registered for this tournament. Manage your roster
+            below.
           </p>
-          <button onClick={onScrollToRosters} className="btn btn-primary btn-full-width card-mb">
+
+          <button
+            onClick={onScrollToRosters}
+            className="btn btn-primary btn-full-width card-mb"
+          >
             Manage Your Rosters
           </button>
-          <button onClick={onOpenRegister} className="btn btn-outline btn-full-width">
+
+          <button
+            onClick={onOpenRegister}
+            className="btn btn-outline btn-full-width"
+          >
             Register Another Team
           </button>
         </>
       ) : (
         <>
           <h3 className="card-title">Register Now</h3>
+
           <p className="card-description">
-            Secure your spot in this exciting tournament. Limited slots available!
+            Secure your spot in this exciting tournament. Limited slots
+            available!
           </p>
-          <button onClick={onOpenRegister} className="btn btn-primary btn-full-width">
+
+          <button
+            onClick={onOpenRegister}
+            className="btn btn-primary btn-full-width"
+          >
             Register for Tournament
           </button>
         </>
       )}
     </div>
 
+    {isVolunteerRegistrationOpen && (
+      <div className="card card-mb">
+        <h3 className="card-title">Volunteer as a Referee</h3>
+
+        <p className="card-description">
+          Register yourself as a volunteer referee for this tournament.
+        </p>
+
+        <button
+          onClick={onOpenVolunteerForm}
+          className="btn btn-secondary btn-full-width"
+        >
+          Register as Volunteer
+        </button>
+      </div>
+    )}
+
     <div className="card">
       <h3 className="card-title">Need Help?</h3>
-      <p className="card-description">Have questions about this tournament? Contact the organizers.</p>
-      <button onClick={onOpenContactOrganizer} className="btn btn-outline btn-full-width">
+
+      <p className="card-description">
+        Have questions about this tournament? Contact the organizers.
+      </p>
+
+      <button
+        onClick={onOpenContactOrganizer}
+        className="btn btn-outline btn-full-width"
+      >
         Contact Organizer
       </button>
     </div>
@@ -233,11 +362,16 @@ type TournamentDetailsContentProps = {
   onOpenInviteTeams: () => void;
   onOpenAddManager: () => void;
   onDelete: () => void;
-  onRespondToInvite: (participantId: string, approved: boolean) => void;
+  onRespondToInvite: (
+    participantId: string,
+    approved: boolean
+  ) => void;
   onScrollToRosters: () => void;
   onOpenRegister: () => void;
   onOpenContactOrganizer: () => void;
   onRosterSaved: () => void;
+  onOpenVolunteerForm: () => void;
+  onOpenVolunteerReview: () => void;
 };
 
 const TournamentDetailsContent = ({
@@ -264,10 +398,16 @@ const TournamentDetailsContent = ({
   onOpenRegister,
   onOpenContactOrganizer,
   onRosterSaved,
+  onOpenVolunteerForm,
+  onOpenVolunteerReview,
 }: TournamentDetailsContentProps) => (
   <>
     {alertState.isVisible && (
-      <CustomAlert message={alertState.message} type={alertState.type} onClose={hideAlert} />
+      <CustomAlert
+        message={alertState.message}
+        type={alertState.type}
+        onClose={hideAlert}
+      />
     )}
 
     <TournamentHeader
@@ -276,7 +416,6 @@ const TournamentDetailsContent = ({
       isManager={isManager}
     />
 
-    {/* Info cards section */}
     <section className="tournament-details-section">
       <div className="tournament-details-wrapper">
         <TournamentInfoCards
@@ -288,9 +427,7 @@ const TournamentDetailsContent = ({
           tournamentType={tournament.type}
         />
 
-        {/* Main content grid */}
         <div className="tournament-details-grid">
-          {/* Left column - About and Format */}
           <div>
             <TournamentAboutSection
               place={tournament.place}
@@ -300,7 +437,6 @@ const TournamentDetailsContent = ({
             />
           </div>
 
-          {/* Right sidebar - Different content for managers vs regular users */}
           <div>
             {isManager ? (
               <ManagerSidebar
@@ -309,6 +445,7 @@ const TournamentDetailsContent = ({
                 totalPlayerCount={totalPlayerCount}
                 onEdit={onEdit}
                 onOpenRegistrations={onOpenRegistrations}
+                onOpenVolunteerReview={onOpenVolunteerReview}
                 onOpenInviteTeams={onOpenInviteTeams}
                 onOpenAddManager={onOpenAddManager}
                 onDelete={onDelete}
@@ -316,22 +453,28 @@ const TournamentDetailsContent = ({
             ) : (
               <UserSidebar
                 isRegistrationClosed={isRegistrationClosed}
+                isVolunteerRegistrationOpen={
+                  tournament.isVolunteerRegistrationOpen
+                }
                 pendingInvitesForUser={pendingInvitesForUser}
                 approvedTeamsForUser={approvedTeamsForUser}
                 respondingTo={respondingTo}
                 onRespondToInvite={onRespondToInvite}
                 onScrollToRosters={onScrollToRosters}
                 onOpenRegister={onOpenRegister}
+                onOpenVolunteerForm={onOpenVolunteerForm}
                 onOpenContactOrganizer={onOpenContactOrganizer}
               />
             )}
           </div>
         </div>
 
-        {/* Roster Management Section - Show for team managers with approved teams */}
         {approvedTeamsForUser.length > 0 && (
           <div ref={rosterSectionRef} className="roster-section">
-            <h2 className="card-title card-title-lg">Manage Your Team Rosters</h2>
+            <h2 className="card-title card-title-lg">
+              Manage Your Team Rosters
+            </h2>
+
             <RosterManager
               tournamentId={tournamentId}
               teams={approvedTeamsForUser}
@@ -345,96 +488,161 @@ const TournamentDetailsContent = ({
 );
 
 const TournamentDetails = () => {
-  const { tournamentId } = useNavigationParams<"tournamentId">();
-  const registerModalRef = useRef<RegisterTournamentModalRef>(null);
-  const contactOrganizerModalRef = useRef<ContactOrganizerModalRef>(null);
-  const editModalRef = useRef<AddTournamentModalRef>(null);
-  const registrationsModalRef = useRef<VolunteerRegistrationsModalRef>(null);
-  const inviteTeamsModalRef = useRef<InviteTeamsModalRef>(null);
-  const rosterSectionRef = useRef<HTMLDivElement>(null);
-  const [respondingTo, setRespondingTo] = useState<string | null>(null);
-  const [isAddManagerModalOpen, setIsAddManagerModalOpen] = useState(false);
+  const { tournamentId } =
+    useNavigationParams<"tournamentId">();
+
+  const registerModalRef =
+    useRef<RegisterTournamentModalRef>(null);
+  const contactOrganizerModalRef =
+    useRef<ContactOrganizerModalRef>(null);
+  const editModalRef =
+    useRef<AddTournamentModalRef>(null);
+
+  const teamRegistrationsModalRef =
+    useRef<TeamRegistrationsModalRef>(null);
+  const volunteerReviewModalRef =
+    useRef<VolunteerRegistrationsModalRef>(null);
+  const volunteerFormModalRef =
+    useRef<VolunteerRegistrationModalRef>(null);
+
+  const inviteTeamsModalRef =
+    useRef<InviteTeamsModalRef>(null);
+  const rosterSectionRef =
+    useRef<HTMLDivElement>(null);
+
+  const [respondingTo, setRespondingTo] =
+    useState<string | null>(null);
+  const [isAddManagerModalOpen, setIsAddManagerModalOpen] =
+    useState(false);
+
   const { alertState, showAlert, hideAlert } = useAlert();
+  const navigate = useNavigate();
 
   const {
     data: tournament,
     isLoading,
     isError,
-  } = useGetTournamentQuery({ tournamentId: tournamentId || "" });
-  const { data: currentUser } = useGetCurrentUserQuery();
-
-  // Use the new managed teams endpoint to get teams the user manages
-  const { data: managedTeamsData } = useGetManagedTeamsQuery();
-
-  // Check if user is a tournament manager for this specific tournament
-  // Note: role.tournament can be "ANY", a single tournament ID string, or an array of tournament IDs
-  const isTournamentManagerOfThis = currentUser?.roles?.some((role: any) => {
-    if (role.roleType !== "TournamentManager") return false;
-    if (role.tournament === "ANY") return true;
-    if (Array.isArray(role.tournament)) {
-      return role.tournament.includes(tournamentId);
-    }
-    return role.tournament === tournamentId;
+  } = useGetTournamentQuery({
+    tournamentId: tournamentId || "",
   });
 
-  // Only fetch managers if user is a tournament manager of this tournament
-  const shouldFetchManagers = Boolean(tournamentId && isTournamentManagerOfThis);
-  const { data: managers, isError: managersError } = useGetTournamentManagersQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !shouldFetchManagers }
+  const { data: currentUser } =
+    useGetCurrentUserQuery();
+
+  const { data: managedTeamsData } =
+    useGetManagedTeamsQuery();
+
+  const isTournamentManagerOfThis =
+    currentUser?.roles?.some((role: any) => {
+      if (role.roleType !== "TournamentManager") {
+        return false;
+      }
+
+      if (role.tournament === "ANY") {
+        return true;
+      }
+
+      if (Array.isArray(role.tournament)) {
+        return role.tournament.includes(tournamentId);
+      }
+
+      return role.tournament === tournamentId;
+    });
+
+  const shouldFetchManagers = Boolean(
+    tournamentId && isTournamentManagerOfThis
   );
 
-  // Fetch tournament invites to check for pending invites for user's teams
-  const { data: invites, refetch: refetchInvites } = useGetTournamentInvitesQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId }
-  );
-
-  // Fetch participants to get roster counts
-  const { data: participants, refetch: refetchParticipants } = useGetParticipantsQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId }
-  );
-
-  const [respondToInvite] = useRespondToInviteMutation();
-  const [deleteTournament] = useDeleteTournamentMutation();
-  const navigate = useNavigate();
-
-  // Get team IDs from the managed teams endpoint
-  const managedTeamIds: Set<string> = useMemo(() => {
-    const teamIds = new Set<string>();
-    if (managedTeamsData) {
-      managedTeamsData.forEach((team) => {
-        if (team.teamId) {
-          teamIds.add(team.teamId);
-        }
-      });
+  const {
+    data: managers,
+    isError: managersError,
+  } = useGetTournamentManagersQuery(
+    {
+      tournamentId: tournamentId || "",
+    },
+    {
+      skip: !shouldFetchManagers,
     }
+  );
+
+  const {
+    data: invites,
+    refetch: refetchInvites,
+  } = useGetTournamentInvitesQuery(
+    {
+      tournamentId: tournamentId || "",
+    },
+    {
+      skip: !tournamentId,
+    }
+  );
+
+  const {
+    data: participants,
+    refetch: refetchParticipants,
+  } = useGetParticipantsQuery(
+    {
+      tournamentId: tournamentId || "",
+    },
+    {
+      skip: !tournamentId,
+    }
+  );
+
+  const [respondToInvite] =
+    useRespondToInviteMutation();
+  const [deleteTournament] =
+    useDeleteTournamentMutation();
+
+  const managedTeamIds = useMemo(() => {
+    const teamIds = new Set<string>();
+
+    managedTeamsData?.forEach((team) => {
+      if (team.teamId) {
+        teamIds.add(team.teamId);
+      }
+    });
+
     return teamIds;
   }, [managedTeamsData]);
 
-  // These are invites initiated by tournament managers that the team manager needs to accept/decline
-  const pendingInvitesForUser: TournamentInviteViewModel[] = useMemo(() => {
-    if (!invites || managedTeamIds.size === 0) return [];
+  const pendingInvitesForUser = useMemo(() => {
+    if (!invites || managedTeamIds.size === 0) {
+      return [];
+    }
 
     return invites.filter((invite) => {
-      // Check if this invite is for one of user's teams
-      if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
+      if (
+        !invite.participantId ||
+        !managedTeamIds.has(invite.participantId)
+      ) {
+        return false;
+      }
 
-      // Check if participant approval is pending (user needs to respond)
-      return invite.participantApproval?.status === "pending";
+      return (
+        invite.participantApproval?.status === "pending"
+      );
     });
   }, [invites, managedTeamIds]);
 
-  // Find teams that are fully approved and participating
   const approvedTeamsForUser = useMemo(() => {
-    if (!invites || managedTeamIds.size === 0 || !managedTeamsData) return [];
+    if (
+      !invites ||
+      !managedTeamsData ||
+      managedTeamIds.size === 0
+    ) {
+      return [];
+    }
 
     return invites
       .filter((invite) => {
-        // Check if this invite is for one of user's teams
-        if (!invite.participantId || !managedTeamIds.has(invite.participantId)) return false;
-        // Check if the invite is fully approved
+        if (
+          !invite.participantId ||
+          !managedTeamIds.has(invite.participantId)
+        ) {
+          return false;
+        }
+
         return invite.status === "approved";
       })
       .map((invite) => {
@@ -442,62 +650,75 @@ const TournamentDetails = () => {
           return null;
         }
 
-        const teamData = managedTeamsData.find((t) => t.teamId === invite.participantId);
+        const teamData = managedTeamsData.find(
+          (team) => team.teamId === invite.participantId
+        );
+
         return {
           teamId: invite.participantId,
-          teamName: invite.participantName || teamData?.teamName || "Unknown Team",
+          teamName:
+            invite.participantName ||
+            teamData?.teamName ||
+            "Unknown Team",
           ngb: teamData?.ngb || "",
         };
       })
-      .filter((team): team is TeamSummary => team !== null);
+      .filter(
+        (team): team is TeamSummary => team !== null
+      );
   }, [invites, managedTeamIds, managedTeamsData]);
 
-  // Calculate total player count (excluding coaches and staff)
   const totalPlayerCount = useMemo(() => {
-    if (!participants) return 0;
+    if (!participants) {
+      return 0;
+    }
+
     return participants.reduce((total, team) => {
-      const playerCount = team.players?.length || 0;
-      return total + playerCount;
+      return total + (team.players?.length || 0);
     }, 0);
   }, [participants]);
 
-  // Determine if registration is closed (manual toggle or date-based)
   const isRegistrationClosed = useMemo(() => {
-    // Check manual closure first (field may not exist if migration not applied)
     if (tournament?.isRegistrationOpen === false) {
       return true;
     }
 
-    // Check if registration end date has passed
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     if (tournament?.registrationEndsDate) {
-      const regEndsDate = new Date(tournament.registrationEndsDate);
-      const today = new Date();
-      // Reset hours to compare at day level
-      regEndsDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      if (today > regEndsDate) {
-        return true;
-      }
-    } else if (tournament?.startDate) {
-      // Fall back to start date if no registration end date
+      const registrationEndDate = new Date(
+        tournament.registrationEndsDate
+      );
+      registrationEndDate.setHours(0, 0, 0, 0);
+
+      return today > registrationEndDate;
+    }
+
+    if (tournament?.startDate) {
       const startDate = new Date(tournament.startDate);
-      const today = new Date();
-      // Reset hours to compare at day level
       startDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      if (today > startDate) {
-        return true;
-      }
+
+      return today > startDate;
     }
 
     return false;
-  }, [tournament?.isRegistrationOpen, tournament?.registrationEndsDate, tournament?.startDate]);
+  }, [
+    tournament?.isRegistrationOpen,
+    tournament?.registrationEndsDate,
+    tournament?.startDate,
+  ]);
 
-  // Handle accept/decline invite
-  async function handleRespondToInvite(participantId: string, approved: boolean) {
-    if (!tournamentId) return;
+  async function handleRespondToInvite(
+    participantId: string,
+    approved: boolean
+  ) {
+    if (!tournamentId) {
+      return;
+    }
 
     setRespondingTo(participantId);
+
     try {
       await respondToInvite({
         tournamentId,
@@ -505,25 +726,55 @@ const TournamentDetails = () => {
         inviteResponseModel: { approved },
       }).unwrap();
 
-      showAlert(approved ? "Successfully accepted the invite!" : "Invite declined.", "success");
+      showAlert(
+        approved
+          ? "Successfully accepted the invite!"
+          : "Invite declined.",
+        "success"
+      );
+
       refetchInvites();
     } catch (error) {
-      console.error("Failed to respond to invite:", error);
-      showAlert("Failed to respond. Please try again.", "error");
+      console.error(
+        "Failed to respond to invite:",
+        error
+      );
+      showAlert(
+        "Failed to respond. Please try again.",
+        "error"
+      );
     } finally {
       setRespondingTo(null);
     }
   }
 
   async function handleDelete() {
-    if (!tournamentId) return;
-    if (!window.confirm(`Are you sure you want to delete "${tournament?.name ?? "this tournament"}"? It will be removed from view.`)) return;
+    if (!tournamentId) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${
+        tournament?.name ?? "this tournament"
+      }"? It will be removed from view.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     try {
       await deleteTournament({ tournamentId }).unwrap();
       navigate("/tournaments");
     } catch (error) {
-      console.error("Failed to delete tournament:", error);
-      showAlert("Failed to delete the tournament. Please try again.", "error");
+      console.error(
+        "Failed to delete tournament:",
+        error
+      );
+      showAlert(
+        "Failed to delete the tournament. Please try again.",
+        "error"
+      );
     }
   }
 
@@ -543,18 +794,24 @@ const TournamentDetails = () => {
     );
   }
 
-  // Check if current user is a manager of this tournament
-  // Only consider them a manager if they're in the managers list and we successfully fetched the list
   const isManager =
-    !managersError && currentUser?.userId && managers
-      ? managers.some((manager) => manager.id === currentUser.userId)
-      : false;
+    !managersError &&
+    Boolean(currentUser?.userId) &&
+    Boolean(managers) &&
+    managers.some(
+      (manager) => manager.id === currentUser?.userId
+    );
 
-  const startDate = new Date(tournament.startDate || "");
-  const endDate = new Date(tournament.endDate || "");
+  const startDate = new Date(
+    tournament.startDate || ""
+  );
+  const endDate = new Date(
+    tournament.endDate || ""
+  );
 
-  // Check if start and end dates are the same
-  const isSameDay = startDate.toDateString() === endDate.toDateString();
+  const isSameDay =
+    startDate.toDateString() ===
+    endDate.toDateString();
 
   const formattedDateRange = isSameDay
     ? startDate.toLocaleDateString("en-US", {
@@ -571,7 +828,6 @@ const TournamentDetails = () => {
         year: "numeric",
       })}`;
 
-  // Handle edit tournament (for managers)
   const handleEdit = () => {
     editModalRef.current?.openEdit({
       id: tournament.id || "",
@@ -579,14 +835,18 @@ const TournamentDetails = () => {
       description: tournament.description || "",
       startDate: tournament.startDate || "",
       endDate: tournament.endDate || "",
-      registrationEndsDate: tournament.registrationEndsDate || "",
+      registrationEndsDate:
+        tournament.registrationEndsDate || "",
       type: tournament.type || ("" as const),
       country: tournament.country || "",
       city: tournament.city || "",
       place: tournament.place || "",
       organizer: tournament.organizer || "",
       isPrivate: tournament.isPrivate || false,
-      isRegistrationOpen: tournament.isRegistrationOpen ?? true,
+      isRegistrationOpen:
+        tournament.isRegistrationOpen ?? true,
+      isVolunteerRegistrationOpen:
+        tournament.isVolunteerRegistrationOpen ?? true,
       bannerImageUrl: tournament.bannerImageUrl || "",
     });
   };
@@ -601,6 +861,30 @@ const TournamentDetails = () => {
       city: tournament.city || "",
       type: tournament.type || "",
     });
+  };
+
+  // User action: open the form to register themselves as a volunteer.
+  const onOpenVolunteerForm = () => {
+    if (!currentUser?.userId) {
+      showAlert(
+        "You must be signed in to register as a volunteer.",
+        "error"
+      );
+      return;
+    }
+
+    volunteerFormModalRef.current?.open(
+      tournament.id || "",
+      currentUser.userId
+    );
+  };
+
+  // Manager action: open the volunteer application review modal.
+  const onOpenVolunteerReview = () => {
+    volunteerReviewModalRef.current?.open(
+      tournament.id || "",
+      tournament.name || "Unknown Tournament"
+    );
   };
 
   const handleOpenContactOrganizer = () => {
@@ -629,17 +913,27 @@ const TournamentDetails = () => {
         tournamentId={tournamentId || ""}
         onEdit={handleEdit}
         onOpenRegistrations={() =>
-          registrationsModalRef.current?.open(
+          teamRegistrationsModalRef.current?.open(
             tournament.id || "",
             tournament.name || "Unknown Tournament"
           )
         }
-        onOpenInviteTeams={() => inviteTeamsModalRef.current?.open(tournament)}
-        onOpenAddManager={() => setIsAddManagerModalOpen(true)}
+        onOpenVolunteerReview={onOpenVolunteerReview}
+        onOpenInviteTeams={() =>
+          inviteTeamsModalRef.current?.open(tournament)
+        }
+        onOpenAddManager={() =>
+          setIsAddManagerModalOpen(true)
+        }
         onDelete={handleDelete}
         onRespondToInvite={handleRespondToInvite}
-        onScrollToRosters={() => rosterSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
+        onScrollToRosters={() =>
+          rosterSectionRef.current?.scrollIntoView({
+            behavior: "smooth",
+          })
+        }
         onOpenRegister={handleOpenRegister}
+        onOpenVolunteerForm={onOpenVolunteerForm}
         onOpenContactOrganizer={handleOpenContactOrganizer}
         onRosterSaved={() => {
           refetchInvites();
@@ -647,18 +941,35 @@ const TournamentDetails = () => {
         }}
       />
 
-      {/* Regular user modals */}
       <RegisterTournamentModal ref={registerModalRef} />
-      <ContactOrganizerModal ref={contactOrganizerModalRef} />
+      <ContactOrganizerModal
+        ref={contactOrganizerModalRef}
+      />
 
-      {/* Manager modals */}
       <AddTournamentModal ref={editModalRef} />
-      <VolunteerRegistrationsModal ref={registrationsModalRef} />
+
+      <TeamRegistrationsModal
+        ref={teamRegistrationsModalRef}
+      />
+
+      <VolunteerRegistrationsModal
+        ref={volunteerReviewModalRef}
+      />
+
+      <VolunteerRegistrationModal
+        ref={volunteerFormModalRef}
+        teams={participants || []}
+        onSaved={() => refetchInvites()}
+      />
+
       <InviteTeamsModal ref={inviteTeamsModalRef} />
+
       {isAddManagerModalOpen && tournamentId && (
         <AddTournamentManagerModal
           tournamentId={tournamentId}
-          onClose={() => setIsAddManagerModalOpen(false)}
+          onClose={() =>
+            setIsAddManagerModalOpen(false)
+          }
         />
       )}
     </>
