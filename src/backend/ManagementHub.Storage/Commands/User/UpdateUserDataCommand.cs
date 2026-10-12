@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Language;
@@ -25,6 +26,7 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 {
 	private readonly IQueryable<User> users;
 	private readonly IQueryable<Language> languages;
+	private readonly IUserSensitiveInfoProtector sensitiveInfoProtector;
 	private readonly ILogger<UpdateUserDataCommand> logger;
 	private readonly ISystemClock clock;
 	private readonly IDatabaseTransactionProvider transactionProvider;
@@ -32,12 +34,14 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 	public UpdateUserDataCommand(
 		IQueryable<User> users,
 		IQueryable<Language> languages,
+		IUserSensitiveInfoProtector sensitiveInfoProtector,
 		ILogger<UpdateUserDataCommand> logger,
 		ISystemClock clock,
 		IDatabaseTransactionProvider transactionProvider)
 	{
 		this.users = users;
 		this.languages = languages;
+		this.sensitiveInfoProtector = sensitiveInfoProtector;
 		this.logger = logger;
 		this.clock = clock;
 		this.transactionProvider = transactionProvider;
@@ -49,8 +53,9 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 
 		await using var transaction = await this.transactionProvider.BeginAsync();
 
-		var userData = await DbUserDataContextFactory.QueryUserData(this.users.AsNoTracking().WithIdentifier(userId))
+		var storedUserData = await DbUserDataContextFactory.QueryUserData(this.users.AsNoTracking().WithIdentifier(userId))
 			.SingleAsync(cancellationToken);
+		var userData = DbUserDataContextFactory.ToExtendedUserData(storedUserData, this.sensitiveInfoProtector);
 
 		var newUserData = updater(userData);
 
@@ -82,14 +87,14 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 		if (!string.Equals(newUserData.Bio, userData.Bio, StringComparison.InvariantCulture))
 		{
 			propertyNames.Add(nameof(newUserData.Bio));
-			var value = newUserData.Bio;
+			var value = this.sensitiveInfoProtector.Protect(newUserData.Bio);
 			propertySetters.Add(s => s.SetProperty(u => u.Bio, value));
 		}
 
 		if (!string.Equals(newUserData.Pronouns, userData.Pronouns, StringComparison.InvariantCulture))
 		{
 			propertyNames.Add(nameof(newUserData.Pronouns));
-			var value = newUserData.Pronouns;
+			var value = this.sensitiveInfoProtector.Protect(newUserData.Pronouns);
 			propertySetters.Add(s => s.SetProperty(u => u.Pronouns, value));
 		}
 

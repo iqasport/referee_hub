@@ -22,6 +22,8 @@ services:
             DatabaseConnection__Database: $RDS_DB_NAME
             DatabaseConnection__Username: $RDS_USERNAME
             DatabaseConnection__Password: $RDS_PASSWORD
+            DataProtection__CertificatePfxBase64: $DataProtection__CertificatePfxBase64
+            DataProtection__CertificatePassword: $DataProtection__CertificatePassword
             AWS__AccessKeyId: $AWS__AccessKeyId
             AWS__Bucket: $AWS__Bucket
             AWS__Region: $AWS__Region

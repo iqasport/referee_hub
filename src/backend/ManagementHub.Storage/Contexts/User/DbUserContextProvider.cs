@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
+using ManagementHub.Models.Abstraction.Services;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Attachments;
@@ -26,6 +27,7 @@ public class DbUserContextProvider : IUserContextProvider
 		ManagementHubDbContext dbContext,
 		IAttachmentRepository attachmentRepository,
 		IAccessFileCommand accessFile,
+		IUserSensitiveInfoProtector sensitiveInfoProtector,
 		ILoggerFactory loggerFactory)
 	{
 		this.dbContext = dbContext;
@@ -43,6 +45,7 @@ public class DbUserContextProvider : IUserContextProvider
 		this.userDataContextFactory = new DbUserDataContextFactory(
 			dbContext.Users,
 			dbContext.Languages,
+			sensitiveInfoProtector,
 			loggerFactory.CreateLogger<DbUserDataContextFactory>());
 
 		this.userAvatarContextFactory = new DbUserAvatarContextFactory(
