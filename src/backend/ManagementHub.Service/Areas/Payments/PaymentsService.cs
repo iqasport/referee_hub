@@ -61,6 +61,7 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 		{
 			Active = true,
 			Expand = new List<string> { "data.default_price" },
+			Limit = 100, // without this we only get 10 latest products, which may not include referee fees
 		});
 
 		this.logger.LogInformation(0x62475602, "Retrieved {count} products from Stripe.", products.Count());
