@@ -35,6 +35,8 @@ public partial class CertificationPaymentsService : PaymentsService<Certificatio
 		// TODO: make another smaller context for this check
 		var referee = await this.refereeContextAccessor.GetRefereeTestContextForCurrentUserAsync();
 
+		this.logger.LogInformation(-0x2a7092fb, "Referee has already paid for certifications: {certs}", string.Join(", ", referee.HeadCertificationsPaid));
+
 		ProductStatus HasPaidForCertification(Certification i)
 		{
 			if (referee.HeadCertificationsPaid.Contains(i.Version))

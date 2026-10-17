@@ -63,10 +63,14 @@ public abstract class PaymentsService<TItem> : IPaymentsService<TItem> where TIt
 			Expand = new List<string> { "data.default_price" },
 		});
 
+		this.logger.LogInformation(0x62475602, "Retrieved {count} products from Stripe.", products.Count());
+
 		var productWithItem = products.Select(p => (product: p, item: this.ItemOfProduct(p)))
 			.Where(pp => pp.item != null)
 			.Cast<(Product product, TItem item)>()
 			.ToDictionary(pp => pp.product, pp => pp.item);
+
+		this.logger.LogInformation(0x62475603, "Products considered before eligibility check ({count}): {products}", productWithItem.Count, string.Join(", ", productWithItem.Values.Select(v => v.ToString())));
 
 		var itemWithStatus = await this.CanPurchaseItemsAsync(productWithItem.Values);
 
