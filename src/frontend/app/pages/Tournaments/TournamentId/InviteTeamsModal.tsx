@@ -4,7 +4,6 @@ import React from "react";
 import {
   useGetNgbTeamsQuery,
   useGetNgbsQuery,
-  useGetEligibleNgbsQuery,
   useCreateInviteMutation,
   useGetTournamentInvitesQuery,
   useGetParticipantsQuery,
