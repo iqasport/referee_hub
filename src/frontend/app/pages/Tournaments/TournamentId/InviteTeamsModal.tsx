@@ -12,6 +12,7 @@ import {
   TournamentType,
   TournamentViewModel,
 } from "../../../store/serviceApi";
+import { useGetEligibleNgbsQuery } from "../../../store/useEligibleNgbs";
 import CustomAlert from "../../../components/CustomAlert";
 import { useAlert } from "../../../hooks/useAlert";
 import {
