@@ -1,9 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ManagementHub.Storage.Database;
 
@@ -15,9 +19,15 @@ namespace ManagementHub.Storage.Database;
 /// </remarks>
 public class EnsureDatabaseMigratedService : DatabaseStartupService
 {
-	public EnsureDatabaseMigratedService(IServiceProvider serviceProvider, ILogger<EnsureDatabaseCreatedService> logger)
+	private readonly IXmlEncryptor? xmlEncryptor;
+
+	public EnsureDatabaseMigratedService(
+		IServiceProvider serviceProvider,
+		IOptions<KeyManagementOptions> keyManagementOptions,
+		ILogger<EnsureDatabaseCreatedService> logger)
 		: base(serviceProvider, logger)
 	{
+		this.xmlEncryptor = keyManagementOptions.Value.XmlEncryptor;
 	}
 
 	// IMPORTANT: This method must execute synchronously in order to block startup until migrations are applied
@@ -41,12 +51,37 @@ public class EnsureDatabaseMigratedService : DatabaseStartupService
 				this.logger.LogInformation(0x5225da03, "Database already up to date.");
 			}
 
+			this.ProtectPersistedDataProtectionKeys(dbContext);
+
 			return Task.CompletedTask;
 		}
 		catch (Exception ex)
 		{
 			this.logger.LogError(0x5225da04, ex, "Error while applying database migrations.");
 			throw;
+		}
+	}
+
+	private void ProtectPersistedDataProtectionKeys(ManagementHubDbContext dbContext)
+	{
+		if (this.xmlEncryptor == null)
+		{
+			return;
+		}
+
+		var updatedCount = 0;
+		foreach (var key in dbContext.DataProtectionKeys.ToList())
+		{
+			if (DataProtectionKeyXmlProtector.Protect(key, this.xmlEncryptor))
+			{
+				updatedCount++;
+			}
+		}
+
+		if (updatedCount > 0)
+		{
+			dbContext.SaveChanges();
+			this.logger.LogInformation(0x5225da05, "Encrypted {UpdatedCount} persisted Data Protection keys.", updatedCount);
 		}
 	}
 }

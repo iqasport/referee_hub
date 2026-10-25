@@ -279,12 +279,12 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Volunteer Registration
                   </label>
-                
+
                   <div className="flex items-center justify-end">
                     <span className="mr-3 text-sm text-gray-600">
                       {formData.isVolunteerRegistrationOpen ? "Open" : "Closed"}
                     </span>
-                
+
                     <Toggle
                       name="isVolunteerRegistrationOpen"
                       checked={formData.isVolunteerRegistrationOpen ?? true}
@@ -296,7 +296,7 @@ const AddTournamentModal = forwardRef<AddTournamentModalRef>((_props, ref) => {
                       }
                     />
                   </div>
-                
+
                   <p className="mt-2 text-xs text-gray-500 text-right">
                     Allow referees and volunteers to register for this tournament
                   </p>

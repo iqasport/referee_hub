@@ -1,4 +1,4 @@
-﻿using ManagementHub.Models.Abstraction.Commands;
+using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.Ngb;
@@ -77,7 +77,7 @@ public class RefereesController : ControllerBase
 			.Distinct()
 			.ToArray();
 		var teamIdsWithInviteRecords = await this.GetTeamIdsWithInviteRecordAsync(requestedTeamIds, normalizedEmail);
-		
+
 		var shouldCreatePlayingTeamRequest = ShouldCreateTeamRequest(
 			requestedPlayingTeamId, currentPlayingTeamId, teamIdsWithInviteRecords);
 		var shouldCreateCoachingTeamRequest = ShouldCreateTeamRequest(

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using DotNetEd.CoreAdmin;
 using Excos.Options.Contextual;
@@ -93,7 +94,8 @@ public partial class Program
 	{
 		var settings = context.Configuration.GetSection("Services").Get<ServicesSettings>() ?? new ServicesSettings();
 
-		services.AddManagementHubStorage(settings.UseInMemoryDatabase, settings.SeedDatabaseWithTestData);
+		var dataProtectionCertificate = LoadDataProtectionCertificate(context.Configuration, context.HostingEnvironment.IsProduction());
+		services.AddManagementHubStorage(settings.UseInMemoryDatabase, settings.SeedDatabaseWithTestData, dataProtectionCertificate);
 		services.AddManagementHubBlobStorage(settings.UseLocalFilesystemBlobStorage);
 		services.AddManagementHubIdentity();
 
@@ -149,6 +151,39 @@ public partial class Program
 		services.ConfigureExcos<TestPolicyOverride>("TestPolicy");
 		services.ConfigureExcos<FeatureGates>("FeatureGates");
 		services.ConfigureExcosFeatures("Features");
+	}
+
+	private static X509Certificate2? LoadDataProtectionCertificate(IConfiguration configuration, bool requireCertificate)
+	{
+		var certificateValue = configuration["DataProtection:CertificatePfxBase64"];
+		var certificatePassword = configuration["DataProtection:CertificatePassword"];
+
+		if (string.IsNullOrWhiteSpace(certificateValue))
+		{
+			if (requireCertificate)
+			{
+				throw new InvalidOperationException("Production requires DataProtection:CertificatePfxBase64 and DataProtection:CertificatePassword.");
+			}
+
+			return null;
+		}
+
+		if (string.IsNullOrWhiteSpace(certificatePassword))
+		{
+			throw new InvalidOperationException("DataProtection:CertificatePassword must be configured when a Data Protection certificate is supplied.");
+		}
+
+		var certificate = new X509Certificate2(
+			Convert.FromBase64String(certificateValue),
+			certificatePassword,
+			X509KeyStorageFlags.EphemeralKeySet);
+		if (!certificate.HasPrivateKey)
+		{
+			certificate.Dispose();
+			throw new InvalidOperationException("The Data Protection certificate must include its private key.");
+		}
+
+		return certificate;
 	}
 
 	public static void ConfigureWebServices(WebHostBuilderContext context, IServiceCollection services)
