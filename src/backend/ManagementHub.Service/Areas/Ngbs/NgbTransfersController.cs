@@ -74,6 +74,17 @@ public class NgbTransfersController : ControllerBase
 		return this.ReviewTransferAsync(ngb, invitationId, IReviewNgbTransferCommand.ReviewDecision.Reject);
 	}
 
+	[HttpGet("~/api/v2/Ngbs/{ngb}/settings/transfers")]
+	public async Task<NgbTransferSettingsViewModel> GetNgbTransferSettings([FromRoute] NgbIdentifier ngb)
+	{
+		var ngbEntity = await this.GetAuthorizedNgbAsync(ngb);
+
+		return new NgbTransferSettingsViewModel
+		{
+			AutoApproveInternalTransfers = ngbEntity.AutoApproveInternalTransfers,
+		};
+	}
+
 	[HttpPut("~/api/v2/Ngbs/{ngb}/settings/transfers")]
 	public async Task<IActionResult> UpdateNgbTransferSettings(
 		[FromRoute] NgbIdentifier ngb,

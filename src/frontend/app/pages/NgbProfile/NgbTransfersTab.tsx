@@ -8,6 +8,7 @@ import {
   NgbTransferViewModel,
   TransferApprovalStatus,
   useApproveNgbTransferMutation,
+  useGetNgbTransferSettingsQuery,
   useGetNgbTransfersQuery,
   useRejectNgbTransferMutation,
   useUpdateNgbTransferSettingsMutation,
@@ -175,25 +176,17 @@ const NgbTransfersTab: React.FC<NgbTransfersTabProps> = ({ ngbId }) => {
     });
   }, [transfers]);
 
-  // Derive current auto-approve state from first record (all share same NGB setting).
-  // We don't have a direct GET for NGB settings yet, so we derive it optimistically.
-  const [autoApprove, setAutoApprove] = useState(false);
+  const { data: settings } = useGetNgbTransferSettingsQuery({ ngb: ngbId });
+  const autoApprove = settings?.autoApproveInternalTransfers ?? false;
 
   const handleSearch = (value: string) => {
     setFilter(value || undefined);
     setPage(1);
   };
 
-  const handleAutoApproveToggle = async (checked: boolean) => {
-    setAutoApprove(checked);
-    try {
-      await updateSettings({
-        ngb: ngbId,
-        body: { autoApproveInternalTransfers: checked },
-      }).unwrap();
-    } catch {
-      setAutoApprove(!checked); // revert on error
-    }
+  const handleAutoApproveToggle = (checked: boolean) => {
+    // Cache is updated optimistically and reverted on failure by the mutation itself.
+    updateSettings({ ngb: ngbId, body: { autoApproveInternalTransfers: checked } });
   };
 
   if (isLoading) {

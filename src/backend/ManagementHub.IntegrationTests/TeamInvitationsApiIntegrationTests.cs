@@ -157,6 +157,27 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 	}
 
 	[Fact]
+	public async Task GetNgbTransferSettings_ShouldReturnPersistedAutoApproveValue()
+	{
+		try
+		{
+			await this.SetNgbAutoApproveInternalTransfersAsync(true);
+
+			var enabled = await this.client.GetFromJsonAsync<NgbTransferSettingsViewModel>("/api/v2/Ngbs/USA/settings/transfers");
+			enabled!.AutoApproveInternalTransfers.Should().BeTrue();
+
+			await this.SetNgbAutoApproveInternalTransfersAsync(false);
+
+			var disabled = await this.client.GetFromJsonAsync<NgbTransferSettingsViewModel>("/api/v2/Ngbs/USA/settings/transfers");
+			disabled!.AutoApproveInternalTransfers.Should().BeFalse();
+		}
+		finally
+		{
+			await this.SetNgbAutoApproveInternalTransfersAsync(false);
+		}
+	}
+
+	[Fact]
 	public async Task GetNgbTransfers_WithPagination_ShouldReturnDistinctPagesAndMetadata()
 	{
 		using (var scope = this.factory.Services.CreateScope())
