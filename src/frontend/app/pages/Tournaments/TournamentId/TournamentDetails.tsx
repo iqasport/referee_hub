@@ -175,9 +175,8 @@ const ManagerSidebar = ({
   </>
 );
 
-type UserSidebarProps = {
+type TeamRegistrationCardsProps = {
   isRegistrationClosed: boolean;
-  isVolunteerRegistrationOpen: boolean;
   pendingInvitesForUser: TournamentInviteViewModel[];
   approvedTeamsForUser: TeamSummary[];
   respondingTo: string | null;
@@ -187,22 +186,18 @@ type UserSidebarProps = {
   ) => void;
   onScrollToRosters: () => void;
   onOpenRegister: () => void;
-  onOpenContactOrganizer: () => void;
-  onOpenVolunteerForm: () => void;
 };
 
-const UserSidebar = ({
+// Team invites and registration cards, shown to regular users and to tournament managers who also manage teams.
+const TeamRegistrationCards = ({
   isRegistrationClosed,
-  isVolunteerRegistrationOpen,
   pendingInvitesForUser,
   approvedTeamsForUser,
   respondingTo,
   onRespondToInvite,
   onScrollToRosters,
   onOpenRegister,
-  onOpenContactOrganizer,
-  onOpenVolunteerForm,
-}: UserSidebarProps) => (
+}: TeamRegistrationCardsProps) => (
   <>
     {pendingInvitesForUser.length > 0 && (
       <div className="card card-highlighted card-mb">
@@ -304,6 +299,23 @@ const UserSidebar = ({
         </>
       )}
     </div>
+  </>
+);
+
+type UserSidebarProps = TeamRegistrationCardsProps & {
+  isVolunteerRegistrationOpen: boolean;
+  onOpenContactOrganizer: () => void;
+  onOpenVolunteerForm: () => void;
+};
+
+const UserSidebar = ({
+  isVolunteerRegistrationOpen,
+  onOpenContactOrganizer,
+  onOpenVolunteerForm,
+  ...registrationProps
+}: UserSidebarProps) => (
+  <>
+    <TeamRegistrationCards {...registrationProps} />
 
     {isVolunteerRegistrationOpen && (
       <div className="card card-mb">
@@ -348,6 +360,7 @@ type TournamentDetailsContentProps = {
   hideAlert: () => void;
   tournament: any;
   isManager: boolean;
+  hasManagedTeams: boolean;
   formattedDateRange: string;
   invites?: TournamentInviteViewModel[];
   totalPlayerCount: number;
@@ -379,6 +392,7 @@ const TournamentDetailsContent = ({
   hideAlert,
   tournament,
   isManager,
+  hasManagedTeams,
   formattedDateRange,
   invites,
   totalPlayerCount,
@@ -439,17 +453,32 @@ const TournamentDetailsContent = ({
 
           <div>
             {isManager ? (
-              <ManagerSidebar
-                tournament={tournament}
-                invites={invites}
-                totalPlayerCount={totalPlayerCount}
-                onEdit={onEdit}
-                onOpenRegistrations={onOpenRegistrations}
-                onOpenVolunteerReview={onOpenVolunteerReview}
-                onOpenInviteTeams={onOpenInviteTeams}
-                onOpenAddManager={onOpenAddManager}
-                onDelete={onDelete}
-              />
+              <>
+                <ManagerSidebar
+                  tournament={tournament}
+                  invites={invites}
+                  totalPlayerCount={totalPlayerCount}
+                  onEdit={onEdit}
+                  onOpenRegistrations={onOpenRegistrations}
+                  onOpenVolunteerReview={onOpenVolunteerReview}
+                  onOpenInviteTeams={onOpenInviteTeams}
+                  onOpenAddManager={onOpenAddManager}
+                  onDelete={onDelete}
+                />
+                {hasManagedTeams && (
+                  <div className="mt-4">
+                    <TeamRegistrationCards
+                      isRegistrationClosed={isRegistrationClosed}
+                      pendingInvitesForUser={pendingInvitesForUser}
+                      approvedTeamsForUser={approvedTeamsForUser}
+                      respondingTo={respondingTo}
+                      onRespondToInvite={onRespondToInvite}
+                      onScrollToRosters={onScrollToRosters}
+                      onOpenRegister={onOpenRegister}
+                    />
+                  </div>
+                )}
+              </>
             ) : (
               <UserSidebar
                 isRegistrationClosed={isRegistrationClosed}
@@ -902,6 +931,7 @@ const TournamentDetails = () => {
         hideAlert={hideAlert}
         tournament={tournament}
         isManager={isManager}
+        hasManagedTeams={managedTeamIds.size > 0}
         formattedDateRange={formattedDateRange}
         invites={invites}
         totalPlayerCount={totalPlayerCount}
