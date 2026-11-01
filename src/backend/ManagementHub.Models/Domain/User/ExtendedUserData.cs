@@ -13,6 +13,11 @@ public class ExtendedUserData : UserData
 	}
 
 	/// <summary>
+	/// Unique handle of the user (lowercase). Null when not yet assigned.
+	/// </summary>
+	public string? Username { get; set; }
+
+	/// <summary>
 	/// Short bio of the user.
 	/// </summary>
 	public string Bio { get; set; } = string.Empty;

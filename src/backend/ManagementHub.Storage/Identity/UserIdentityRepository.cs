@@ -7,6 +7,7 @@ using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Storage.Commands;
+using ManagementHub.Storage.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
@@ -42,6 +43,9 @@ public class UserIdentityRepository : IUserIdentityRepository
 			User = dbUser,
 		});
 
+		await this.dbContext.SaveChangesAsync(cancellationToken);
+
+		dbUser.Username = await this.dbContext.Users.FindAvailableUsernameAsync(UsernameRules.FallbackFor(dbUser.Id), dbUser.Id, cancellationToken);
 		await this.dbContext.SaveChangesAsync(cancellationToken);
 	}
 

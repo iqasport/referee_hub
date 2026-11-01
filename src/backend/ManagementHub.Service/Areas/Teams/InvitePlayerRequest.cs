@@ -8,9 +8,8 @@ namespace ManagementHub.Service.Areas.Teams;
 public class InvitePlayerRequest
 {
 	/// <summary>
-	/// Email address of the player to invite.
+	/// Email address or username of the player to invite.
 	/// </summary>
 	[Required]
-	[EmailAddress]
 	public required string Email { get; set; }
 }

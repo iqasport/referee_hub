@@ -606,8 +606,14 @@ public class TeamsController : ControllerBase
 			}
 		}
 
-		// Parse and validate email
-		if (!Email.TryParse(request.Email, out var email))
+		// Resolve username (if given) and validate email
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(request.Email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			return this.BadRequest("No user found with that username");
+		}
+
+		if (!Email.TryParse(resolvedEmail ?? string.Empty, out var email))
 		{
 			return this.BadRequest("Invalid email address");
 		}
@@ -670,7 +676,13 @@ public class TeamsController : ControllerBase
 			return this.Forbid();
 		}
 
-		if (!TryNormalizeInviteEmail(request?.Email, out var normalizedEmail))
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(request?.Email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			return this.BadRequest("No user found with that username");
+		}
+
+		if (!TryNormalizeInviteEmail(resolvedEmail, out var normalizedEmail))
 		{
 			return this.BadRequest("Invalid email address");
 		}

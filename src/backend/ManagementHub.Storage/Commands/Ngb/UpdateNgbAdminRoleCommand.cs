@@ -52,6 +52,8 @@ public class UpdateNgbAdminRoleCommand : IUpdateNgbAdminRoleCommand
 			};
 			this.dbContext.Users.Add(dbUser);
 			await this.dbContext.SaveChangesAsync();
+			dbUser.Username = await this.dbContext.Users.FindAvailableUsernameAsync(UsernameRules.FallbackFor(dbUser.Id), dbUser.Id, default);
+			await this.dbContext.SaveChangesAsync();
 			user = new { dbUser.Id, dbUser.UniqueId };
 			userCreated = true;
 		}

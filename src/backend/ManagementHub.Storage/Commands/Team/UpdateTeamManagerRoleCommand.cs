@@ -64,6 +64,8 @@ public class UpdateTeamManagerRoleCommand : IUpdateTeamManagerRoleCommand
 				};
 				this.dbContext.Users.Add(user);
 				await this.dbContext.SaveChangesAsync();
+				user.Username = await this.dbContext.Users.FindAvailableUsernameAsync(UsernameRules.FallbackFor(user.Id), user.Id, default);
+				await this.dbContext.SaveChangesAsync();
 				userCreated = true;
 
 				this.logger.LogInformation("User created with ID {UserId}", user.Id);

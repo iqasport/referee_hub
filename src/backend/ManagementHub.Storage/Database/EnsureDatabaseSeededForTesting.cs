@@ -132,6 +132,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 				EncryptedPassword = passwordHash,
 				FirstName = "Dev",
 				LastName = $"Referee{i:D4}",
+				Username = $"dev.referee{i:D4}",
 			});
 		}
 
@@ -791,6 +792,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$zEL0W9EagvALrxHLEQwH7eaCxJl45ewy7SfzQ140Zf1vWgL0IyCDm", // "password"
 			FirstName = "Jimmy",
 			LastName = "Referee",
+			Username = "jimmy.referee",
 		};
 
 		var ngbAdmin = new User
@@ -800,6 +802,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$XsCgv0LdJ74WK7N0LBknSOHeb64FXsazAcV1.9PJzNmTra./nWWYm", // "password"
 			FirstName = "Jason",
 			LastName = "NgbAdmin",
+			Username = "jason.ngbadmin",
 		};
 
 		var iqaAdmin = new User
@@ -809,6 +812,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = "Jonathan",
 			LastName = "IqaAdmin",
+			Username = "jonathan.iqaadmin",
 		};
 
 		var testAdmin = new User
@@ -818,6 +822,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = "Taylor",
 			LastName = "Translator",
+			Username = "taylor.translator",
 		};
 
 		var refereeWithEmptyName = new User
@@ -827,6 +832,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = null,
 			LastName = null,
+			Username = "empty.user",
 			UniqueId = "U_abcdefghijklmnopqrstuvwxyy"
 		};
 
@@ -837,6 +843,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = "Tom",
 			LastName = "TeamManager",
+			Username = "tom.teammanager",
 		};
 
 		var playerSarah = new User
@@ -846,6 +853,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = "Sarah",
 			LastName = "Player",
+			Username = "sarah.player",
 		};
 
 		var coachMike = new User
@@ -855,6 +863,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = "Mike",
 			LastName = "Coach",
+			Username = "mike.coach",
 		};
 
 		var recertTestReferee = new User
@@ -864,6 +873,7 @@ public class EnsureDatabaseSeededForTesting : DatabaseStartupService
 			EncryptedPassword = "$2a$11$YURdUdxxppPle1z32ZExtu8Jk7lXJxpcckfOtpznfw3VT2zsZmzne", // "password"
 			FirstName = "Recert",
 			LastName = "TestReferee",
+			Username = "recert.testreferee",
 		};
 
 		dbContext.Users.AddRange(referee, ngbAdmin, iqaAdmin, testAdmin, refereeWithEmptyName, teamManager, playerSarah, coachMike, recertTestReferee);

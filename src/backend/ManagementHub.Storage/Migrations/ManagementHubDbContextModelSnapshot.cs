@@ -2104,6 +2104,10 @@ namespace ManagementHub.Storage.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("Username")
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("username");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LanguageId");
@@ -2127,6 +2131,9 @@ namespace ManagementHub.Storage.Migrations
                         .IsUnique();
 
                     b.HasIndex(new[] { "UnlockToken" }, "index_users_on_unlock_token")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Username" }, "index_users_on_username")
                         .IsUnique();
 
                     b.ToTable("users", (string)null);

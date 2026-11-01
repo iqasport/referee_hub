@@ -196,7 +196,7 @@ public class TeamManagersApiIntegrationTests : IClassFixture<TestWebApplicationF
 
 		var newManager = new TeamManagerCreationModelDto
 		{
-			Email = "invalid-email", // Invalid email format
+			Email = "invalid@email", // Invalid email format
 			CreateAccountIfNotExists = false
 		};
 
@@ -300,7 +300,7 @@ public class TeamManagersApiIntegrationTests : IClassFixture<TestWebApplicationF
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "ngb_admin@example.com", "password");
 
 		// Act: Try to delete with invalid email
-		var response = await this._client.DeleteAsync("/api/v2/Ngbs/USA/teams/TM_1/managers?email=invalid-email");
+		var response = await this._client.DeleteAsync("/api/v2/Ngbs/USA/teams/TM_1/managers?email=invalid%40email");
 
 		// Assert: Should return bad request
 		response.StatusCode.Should().Be(HttpStatusCode.BadRequest,

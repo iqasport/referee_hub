@@ -57,6 +57,7 @@ public class DbUserDataContextFactory
 			.Include(u => u.Language)
 			.Select(user => new ExtendedUserData(new Email(user.Email), user.FirstName ?? string.Empty, user.LastName ?? string.Empty)
 			{
+				Username = user.Username,
 				Bio = user.Bio ?? string.Empty,
 				ExportName = user.ExportName ?? true,
 				Pronouns = user.Pronouns ?? string.Empty,

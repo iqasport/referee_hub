@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -9,6 +10,7 @@ using ManagementHub.Models.Data;
 using ManagementHub.Models.Domain.General;
 using ManagementHub.Models.Domain.Language;
 using ManagementHub.Models.Domain.User;
+using ManagementHub.Models.Exceptions;
 using ManagementHub.Storage.Contexts.User;
 using ManagementHub.Storage.Database.Transactions;
 using ManagementHub.Storage.Extensions;
@@ -54,9 +56,45 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 
 		var newUserData = updater(userData);
 
-		const int numberOfPropertiesOfExtendedUserData = 8;
+		const int numberOfPropertiesOfExtendedUserData = 9;
 		var propertySetters = new List<Expr>(capacity: numberOfPropertiesOfExtendedUserData);
 		var propertyNames = new List<string>(capacity: numberOfPropertiesOfExtendedUserData);
+
+		var namesChanged = !string.Equals(newUserData.FirstName, userData.FirstName, StringComparison.InvariantCulture)
+			|| !string.Equals(newUserData.LastName, userData.LastName, StringComparison.InvariantCulture);
+		var requestedUsername = newUserData.Username == null ? null : UsernameRules.Normalize(newUserData.Username);
+		if (requestedUsername != null && !string.Equals(requestedUsername, userData.Username, StringComparison.Ordinal))
+		{
+			if (!UsernameRules.IsValid(requestedUsername))
+			{
+				throw new ArgumentException($"'{requestedUsername}' is not a valid username.");
+			}
+
+			var isTaken = await this.users.AsNoTracking()
+				.Where(u => u.Username == requestedUsername)
+				.AnyAsync(cancellationToken);
+			if (isTaken)
+			{
+				throw new UsernameTakenException(requestedUsername);
+			}
+
+			propertyNames.Add(nameof(newUserData.Username));
+			propertySetters.Add(s => s.SetProperty(u => u.Username, requestedUsername));
+		}
+		else if (namesChanged || userData.Username == null)
+		{
+			// keep the auto-generated default username in sync with the user's names until they pick their own
+			var userDbId = await this.users.AsNoTracking().WithIdentifier(userId).Select(u => u.Id).SingleAsync(cancellationToken);
+			if (userData.Username == null || userData.Username == UsernameRules.FallbackFor(userDbId))
+			{
+				var generated = await this.users.GenerateDefaultUsernameAsync(userDbId, newUserData.FirstName, newUserData.LastName, cancellationToken);
+				if (!string.Equals(generated, userData.Username, StringComparison.Ordinal))
+				{
+					propertyNames.Add(nameof(newUserData.Username));
+					propertySetters.Add(s => s.SetProperty(u => u.Username, generated));
+				}
+			}
+		}
 
 		if (!string.Equals(newUserData.FirstName, userData.FirstName, StringComparison.InvariantCulture))
 		{
@@ -128,7 +166,17 @@ public class UpdateUserDataCommand : IUpdateUserDataCommand
 		{
 			this.logger.LogInformation(0xe860101, "Updating user data for ({userId}) on properties: {propertyNames}.", userId, string.Join(", ", propertyNames));
 
-			var result = await this.users.AsNoTracking().WithIdentifier(userId).ExecuteUpdateAsync(propertySetters, cancellationToken);
+			int result;
+			try
+			{
+				result = await this.users.AsNoTracking().WithIdentifier(userId).ExecuteUpdateAsync(propertySetters, cancellationToken);
+			}
+			catch (DbException ex) when (ex.SqlState == "23505" && propertyNames.Contains(nameof(newUserData.Username)))
+			{
+				// unique index violation - another user claimed the username concurrently
+				throw new UsernameTakenException(requestedUsername ?? string.Empty);
+			}
+
 			Debug.Assert(result == 1); // only one row of the specific user should have been updated.
 
 			await transaction.CommitAsync(cancellationToken);

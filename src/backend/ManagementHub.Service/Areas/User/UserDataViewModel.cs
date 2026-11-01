@@ -19,6 +19,7 @@ public class UserDataViewModel
 	{
 		this.FirstName = userDataContext.ExtendedUserData.FirstName;
 		this.LastName = userDataContext.ExtendedUserData.LastName;
+		this.Username = userDataContext.ExtendedUserData.Username;
 		this.Bio = userDataContext.ExtendedUserData.Bio;
 		this.ShowPronouns = userDataContext.ExtendedUserData.ShowPronouns;
 		if (isCurrentUser || this.ShowPronouns == true)
@@ -32,6 +33,11 @@ public class UserDataViewModel
 
 	public string? FirstName { get; set; }
 	public string? LastName { get; set; }
+
+	/// <summary>
+	/// Unique handle of the user. When updating, null leaves the username unchanged.
+	/// </summary>
+	public string? Username { get; set; }
 	public string? Bio { get; set; }
 	public string? Pronouns { get; set; }
 	public bool? ShowPronouns { get; set; }

@@ -252,9 +252,10 @@ const PendingRequestsSection: React.FC<PendingRequestsSectionProps> = ({
         <h2 className="text-2xl font-semibold">Pending Requests</h2>
         <div className="flex gap-2 w-full max-w-lg">
           <input
-            type="email"
+            type="text"
             className="flex-1 px-3 py-2 border border-gray-300 rounded"
-            placeholder="player@example.com"
+            placeholder="player@example.com or username"
+            aria-label="Player email or username"
             value={inviteEmail}
             onChange={(event) => setInviteEmail(event.target.value)}
           />

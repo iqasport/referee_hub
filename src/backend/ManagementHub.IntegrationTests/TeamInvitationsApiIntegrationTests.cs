@@ -110,6 +110,37 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 	}
 
 	[Fact]
+	public async Task InvitePlayer_ByUsername_ShouldCreatePendingInviteForUserEmail()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "team_manager@example.com", "password");
+
+		var response = await this.client.PostAsJsonAsync("/api/v2/Teams/TM_1/invites", new
+		{
+			Email = "recert.testreferee"
+		});
+
+		response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+		var invite = await response.Content.ReadFromJsonAsync<TeamInvitationViewModelDto>();
+		invite!.Email.Should().Be("recert.test@example.com", "the username should be resolved to the user's email");
+
+		await this.RevokePendingTeamInvitesAsync("TM_1", "recert.test@example.com");
+	}
+
+	[Fact]
+	public async Task InvitePlayer_WithUnknownUsername_ShouldReturnBadRequest()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "team_manager@example.com", "password");
+
+		var response = await this.client.PostAsJsonAsync("/api/v2/Teams/TM_1/invites", new
+		{
+			Email = "no.such.username"
+		});
+
+		response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+	}
+
+	[Fact]
 	public async Task InvitePlayer_ForExistingMember_ShouldReturnBadRequest()
 	{
 		await AuthenticationHelper.AuthenticateAsAsync(this.client, "team_manager@example.com", "password");
