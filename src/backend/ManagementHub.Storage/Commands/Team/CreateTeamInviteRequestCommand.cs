@@ -71,6 +71,10 @@ public class CreateTeamInviteRequestCommand : ICreateTeamInviteRequestCommand
 
 		// Determine origin team: current membership OR most recent PlayerRemoved activity.
 		var originTeamId = await this.ResolveOriginTeamIdAsync(currentUserDbId, cancellationToken);
+		if (originTeamId == teamId.Id)
+		{
+			originTeamId = null;
+		}
 
 		// Determine if internal transfer (both teams share the same NGB).
 		bool? isInternalTransfer = null;
