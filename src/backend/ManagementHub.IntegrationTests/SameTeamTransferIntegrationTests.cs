@@ -127,12 +127,13 @@ public class SameTeamTransferIntegrationTests : IClassFixture<TestWebApplication
 		var destination = await db.Teams.SingleAsync(team => team.Name == "BA Jacks");
 		var ngb = await db.NationalGoverningBodies.SingleAsync(item => item.CountryCode == "USA");
 		var createdAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-		var invitations = new[] { (long?)origin.Id, destination.Id, null }.Select(originId => new TeamInvitation
+		var fixtureId = Guid.NewGuid().ToString("N");
+		var invitations = new[] { (long?)origin.Id, destination.Id, null }.Select((originId, index) => new TeamInvitation
 		{
 			TeamId = origin.Id,
 			OriginTeamId = originId,
 			IsInternalTransfer = originId.HasValue ? true : null,
-			Email = player.Email,
+			Email = $"same-team-cleanup-{fixtureId}-{index}@example.test",
 			InitiatorUserId = player.Id,
 			CreatedAt = createdAt,
 			AcceptedAt = completed ? createdAt : null,
