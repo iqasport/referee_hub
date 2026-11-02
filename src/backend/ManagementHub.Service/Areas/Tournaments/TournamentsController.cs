@@ -1289,7 +1289,13 @@ public class TournamentsController : ControllerBase
 					entry.User.Pronouns,
 					Certifications = entry.User.RefereeCertifications
 						.Where(rc => rc.ReceivedAt != null && rc.RevokedAt == null)
-						.OrderByDescending(rc => rc.Certification.Level)
+						.OrderByDescending(rc => rc.Certification.Version.HasValue)
+						.ThenByDescending(rc => rc.Certification.Version)
+						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Field)
+						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Head)
+						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Flag)
+						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Assistant)
+						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.FlagRunner)
 						.ThenByDescending(rc => rc.ReceivedAt)
 						.Select(rc => new
 						{
@@ -1336,7 +1342,7 @@ public class TournamentsController : ControllerBase
 
 			var gender = genderData.ContainsKey(userId) ? genderData[userId] : null;
 
-			// Get the highest certification
+			// Get the highest certification from the user's newest release.
 			var highestCert = entry.User.Certifications.FirstOrDefault();
 
 			return new RosterEntryViewModel
@@ -1470,6 +1476,4 @@ public class TournamentsController : ControllerBase
 		};
 	}
 }
-
-
 
