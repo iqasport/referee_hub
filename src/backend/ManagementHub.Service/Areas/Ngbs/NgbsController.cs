@@ -531,17 +531,7 @@ public class NgbsController : ControllerBase
 		var result = await this.updateTeamManagerRoleCommand.AddTeamManagerRoleAsync(
 			teamId, email, managerModel.CreateAccountIfNotExists, userContext.UserId);
 
-		if (result is IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole)
-		{
-			var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
-			if (userId.HasValue)
-			{
-				await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
-					userId.Value,
-					teamId,
-					cancellationToken: this.HttpContext.RequestAborted);
-			}
-		}
+		await this.NotifyTeamManagerAssignmentAsync(teamId, email, result);
 
 		return result switch
 		{
@@ -553,6 +543,26 @@ public class NgbsController : ControllerBase
 				TeamManagerCreationStatus.ManagerUserCreated,
 			_ => throw new InvalidOperationException($"Unexpected result {result}")
 		};
+	}
+
+	private async Task NotifyTeamManagerAssignmentAsync(
+		TeamIdentifier teamId,
+		Email email,
+		IUpdateTeamManagerRoleCommand.AddRoleResult result)
+	{
+		if (result is not (IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole))
+		{
+			return;
+		}
+
+		var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
+		if (userId.HasValue)
+		{
+			await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
+				userId.Value,
+				teamId,
+				cancellationToken: this.HttpContext.RequestAborted);
+		}
 	}
 
 	private async Task<UserIdentifier?> GetUserIdentifierByEmailAsync(Email email, CancellationToken cancellationToken)
