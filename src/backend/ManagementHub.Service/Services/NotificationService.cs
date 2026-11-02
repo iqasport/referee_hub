@@ -52,18 +52,25 @@ public class NotificationService : INotificationService
 			"Ngb",
 			cancellationToken: cancellationToken);
 
-	public Task<NotificationEntity> CreateTeamManagerAssignmentNotificationAsync(
+	public async Task<NotificationEntity> CreateTeamManagerAssignmentNotificationAsync(
 		UserIdentifier userId,
 		TeamIdentifier teamId,
-		CancellationToken cancellationToken = default) =>
-		this.CreateNotificationCoreAsync(
+		CancellationToken cancellationToken = default)
+	{
+		var teamName = await this.dbContext.Teams
+			.WithIdentifier(teamId)
+			.Select(team => team.Name)
+			.SingleAsync(cancellationToken);
+
+		return await this.CreateNotificationCoreAsync(
 			userId,
 			NotificationType.ManagerAssignment,
 			"You were added as team manager",
-			$"You can now manage team {teamId}.",
+			$"You can now manage team {teamName}.",
 			teamId.ToString(),
 			"Team",
 			cancellationToken: cancellationToken);
+	}
 
 	public Task<NotificationEntity> CreateTeamInviteNotificationForPlayerAsync(
 		UserIdentifier userId,
