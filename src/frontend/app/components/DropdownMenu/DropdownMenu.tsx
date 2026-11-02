@@ -29,13 +29,10 @@ const DropdownMenu = (props: DropdownMenuProps) => {
       const href = createHref(item.href);
 
       return (
-        <li
-          key={item.content}
-          className="block px-4 py-2 text-black hover:bg-gray-300 text-left"
-        >
+        <li key={item.content}>
           <a
             href={href}
-            className="appearance-none"
+            className="appearance-none block w-full px-4 py-2 text-black hover:bg-gray-300 text-left"
             onClick={(e) => {
               if (!e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
@@ -51,12 +48,12 @@ const DropdownMenu = (props: DropdownMenuProps) => {
     }
 
     return (
-      <li
-        key={item.content}
-        className="block px-4 py-2 text-black hover:bg-gray-300 text-left"
-        onClick={handleClick}
-      >
-        <button type="button" className="appearance-none" onClick={handleClick}>
+      <li key={item.content}>
+        <button
+          type="button"
+          className="appearance-none block w-full px-4 py-2 text-black hover:bg-gray-300 text-left"
+          onClick={handleClick}
+        >
           {item.content}
         </button>
       </li>
