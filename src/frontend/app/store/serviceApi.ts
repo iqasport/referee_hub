@@ -2267,7 +2267,7 @@ export const useGetEligibleNgbsQuery = (
     ...result,
     data:
       result.data?.items
-        ?.map((ngb: { ngbId?: string }) => ngb.ngbId)
+        ?.map((ngb: { countryCode?: string | null }) => ngb.countryCode)
         .filter((id: string | undefined): id is string => typeof id === "string") ?? [],
   };
 };
