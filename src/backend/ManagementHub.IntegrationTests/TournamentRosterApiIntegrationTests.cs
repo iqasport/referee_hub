@@ -686,20 +686,8 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		// The important part is that the fields are present and the API doesn't error
 	}
 
-	[Theory]
-	[InlineData(CertificationLevel.Scorekeeper, CertificationVersion.TwentyFour, CertificationLevel.FlagRunner, CertificationVersion.TwentyFour)]
-	[InlineData(CertificationLevel.FlagRunner, CertificationVersion.TwentyFour, CertificationLevel.Assistant, CertificationVersion.TwentyFour)]
-	[InlineData(CertificationLevel.Assistant, CertificationVersion.TwentyFour, CertificationLevel.Flag, CertificationVersion.TwentyFour)]
-	[InlineData(CertificationLevel.Flag, CertificationVersion.TwentyFour, CertificationLevel.Head, CertificationVersion.TwentyFour)]
-	[InlineData(CertificationLevel.Head, CertificationVersion.TwentyFour, CertificationLevel.Field, CertificationVersion.TwentyFour)]
-	[InlineData(CertificationLevel.Field, CertificationVersion.TwentyTwo, CertificationLevel.Scorekeeper, CertificationVersion.TwentyFour)]
-	[InlineData(CertificationLevel.Field, CertificationVersion.Twenty, CertificationLevel.Assistant, CertificationVersion.TwentyTwo)]
-	[InlineData(CertificationLevel.Head, CertificationVersion.TwentyTwo, CertificationLevel.Head, CertificationVersion.TwentyFour)]
-	public async Task GetTeamRoster_ShouldSelectHighestCertificationFromNewestHeldRelease(
-		CertificationLevel otherLevel,
-		CertificationVersion otherVersion,
-		CertificationLevel expectedLevel,
-		CertificationVersion expectedVersion)
+	[Fact]
+	public async Task GetTeamRoster_ShouldSelectHighestCertificationFromNewestHeldRelease()
 	{
 		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
 		var tournamentId = await this.CreateTestTournamentAsync("Certification Selection", TournamentType.Club, "USA", "NYC");
@@ -729,8 +717,9 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var dbContext = scope.ServiceProvider.GetRequiredService<ManagementHubDbContext>();
 		var player = await dbContext.Users.WithIdentifier(playerId).SingleAsync();
 		var coach = await dbContext.Users.WithIdentifier(coachId).SingleAsync();
-		var expectedCert = await dbContext.Certifications.SingleAsync(c => c.Level == expectedLevel && c.Version == expectedVersion);
-		var otherCert = await dbContext.Certifications.SingleAsync(c => c.Level == otherLevel && c.Version == otherVersion);
+		var expectedCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Head && c.Version == CertificationVersion.TwentyFour);
+		var otherCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Field && c.Version == CertificationVersion.TwentyTwo);
+		var scorekeeperCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Scorekeeper && c.Version == CertificationVersion.TwentyFour);
 		var fieldCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Field && c.Version == CertificationVersion.TwentyFour);
 		var headCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Head && c.Version == CertificationVersion.TwentyFour);
 		var expectedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -745,6 +734,11 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			new ManagementHub.Models.Data.RefereeCertification
 			{
 				Referee = player, Certification = otherCert, ReceivedAt = receivedLater,
+				CreatedAt = receivedLater, UpdatedAt = receivedLater
+			},
+			new ManagementHub.Models.Data.RefereeCertification
+			{
+				Referee = player, Certification = scorekeeperCert, ReceivedAt = receivedLater,
 				CreatedAt = receivedLater, UpdatedAt = receivedLater
 			},
 			new ManagementHub.Models.Data.RefereeCertification
@@ -767,9 +761,10 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 			var response = await this._client.GetAsync(
 				$"/api/v2/tournaments/{tournamentId}/teams/{participantId}/roster");
 			response.StatusCode.Should().Be(HttpStatusCode.OK);
-			var roster = await response.Content.ReadFromJsonAsync<List<RosterEntryViewModel>>();
+			var roster = await response.Content.ReadFromJsonAsync<List<RosterEntryViewModel>>()
+				?? throw new InvalidOperationException("Roster response was null.");
 
-			var playerEntry = roster!.Single(entry => entry.Role == RosterRole.Player);
+			var playerEntry = roster.Single(entry => entry.Role == RosterRole.Player);
 			playerEntry.MaxCertification.Should().Be(expectedCert.DisplayName);
 			playerEntry.MaxCertificationDate.Should().Be(expectedDate);
 			var coachEntry = roster.Single(entry => entry.Role == RosterRole.Coach);

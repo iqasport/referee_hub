@@ -1269,6 +1269,7 @@ public class TournamentsController : ControllerBase
 		[FromRoute] TeamIdentifier teamId)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var rosterCertifications = this.dbContext.RefereeCertifications.OrderForRosterDisplay();
 
 		// Verify the team is a participant in the tournament and get roster entries with only needed data
 		var rosterData = await this.dbContext.TournamentTeamParticipants
@@ -1287,16 +1288,8 @@ public class TournamentsController : ControllerBase
 					entry.User.LastName,
 					entry.User.ShowPronouns,
 					entry.User.Pronouns,
-					Certifications = entry.User.RefereeCertifications
-						.Where(rc => rc.ReceivedAt != null && rc.RevokedAt == null)
-						.OrderByDescending(rc => rc.Certification.Version.HasValue)
-						.ThenByDescending(rc => rc.Certification.Version)
-						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Field)
-						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Head)
-						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Flag)
-						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.Assistant)
-						.ThenByDescending(rc => rc.Certification.Level == CertificationLevel.FlagRunner)
-						.ThenByDescending(rc => rc.ReceivedAt)
+					Certifications = rosterCertifications
+						.Where(rc => rc.RefereeId == entry.UserId)
 						.Select(rc => new
 						{
 							rc.Certification.Level,
@@ -1304,6 +1297,7 @@ public class TournamentsController : ControllerBase
 							rc.ReceivedAt
 						})
 						.Take(1)
+						.ToList()
 				}
 			})
 			.ToListAsync(this.HttpContext.RequestAborted);
@@ -1476,4 +1470,3 @@ public class TournamentsController : ControllerBase
 		};
 	}
 }
-
