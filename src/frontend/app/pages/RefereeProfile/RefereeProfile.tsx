@@ -118,7 +118,9 @@ interface UsernameRowProps {
   onValidityChange: (isValid: boolean) => void;
 }
 
-const useUsernameValidation = ({ isEditing, username, originalUsername, onValidityChange }: UsernameRowProps) => {
+type UsernameValidationProps = Pick<UsernameRowProps, "isEditing" | "username" | "originalUsername" | "onValidityChange">;
+
+const useUsernameValidation = ({ isEditing, username, originalUsername, onValidityChange }: UsernameValidationProps) => {
   const [debouncedUsername, setDebouncedUsername] = useState(username ?? "");
 
   useEffect(() => {
