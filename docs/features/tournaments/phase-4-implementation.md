@@ -8,6 +8,22 @@ This phase implements tournament roster management, allowing team managers to sp
 - Managing sensitive gender data with privacy and deletion requirements
 - Enforcing roster modification restrictions for archived tournaments
 
+### Roster certification display
+
+The roster modal and its CSV export show each person's highest certification from
+the newest certification release they hold. Only received, non-revoked
+certifications are considered. Releases take priority over certification level,
+not the date the certification was received. Within a release, the order is
+Field > Head > Flag > Assistant > Flag Runner > Scorekeeper. Ties use the most
+recent received date, and that certification's date is displayed alongside it.
+Unversioned certifications are considered only when no versioned certification
+is available. People without an eligible certification show no certification or date.
+
+The shared `OrderForRosterDisplay` query is tested without a database for release
+ordering, level ordering, date ties, and eligibility. A SQL translation test verifies
+the correlated selection can run on PostgreSQL without connecting to a server.
+One roster API integration case covers the returned certification and date together.
+
 **Note from Phase 1:** The private tournament filtering and `IsCurrentUserInvolved` computation is done at the database level in `DbTournamentContextProvider.QueryTournaments()`. This phase will further extend the filtering logic to also check if the user is on a tournament roster.
 
 ## Prerequisites
