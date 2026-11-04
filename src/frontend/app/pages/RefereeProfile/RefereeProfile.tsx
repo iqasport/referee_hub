@@ -118,8 +118,7 @@ interface UsernameRowProps {
   onValidityChange: (isValid: boolean) => void;
 }
 
-const UsernameRow = ({ isEditing, username, originalUsername, onUsernameChange, onValidityChange }: UsernameRowProps) => {
-  const [copied, setCopied] = useState(false);
+const useUsernameValidation = ({ isEditing, username, originalUsername, onValidityChange }: UsernameRowProps) => {
   const [debouncedUsername, setDebouncedUsername] = useState(username ?? "");
 
   useEffect(() => {
@@ -142,6 +141,21 @@ const UsernameRow = ({ isEditing, username, originalUsername, onUsernameChange, 
     onValidityChange(!isEditing || (isFormatValid && isAvailable));
   }, [isEditing, isFormatValid, isAvailable, onValidityChange]);
 
+  let status: React.ReactNode = null;
+  if (!isUnchanged) {
+    if (!isFormatValid) status = <span className="text-sm text-red-600">{USERNAME_RULES_DESCRIPTION}</span>;
+    else if (!shouldCheck || isFetching) status = <span className="text-sm text-gray-600">Checking availability…</span>;
+    else if (availability?.isAvailable) status = <span className="text-sm text-green">Username is available</span>;
+    else status = <span className="text-sm text-red-600">Username is already taken</span>;
+  }
+
+  return { status };
+};
+
+const UsernameRow = ({ isEditing, username, originalUsername, onUsernameChange, onValidityChange }: UsernameRowProps) => {
+  const [copied, setCopied] = useState(false);
+  const { status } = useUsernameValidation({ isEditing, username, originalUsername, onValidityChange });
+
   const handleCopy = async () => {
     if (!originalUsername) return;
     try {
@@ -152,14 +166,6 @@ const UsernameRow = ({ isEditing, username, originalUsername, onUsernameChange, 
       setCopied(false);
     }
   };
-
-  let status: React.ReactNode = null;
-  if (!isUnchanged) {
-    if (!isFormatValid) status = <span className="text-sm text-red-600">{USERNAME_RULES_DESCRIPTION}</span>;
-    else if (!shouldCheck || isFetching) status = <span className="text-sm text-gray-600">Checking availability…</span>;
-    else if (availability?.isAvailable) status = <span className="text-sm text-green">Username is available</span>;
-    else status = <span className="text-sm text-red-600">Username is already taken</span>;
-  }
 
   return (
     <div
@@ -757,7 +763,83 @@ const CertificationHistory = () => {
   );
 };
 
+type RefereeViewModel = NonNullable<ReturnType<typeof useGetCurrentRefereeQuery>["currentData"]>;
 
+interface RefereeProfileContentProps {
+  referee: RefereeViewModel;
+  refereeQueryUserId: string;
+  isOwnProfile: boolean;
+  userData: UserDataViewModel | undefined;
+  editableUser: UserDataViewModel;
+  isEditingDetails: boolean;
+  updateUserError: Parameters<typeof getErrorString>[0] | undefined;
+  onDetailsChange: (partial: Partial<UserDataViewModel>) => void;
+  onDetailsSave: () => void;
+  onDetailsCancel: () => void;
+  onEditDetails: () => void;
+  onTakeTests: () => void;
+}
+
+const RefereeProfileContent = ({
+  referee,
+  refereeQueryUserId,
+  isOwnProfile,
+  userData,
+  editableUser,
+  isEditingDetails,
+  updateUserError,
+  onDetailsChange,
+  onDetailsSave,
+  onDetailsCancel,
+  onEditDetails,
+  onTakeTests,
+}: RefereeProfileContentProps) => (
+  <section className="tournament-details-section">
+    <div className="tournament-details-wrapper">
+      {/* Page header — certifications badges + Take Tests button */}
+      <RefereeHeader
+        name={referee.name}
+        certifications={referee.acquiredCertifications}
+        isEditable={isOwnProfile}
+        onTakeTests={isOwnProfile ? onTakeTests : undefined}
+      />
+
+      {updateUserError && (
+        <div style={{ color: "#dc2626", marginBottom: "1rem" }}>
+          Error: {getErrorString(updateUserError)}
+        </div>
+      )}
+
+      {/* Two-column grid */}
+      <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
+        {/* Column 1: Player Details + Upcoming Events */}
+        <div>
+          <PlayerDetails />
+          {isOwnProfile && <UpcomingEvents />}
+          <TeamTransferHistory userId={refereeQueryUserId} isOwnProfile={isOwnProfile} />
+        </div>
+
+        {/* Column 2: Basic Details + Team Requests + Certification History */}
+        <div>
+          {editableUser && (
+            <BasicDetails
+              userData={editableUser}
+              originalUsername={userData?.username}
+              isEditing={isEditingDetails}
+              isEditable={isOwnProfile}
+              onChange={onDetailsChange}
+              onEdit={onEditDetails}
+              onSave={onDetailsSave}
+              onCancel={onDetailsCancel}
+            />
+          )}
+          {isOwnProfile && <TeamInvites />}
+          {isOwnProfile && <CertificationHistory />}
+        </div>
+      </div>
+    </div>
+  </section>
+);
 
 const RefereeProfile = () => {
   const navigate = useNavigate();
@@ -814,51 +896,20 @@ const RefereeProfile = () => {
   };
 
   return (
-    <section className="tournament-details-section">
-      <div className="tournament-details-wrapper">
-        {/* Page header — certifications badges + Take Tests button */}
-        <RefereeHeader
-          name={referee.name}
-          certifications={referee.acquiredCertifications}
-          isEditable={isEditable}
-          onTakeTests={isEditable ? () => navigate("/referees/me/tests") : undefined}
-        />
-
-        {updateUserError && (
-          <div style={{ color: "#dc2626", marginBottom: "1rem" }}>
-            Error: {getErrorString(updateUserError)}
-          </div>
-        )}
-
-        {/* Two-column grid */}
-        <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
-          {/* Column 1: Player Details + Upcoming Events */}
-          <div>
-            <PlayerDetails />
-            {isOwnProfile && <UpcomingEvents />}
-            <TeamTransferHistory userId={refereeQueryUserId} isOwnProfile={isOwnProfile} />
-          </div>
-
-          {/* Column 2: Basic Details + Team Requests + Certification History */}
-          <div>
-            {editableUser && (
-              <BasicDetails
-                userData={editableUser}
-                originalUsername={userData?.username}
-                isEditing={isEditingDetails}
-                isEditable={isEditable}
-                onChange={handleDetailsChange}
-                onEdit={() => setIsEditingDetails(true)}
-                onSave={handleDetailsSave}
-                onCancel={handleDetailsCancel}
-              />
-            )}
-            {isEditable && <TeamInvites />}
-            {isEditable && <CertificationHistory />}
-          </div>
-        </div>
-      </div>
-    </section>
+    <RefereeProfileContent
+      referee={referee}
+      refereeQueryUserId={refereeQueryUserId}
+      isOwnProfile={isEditable}
+      userData={userData}
+      editableUser={editableUser}
+      isEditingDetails={isEditingDetails}
+      updateUserError={updateUserError}
+      onDetailsChange={handleDetailsChange}
+      onDetailsSave={handleDetailsSave}
+      onDetailsCancel={handleDetailsCancel}
+      onEditDetails={() => setIsEditingDetails(true)}
+      onTakeTests={() => navigate("/referees/me/tests")}
+    />
   );
 };
 
