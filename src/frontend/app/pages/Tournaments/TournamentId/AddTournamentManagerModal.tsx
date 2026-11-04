@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 
 import { useAddTournamentManagerMutation } from "../../../store/serviceApi";
+import { isValidEmailOrUsername } from "../../../utils/usernameUtils";
 
 interface AddTournamentManagerModalProps {
   tournamentId: string;
   onClose: () => void;
 }
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUCCESS_MESSAGE_DURATION = 2000;
 
 const AddTournamentManagerModal = ({ tournamentId, onClose }: AddTournamentManagerModalProps) => {
@@ -21,15 +21,15 @@ const AddTournamentManagerModal = ({ tournamentId, onClose }: AddTournamentManag
     setError("");
     setSuccess("");
 
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
+    if (!isValidEmailOrUsername(email)) {
+      setError("Please enter a valid email address or username");
       return;
     }
 
     try {
       await addTournamentManager({
         tournamentId,
-        addTournamentManagerModel: { email },
+        addTournamentManagerModel: { email: email.trim() },
       }).unwrap();
       setSuccess("Manager added successfully!");
       setEmail("");
@@ -55,13 +55,13 @@ const AddTournamentManagerModal = ({ tournamentId, onClose }: AddTournamentManag
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-xl font-bold mb-4">Add Tournament Manager</h3>
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Email Address</label>
+          <label className="block text-sm font-medium mb-2">Email or username</label>
           <input
-            type="email"
+            type="text"
             className="w-full px-3 py-2 border border-gray-300 rounded"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="manager@example.com"
+            placeholder="manager@example.com or username"
           />
         </div>
         {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}

@@ -393,7 +393,7 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		// Try to add manager with invalid email
 		var addResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/managers", new
 		{
-			email = "not-an-email"
+			email = "not-an-email@"
 		});
 
 		addResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -416,6 +416,40 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 
 		addResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
 		"adding nonexistent user as manager should return NotFound");
+	}
+
+	[Fact]
+	public async Task AddTournamentManager_ByUsername_ShouldAddUser()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var tournamentId = await this.CreateTestTournamentAsync("Username Manager Tournament", TournamentType.Club, "Test", "Test");
+
+		var addResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/managers", new
+		{
+			email = "Jason.NgbAdmin"
+		});
+
+		addResponse.StatusCode.Should().Be(HttpStatusCode.OK, "a username should be accepted in place of an email");
+
+		var listManagersResponse = await this._client.GetAsync($"/api/v2/tournaments/{tournamentId}/managers");
+		var managers = await listManagersResponse.Content.ReadFromJsonAsync<List<JsonElement>>();
+		managers!.Select(m => m.GetProperty("email").GetString()).Should().Contain("ngb_admin@example.com");
+	}
+
+	[Fact]
+	public async Task AddTournamentManager_WithNonexistentUsername_ShouldReturnNotFound()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var tournamentId = await this.CreateTestTournamentAsync("Unknown Username Tournament", TournamentType.Club, "Test", "Test");
+
+		var addResponse = await this._client.PostAsJsonAsync($"/api/v2/tournaments/{tournamentId}/managers", new
+		{
+			email = "no.such.username"
+		});
+
+		addResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
 	}
 
 	[Fact]

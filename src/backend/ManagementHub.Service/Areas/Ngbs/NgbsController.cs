@@ -1,4 +1,4 @@
-﻿using Amazon.S3.Model;
+using Amazon.S3.Model;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
 using ManagementHub.Models.Domain.General;
@@ -193,7 +193,14 @@ public class NgbsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NgbAdminCreationStatus))]
 	public async Task<NgbAdminCreationStatus> AddNgbAdmin([FromRoute] NgbIdentifier ngb, [FromBody] NgbAdminCreationModel adminModel)
 	{
-		if (!Email.TryParse(adminModel.Email, out var email))
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(adminModel.Email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			this.Response.StatusCode = StatusCodes.Status404NotFound;
+			return NgbAdminCreationStatus.UserDoesNotExist;
+		}
+
+		if (!Email.TryParse(resolvedEmail ?? string.Empty, out var email))
 		{
 			this.Response.StatusCode = StatusCodes.Status400BadRequest;
 			return NgbAdminCreationStatus.InvalidEmail;
@@ -239,7 +246,14 @@ public class NgbsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(object))]
 	public async Task DeleteNgbAdmin([FromRoute] NgbIdentifier ngb, [FromQuery] string email)
 	{
-		if (!Email.TryParse(email, out var email_))
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			this.Response.StatusCode = StatusCodes.Status404NotFound;
+			return;
+		}
+
+		if (!Email.TryParse(resolvedEmail ?? string.Empty, out var email_))
 		{
 			this.Response.StatusCode = StatusCodes.Status400BadRequest;
 			return;
@@ -499,8 +513,15 @@ public class NgbsController : ControllerBase
 			throw new AccessDeniedException($"No permission for team {teamId}");
 		}
 
-		// Parse and validate email
-		if (!Email.TryParse(managerModel.Email, out var email))
+		// Resolve username (if given) and validate email
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(managerModel.Email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			this.Response.StatusCode = StatusCodes.Status404NotFound;
+			return TeamManagerCreationStatus.UserDoesNotExist;
+		}
+
+		if (!Email.TryParse(resolvedEmail ?? string.Empty, out var email))
 		{
 			this.Response.StatusCode = StatusCodes.Status400BadRequest;
 			return TeamManagerCreationStatus.InvalidEmail;
@@ -510,17 +531,7 @@ public class NgbsController : ControllerBase
 		var result = await this.updateTeamManagerRoleCommand.AddTeamManagerRoleAsync(
 			teamId, email, managerModel.CreateAccountIfNotExists, userContext.UserId);
 
-		if (result is IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole)
-		{
-			var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
-			if (userId.HasValue)
-			{
-				await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
-					userId.Value,
-					teamId,
-					cancellationToken: this.HttpContext.RequestAborted);
-			}
-		}
+		await this.NotifyTeamManagerAssignmentAsync(teamId, email, result);
 
 		return result switch
 		{
@@ -532,6 +543,26 @@ public class NgbsController : ControllerBase
 				TeamManagerCreationStatus.ManagerUserCreated,
 			_ => throw new InvalidOperationException($"Unexpected result {result}")
 		};
+	}
+
+	private async Task NotifyTeamManagerAssignmentAsync(
+		TeamIdentifier teamId,
+		Email email,
+		IUpdateTeamManagerRoleCommand.AddRoleResult result)
+	{
+		if (result is not (IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole))
+		{
+			return;
+		}
+
+		var userId = await this.GetUserIdentifierByEmailAsync(email, this.HttpContext.RequestAborted);
+		if (userId.HasValue)
+		{
+			await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
+				userId.Value,
+				teamId,
+				cancellationToken: this.HttpContext.RequestAborted);
+		}
 	}
 
 	private async Task<UserIdentifier?> GetUserIdentifierByEmailAsync(Email email, CancellationToken cancellationToken)
@@ -586,8 +617,15 @@ public class NgbsController : ControllerBase
 			throw new AccessDeniedException($"No permission for team {teamId}");
 		}
 
-		// Parse and validate email
-		if (!Email.TryParse(email, out var email_))
+		// Resolve username (if given) and validate email
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			this.Response.StatusCode = StatusCodes.Status404NotFound;
+			return;
+		}
+
+		if (!Email.TryParse(resolvedEmail ?? string.Empty, out var email_))
 		{
 			this.Response.StatusCode = StatusCodes.Status400BadRequest;
 			return;

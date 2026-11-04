@@ -788,6 +788,20 @@ const injectedRtkApi = api
         query: (queryArg) => ({ url: `/api/v2/Users/${queryArg.userId}/info` }),
         providesTags: ["UserInfo"],
       }),
+      getUserByUsername: build.query<GetUserByUsernameApiResponse, GetUserByUsernameApiArg>({
+        query: (queryArg) => ({ url: `/api/v2/Users/by-username/${queryArg.username}` }),
+        providesTags: ["UserInfo"],
+      }),
+      checkUsernameAvailability: build.query<
+        CheckUsernameAvailabilityApiResponse,
+        CheckUsernameAvailabilityApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/v2/Users/username-availability`,
+          params: { username: queryArg.username },
+        }),
+        providesTags: ["UserInfo"],
+      }),
     }),
     overrideExisting: false,
   });
@@ -1268,6 +1282,15 @@ export type UpdateCurrentUserDataApiArg = {
 export type GetUserDataApiResponse = /** status 200 Success */ UserDataViewModel;
 export type GetUserDataApiArg = {
   userId: string;
+};
+export type GetUserByUsernameApiResponse = /** status 200 Success */ UserLookupViewModel;
+export type GetUserByUsernameApiArg = {
+  username: string;
+};
+export type CheckUsernameAvailabilityApiResponse =
+  /** status 200 Success */ UsernameAvailabilityViewModel;
+export type CheckUsernameAvailabilityApiArg = {
+  username?: string;
 };
 export type CheckoutSession = {
   sessionId?: string | null;
@@ -1833,11 +1856,11 @@ export type SetTeamAutoApprovePlayerRequestsRequest = {
   isEnabled: boolean;
 };
 export type AddTeamManagerRequest = {
-  /** Email address of the user to add as manager. */
+  /** Email address or username of the user to add as manager. */
   email: string;
 };
 export type InvitePlayerRequest = {
-  /** Email address of the player to invite. */
+  /** Email address or username of the player to invite. */
   email: string;
 };
 export type RefereeTestDetailsViewModel = {
@@ -2029,12 +2052,26 @@ export type ManagedTeamViewModel = {
 export type UserDataViewModel = {
   firstName?: string | null;
   lastName?: string | null;
+  /** Unique handle of the user. When updating, null leaves the username unchanged. */
+  username?: string | null;
   bio?: string | null;
   pronouns?: string | null;
   showPronouns?: boolean | null;
   exportName?: boolean | null;
   language?: string | null;
   createdAt?: string;
+};
+export type UserLookupViewModel = {
+  userId?: string;
+  username?: string | null;
+};
+export type UsernameAvailabilityViewModel = {
+  /** The normalized (lowercase) username that was checked. */
+  username?: string | null;
+  /** Whether the username matches the format rules. */
+  isValid?: boolean;
+  /** Whether the username is free (or already belongs to the current user). */
+  isAvailable?: boolean;
 };
 export const {
   useCreatePaymentSessionMutation,
@@ -2133,6 +2170,8 @@ export const {
   useGetCurrentUserDataQuery,
   useUpdateCurrentUserDataMutation,
   useGetUserDataQuery,
+  useGetUserByUsernameQuery,
+  useCheckUsernameAvailabilityQuery,
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
   useMarkAsReadMutation,

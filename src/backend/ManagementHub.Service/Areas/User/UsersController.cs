@@ -37,6 +37,8 @@ namespace ManagementHub.Service.Areas.User;
 [Produces("application/json")]
 public class UsersController : ControllerBase
 {
+	private const string InvalidUsernameMessage = "Usernames must be 3-30 characters long, contain only lowercase letters, digits, '.', '_' or '-', and start and end with a letter or digit.";
+
 	private readonly IUserContextAccessor contextAccessor;
 	private readonly IUpdateUserDataCommand updateUserDataCommand;
 	private readonly IUpdateUserAvatarCommand updateUserAvatarCommand;
@@ -195,14 +197,73 @@ public class UsersController : ControllerBase
 	}
 
 	/// <summary>
+	/// Resolves a username to the identifier of the user.
+	/// </summary>
+	/// <response code="404">No user has the given username.</response>
+	[HttpGet("by-username/{username}")]
+	[Tags("UserInfo")]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserLookupViewModel))]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<UserLookupViewModel> GetUserByUsername([FromRoute] string username)
+	{
+		var user = await this.dbContext.Users.AsNoTracking()
+			.WithUsername(username)
+			.Select(u => new { u.Id, u.UniqueId, u.Username })
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (user == null)
+		{
+			throw new NotFoundException(UsernameRules.Normalize(username));
+		}
+
+		var userId = user.UniqueId != null ? UserIdentifier.Parse(user.UniqueId) : UserIdentifier.FromLegacyUserId(user.Id);
+		return new UserLookupViewModel { UserId = userId, Username = user.Username! };
+	}
+
+	/// <summary>
+	/// Checks whether a username is valid and available for the currently signed-in user.
+	/// </summary>
+	[HttpGet("username-availability")]
+	[Tags("UserInfo")]
+	public async Task<UsernameAvailabilityViewModel> CheckUsernameAvailability([FromQuery] string username)
+	{
+		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var normalized = UsernameRules.Normalize(username ?? string.Empty);
+		if (!UsernameRules.IsValid(normalized))
+		{
+			return new UsernameAvailabilityViewModel { Username = normalized, IsValid = false, IsAvailable = false };
+		}
+
+		var takenBy = await this.dbContext.Users.AsNoTracking()
+			.WithUsername(normalized)
+			.Select(u => new { u.Id, u.UniqueId })
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		var isAvailable = takenBy == null
+			|| (takenBy.UniqueId != null ? UserIdentifier.Parse(takenBy.UniqueId) : UserIdentifier.FromLegacyUserId(takenBy.Id)) == userContext.UserId;
+
+		return new UsernameAvailabilityViewModel { Username = normalized, IsValid = true, IsAvailable = isAvailable };
+	}
+
+	/// <summary>
 	/// Updates the personal information of the currently signed-in user.
 	/// </summary>
 	/// <param name="userData">A partial model of user data.</param>
+	/// <response code="400">The requested username is not valid.</response>
+	/// <response code="409">The requested username is already taken.</response>
 	[HttpPatch("me/info")]
 	[Tags("UserInfo")]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status409Conflict)]
 	public async Task UpdateCurrentUserData(UserDataViewModel userData)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+
+		if (!string.IsNullOrWhiteSpace(userData.Username) && !UsernameRules.IsValid(UsernameRules.Normalize(userData.Username)))
+		{
+			throw new ArgumentException(InvalidUsernameMessage);
+		}
 
 		// TODO: move it to a processor
 		await this.updateUserDataCommand.UpdateUserDataAsync(userContext.UserId, (data) =>
@@ -218,6 +279,7 @@ public class UsersController : ControllerBase
 			var lang = userData.Language ?? data.UserLang;
 			return new ExtendedUserData(data.Email, firstName!, lastName!)
 			{
+				Username = string.IsNullOrWhiteSpace(userData.Username) ? null : userData.Username,
 				Bio = bio,
 				ExportName = exportName,
 				Pronouns = pronouns,

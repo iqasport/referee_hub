@@ -606,8 +606,14 @@ public class TeamsController : ControllerBase
 			}
 		}
 
-		// Parse and validate email
-		if (!Email.TryParse(request.Email, out var email))
+		// Resolve username (if given) and validate email
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(request.Email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			return this.BadRequest("No user found with that username");
+		}
+
+		if (!Email.TryParse(resolvedEmail ?? string.Empty, out var email))
 		{
 			return this.BadRequest("Invalid email address");
 		}
@@ -619,22 +625,7 @@ public class TeamsController : ControllerBase
 			createUserIfNotExists: false,
 			userContext.UserId);
 
-		if (result is IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole)
-		{
-			var user = await this.dbContext.Users
-				.WithEmail(email)
-				.Select(u => new { u.Id, u.UniqueId })
-				.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
-
-			if (user != null)
-			{
-				var userId = user.UniqueId != null ? UserIdentifier.Parse(user.UniqueId) : UserIdentifier.FromLegacyUserId(user.Id);
-				await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
-					userId,
-					teamId,
-					cancellationToken: this.HttpContext.RequestAborted);
-			}
-		}
+		await this.NotifyTeamManagerAssignmentAsync(teamId, email, result);
 
 		return result switch
 		{
@@ -646,6 +637,31 @@ public class TeamsController : ControllerBase
 				this.Ok("User created and added as team manager"),
 			_ => this.StatusCode(500, "An unexpected error occurred")
 		};
+	}
+
+	private async Task NotifyTeamManagerAssignmentAsync(
+		TeamIdentifier teamId,
+		Email email,
+		IUpdateTeamManagerRoleCommand.AddRoleResult result)
+	{
+		if (result is not (IUpdateTeamManagerRoleCommand.AddRoleResult.RoleAdded or IUpdateTeamManagerRoleCommand.AddRoleResult.UserCreatedWithRole))
+		{
+			return;
+		}
+
+		var user = await this.dbContext.Users
+			.WithEmail(email)
+			.Select(u => new { u.Id, u.UniqueId })
+			.FirstOrDefaultAsync(this.HttpContext.RequestAborted);
+
+		if (user != null)
+		{
+			var userId = user.UniqueId != null ? UserIdentifier.Parse(user.UniqueId) : UserIdentifier.FromLegacyUserId(user.Id);
+			await this.notificationService.CreateTeamManagerAssignmentNotificationAsync(
+				userId,
+				teamId,
+				cancellationToken: this.HttpContext.RequestAborted);
+		}
 	}
 
 	/// <summary>
@@ -670,7 +686,13 @@ public class TeamsController : ControllerBase
 			return this.Forbid();
 		}
 
-		if (!TryNormalizeInviteEmail(request?.Email, out var normalizedEmail))
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(request?.Email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			return this.BadRequest("No user found with that username");
+		}
+
+		if (!TryNormalizeInviteEmail(resolvedEmail, out var normalizedEmail))
 		{
 			return this.BadRequest("Invalid email address");
 		}

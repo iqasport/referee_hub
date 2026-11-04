@@ -322,11 +322,18 @@ public class TournamentsController : ControllerBase
 		// Validate email is provided
 		if (string.IsNullOrWhiteSpace(model.Email))
 		{
-			return this.BadRequest(new { error = "Email is required" });
+			return this.BadRequest(new { error = "Email or username is required" });
+		}
+
+		// Resolve username (if given) to an email
+		var (resolvedEmail, isUsername) = await this.dbContext.Users.ResolveEmailOrUsernameAsync(model.Email, this.HttpContext.RequestAborted);
+		if (isUsername && resolvedEmail == null)
+		{
+			return this.NotFound(new { error = "User not found" });
 		}
 
 		// Parse and validate email
-		if (!Email.TryParse(model.Email, out var email))
+		if (!Email.TryParse(resolvedEmail ?? string.Empty, out var email))
 		{
 			return this.BadRequest(new { error = "Invalid email format" });
 		}

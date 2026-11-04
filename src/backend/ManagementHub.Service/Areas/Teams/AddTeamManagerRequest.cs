@@ -8,9 +8,8 @@ namespace ManagementHub.Service.Areas.Teams;
 public class AddTeamManagerRequest
 {
 	/// <summary>
-	/// Email address of the user to add as manager.
+	/// Email address or username of the user to add as manager.
 	/// </summary>
 	[Required]
-	[EmailAddress]
 	public required string Email { get; init; }
 }

@@ -1355,11 +1355,18 @@ public partial class ManagementHubDbContext : DbContext, IDataProtectionKeyConte
 			entity.HasIndex(e => e.UnlockToken, "index_users_on_unlock_token")
 				.IsUnique();
 
+			entity.HasIndex(e => e.Username, "index_users_on_username")
+				.IsUnique();
+
 			entity.Property(e => e.Id).HasColumnName("id");
 
 			entity.Property(e => e.UniqueId)
 				.HasColumnType("varchar(40)")
 				.HasColumnName("unique_id");
+
+			entity.Property(e => e.Username)
+				.HasColumnType("varchar(30)")
+				.HasColumnName("username");
 
 			entity.Property(e => e.Admin)
 				.HasColumnName("admin")

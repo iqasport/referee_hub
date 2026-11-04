@@ -18,6 +18,8 @@ import {
   useGetMyUpcomingTournamentsQuery,
   useGetManagedTeamsQuery,
   useGetTestAttemptsQuery,
+  useGetUserByUsernameQuery,
+  useCheckUsernameAvailabilityQuery,
   UserDataViewModel,
   TestAttemptViewModelRead,
 } from "../../store/serviceApi";
@@ -29,6 +31,29 @@ import Toggle from "../../components/Toggle";
 import ActionButtonPair from "../../components/ActionButtonPair";
 import CustomAlert from "../../components/CustomAlert";
 import { useAlert } from "../../hooks/useAlert";
+import {
+  USERNAME_RULES_DESCRIPTION,
+  buildProfileLink,
+  isUsernameRouteParam,
+  isValidUsername,
+  normalizeUsername,
+} from "../../utils/usernameUtils";
+
+// Resolves the route parameter ("me", a user id or a username) to the value used by the referee/user queries.
+const useResolvedRefereeId = () => {
+  const { refereeId: routeParam } = useNavigationParams<"refereeId">();
+  const isUsername = isUsernameRouteParam(routeParam);
+  const { currentData, error } = useGetUserByUsernameQuery(
+    { username: routeParam ?? "" },
+    { skip: !isUsername },
+  );
+  return {
+    refereeId: isUsername ? currentData?.userId ?? undefined : routeParam,
+    usernameLookupError: isUsername ? error : undefined,
+  };
+};
+
+const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Basic Details section (pronouns, bio)
@@ -84,8 +109,105 @@ const PronounsRow = ({ isEditing, pronouns, showPronouns, onPronounsChange, onSh
   />
 );
 
+// Username row — shows the shareable profile link, or an input with a live availability check while editing.
+interface UsernameRowProps {
+  isEditing: boolean;
+  username: string | null | undefined;
+  originalUsername: string | null | undefined;
+  onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onValidityChange: (isValid: boolean) => void;
+}
+
+type UsernameValidationProps = Pick<UsernameRowProps, "isEditing" | "username" | "originalUsername" | "onValidityChange">;
+
+const useUsernameValidation = ({ isEditing, username, originalUsername, onValidityChange }: UsernameValidationProps) => {
+  const [debouncedUsername, setDebouncedUsername] = useState(username ?? "");
+
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedUsername(username ?? ""), USERNAME_CHECK_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [username]);
+
+  const normalized = normalizeUsername(username ?? "");
+  const isUnchanged = normalized === (originalUsername ?? "");
+  const isFormatValid = isUnchanged || isValidUsername(normalized);
+  const shouldCheck =
+    isEditing && !isUnchanged && isFormatValid && normalizeUsername(debouncedUsername) === normalized;
+  const { currentData: availability, isFetching } = useCheckUsernameAvailabilityQuery(
+    { username: normalized },
+    { skip: !shouldCheck },
+  );
+  const isAvailable = isUnchanged || (shouldCheck && !isFetching && availability?.isAvailable === true);
+
+  useEffect(() => {
+    onValidityChange(!isEditing || (isFormatValid && isAvailable));
+  }, [isEditing, isFormatValid, isAvailable, onValidityChange]);
+
+  let status: React.ReactNode = null;
+  if (!isUnchanged) {
+    if (!isFormatValid) status = <span className="text-sm text-red-600">{USERNAME_RULES_DESCRIPTION}</span>;
+    else if (!shouldCheck || isFetching) status = <span className="text-sm text-gray-600">Checking availability…</span>;
+    else if (availability?.isAvailable) status = <span className="text-sm text-green">Username is available</span>;
+    else status = <span className="text-sm text-red-600">Username is already taken</span>;
+  }
+
+  return { status };
+};
+
+const UsernameRow = ({ isEditing, username, originalUsername, onUsernameChange, onValidityChange }: UsernameRowProps) => {
+  const [copied, setCopied] = useState(false);
+  const { status } = useUsernameValidation({ isEditing, username, originalUsername, onValidityChange });
+
+  const handleCopy = async () => {
+    if (!originalUsername) return;
+    try {
+      await navigator.clipboard.writeText(buildProfileLink(originalUsername));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <div
+      className="stats-item"
+      style={isEditing ? { flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" } : {}}
+    >
+      <span className="stats-label">Username</span>
+      {isEditing ? (
+        <div className="flex flex-col gap-1 w-full">
+          <input
+            id="referee-username"
+            name="username"
+            className="form-input w-full"
+            type="text"
+            autoComplete="off"
+            value={username ?? ""}
+            onChange={onUsernameChange}
+            placeholder="username"
+            aria-describedby="referee-username-hint"
+          />
+          <span id="referee-username-hint" className="text-xs text-gray-500">{USERNAME_RULES_DESCRIPTION}</span>
+          {status}
+        </div>
+      ) : originalUsername ? (
+        <span className="stats-value flex items-center gap-2">
+          @{originalUsername}
+          <button type="button" className="text-sm text-green underline" onClick={handleCopy}>
+            {copied ? "Copied!" : "Copy profile link"}
+          </button>
+        </span>
+      ) : (
+        <span className="stats-value">—</span>
+      )}
+    </div>
+  );
+};
+
 interface BasicDetailsProps {
   userData: UserDataViewModel;
+  originalUsername: string | null | undefined;
   isEditing: boolean;
   isEditable: boolean;
   onChange: (updated: Partial<UserDataViewModel>) => void;
@@ -94,7 +216,8 @@ interface BasicDetailsProps {
   onCancel: () => void;
 }
 
-const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSave, onCancel }: BasicDetailsProps) => {
+const BasicDetails = ({ userData, originalUsername, isEditing, isEditable, onChange, onEdit, onSave, onCancel }: BasicDetailsProps) => {
+  const [isUsernameValid, setIsUsernameValid] = useState(true);
   const handleStringChange =
     (key: keyof UserDataViewModel) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -113,7 +236,7 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
             {isEditing ? (
               <>
                 <button type="reset" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
-                <button type="submit" className="btn btn-primary" onClick={onSave}>Save</button>
+                <button type="submit" className="btn btn-primary" onClick={onSave} disabled={!isUsernameValid}>Save</button>
               </>
             ) : (
               <button type="button" className="btn btn-primary" onClick={onEdit}>Edit</button>
@@ -121,6 +244,14 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
           </div>
         )}
       </div>
+
+      <UsernameRow
+        isEditing={isEditing}
+        username={userData.username}
+        originalUsername={originalUsername}
+        onUsernameChange={handleStringChange("username")}
+        onValidityChange={setIsUsernameValid}
+      />
 
       <PronounsRow
         isEditing={isEditing}
@@ -156,7 +287,7 @@ const BasicDetails = ({ userData, isEditing, isEditable, onChange, onEdit, onSav
 // ──────────────────────────────────────────────────────────────────────────────
 
 const PlayerDetails = () => {
-  const { refereeId } = useNavigationParams<"refereeId">();
+  const { refereeId } = useResolvedRefereeId();
   const isOwnProfile = refereeId === "me";
   const refereeQueryUserId = refereeId ?? "";
   const [isEditing, setIsEditing] = useState(false);
@@ -634,11 +765,87 @@ const CertificationHistory = () => {
   );
 };
 
+type RefereeViewModel = NonNullable<ReturnType<typeof useGetCurrentRefereeQuery>["currentData"]>;
 
+interface RefereeProfileContentProps {
+  referee: RefereeViewModel;
+  refereeQueryUserId: string;
+  isOwnProfile: boolean;
+  userData: UserDataViewModel | undefined;
+  editableUser: UserDataViewModel;
+  isEditingDetails: boolean;
+  updateUserError: Parameters<typeof getErrorString>[0] | undefined;
+  onDetailsChange: (partial: Partial<UserDataViewModel>) => void;
+  onDetailsSave: () => void;
+  onDetailsCancel: () => void;
+  onEditDetails: () => void;
+  onTakeTests: () => void;
+}
+
+const RefereeProfileContent = ({
+  referee,
+  refereeQueryUserId,
+  isOwnProfile,
+  userData,
+  editableUser,
+  isEditingDetails,
+  updateUserError,
+  onDetailsChange,
+  onDetailsSave,
+  onDetailsCancel,
+  onEditDetails,
+  onTakeTests,
+}: RefereeProfileContentProps) => (
+  <section className="tournament-details-section">
+    <div className="tournament-details-wrapper">
+      {/* Page header — certifications badges + Take Tests button */}
+      <RefereeHeader
+        name={referee.name}
+        certifications={referee.acquiredCertifications}
+        isEditable={isOwnProfile}
+        onTakeTests={isOwnProfile ? onTakeTests : undefined}
+      />
+
+      {updateUserError && (
+        <div style={{ color: "#dc2626", marginBottom: "1rem" }}>
+          Error: {getErrorString(updateUserError)}
+        </div>
+      )}
+
+      {/* Two-column grid */}
+      <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
+        {/* Column 1: Player Details + Upcoming Events */}
+        <div>
+          <PlayerDetails />
+          {isOwnProfile && <UpcomingEvents />}
+          <TeamTransferHistory userId={refereeQueryUserId} isOwnProfile={isOwnProfile} />
+        </div>
+
+        {/* Column 2: Basic Details + Team Requests + Certification History */}
+        <div>
+          {editableUser && (
+            <BasicDetails
+              userData={editableUser}
+              originalUsername={userData?.username}
+              isEditing={isEditingDetails}
+              isEditable={isOwnProfile}
+              onChange={onDetailsChange}
+              onEdit={onEditDetails}
+              onSave={onDetailsSave}
+              onCancel={onDetailsCancel}
+            />
+          )}
+          {isOwnProfile && <TeamInvites />}
+          {isOwnProfile && <CertificationHistory />}
+        </div>
+      </div>
+    </div>
+  </section>
+);
 
 const RefereeProfile = () => {
   const navigate = useNavigate();
-  const { refereeId } = useNavigationParams<"refereeId">();
+  const { refereeId, usernameLookupError } = useResolvedRefereeId();
   const isOwnProfile = refereeId === "me";
   const refereeQueryUserId = refereeId ?? "";
 
@@ -670,6 +877,7 @@ const RefereeProfile = () => {
     if (userData) setEditableUser(userData);
   }, [userData]);
 
+  if (usernameLookupError) return <p style={{ color: "red" }}>No referee found with that username.</p>;
   if (refereeGetError) return <p style={{ color: "red" }}>{getErrorString(refereeGetError)}</p>;
   if (!referee) return null;
 
@@ -680,7 +888,8 @@ const RefereeProfile = () => {
 
   const handleDetailsSave = () => {
     setIsEditingDetails(false);
-    updateUser({ userDataViewModel: editableUser });
+    const username = editableUser.username ? normalizeUsername(editableUser.username) : null;
+    updateUser({ userDataViewModel: { ...editableUser, username } });
   };
 
   const handleDetailsCancel = () => {
@@ -689,50 +898,20 @@ const RefereeProfile = () => {
   };
 
   return (
-    <section className="tournament-details-section">
-      <div className="tournament-details-wrapper">
-        {/* Page header — certifications badges + Take Tests button */}
-        <RefereeHeader
-          name={referee.name}
-          certifications={referee.acquiredCertifications}
-          isEditable={isEditable}
-          onTakeTests={isEditable ? () => navigate("/referees/me/tests") : undefined}
-        />
-
-        {updateUserError && (
-          <div style={{ color: "#dc2626", marginBottom: "1rem" }}>
-            Error: {getErrorString(updateUserError)}
-          </div>
-        )}
-
-        {/* Two-column grid */}
-        <div className="tournament-details-grid" style={{ marginTop: "1.5rem" }}>
-          {/* Column 1: Player Details + Upcoming Events */}
-          <div>
-            <PlayerDetails />
-            {isOwnProfile && <UpcomingEvents />}
-            <TeamTransferHistory userId={refereeQueryUserId} isOwnProfile={isOwnProfile} />
-          </div>
-
-          {/* Column 2: Basic Details + Team Requests + Certification History */}
-          <div>
-            {editableUser && (
-              <BasicDetails
-                userData={editableUser}
-                isEditing={isEditingDetails}
-                isEditable={isEditable}
-                onChange={handleDetailsChange}
-                onEdit={() => setIsEditingDetails(true)}
-                onSave={handleDetailsSave}
-                onCancel={handleDetailsCancel}
-              />
-            )}
-            {isEditable && <TeamInvites />}
-            {isEditable && <CertificationHistory />}
-          </div>
-        </div>
-      </div>
-    </section>
+    <RefereeProfileContent
+      referee={referee}
+      refereeQueryUserId={refereeQueryUserId}
+      isOwnProfile={isEditable}
+      userData={userData}
+      editableUser={editableUser}
+      isEditingDetails={isEditingDetails}
+      updateUserError={updateUserError}
+      onDetailsChange={handleDetailsChange}
+      onDetailsSave={handleDetailsSave}
+      onDetailsCancel={handleDetailsCancel}
+      onEditDetails={() => setIsEditingDetails(true)}
+      onTakeTests={() => navigate("/referees/me/tests")}
+    />
   );
 };
 

@@ -345,6 +345,7 @@ public partial class Program
 		[typeof(NotFoundException)] = StatusCodes.Status404NotFound,
 		[typeof(AccessDeniedException)] = StatusCodes.Status403Forbidden,
 		[typeof(AuthenticationRequiredException)] = StatusCodes.Status401Unauthorized,
+		[typeof(UsernameTakenException)] = StatusCodes.Status409Conflict,
 		[typeof(InvalidOperationException)] = StatusCodes.Status400BadRequest,
 		[typeof(ArgumentException)] = StatusCodes.Status400BadRequest,
 	};
