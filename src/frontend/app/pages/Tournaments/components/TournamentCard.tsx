@@ -17,7 +17,13 @@ interface TournamentCardProps {
 }
 
 const getTournamentTypeName = (type?: TournamentType): string => {
-  return type || "Unknown";
+  const labels: Record<TournamentType, string> = {
+    Club: "Club Teams",
+    National: "National Teams",
+    Youth: "Youth Teams",
+    Fantasy: "Fantasy Teams",
+  };
+  return type ? labels[type] : "Unknown";
 };
 
 const TournamentCard: React.FC<TournamentCardProps> = ({
