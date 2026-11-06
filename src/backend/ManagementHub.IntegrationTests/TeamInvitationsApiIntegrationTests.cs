@@ -88,7 +88,7 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 
 		var team = await managementResponse.Content.ReadFromJsonAsync<TeamManagementViewModelDto>();
 		team.Should().NotBeNull();
-		team!.PendingInvites.Should().Contain(i => i.Email == "invitee@example.com");
+		team!.PendingInvites.Should().Contain(i => i.Email == "invitee@example.com" && i.InviteeName == null);
 	}
 
 	[Fact]
@@ -247,6 +247,11 @@ public class TeamInvitationsApiIntegrationTests : IClassFixture<TestWebApplicati
 		createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 		var invite = await createResponse.Content.ReadFromJsonAsync<TeamInvitationViewModelDto>();
 		invite.Should().NotBeNull();
+
+		var pendingManagementResponse = await this.client.GetAsync("/api/v2/Teams/TM_1/management");
+		pendingManagementResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var pendingTeam = await pendingManagementResponse.Content.ReadFromJsonAsync<TeamManagementViewModelDto>();
+		pendingTeam!.PendingInvites.Should().Contain(i => i.Email == "ngb_admin@example.com" && !string.IsNullOrWhiteSpace(i.InviteeName));
 
 		await AuthenticationHelper.AuthenticateAsAsync(this.client, "ngb_admin@example.com", "password");
 

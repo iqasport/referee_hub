@@ -16,6 +16,11 @@ public class TeamInvitationViewModel
 	public required string Email { get; set; }
 
 	/// <summary>
+	/// Name of the invited user, if they already have an account.
+	/// </summary>
+	public string? InviteeName { get; set; }
+
+	/// <summary>
 	/// Date when invitation was created.
 	/// </summary>
 	public required DateTime CreatedAt { get; set; }

@@ -388,6 +388,15 @@ public class TeamsController : ControllerBase
 			})
 			.ToListAsync();
 
+		var inviteEmails = pendingInviteRows.Select(i => i.Email.ToLower()).Distinct().ToList();
+		var inviteeRows = await this.dbContext.Users
+			.Where(user => inviteEmails.Contains(user.Email.ToLower()))
+			.Select(user => new { Email = user.Email.ToLower(), user.FirstName, user.LastName })
+			.ToListAsync(this.HttpContext.RequestAborted);
+		var inviteeNames = inviteeRows.ToDictionary(
+			user => user.Email,
+			user => TeamInviteHelpers.BuildDisplayName(user.FirstName, user.LastName));
+
 		var pendingInvites = pendingInviteRows
 			.Select(i =>
 			{
@@ -403,6 +412,7 @@ public class TeamsController : ControllerBase
 				{
 					InvitationId = new TeamInvitationIdentifier(i.Id).ToString(),
 					Email = i.Email,
+					InviteeName = inviteeNames.GetValueOrDefault(i.Email.ToLower()),
 					CreatedAt = i.CreatedAt,
 					InvitedByName = TeamInviteHelpers.BuildDisplayName(i.InitiatorFirstName, i.InitiatorLastName),
 					RequiresManagerDecision = string.Equals(i.InitiatorEmail, i.Email, StringComparison.OrdinalIgnoreCase),
