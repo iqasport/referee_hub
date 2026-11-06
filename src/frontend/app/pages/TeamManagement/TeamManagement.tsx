@@ -276,7 +276,7 @@ const PendingRequestsSection: React.FC<PendingRequestsSectionProps> = ({
                 <p className="font-medium">
                   {invite.requiresManagerDecision
                     ? (invite.invitedByName || "Unknown player")
-                    : "Pending invite"}
+                    : ((invite as TeamInvitationViewModel & { inviteeName?: string | null }).inviteeName || invite.email || "Pending invite")}
                 </p>
                 {invite.originTeamName && (
                   <p className="text-xs text-gray-500 mt-0.5">
