@@ -10,10 +10,10 @@ interface SearchProps {
 
 const TOURNAMENT_TYPES = [
   { value: "", label: "All Types" },
-  { value: "Club", label: "Club" },
-  { value: "National", label: "National" },
-  { value: "Youth", label: "Youth" },
-  { value: "Fantasy", label: "Fantasy" },
+  { value: "Club", label: "Club Teams" },
+  { value: "National", label: "National Teams" },
+  { value: "Youth", label: "Youth Teams" },
+  { value: "Fantasy", label: "Fantasy Teams" },
 ];
 
 const Search: React.FC<SearchProps> = ({
