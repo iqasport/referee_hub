@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using ManagementHub.Models.Abstraction.Commands;
 using ManagementHub.Models.Abstraction.Contexts.Providers;
@@ -11,7 +13,9 @@ using ManagementHub.Serialization.Tournaments;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Commands.Tournament;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,17 +32,20 @@ public class PublicTournamentsController : ControllerBase
 	private readonly IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand;
 	private readonly ITournamentContextProvider tournamentContextProvider;
 	private readonly ILogger<PublicTournamentsController> logger;
+	private readonly IWebHostEnvironment webHostEnvironment;
 
 	public PublicTournamentsController(
 		ManagementHubDbContext dbContext,
 		IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand,
 		ITournamentContextProvider tournamentContextProvider,
-		ILogger<PublicTournamentsController> logger)
+		ILogger<PublicTournamentsController> logger,
+		IWebHostEnvironment webHostEnvironment)
 	{
 		this.dbContext = dbContext;
 		this.refreshPublicTournamentSnapshotCommand = refreshPublicTournamentSnapshotCommand;
 		this.tournamentContextProvider = tournamentContextProvider;
 		this.logger = logger;
+		this.webHostEnvironment = webHostEnvironment;
 	}
 
 	[HttpGet]
@@ -81,6 +88,110 @@ public class PublicTournamentsController : ControllerBase
 		}
 
 		return this.Ok(await this.MapPublicTournamentAsync(tournament));
+	}
+
+	[HttpGet("/tournaments/{tournamentId}")]
+	[AllowAnonymous]
+	[ApiExplorerSettings(IgnoreApi = true)]
+	[Produces("text/html")]
+	public async Task<IActionResult> GetTournamentSharePage([FromRoute] TournamentIdentifier tournamentId)
+	{
+		var snapshot = await this.GetSnapshotOrDefaultAsync();
+		var tournament = snapshot.Payload.Tournaments.FirstOrDefault(t => t.Id == tournamentId);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		var bannerUri = await this.tournamentContextProvider
+			.GetTournamentBannerUriAsync(tournament.Id, this.HttpContext.RequestAborted);
+		var imageUrl = bannerUri == null
+			? this.GetAbsoluteImageUrl(null)
+			: this.GetAbsoluteShareBannerUrl(tournament.Id);
+		var pageUrl = UriHelper.BuildAbsolute(
+			this.Request.Scheme,
+			this.Request.Host,
+			this.Request.PathBase,
+			this.Request.Path);
+		var encodedName = WebUtility.HtmlEncode(tournament.Name);
+		var encodedDescription = WebUtility.HtmlEncode(tournament.Description);
+		var metadata = $"""
+			<meta name="description" content="{encodedDescription}" />
+			<meta property="og:type" content="website" />
+			<meta property="og:title" content="{encodedName}" />
+			<meta property="og:description" content="{encodedDescription}" />
+			<meta property="og:image" content="{WebUtility.HtmlEncode(imageUrl)}" />
+			<meta property="og:url" content="{WebUtility.HtmlEncode(pageUrl)}" />
+			<meta name="twitter:card" content="summary_large_image" />
+			<meta name="twitter:title" content="{encodedName}" />
+			<meta name="twitter:description" content="{encodedDescription}" />
+			<meta name="twitter:image" content="{WebUtility.HtmlEncode(imageUrl)}" />
+			""";
+
+		var indexFile = this.webHostEnvironment.WebRootFileProvider.GetFileInfo("index.html");
+		if (!indexFile.Exists)
+		{
+			throw new FileNotFoundException("The frontend index file could not be found.", indexFile.PhysicalPath);
+		}
+
+		await using var stream = indexFile.CreateReadStream();
+		using var reader = new StreamReader(stream);
+		var html = await reader.ReadToEndAsync(this.HttpContext.RequestAborted);
+		var headEnd = html.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
+		if (headEnd >= 0)
+		{
+			html = html.Insert(headEnd, metadata);
+		}
+
+		this.Response.Headers.CacheControl = "public,max-age=300,s-maxage=86400,stale-while-revalidate=600";
+		return this.Content(html, "text/html; charset=utf-8");
+	}
+
+	[HttpGet("/tournaments/{tournamentId}/banner")]
+	[AllowAnonymous]
+	[ApiExplorerSettings(IgnoreApi = true)]
+	[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+	public async Task<IActionResult> GetTournamentShareBanner([FromRoute] TournamentIdentifier tournamentId)
+	{
+		var snapshot = await this.GetSnapshotOrDefaultAsync();
+		var tournament = snapshot.Payload.Tournaments.FirstOrDefault(t => t.Id == tournamentId);
+
+		if (tournament == null)
+		{
+			throw new NotFoundException(tournamentId.ToString());
+		}
+
+		var bannerUri = await this.tournamentContextProvider
+			.GetTournamentBannerUriAsync(tournament.Id, this.HttpContext.RequestAborted);
+		return bannerUri == null
+			? this.NotFound()
+			: this.Redirect(bannerUri.ToString());
+	}
+
+	private string GetAbsoluteImageUrl(Uri? imageUri)
+	{
+		if (imageUri?.IsAbsoluteUri == true)
+		{
+			return imageUri.ToString();
+		}
+
+		var imagePath = imageUri?.ToString() ?? "/images/logo_long_green.png";
+		if (!imagePath.StartsWith('/'))
+		{
+			imagePath = $"/{imagePath}";
+		}
+
+		return UriHelper.BuildAbsolute(this.Request.Scheme, this.Request.Host, this.Request.PathBase, new PathString(imagePath));
+	}
+
+	private string GetAbsoluteShareBannerUrl(TournamentIdentifier tournamentId)
+	{
+		return UriHelper.BuildAbsolute(
+			this.Request.Scheme,
+			this.Request.Host,
+			this.Request.PathBase,
+			new PathString($"/tournaments/{tournamentId}/banner"));
 	}
 
 	private async Task<IReadOnlyList<TournamentViewModel>> MapPublicTournamentsAsync(

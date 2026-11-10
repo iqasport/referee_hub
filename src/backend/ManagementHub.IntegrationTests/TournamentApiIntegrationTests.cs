@@ -20,6 +20,7 @@ using ManagementHub.Service.Areas.Tournaments;
 using ManagementHub.Service.Filtering;
 using ManagementHub.Storage;
 using ManagementHub.Storage.Commands.Tournament;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -344,6 +345,60 @@ public class TournamentApiIntegrationTests : IClassFixture<TestWebApplicationFac
 		tournament!.BannerImageUrl.Should().NotBeNullOrWhiteSpace();
 		tournament.IsPrivate.Should().BeFalse();
 		tournament.IsCurrentUserInvolved.Should().BeFalse();
+	}
+
+	[Fact]
+	public async Task TournamentSharePage_ShouldReturnMetadataForPublicTournament()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+
+		var publicTournamentId = await this.CreateTestTournamentAsync(
+			"Preview & Cup",
+			TournamentType.Club,
+			"USA",
+			"Austin",
+			isPrivate: false);
+		var privateTournamentId = await this.CreateTestTournamentAsync(
+			"Private Preview Tournament",
+			TournamentType.Club,
+			"USA",
+			"Dallas",
+			isPrivate: true);
+		var bannerTournamentId = await this.CreateTestTournamentAsync(
+			"Tournament With Preview Banner",
+			TournamentType.Club,
+			"USA",
+			"Seattle",
+			isPrivate: false);
+		await this.UploadTournamentBannerAsync(bannerTournamentId);
+
+		this._client.DefaultRequestHeaders.Authorization = null;
+
+		var response = await this._client.GetAsync($"/tournaments/{publicTournamentId}");
+		response.StatusCode.Should().Be(HttpStatusCode.OK);
+		response.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
+
+		var html = await response.Content.ReadAsStringAsync();
+		html.Should().Contain("property=\"og:title\" content=\"Preview &amp; Cup\"");
+		html.Should().Contain("property=\"og:description\" content=\"Test tournament for Preview &amp; Cup\"");
+		html.Should().Contain("property=\"og:image\" content=\"http://localhost/images/logo_long_green.png\"");
+		html.Should().Contain("name=\"twitter:card\" content=\"summary_large_image\"");
+
+		var bannerPageResponse = await this._client.GetAsync($"/tournaments/{bannerTournamentId}");
+		bannerPageResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var bannerHtml = await bannerPageResponse.Content.ReadAsStringAsync();
+		bannerHtml.Should().Contain($"property=\"og:image\" content=\"http://localhost/tournaments/{bannerTournamentId}/banner\"");
+
+		using var bannerClient = this._factory.CreateClient(new WebApplicationFactoryClientOptions
+		{
+			AllowAutoRedirect = false,
+		});
+		var bannerResponse = await bannerClient.GetAsync($"/tournaments/{bannerTournamentId}/banner");
+		bannerResponse.StatusCode.Should().Be(HttpStatusCode.Redirect);
+		bannerResponse.Headers.Location.Should().NotBeNull();
+
+		var privateResponse = await this._client.GetAsync($"/tournaments/{privateTournamentId}");
+		privateResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
 	}
 
 	[Fact]
