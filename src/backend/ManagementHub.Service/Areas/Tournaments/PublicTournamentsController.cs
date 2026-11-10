@@ -28,6 +28,14 @@ namespace ManagementHub.Service.Areas.Tournaments;
 [Produces("application/json")]
 public class PublicTournamentsController : ControllerBase
 {
+	private const string FallbackIndexHtml = """
+		<!doctype html>
+		<html>
+		<head><meta charset="utf-8" /><title>IQA Management Hub</title></head>
+		<body><div id="main-app"></div></body>
+		</html>
+		""";
+
 	private readonly ManagementHubDbContext dbContext;
 	private readonly IRefreshPublicTournamentSnapshotCommand refreshPublicTournamentSnapshotCommand;
 	private readonly ITournamentContextProvider tournamentContextProvider;
@@ -130,14 +138,14 @@ public class PublicTournamentsController : ControllerBase
 			""";
 
 		var indexFile = this.webHostEnvironment.WebRootFileProvider.GetFileInfo("index.html");
-		if (!indexFile.Exists)
+		var html = FallbackIndexHtml;
+		if (indexFile.Exists)
 		{
-			throw new FileNotFoundException("The frontend index file could not be found.", indexFile.PhysicalPath);
+			await using var stream = indexFile.CreateReadStream();
+			using var reader = new StreamReader(stream);
+			html = await reader.ReadToEndAsync(this.HttpContext.RequestAborted);
 		}
 
-		await using var stream = indexFile.CreateReadStream();
-		using var reader = new StreamReader(stream);
-		var html = await reader.ReadToEndAsync(this.HttpContext.RequestAborted);
 		var headEnd = html.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
 		if (headEnd >= 0)
 		{
