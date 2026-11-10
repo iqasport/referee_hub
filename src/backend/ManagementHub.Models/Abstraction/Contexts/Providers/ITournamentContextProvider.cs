@@ -68,6 +68,6 @@ public interface ITournamentContextProvider
 	Task RemoveTeamParticipantAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, CancellationToken cancellationToken = default);
 
 	// Phase 4: Roster management
-	Task UpdateParticipantRosterAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, RosterUpdateData rosterData, CancellationToken cancellationToken = default);
+	Task<IReadOnlyList<(UserIdentifier UserId, RosterRole Role)>> UpdateParticipantRosterAsync(TournamentIdentifier tournamentId, TeamIdentifier teamId, RosterUpdateData rosterData, CancellationToken cancellationToken = default);
 }
 

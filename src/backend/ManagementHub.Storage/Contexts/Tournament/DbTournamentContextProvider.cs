@@ -1334,14 +1334,14 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			teamId, tournamentId);
 	}
 
-	public async Task UpdateParticipantRosterAsync(
+	public async Task<IReadOnlyList<(UserIdentifier UserId, RosterRole Role)>> UpdateParticipantRosterAsync(
 		TournamentIdentifier tournamentId,
 		TeamIdentifier teamId,
 		RosterUpdateData rosterData,
 		CancellationToken cancellationToken = default)
 	{
 		var executionStrategy = this.dbContext.Database.CreateExecutionStrategy();
-		await executionStrategy.ExecuteAsync(async () =>
+		return await executionStrategy.ExecuteAsync<IReadOnlyList<(UserIdentifier UserId, RosterRole Role)>>(async () =>
 		{
 			using var transaction = await this.transactionProvider.BeginAsync();
 
@@ -1387,6 +1387,10 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// Validate users are team members
 			await this.ValidateUsersAreTeamMembersAsync(userIdMap.Values, teamId, cancellationToken);
 
+			// Compare by persisted user ID and role before replacing the roster.
+			var knownEntries = participant.RosterEntries.Select(e => (e.UserId, e.Role)).ToHashSet();
+			var additions = new List<(UserIdentifier UserId, RosterRole Role)>();
+
 			// Clear existing roster
 			this.dbContext.TournamentTeamRosterEntries.RemoveRange(participant.RosterEntries);
 
@@ -1395,6 +1399,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// Add players
 			foreach (var player in rosterData.Players)
 			{
+				if (knownEntries.Add((userIdMap[player.UserId], RosterRole.Player)))
+				{
+					additions.Add((player.UserId, RosterRole.Player));
+				}
+
 				var entry = new TournamentTeamRosterEntry
 				{
 					TournamentTeamParticipantId = participant.Id,
@@ -1416,6 +1425,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// Add coaches
 			foreach (var coach in rosterData.Coaches)
 			{
+				if (knownEntries.Add((userIdMap[coach.UserId], RosterRole.Coach)))
+				{
+					additions.Add((coach.UserId, RosterRole.Coach));
+				}
+
 				var entry = new TournamentTeamRosterEntry
 				{
 					TournamentTeamParticipantId = participant.Id,
@@ -1430,6 +1444,11 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 			// Add staff
 			foreach (var staff in rosterData.Staff)
 			{
+				if (knownEntries.Add((userIdMap[staff.UserId], RosterRole.Staff)))
+				{
+					additions.Add((staff.UserId, RosterRole.Staff));
+				}
+
 				var entry = new TournamentTeamRosterEntry
 				{
 					TournamentTeamParticipantId = participant.Id,
@@ -1450,6 +1469,8 @@ public class DbTournamentContextProvider : ITournamentContextProvider
 				teamId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
 				tournamentId.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty),
 				rosterData.Players.Count, rosterData.Coaches.Count, rosterData.Staff.Count);
+
+			return additions;
 		});
 	}
 
