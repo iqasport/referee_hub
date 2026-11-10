@@ -1,26 +1,36 @@
 import {
+  useGetPublicTournamentByIdQuery,
   useGetTournamentQuery,
+  TournamentViewModel,
 } from "../../../../store/serviceApi";
 
 export const useTournamentData = (tournamentId: string | undefined, isAnonymous: boolean, isCurrentUserLoading: boolean) => {
-  const shouldFetchTournament = !isCurrentUserLoading;
-
-  // Single tournament endpoint supports both authenticated and anonymous access.
   const {
-    data: tournamentData,
-    isLoading: isLoadingTournament,
-    isError: isTournamentError,
+    data: authenticatedTournament,
+    isLoading: isLoadingAuthenticatedTournament,
+    isError: isAuthenticatedTournamentError,
   } = useGetTournamentQuery(
     { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || !shouldFetchTournament }
+    { skip: !tournamentId || isCurrentUserLoading || isAnonymous }
+  );
+
+  const {
+    data: publicTournamentData,
+    isLoading: isLoadingPublicTournament,
+    isError: isPublicTournamentError,
+  } = useGetPublicTournamentByIdQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !tournamentId || isCurrentUserLoading || !isAnonymous }
   );
 
   const tournament = isAnonymous
-    ? (tournamentData ? { ...tournamentData, isCurrentUserInvolved: false } : undefined)
-    : tournamentData;
+    ? publicTournamentData as unknown as TournamentViewModel | undefined
+    : authenticatedTournament;
 
-  const isLoading = isCurrentUserLoading || isLoadingTournament;
-  const isError = isTournamentError;
+  const isLoading = isCurrentUserLoading || (
+    isAnonymous ? isLoadingPublicTournament : isLoadingAuthenticatedTournament
+  );
+  const isError = isAnonymous ? isPublicTournamentError : isAuthenticatedTournamentError;
 
   return {
     tournament,

@@ -20,6 +20,8 @@ interface UseTournamentDetailsDataReturn {
   isLoading: boolean;
   isError: boolean;
   managersError: boolean;
+  respondingTo: string | null;
+  setRespondingTo: (participantId: string | null) => void;
   respondToInvite: any;
   deleteTournament: any;
   refetchInvites: () => void;
@@ -38,7 +40,7 @@ export const useTournamentDetailsData = (tournamentId: string | undefined): UseT
     useTournamentManagerCheck(tournamentId);
 
   // Get invite response functionality
-  const { invites, respondToInvite, refetchInvites } =
+  const { invites, respondingTo, setRespondingTo, respondToInvite, refetchInvites } =
     useInviteResponse({ tournamentId, isAnonymous });
 
   // Query managed teams
@@ -70,6 +72,8 @@ export const useTournamentDetailsData = (tournamentId: string | undefined): UseT
     isLoading,
     isError,
     managersError,
+    respondingTo,
+    setRespondingTo,
     respondToInvite,
     deleteTournament,
     refetchInvites,

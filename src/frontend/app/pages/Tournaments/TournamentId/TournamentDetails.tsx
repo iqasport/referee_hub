@@ -23,7 +23,6 @@ import InviteTeamsModal, {
 import AddTournamentManagerModal from "./AddTournamentManagerModal";
 import ActionButtonPair from "../../../components/ActionButtonPair";
 import CustomAlert, { AlertType } from "../../../components/CustomAlert";
-import { useCurrentUser } from "../../../CurrentUserContext";
 import { useAlert } from "../../../hooks/useAlert";
 import {
   TournamentHeader,
@@ -31,18 +30,8 @@ import {
   TournamentAboutSection,
   RosterManager,
 } from "./components";
-import {
-  useGetTournamentQuery,
-  useGetPublicTournamentByIdQuery,
-  useGetTournamentManagersQuery,
-  useGetTournamentInvitesQuery,
-  useRespondToInviteMutation,
-  useGetManagedTeamsQuery,
-  useGetParticipantsQuery,
-  useDeleteTournamentMutation,
-  TournamentInviteViewModel,
-  TournamentViewModel,
-} from "../../../store/serviceApi";
+import { TournamentInviteViewModel } from "../../../store/serviceApi";
+import { useTournamentDetailsData } from "./hooks/useTournamentDetailsData";
 import {
   useNavigationParams,
   useNavigate,
@@ -52,6 +41,89 @@ type TeamSummary = {
   teamId: string;
   teamName: string;
   ngb: string;
+};
+
+const valueOrDefault = <T,>(value: T | null | undefined, fallback: T): T =>
+  value ?? fallback;
+
+const getManagedTeamIds = (teams?: { teamId?: string | null }[]) => {
+  const teamIds = new Set<string>();
+  teams?.forEach((team) => {
+    if (team.teamId) teamIds.add(team.teamId);
+  });
+  return teamIds;
+};
+
+const getPendingInvitesForManagedTeams = (
+  invites: TournamentInviteViewModel[] | undefined,
+  managedTeamIds: Set<string>
+) => {
+  if (!invites || managedTeamIds.size === 0) return [];
+  return invites.filter((invite) => {
+    const teamId = invite.participantId;
+    return Boolean(
+      teamId
+      && managedTeamIds.has(teamId)
+      && invite.participantApproval?.status === "pending"
+    );
+  });
+};
+
+const getApprovedTeamsForManagedTeams = (
+  invites: TournamentInviteViewModel[] | undefined,
+  teams: { teamId?: string | null; teamName?: string | null; ngb?: string | null }[] | undefined,
+  managedTeamIds: Set<string>
+): TeamSummary[] => {
+  if (!invites || !teams || managedTeamIds.size === 0) return [];
+  return invites.reduce<TeamSummary[]>((approvedTeams, invite) => {
+    const teamId = invite.participantId;
+    if (!teamId || !managedTeamIds.has(teamId) || invite.status !== "approved") {
+      return approvedTeams;
+    }
+    const teamData = teams.find((team) => team.teamId === teamId);
+    approvedTeams.push({
+      teamId,
+      teamName: invite.participantName || teamData?.teamName || "Unknown Team",
+      ngb: teamData?.ngb || "",
+    });
+    return approvedTeams;
+  }, []);
+};
+
+const getTotalPlayerCount = (participants?: { players?: unknown[] | null }[]) =>
+  participants?.reduce((total, team) => total + (team.players?.length || 0), 0) || 0;
+
+const isRegistrationClosed = (
+  registrationIsOpen?: boolean,
+  registrationEndsDate?: string,
+  startDate?: string
+) => {
+  if (registrationIsOpen === false) return true;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const closingDate = registrationEndsDate || startDate;
+  if (!closingDate) return false;
+  const normalizedClosingDate = new Date(closingDate);
+  normalizedClosingDate.setHours(0, 0, 0, 0);
+  return today > normalizedClosingDate;
+};
+
+const formatTournamentDateRange = (startDate: Date, endDate: Date) => {
+  if (startDate.toDateString() === endDate.toDateString()) {
+    return startDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+  return `${startDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })} - ${endDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
 };
 
 type ManagerSidebarProps = {
@@ -512,8 +584,6 @@ const TournamentDetails = () => {
   const rosterSectionRef =
     useRef<HTMLDivElement>(null);
 
-  const [respondingTo, setRespondingTo] =
-    useState<string | null>(null);
   const [isAddManagerModalOpen, setIsAddManagerModalOpen] =
     useState(false);
 
@@ -522,211 +592,47 @@ const TournamentDetails = () => {
 
   const {
     currentUser,
-    isAnonymous,
-    isLoading: isCurrentUserLoading,
-  } = useCurrentUser();
+    isTournamentManager: isManager,
+    isLoading,
+    isError,
+    respondingTo,
+    setRespondingTo,
+    tournament,
+    invites,
+    participants,
+    managedTeamsData,
+    respondToInvite,
+    deleteTournament,
+    refetchInvites,
+    refetchParticipants,
+  } = useTournamentDetailsData(tournamentId);
 
-  const {
-    data: authenticatedTournament,
-    isLoading: isAuthenticatedTournamentLoading,
-    isError: isAuthenticatedTournamentError,
-  } = useGetTournamentQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || isCurrentUserLoading || isAnonymous }
+  const managedTeamIds = useMemo(
+    () => getManagedTeamIds(managedTeamsData),
+    [managedTeamsData]
   );
 
-  const {
-    data: publicTournamentData,
-    isLoading: isPublicTournamentLoading,
-    isError: isPublicTournamentError,
-  } = useGetPublicTournamentByIdQuery(
-    { tournamentId: tournamentId || "" },
-    { skip: !tournamentId || isCurrentUserLoading || !isAnonymous }
+  const pendingInvitesForUser = useMemo(
+    () => getPendingInvitesForManagedTeams(invites, managedTeamIds),
+    [invites, managedTeamIds]
   );
 
-  const tournament = isAnonymous
-    ? publicTournamentData as unknown as TournamentViewModel | undefined
-    : authenticatedTournament;
-  const isLoading = isCurrentUserLoading || (
-    isAnonymous ? isPublicTournamentLoading : isAuthenticatedTournamentLoading
-  );
-  const isError = isAnonymous ? isPublicTournamentError : isAuthenticatedTournamentError;
-
-  const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, {
-    skip: isAnonymous,
-  });
-
-  const isTournamentManagerOfThis =
-    currentUser?.roles?.some((role: any) => {
-      if (role.roleType !== "TournamentManager") {
-        return false;
-      }
-
-      if (role.tournament === "ANY") {
-        return true;
-      }
-
-      if (Array.isArray(role.tournament)) {
-        return role.tournament.includes(tournamentId);
-      }
-
-      return role.tournament === tournamentId;
-    });
-
-  const shouldFetchManagers = Boolean(
-    tournamentId && isTournamentManagerOfThis
+  const approvedTeamsForUser = useMemo(
+    () => getApprovedTeamsForManagedTeams(invites, managedTeamsData, managedTeamIds),
+    [invites, managedTeamsData, managedTeamIds]
   );
 
-  const {
-    data: managers,
-    isError: managersError,
-  } = useGetTournamentManagersQuery(
-    {
-      tournamentId: tournamentId || "",
-    },
-    {
-      skip: !shouldFetchManagers,
-    }
+  const totalPlayerCount = useMemo(
+    () => getTotalPlayerCount(participants),
+    [participants]
   );
 
-  const {
-    data: invites,
-    refetch: refetchInvites,
-  } = useGetTournamentInvitesQuery(
-    {
-      tournamentId: tournamentId || "",
-    },
-    {
-      skip: !tournamentId || isAnonymous,
-    }
-  );
-
-  const {
-    data: participants,
-    refetch: refetchParticipants,
-  } = useGetParticipantsQuery(
-    {
-      tournamentId: tournamentId || "",
-    },
-    {
-      skip: !tournamentId || isAnonymous,
-    }
-  );
-
-  const [respondToInvite] =
-    useRespondToInviteMutation();
-  const [deleteTournament] =
-    useDeleteTournamentMutation();
-
-  const managedTeamIds = useMemo(() => {
-    const teamIds = new Set<string>();
-
-    managedTeamsData?.forEach((team) => {
-      if (team.teamId) {
-        teamIds.add(team.teamId);
-      }
-    });
-
-    return teamIds;
-  }, [managedTeamsData]);
-
-  const pendingInvitesForUser = useMemo(() => {
-    if (!invites || managedTeamIds.size === 0) {
-      return [];
-    }
-
-    return invites.filter((invite) => {
-      if (
-        !invite.participantId ||
-        !managedTeamIds.has(invite.participantId)
-      ) {
-        return false;
-      }
-
-      return (
-        invite.participantApproval?.status === "pending"
-      );
-    });
-  }, [invites, managedTeamIds]);
-
-  const approvedTeamsForUser = useMemo(() => {
-    if (
-      !invites ||
-      !managedTeamsData ||
-      managedTeamIds.size === 0
-    ) {
-      return [];
-    }
-
-    return invites
-      .filter((invite) => {
-        if (
-          !invite.participantId ||
-          !managedTeamIds.has(invite.participantId)
-        ) {
-          return false;
-        }
-
-        return invite.status === "approved";
-      })
-      .map((invite) => {
-        if (!invite.participantId) {
-          return null;
-        }
-
-        const teamData = managedTeamsData.find(
-          (team) => team.teamId === invite.participantId
-        );
-
-        return {
-          teamId: invite.participantId,
-          teamName:
-            invite.participantName ||
-            teamData?.teamName ||
-            "Unknown Team",
-          ngb: teamData?.ngb || "",
-        };
-      })
-      .filter(
-        (team): team is TeamSummary => team !== null
-      );
-  }, [invites, managedTeamIds, managedTeamsData]);
-
-  const totalPlayerCount = useMemo(() => {
-    if (!participants) {
-      return 0;
-    }
-
-    return participants.reduce((total, team) => {
-      return total + (team.players?.length || 0);
-    }, 0);
-  }, [participants]);
-
-  const isRegistrationClosed = useMemo(() => {
-    if (tournament?.isRegistrationOpen === false) {
-      return true;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (tournament?.registrationEndsDate) {
-      const registrationEndDate = new Date(
-        tournament.registrationEndsDate
-      );
-      registrationEndDate.setHours(0, 0, 0, 0);
-
-      return today > registrationEndDate;
-    }
-
-    if (tournament?.startDate) {
-      const startDate = new Date(tournament.startDate);
-      startDate.setHours(0, 0, 0, 0);
-
-      return today > startDate;
-    }
-
-    return false;
+  const registrationClosed = useMemo(() => {
+    return isRegistrationClosed(
+      tournament?.isRegistrationOpen,
+      tournament?.registrationEndsDate,
+      tournament?.startDate
+    );
   }, [
     tournament?.isRegistrationOpen,
     tournament?.registrationEndsDate,
@@ -818,14 +724,6 @@ const TournamentDetails = () => {
     );
   }
 
-  const isManager =
-    !managersError &&
-    Boolean(currentUser?.userId) &&
-    Boolean(managers) &&
-    managers.some(
-      (manager) => manager.id === currentUser?.userId
-    );
-
   const startDate = new Date(
     tournament.startDate || ""
   );
@@ -833,45 +731,25 @@ const TournamentDetails = () => {
     tournament.endDate || ""
   );
 
-  const isSameDay =
-    startDate.toDateString() ===
-    endDate.toDateString();
-
-  const formattedDateRange = isSameDay
-    ? startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : `${startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} - ${endDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`;
+  const formattedDateRange = formatTournamentDateRange(startDate, endDate);
 
   const handleEdit = () => {
     editModalRef.current?.openEdit({
-      id: tournament.id || "",
-      name: tournament.name || "",
-      description: tournament.description || "",
-      startDate: tournament.startDate || "",
-      endDate: tournament.endDate || "",
-      registrationEndsDate:
-        tournament.registrationEndsDate || "",
-      type: tournament.type || ("" as const),
-      country: tournament.country || "",
-      city: tournament.city || "",
-      place: tournament.place || "",
-      organizer: tournament.organizer || "",
-      isPrivate: tournament.isPrivate || false,
-      isRegistrationOpen:
-        tournament.isRegistrationOpen ?? true,
-      isVolunteerRegistrationOpen:
-        tournament.isVolunteerRegistrationOpen ?? true,
-      bannerImageUrl: tournament.bannerImageUrl || "",
+      id: valueOrDefault(tournament.id, ""),
+      name: valueOrDefault(tournament.name, ""),
+      description: valueOrDefault(tournament.description, ""),
+      startDate: valueOrDefault(tournament.startDate, ""),
+      endDate: valueOrDefault(tournament.endDate, ""),
+      registrationEndsDate: valueOrDefault(tournament.registrationEndsDate, ""),
+      type: valueOrDefault(tournament.type, "" as const),
+      country: valueOrDefault(tournament.country, ""),
+      city: valueOrDefault(tournament.city, ""),
+      place: valueOrDefault(tournament.place, ""),
+      organizer: valueOrDefault(tournament.organizer, ""),
+      isPrivate: valueOrDefault(tournament.isPrivate, false),
+      isRegistrationOpen: valueOrDefault(tournament.isRegistrationOpen, true),
+      isVolunteerRegistrationOpen: valueOrDefault(tournament.isVolunteerRegistrationOpen, true),
+      bannerImageUrl: valueOrDefault(tournament.bannerImageUrl, ""),
     });
   };
 
@@ -929,7 +807,7 @@ const TournamentDetails = () => {
         formattedDateRange={formattedDateRange}
         invites={invites}
         totalPlayerCount={totalPlayerCount}
-        isRegistrationClosed={isRegistrationClosed}
+        isRegistrationClosed={registrationClosed}
         pendingInvitesForUser={pendingInvitesForUser}
         approvedTeamsForUser={approvedTeamsForUser}
         respondingTo={respondingTo}
