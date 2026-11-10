@@ -1204,9 +1204,10 @@ public class TournamentsController : ControllerBase
 		}
 
 		// Update roster
+		IReadOnlyList<(UserIdentifier UserId, RosterRole Role)> additions;
 		try
 		{
-			await this.tournamentContextProvider.UpdateParticipantRosterAsync(
+			additions = await this.tournamentContextProvider.UpdateParticipantRosterAsync(
 				tournamentId, teamId, rosterData, this.HttpContext.RequestAborted);
 		}
 		catch (NotFoundException)
@@ -1218,37 +1219,14 @@ public class TournamentsController : ControllerBase
 			return this.BadRequest(new { error = ex.Message });
 		}
 
-		// Create roster registration notifications for newly added players, coaches, and staff
-		foreach (var player in rosterData.Players)
+		foreach (var (userId, role) in additions)
 		{
 			await this.notificationService.CreateRosterRegistrationNotificationAsync(
-				player.UserId,
+				userId,
 				tournamentId,
 				teamId,
 				tournament.Name,
-				RosterRole.Player,
-				this.HttpContext.RequestAborted);
-		}
-
-		foreach (var coach in rosterData.Coaches)
-		{
-			await this.notificationService.CreateRosterRegistrationNotificationAsync(
-				coach.UserId,
-				tournamentId,
-				teamId,
-				tournament.Name,
-				RosterRole.Coach,
-				this.HttpContext.RequestAborted);
-		}
-
-		foreach (var staffMember in rosterData.Staff)
-		{
-			await this.notificationService.CreateRosterRegistrationNotificationAsync(
-				staffMember.UserId,
-				tournamentId,
-				teamId,
-				tournament.Name,
-				RosterRole.Staff,
+				role,
 				this.HttpContext.RequestAborted);
 		}
 
