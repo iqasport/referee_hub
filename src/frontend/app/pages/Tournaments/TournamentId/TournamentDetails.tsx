@@ -23,6 +23,7 @@ import InviteTeamsModal, {
 import AddTournamentManagerModal from "./AddTournamentManagerModal";
 import ActionButtonPair from "../../../components/ActionButtonPair";
 import CustomAlert, { AlertType } from "../../../components/CustomAlert";
+import { useCurrentUser } from "../../../CurrentUserContext";
 import { useAlert } from "../../../hooks/useAlert";
 import {
   TournamentHeader,
@@ -32,14 +33,15 @@ import {
 } from "./components";
 import {
   useGetTournamentQuery,
+  useGetPublicTournamentByIdQuery,
   useGetTournamentManagersQuery,
-  useGetCurrentUserQuery,
   useGetTournamentInvitesQuery,
   useRespondToInviteMutation,
   useGetManagedTeamsQuery,
   useGetParticipantsQuery,
   useDeleteTournamentMutation,
   TournamentInviteViewModel,
+  TournamentViewModel,
 } from "../../../store/serviceApi";
 import {
   useNavigationParams,
@@ -519,18 +521,40 @@ const TournamentDetails = () => {
   const navigate = useNavigate();
 
   const {
-    data: tournament,
-    isLoading,
-    isError,
-  } = useGetTournamentQuery({
-    tournamentId: tournamentId || "",
+    currentUser,
+    isAnonymous,
+    isLoading: isCurrentUserLoading,
+  } = useCurrentUser();
+
+  const {
+    data: authenticatedTournament,
+    isLoading: isAuthenticatedTournamentLoading,
+    isError: isAuthenticatedTournamentError,
+  } = useGetTournamentQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !tournamentId || isCurrentUserLoading || isAnonymous }
+  );
+
+  const {
+    data: publicTournamentData,
+    isLoading: isPublicTournamentLoading,
+    isError: isPublicTournamentError,
+  } = useGetPublicTournamentByIdQuery(
+    { tournamentId: tournamentId || "" },
+    { skip: !tournamentId || isCurrentUserLoading || !isAnonymous }
+  );
+
+  const tournament = isAnonymous
+    ? publicTournamentData as unknown as TournamentViewModel | undefined
+    : authenticatedTournament;
+  const isLoading = isCurrentUserLoading || (
+    isAnonymous ? isPublicTournamentLoading : isAuthenticatedTournamentLoading
+  );
+  const isError = isAnonymous ? isPublicTournamentError : isAuthenticatedTournamentError;
+
+  const { data: managedTeamsData } = useGetManagedTeamsQuery(undefined, {
+    skip: isAnonymous,
   });
-
-  const { data: currentUser } =
-    useGetCurrentUserQuery();
-
-  const { data: managedTeamsData } =
-    useGetManagedTeamsQuery();
 
   const isTournamentManagerOfThis =
     currentUser?.roles?.some((role: any) => {
@@ -573,7 +597,7 @@ const TournamentDetails = () => {
       tournamentId: tournamentId || "",
     },
     {
-      skip: !tournamentId,
+      skip: !tournamentId || isAnonymous,
     }
   );
 
@@ -585,7 +609,7 @@ const TournamentDetails = () => {
       tournamentId: tournamentId || "",
     },
     {
-      skip: !tournamentId,
+      skip: !tournamentId || isAnonymous,
     }
   );
 
