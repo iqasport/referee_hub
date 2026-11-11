@@ -1,6 +1,6 @@
 import React from "react";
 
-import { render, screen } from "../../utils/test-utils";
+import { fireEvent, render, screen } from "../../utils/test-utils";
 
 import Avatar from "./";
 
@@ -20,7 +20,7 @@ describe("Avatar", () => {
     firstName: "Quidditch",
     lastName: "Rocks",
     ownedNgbId: 1234,
-    roles: ["referee"],
+    roles: ["Referee"],
     unreadNotifications: 0,
     userId: "123",
   };
@@ -46,5 +46,21 @@ describe("Avatar", () => {
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute("src", "https://example.com/avatar.jpg");
     expect(screen.queryByText("QR")).not.toBeInTheDocument();
+  });
+
+  test("it shows My Profile for referees", () => {
+    render(<Avatar {...defaultProps} />);
+
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(screen.getByRole("link", { name: "My Profile" })).toBeInTheDocument();
+  });
+
+  test("it hides My Profile for users without the referee role", () => {
+    render(<Avatar {...defaultProps} roles={["NgbAdmin"]} />);
+
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(screen.queryByRole("link", { name: "My Profile" })).not.toBeInTheDocument();
   });
 });
