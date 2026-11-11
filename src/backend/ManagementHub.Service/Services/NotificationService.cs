@@ -233,6 +233,20 @@ public class NotificationService : INotificationService
 			"Tournament",
 			cancellationToken: cancellationToken);
 
+	public Task<NotificationEntity> CreatePlayerRegistrationRequestNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			NotificationType.TeamTournamentJoinRequest,
+			"New individual application",
+			$"A player submitted an individual application for {tournamentName}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: cancellationToken);
+
 	public Task<NotificationEntity> CreateRequestResponseNotificationAsync(
 		UserIdentifier userId,
 		TournamentIdentifier tournamentId,
@@ -262,6 +276,21 @@ public class NotificationService : INotificationService
 			approved ? NotificationType.RequestAccepted : NotificationType.RequestRejected,
 			approved ? "Volunteer registration approved" : "Volunteer registration rejected",
 			$"Your volunteer registration for {tournamentName} was {(approved ? "approved" : "rejected")}.",
+			tournamentId.ToString(),
+			"Tournament",
+			cancellationToken: cancellationToken);
+
+	public Task<NotificationEntity> CreatePlayerRegistrationResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default) =>
+		this.CreateNotificationCoreAsync(
+			userId,
+			approved ? NotificationType.RequestAccepted : NotificationType.RequestRejected,
+			approved ? "Individual application approved" : "Individual application rejected",
+			$"Your individual application for {tournamentName} was {(approved ? "approved" : "rejected")}.",
 			tournamentId.ToString(),
 			"Tournament",
 			cancellationToken: cancellationToken);

@@ -9,6 +9,7 @@ using FluentAssertions;
 using ManagementHub.IntegrationTests.Helpers;
 using ManagementHub.Models.Domain.Team;
 using ManagementHub.Models.Domain.Tournament;
+using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
 using Xunit;
@@ -69,6 +70,74 @@ public class NotificationsApiIntegrationTests : IClassFixture<TestWebApplication
 
 		joinRequestNotification.ValueKind.Should().NotBe(JsonValueKind.Undefined,
 			"tournament managers should receive a join request notification for this tournament/team");
+	}
+
+	[Theory]
+	[InlineData(true, "RequestAccepted")]
+	[InlineData(false, "RequestRejected")]
+	public async Task IndividualRegistration_ShouldNotifyManagersAndApplicantOnDecision(
+		bool approved,
+		string expectedResponseType)
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "referee@example.com", "password");
+		var tournamentName = $"Individual Registration Notification {Guid.NewGuid():N}";
+		var createResponse = await this.client.PostAsJsonAsync("/api/v2/tournaments", new TournamentModel
+		{
+			Name = tournamentName,
+			Description = "Individual registration notification lifecycle",
+			StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
+			EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(32)),
+			Type = TournamentType.Fantasy,
+			Country = "USA",
+			City = "Portland",
+			Organizer = "Test Organizer",
+			IsPrivate = false,
+			AllowsTeamRegistration = true,
+			AllowsIndividualRegistration = true,
+		});
+		createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var tournamentId = createBody.GetProperty("id").GetString();
+		tournamentId.Should().NotBeNullOrWhiteSpace();
+
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "team_manager@example.com", "password");
+		var currentUserResponse = await this.client.GetAsync("/api/v2/users/me");
+		currentUserResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var currentUser = await currentUserResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var playerId = currentUser.GetProperty("userId").GetString();
+		playerId.Should().NotBeNullOrWhiteSpace();
+
+		var applicationResponse = await this.client.PostAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/invites",
+			new CreateInviteModel
+			{
+				ParticipantType = ParticipantType.Player,
+				ParticipantId = TournamentParticipantIdentifier.ForPlayer(UserIdentifier.Parse(playerId!)),
+			});
+		applicationResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "referee@example.com", "password");
+		var managerNotificationsResponse = await this.client.GetAsync("/api/v2/notifications");
+		managerNotificationsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var managerNotificationsJson = await managerNotificationsResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var applicationNotification = managerNotificationsJson.GetProperty("notifications").EnumerateArray().FirstOrDefault(notification =>
+			notification.GetProperty("title").GetString() == "New individual application" &&
+			notification.GetProperty("relatedEntityId").GetString() == tournamentId);
+		applicationNotification.ValueKind.Should().NotBe(JsonValueKind.Undefined);
+
+		var decisionResponse = await this.client.PostAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/invites/{playerId}?participantType=player",
+			new InviteResponseModel { Approved = approved });
+		decisionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		await AuthenticationHelper.AuthenticateAsAsync(this.client, "team_manager@example.com", "password");
+		var applicantNotificationsResponse = await this.client.GetAsync("/api/v2/notifications");
+		applicantNotificationsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+		var applicantNotificationsJson = await applicantNotificationsResponse.Content.ReadFromJsonAsync<JsonElement>();
+		var decisionNotification = applicantNotificationsJson.GetProperty("notifications").EnumerateArray().FirstOrDefault(notification =>
+			notification.GetProperty("type").GetString() == expectedResponseType &&
+			notification.GetProperty("relatedEntityId").GetString() == tournamentId);
+		decisionNotification.ValueKind.Should().NotBe(JsonValueKind.Undefined);
 	}
 
 	[Fact]

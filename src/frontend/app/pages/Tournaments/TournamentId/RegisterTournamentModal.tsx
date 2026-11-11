@@ -252,18 +252,20 @@ interface RegistrationModeToggleProps {
   setMode: (m: RegistrationMode) => void;
 }
 const RegistrationModeToggle: React.FC<RegistrationModeToggleProps> = ({ mode, setMode }) => (
-  <div className="flex rounded-lg overflow-hidden border border-gray-300 mb-2">
+  <div className="flex rounded-full overflow-hidden border border-gray-300 mb-2">
     <button
       type="button"
       onClick={() => setMode("team")}
-      className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === "team" ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+      className="flex-1 py-2 text-sm font-medium transition-colors"
+      style={{ backgroundColor: mode === "team" ? "#3182ce" : "#ffffff", color: mode === "team" ? "#ffffff" : "#4a5568" }}
     >
       Register a Team
     </button>
     <button
       type="button"
       onClick={() => setMode("individual")}
-      className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === "individual" ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+      className="flex-1 py-2 text-sm font-medium transition-colors"
+      style={{ backgroundColor: mode === "individual" ? "#3182ce" : "#ffffff", color: mode === "individual" ? "#ffffff" : "#4a5568" }}
     >
       Register Individually
     </button>

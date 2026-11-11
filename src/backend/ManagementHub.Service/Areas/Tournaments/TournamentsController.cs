@@ -637,6 +637,14 @@ public class TournamentsController : ControllerBase
 				tournamentName,
 				initiatorUserId);
 		}
+		else if (isTournamentManager && !isTeamManager && invite.ParticipantApproval == ApprovalStatus.Pending)
+		{
+			await this.NotifyTeamManagersOfTournamentInviteAsync(
+				tournamentId,
+				teamId,
+				tournamentName,
+				initiatorUserId);
+		}
 
 		await this.SendInviteEmailIfPendingAsync(invite, tournamentId, teamId);
 	}
@@ -706,6 +714,14 @@ public class TournamentsController : ControllerBase
 			userContext.UserId,
 			model.Observations,
 			this.HttpContext.RequestAborted);
+
+		if (refereeInvite.TournamentManagerApproval == ApprovalStatus.Pending)
+		{
+			await this.NotifyTournamentManagersOfVolunteerRegistrationAsync(
+				tournamentId,
+				tournament.Name,
+				userContext.UserId);
+		}
 
 		return this.CreateInviteCreatedResponse(tournamentId, refereeInvite);
 	}
@@ -793,6 +809,14 @@ public class TournamentsController : ControllerBase
 			userContext.UserId,
 			userContext.UserId,
 			this.HttpContext.RequestAborted);
+
+		if (invite.TournamentManagerApproval == ApprovalStatus.Pending)
+		{
+			await this.NotifyTournamentManagersOfPlayerRegistrationAsync(
+				tournamentId,
+				tournament.Name,
+				userContext.UserId);
+		}
 
 		var viewModel = MapInviteToViewModel(invite);
 
@@ -889,17 +913,8 @@ public class TournamentsController : ControllerBase
 		string tournamentName,
 		UserIdentifier initiatorUserId)
 	{
-		var managerRows = await this.dbContext.TournamentManagers
-			.Where(tm => tm.Tournament.UniqueId == tournamentId.ToString())
-			.Select(tm => new { tm.User.UniqueId, tm.User.Id })
-			.ToListAsync(this.HttpContext.RequestAborted);
-
-		foreach (var manager in managerRows)
+		foreach (var managerUserId in await this.GetTournamentManagerUserIdsAsync(tournamentId))
 		{
-			var managerUserId = !string.IsNullOrWhiteSpace(manager.UniqueId)
-				? UserIdentifier.Parse(manager.UniqueId)
-				: UserIdentifier.FromLegacyUserId(manager.Id);
-
 			if (managerUserId.Equals(initiatorUserId))
 			{
 				continue;
@@ -913,6 +928,91 @@ public class TournamentsController : ControllerBase
 				this.HttpContext.RequestAborted);
 		}
 	}
+
+	private async Task NotifyTournamentManagersOfVolunteerRegistrationAsync(
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		UserIdentifier initiatorUserId)
+	{
+		foreach (var managerUserId in await this.GetTournamentManagerUserIdsAsync(tournamentId))
+		{
+			if (managerUserId.Equals(initiatorUserId))
+			{
+				continue;
+			}
+
+			await this.notificationService.CreateVolunteerRegistrationRequestNotificationAsync(
+				managerUserId,
+				tournamentId,
+				tournamentName,
+				this.HttpContext.RequestAborted);
+		}
+	}
+
+	private async Task NotifyTournamentManagersOfPlayerRegistrationAsync(
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		UserIdentifier initiatorUserId)
+	{
+		foreach (var managerUserId in await this.GetTournamentManagerUserIdsAsync(tournamentId))
+		{
+			if (managerUserId.Equals(initiatorUserId))
+			{
+				continue;
+			}
+
+			await this.notificationService.CreatePlayerRegistrationRequestNotificationAsync(
+				managerUserId,
+				tournamentId,
+				tournamentName,
+				this.HttpContext.RequestAborted);
+		}
+	}
+
+	private async Task NotifyTeamManagersOfTournamentInviteAsync(
+		TournamentIdentifier tournamentId,
+		TeamIdentifier teamId,
+		string tournamentName,
+		UserIdentifier initiatorUserId)
+	{
+		var managerRows = await this.dbContext.TeamManagers
+			.Where(manager => manager.TeamId == teamId.Id)
+			.Select(manager => new { manager.User.UniqueId, manager.User.Id })
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		foreach (var manager in managerRows)
+		{
+			var managerUserId = ToUserIdentifier(manager.UniqueId, manager.Id);
+			if (managerUserId.Equals(initiatorUserId))
+			{
+				continue;
+			}
+
+			await this.notificationService.CreateTournamentInviteNotificationAsync(
+				managerUserId,
+				tournamentId,
+				teamId,
+				tournamentName,
+				this.HttpContext.RequestAborted);
+		}
+	}
+
+	private async Task<IReadOnlyList<UserIdentifier>> GetTournamentManagerUserIdsAsync(TournamentIdentifier tournamentId)
+	{
+		var managerRows = await this.dbContext.TournamentManagers
+			.Where(manager => manager.Tournament.UniqueId == tournamentId.ToString())
+			.Select(manager => new { manager.User.UniqueId, manager.User.Id })
+			.ToListAsync(this.HttpContext.RequestAborted);
+
+		return managerRows
+			.Select(manager => ToUserIdentifier(manager.UniqueId, manager.Id))
+			.ToList();
+	}
+
+	private static UserIdentifier ToUserIdentifier(string? uniqueId, long userDbId) =>
+		!string.IsNullOrWhiteSpace(uniqueId)
+			? UserIdentifier.Parse(uniqueId)
+			: UserIdentifier.FromLegacyUserId(userDbId);
 
 	private static bool TryParseParticipantId(string participantId, out TournamentParticipantIdentifier participantIdentifier)
 	{
@@ -1078,6 +1178,39 @@ public class TournamentsController : ControllerBase
 			.GetInviteByParticipantIdAsync(tournamentId, parsedParticipantId, this.HttpContext.RequestAborted);
 		await this.AddTeamParticipantIfInviteApproved(updatedInvite, tournamentId, parsedTeamId);
 
+		if (isTournamentManager)
+		{
+			if (parsedParticipantId.ParticipantType == ParticipantType.Team && parsedTeamId.HasValue)
+			{
+				await this.notificationService.CreateRequestResponseNotificationAsync(
+					invite.InitiatorUserId,
+					tournamentId,
+					parsedTeamId.Value,
+					tournament.Name,
+					response.Approved,
+					this.HttpContext.RequestAborted);
+			}
+			else if (parsedParticipantId.ParticipantType == ParticipantType.Referee && parsedUserId.HasValue)
+			{
+				await this.notificationService.CreateVolunteerRequestResponseNotificationAsync(
+					parsedUserId.Value,
+					tournamentId,
+					tournament.Name,
+					response.Approved,
+					this.HttpContext.RequestAborted);
+			}
+		}
+		else if (parsedParticipantId.ParticipantType == ParticipantType.Team && parsedTeamId.HasValue)
+		{
+			await this.notificationService.CreateInviteResponseNotificationAsync(
+				invite.InitiatorUserId,
+				tournamentId,
+				parsedTeamId.Value,
+				tournament.Name,
+				response.Approved,
+				this.HttpContext.RequestAborted);
+		}
+
 		return this.Ok();
 	}
 
@@ -1165,6 +1298,12 @@ public class TournamentsController : ControllerBase
 
 		await this.tournamentContextProvider.UpdatePlayerInviteApprovalAsync(
 			tournamentId, playerId, response.Approved, cancellationToken);
+		await this.notificationService.CreatePlayerRegistrationResponseNotificationAsync(
+			playerId,
+			tournamentId,
+			tournament.Name,
+			response.Approved,
+			cancellationToken);
 
 		return this.Ok();
 	}

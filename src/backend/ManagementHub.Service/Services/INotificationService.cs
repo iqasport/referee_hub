@@ -83,6 +83,12 @@ public interface INotificationService
 		string tournamentName,
 		CancellationToken cancellationToken = default);
 
+	Task<NotificationEntity> CreatePlayerRegistrationRequestNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		CancellationToken cancellationToken = default);
+
 	Task<NotificationEntity> CreateRequestResponseNotificationAsync(
 		UserIdentifier userId,
 		TournamentIdentifier tournamentId,
@@ -92,6 +98,13 @@ public interface INotificationService
 		CancellationToken cancellationToken = default);
 
 	Task<NotificationEntity> CreateVolunteerRequestResponseNotificationAsync(
+		UserIdentifier userId,
+		TournamentIdentifier tournamentId,
+		string tournamentName,
+		bool approved,
+		CancellationToken cancellationToken = default);
+
+	Task<NotificationEntity> CreatePlayerRegistrationResponseNotificationAsync(
 		UserIdentifier userId,
 		TournamentIdentifier tournamentId,
 		string tournamentName,
