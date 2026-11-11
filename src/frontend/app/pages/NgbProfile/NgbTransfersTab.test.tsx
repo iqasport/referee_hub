@@ -1,20 +1,25 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
-import { useGetNgbTransfersQuery } from "../../store/serviceApi";
+import { useGetNgbTransferSettingsQuery, useGetNgbTransfersQuery } from "../../store/serviceApi";
 import NgbTransfersTab from "./NgbTransfersTab";
 
 jest.mock("../../store/serviceApi", () => ({
   useApproveNgbTransferMutation: () => [jest.fn()],
+  useGetNgbTransferSettingsQuery: jest.fn(),
   useGetNgbTransfersQuery: jest.fn(),
   useRejectNgbTransferMutation: () => [jest.fn()],
   useUpdateNgbTransferSettingsMutation: () => [jest.fn(), { isLoading: false }],
 }));
 
 const mockUseGetNgbTransfersQuery = useGetNgbTransfersQuery as jest.Mock;
+const mockUseGetNgbTransferSettingsQuery = useGetNgbTransferSettingsQuery as jest.Mock;
 
 describe("NgbTransfersTab", () => {
   beforeEach(() => {
+    mockUseGetNgbTransferSettingsQuery.mockReturnValue({
+      data: { autoApproveInternalTransfers: false },
+    });
     mockUseGetNgbTransfersQuery.mockReturnValue({
       data: {
         items: [{
@@ -83,5 +88,16 @@ describe("NgbTransfersTab", () => {
     expect(screen.getByText("Pending approval")).toHaveClass("rounded-full", "bg-yellow-100", "text-yellow-800");
     expect(screen.getByText("Accepted")).toHaveClass("rounded-full", "bg-green-100", "text-green-800");
     expect(screen.getByText("Rejected")).toHaveClass("rounded-full", "bg-red-100", "text-red-700");
+  });
+
+  it("loads the persisted auto-approve internal transfers setting", () => {
+    mockUseGetNgbTransferSettingsQuery.mockReturnValue({
+      data: { autoApproveInternalTransfers: true },
+    });
+
+    render(<NgbTransfersTab ngbId="USA" />);
+
+    expect(mockUseGetNgbTransferSettingsQuery).toHaveBeenCalledWith({ ngb: "USA" });
+    expect(screen.getByRole("checkbox")).toBeChecked();
   });
 });

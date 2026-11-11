@@ -1281,6 +1281,7 @@ public class TournamentsController : ControllerBase
 		[FromRoute] TeamIdentifier teamId)
 	{
 		var userContext = await this.contextAccessor.GetCurrentUserContextAsync();
+		var rosterCertifications = this.dbContext.RefereeCertifications.OrderForRosterDisplay();
 
 		// Verify the team is a participant in the tournament and get roster entries with only needed data
 		var rosterData = await this.dbContext.TournamentTeamParticipants
@@ -1299,10 +1300,8 @@ public class TournamentsController : ControllerBase
 					entry.User.LastName,
 					entry.User.ShowPronouns,
 					entry.User.Pronouns,
-					Certifications = entry.User.RefereeCertifications
-						.Where(rc => rc.ReceivedAt != null && rc.RevokedAt == null)
-						.OrderByDescending(rc => rc.Certification.Level)
-						.ThenByDescending(rc => rc.ReceivedAt)
+					Certifications = rosterCertifications
+						.Where(rc => rc.RefereeId == entry.UserId)
 						.Select(rc => new
 						{
 							rc.Certification.Level,
@@ -1310,6 +1309,7 @@ public class TournamentsController : ControllerBase
 							rc.ReceivedAt
 						})
 						.Take(1)
+						.ToList()
 				}
 			})
 			.ToListAsync(this.HttpContext.RequestAborted);
@@ -1348,7 +1348,7 @@ public class TournamentsController : ControllerBase
 
 			var gender = genderData.ContainsKey(userId) ? genderData[userId] : null;
 
-			// Get the highest certification
+			// Get the highest certification from the user's newest release.
 			var highestCert = entry.User.Certifications.FirstOrDefault();
 
 			return new RosterEntryViewModel

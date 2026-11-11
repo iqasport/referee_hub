@@ -14,6 +14,10 @@ using ManagementHub.Models.Domain.Tournament;
 using ManagementHub.Models.Domain.User;
 using ManagementHub.Models.Enums;
 using ManagementHub.Service.Areas.Tournaments;
+using ManagementHub.Storage;
+using ManagementHub.Storage.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ManagementHub.IntegrationTests;
@@ -680,6 +684,98 @@ public class TournamentRosterApiIntegrationTests : IClassFixture<TestWebApplicat
 		var entriesWithCerts = roster!.Where(e => e.MaxCertification != null).ToList();
 		// This assertion is lenient since test data may or may not have certifications
 		// The important part is that the fields are present and the API doesn't error
+	}
+
+	[Fact]
+	public async Task GetTeamRoster_ShouldSelectHighestCertificationFromNewestHeldRelease()
+	{
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+		var tournamentId = await this.CreateTestTournamentAsync("Certification Selection", TournamentType.Club, "USA", "NYC");
+		var teamId = await this.GetYankeesTeamIdAsync();
+		var participantId = await this.AddTeamToTournamentAsync(tournamentId, teamId);
+
+		await AuthenticationHelper.AuthenticateAsAsync(this._client, "team_manager@example.com", "password");
+		var playerId = await this.GetUserIdByEmailAsync("sarah.player@example.com");
+		var coachId = await this.GetUserIdByEmailAsync("mike.coach@example.com");
+		var updateResponse = await this._client.PutAsJsonAsync(
+			$"/api/v2/tournaments/{tournamentId}/participants/{participantId}/roster",
+			new UpdateRosterDto
+			{
+				Players = new List<RosterPlayerDto>
+				{
+					new RosterPlayerDto { UserId = playerId.ToString(), Number = "7", Gender = "Female" }
+				},
+				Coaches = new List<RosterStaffDto>
+				{
+					new RosterStaffDto { UserId = coachId.ToString() }
+				},
+				Staff = new List<RosterStaffDto>()
+			});
+		updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+		using var scope = this._factory.Services.CreateScope();
+		var dbContext = scope.ServiceProvider.GetRequiredService<ManagementHubDbContext>();
+		var player = await dbContext.Users.WithIdentifier(playerId).SingleAsync();
+		var coach = await dbContext.Users.WithIdentifier(coachId).SingleAsync();
+		var expectedCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Head && c.Version == CertificationVersion.TwentyFour);
+		var otherCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Field && c.Version == CertificationVersion.TwentyTwo);
+		var scorekeeperCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Scorekeeper && c.Version == CertificationVersion.TwentyFour);
+		var fieldCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Field && c.Version == CertificationVersion.TwentyFour);
+		var headCert = await dbContext.Certifications.SingleAsync(c => c.Level == CertificationLevel.Head && c.Version == CertificationVersion.TwentyFour);
+		var expectedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+		var receivedLater = expectedDate.AddDays(10);
+		var addedCertifications = new[]
+		{
+			new ManagementHub.Models.Data.RefereeCertification
+			{
+				Referee = player, Certification = expectedCert, ReceivedAt = expectedDate,
+				CreatedAt = expectedDate, UpdatedAt = expectedDate
+			},
+			new ManagementHub.Models.Data.RefereeCertification
+			{
+				Referee = player, Certification = otherCert, ReceivedAt = receivedLater,
+				CreatedAt = receivedLater, UpdatedAt = receivedLater
+			},
+			new ManagementHub.Models.Data.RefereeCertification
+			{
+				Referee = player, Certification = scorekeeperCert, ReceivedAt = receivedLater,
+				CreatedAt = receivedLater, UpdatedAt = receivedLater
+			},
+			new ManagementHub.Models.Data.RefereeCertification
+			{
+				Referee = coach, Certification = fieldCert, ReceivedAt = expectedDate, RevokedAt = receivedLater,
+				CreatedAt = expectedDate, UpdatedAt = receivedLater
+			},
+			new ManagementHub.Models.Data.RefereeCertification
+			{
+				Referee = coach, Certification = headCert,
+				CreatedAt = expectedDate, UpdatedAt = expectedDate
+			}
+		};
+
+		dbContext.RefereeCertifications.AddRange(addedCertifications);
+		await dbContext.SaveChangesAsync();
+		try
+		{
+			await AuthenticationHelper.AuthenticateAsAsync(this._client, "referee@example.com", "password");
+			var response = await this._client.GetAsync(
+				$"/api/v2/tournaments/{tournamentId}/teams/{participantId}/roster");
+			response.StatusCode.Should().Be(HttpStatusCode.OK);
+			var roster = await response.Content.ReadFromJsonAsync<List<RosterEntryViewModel>>()
+				?? throw new InvalidOperationException("Roster response was null.");
+
+			var playerEntry = roster.Single(entry => entry.Role == RosterRole.Player);
+			playerEntry.MaxCertification.Should().Be(expectedCert.DisplayName);
+			playerEntry.MaxCertificationDate.Should().Be(expectedDate);
+			var coachEntry = roster.Single(entry => entry.Role == RosterRole.Coach);
+			coachEntry.MaxCertification.Should().BeNull();
+			coachEntry.MaxCertificationDate.Should().BeNull();
+		}
+		finally
+		{
+			dbContext.RefereeCertifications.RemoveRange(addedCertifications);
+			await dbContext.SaveChangesAsync();
+		}
 	}
 
 	[Fact]

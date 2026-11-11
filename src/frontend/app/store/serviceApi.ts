@@ -2195,6 +2195,10 @@ export type NgbTransferSettingsRequest = {
   autoApproveInternalTransfers: boolean;
 };
 
+export type NgbTransferSettingsViewModel = {
+  autoApproveInternalTransfers: boolean;
+};
+
 const ngbTransferApi = injectedRtkApi.injectEndpoints({
   endpoints: (build) => ({
     getNgbTransfers: build.query<NgbTransferViewModelFiltered, { ngb: string; filter?: string; page?: number; pageSize?: number }>({
@@ -2218,12 +2222,29 @@ const ngbTransferApi = injectedRtkApi.injectEndpoints({
       }),
       invalidatesTags: (_r, _e, { ngb }) => [{ type: 'NgbTransfer' as never, id: ngb }],
     }),
+    getNgbTransferSettings: build.query<NgbTransferSettingsViewModel, { ngb: string }>({
+      query: ({ ngb }) => ({ url: `/api/v2/Ngbs/${ngb}/settings/transfers` }),
+      providesTags: (_r, _e, { ngb }) => [{ type: 'NgbTransferSettings' as never, id: ngb }],
+    }),
     updateNgbTransferSettings: build.mutation<void, { ngb: string; body: NgbTransferSettingsRequest }>({
       query: ({ ngb, body }) => ({
         url: `/api/v2/Ngbs/${ngb}/settings/transfers`,
         method: 'PUT',
         body,
       }),
+      invalidatesTags: (_r, _e, { ngb }) => [{ type: 'NgbTransferSettings' as never, id: ngb }],
+      async onQueryStarted({ ngb, body }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          ngbTransferApi.util.updateQueryData('getNgbTransferSettings', { ngb }, (draft) => {
+            draft.autoApproveInternalTransfers = body.autoApproveInternalTransfers;
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
     }),
   }),
   overrideExisting: false,
@@ -2233,6 +2254,7 @@ export const {
   useGetNgbTransfersQuery,
   useApproveNgbTransferMutation,
   useRejectNgbTransferMutation,
+  useGetNgbTransferSettingsQuery,
   useUpdateNgbTransferSettingsMutation,
 } = ngbTransferApi;
 export const useGetEligibleNgbsQuery = (
@@ -2245,7 +2267,7 @@ export const useGetEligibleNgbsQuery = (
     ...result,
     data:
       result.data?.items
-        ?.map((ngb: { ngbId?: string }) => ngb.ngbId)
+        ?.map((ngb: { countryCode?: string | null }) => ngb.countryCode)
         .filter((id: string | undefined): id is string => typeof id === "string") ?? [],
   };
 };
